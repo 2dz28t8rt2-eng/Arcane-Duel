@@ -2,8 +2,8 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const files=['assets/art-engine.js','assets/game.js','assets/expansion.js'].map(f=>fs.readFileSync(path.join(root,f),'utf8'));
-function boot(){
- const nodes=new Map(),store=new Map();
+function boot(savedProfile=null){
+ const nodes=new Map(),store=new Map(savedProfile?[['arcane-duel-rpg-profile-v3',savedProfile]]:[]);
  function node(id=''){
   return {id,innerHTML:'',textContent:'',value:'',hidden:false,disabled:false,style:{},dataset:{},
     classList:{add(){},remove(){},toggle(){},contains(k){return k==='hidden'}},
@@ -46,4 +46,18 @@ test('Win-loss intelligence and drop packs survive JSON validation',()=>{
 test('Eight beginner-friendly guide pages and new menu wording',()=>{
  const b=boot(),x=b.run('({nav:navMarkup(),guide:window.ArcaneExpansion.featureCount})');
  assert.match(x.nav,/Freie Duelle/);assert.match(x.nav,/Skills & Perks/);assert.equal(x.guide,8);
+});
+
+test('Real reload validates a purchased ACE, hints and tutorial state without losing progress',()=>{
+ const b=boot();
+ const before=b.run('(()=>{profile.cleared=[1];profile.coins=999999;profile.guideSeen=true;profile.aceHints=[2];profile.tournamentLosses[2]=1;if(!window.ArcaneExpansion.buyAce(1))throw Error("cannot purchase");saveProfile();return {save:JSON.stringify(profile),coin:profile.coins,ace:profile.acePurchased[0],id:window.ArcaneExpansion.aceIds[1]};})()');
+ const reloaded=boot(before.save);
+ const after=reloaded.run('({coin:profile.coins,ace:profile.acePurchased[0],owned:profile.inventory[window.ArcaneExpansion.aceIds[1]],guide:profile.guideSeen,hint:profile.aceHints[0],loss:profile.tournamentLosses[2],level:CARDS.length})');
+ assert.equal(after.coin,before.coin);
+ assert.equal(after.ace,1);
+ assert.equal(after.owned,1);
+ assert.equal(after.guide,true);
+ assert.equal(after.hint,2);
+ assert.equal(after.loss,1);
+ assert.equal(after.level,324);
 });
