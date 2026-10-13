@@ -4,7 +4,7 @@
   "version": "1.8.0-dev.1",
   "description": "Arcane Duel browser card RPG",
   "scripts": {
-    "test": "node --check assets/game.js && node --test tests/*.test.cjs"
+    "test": "node --check assets/art-engine.js && node --check assets/game.js && node --test tests/*.test.cjs"
   },
   "engines": {
     "node": ">=20"
