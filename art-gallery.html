@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcane Duel · Artwork-Galerie · DEV</title><style>
+:root{color-scheme:dark;font-family:Segoe UI,Arial,sans-serif}body{margin:0;background:linear-gradient(170deg,#1b2941,#080d16 62%);color:#f0ebde}
+main{max-width:1300px;margin:auto;padding:24px 22px 60px}h1{font-family:Georgia;color:#f5dda1;font-size:32px;margin-bottom:5px}
+p{color:#bac5d6;line-height:1.65}a{color:#8be9ec}h2{font:700 21px Georgia;color:#f0dbb3;margin:28px 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+article{border:1px solid #a48b635e;background:linear-gradient(145deg,#202c40,#121927);border-radius:12px;overflow:hidden}
+article img{width:100%;aspect-ratio:240/184;object-fit:cover;background:#0c1928}
+article .meta{padding:11px 13px}strong{color:#f1dbab}small{color:#acbacb}
+button{color:#222;background:#f3ce80;border:0;border-radius:8px;padding:10px;font-size:13px;cursor:pointer}
+.notice{border:1px solid #6f6b75;border-radius:9px;background:#131d2d;padding:12px}
+</style><script src="assets/art-engine.js?v=alpha18-art3" defer></script></head>
+<body><main><p><a href="index.html">← Zur Entwicklungsversion</a></p><h1>Arcane Duel · Monsteratelier</h1>
+<p>Diese Galerie zeigt die <b>36 unterschiedlichen Grundsilhouetten</b> aus 12 Kreaturenarten. Sie werden im Spiel mit Elementhintergründen, Ausrüstung, Farbwelt und weiteren ID-abhängigen Details kombiniert. Bereits vorhandene Karten behalten ihre IDs, Werte und Sammlungszugehörigkeit.</p>
+<p class="notice">Nur Vorschau – die Galerie verändert deinen Spielstand nicht. Die Bilder entstehen als SVG direkt im Browser, ohne externe Bilddienste.</p>
+<div id="gallery"></div>
+</main><script>
+window.addEventListener('DOMContentLoaded',()=>{
+const kinds=[
+ ['bird','Vogel / Greif','WIND','#aecfec'],
+ ['knight','Ritter / Wächter','ERDE','#d0c3a0'],
+ ['mage','Magier / Hexe','FEUER','#ec91b5'],
+ ['dragon','Drache / Wyrm','FEUER','#e6a26b'],
+ ['wolf','Wolf / Jäger','DUNKEL','#b398d6'],
+ ['golem','Golem / Koloss','ERDE','#a4bd94'],
+ ['insect','Insekt / Motte','LICHT','#dfbbf4'],
+ ['serpent','Schlange / Leviathan','WASSER','#81cbd8'],
+ ['stag','Hirsch / Naturgeist','ERDE','#b4deaa'],
+ ['goblin','Kobold / Wicht','FEUER','#ecad7e'],
+ ['ray','Rochen / Meeresgeist','WASSER','#86d6f1'],
+ ['spirit','Geist / Alb','DUNKEL','#ae9ed9']
+];
+const root=document.querySelector('#gallery');
+for(const [kind,label,element,color] of kinds){
+ const section=document.createElement('section'),h=document.createElement('h2'),grid=document.createElement('div');
+ h.textContent=label;grid.className='grid';
+ for(let v=0;v<3;v++){
+  let id=0;while(id<999&&window.ArcaneArt.variantForId(id)!==v)id++;
+  const c={id,kind,level:v===2?8:4,element,color,fusionOnly:v===2};
+  const card=document.createElement('article'),img=document.createElement('img'),meta=document.createElement('div');
+  img.src=window.ArcaneArt.makeArt(c);img.alt=label+' Illustration '+(v+1);img.loading='lazy';
+  meta.className='meta';meta.innerHTML='<strong>Grundform '+(v+1)+'</strong><p>Variante '+['I · kompakt','II · dynamisch','III · Elite'][v]+'</p>';
+  card.append(img,meta);grid.append(card);
+ }
+ section.append(h,grid);root.append(section);
+}
+});
+</script></body></html>

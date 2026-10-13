@@ -1,0 +1,42 @@
+name: Arcane Duel smoke tests
+on:
+  push:
+    branches: [development]
+  pull_request:
+    branches: [main, development]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run tests
+        run: npm test
+      - name: Render cards in headless Chrome
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          if [ -z "$CHROME" ]; then
+            echo "No Chrome/Chromium browser installed on runner" >&2
+            exit 1
+          fi
+          python3 -m http.server 8757 --bind 127.0.0.1 >/tmp/arcane-test-server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if curl -fsS http://127.0.0.1:8757/tests/browser-layout.html >/dev/null; then break; fi
+            sleep .4
+          done
+          for size in 1200 410; do
+            echo "Checking card layout at ${size}px viewport..."
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=5000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-layout.html >"/tmp/arcane-layout-${size}.html" 2>/tmp/arcane-chrome.log
+            if ! grep -q 'data-layout-test="pass"' "/tmp/arcane-layout-${size}.html"; then
+              echo "Card layout failed at ${size}px." >&2
+              grep -o 'LAYOUT_FAIL[^<]*' "/tmp/arcane-layout-${size}.html" | head -3 || true
+              tail -25 /tmp/arcane-chrome.log || true
+              exit 1
+            fi
+          done
