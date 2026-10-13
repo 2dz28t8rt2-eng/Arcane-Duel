@@ -12,20 +12,7 @@ const stored={
  bolt, damageFloat, xpHelpText
 };
 
-const aceIds={};
-for(const o of OPPONENTS.slice(1)){
- const sig=CARDS[o.signature];
- const id=addRpgCard({
-  name:o.name+' · Junger Champion',kind:o.kind,element:o.element,color:o.color,
-  source:o.id,level:Math.max(2,o.level-1),
-  atk:round10(sig.atk*.72),def:round10(sig.def*.72),
-  fusionOnly:false,ace:true,rarity:'ace',
-  desc:'Ace-Karte: eine seltene, schwächere Vorstufe des Turnier-Acemonsters.'
- });
- aceIds[o.id]=id;
- CARDS[id].art=window.ArcaneArt?.makeArt(CARDS[id])||makeArt(CARDS[id]);
- RPG_BASE_CARDS.push(CARDS[id]);
-}
+const aceIds=ACE_CARD_IDS; // Already registered by game.js before loading saved profiles.
 const checkIds=(raw,limit=10)=>{
  if(!Array.isArray(raw)||raw.length>limit||new Set(raw).size!==raw.length||raw.some(x=>!Number.isInteger(x)||x<1||x>10))return [];
  return [...raw];
