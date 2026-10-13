@@ -306,7 +306,7 @@ rewardMatch=function(g){
 };
 // Format modal text BEFORE controls receive onclick handlers.
 const baseOpenModal=openModal;
-openModal=function(html){$('modal').classList.remove('guide-modal');return baseOpenModal(formatWording(html));};
+openModal=function(html){$('modal').classList.remove('guide-modal','fusion-choice-modal');return baseOpenModal(formatWording(html));};
 
 showToast=function(msg){
  if(typeof msg==='string'&&/^Wozu|^Was bedeutet|^Wie funktioniert/i.test(msg))return popupHelp('Hilfe',escapeHtml(msg));
