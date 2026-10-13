@@ -51,3 +51,35 @@
 @keyframes ringSpin{from{transform:scale(.5) rotate(-55deg)}to{transform:scale(1.7) rotate(60deg)}}
 @media(max-width:650px){.guide-spread{grid-template-columns:1fr}.guide-page{min-height:0}.guide-modal{width:96vw!important}.guide-footer button{min-width:auto;flex:1}.pack-shortcut{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.charged-opponent,.charged-opponent:before,.impact-shake,.combat-damage,.combat-impact i,.magic-summon,.magic-ring{animation:none!important}}
+
+
+/* Alpha 2.0: deliberately non-accidental profile reset with two visible steps */
+.reset-panel{
+  margin-top:24px;
+  border:1px solid rgba(224,124,115,.6)!important;
+  background:linear-gradient(145deg,rgba(80,33,42,.38),rgba(25,29,45,.95))!important;
+}
+.reset-panel h2{color:#ffb5a7!important}
+.reset-panel p{max-width:72ch;line-height:1.65}
+.btn.reset-continue,.btn.reset-confirm,
+.reset-panel [data-action="reset-profile"]{
+  background:linear-gradient(180deg,#aa4147,#75262f)!important;
+  color:#fff9f3!important;border:1px solid #de9292!important;
+  border-radius:8px;font-weight:800;letter-spacing:.02em;
+  box-shadow:0 2px 10px #120b17aa;
+}
+.btn.reset-confirm:disabled{opacity:.42;cursor:not-allowed;box-shadow:none}
+.btn.reset-continue:not(:disabled):hover,.btn.reset-confirm:not(:disabled):hover,
+.reset-panel [data-action="reset-profile"]:hover{background:#b84e54!important}
+.reset-verification{display:flex;flex-direction:column;gap:10px;margin:16px 0;color:#f8dfd4;font-weight:600}
+.reset-verification strong{color:#ffe8be;letter-spacing:.08em}
+.reset-verification input{
+  width:100%;max-width:380px;min-height:43px;
+  border:1px solid #b9a3a1;background:#182538;color:#fff8e9;
+  padding:10px 14px;border-radius:8px;font:600 16px Segoe UI,sans-serif;
+}
+.reset-verification input:focus{outline:2px solid #ffd3a7;outline-offset:2px}
+.reset-warning,.reset-backup-hint{color:#ffd3be!important;line-height:1.6}
+@media(prefers-reduced-motion:reduce){
+ .btn.reset-continue,.btn.reset-confirm,.reset-panel [data-action="reset-profile"]{transition:none!important}
+}
