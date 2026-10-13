@@ -9,7 +9,7 @@ function boot(admin,storage=new Map(),options={}){
  const nodes=new Map();
  const el=(id='')=>({id,innerHTML:'',textContent:'',hidden:false,disabled:false,value:'',style:{},dataset:{},
   classList:{add(){},remove(){},toggle(){},contains(x){return x==='hidden'}},append(){},appendChild(){},remove(){},
-  setAttribute(){},addEventListener(){},insertAdjacentHTML(){},click(){if(!this.disabled&&typeof this.onclick==='function')this.onclick()},
+  setAttribute(){},addEventListener(){},insertAdjacentHTML(pos,html){if(pos==='beforeend')this.innerHTML+=html},querySelector(){return null},querySelectorAll(){return []},click(){if(!this.disabled&&typeof this.onclick==='function')this.onclick()},
   focus(){},getBoundingClientRect(){return {left:0,top:0,width:100,height:100}}});
  const doc={body:el('body'),getElementById(k){if(!nodes.has(k))nodes.set(k,el(k));return nodes.get(k)},
   querySelectorAll(){return []},querySelector(){return null},createElement:el,addEventListener(){}};
@@ -51,6 +51,8 @@ test('Cannot reset in second dialog without exact typed confirmation',()=>{
  const b=boot(false),initial=b.storage.get(normalKey);
  b.run('window.ArcaneExpansion.showResetConfirmation()');b.click('resetNext1');
  const field=b.get('resetVerifyInput'),confirm=b.get('resetConfirm2');
+ assert.match(b.get('modal').innerHTML,/id="resetConfirm2" disabled/);
+ confirm.disabled=true; // the mocked DOM does not parse the disabled attribute
  assert.equal(confirm.disabled,true);
  confirm.click();assert.equal(b.storage.get(normalKey),initial);
  field.value='reset';field.oninput();assert.equal(confirm.disabled,true);
