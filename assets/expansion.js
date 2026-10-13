@@ -311,6 +311,10 @@ renderMenu=function(){
   '<section class="menu-panel guide-entry"><h2>Duellantenhandbuch</h2><p>Alle Regeln und Mechaniken mit visuellen Beispielen – jederzeit hier nachlesen.</p>'+
   menuButton('📖 Duellantenhandbuch öffnen','guide')+'</section>'+monsterIndexMarkup()+el.innerHTML;
  if(menuTab==='free'){
+  const threshold=Math.max(10,highestCleared()*4+5),dropFactor=Math.max(.4,1-.12*Math.max(0,playerLevel(profile)-threshold));
+  el.insertAdjacentHTML('afterbegin','<section class="menu-panel"><h2>Fortschrittsbonus</h2><p>Bei einem sehr hohen Spielerlevel im Verhältnis zur Turnierstufe werden alte Freie-Duelle-Drops schrittweise seltener. Dein aktueller Drop-Faktor: <b>'+Math.round(dropFactor*100)+' %</b> der normalen Chance. Neue Turnierstufen heben die Grenze an. Die Essenz- und XP-Basisbelohnung bleibt bestehen.</p></section>');
+ }
+ if(menuTab==='free'){
   el.insertAdjacentHTML('afterbegin','<section class="menu-panel auto-history"><h2>⚔ Autokampf-Ergebnisse</h2><p>Die letzten zehn automatischen Kämpfe mit Essenz, XP und Sieg/Niederlage jederzeit ansehen.</p>'+menuButton('Ergebnisbericht öffnen','auto-report')+'</section>');
  }
  if(menuTab==='upgrades'){
