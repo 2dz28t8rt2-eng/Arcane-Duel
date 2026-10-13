@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arcane Duel – Kartenrahmen & Layouttest</title>
+<link rel="stylesheet" href="../assets/styles.css?v=tcg-fix-2">
+<style>
+body{background:#0b1320;color:#e9f1fb;font-family:Segoe UI,Arial,sans-serif;margin:0}
+main{padding:20px;max-width:1180px;margin:auto}
+h1{font-size:24px;color:#ffe5b2}
+p{font-size:14px;color:#c5d3e3}
+a{color:#8de7e8}
+#cards,#boards{display:flex;flex-wrap:wrap;align-items:flex-start;gap:25px;margin:18px 0}
+.fixture{display:grid;gap:7px;justify-items:center}
+.fixture-label{color:#d3d9e6;font-weight:700;font-size:12px;max-width:180px;text-align:center}
+#status{padding:12px;border:1px solid #54647d;border-radius:8px;white-space:pre-wrap;color:#e9f1fb;background:#17253b}
+.test-board{height:112px;width:102px}
+</style>
+<script src="../assets/art-engine.js?v=tcg-art-fix-2" defer></script>
+</head>
+<body>
+<main>
+<p><a href="../index.html">← Zur Alpha 1.8 DEV</a></p>
+<h1>Kartenrahmen – optischer Regressionstest</h1>
+<p>Diese Seite zeigt die echten CSS-Kartenrahmen in verschiedenen Größen. Kein Spielstand wird gelesen oder verändert. Test auf überlappende Wertebereiche und sichtbare Farbunterschiede.</p>
+<output id="status">Layoutprüfung läuft ...</output>
+<h2>Handkarten, Packs und Karten-Großansicht</h2>
+<div id="cards"></div>
+<h2>Duellfeld</h2>
+<div id="boards"></div>
+</main>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const samples=[
+  {label:'Starter · Silber',id:0,kind:'goblin',name:'Funkenkobold',level:2,type:'FEUER',cls:'tc-starter',atk:660,def:740,w:132,h:218},
+  {label:'Fusion · Violett',id:40,kind:'mage',name:'Nachtalb Eileen – Gestalt',level:8,type:'DUNKEL',cls:'tc-fusion',fusionOnly:true,atk:2870,def:1460,w:136,h:224},
+  {label:'Normal · Grün',id:41,kind:'wolf',name:'Dornläuferin',level:3,type:'ERDE',cls:'tc-lv-3',atk:880,def:600,w:132,h:218},
+  {label:'Normal · Blau',id:42,kind:'knight',name:'Runenwächter',level:6,type:'WIND',cls:'tc-lv-6',atk:2440,def:1920,w:136,h:224},
+  {label:'Level 12 · Rot',id:43,kind:'dragon',name:'Der brennende Weltenwyrm',level:12,type:'FEUER',cls:'tc-lv-12',atk:4520,def:3820,w:132,h:218},
+  {label:'Kompakte Sammlung · hohe Werte',id:44,kind:'golem',name:'Felsensouverän von Morgen',level:9,type:'ERDE',cls:'tc-lv-9',atk:123456,def:987654,w:132,h:202},
+  {label:'Großansicht · sehr lange Werte',id:45,kind:'serpent',name:'Leviathan Coru der Sturmtiefen',level:10,type:'WASSER',cls:'tc-lv-10',atk:1234567,def:9876543,w:180,h:340,preview:true}
+ ];
+ const elementColors={FEUER:'#e8a16e',DUNKEL:'#b9a1ea',ERDE:'#91bd97',WIND:'#add9ed',WASSER:'#8de3f2'};
+ const root=document.getElementById('cards');
+ const cards=[];
+ for(const sample of samples){
+  const parent=document.createElement('div');parent.className='fixture'+(sample.preview?' card-preview-panel':'');
+  const cap=document.createElement('div');cap.className='fixture-label';cap.textContent=sample.label;
+  const card=document.createElement('button');card.type='button';card.className='hand-card tc-card '+sample.cls;
+  card.style.width=sample.w+'px';card.style.maxWidth=sample.w+'px';card.style.height=sample.h+'px';
+  card.style.flexBasis='auto';
+  const art=window.ArcaneArt.makeArt({id:sample.id,name:sample.name,kind:sample.kind,element:sample.type,color:elementColors[sample.type],fusionOnly:sample.fusionOnly||false,level:sample.level});
+  card.innerHTML='<div class="hand-title"><span>'+sample.name+'</span><span class="card-attribute">◈</span></div>'+
+   '<div class="hand-stars">'+ '✦'.repeat(sample.level) +'</div>'+
+   '<div class="hand-art"><img alt="" src="'+art+'"></div>'+
+   '<div class="hand-type">[ '+sample.type+' / MONSTER ]</div>'+
+   '<div class="hand-description">Alte Magie und ein sehr langer Beschreibungstext: Ein Wesen von erstaunlicher Stärke.</div>'+
+   '<div class="hand-stats"><span class="stat atk"><span class="stat-label">ATK</span><strong class="stat-value">'+sample.atk+'</strong></span>'+
+   '<span class="stat def"><span class="stat-label">DEF</span><strong class="stat-value">'+sample.def+'</strong></span></div>';
+  parent.append(cap,card);root.append(parent);cards.push({card,sample});
+ }
+ const boards=document.getElementById('boards');
+ for(const sample of [samples[0],samples[1],samples[4]]){
+  const parent=document.createElement('div');parent.className='fixture';
+  const board=document.createElement('div');board.className='board-creature tc-card '+sample.cls+' test-board';
+  board.innerHTML='<img class="board-art" alt="" src="'+window.ArcaneArt.makeArt({id:sample.id,kind:sample.kind,element:sample.type,color:elementColors[sample.type],level:sample.level,fusionOnly:!!sample.fusionOnly})+'"><span class="board-level">Lv '+sample.level+'</span><span class="state-badge">ATK</span><div class="board-name">'+sample.name+'</div><div class="board-stats"><b>⚔'+sample.atk+'</b><b>◆'+sample.def+'</b></div>';
+  const cap=document.createElement('div');cap.className='fixture-label';cap.textContent=sample.label;
+  parent.append(cap,board);boards.append(parent);
+ }
+ const err=[],colors=new Set(),E=.8;
+ const intersects=(a,b)=>a.left<b.right-E&&a.right>b.left+E&&a.top<b.bottom-E&&a.bottom>b.top+E;
+ for(const {card,sample} of cards){
+  const name=sample.label,boxes={
+   title:card.querySelector('.hand-title').getBoundingClientRect(),
+   stars:card.querySelector('.hand-stars').getBoundingClientRect(),
+   art:card.querySelector('.hand-art').getBoundingClientRect(),
+   type:card.querySelector('.hand-type').getBoundingClientRect(),
+   desc:card.querySelector('.hand-description').getBoundingClientRect(),
+   stats:card.querySelector('.hand-stats').getBoundingClientRect(),
+   atk:card.querySelector('.stat.atk').getBoundingClientRect(),
+   def:card.querySelector('.stat.def').getBoundingClientRect(),
+   card:card.getBoundingClientRect()
+  };
+  for(const [a,b] of [['title','stars'],['stars','art'],['art','type'],['type','desc'],['desc','stats'],['atk','def']]){
+   if(intersects(boxes[a],boxes[b]))err.push(name+': '+a+' überlappt '+b);
+  }
+  if(boxes.stats.bottom>boxes.card.bottom+E)err.push(name+': Werte verlassen Karte');
+  if(boxes.stats.height<24)err.push(name+': Werte zu klein');
+  if(getComputedStyle(card.querySelector('.hand-stats')).position!=='static')err.push(name+': Statistik noch absolut');
+  colors.add(getComputedStyle(card).borderTopColor);
+ }
+ if(colors.size<5)err.push('Rahmenfarben unterscheiden sich nicht ausreichend: '+colors.size+' von '+samples.length);
+ const status=document.getElementById('status');
+ if(err.length){status.textContent='LAYOUT_FAIL\n'+err.join('\n');document.body.dataset.layoutTest='fail'}
+ else{status.textContent='LAYOUT_OK – '+cards.length+' Karten, klare Rahmen und kein ATK/DEF-Überlappen';document.body.dataset.layoutTest='pass'}
+});
+</script>
+</body>
+</html>
