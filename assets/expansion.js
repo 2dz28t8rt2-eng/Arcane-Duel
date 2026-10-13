@@ -94,6 +94,8 @@ renderHud=function(){
   b.setAttribute('data-help','Automatikbonus: 50 % Essenz/XP und 20 % Kartenchance statt 30 % und 12 %. Verbraucht eine Ladung pro Autokampf, auch bei Niederlage. Manuelle Duelle geben +1; erster Turniersieg füllt alles auf.');
   b.setAttribute('aria-label','Dropladungen: '+(profile.useDropCharges?'aktiv':'inaktiv')+'. Zum Ein- oder Ausschalten klicken; Hilfe beim Darüberfahren.');
   b.title='Dropladungen: Manuelle Duelle +1, erster Turniersieg volle Aufladung. Bei Auto 50 % Essenz/XP und 20 % Kartenchance.';
+  const oldClick=b.onclick;
+  b.onclick=()=>{oldClick?.();if(uiMode==='menu')renderMenu();};
  }
  if($('hudShardsHelp'))$('hudShardsHelp').onclick=()=>popupHelp('Splitter sammeln und einsetzen',
   'Splitter sind an den jeweiligen Gegner gebunden. Du erhältst sie durch Duelle und kannst im Deckbau damit Karten herstellen. Für eine Herstellung benötigst du normalerweise 20 passende Splitter plus Essenz.');
@@ -118,7 +120,8 @@ regularOpponentPanel=function(o,tournament){
  const power=boosted?.5:.3,drop=boosted?20:12;
  const k=packKey(o.id,difficultySelection[o.id]);
  const totalCoins=Math.floor(o.coins*(difficultySelection[o.id]==='hard'?1.6:1)*(1+.05*profile.upgrades.loot)*power);
- const totalXp=Math.floor(o.xp*(difficultySelection[o.id]==='hard'?1.6:1)*(1+.1*profile.upgrades.learning)*power);
+ const noviceBonus=Math.max(0,10-playerLevel(profile))*.065;
+ const totalXp=Math.floor(o.xp*(difficultySelection[o.id]==='hard'?1.6:1)*(1+.1*profile.upgrades.learning)*power*(1+noviceBonus));
  const extra='<div class="reward-preview"><strong>'+(boosted?'✦ DROPLADUNG AKTIV':'Aktuelle Autokampf-Beute')+'</strong>'+
   '<div>'+fmt(totalCoins)+' Essenz · '+fmt(totalXp)+' XP · '+(boosted?'2':'1')+' Splitter · Kartenchance '+drop+' %</div>'+
   '<small>'+ (boosted?'Der nächste automatische Kampf verbraucht eine Ladung.':'Aktiviere oben die Dropladungen, um den besseren Ertrag zu sehen.')+'</small></div>'+
@@ -229,7 +232,7 @@ rewardMatch=function(g){
 };
 // Format modal text BEFORE controls receive onclick handlers.
 const baseOpenModal=openModal;
-openModal=function(html){return baseOpenModal(formatWording(html));};
+openModal=function(html){$('modal').classList.remove('guide-modal');return baseOpenModal(formatWording(html));};
 
 showToast=function(msg){
  if(typeof msg==='string'&&/^Wozu|^Was bedeutet|^Wie funktioniert/i.test(msg))return popupHelp('Hilfe',escapeHtml(msg));
