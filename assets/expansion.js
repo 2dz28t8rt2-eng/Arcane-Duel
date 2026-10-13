@@ -215,6 +215,8 @@ function buyHint(id){
 
 menuAction=function(d){
  if(d.action==='reset-profile'){showResetConfirmation();return;}
+ if(d.action==='monster-index-next'){monsterIndexPage++;renderMenu();return;}
+ if(d.action==='monster-index-prev'){monsterIndexPage=Math.max(0,monsterIndexPage-1);renderMenu();return;}
  if(d.action==='auto-report'){showAutoReport();return;}
  if(d.action==='fusion-pack'){if(buyFusionPack()){renderMenu();popupHelp('Fusionsbooster geöffnet','Du hast <b>'+escapeHtml(CARDS[profile.lastBooster.cards[0]].name)+'</b> erhalten.');}else popupHelp('Fusionsbooster','Zu wenig Essenz oder noch keine geeignete Fusion freigeschaltet.');return;}
  if(profile.rewardQueue.length){showMilestone();return;}
@@ -277,6 +279,13 @@ function showAutoReport(){
  '<button class="btn primary" id="autoReportClose">Schließen</button>'));
  $('autoReportClose').onclick=hideModal;
 }
+let monsterIndexPage=0;
+function monsterIndexMarkup(){
+ const catalog=CARDS.filter(c=>c.rpg&&!c.milestoneOnly),known=catalog.filter(c=>ownsCard(c.id)),pages=Math.max(1,Math.ceil(catalog.length/12));
+ monsterIndexPage=Math.min(monsterIndexPage,pages-1);
+ const slice=catalog.slice(monsterIndexPage*12,(monsterIndexPage+1)*12);
+ return '<section class="menu-panel monster-index"><h2>Monsterlexikon</h2><p>'+known.length+' von '+catalog.length+' Monsterarten entdeckt. Noch nicht besessene Monster bleiben verborgen.</p><div class="monster-index-grid">'+slice.map(c=>ownsCard(c.id)?'<article class="monster-index-entry"><img src="'+c.art+'" alt="'+escapeHtml(c.name)+'"><b>'+escapeHtml(c.name)+'</b><small>Level '+c.level+' · '+c.element+' · ATK '+fmt(c.atk)+' · DEF '+fmt(c.def)+'</small></article>':'<article class="monster-index-entry undiscovered"><div class="monster-silhouette" aria-label="Noch nicht entdeckt">?</div><b>Unbekannt</b><small>Noch nicht entdeckt</small></article>').join('')+'</div><div class="monster-index-pages">'+menuButton('← Zurück','monster-index-prev','',monsterIndexPage===0)+'<span>Seite '+(monsterIndexPage+1)+' / '+pages+'</span>'+menuButton('Weiter →','monster-index-next','',monsterIndexPage>=pages-1)+'</div></section>';
+}
 function bindCollectionFilters(){
  const root=$('menuContent'),grid=root.querySelector('.collection-grid');if(!grid)return;
  const cards=sourceCards(menuTab==='fusions'),items=[...grid.querySelectorAll('.collection-item')];
@@ -300,7 +309,7 @@ renderMenu=function(){
  if(!el)return;
  if(menuTab==='lexicon')el.innerHTML=
   '<section class="menu-panel guide-entry"><h2>Duellantenhandbuch</h2><p>Alle Regeln und Mechaniken mit visuellen Beispielen – jederzeit hier nachlesen.</p>'+
-  menuButton('📖 Duellantenhandbuch öffnen','guide')+'</section>'+el.innerHTML;
+  menuButton('📖 Duellantenhandbuch öffnen','guide')+'</section>'+monsterIndexMarkup()+el.innerHTML;
  if(menuTab==='free'){
   el.insertAdjacentHTML('afterbegin','<section class="menu-panel auto-history"><h2>⚔ Autokampf-Ergebnisse</h2><p>Die letzten zehn automatischen Kämpfe mit Essenz, XP und Sieg/Niederlage jederzeit ansehen.</p>'+menuButton('Ergebnisbericht öffnen','auto-report')+'</section>');
  }
