@@ -1,0 +1,56 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Alpha 2.0 – Reset-Browsertest</title>
+<style>body{background:#141d2b;color:#f1ebd7;font:14px Segoe UI,Arial,sans-serif;padding:20px}iframe{width:100%;height:550px;border:1px solid #6b6986}#result{white-space:pre-wrap}</style></head>
+<body><h1>Arcane Duel – Reset-Test</h1><pre id="result">Teste ...</pre><iframe id="gameFrame" title="Testspiel"></iframe>
+<script>
+/* Only run in CI's temporary localhost instance – never overwrite a player's actual save. */
+const result=document.querySelector('#result'),frame=document.querySelector('#gameFrame');
+const report=[],fail=[];
+function expect(check,label){report.push((check?'OK: ':'FEHLER: ')+label);if(!check)fail.push(label);}
+function loadFrame(page){
+ return new Promise((resolve,reject)=>{
+  frame.addEventListener('load',()=>resolve(frame.contentWindow),{once:true});
+  frame.src=page;
+  setTimeout(()=>reject(Error('Ladezeit überschritten: '+page)),7000);
+ });
+}
+(async()=>{
+ if(!['localhost','127.0.0.1'].includes(location.hostname)){
+  result.textContent='Dieser destruktive Test ist ausschließlich für die lokale CI-Testumgebung freigeschaltet.';
+  document.body.dataset.resetUiTest='skipped';
+  return;
+ }
+ try{
+  const normal=await loadFrame('../index.html');
+  const d=normal.document;
+  expect(!!normal.ArcaneExpansion&&normal.ArcaneExpansion.version==='2.0.0-dev','Alpha 2.0 normal geladen');
+  d.getElementById('guideClose')?.click();
+  d.getElementById('helpDismiss')?.click();
+  normal.eval('profile.coins=12345;profile.guideSeen=true;saveProfile();menuTab="settings";renderMenu();');
+  expect(!!d.querySelector('[data-action="reset-profile"]'),'Reset-Knopf sichtbar im Spielstand-Tab');
+  d.querySelector('[data-action="reset-profile"]').click();
+  expect(d.getElementById('modal').textContent.includes('Spielstand zurücksetzen?'),'Bestätigung 1 wird angezeigt');
+  d.getElementById('resetCancel1')?.click();
+  expect(normal.eval('profile.coins')===12345,'Abbrechen 1 lässt Essenz unverändert');
+  d.querySelector('[data-action="reset-profile"]').click();
+  d.getElementById('resetNext1').click();
+  const confirm=d.getElementById('resetConfirm2'),field=d.getElementById('resetVerifyInput');
+  expect(!!confirm&&confirm.disabled,'Bestätigung 2 ist anfangs gesperrt');
+  field.value='falsch';field.dispatchEvent(new Event('input',{bubbles:true}));
+  expect(confirm.disabled,'Falsche Texteingabe bleibt gesperrt');
+  field.value='ZURÜCKSETZEN';field.dispatchEvent(new Event('input',{bubbles:true}));
+  expect(!confirm.disabled,'Exakte Texteingabe gibt zweite Bestätigung frei');
+  // Clicking final confirmation causes iframe navigation; set listener first.
+  const reloaded=new Promise(resolve=>frame.addEventListener('load',()=>resolve(frame.contentWindow),{once:true}));
+  confirm.click();
+  const n2=await reloaded;
+  expect(n2.eval('profile.coins')===0,'Nach Zurücksetzen normaler Spielstand auf Startwert');
+  expect(n2.eval('profile.trainingWins')===0,'Trainingsfortschritt ebenfalls zurückgesetzt');
+  const admin=await loadFrame('../admin.html');
+  expect(admin.eval('profile.coins')===999999999,'Admin-Testprofil wurde nicht verändert');
+  expect(admin.eval('profile.guideSeen')===true,'Admin hat weiterhin vollständig freigeschaltetes Profil');
+  expect(admin.localStorage.getItem('arcane-duel-rpg-profile-v3')!==admin.localStorage.getItem('arcane-duel-admin-profile-v3'),'Profile liegen in getrennten Speicherbereichen');
+ }catch(err){fail.push(err.message);report.push('EXCEPTION: '+(err.stack||err.message).slice(0,550));}
+ result.textContent=report.join('\n');
+ document.body.dataset.resetUiTest=fail.length?'fail':'pass';
+})();
+</script></body></html>
