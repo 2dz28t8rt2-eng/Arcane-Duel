@@ -9,7 +9,7 @@ iframe.addEventListener('load',()=>{
  function expect(check,label){steps.push((check?'OK: ':'FEHLER: ')+label);if(!check)pass=false;}
  try{
   const w=iframe.contentWindow,d=w.document;
-  expect(!!w.ArcaneExpansion,'Alpha 1.9 extension available');
+  expect(!!w.ArcaneExpansion,'Alpha 2.2 extension available');
   expect(d.querySelector('.guide-spread')!==null,'First-run guide has double page');
   d.getElementById('guideNext')?.click();
   expect(d.querySelector('.guide-header')?.textContent.includes('Deine Monsterkarten'),'Guide navigates to next chapter');
