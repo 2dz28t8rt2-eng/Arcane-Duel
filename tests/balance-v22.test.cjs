@@ -107,3 +107,49 @@ test('2.1: first tournament win refills charges; rematches cannot farm full refi
  assert.equal(x.initialFirst,true);assert.equal(x.refilled,true);assert.equal(x.after,x.cap);
  assert.equal(x.rematchFirst,false);assert.equal(x.rematchCharge,1);
 });
+
+test('2.1: first tournament victory that reaches level 10 refills the new larger charge capacity',()=>{
+ const run=engine(),x=run(function(){
+ profile.xp=levelFloor(10)-1;
+ profile.milestones=[5];
+ profile.dropCharges=0;
+ const g=createGame({id:'level-10-first-tourney',mode:'pve',context:'tournament',opponentId:1,seed:995,starter:0});
+ g.winner=0;
+ const result=rewardMatch(g);
+ return {first:result.first,refilled:result.refilled,cap:dropChargeCap(),charges:profile.dropCharges,level:playerLevel(profile),ten:profile.milestones.includes(10)};
+ });
+ assert.equal(x.first,true);assert.equal(x.refilled,true);
+ assert.equal(x.ten,true);assert.ok(x.level>=10);assert.equal(x.cap,6);assert.equal(x.charges,x.cap);
+});
+test('2.2: damage decay is bounded at 20 per round (10 for starters) and attacks cost exactly 30 ATK',()=>{
+ const run=engine(),x=run(function(){
+ function decay(kind){
+  const g=createGame({mode:'pve',opponentId:2,seed:122,starter:0});
+  const c=newInstance(g,kind==='fusion'?RPG_START_FUSIONS[1]:kind==='starter'?0:20,0);
+  c.decayClass=kind;c.fusion=kind==='fusion';
+  c.card.atk=4000;c.card.def=4000;
+  c.summonedTurn=1;
+  g.players[0].field[0]=c;
+  const losses=[];
+  for(let i=0;i<8;i++){
+   const last=c.decayTotal||0;
+   advanceTurn(g);advanceTurn(g);
+   losses.push((c.decayTotal||0)-last);
+  }
+  return losses;
+ }
+ return {fusion:decay('fusion'),regular:decay('normal'),starter:decay('starter')};
+ });
+ assert.deepEqual(x.fusion,[0,50,45,40,35,30,25,20]);
+ assert.deepEqual(x.regular,[0,30,25,20,20,20,20,20]);
+ assert.deepEqual(x.starter,[0,20,15,10,10,10,10,10]);
+});
+test('2.1: ACE remains separately marked in card, collection and battlefield',()=>{
+ const run=engine(),x=run(function(){
+ const id=ACE_CARD_IDS[1];
+ return {id,ace:CARDS[id].ace,hand:fullCardHtml({id}),board:(()=>{const g=createGame({mode:'pve',starter:0,opponentId:2,seed:1});const c=newInstance(g,id,0);return cardHtml(c,0);})()};
+ });
+ assert.equal(x.ace,true);
+ assert.match(x.hand,/tc-ace/);assert.match(x.hand,/ace-stamp/);
+ assert.match(x.board,/tc-ace/);assert.match(x.board,/board-ace-stamp/);
+});
