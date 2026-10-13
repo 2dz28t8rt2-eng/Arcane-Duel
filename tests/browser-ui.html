@@ -31,8 +31,10 @@ iframe.addEventListener('load',()=>{
   expect(w.eval('profile.openPack===null'),'Quick-open pack can be completed and closed');
   w.eval('menuTab="shop";renderMenu()');
   expect(d.querySelector('.ace-market')!==null,'ACE market available after tournament victory');
+  expect(d.querySelector('.ace-market .ace-thumbnail')!==null,'ACE shop shows its own card artwork and rarity label');
   d.querySelector('[data-action="buy-ace"][data-id="1"]')?.click();
   expect(w.eval('profile.acePurchased.includes(1)'),'ACE can be purchased once');
+  expect(w.eval('fullCardHtml({id:ACE_CARD_IDS[1]}).includes("tc-ace")'),'Owned ACE has special illustrated card category');
   d.getElementById('helpDismiss')?.click();
   w.eval('menuTab="free";renderMenu();startDuel("pve",1,"free","easy")');
   expect(d.getElementById('modalGo')?.textContent.includes('DUELL STARTEN'),'Duel start modal available');
