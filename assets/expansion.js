@@ -406,7 +406,7 @@ fusionAnimation=async function(level){
 };
 
 window.ArcaneExpansion={
- version:'2.2.0-dev',aceIds,aceCost,buyAce,buyHint,showGuide,resetCurrentProfile,showResetConfirmation,
+ version:'2.2.0-dev',aceIds,aceCost,buyAce,buyHint,buyFusionPack,fusionPackPrice,showGuide,resetCurrentProfile,showResetConfirmation,
  featureCount:pages.length,closeGuide:finishGuide
 };
 if(!profile.guideSeen&&!profile.rewardQueue.length&&!profile.openPack&&!profile.activeDuel)showGuide(0);
