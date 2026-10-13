@@ -59,7 +59,6 @@ Die acht Kapitel im Duellantenhandbuch, Lootboost-Animationen, Pack-Schnellöffn
 
 ## Manuelle Testempfehlung
 
-1. Vor dem Test den bisherigen Spielstand als JSON exportieren; Normal- und Admin-Spielstand getrennt prüfen.
 2. Ein Turnier erstmals besiegen (volle Dropladungen, konkrete Gewinnprämien); denselben Gegner erneut besiegen (kein erneutes Auffüllen).
 3. Nach einer Niederlage geschätzten Ace-Stärkebereich und gekauften Hinweis prüfen.
 4. Ace nach Turniersieg einmal kaufen, Karte im Deck verwenden, Spiel neu laden und ACE-Rahmen/Boostershop prüfen.
@@ -71,6 +70,7 @@ Die acht Kapitel im Duellantenhandbuch, Lootboost-Animationen, Pack-Schnellöffn
 ## Vorschau
 
 - Normal: https://raw.githack.com/2dz28t8rt2-eng/Arcane-Duel/development/index.html
-- Admin: https://raw.githack.com/2dz28t8rt2-eng/Arcane-Duel/development/admin.html
 
 **Nur `development`: `main` bleibt öffentlich auf Alpha 1.8.**
+
+> **Aktueller Hinweis:** Die separate Admin-Version wurde entfernt. Es gibt nur noch `index.html` mit dem regulären Spielstand unter `arcane-duel-rpg-profile-v3`. Alte Admin-Daten werden weder importiert noch gelöscht.
