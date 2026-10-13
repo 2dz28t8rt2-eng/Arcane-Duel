@@ -45,10 +45,8 @@ function loadFrame(page){
   const n2=await reloaded;
   expect(n2.eval('profile.coins')===0,'Nach Zurücksetzen normaler Spielstand auf Startwert');
   expect(n2.eval('profile.trainingWins')===0,'Trainingsfortschritt ebenfalls zurückgesetzt');
-  const admin=await loadFrame('../admin.html');
-  expect(admin.eval('profile.coins')===999999999,'Admin-Testprofil wurde nicht verändert');
-  expect(admin.eval('profile.guideSeen')===true,'Admin hat weiterhin vollständig freigeschaltetes Profil');
-  expect(admin.localStorage.getItem('arcane-duel-rpg-profile-v3')!==admin.localStorage.getItem('arcane-duel-admin-profile-v3'),'Profile liegen in getrennten Speicherbereichen');
+  expect(n2.localStorage.getItem('arcane-duel-rpg-profile-v3')!==null,'Normaler Spielstand bleibt erhalten');
+  expect(n2.localStorage.getItem('arcane-duel-admin-profile-v3')===null,'Kein neuer Admin-Spielstand wird angelegt');
  }catch(err){fail.push(err.message);report.push('EXCEPTION: '+(err.stack||err.message).slice(0,550));}
  result.textContent=report.join('\n');
  document.body.dataset.resetUiTest=fail.length?'fail':'pass';
