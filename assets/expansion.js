@@ -140,6 +140,7 @@ function buyHint(id){
 }
 
 menuAction=function(d){
+ if(profile.rewardQueue.length){showMilestone();return;}
  if(d.action==='quick-pack'){const id=Number(d.id);if(openCharacterPack(id,d.mode||'easy'))showPack();else popupHelp('Kein Pack verfügbar','Für diesen Duellanten hast du gerade kein vollständiges Pack. Gewonnene Duelle füllen den Packfortschritt.');return;}
  if(d.action==='buy-ace'){if(buyAce(Number(d.id))){renderMenu();popupHelp('Ace-Monster freigeschaltet!','Deine neue Ace-Karte ist in der Sammlung. Sie kann nun mit einer sehr geringen Chance im Booster-Shop erscheinen.');}else popupHelp('Kauf nicht möglich','Du musst diesen Turniergegner besiegt haben, genug Essenz besitzen und darfst sein einmaliges Ace-Angebot noch nicht gekauft haben.');return;}
  if(d.action==='buy-hint'){const id=Number(d.id);if(buyHint(id)){renderMenu();popupHelp('Neuer Hinweis',OPPONENTS[id].name+' bevorzugt '+(OPPONENTS[id].policy==='guardian'?'defensive Spielzüge.':'seine gewohnte Kampfstrategie.')+' Beobachte die Reihenfolge seiner Fusionen.');}return;}
@@ -205,7 +206,7 @@ renderMenu=function(){
  el.innerHTML=formatWording(el.innerHTML);
  const hero=$('menuHero');if(hero)hero.innerHTML=formatWording(hero.innerHTML);
  bindMenu();
- if(menuTab==='lexicon')el.querySelector('[data-action="guide"]')?.addEventListener('click',()=>showGuide(0));
+ if($('alwaysXPHelp'))$('alwaysXPHelp').onclick=showXPHelp;
 };
 stored.showFinished=stored.showFinished||showFinished;
 showFinished=function(){
@@ -226,12 +227,9 @@ rewardMatch=function(g){
  if(before&&ret){profile.tournamentLosses[g.opponentId]=(profile.tournamentLosses[g.opponentId]||0)+1;saveProfile();}
  return ret;
 };
-const origAsc=showCopyAscension;
-showCopyAscension=function(id){origAsc(id);const modal=$('modal');if(modal)modal.innerHTML=formatWording(modal.innerHTML)};
-const origSell=showSell;
-showSell=function(id){origSell(id);const modal=$('modal');if(modal)modal.innerHTML=formatWording(modal.innerHTML)};
-const origSalvage=showSalvage;
-showSalvage=function(id){origSalvage(id);const modal=$('modal');if(modal)modal.innerHTML=formatWording(modal.innerHTML)};
+// Format modal text BEFORE controls receive onclick handlers.
+const baseOpenModal=openModal;
+openModal=function(html){return baseOpenModal(formatWording(html));};
 
 showToast=function(msg){
  if(typeof msg==='string'&&/^Wozu|^Was bedeutet|^Wie funktioniert/i.test(msg))return popupHelp('Hilfe',escapeHtml(msg));
