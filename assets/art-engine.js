@@ -95,11 +95,22 @@ function gear(c,variant){
  return elements[choice];
 }
 function sigil(c){const x=11+(hash(c.id,10)%19),count=3+hash(c.id,13)%5;let a='';for(let i=0;i<count;i++){const ang=(i*6.283/count);const xx=120+Math.cos(ang)*84,yy=89+Math.sin(ang)*65;a+=O(xx.toFixed(1),yy.toFixed(1),2+(i%2),2+(i%2),'#fff0c9','none',0);}return a+L('M'+x+' 168 L'+(x+15)+' 168',2,'#dfb87b');}
+/* Das SVG enthält selbst einen Innenrahmen. Er muss die TCG-Kategorie
+ * spiegeln, sonst überdeckt sein bisheriger Goldton die Kartenrahmen. */
+const cardFrameColors=['#c7cbd1','#cdb58b','#95c887','#70c7b3',
+ '#7ebfe6','#729ce4','#868cdb','#b48bdd','#d78cc4',
+ '#e4a370','#df8668','#e26c71'];
+function artFrameColor(c){
+ if(c.id<20)return '#dce4ee';
+ if(c.fusionOnly||c.manifestOf!=null)return '#b8a0f3';
+ const level=Math.max(1,Math.min(12,Math.trunc(Number(c.level)||1)));
+ return cardFrameColors[level-1];
+}
 function makeArt(c){
  const id=c.id||0,variant=hash(id,0)%3,kind=species[c.kind]?c.kind:'spirit';
  const figure=species[kind][variant],env=backgrounds[c.element]||backgrounds.DUNKEL;
  const flip=hash(id,9)%2?-1:1,scale=.87+(hash(id,11)%8)*.018,dx=(hash(id,12)%17)-8;
- const elite=!!c.fusionOnly||c.level>=7;
+ const elite=!!c.fusionOnly||c.manifestOf!=null||c.level>=7,frameTone=artFrameColor(c);
  const ambient=Array.from({length:12},(_,i)=>{const x=hash(id,i)%240,y=hash(id,i+32)%184;return O(x,y,(i%3)+1,(i%3)+1,'#fff2cb','none',0)}).join('');
  const titleMark=elite?O(120,92,80,74,'none','#f5d598',2)+P('M119 9 L133 28 L120 44 L106 27 Z','url(#metal)'):'';
  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 184" role="img" aria-label="Kartenillustration">'+
@@ -115,10 +126,10 @@ function makeArt(c){
  O(123,113,56,40,c.color,'none',0).replace('"/>','" opacity=".14" filter="url(#halo)"/>')+
  figure+gear(c,variant)+
  '</g>'+sigil(c)+
- '<rect x="3" y="3" width="234" height="178" rx="6" fill="none" stroke="#dcb477" stroke-width="'+(elite?3:1.7)+'" opacity=".88"/>'+
- '<path d="M8 26 V8 H32 M208 8 H232 V26 M8 156 V176 H32 M208 176 H232 V156" fill="none" stroke="#ffdfa2" stroke-width="2"/>'+
+ '<rect x="3" y="3" width="234" height="178" rx="6" fill="none" stroke="'+frameTone+'" stroke-width="'+(elite?3:2)+'" opacity=".94"/>'+
+ '<path d="M8 26 V8 H32 M208 8 H232 V26 M8 156 V176 H32 M208 176 H232 V156" fill="none" stroke="'+frameTone+'" stroke-width="2.4"/>'+
  '</svg>';
  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
 }
-window.ArcaneArt={makeArt,variantForId:id=>hash(id,0)%3,version:'2.0',variantsPerSpecies:3,speciesCount:Object.keys(species).length};
+window.ArcaneArt={makeArt,frameColor:artFrameColor,variantForId:id=>hash(id,0)%3,version:'2.1',variantsPerSpecies:3,speciesCount:Object.keys(species).length};
 })();
