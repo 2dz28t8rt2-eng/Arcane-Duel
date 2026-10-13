@@ -215,6 +215,7 @@ function buyHint(id){
 
 menuAction=function(d){
  if(d.action==='reset-profile'){showResetConfirmation();return;}
+ if(d.action==='auto-report'){showAutoReport();return;}
  if(d.action==='fusion-pack'){if(buyFusionPack()){renderMenu();popupHelp('Fusionsbooster geöffnet','Du hast <b>'+escapeHtml(CARDS[profile.lastBooster.cards[0]].name)+'</b> erhalten.');}else popupHelp('Fusionsbooster','Zu wenig Essenz oder noch keine geeignete Fusion freigeschaltet.');return;}
  if(profile.rewardQueue.length){showMilestone();return;}
  if(d.action==='quick-pack'){const id=Number(d.id);if(openCharacterPack(id,d.mode||'easy'))showPack();else popupHelp('Kein Pack verfügbar','Für diesen Duellanten hast du gerade kein vollständiges Pack. Gewonnene Duelle füllen den Packfortschritt.');return;}
@@ -268,6 +269,14 @@ function formatWording(html){
   .replaceAll('Kopie(n)','Karten').replaceAll('Exemplar(e)','Karten im Besitz')
   .replaceAll('Exemplare','Karten im Besitz').replaceAll('Exemplar','Karte');
 }
+function showAutoReport(){
+ const fights=profile.history.filter(h=>h.context==='auto').slice(0,10);
+ const wins=fights.filter(h=>h.win).length,coins=fights.reduce((n,h)=>n+h.coins,0),xp=fights.reduce((n,h)=>n+h.xp,0);
+ openModal(modalHtml('AUTOKAMPF-BERICHT','Deine letzten '+fights.length+' Kämpfe','⚔','Hier kannst du die letzten automatischen Kämpfe jederzeit nachlesen.',
+ '<div class="info-pills"><span>'+wins+' Siege</span><span>+'+fmt(coins)+' Essenz</span><span>+'+fmt(xp)+' XP</span></div><ol class="auto-report-list">'+fights.map(h=>'<li><b>'+(h.win?'✦ Sieg':'✕ Niederlage')+'</b> gegen '+escapeHtml(OPPONENTS[h.opponent].name)+' · +'+fmt(h.coins)+' Essenz · +'+fmt(h.xp)+' XP</li>').join('')+'</ol>',
+ '<button class="btn primary" id="autoReportClose">Schließen</button>'));
+ $('autoReportClose').onclick=hideModal;
+}
 function bindCollectionFilters(){
  const root=$('menuContent'),grid=root.querySelector('.collection-grid');if(!grid)return;
  const cards=sourceCards(menuTab==='fusions'),items=[...grid.querySelectorAll('.collection-item')];
@@ -292,6 +301,9 @@ renderMenu=function(){
  if(menuTab==='lexicon')el.innerHTML=
   '<section class="menu-panel guide-entry"><h2>Duellantenhandbuch</h2><p>Alle Regeln und Mechaniken mit visuellen Beispielen – jederzeit hier nachlesen.</p>'+
   menuButton('📖 Duellantenhandbuch öffnen','guide')+'</section>'+el.innerHTML;
+ if(menuTab==='free'){
+  el.insertAdjacentHTML('afterbegin','<section class="menu-panel auto-history"><h2>⚔ Autokampf-Ergebnisse</h2><p>Die letzten zehn automatischen Kämpfe mit Essenz, XP und Sieg/Niederlage jederzeit ansehen.</p>'+menuButton('Ergebnisbericht öffnen','auto-report')+'</section>');
+ }
  if(menuTab==='upgrades'){
   const h=el.querySelector('h2');if(h)h.textContent='Skills & Perks';
   const intro=el.querySelector('.menu-panel > p');if(intro)intro.textContent='Wähle Kampf-, Fusions- und Komfortvorteile. Monstertraining hat abnehmende Boni.';
