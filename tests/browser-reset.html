@@ -1,4 +1,4 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Alpha 2.0 – Reset-Browsertest</title>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Alpha 2.2 – Reset-Browsertest</title>
 <style>body{background:#141d2b;color:#f1ebd7;font:14px Segoe UI,Arial,sans-serif;padding:20px}iframe{width:100%;height:550px;border:1px solid #6b6986}#result{white-space:pre-wrap}</style></head>
 <body><h1>Arcane Duel – Reset-Test</h1><pre id="result">Teste ...</pre><iframe id="gameFrame" title="Testspiel"></iframe>
 <script>
@@ -22,7 +22,7 @@ function loadFrame(page){
  try{
   const normal=await loadFrame('../index.html');
   const d=normal.document;
-  expect(!!normal.ArcaneExpansion&&normal.ArcaneExpansion.version==='2.0.0-dev','Alpha 2.0 normal geladen');
+  expect(!!normal.ArcaneExpansion&&normal.ArcaneExpansion.version==='2.2.0-dev','Alpha 2.2 normal geladen');
   d.getElementById('guideClose')?.click();
   d.getElementById('helpDismiss')?.click();
   normal.eval('profile.coins=12345;profile.guideSeen=true;saveProfile();menuTab="settings";renderMenu();');
