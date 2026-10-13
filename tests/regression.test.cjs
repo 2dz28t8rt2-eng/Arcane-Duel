@@ -84,3 +84,32 @@ test('Externer Speicherkonflikt überschreibt keine neueren Daten',()=>{
  assert.equal(app.store.get(key),updated);
  assert.equal(app.run('storageConflict'),true);
 });
+
+test('Boostergrößen und Preisstaffel sind konsistent',()=>{
+ const r=boot().run("(()=>{const sizes=[1,3,5,10],data=sizes.map(n=>({n,price:boosterPrice(2,n),cards:rollBooster(2,{seed:173},n).length}));return data;})()");
+ assert.deepEqual(r.map(x=>x.cards),[1,3,5,10]);for(let i=0;i<r.length-1;i++)assert.ok(r[i].price/r[i].n>r[i+1].price/r[i+1].n);
+});
+
+test('Charakterpacks haben eine niedrigere relative Seltenheit als normale Drops',()=>{
+ const r=boot().run("(()=>{const rare=x=>x.filter(y=>CARDS[y.id].fusionOnly||CARDS[y.id].manifestOf).reduce((a,y)=>a+y.weight,0);return [rare(lootWeights(2,'easy',true)),rare(lootWeights(2,'easy',false))];})()");
+ assert.ok(r[0]<r[1],JSON.stringify(r));
+});
+
+test('Kleine Booster werden im Spielstand akzeptiert',()=>{
+ const b=boot();
+ for(const count of [1,3,5,10]){
+  const r=b.run("(()=>{profile.coins=999999;const n="+count+";if(!buyBooster(n))throw Error('Kauf abgelehnt');const p=validateProfile(JSON.parse(JSON.stringify(profile)));return [p.lastBooster.cards.length,p.coins]})()");
+  assert.equal(r[0],count);
+  assert.ok(r[1]>=0);
+ }
+});
+
+test('Grundausbildung verstärkt nur Startmonster und migriert alte Spielstände',()=>{
+ const b=boot(),r=b.run("(()=>{const p=validateProfile(JSON.parse(JSON.stringify(profile))),old=JSON.parse(JSON.stringify(p));delete old.upgrades.starter;const migrated=validateProfile(old);profile.coins=999999;const before=baseStat(CARDS[0],'atk',{id:0,enhancements:{},power:1}),normal=baseStat(CARDS[RPG_DEFAULT_DECK.find(id=>id>=20)]||CARDS[20],'atk',{id:0,enhancements:{},power:1});if(!buyUpgrade('starter'))throw Error('upgrade failed');const after=baseStat(CARDS[0],'atk',{id:0,enhancements:{},power:1}),ordinary=baseStat(CARDS[RPG_DEFAULT_DECK.find(id=>id>=20)]||CARDS[20],'atk',{id:0,enhancements:{},power:1});return {migrated:migrated.upgrades.starter,delta:after-before,normal:ordinary-normal};})()");
+ assert.equal(r.migrated,0);assert.equal(r.delta,35);assert.equal(r.normal,0);
+});
+
+test('Fusionsregel: höchstens eine Handfusion/Beschwörung pro Zug',()=>{
+ const b=boot(),r=b.run("(()=>{const g=createGame({mode:'pve',starter:0,seed:15}),p=g.players[0],uids=p.hand.slice(0,2).map(x=>x.uid);const first=prepareHandFusion(g,uids,RPG_START_FUSIONS[0]),placed=placePending(g,0),remaining=p.hand.slice(0,2).map(x=>x.uid);const second=prepareHandFusion(g,remaining,RPG_START_FUSIONS[0]);return [first,!!placed,second,g.summoned];})()");
+ assert.deepEqual(plain(r),[true,true,false,true]);
+});
