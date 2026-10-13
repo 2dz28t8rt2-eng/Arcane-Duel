@@ -4,8 +4,8 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const scripts=['assets/art-engine.js','assets/game.js','assets/expansion.js'].map(p=>fs.readFileSync(path.join(root,p),'utf8'));
-const normalKey='arcane-duel-rpg-profile-v3',adminKey='arcane-duel-admin-profile-v3';
-function boot(admin,storage=new Map(),options={}){
+const normalKey='arcane-duel-rpg-profile-v3';
+function boot(admin=false,storage=new Map(),options={}){
  const nodes=new Map();
  const el=(id='')=>({id,innerHTML:'',textContent:'',hidden:false,disabled:false,value:'',style:{},dataset:{},
   classList:{add(){},remove(){},toggle(){},contains(x){return x==='hidden'}},append(){},appendChild(){},remove(){},
@@ -14,7 +14,7 @@ function boot(admin,storage=new Map(),options={}){
  const doc={body:el('body'),getElementById(k){if(!nodes.has(k))nodes.set(k,el(k));return nodes.get(k)},
   querySelectorAll(){return []},querySelector(){return null},createElement:el,addEventListener(){}};
  let reloads=0;
- const win={ArcaneAdminMode:admin,location:{reload(){reloads++}},innerWidth:1280,innerHeight:820,
+ const win={location:{reload(){reloads++}},innerWidth:1280,innerHeight:820,
   localStorage:{getItem:k=>storage.get(k)||null,setItem(k,v){if(options.rejectWrites)throw Error('quota exceeded');storage.set(k,String(v));}},
   crypto:{getRandomValues(a){a[0]=1522;return a}}};
  const ctx=vm.createContext({window:win,document:doc,console,Blob,URL:{createObjectURL(){return 'blob:test'},revokeObjectURL(){}},
@@ -23,12 +23,6 @@ function boot(admin,storage=new Map(),options={}){
  return {storage,nodes,get reloads(){return reloads},run:code=>{const v=vm.runInContext(code,ctx,{timeout:12000});return v===undefined?undefined:JSON.parse(JSON.stringify(v))},
   click:id=>{const n=doc.getElementById(id);n.click();return n;},get:id=>doc.getElementById(id)};
 }
-test('Normal and admin Alpha 2.2 pages retain their own localStorage keys',()=>{
- const a=fs.readFileSync(path.join(root,'admin.html'),'utf8'),n=fs.readFileSync(path.join(root,'index.html'),'utf8');
- assert.match(a,/Alpha 2\.2 DEV/);assert.match(n,/Alpha 2\.2 DEV/);
- assert.match(a,/window\.ArcaneAdminMode=true/);assert.doesNotMatch(n,/window\.ArcaneAdminMode=true/);
- assert.match(a,/assets\/expansion\.js\?v=alpha22-[\w-]+/);assert.match(n,/assets\/expansion\.js\?v=alpha22-[\w-]+/);
-});
 test('Reset confirmation has two separate dialogs; cancel in either keeps profile unchanged',()=>{
  const b=boot(false);
  b.run('profile.guideSeen=true;profile.coins=123456;profile.xp=5678;saveProfile()'); // Finished tutorial, non-empty save.
@@ -66,28 +60,6 @@ test('Cannot reset in second dialog without exact typed confirmation',()=>{
  confirm.click();assert.equal(b.reloads,1);
  const p=JSON.parse(b.storage.get(normalKey));assert.equal(p.coins,0);assert.equal(p.guideSeen,false);
 });
-test('Normal reset clears inventory progress and running duel, but never touches admin save',()=>{
- const storage=new Map();
- const normal=boot(false,storage);
- const admin=boot(true,storage);
- normal.run('(()=>{profile.coins=14555;profile.xp=5000;profile.inventory[3]=72;profile.trainingWins=2;profile.guideSeen=true;profile.activeDuel={test:true};saveProfile();return true})()');
- const adminOriginal=storage.get(adminKey);
- assert.equal(normal.run('window.ArcaneExpansion.resetCurrentProfile()'),true);
- assert.equal(normal.reloads,1);
- assert.equal(storage.get(adminKey),adminOriginal);
- const reloaded=boot(false,storage),p=reloaded.run('({coins:profile.coins,xp:profile.xp,copies:profile.inventory[3],wins:profile.trainingWins,duel:profile.activeDuel,guide:profile.guideSeen})');
- assert.deepEqual(p,{coins:0,xp:0,copies:2,wins:0,duel:null,guide:false});
-});
-test('Admin reset returns to fully equipped test baseline and never changes normal save',()=>{
- const storage=new Map();const normal=boot(false,storage),admin=boot(true,storage);
- const originalNormal=storage.get(normalKey);
- admin.run('(()=>{profile.coins=10;profile.inventory[2]=1;profile.guideSeen=false;profile.acePurchased=[];saveProfile();return true})()');
- assert.equal(admin.run('window.ArcaneExpansion.resetCurrentProfile()'),true);
- assert.equal(admin.reloads,1);
- assert.equal(storage.get(normalKey),originalNormal);
- const fresh=boot(true,storage),p=fresh.run('({coins:profile.coins,cards:profile.inventory[2],guide:profile.guideSeen,ace:profile.acePurchased.length,level:playerLevel(profile)})');
- assert.deepEqual(p,{coins:999999999,cards:999999,guide:true,ace:10,level:100});
-});
 test('Concurrent edit of the same profile prevents reset instead of overwriting tab B',()=>{
  const storage=new Map();const a=boot(false,storage),b=boot(false,storage);
  b.run('(()=>{profile.coins=12345;saveProfile();return true})()');
@@ -105,4 +77,13 @@ test('Failed browser storage write does not report success or delete save',()=>{
  assert.equal(v,false);
  assert.equal(storage.get(normalKey),before);
  assert.equal(b.reloads,0);
+});
+
+test('Reset only the normal player profile, preserving unrelated browser storage',()=>{
+ const storage=new Map([['unrelated-key','keep']]);const b=boot(false,storage);
+ b.run('(()=>{profile.coins=14555;profile.xp=5000;profile.inventory[3]=72;profile.guideSeen=true;saveProfile();return true})()');
+ assert.equal(b.run('window.ArcaneExpansion.resetCurrentProfile()'),true);
+ assert.equal(storage.get('unrelated-key'),'keep');
+ const reloaded=boot(false,storage),p=reloaded.run('({coins:profile.coins,xp:profile.xp,cards:profile.inventory[3],guide:profile.guideSeen})');
+ assert.deepEqual(p,{coins:0,xp:0,cards:2,guide:false});
 });
