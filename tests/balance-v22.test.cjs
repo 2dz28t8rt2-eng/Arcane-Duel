@@ -20,7 +20,7 @@ test('2.2: 1,000 deterministic PvE duels over all ten tournament opponents',()=>
     const progress=tier>1?themedEnemyLoadout(tier-1,'easy'):null;
     const opts={mode:'pve',context:'tournament',opponentId:tier,
       difficulty:i%5===0?'hard':'easy',starter:i%2,seed:100000+tier*1733+i*31};
-    if(progress){opts.deck=progress.deck;opts.fusionDeck=progress.fusionDeck;}
+    if(progress){opts.deck=progress.deck;opts.fusionDeck=progress.fusionDeck;}else{opts.fusionDeck=[...RPG_START_FUSIONS,...RPG_START_FUSIONS,TRAINING_FUSION];opts.flatBonus=35;} // Training III awards a level-5 fusion before the first tournament.
     const g=createGame(opts);
     simulateGame(g,'balanced',RPG_OPPONENTS[tier].policy);
     if(g.winner===0)wins++;else losses++;
