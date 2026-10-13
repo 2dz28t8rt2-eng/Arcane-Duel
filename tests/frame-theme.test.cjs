@@ -43,3 +43,38 @@ test('Feste, gut lesbare Textfarben haben mindestens 7:1 Kontrast',()=>{
  for(const selector of ['.hand-card.tc-card .hand-title','.hand-card.tc-card .hand-stars','.hand-card.tc-card .hand-type','.hand-card.tc-card .hand-description','.hand-card.tc-card .hand-stats','.board-creature.tc-card .board-name','.board-creature.tc-card .board-stats'])
   assert.ok(css.includes(selector),'Missing text style: '+selector);
 });
+
+test('Gestalt/Manifestation übernimmt den violetten Fusionsrahmen',()=>{
+ const run=boot(),result=run('(()=>{const manifest=CARDS.find(c=>c.manifestOf!=null);return {id:manifest?.id||-1,kind:manifest?frameClassForCard({id:manifest.id}):null,html:manifest?fullCardHtml({id:manifest.id}):""};})()');
+ assert.ok(result.id>=20);
+ assert.equal(result.kind,'tc-fusion');
+ assert.match(result.html,/tc-fusion/);
+});
+test('Der ATK/DEF-Bereich besitzt separate Zeilen und keine absolute Positionierung',()=>{
+ const run=boot(),html=run('fullCardHtml({id:20,card:{level:12,atk:123456,def:987654}})');
+ assert.match(html,/class="hand-stats"[^>]*>/);
+ assert.match(html,/class="stat atk"/);
+ assert.match(html,/class="stat def"/);
+ assert.match(html,/class="stat-label">ATK/);
+ assert.match(html,/class="stat-value">123456/);
+ assert.match(html,/class="stat-value">987654/);
+ assert.match(css,/\.hand-card\.tc-card \.hand-stats\s*\{[\s\S]*?position:static!important/);
+ assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(css,/\.hand-card\.tc-card\s*\{[\s\S]*?display:flex!important/);
+});
+test('SVG-Innenrahmen entspricht der Rahmenart, auch bei Gestalten',()=>{
+ const art=fs.readFileSync(path.join(root,'assets/art-engine.js'),'utf8');
+ const w={};
+ vm.runInNewContext(art,{window:w});
+ const mk=(id,level,fusionOnly=false,manifestOf=undefined)=>({id,level,fusionOnly,manifestOf,kind:'dragon',element:'FEUER',color:'#bfa2e3'});
+ assert.equal(w.ArcaneArt.frameColor(mk(0,12,true)),'#dce4ee');
+ assert.equal(w.ArcaneArt.frameColor(mk(30,5,true)),'#b8a0f3');
+ assert.equal(w.ArcaneArt.frameColor(mk(40,4,false,31)),'#b8a0f3');
+ assert.equal(w.ArcaneArt.frameColor(mk(50,12)),'#e26c71');
+ const starter=decodeURIComponent(w.ArcaneArt.makeArt(mk(0,4)));
+ const fusion=decodeURIComponent(w.ArcaneArt.makeArt(mk(40,4,false,31)));
+ const boss=decodeURIComponent(w.ArcaneArt.makeArt(mk(50,12)));
+ assert.ok(starter.includes('stroke="#dce4ee"'));
+ assert.ok(fusion.includes('stroke="#b8a0f3"'));
+ assert.ok(boss.includes('stroke="#e26c71"'));
+});
