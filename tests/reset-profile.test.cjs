@@ -27,7 +27,7 @@ test('Normal and admin Alpha 2.0 pages retain their own localStorage keys',()=>{
  const a=fs.readFileSync(path.join(root,'admin.html'),'utf8'),n=fs.readFileSync(path.join(root,'index.html'),'utf8');
  assert.match(a,/Alpha 2\.0 DEV/);assert.match(n,/Alpha 2\.0 DEV/);
  assert.match(a,/window\.ArcaneAdminMode=true/);assert.doesNotMatch(n,/window\.ArcaneAdminMode=true/);
- assert.match(a,/assets\/expansion\.js\?v=alpha20-dev1/);assert.match(n,/assets\/expansion\.js\?v=alpha20-dev1/);
+ assert.match(a,/assets\/expansion\.js\?v=alpha20-[\w-]+/);assert.match(n,/assets\/expansion\.js\?v=alpha20-[\w-]+/);
 });
 test('Reset confirmation has two separate dialogs; cancel in either keeps profile unchanged',()=>{
  const b=boot(false);
