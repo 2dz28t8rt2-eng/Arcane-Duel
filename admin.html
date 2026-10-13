@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101522">
+<title>ARCANE DUEL · Alpha 1.9 DEV · ADMIN</title>
+<link rel="stylesheet" href="assets/styles.css?v=alpha18-tcg-fix2">
+<link rel="stylesheet" href="assets/expansion.css?v=alpha19-dev1">
+<style>
+.admin-ribbon{font:800 12px/1.5 system-ui,sans-serif;letter-spacing:.04em;text-align:center;padding:8px 15px;background:linear-gradient(95deg,#37305e,#725298,#37305e);color:#fff7da;border-bottom:1px solid #e1c5ff;position:relative;z-index:4}
+</style></head>
+<body>
+<div class="app" id="app">
+<div class="admin-ribbon" role="status">🛡 ADMIN-TESTVERSION · SEPARATER SPIELSTAND · NICHT MIT DEM NORMALEN SPIEL VERBUNDEN</div>
+<header class="mast">
+ <div class="branding"><div class="logo">✧</div><div><div class="brandtitle">ARCANE DUEL <small>ALPHA 1.9 DEV</small></div><div class="subtitle">Sammlung · Fusion · Training</div></div></div>
+ <div class="mast-actions"><button class="btn tiny" id="manualSaveBtn">⇩ Speichern</button><button class="btn tiny" id="homeBtn" hidden>↶ Menü</button><button class="btn ghost tiny" id="iphoneHelpBtn">📱 iPhone-Hilfe</button><button class="btn ghost tiny" id="rulesBtn">? Regeln</button><button class="btn ghost tiny" id="deckBtn">▤ Deck ansehen</button><button class="btn ghost tiny" id="poolBtn">✦ Kartenpool</button><button class="btn ghost tiny" id="soundBtn">♪ Ton: Aus</button><button class="btn ghost tiny" id="speedBtn">» Animationen: Schnell</button><button class="btn tiny" id="restartBtn">↻ Neustart</button></div>
+</header>
+<div class="profile-hud" id="profileHud"></div><div class="storage-notice" id="storageNotice" role="status" hidden></div><nav class="menu-nav" id="menuNav" aria-label="Hauptmenü"></nav><section id="menuScreen"><div class="menu-hero" id="menuHero"></div><div id="menuContent"></div></section><div class="layout" id="duelScreen" hidden><aside class="card-preview-panel"><h2>Kartenansicht</h2><div id="largeCardPreview"><p>Wähle eine Karte.</p></div></aside>
+ <main>
+  <section class="table-surface" aria-label="Duellfeld">
+   <div class="duelist-banner opponent" id="enemyBanner"><div class="portrait" id="enemyPortrait">Ⅱ</div><div class="duelist-info"><div class="duelist-topline"><span class="duelist-name" id="enemyName">DUELLANT 2</span><span class="duelist-label">GEGNER</span></div><div class="lp-track"><span id="enemyLPBar"></span></div></div><div class="duelist-numbers"><div class="lp-number"><small>LP</small><span id="enemyLP">4000</span></div><div class="deck-count"><b id="enemyDeck">35</b>DECK</div></div></div>
+   <div class="field-area">
+    <div class="lane-caption"><span>GEGNERISCHES FELD</span><span id="targetHint">5 MONSTERZONEN</span></div>
+    <div class="slots" id="enemyRow"></div>
+    <div class="backrow" aria-hidden="true"><span>✦</span><span>✦</span><span>✦</span><span>✦</span><span>✦</span></div>
+    <div class="center-divider"><div class="center-rune">✧ DUELL ✧</div></div><div class="arena-meter" id="arenaStatus" role="status"></div>
+    <div class="backrow" aria-hidden="true"><span>✦</span><span>✦</span><span>✦</span><span>✦</span><span>✦</span></div>
+    <div class="lane-caption" style="margin-top:11px"><span>DEIN FELD</span><span>5 MONSTERZONEN</span></div>
+    <div class="slots" id="ownRow"></div>
+   </div>
+   <div class="duelist-banner mine" id="myBanner"><div class="portrait" id="myPortrait">Ⅰ</div><div class="duelist-info"><div class="duelist-topline"><span class="duelist-name" id="myName">DUELLANT 1</span><span class="duelist-label">AKTIVER SPIELER</span></div><div class="lp-track"><span id="myLPBar"></span></div></div><div class="duelist-numbers"><div class="lp-number"><small>LP</small><span id="myLP">4000</span></div><div class="deck-count"><b id="myDeck">35</b>DECK</div></div></div>
+  </section>
+  <section class="summon-stage" id="summonStage" aria-label="Beschwörungsauswahl"></section>
+  <section class="cardtray" aria-label="Handkarten"><div class="tray-top"><span class="tray-title">✦ DEINE HAND <span id="handCount">(5 / 5)</span></span><span class="tray-hint">Karte antippen: wählen · Für Fusion zuerst Touch-Modus aktivieren</span></div><button class="btn touch-fusion" id="touchFusionBtn">✧ Touch-Fusion aktivieren</button><div class="hand" id="hand"></div></section>
+  <div class="notice">40 KARTEN IM HAUPTDECK · BIS ZU 15 FUSIONEN · RPG ODER LOKALES PVP</div>
+ </main>
+ <aside class="sidebar" aria-label="Duellsteuerung">
+  <div class="side-section"><div class="side-kicker">Duellstatus</div><div class="turn-panel"><span class="turn-seal" id="turnSeal">Ⅰ</span><div><div class="turn-title" id="turnName">Duellant 1</div><div class="turn-sub" id="turnNumber">Zug 1 · Hauptphase</div></div></div><p class="side-help" id="turnAdvice">Wähle eine Monsterkarte aus deiner Hand und beschwöre sie auf einen freien Platz.</p></div>
+  <div class="side-section"><div class="side-kicker">Kartenaktionen</div><div class="control-stack"><button class="btn wide" id="surrenderBtn">⚑ Aufgeben</button><div class="selected-info" id="selectedInfo">Noch keine Karte ausgewählt.</div><button class="btn primary wide" id="summonBtn" disabled>✦ Beschwören</button><button class="btn fusion-btn wide" id="fusionBtn" disabled>✧ Fusionieren [F]</button><button class="btn ghost wide" id="clearBtn" disabled>Auswahl löschen</button><button class="btn wide" id="switchBtn" disabled>↻ Position wechseln</button><div class="action-hint" id="actionHint">Klicke eine Karte auf deiner Hand.</div><button class="btn wide" id="directBtn" disabled>⚡ Direkter Angriff [D]</button></div></div>
+  <div class="side-section"><button class="btn primary wide big" id="endTurnBtn">ZUG BEENDEN [LEERTASTE] →</button><button class="btn wide" id="retryAiBtn" hidden>KI-Zug fortsetzen</button></div>
+  <div class="side-section"><div class="side-kicker">Duellprotokoll</div><ul class="side-log" id="duelLog"></ul></div>
+ </aside>
+</div>
+</div>
+<div class="overlay" id="overlay" aria-modal="true" role="dialog"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast" role="status"></div><input type="file" id="importFile" accept=".json,application/json" hidden>
+<script src="assets/art-engine.js?v=alpha18-art-fix2" defer></script>
+<script>window.ArcaneAdminMode=true;</script>
+<script src="assets/game.js?v=alpha18-tcg-fix2" defer></script>
+<script src="assets/expansion.js?v=alpha19-dev1" defer></script></body></html>
