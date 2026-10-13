@@ -40,3 +40,16 @@ jobs:
               exit 1
             fi
           done
+          for size in 1200 410; do
+            echo "Checking first-run handbook and Alpha 1.9 in Chrome at ${size}px ..."
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=6000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/index.html >"/tmp/arcane-app-${size}.html" 2>/tmp/arcane-app-chrome.log
+            if ! grep -q 'DUELLANTENHANDBUCH' "/tmp/arcane-app-${size}.html"; then
+              echo "First-run guide did not render at ${size}px" >&2
+              tail -35 /tmp/arcane-app-chrome.log || true
+              exit 1
+            fi
+            if ! grep -q 'guide-spread' "/tmp/arcane-app-${size}.html"; then
+              echo "Interactive guide spread missing at ${size}px" >&2
+              exit 1
+            fi
+          done
