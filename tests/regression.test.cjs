@@ -87,7 +87,7 @@ test('Externer Speicherkonflikt überschreibt keine neueren Daten',()=>{
 
 test('Boostergrößen und Preisstaffel sind konsistent',()=>{
  const r=boot().run("(()=>{const sizes=[1,3,5,10],data=sizes.map(n=>({n,price:boosterPrice(2,n),cards:rollBooster(2,{seed:173},n).length}));return data;})()");
- assert.deepEqual(r.map(x=>x.cards),[1,3,5,10]);for(let i=0;i<r.length-1;i++)assert.ok(r[i].price/r[i].n>r[i+1].price/r[i+1].n);
+ assert.deepEqual(plain(r.map(x=>x.cards)),[1,3,5,10]);for(let i=0;i<r.length-1;i++)assert.ok(r[i].price/r[i].n>r[i+1].price/r[i+1].n);
 });
 
 test('Charakterpacks haben eine niedrigere relative Seltenheit als normale Drops',()=>{
