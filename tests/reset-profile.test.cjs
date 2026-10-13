@@ -20,7 +20,7 @@ function boot(admin,storage=new Map(),options={}){
  const ctx=vm.createContext({window:win,document:doc,console,Blob,URL:{createObjectURL(){return 'blob:test'},revokeObjectURL(){}},
  setTimeout(){},clearTimeout(){},setInterval(){},clearInterval(){}});
  for(const js of scripts)vm.runInContext(js,ctx,{timeout:12000});
- return {storage,nodes,get reloads(){return reloads},run:code=>JSON.parse(vm.runInContext('JSON.stringify('+code+')',ctx,{timeout:12000})),
+ return {storage,nodes,get reloads(){return reloads},run:code=>{const v=vm.runInContext(code,ctx,{timeout:12000});return v===undefined?undefined:JSON.parse(JSON.stringify(v))},
   click:id=>{const n=doc.getElementById(id);n.click();return n;},get:id=>doc.getElementById(id)};
 }
 test('Normal and admin Alpha 2.0 pages retain their own localStorage keys',()=>{
