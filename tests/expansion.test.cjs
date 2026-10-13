@@ -61,3 +61,14 @@ test('Real reload validates a purchased ACE, hints and tutorial state without lo
  assert.equal(after.loss,1);
  assert.equal(after.level,324);
 });
+
+test('2.1: first tournament defeat reveals ACE estimate, then a paid clue persists',()=>{
+ const b=boot(),x=b.run('(()=>{profile.guideSeen=true;profile.coins=400;profile.tournamentLosses[3]=1;const before=regularOpponentPanel(OPPONENTS[3],true);const paid=window.ArcaneExpansion.buyHint(3);const after=regularOpponentPanel(OPPONENTS[3],true);return {estimate:before.includes("Geschätzte Angriffsstärke"),offer:before.includes("buy-hint"),paid,cost:400-profile.coins,owned:profile.aceHints.includes(3),newText:after.includes("Verteidigung und geduldige Züge")};})()');
+ assert.deepEqual(x,{estimate:true,offer:true,paid:true,cost:100,owned:true,newText:true});
+});
+test('2.1: unlocked ACE has rare but measurable appearance chance in large booster sample',()=>{
+ const b=boot(),x=b.run('(()=>{profile.cleared=[1];profile.coins=999999;const ace=ACE_CARD_IDS[1];let before=0,after=0;for(let i=1;i<=2000;i++){before+=rollBooster(1,{seed:430000+i},10).filter(id=>id===ace).length;}window.ArcaneExpansion.buyAce(1);for(let i=1;i<=2000;i++){after+=rollBooster(1,{seed:430000+i},10).filter(id=>id===ace).length;}return {before,after,total:20000};})()');
+ assert.equal(x.before,0);
+ assert.ok(x.after>5&&x.after<250,'Expected ultra rare ACE over 20,000 booster cards, got '+x.after);
+ console.log('ACE_RARITY_SAMPLE '+JSON.stringify(x));
+});
