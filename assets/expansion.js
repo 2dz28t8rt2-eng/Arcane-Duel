@@ -83,6 +83,72 @@ function popupHelp(title,body){
  openModal(modalHtml('SO FUNKTIONIERT ES',title,'?',body,'','<button class="btn primary" id="helpDismiss">VERSTANDEN · ESC</button>'));
  $('helpDismiss').onclick=hideModal;
 }
+/* Profile reset safety: always act on the active page's own SAVE_KEY,
+   never clear() or remove unrelated saves, and never replace a concurrent edit. */
+function resetProfileKind(){
+ return window.ArcaneAdminMode===true?'Admin-Testprofil':'normaler Spielstand';
+}
+function showResetConfirmation(){
+ if(storageConflict||!storageWritable){
+  popupHelp('Zurücksetzen momentan nicht möglich','Der Browser meldet einen Speicherkonflikt oder blockiert das Speichern. Exportiere deinen Stand und lade diese Seite neu, bevor du etwas zurücksetzt.');
+  return;
+ }
+ const kind=resetProfileKind();
+ openModal(modalHtml('SPIELSTAND · SICHERHEITSABFRAGE 1/2','Spielstand zurücksetzen?','⚠',
+  'Du möchtest deinen <b>'+kind+'</b> zurücksetzen. Alle Karten, Decks, Ressourcen, Siege, freigeschalteten Gegner und laufenden Partien dieses Profils gehen dabei verloren. <b>Der andere Spielstand wird nicht verändert.</b>'+
+  '<br><br>Diese Aktion kann nur durch den Import einer zuvor exportierten Sicherung rückgängig gemacht werden.',
+  '<p class="reset-backup-hint">Tipp: Exportiere deinen aktuellen Spielstand vorher als JSON-Datei.</p>',
+  '<button class="btn" id="resetCancel1">ABBRECHEN</button><button class="btn reset-continue" id="resetNext1">JA, WEITER ZU SCHRITT 2</button>'));
+ $('resetCancel1').onclick=hideModal;
+ $('resetNext1').onclick=showResetFinalConfirmation;
+}
+function showResetFinalConfirmation(){
+ const kind=resetProfileKind();
+ openModal(modalHtml('SPIELSTAND · SICHERHEITSABFRAGE 2/2','Letzte Bestätigung','⚠',
+  'Wirklich den <b>'+kind+'</b> vollständig auf den Ausgangszustand zurücksetzen?'+
+  (window.ArcaneAdminMode===true
+   ?'<br><br>Das Adminprofil startet danach wieder mit allen Testkarten und Maximalressourcen.'
+   :'<br><br>Dein normaler Spielstand startet danach wieder mit den ursprünglichen Karten und ohne erspielten Fortschritt.'),
+  '<label class="reset-verification" for="resetVerifyInput">Tippe zur Bestätigung <strong>ZURÜCKSETZEN</strong> ein:'+
+  '<input id="resetVerifyInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ZURÜCKSETZEN" aria-label="ZURÜCKSETZEN eingeben"></label>'+
+  '<p class="reset-warning" role="note">Achtung: Kein automatisches Backup. Nur eine bereits exportierte JSON-Sicherung ermöglicht eine Wiederherstellung.</p>',
+  '<button class="btn" id="resetCancel2">NEIN, ABBRECHEN</button>'+
+  '<button class="btn reset-confirm" id="resetConfirm2" disabled>ENDGÜLTIG ZURÜCKSETZEN</button>'));
+ $('resetCancel2').onclick=hideModal;
+ const input=$('resetVerifyInput'),confirm=$('resetConfirm2');
+ input.oninput=()=>confirm.disabled=input.value.trim()!=='ZURÜCKSETZEN';
+ confirm.onclick=()=>{
+  if(confirm.disabled||input.value.trim()!=='ZURÜCKSETZEN')return;
+  if(!resetCurrentProfile()){
+   popupHelp('Zurücksetzen nicht durchgeführt','Der Spielstand konnte nicht sicher gespeichert werden. Deine vorhandenen Daten wurden nicht absichtlich überschrieben. Bitte prüfe den Browser-Speicher, exportiere dein Profil und lade die Seite erneut.');
+  }
+ };
+ input.focus?.();
+}
+function resetCurrentProfile(){
+ if(storageConflict||!storageWritable)return false;
+ try{
+  // A second browser tab might have written to this exact profile meanwhile.
+  if(window.localStorage.getItem(SAVE_KEY)!==lastStoredProfile){
+   markStorageConflict();
+   return false;
+  }
+  const next=freshProfile();
+  if(window.ArcaneAdminMode===true)seedAdminProfile(next);
+  // Validate the replacement before committing a single atomic storage write.
+  validateProfile(next);
+  const serialized=JSON.stringify(next);
+  window.localStorage.setItem(SAVE_KEY,serialized);
+  lastStoredProfile=serialized;
+  // Reload instead of mutating in-memory duels, packs, timers, and deck drafts.
+  window.location.reload();
+  return true;
+ }catch(error){
+  storageWarning='Zurücksetzen konnte nicht gespeichert werden. Dein bisheriger Spielstand bleibt nach Möglichkeit erhalten.';
+  return false;
+ }
+}
+
 function dropHelp(){
  popupHelp('Dropladungen: Woher und wofür?',
  'Ein abgeschlossenes manuelles Duell gibt eine Dropladung. Beim ersten Sieg über einen neuen Turniergegner wird dein Vorrat komplett aufgefüllt. Aktivierte Dropladungen verstärken deine nächsten Autokämpfe: 50 % statt 30 % Essenz/XP und 20 % statt 12 % Kartenchance. Eine Ladung wird nach jedem abgeschlossenen Autokampf verbraucht, auch bei einer Niederlage. Mehr Platz erhältst du durch Levelbelohnungen.');
@@ -143,6 +209,7 @@ function buyHint(id){
 }
 
 menuAction=function(d){
+ if(d.action==='reset-profile'){showResetConfirmation();return;}
  if(profile.rewardQueue.length){showMilestone();return;}
  if(d.action==='quick-pack'){const id=Number(d.id);if(openCharacterPack(id,d.mode||'easy'))showPack();else popupHelp('Kein Pack verfügbar','Für diesen Duellanten hast du gerade kein vollständiges Pack. Gewonnene Duelle füllen den Packfortschritt.');return;}
  if(d.action==='buy-ace'){if(buyAce(Number(d.id))){renderMenu();popupHelp('Ace-Monster freigeschaltet!','Deine neue Ace-Karte ist in der Sammlung. Sie kann nun mit einer sehr geringen Chance im Booster-Shop erscheinen.');}else popupHelp('Kauf nicht möglich','Du musst diesen Turniergegner besiegt haben, genug Essenz besitzen und darfst sein einmaliges Ace-Angebot noch nicht gekauft haben.');return;}
@@ -204,6 +271,13 @@ renderMenu=function(){
   menuButton('📖 Duellantenhandbuch öffnen','guide')+'</section>'+el.innerHTML;
  if(menuTab==='upgrades'){
   const h=el.querySelector('h2');if(h)h.textContent='Skills & Perks';
+ }
+ if(menuTab==='settings'){
+  el.insertAdjacentHTML('beforeend','<section class="menu-panel reset-panel" aria-label="Spielstand zurücksetzen">'+
+   '<h2>Spielstand zurücksetzen</h2>'+
+   '<p>Hier kannst du den aktuellen <b>'+resetProfileKind()+'</b> vollständig neu beginnen. Der andere Spielstand bleibt erhalten. <b>Alle Fortschritte dieses Profils werden überschrieben.</b></p>'+
+   '<p>Du musst den Vorgang zweimal ausdrücklich bestätigen. Ein vorheriger JSON-Export wird empfohlen.</p>'+
+   menuButton('Spielstand zurücksetzen …','reset-profile')+'</section>');
  }
  const intro=el.querySelector('.menu-panel > p');if(intro)intro.classList.add('tab-intro');
  el.innerHTML=formatWording(el.innerHTML);
@@ -278,7 +352,7 @@ fusionAnimation=async function(level){
 };
 
 window.ArcaneExpansion={
- version:'1.9.0-dev',aceIds,aceCost,buyAce,buyHint,showGuide,
+ version:'2.0.0-dev',aceIds,aceCost,buyAce,buyHint,showGuide,resetCurrentProfile,showResetConfirmation,
  featureCount:pages.length,closeGuide:finishGuide
 };
 if(!profile.guideSeen&&!profile.rewardQueue.length&&!profile.openPack&&!profile.activeDuel)showGuide(0);
