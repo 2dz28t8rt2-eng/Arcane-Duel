@@ -40,3 +40,14 @@ Im Hauptmenü unter **Spielstand → Spielstand zurücksetzen …**:
 - Admin: `https://raw.githack.com/2dz28t8rt2-eng/Arcane-Duel/development/admin.html`
 
 Hinweis: Browser-Speicher sind an die exakte Website-Domain gebunden. Hauptversion (GitHub Pages) und externe DEV-Vorschau können deshalb unterschiedliche Spielstände besitzen.
+
+## Nachtrag: Fusionskarten direkt auswählen
+
+- In der manuellen Fusionsvorschau sind die Karten selbst echte Auswahlschaltflächen: Klicken bzw. Tippen auf **Artwork oder Kartenkörper** löst dieselbe Auswahl aus wie der Button „Dieses Monster wählen“. Der bestehende legale Fusionspool wird nicht verändert; Doppelklick wird abgefangen.
+- Die Vorschau zeigt ATK/DEF-Bereich, Wertewürfe, +/-6 %-Schwankung je Wurf, Materialbonus und verbleibende Fusionskarten in kompakter Form.
+- Die längere Erklärung der Wertewürfe und Materialboni erscheint nur auf Wunsch über „Wertewürfe und Materialbonus verstehen“.
+- Im Menü „Fusionsdeck“ ergänzt oder entfernt ein Klick auf das Kartenbild eine verfügbare Fusionskarte. Plus/Minus-Buttons bleiben erhalten.
+- Das Auswahlfenster ist auf breite und schmale Bildschirme abgestimmt. Karten erhalten deutliche Hover-/Fokussierungseffekte. Die Bedienung funktioniert durch echte HTML-Buttons auch mit Tastatur.
+- Zusätzlicher echter Chrome-Interaktionstest: Bildklick, korrekte Karten-ID, Modal schließen, keine Doppelwahl, Fusionsdeck-Bildklick. Auf `development` geprüft.
+
+**Unverändert:** Die öffentliche Spielversion unter `main`, die Fusionsberechnung, die Regel zu legalen Vorlagen sowie der separat vorgemerkte Fehler beim Turnier-„Wiederholen“.
