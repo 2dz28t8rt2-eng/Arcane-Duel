@@ -41,7 +41,7 @@ jobs:
             fi
           done
           for size in 1200 410; do
-            echo "Checking first-run handbook and Alpha 1.9 in Chrome at ${size}px ..."
+            echo "Checking first-run handbook and Alpha 2.0 in Chrome at ${size}px ..."
             "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=6000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/index.html >"/tmp/arcane-app-${size}.html" 2>/tmp/arcane-app-chrome.log
             if ! grep -q 'DUELLANTENHANDBUCH' "/tmp/arcane-app-${size}.html"; then
               echo "First-run guide did not render at ${size}px" >&2
@@ -54,11 +54,20 @@ jobs:
             fi
           done
 
-          echo "Checking interactive Alpha 1.9 UI flows in headless Chrome..."
+          echo "Checking interactive Alpha 2.0 UI flows in headless Chrome..."
           "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=8000 --window-size="1200,980" --dump-dom http://127.0.0.1:8757/tests/browser-ui.html > /tmp/arcane-interaction.html 2>/tmp/arcane-interaction-chrome.log
           if ! grep -q 'data-ui-test="pass"' /tmp/arcane-interaction.html; then
             echo "Interactive UI smoke test failed." >&2
             grep -E -A20 'id="result"' /tmp/arcane-interaction.html | head -26 || true
             tail -30 /tmp/arcane-interaction-chrome.log || true
+            exit 1
+          fi
+
+          echo "Checking Alpha 2.0 reset flow in isolated Chrome profile..."
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=14000 --window-size="1200,980" --dump-dom http://127.0.0.1:8757/tests/browser-reset.html > /tmp/arcane-reset.html 2>/tmp/arcane-reset-chrome.log
+          if ! grep -q 'data-reset-ui-test="pass"' /tmp/arcane-reset.html; then
+            echo "Alpha 2.0 browser reset test failed" >&2
+            grep -E -A30 'id="result"' /tmp/arcane-reset.html | head -36 || true
+            tail -35 /tmp/arcane-reset-chrome.log || true
             exit 1
           fi
