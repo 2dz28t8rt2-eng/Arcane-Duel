@@ -47,3 +47,163 @@
 .hand-card .hand-stats{font-size:12px;color:#131923}
 .board-creature .board-name{font-size:11px!important;font-family:Segoe UI,Tahoma,sans-serif;font-weight:900;background:linear-gradient(90deg,#ffe0a3,#fff5dc,#ffc98b);color:#121821}
 @media(max-width:600px){.profile-hud{gap:8px}.profile-hud .hud-xp{min-width:132px}.profile-hud .xp-meter{width:132px}.hand-card .hand-title{font-size:11px!important}.board-creature .board-name{font-size:9px!important}}
+
+
+/* =============================================================
+   Fantasy TCG Farbrahmen, Alpha 1.8 DEV
+   Visuelle Priorität aus game.js: Startkarte > Fusion > Level.
+   Kartenkunst bleibt unverändert; Lesetexte auf separaten Flächen.
+   ============================================================= */
+.hand-card.tc-card,
+.board-creature.tc-card{
+  --tc-rim:#d6dde5;
+  --tc-highlight:#f7f8fa;
+  --tc-main:#8a99a9;
+  --tc-deep:#3e4957;
+  --tc-glow:rgba(211,223,235,.19);
+  border:2px solid var(--tc-rim) !important;
+  background:linear-gradient(137deg,var(--tc-highlight) 0%,var(--tc-main) 18%,var(--tc-deep) 82%,var(--tc-rim) 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,244,216,.25),inset 0 0 9px rgba(14,21,34,.48),0 3px 9px rgba(0,0,0,.62),0 0 9px var(--tc-glow);
+}
+/* Feine eingelegte Linie plus Eckgravur – keine Abdeckung des Karteninhalts */
+.hand-card.tc-card::before,
+.board-creature.tc-card::before{
+  content:"";
+  position:absolute;
+  inset:2px;
+  border:1px solid rgba(255,239,203,.40);
+  border-radius:3px;
+  pointer-events:none;
+  z-index:5;
+  background:
+    linear-gradient(135deg,rgba(255,244,213,.52),transparent 46%) left top / 13px 13px no-repeat,
+    linear-gradient(225deg,rgba(255,244,213,.52),transparent 46%) right top / 13px 13px no-repeat,
+    linear-gradient(45deg,rgba(255,244,213,.44),transparent 46%) left bottom / 13px 13px no-repeat,
+    linear-gradient(315deg,rgba(255,244,213,.44),transparent 46%) right bottom / 13px 13px no-repeat;
+}
+.hand-card.tc-card:hover{
+  box-shadow:inset 0 0 0 1px rgba(255,244,216,.32),0 9px 24px rgba(0,0,0,.67),0 0 17px var(--tc-glow);
+}
+.hand-card.tc-card.selected{
+  box-shadow:0 10px 27px rgba(0,0,0,.8),0 0 0 3px var(--cyan),0 0 18px var(--tc-glow);
+}
+/* Name auf dunklem emailliertem Schild, nicht auf dem bunten Rahmen */
+.hand-card.tc-card .hand-title{
+  position:relative;
+  z-index:2;
+  height:29px!important;
+  padding:3px 4px 2px;
+  font:800 11px/1.08 Georgia,serif!important;
+  color:#fff8e8!important;
+  background:linear-gradient(180deg,#273247 0%,#111c2c 100%)!important;
+  border:1px solid rgba(255,238,198,.45);
+  text-shadow:0 1px 1px #000;
+  border-radius:2px;
+  letter-spacing:.03px;
+  white-space:normal;
+}
+.hand-card.tc-card .hand-title span:first-child{
+  color:#fff8e8!important;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+  overflow:hidden;
+}
+.hand-card.tc-card .card-attribute{color:#eee0c0!important;font-size:10px}
+.hand-card.tc-card .hand-stars{
+  height:16px!important;
+  line-height:15px!important;
+  padding:0 2px;
+  margin:1px 0;
+  font-size:10px!important;
+  letter-spacing:.8px!important;
+  background:#182334!important;
+  color:#f8e4aa!important;
+  text-shadow:0 1px 1px #000;
+  border:1px solid rgba(255,233,179,.3);
+  border-radius:2px;
+}
+.hand-card.tc-card .hand-art{
+  height:96px;
+  border:2px ridge rgba(253,228,174,.83);
+  box-shadow:inset 0 0 7px #000,0 0 0 1px rgba(34,25,32,.65);
+}
+/* Pergament-Felder erhalten einen eigenen, konstant dunklen Textton */
+.hand-card.tc-card .hand-type{
+  color:#172437!important;
+  font:800 9px/1.18 Georgia,serif;
+  background:rgba(248,240,220,.92);
+  padding:3px 3px 1px;
+}
+.hand-card.tc-card .hand-description{
+  color:#192638!important;
+  background:rgba(249,241,222,.94);
+  font-size:9px!important;
+  line-height:1.2;
+  font-weight:700;
+  padding:1px 3px;
+  margin-top:0;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  overflow:hidden;
+}
+.hand-card.tc-card .hand-stats{
+  bottom:3px;left:5px;right:5px;
+  padding:2px 3px 1px;
+  background:rgba(247,238,217,.96);
+  border-top:1px solid #80643f;
+  color:#101a2b!important;
+  font-size:11px!important;
+  text-shadow:none!important;
+  font-variant-numeric:tabular-nums;
+}
+.hand-card.tc-card .hand-stats .def{color:#184a78!important}
+/* Dieselbe Seltenheits-Sprache auf dem Duellfeld, ohne Name/Werte einzufärben */
+.board-creature.tc-card{overflow:hidden}
+.board-creature.tc-card.defense{
+  border-color:var(--tc-rim)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,244,216,.28),0 0 12px var(--tc-glow);
+}
+.board-creature.tc-card .board-art{
+  border-bottom:1px solid rgba(255,238,192,.45);
+}
+.board-creature.tc-card .board-name{
+  background:linear-gradient(180deg,#253248,#111d2c)!important;
+  color:#fff8e6!important;
+  font:800 10px/1.15 Segoe UI,Tahoma,sans-serif!important;
+  padding:4px 3px;
+  text-shadow:0 1px 1px #000;
+  border-top:1px solid rgba(246,228,180,.47);
+}
+.board-creature.tc-card .board-stats{
+  background:#142030!important;
+  color:#f8e9c6!important;
+  border-top:1px solid #9e8052;
+}
+.board-creature.tc-card .board-stats b:last-child{color:#cbe9ff!important}
+.board-creature.tc-card .board-level{
+  background:rgba(13,23,36,.94)!important;
+  color:#f9e6b6!important;
+  border:1px solid rgba(255,235,190,.56);
+  text-shadow:0 1px 1px #000;
+}
+/* Textlesbarkeit auch auf kleinen Touchscreens */
+@media(max-width:600px){
+ .hand-card.tc-card .hand-title{font-size:10px!important}
+ .hand-card.tc-card .hand-description{font-size:8.5px!important}
+ .board-creature.tc-card .board-name{font-size:9px!important}
+}
+
+/* Einheitliche Kartenlegende: neutrale Startkarten, Amethystfusionen, Level 1–12 */
+.tc-card.tc-starter{--tc-rim:#d6dde5;--tc-highlight:#f7f8fa;--tc-main:#8a99a9;--tc-deep:#3e4957;--tc-glow:rgba(211,223,235,.19);}
+.tc-card.tc-fusion{--tc-rim:#a99ce8;--tc-highlight:#eee7ff;--tc-main:#8477c6;--tc-deep:#302857;--tc-glow:rgba(154,136,231,.23);}
+.tc-card.tc-lv-1{--tc-rim:#c7cbd1;--tc-highlight:#f3f4f6;--tc-main:#8a919b;--tc-deep:#444950;--tc-glow:rgba(199,203,209,.12);}
+.tc-card.tc-lv-2{--tc-rim:#c8b28a;--tc-highlight:#f4e5be;--tc-main:#a98a58;--tc-deep:#51432f;--tc-glow:rgba(221,190,133,.14);}
+.tc-card.tc-lv-3{--tc-rim:#8fbd7c;--tc-highlight:#e1eec8;--tc-main:#648a52;--tc-deep:#2a4633;--tc-glow:rgba(123,180,119,.16);}
+.tc-card.tc-lv-4{--tc-rim:#72c1ae;--tc-highlight:#d1f0e5;--tc-main:#459788;--tc-deep:#214b49;--tc-glow:rgba(91,199,176,.17);}
+.tc-card.tc-lv-5{--tc-rim:#7fbddd;--tc-highlight:#e3f2fb;--tc-main:#519bbf;--tc-deep:#204559;--tc-glow:rgba(99,185,227,.17);}
+.tc-card.tc-lv-6{--tc-rim:#789fdf;--tc-highlight:#d9e8ff;--tc-main:#4d76c1;--tc-deep:#263e73;--tc-glow:rgba(105,143,223,.18);}
+.tc-card.tc-lv-7{--tc-rim:#8489d4;--tc-highlight:#e2e3fb;--tc-main:#575eaf;--tc-deep:#2a3161;--tc-glow:rgba(126,128,220,.18);}
+.tc-card.tc-lv-8{--tc-rim:#ad84d7;--tc-highlight:#eeddf9;--tc-main:#815aa8;--tc-deep:#48305f;--tc-glow:rgba(165,119,213,.19);}
+.tc-card.tc-lv-9{--tc-rim:#d28bbd;--tc-highlight:#f9e0f1;--tc-main:#a65a92;--tc-deep:#60304f;--tc-glow:rgba(211,115,173,.20);}
+.tc-card.tc-lv-10{--tc-rim:#dca06f;--tc-highlight:#ffe7cb;--tc-main:#b86a3d;--tc-deep:#60361f;--tc-glow:rgba(224,145,76,.20);}
+.tc-card.tc-lv-11{--tc-rim:#d78165;--tc-highlight:#ffe0ce;--tc-main:#b9513e;--tc-deep:#652b25;--tc-glow:rgba(225,103,77,.21);}
+.tc-card.tc-lv-12{--tc-rim:#d66365;--tc-highlight:#ffe3df;--tc-main:#b43d49;--tc-deep:#601e2c;--tc-glow:rgba(218,69,81,.24);}
