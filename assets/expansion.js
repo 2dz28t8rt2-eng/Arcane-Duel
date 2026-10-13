@@ -71,7 +71,7 @@ const aceShop=()=>'<section class="menu-panel ace-market"><h2>✦ Ace-Monster ·
  '<p>Besiegte Turnierduellanten schalten jeweils eine junge, etwas schwächere Ace-Karte frei. Jeder direkte Kauf ist einmalig. Nach dem Kauf kann die Karte mit nur <b>0,35 % je Boosterkarte</b> erneut gezogen werden. Der Preis sinkt mit deinem Spielerlevel.</p>'+
  '<div class="ace-grid">'+OPPONENTS.slice(1).filter(o=>profile.cleared.includes(o.id)).map(o=>{
   const id=aceIds[o.id],c=CARDS[id],done=profile.acePurchased.includes(o.id);
-  return '<article class="ace-offer"><b>'+escapeHtml(c.name)+'</b><small>Level '+c.level+' · '+fmt(c.atk)+' ATK / '+fmt(c.def)+' DEF</small>'+
+  return '<article class="ace-offer"><div class="ace-offer-head"><img class="ace-thumbnail" src="'+c.art+'" alt="'+escapeHtml(c.name)+'"><div><span class="ace-eyebrow">✦ ACE-MONSTER</span><b>'+escapeHtml(c.name)+'</b><small>Level '+c.level+' · '+fmt(c.atk)+' ATK / '+fmt(c.def)+' DEF</small></div></div>'+
    '<small>'+ (done?'Kauf abgeschlossen · Booster-Chance freigeschaltet':'Einmaliger Kauf · '+fmt(aceCost(o.id))+' Essenz')+'</small>'+
    menuButton(done?'✓ Bereits gekauft':'Ace kaufen','buy-ace','data-id="'+o.id+'"',done||profile.coins<aceCost(o.id))+'</article>';
  }).join('')+'</div><p class="pool-note">Noch nicht besiegte Turniergegner und ihre Ace-Karten bleiben verborgen.</p></section>';
