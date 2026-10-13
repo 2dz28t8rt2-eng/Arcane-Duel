@@ -193,3 +193,14 @@
 .fusion-market{border:1px solid #b9a1f4;box-shadow:inset 0 0 22px #7650c022}
 .first-win-box .victory-cards{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .first-win-box .victory-cards .hand-card{height:215px;pointer-events:none}
+
+.monster-index-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:12px}
+.monster-index-entry{display:flex;flex-direction:column;gap:5px;min-width:0;background:#18253b;border:1px solid #a08b72;border-radius:8px;padding:9px;text-align:center}
+.monster-index-entry img,.monster-silhouette{width:100%;height:110px;object-fit:contain;border-radius:5px;background:#0e1b2b}
+.monster-index-entry b{font-size:12px;overflow-wrap:anywhere;color:#fff4d6}
+.monster-index-entry small{font-size:10px;color:#e1d5c0}
+.monster-silhouette{display:grid;place-items:center;font-size:52px;font-weight:900;color:#65728a;filter:grayscale(1)}
+.monster-index-entry.undiscovered{border-style:dashed}
+.monster-index-pages{display:flex;align-items:center;justify-content:center;gap:15px;flex-wrap:wrap;margin-top:15px}
+.auto-report-list{padding-left:20px;text-align:left;max-height:250px;overflow-y:auto}
+.auto-report-list li{padding:6px 0;border-bottom:1px solid #c5b08355}
