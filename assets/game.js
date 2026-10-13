@@ -48,7 +48,40 @@ function attack(g,ai,di){const p=g.players[g.active],e=g.players[1-g.active],a=p
  }else {if(at.atk>dt.def){e.graveyard.push(d);e.field[di]=null;destroyed.push(e.id+':'+di);if(g.mode==='pve'&&at.ability==='pierce'){damaged=e.id;damage=damagePlayer(g,e.id,Math.floor((at.atk-dt.def)*.25));g.damageDealt[p.id]+=damage;}logEvent(g,`${at.name} durchbricht ${dt.name}${damage?' · '+damage+' Durchbruchschaden':''}.`);}else if(at.atk<dt.def){damaged=p.id;damage=damagePlayer(g,p.id,dt.def-at.atk);logEvent(g,`${dt.name} hält stand: ${damage} Schaden beim Angreifer.`);}else logEvent(g,'Gleichstand gegen Verteidigung.');}
  if(p.field[ai]===a){a.attacked=true;if(g.mode==='pve'){a.card.atk=Math.max(0,dataOf(a).atk-30);a.attackFatigue=(a.attackFatigue||0)+30;logEvent(g,`${dataOf(a).name}: −30 ATK durch den Angriff.`);}}if(e.lp===0)conclude(g,p.id,'Lebenspunkte des Gegners auf 0.');else if(p.lp===0)conclude(g,e.id,'Lebenspunkte des Angreifers auf 0.');g.selection=null;return {damage,damaged,destroyed,ai,di};
 }
-function attackPlan(g){const p=g.players[g.active],e=g.players[1-g.active],attackers=p.field.map((c,i)=>({c,i})).filter(x=>canAttack(g,x.c)).sort((a,b)=>dataOf(a.c).atk-dataOf(b.c).atk);for(const {c,i}of attackers){const targets=e.field.map((c,j)=>({c,j,value:c?(c.mode==='atk'?dataOf(c).atk:dataOf(c).def):0})).filter(x=>x.c).sort((a,b)=>a.value-b.value);if(!targets.length)return {ai:i,di:null};const kill=targets.find(x=>effectiveAttack(g,c,x.c)>x.value);if(kill)return {ai:i,di:kill.j};const tie=targets.find(x=>x.c.mode==='atk'&&effectiveAttack(g,c,x.c)===x.value&&dataOf(x.c).level>=dataOf(c).level);if(tie)return {ai:i,di:tie.j};}return null;}
+function attackPlan(g){
+ const p=g.players[g.active],e=g.players[1-g.active];
+ const attackers=p.field.map((c,i)=>({c,i})).filter(x=>canAttack(g,x.c)).sort((a,b)=>dataOf(a.c).atk-dataOf(b.c).atk);
+ const targets=e.field.map((c,j)=>({c,j,value:c?(c.mode==='atk'?dataOf(c).atk:dataOf(c).def):0})).filter(x=>x.c).sort((a,b)=>a.value-b.value);
+ if(!attackers.length)return null;
+ if(!targets.length){
+  // With the new post-attack fatigue, the finishing blow takes priority.
+  const lethal=attackers.filter(x=>effectiveAttack(g,x.c,null)>=e.lp+e.shield);
+  return {ai:(lethal.length?lethal[0]:attackers[0]).i,di:null};
+ }
+ // Early opponents intentionally keep their easy-to-read, basic AI.
+ // Tournament opponents III-X learn to eliminate the biggest live threat
+ // with the weakest safe attacker instead of always attacking the smallest card.
+ if(g.mode==='pve'&&g.active===1&&g.opponentId>=3){
+  let best=null;
+  for(const a of attackers)for(const t of targets){
+   const strength=effectiveAttack(g,a.c,t.c),victim=dataOf(t.c),attacker=dataOf(a.c);
+   const kill=strength>t.value,tie=t.c.mode==='atk'&&strength===t.value&&victim.level>=attacker.level;
+   if(!kill&&!tie)continue; // Never suicide into a defensive wall.
+   const threat=victim.atk+(t.c.fusion?180:0)+(victim.ability==='hunt'?80:0);
+   const priority=threat*1.5+(t.c.mode==='def'?victim.def*.20:0)
+     -attacker.atk*.20+(kill?100:0)-(tie?300:0);
+   if(!best||priority>best.priority)best={ai:a.i,di:t.j,priority};
+  }
+  if(best)return {ai:best.ai,di:best.di};
+  return null;
+ }
+ for(const {c,i}of attackers){
+  const kill=targets.find(x=>effectiveAttack(g,c,x.c)>x.value);if(kill)return {ai:i,di:kill.j};
+  const tie=targets.find(x=>x.c.mode==='atk'&&effectiveAttack(g,c,x.c)===x.value&&dataOf(x.c).level>=dataOf(c).level);
+  if(tie)return {ai:i,di:tie.j};
+ }
+ return null;
+}
 function coreChooseAiAction(g,policy='balanced'){
  const p=g.players[g.active],hand=[...p.hand].sort((a,b)=>dataOf(b).level-dataOf(a).level||dataOf(b).atk-dataOf(a).atk),field=p.field.map((c,i)=>({c,i})).filter(x=>x.c),empty=p.field.findIndex(c=>!c),grow=[...field].filter(x=>dataOf(x.c).level<(g.mode==='pve'?Math.max(...p.fusionDeck.map(id=>CARDS[id].level)):8)).sort((a,b)=>dataOf(b.c).level-dataOf(a.c).level)[0];
  if(g.pending){const weak=[...field].sort((a,b)=>dataOf(a.c).atk-dataOf(b.c).atk)[0];return {type:'place',idx:grow?grow.i:empty>=0?empty:weak.i};}
