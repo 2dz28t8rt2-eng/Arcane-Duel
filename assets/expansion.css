@@ -83,3 +83,72 @@
 @media(prefers-reduced-motion:reduce){
  .btn.reset-continue,.btn.reset-confirm,.reset-panel [data-action="reset-profile"]{transition:none!important}
 }
+
+
+/* Fusionen – klares Klicken auf Karte/Bild und weniger Text pro Angebot */
+.modal.fusion-choice-modal{max-width:min(980px,96vw);width:920px;text-align:left}
+.fusion-choice-modal>.modal-icon,.fusion-choice-modal>.modal-kicker,.fusion-choice-modal>h2,
+.fusion-choice-modal>.modal-actions{text-align:center}
+.fusion-choice-modal .pool-grid.fusion-choice-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:14px;align-items:start;margin:15px 0;
+}
+.fusion-choice-modal .fusion-offer{
+  display:flex;flex-direction:column;gap:7px;min-width:0;
+  padding:10px;border:1px solid rgba(180,154,221,.43);
+  border-radius:11px;background:rgba(13,22,39,.84);
+}
+.fusion-choice-modal .fusion-offer .hand-card.tc-card{
+  width:100%;height:215px!important;max-width:220px;align-self:center;
+  cursor:pointer!important;transition:box-shadow .16s ease,filter .16s ease,transform .16s ease;
+}
+.fusion-choice-modal .fusion-offer .hand-card.tc-card:hover,
+.fusion-choice-modal .fusion-offer .hand-card.tc-card:focus-visible{
+  box-shadow:0 0 0 3px #bda1ff,0 0 22px rgba(169,117,250,.52)!important;
+  filter:brightness(1.08);
+  transform:translateY(-2px);
+}
+.fusion-choice-modal .fusion-offer .hand-card.tc-card:focus-visible{
+  outline:2px solid #fff2c7;outline-offset:3px
+}
+.fusion-choice-modal .fusion-forecast{
+  display:grid;grid-template-columns:1fr;gap:4px;
+  padding:9px;background:#1c283c;color:#f2e8d4;
+  border:1px solid #806c98;border-radius:7px;
+  font-size:clamp(11px,1.3vw,13px);font-variant-numeric:tabular-nums;text-align:center;
+}
+.fusion-choice-modal .fusion-forecast strong{font-weight:800;color:#f2e6d2}
+.fusion-choice-modal .fusion-short{
+  padding:0!important;margin:0!important;color:#cbd6e7;
+  font-size:11px;line-height:1.55;text-align:center;
+}
+.fusion-choice-modal .fusion-offer>[data-fusion-choice]:last-child{
+  font-size:12px;min-height:44px;width:100%;
+}
+.fusion-choice-modal .fusion-how{
+  border:1px solid rgba(174,151,216,.6);border-radius:10px;
+  margin:10px 0;padding:10px 14px;
+  background:rgba(19,29,49,.94);font-size:12px;line-height:1.55;color:#e6dff4;
+}
+.fusion-choice-modal .fusion-how summary{cursor:pointer;font-weight:800;color:#ffe8bf;min-height:25px}
+.fusion-choice-modal .fusion-how summary:focus-visible{outline:2px solid #ffebbb;outline-offset:3px}
+.fusion-choice-modal .fusion-how p{font-size:12px;line-height:1.6;margin:9px 0}
+.fusion-deck-pick-card[data-action="copy"]{cursor:pointer}
+.fusion-deck-pick-card[data-action="copy"]:hover,.fusion-deck-pick-card[data-action="copy"]:focus-visible{
+  outline:3px solid #a5e2f3;outline-offset:2px;filter:brightness(1.08)
+}
+@media(max-width:600px){
+ .modal.fusion-choice-modal{padding:18px 12px;max-width:97vw}
+ .fusion-choice-modal .pool-grid.fusion-choice-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .fusion-choice-modal .fusion-offer{padding:6px}
+ .fusion-choice-modal .fusion-offer .hand-card.tc-card{height:204px!important}
+ .fusion-choice-modal .fusion-forecast{font-size:10px;padding:5px 2px}
+ .fusion-choice-modal .fusion-short{font-size:10px}
+}
+@media(max-width:360px){
+ .fusion-choice-modal .pool-grid.fusion-choice-grid{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+ .fusion-choice-modal .fusion-offer .hand-card.tc-card{transition:none}
+ .fusion-choice-modal .fusion-offer .hand-card.tc-card:hover{transform:none}
+}
