@@ -69,14 +69,22 @@ rollBooster=function(tier,g={seed:rng(0xffffffff)||1},count=10){
 };
 const aceShop=()=>'<section class="menu-panel ace-market"><h2>✦ Ace-Monster · Einmalige Angebote</h2>'+
  '<p>Besiegte Turnierduellanten schalten jeweils eine junge, etwas schwächere Ace-Karte frei. Jeder direkte Kauf ist einmalig. Nach dem Kauf kann die Karte mit nur <b>0,35 % je Boosterkarte</b> erneut gezogen werden. Der Preis sinkt mit deinem Spielerlevel.</p>'+
- '<div class="ace-grid">'+OPPONENTS.slice(1).filter(o=>profile.cleared.includes(o.id)).map(o=>{
-  const id=aceIds[o.id],c=CARDS[id],done=profile.acePurchased.includes(o.id);
+ '<div class="ace-grid">'+OPPONENTS.slice(1).map(o=>{
+  const id=aceIds[o.id],c=CARDS[id],done=profile.acePurchased.includes(o.id),locked=!profile.cleared.includes(o.id);
   return '<article class="ace-offer"><div class="ace-offer-head"><img class="ace-thumbnail" src="'+c.art+'" alt="'+escapeHtml(c.name)+'"><div><span class="ace-eyebrow">✦ ACE-MONSTER</span><b>'+escapeHtml(c.name)+'</b><small>Level '+c.level+' · '+fmt(c.atk)+' ATK / '+fmt(c.def)+' DEF</small></div></div>'+
-   '<small>'+ (done?'Kauf abgeschlossen · Booster-Chance freigeschaltet':'Einmaliger Kauf · '+fmt(aceCost(o.id))+' Essenz')+'</small>'+
-   menuButton(done?'✓ Bereits gekauft':'Ace kaufen','buy-ace','data-id="'+o.id+'"',done||profile.coins<aceCost(o.id))+'</article>';
+   '<small>'+ (locked?'Gesperrt · Turnierstufe '+o.id+' besiegen':done?'Kauf abgeschlossen · Booster-Chance freigeschaltet':'Einmaliger Kauf · '+fmt(aceCost(o.id))+' Essenz')+'</small>'+
+   menuButton(locked?'Noch gesperrt':done?'✓ Bereits gekauft':'Ace kaufen','buy-ace','data-id="'+o.id+'"',locked||done||profile.coins<aceCost(o.id))+'</article>';
  }).join('')+'</div><p class="pool-note">Noch nicht besiegte Turniergegner und ihre Ace-Karten bleiben verborgen.</p></section>';
 
-shopMarkup=function(){return stored.shopMarkup()+aceShop()};
+function fusionPackPrice(){return Math.ceil(boosterPrice(highestCleared(),10)*1.8/10)*10;}
+function buyFusionPack(){
+ const tier=highestCleared(),pool=boosterPools(tier).rare.filter(id=>!CARDS[id].ace&&CARDS[id].fusionOnly&&!CARDS[id].milestoneOnly);
+ if(storageConflict||profile.rewardQueue.length||profile.coins<fusionPackPrice()||!pool.length)return false;
+ const id=pool[rng(pool.length)];profile.coins-=fusionPackPrice();addCard(id);profile.lastBooster={tier,cards:[id]};saveProfile();return true;
+}
+shopMarkup=function(){const tier=highestCleared(),available=boosterPools(tier).rare.some(id=>CARDS[id].fusionOnly&&!CARDS[id].ace);
+ return stored.shopMarkup()+'<section class="menu-panel fusion-market"><h2>✧ Fusionsbooster</h2><p>Eine garantierte Fusionsvorlage aus bereits erreichten Turnierstufen. Keine Ace- oder Meilensteinmonster.</p>'+menuButton('1 Fusion · '+fmt(fusionPackPrice())+' Essenz','fusion-pack','',!available||profile.coins<fusionPackPrice())+'</section>'+aceShop();
+};
 navMarkup=function(){return stored.navMarkup().replace('>Freimodus<','>Freie Duelle<').replace('>Ausbau<','>Skills & Perks<')};
 
 function popupHelp(title,body){
@@ -86,7 +94,7 @@ function popupHelp(title,body){
 /* Profile reset safety: always act on the active page's own SAVE_KEY,
    never clear() or remove unrelated saves, and never replace a concurrent edit. */
 function resetProfileKind(){
- return window.ArcaneAdminMode===true?'Admin-Testprofil':'normaler Spielstand';
+ return 'Spielstand';
 }
 function showResetConfirmation(){
  if(storageConflict||!storageWritable){
@@ -95,7 +103,7 @@ function showResetConfirmation(){
  }
  const kind=resetProfileKind();
  openModal(modalHtml('SPIELSTAND · SICHERHEITSABFRAGE 1/2','Spielstand zurücksetzen?','⚠',
-  'Du möchtest deinen <b>'+kind+'</b> zurücksetzen. Alle Karten, Decks, Ressourcen, Siege, freigeschalteten Gegner und laufenden Partien dieses Profils gehen dabei verloren. <b>Der andere Spielstand wird nicht verändert.</b>'+
+  'Du möchtest deinen <b>'+kind+'</b> zurücksetzen. Alle Karten, Decks, Ressourcen, Siege, freigeschalteten Gegner und laufenden Partien dieses Profils gehen dabei verloren. '+
   '<br><br>Diese Aktion kann nur durch den Import einer zuvor exportierten Sicherung rückgängig gemacht werden.',
   '<p class="reset-backup-hint">Tipp: Exportiere deinen aktuellen Spielstand vorher als JSON-Datei.</p>',
   '<button class="btn" id="resetCancel1">ABBRECHEN</button><button class="btn reset-continue" id="resetNext1">JA, WEITER ZU SCHRITT 2</button>'));
@@ -106,9 +114,7 @@ function showResetFinalConfirmation(){
  const kind=resetProfileKind();
  openModal(modalHtml('SPIELSTAND · SICHERHEITSABFRAGE 2/2','Letzte Bestätigung','⚠',
   'Wirklich den <b>'+kind+'</b> vollständig auf den Ausgangszustand zurücksetzen?'+
-  (window.ArcaneAdminMode===true
-   ?'<br><br>Das Adminprofil startet danach wieder mit allen Testkarten und Maximalressourcen.'
-   :'<br><br>Dein normaler Spielstand startet danach wieder mit den ursprünglichen Karten und ohne erspielten Fortschritt.'),
+  '<br><br>Dein Spielstand startet danach wieder mit den ursprünglichen Karten und ohne erspielten Fortschritt.',
   '<label class="reset-verification" for="resetVerifyInput">Tippe zur Bestätigung <strong>ZURÜCKSETZEN</strong> ein:'+
   '<input id="resetVerifyInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ZURÜCKSETZEN" aria-label="ZURÜCKSETZEN eingeben"></label>'+
   '<p class="reset-warning" role="note">Achtung: Kein automatisches Backup. Nur eine bereits exportierte JSON-Sicherung ermöglicht eine Wiederherstellung.</p>',
@@ -134,7 +140,6 @@ function resetCurrentProfile(){
    return false;
   }
   const next=freshProfile();
-  if(window.ArcaneAdminMode===true)seedAdminProfile(next);
   // Validate the replacement before committing a single atomic storage write.
   validateProfile(next);
   const serialized=JSON.stringify(next);
@@ -210,6 +215,7 @@ function buyHint(id){
 
 menuAction=function(d){
  if(d.action==='reset-profile'){showResetConfirmation();return;}
+ if(d.action==='fusion-pack'){if(buyFusionPack()){renderMenu();popupHelp('Fusionsbooster geöffnet','Du hast <b>'+escapeHtml(CARDS[profile.lastBooster.cards[0]].name)+'</b> erhalten.');}else popupHelp('Fusionsbooster','Zu wenig Essenz oder noch keine geeignete Fusion freigeschaltet.');return;}
  if(profile.rewardQueue.length){showMilestone();return;}
  if(d.action==='quick-pack'){const id=Number(d.id);if(openCharacterPack(id,d.mode||'easy'))showPack();else popupHelp('Kein Pack verfügbar','Für diesen Duellanten hast du gerade kein vollständiges Pack. Gewonnene Duelle füllen den Packfortschritt.');return;}
  if(d.action==='buy-ace'){if(buyAce(Number(d.id))){renderMenu();popupHelp('Ace-Monster freigeschaltet!','Deine neue Ace-Karte ist in der Sammlung. Sie kann nun mit einer sehr geringen Chance im Booster-Shop erscheinen.');}else popupHelp('Kauf nicht möglich','Du musst diesen Turniergegner besiegt haben, genug Essenz besitzen und darfst sein einmaliges Ace-Angebot noch nicht gekauft haben.');return;}
@@ -262,6 +268,23 @@ function formatWording(html){
   .replaceAll('Kopie(n)','Karten').replaceAll('Exemplar(e)','Karten im Besitz')
   .replaceAll('Exemplare','Karten im Besitz').replaceAll('Exemplar','Karte');
 }
+function bindCollectionFilters(){
+ const root=$('menuContent'),grid=root.querySelector('.collection-grid');if(!grid)return;
+ const cards=sourceCards(menuTab==='fusions'),items=[...grid.querySelectorAll('.collection-item')];
+ const controls=Object.fromEntries(['cardSearch','cardElement','cardLevel','cardStatus','cardSort'].map(id=>[id,root.querySelector('#'+id)]));
+ const update=()=>{
+  const name=controls.cardSearch.value.trim().toLocaleLowerCase('de'),element=controls.cardElement.value,level=controls.cardLevel.value,status=controls.cardStatus.value,draft=menuTab==='fusions'?fusionDraft:deckDraft;
+  const sorted=[];let count=0;
+  cards.forEach((c,i)=>{const owned=profile.inventory[c.id]||0,visible=(!name||c.name.toLocaleLowerCase('de').includes(name))&&(!element||c.element===element)&&(!level||c.level===Number(level))&&(!status||status==='owned'&&owned>0||status==='deck'&&draft.includes(c.id)||status==='new'&&profile.unseen.includes(c.id)||status==='enhance'&&freeCopies(c.id)>=enhanceCost(c.id).copies);
+   items[i].hidden=!visible;if(visible)count++;sorted.push({c,node:items[i]});
+  });
+  const sort=controls.cardSort.value;if(sort!=='default')sorted.sort((a,b)=>sort==='name'?a.c.name.localeCompare(b.c.name):sort==='atk'?b.c.atk-a.c.atk:b.c.def-a.c.def);
+  for(const x of sorted)grid.appendChild(x.node);
+  root.querySelector('#filterCount').textContent=count+' von '+cards.length+' Karten angezeigt';
+ };
+ for(const el of Object.values(controls))el.addEventListener(el.tagName==='INPUT'?'input':'change',update);
+ update();
+}
 renderMenu=function(){
  stored.renderMenu();
  const el=$('menuContent');
@@ -271,11 +294,20 @@ renderMenu=function(){
   menuButton('📖 Duellantenhandbuch öffnen','guide')+'</section>'+el.innerHTML;
  if(menuTab==='upgrades'){
   const h=el.querySelector('h2');if(h)h.textContent='Skills & Perks';
+  const intro=el.querySelector('.menu-panel > p');if(intro)intro.textContent='Wähle Kampf-, Fusions- und Komfortvorteile. Monstertraining hat abnehmende Boni.';
+ }
+ if(['collection','fusions'].includes(menuTab)){
+  const grid=el.querySelector('.collection-grid');
+  if(grid){
+   const section=document.createElement('section');section.className='menu-panel collection-filters';
+   section.innerHTML='<h3>Karten filtern</h3><div class="filter-controls"><label>Suche <input id="cardSearch" type="search" placeholder="Name"></label><label>Element <select id="cardElement"><option value="">Alle</option>'+[...new Set(sourceCards(menuTab==='fusions').map(c=>c.element))].map(v=>'<option>'+escapeHtml(v)+'</option>').join('')+'</select></label><label>Stufe <select id="cardLevel"><option value="">Alle</option>'+Array.from({length:12},(_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'</option>').join('')+'</select></label><label>Status <select id="cardStatus"><option value="">Alle</option><option value="owned">Besitz</option><option value="deck">Im Deck</option><option value="new">Neu</option><option value="enhance">Verstärkbar</option></select></label><label>Sortierung <select id="cardSort"><option value="default">Standard</option><option value="atk">ATK</option><option value="def">DEF</option><option value="name">Name</option></select></label></div><small id="filterCount"></small>';
+   grid.parentNode.insertBefore(section,grid);
+  }
  }
  if(menuTab==='settings'){
   el.insertAdjacentHTML('beforeend','<section class="menu-panel reset-panel" aria-label="Spielstand zurücksetzen">'+
    '<h2>Spielstand zurücksetzen</h2>'+
-   '<p>Hier kannst du den aktuellen <b>'+resetProfileKind()+'</b> vollständig neu beginnen. Der andere Spielstand bleibt erhalten. <b>Alle Fortschritte dieses Profils werden überschrieben.</b></p>'+
+   '<p>Hier kannst du den aktuellen <b>'+resetProfileKind()+'</b> vollständig neu beginnen. <b>Alle Fortschritte dieses Spielstands werden überschrieben.</b></p>'+
    '<p>Du musst den Vorgang zweimal ausdrücklich bestätigen. Ein vorheriger JSON-Export wird empfohlen.</p>'+
    menuButton('Spielstand zurücksetzen …','reset-profile')+'</section>');
  }
@@ -283,6 +315,7 @@ renderMenu=function(){
  el.innerHTML=formatWording(el.innerHTML);
  const hero=$('menuHero');if(hero)hero.innerHTML=formatWording(hero.innerHTML);
  bindMenu();
+ if(['collection','fusions'].includes(menuTab))bindCollectionFilters();
  if($('alwaysXPHelp'))$('alwaysXPHelp').onclick=showXPHelp;
 };
 stored.showFinished=stored.showFinished||showFinished;
@@ -292,7 +325,7 @@ showFinished=function(){
  stored.showFinished();
  if(wasNew){
   const o=OPPONENTS[game.opponentId];
-  const html='<section class="first-win-box"><h3>✦ Erste Turnierprüfung bestanden!</h3>'+
+  const html='<section class="first-win-box"><h3>✦ Erste Turnierprüfung bestanden!</h3><div class="victory-cards">'+fullCardHtml(profileCard(CARDS[o.loot[2]]))+fullCardHtml(profileCard(CARDS[o.easyManifest]))+'</div>'+
    '<p>Du erhältst eine besondere Fusionskarte und ihre beschwörbare Gestalt: <b>'+escapeHtml(CARDS[o.loot[2]].name)+'</b> und <b>'+escapeHtml(CARDS[o.easyManifest].name)+'</b>.</p>'+
    '<p>Außerdem: 6 zusätzliche Splitter, dreifache Basisessenz und <b>vollständig aufgefüllte Dropladungen ('+dropChargeCap()+')</b>. Eine jüngere Ace-Karte ist nun im Booster-Shop erhältlich.</p></section>';
   const modal=$('modal');if(modal)modal.insertAdjacentHTML('afterbegin',html);
