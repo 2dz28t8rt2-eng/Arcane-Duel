@@ -30,7 +30,9 @@ test('Normal and admin Alpha 2.0 pages retain their own localStorage keys',()=>{
  assert.match(a,/assets\/expansion\.js\?v=alpha20-dev1/);assert.match(n,/assets\/expansion\.js\?v=alpha20-dev1/);
 });
 test('Reset confirmation has two separate dialogs; cancel in either keeps profile unchanged',()=>{
- const b=boot(false),initial=b.storage.get(normalKey);
+ const b=boot(false);
+ b.run('profile.guideSeen=true;saveProfile()'); // The first-run guide must have been completed before using Settings.
+ const initial=b.storage.get(normalKey);
  assert.equal(b.run('window.ArcaneExpansion.version'),'2.0.0-dev');
  b.run('menuTab="settings";renderMenu()');
  assert.match(b.get('menuContent').innerHTML,/reset-profile/);
