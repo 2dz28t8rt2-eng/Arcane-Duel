@@ -23,7 +23,7 @@ function boot(admin,storage=new Map(),options={}){
  return {storage,nodes,get reloads(){return reloads},run:code=>{const v=vm.runInContext(code,ctx,{timeout:12000});return v===undefined?undefined:JSON.parse(JSON.stringify(v))},
   click:id=>{const n=doc.getElementById(id);n.click();return n;},get:id=>doc.getElementById(id)};
 }
-test('Normal and admin Alpha 2.0 pages retain their own localStorage keys',()=>{
+test('Normal and admin Alpha 2.2 pages retain their own localStorage keys',()=>{
  const a=fs.readFileSync(path.join(root,'admin.html'),'utf8'),n=fs.readFileSync(path.join(root,'index.html'),'utf8');
  assert.match(a,/Alpha 2\.0 DEV/);assert.match(n,/Alpha 2\.0 DEV/);
  assert.match(a,/window\.ArcaneAdminMode=true/);assert.doesNotMatch(n,/window\.ArcaneAdminMode=true/);
@@ -37,7 +37,7 @@ test('Reset confirmation has two separate dialogs; cancel in either keeps profil
   return JSON.stringify({coins:p.coins,xp:p.xp,wins:p.wins,inventory:p.inventory,cleared:p.cleared,guideSeen:p.guideSeen});
  };
  const initial=snapshot();
- assert.equal(b.run('window.ArcaneExpansion.version'),'2.0.0-dev');
+ assert.equal(b.run('window.ArcaneExpansion.version'),'2.2.0-dev');
  b.run('menuTab="settings";renderMenu()');
  assert.match(b.get('menuContent').innerHTML,/reset-profile/);
  b.run('window.ArcaneExpansion.showResetConfirmation()');
