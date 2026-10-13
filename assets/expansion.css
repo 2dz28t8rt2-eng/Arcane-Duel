@@ -179,3 +179,12 @@
   background:#f3d69a;border:1px solid #fff4c0;border-radius:2px;
   padding:2px 3px;text-shadow:none;
 }
+
+
+/* Alpha 2.2: small collectible artwork inside the ACE shop, no stretched card text */
+.ace-offer-head{display:flex;align-items:center;gap:12px;min-width:0}
+.ace-offer-head>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ace-offer-head b{font-size:14px;line-height:1.22;overflow-wrap:anywhere}
+.ace-offer-head .ace-eyebrow{font-size:10px;font-weight:900;color:#ffdfa0;letter-spacing:.9px}
+.ace-thumbnail{width:60px;height:78px;flex:0 0 60px;object-fit:cover;border:2px solid #d7b780;border-radius:4px;box-shadow:0 0 10px #b482dc55}
+@media(max-width:420px){.ace-thumbnail{width:50px;flex-basis:50px;height:68px}}
