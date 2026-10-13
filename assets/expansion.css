@@ -152,3 +152,30 @@
  .fusion-choice-modal .fusion-offer .hand-card.tc-card{transition:none}
  .fusion-choice-modal .fusion-offer .hand-card.tc-card:hover{transform:none}
 }
+
+
+/* Alpha 2.2: ACES are a distinct collection category but preserve level frame colors. */
+.hand-card.tc-card.tc-ace{
+  box-shadow:inset 0 0 0 1px rgba(255,235,165,.58),
+             0 3px 10px rgba(0,0,0,.59),
+             0 0 11px var(--tc-glow),
+             0 0 2px 2px rgba(237,197,98,.48);
+}
+.hand-card.tc-card.tc-ace .hand-art{border-color:#f5cc7c!important}
+.hand-card.tc-card .ace-stamp{
+  position:absolute;top:52px;right:6px;z-index:6;
+  color:#271c36;background:linear-gradient(125deg,#fff0b6,#cea25e);
+  border:1px solid #ffe6a0;border-radius:3px;
+  padding:2px 4px;font:900 9px/1.1 Segoe UI,sans-serif;
+  letter-spacing:.3px;pointer-events:none;
+  text-shadow:none;box-shadow:0 2px 7px #1b102b99;
+}
+.board-creature.tc-card.tc-ace{
+  box-shadow:0 0 0 1px #e9c17f,0 0 11px rgba(240,196,91,.40);
+}
+.board-creature.tc-card .board-ace-stamp{
+  position:absolute;top:2px;right:2px;z-index:6;pointer-events:none;
+  font:900 8px/1 Segoe UI,sans-serif;color:#292034;
+  background:#f3d69a;border:1px solid #fff4c0;border-radius:2px;
+  padding:2px 3px;text-shadow:none;
+}
