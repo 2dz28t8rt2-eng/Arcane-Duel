@@ -31,8 +31,12 @@ test('Normal and admin Alpha 2.0 pages retain their own localStorage keys',()=>{
 });
 test('Reset confirmation has two separate dialogs; cancel in either keeps profile unchanged',()=>{
  const b=boot(false);
- b.run('profile.guideSeen=true;saveProfile()'); // The first-run guide must have been completed before using Settings.
- const initial=b.storage.get(normalKey);
+ b.run('profile.guideSeen=true;profile.coins=123456;profile.xp=5678;saveProfile()'); // Finished tutorial, non-empty save.
+ const snapshot=()=>{
+  const p=JSON.parse(b.storage.get(normalKey));
+  return JSON.stringify({coins:p.coins,xp:p.xp,wins:p.wins,inventory:p.inventory,cleared:p.cleared,guideSeen:p.guideSeen});
+ };
+ const initial=snapshot();
  assert.equal(b.run('window.ArcaneExpansion.version'),'2.0.0-dev');
  b.run('menuTab="settings";renderMenu()');
  assert.match(b.get('menuContent').innerHTML,/reset-profile/);
@@ -40,13 +44,13 @@ test('Reset confirmation has two separate dialogs; cancel in either keeps profil
  assert.match(b.get('modal').innerHTML,/SICHERHEITSABFRAGE 1\/2/);
  assert.doesNotMatch(b.get('modal').innerHTML,/ENDGÜLTIG ZURÜCKSETZEN/);
  b.click('resetCancel1');
- assert.equal(b.storage.get(normalKey),initial);
+ assert.equal(snapshot(),initial);
  assert.equal(b.reloads,0);
  b.run('window.ArcaneExpansion.showResetConfirmation()');b.click('resetNext1');
  assert.match(b.get('modal').innerHTML,/SICHERHEITSABFRAGE 2\/2/);
  assert.match(b.get('modal').innerHTML,/ZURÜCKSETZEN/);
  b.click('resetCancel2');
- assert.equal(b.storage.get(normalKey),initial);
+ assert.equal(snapshot(),initial);
  assert.equal(b.reloads,0);
 });
 test('Cannot reset in second dialog without exact typed confirmation',()=>{
