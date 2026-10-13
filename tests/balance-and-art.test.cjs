@@ -12,9 +12,9 @@ function boot(){
  vm.runInContext(art,ctx,{timeout:6000});vm.runInContext(game,ctx,{timeout:9000});
  return code=>JSON.parse(vm.runInContext('JSON.stringify('+code+')',ctx,{timeout:12000}));
 }
-test('293 Karten haben neue SVG-Monsterbilder, mit identitätsstabilen IDs',()=>{
+test('314 Karten haben neue SVG-Monsterbilder, mit identitätsstabilen IDs',()=>{
  const run=boot(),x=run('({number:CARDS.length,unique: new Set(CARDS.map(c=>c.art)).size,generated:CARDS.filter(c=>decodeURIComponent(c.art).includes("role=\\"img\\"")).length,version:window.ArcaneArt.version})');
- assert.equal(x.number,293);assert.equal(x.unique,293);assert.equal(x.generated,293);assert.equal(x.version,'2.0');
+ assert.equal(x.number,314);assert.equal(x.unique,314);assert.equal(x.generated,314);assert.equal(x.version,'2.0');
 });
 test('Charakterpacks liefern drei verschiedene Angebote und höchstens eine seltene Gestalt',()=>{
  const run=boot();
