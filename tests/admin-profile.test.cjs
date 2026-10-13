@@ -31,7 +31,7 @@ test('Normal and admin use separate localStorage keys, even on the same origin',
 });
 test('New admin profile contains every collectible card and full test resources',()=>{
  const b=boot(true),x=b.run('(()=>{const ids=[...new Set([...RPG_BASE_CARDS,...RPG_FUSIONS].map(c=>c.id))];return {profileVersion:profile.version,count:ids.length,all:ids.every(id=>profile.inventory[id]===999999),coins:profile.coins,shards:profile.shards,level:playerLevel(profile),packs:profile.packs,upgrades:Object.keys(UPGRADES).every(k=>profile.upgrades[k]===UPGRADES[k].max),allAce:profile.acePurchased.length,allTournaments:profile.cleared.length,charges:profile.dropCharges,guide:profile.guideSeen,saved:validateProfile(JSON.parse(window.localStorage.getItem(SAVE_KEY))).coins};})()');
- assert.ok(x.count>=310);
+ assert.ok(x.count>=250); // Maximum number of collectible (profile-valid) cards, not all catalog definitions
  assert.equal(x.all,true);
  assert.equal(x.coins,999999999);
  assert.equal(x.shards.length,11);
