@@ -71,3 +71,16 @@ test('100 deterministische Duelle werden ohne Hänger abgeschlossen',()=>{
   assert.equal(result.length,100);
   for(const [w,t,a,b] of result){assert.ok(w===0||w===1);assert.ok(t>0&&t<=32);assert.ok(a>=0&&b>=0);}
 });
+
+test('Volles Feld verhindert Fusion ohne gültige zweite Fusionskopie',()=>{
+ const x=boot().run("(()=>{const g=createGame({mode:'pve',starter:0,seed:88}),p=g.players[0],id=RPG_DEFAULT_DECK[0];p.field=Array.from({length:5},()=>newInstance(g,id,0));p.hand[0]=newInstance(g,id,0);p.hand[1]=newInstance(g,id,0);const ids=p.hand.slice(0,2).map(c=>c.uid),before=[p.hand.length,p.graveyard.length,p.remainingFusion.length],ok=prepareHandFusion(g,ids,RPG_START_FUSIONS[0]);return {ok,before,after:[p.hand.length,p.graveyard.length,p.remainingFusion.length],pending:g.pending};})()");
+ assert.equal(x.ok,false);assert.deepEqual(plain(x.before),plain(x.after));assert.equal(x.pending,null);
+});
+
+test('Externer Speicherkonflikt überschreibt keine neueren Daten',()=>{
+ const app=boot(),updated='{"profile":"external-update"}',key='arcane-duel-rpg-profile-v3';
+ app.store.set(key,updated);
+ assert.equal(app.run('saveProfile()'),false);
+ assert.equal(app.store.get(key),updated);
+ assert.equal(app.run('storageConflict'),true);
+});
