@@ -96,11 +96,11 @@ test('2.2: smarter tournament opponent removes a dangerous but killable monster'
 test('2.1: first tournament win refills charges; rematches cannot farm full refills',()=>{
  const run=engine();const x=run(function(){
  profile.guideSeen=true;
- let first=createGame({mode:'pve',context:'tournament',opponentId:1,seed:100,starter:0});
+ let first=createGame({id:'tournament-first-100',mode:'pve',context:'tournament',opponentId:1,seed:100,starter:0});
  first.winner=0;profile.dropCharges=0;
  const initial=rewardMatch(first),cap=dropChargeCap(),after=profile.dropCharges;
  profile.dropCharges=0;
- let second=createGame({mode:'pve',context:'tournament',opponentId:1,seed:101,starter:0});
+ let second=createGame({id:'tournament-rematch-101',mode:'pve',context:'tournament',opponentId:1,seed:101,starter:0});
  second.winner=0;const rematch=rewardMatch(second);
  return {initialFirst:initial.first,refilled:initial.refilled,cap,after,rematchFirst:rematch.first,rematchCharge:profile.dropCharges};
  });
