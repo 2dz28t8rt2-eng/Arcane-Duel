@@ -120,5 +120,5 @@ function makeArt(c){
  '</svg>';
  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
 }
-window.ArcaneArt={makeArt,version:'2.0',variantsPerSpecies:3,speciesCount:Object.keys(species).length};
+window.ArcaneArt={makeArt,variantForId:id=>hash(id,0)%3,version:'2.0',variantsPerSpecies:3,speciesCount:Object.keys(species).length};
 })();
