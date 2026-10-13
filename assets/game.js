@@ -281,7 +281,7 @@ for(const o of RPG_OPPONENTS.slice(1)){
 }
 
 const AUTO_CAP=30;
-const SAVE_KEY='arcane-duel-rpg-profile-v3',LEGACY_SAVE_KEY='arcane-duel-alpha-profile-v1',PROFILE_VERSION=3,OPPONENTS=RPG_OPPONENTS;
+const SAVE_KEY=window.ArcaneAdminMode===true?'arcane-duel-admin-profile-v3':'arcane-duel-rpg-profile-v3',LEGACY_SAVE_KEY='arcane-duel-alpha-profile-v1',PROFILE_VERSION=3,OPPONENTS=RPG_OPPONENTS;
 const UPGRADES={power:{name:'Monstertraining',desc:'+50 ATK und +50 DEF je Stufe auf alle eigenen Monster; gilt ab dem nächsten Duell',base:120,max:10},loot:{name:'Beutestudien',desc:'+5 % Essenz pro Stufe',base:240,max:5},learning:{name:'Werkzeugkunde',desc:'−5 % Herstellungskosten, +10 % XP pro Stufe',base:180,max:5},tempo:{name:'Trainingsroutine',desc:'Verkürzt Autokämpfe von 6 auf mindestens 3 Sekunden',base:100,max:4},starter:{name:'Grundausbildung',desc:'Je Stufe +35 ATK und +35 DEF auf die 20 ursprünglichen Startmonster.',base:60,max:8}};
 let storageWarning='',storageWritable=true,storageConflict=false,lastStoredProfile=null,legacyImported=false;
 function freshLegacyProfile(){return {version:2,coins:0,xp:0,wins:0,losses:0,pvpMatches:0,totalTurns:0,totalFusions:0,bestTurns:null,unlocked:[...DEFAULT_DECK],activeDeck:[...RPG_DEFAULT_DECK],fusionOwned:[...RPG_START_FUSIONS],fusionDeck:[...RPG_START_FUSIONS],enhancements:{},shards:Array(11).fill(0),pity:Array(11).fill(0),cleared:[],mastery:Array(11).fill(0),upgrades:{loot:0,learning:0,tempo:0,power:0,starter:0},strategy:'balanced',history:[],rewardLedger:[],nextMatch:1,settings:{animation:'fast',sound:false},unseen:[],lootHistory:[],investments:{},auto:{energy:AUTO_CAP,at:Date.now()},lastLoot:null,activeDuel:null,savedAt:0};}
@@ -302,8 +302,46 @@ function validateLegacyProfile(raw){if(raw?.version===1)return migrateLegacy(raw
  if(!['fast','instant'].includes(raw.settings?.animation)||typeof raw.settings?.sound!=='boolean')throw Error('Ungültige Einstellungen.');p.settings={animation:raw.settings.animation,sound:raw.settings.sound};if(!validInt(raw.auto?.energy,AUTO_CAP)||!validInt(raw.auto?.at,1e15))throw Error('Ungültige Trainingsladung.');p.auto={energy:raw.auto.energy,at:Math.min(Date.now(),raw.auto.at)};p.unseen=ids(raw.unseen||[],[...p.unlocked,...p.fusionOwned]);p.lootHistory=(raw.lootHistory||[]).slice(0,30).map(validateLootEntry);p.lastLoot=p.lootHistory[0]||null;for(const [id,cost] of Object.entries(raw.investments||{})){if(!ownsProfileCard(p,Number(id))||!validInt(cost.coins)||!validInt(cost.shards))throw Error('Ungültige Investition.');p.investments[id]={coins:cost.coins,shards:cost.shards};}p.savedAt=validInt(raw.savedAt,1e15)?raw.savedAt:0;p.activeDuel=raw.activeDuel?validateDuelSnapshot(raw.activeDuel):null;if(p.activeDuel&&p.rewardLedger.includes(p.activeDuel.id))p.activeDuel=null;return p;
 }
 function markStorageConflict(){storageConflict=true;storageWarning='Ein anderer Tab hat den Spielstand geändert. Speichern und neue Kämpfe sind angehalten. Exportiere bei Bedarf diesen Stand und lade die Seite neu.';}
-function loadProfile(){try{lastStoredProfile=window.localStorage.getItem(SAVE_KEY);if(lastStoredProfile)return validateProfile(JSON.parse(lastStoredProfile));const prior=window.localStorage.getItem('arcane-duel-rpg-profile-v2');if(prior)return validateProfile(JSON.parse(prior));const legacy=window.localStorage.getItem(LEGACY_SAVE_KEY);return legacy?migrateLegacy(JSON.parse(legacy)):freshProfile();}catch(e){storageWritable=false;storageWarning='Spielstand konnte nicht geladen werden. Bestehende Daten bleiben erhalten. Exportiere deinen Fortschritt oder importiere eine gültige Sicherung.';return freshProfile();}}
+function loadProfile(){try{lastStoredProfile=window.localStorage.getItem(SAVE_KEY);if(lastStoredProfile)return validateProfile(JSON.parse(lastStoredProfile));if(window.ArcaneAdminMode===true)return freshProfile();const prior=window.localStorage.getItem('arcane-duel-rpg-profile-v2');if(prior)return validateProfile(JSON.parse(prior));const legacy=window.localStorage.getItem(LEGACY_SAVE_KEY);return legacy?migrateLegacy(JSON.parse(legacy)):freshProfile();}catch(e){storageWritable=false;storageWarning='Spielstand konnte nicht geladen werden. Bestehende Daten bleiben erhalten. Exportiere deinen Fortschritt oder importiere eine gültige Sicherung.';return freshProfile();}}
+/* Admin sandbox: a separate save key and one-time seeded max-value test profile.
+   Never imports the player's regular data and never overwrites the normal save. */
+function seedAdminProfile(p){
+ const maxMoney=999999999,maxCards=999999;
+ p.coins=maxMoney;
+ p.xp=levelFloor(100);
+ p.shards=Array(11).fill(maxMoney);
+ p.pity=Array(11).fill(0);
+ p.mastery=Array(11).fill(50);
+ p.cleared=OPPONENTS.slice(1).map(o=>o.id);
+ p.trainingWins=3;
+ p.manualEasy=Array(11).fill(10);
+ p.hardWins=Array(11).fill(10);
+ p.unlocked=RPG_BASE_CARDS.map(c=>c.id);
+ p.fusionOwned=RPG_FUSIONS.map(c=>c.id);
+ p.inventory=Object.fromEntries([...p.unlocked,...p.fusionOwned].map(id=>[id,maxCards]));
+ p.enhancements=Object.fromEntries([...p.unlocked,...p.fusionOwned].map(id=>[id,5]));
+ p.upgrades=Object.fromEntries(Object.entries(UPGRADES).map(([key,o])=>[key,o.max]));
+ p.dropCharges=8;
+ p.useDropCharges=false;
+ p.auto={energy:AUTO_CAP,at:Date.now()};
+ p.packs=Array(22).fill(999999);
+ p.packProgress=Array(22).fill(0);
+ p.acePurchased=OPPONENTS.slice(1).map(o=>o.id);
+ p.aceHints=OPPONENTS.slice(1).map(o=>o.id);
+ p.tournamentLosses=Array(11).fill(10);
+ p.challenges=CHALLENGES.map(c=>c.id);
+ p.milestones=[...XP_MILESTONES];
+ p.rewardQueue=[];
+ p.openPack=null;
+ p.guideSeen=true;
+ p.migrationMessage='ADMIN-SPIELSTAND: Separates Testprofil, alle verfügbaren Karten, Ressourcen und Skills freigeschaltet.';
+ return p;
+}
 let profile=loadProfile();
+if(window.ArcaneAdminMode===true&&!lastStoredProfile&&storageWritable){
+ seedAdminProfile(profile);
+ saveProfile();
+}
 function saveProfile(){if(!storageWritable||storageConflict)return false;try{if(window.localStorage.getItem(SAVE_KEY)!==lastStoredProfile){markStorageConflict();return false;}syncSlot();profile.savedAt=Date.now();const text=JSON.stringify(profile);window.localStorage.setItem(SAVE_KEY,text);lastStoredProfile=text;storageWarning='';return true;}catch(e){storageWarning='Speichern nicht möglich. Bitte sichere deinen Fortschritt über Einstellungen → Export.';return false;}}
 function newMatchId(){const id=Date.now().toString(36)+'-'+profile.nextMatch+'-'+rng(0xffffffff).toString(36);profile.nextMatch=profile.nextMatch>=1e9?1:profile.nextMatch+1;saveProfile();return id;}
 function tournamentUnlocked(id){return id>=1&&id<=10&&(id===1||profile.cleared.includes(id-1));}
