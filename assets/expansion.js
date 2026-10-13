@@ -1,4 +1,4 @@
-/* Arcane Duel – Alpha 2.0 development extension.
+/* Arcane Duel – Alpha 2.2 development extension.
    Isolated from the original engine. Profile additions are optional, version 3 persists.
    Never deployed independently from assets/game.js. */
 (function(){
@@ -352,7 +352,7 @@ fusionAnimation=async function(level){
 };
 
 window.ArcaneExpansion={
- version:'2.0.0-dev',aceIds,aceCost,buyAce,buyHint,showGuide,resetCurrentProfile,showResetConfirmation,
+ version:'2.2.0-dev',aceIds,aceCost,buyAce,buyHint,showGuide,resetCurrentProfile,showResetConfirmation,
  featureCount:pages.length,closeGuide:finishGuide
 };
 if(!profile.guideSeen&&!profile.rewardQueue.length&&!profile.openPack&&!profile.activeDuel)showGuide(0);
