@@ -153,7 +153,19 @@ for(const o of RPG_OPPONENTS){
  o.themeText=['Aufbau und Schutz','Durchbruch und Druck','Jagd auf Fusionen'][o.id%3];
 }
 RPG_BASE_CARDS.splice(0,RPG_BASE_CARDS.length,...CARDS.filter(c=>c.id<20||c.rpg&&!c.fusionOnly));RPG_FUSIONS.splice(0,RPG_FUSIONS.length,...CARDS.filter(c=>c.rpg&&c.fusionOnly));
-const CHALLENGES=[{id:'arsenal',name:'Knappes Arsenal',desc:'Besiege den Eisenprüfer mit höchstens fünf Fusionskopien im Deck.',opponent:1,reward:180}, {id:'unique',name:'Ohne Wiederholung',desc:'Besiege die Rubinmagierin ohne doppelte Fusionsvorlagen.',opponent:2,reward:260}, {id:'blitz',name:'Blitzduell',desc:'Besiege den aktuellen Trainingsgegner bis Ende der vierten Runde.',opponent:0,reward:160}, {id:'theme',name:'Eisenbund',desc:'Besiege den Eisenprüfer mit mindestens sechs Eisen-Karten im Hauptdeck.',opponent:1,reward:220}];
+
+/* Einzigartige Namen für NPC-Duellanten und ihre Kernkarten.
+   Die numerischen IDs bleiben für alle gespeicherten Spielstände unverändert. */
+const DUELIST_AND_CARD_NAMES=[["Milo Fenn","Sporell","Pilzwicht Fenno","Waldschlund","Eibenwächter","Moorkönig Aurum","Moospion Nellis","Moorbrecher","Urwurzel Oboros"],["Kael Ardent","Rostfuchs","Graustahl-Knappe","Eisenzahn","Bastion Ferrus","Argentum-Koloss","Bronzeklinge Soren","Stahlbeißer","Kaiser Galdren"],["Akari Hoshino","Glutpfote","Karmesin-Adeptin","Aschenwolf","Rubin-Seraph","Phönix Myrra","Flammenspeer Yui","Inferno-Klaue","Drachenherz Ignia"],["Rin Wilder","Dornläuferin","Laubritter Talon","Stachelherz","Waldgeist Veyra","Thronhirsch Sylvan","Distelspäher","Dornenfürst Darius","Eichenpaladin"],["Kai Mizuno","Perlentaucher","Flutknappe","Abyss-Jäger","Korallenfürstin","Leviathan Coru","Gischtreiter","Neptunsklaue","Sturmtitan Tides"],["Ryuji Kagetsu","Lavakobold Zenn","Schmelzritter","Pyronox","Vulkanbestie","Aschewyrm Rakh","Feuerbote Haku","Magmahäuter","Flammenregent Kaido"],["Noa Kuronagi","Nachtspäher","Dunkelritter Voss","Schwarzklaue","Schattenwolf Lyra","Nox-Albtraum","Krähenjäger Toshi","Seelenbeißer","Obsidian-Mond"],["Sora Amaya","Wolkenfuchs","Azurstahl-Wächter","Sturmschnabel","Windgeist Areon","Himmelskrone","Federklinge Zeph","Orkanbestie","Seraph Windra"],["Yuna Tsukishiro","Runenkatze","Arkanknappe","Glyphenjäger","Chronosgeist","Astra-Lexikon","Siegelhüter Reva","Rissbrecher","Ätherwandler"],["Liora Noctis","Schleierfuchs","Mitternachtswächter","Grabschwinge","Nachtalb Eileen","Leerenorakel","Dunkelpfad Shira","Seelenreißer","Nihil-Wache"],["Aster Valerian","Sternenpfote","Himmelsklinge Ren","Kosmoswyrm","Astralritter","Genesis-König","Sonnenbote Lio","Nebelgestirn","Aurora-Imperator"]];
+RPG_OPPONENTS.forEach((o,index)=>{
+ const [human,...creatures]=DUELIST_AND_CARD_NAMES[index];
+ o.name=human;
+ [...o.loot,...o.hardLoot].forEach((cardId,i)=>{
+  if(CARDS[cardId])CARDS[cardId].name=creatures[i];
+ });
+});
+
+const CHALLENGES=[{id:'arsenal',name:'Knappes Arsenal',desc:'Besiege Kael Ardent mit höchstens fünf Fusionskopien im Deck.',opponent:1,reward:180}, {id:'unique',name:'Ohne Wiederholung',desc:'Besiege Akari Hoshino ohne doppelte Fusionsvorlagen.',opponent:2,reward:260}, {id:'blitz',name:'Blitzduell',desc:'Besiege den aktuellen Trainingsgegner bis Ende der vierten Runde.',opponent:0,reward:160}, {id:'theme',name:'Eisenbund',desc:'Besiege Kael Ardent mit mindestens sechs Eisen-Karten im Hauptdeck.',opponent:1,reward:220}];
 const ENHANCE_SHARDS=[3,5,6,8,9];
 function countCard(ids,id){return ids.filter(x=>x===id).length;}
 function fusionDeckError(ids){if(!Array.isArray(ids)||ids.length<2||ids.length>15||ids.some(id=>!CARDS[id]?.rpg||!CARDS[id].fusionOnly||countCard(ids,id)>3))return '2–15 Fusionskopien; höchstens drei je Art.';return '';}
@@ -179,9 +191,9 @@ RPG_FUSIONS.push(CARDS[TRAINING_FUSION]);
 function rpgRole(id){return [0,7,14].includes(id)?{ability:'rush',desc:'Vorstoß: normal beschworen +80 Angriffsleistung nur in diesem Zug. Kein Bonus als Fusionsmaterial.'}:{};}
 for(const o of RPG_OPPONENTS){if(!o.id)continue;const c=CARDS[o.loot[1]];if(o.policy==='offensive'){c.ability='rush';c.desc='Vorstoß: normal beschworen +80 Angriffsleistung nur in diesem Zug.';}else if(o.id%3===2){c.ability='hunt';c.desc='Jäger: +15 % Angriffsleistung gegen Fusionsmonster.';}o.themeText+=' · '+({offensive:'rascher Angriff mit Einzelmonstern',guardian:'Schutz und standhafte Signatur',economy:'spart Fusionsreserven',balanced:'gezielter Aufbau'}[o.policy]||'Training');}
 CHALLENGES.push(
- {id:'singlefusion',name:'Eine einzige Fusion',desc:'Besiege den Eisenprüfer mit höchstens einer ausgeführten Fusion.',opponent:1,reward:180},
- {id:'regulars',name:'Die gewöhnlichen Helden',desc:'Besiege den Eisenprüfer mit drei verschiedenen normal beschworenen Monstern auf deinem Feld.',opponent:1,reward:200},
- {id:'untrained',name:'Aus eigener Kraft',desc:'Besiege die Rubinmagierin ohne den Monstertraining-Bonus. Der Bonus wird nur für diese Challenge ausgesetzt.',opponent:2,reward:240}
+ {id:'singlefusion',name:'Eine einzige Fusion',desc:'Besiege Kael Ardent mit höchstens einer ausgeführten Fusion.',opponent:1,reward:180},
+ {id:'regulars',name:'Die gewöhnlichen Helden',desc:'Besiege Kael Ardent mit drei verschiedenen normal beschworenen Monstern auf deinem Feld.',opponent:1,reward:200},
+ {id:'untrained',name:'Aus eigener Kraft',desc:'Besiege Akari Hoshino ohne den Monstertraining-Bonus. Der Bonus wird nur für diese Challenge ausgesetzt.',opponent:2,reward:240}
 );
 function trainingStage(){return Math.min(2,profile.trainingWins||0);}
 function trainingName(stage=trainingStage()){return TRAINING_STAGES[stage].name;}
