@@ -147,7 +147,7 @@ test('2.2: damage decay is bounded at 20 per round (10 for starters) and attacks
 test('2.1: ACE remains separately marked in card, collection and battlefield',()=>{
  const run=engine(),x=run(function(){
  const id=ACE_CARD_IDS[1];
- return {id,ace:CARDS[id].ace,hand:fullCardHtml({id}),board:(()=>{const g=createGame({mode:'pve',starter:0,opponentId:2,seed:1});const c=newInstance(g,id,0);return cardHtml(c,0);})()};
+ return {id,ace:CARDS[id].ace,hand:fullCardHtml({id}),board:(()=>{const g=createGame({mode:'pve',starter:0,opponentId:2,seed:1});game=g;const c=newInstance(g,id,0);return cardHtml(c,0);})()};
  });
  assert.equal(x.ace,true);
  assert.match(x.hand,/tc-ace/);assert.match(x.hand,/ace-stamp/);
