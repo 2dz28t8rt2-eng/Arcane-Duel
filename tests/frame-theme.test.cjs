@@ -19,8 +19,8 @@ test('Startmonster neutral, Fusionen lila, Level-12-Normalmonster rot',()=>{
  const run=boot();
  const x=run('(()=>{const ordinary=CARDS.find(c=>c.id>=20&&!c.fusionOnly),fusion=CARDS.find(c=>c.fusionOnly);return {start:Array.from({length:20},(_,i)=>frameClassForCard({id:i})),fusion:frameClassForCard({id:fusion.id}),fieldFusion:frameClassForCard({id:ordinary.id,card:{level:12},fusion:true}),red:frameClassForCard({id:ordinary.id,card:{level:12}})};})()');
  assert.ok(x.start.every(x=>x==='tc-starter'));
- assert.equal(x.fusion,'tc-fusion');
- assert.equal(x.fieldFusion,'tc-fusion');
+ assert.match(x.fusion,/tc-fusion tc-lv-\d+ tc-special/);
+ assert.equal(x.fieldFusion,'tc-fusion tc-lv-12 tc-special');
  assert.equal(x.red,'tc-lv-12');
 });
 test('Normalmonster haben Levelrahmen 1 bis 12, und Überläufe werden gekappt',()=>{
@@ -44,11 +44,11 @@ test('Feste, gut lesbare Textfarben haben mindestens 7:1 Kontrast',()=>{
   assert.ok(css.includes(selector),'Missing text style: '+selector);
 });
 
-test('Gestalt/Manifestation übernimmt den violetten Fusionsrahmen',()=>{
+test('Gestalten behalten Stufenrahmen mit eigener Gestalt-Markierung',()=>{
  const run=boot(),result=run('(()=>{const manifest=CARDS.find(c=>c.manifestOf!=null);return {id:manifest?.id||-1,kind:manifest?frameClassForCard({id:manifest.id}):null,html:manifest?fullCardHtml({id:manifest.id}):""};})()');
  assert.ok(result.id>=20);
- assert.equal(result.kind,'tc-fusion');
- assert.match(result.html,/tc-fusion/);
+ assert.match(result.kind,/tc-lv-\d+ tc-manifest/);
+ assert.match(result.html,/tc-manifest/);
 });
 test('Der ATK/DEF-Bereich besitzt separate Zeilen und keine absolute Positionierung',()=>{
  const run=boot(),html=run('fullCardHtml({id:20,card:{level:12,atk:123456,def:987654}})');
@@ -69,12 +69,12 @@ test('SVG-Innenrahmen entspricht der Rahmenart, auch bei Gestalten',()=>{
  const mk=(id,level,fusionOnly=false,manifestOf=undefined)=>({id,level,fusionOnly,manifestOf,kind:'dragon',element:'FEUER',color:'#bfa2e3'});
  assert.equal(w.ArcaneArt.frameColor(mk(0,12,true)),'#dce4ee');
  assert.equal(w.ArcaneArt.frameColor(mk(30,5,true)),'#b8a0f3');
- assert.equal(w.ArcaneArt.frameColor(mk(40,4,false,31)),'#b8a0f3');
+ assert.equal(w.ArcaneArt.frameColor(mk(40,4,false,31)),'#70c7b3');
  assert.equal(w.ArcaneArt.frameColor(mk(50,12)),'#e26c71');
  const starter=decodeURIComponent(w.ArcaneArt.makeArt(mk(0,4)));
  const fusion=decodeURIComponent(w.ArcaneArt.makeArt(mk(40,4,false,31)));
  const boss=decodeURIComponent(w.ArcaneArt.makeArt(mk(50,12)));
  assert.ok(starter.includes('stroke="#dce4ee"'));
- assert.ok(fusion.includes('stroke="#b8a0f3"'));
+ assert.ok(fusion.includes('stroke="#70c7b3"'));
  assert.ok(boss.includes('stroke="#e26c71"'));
 });
