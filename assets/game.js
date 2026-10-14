@@ -266,6 +266,8 @@ CHALLENGES.push(
  {id:'regulars',name:'Die gewöhnlichen Helden',desc:'Besiege Kael Ardent mit drei verschiedenen normal beschworenen Monstern auf deinem Feld.',opponent:1,reward:200},
  {id:'untrained',name:'Aus eigener Kraft',desc:'Besiege Akari Hoshino ohne den Monstertraining-Bonus. Der Bonus wird nur für diese Challenge ausgesetzt.',opponent:2,reward:240}
 );
+// Register Alpha 2.5 challenge IDs before validating saved player profiles.
+for(const mode of ['defense','burst','fusion'])for(let stage=1;stage<=5;stage++)CHALLENGES.push({id:`evo-${mode}-${stage}`,name:`${mode} · ${stage}`,desc:'Spezialherausforderung',opponent:1,reward:0});
 function trainingStage(){return Math.min(2,profile.trainingWins||0);}
 function trainingName(stage=trainingStage()){return TRAINING_STAGES[stage].name;}
 function rpgEnemyLoadout(id,difficulty='easy',stage){if(id===0&&difficulty!=='hard'){const s=stage??trainingStage();return {deck:[...RPG_DEFAULT_DECK],fusionDeck:[41,41,42,42],enhancements:{},power:TRAINING_STAGES[s].power};}const load=themedEnemyLoadout(id,difficulty),o=RPG_OPPONENTS[id],signature=difficulty==='hard'?o.hardLoot[2]:o.signature;
