@@ -158,7 +158,6 @@
 .evo-card-flight img{display:block;width:100%;height:100%;object-fit:cover}
 @media(prefers-reduced-motion:reduce){.evo-card-flight{display:none!important}}
 
-
 /* Quiet travelling magic glint on non-ACE fusion artwork.
    No repeated full-frame flashes; all information stays readable. */
 .hand-card.tc-card.tc-fusion:not(.tc-ace) .hand-art{position:relative;isolation:isolate}

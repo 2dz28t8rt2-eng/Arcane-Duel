@@ -1,0 +1,67 @@
+{
+  "wave": 3,
+  "status": "local-preview",
+  "images": [
+    {
+      "id": 244,
+      "art": "wave3-01.webp",
+      "name": "Aschenruinen-Drache",
+      "desc": "Sein Feuer verwandelt uralte Festungen in eine einzige glühende Ruine."
+    },
+    {
+      "id": 34,
+      "art": "wave3-02.webp",
+      "name": "Eisgolem der Nacht",
+      "desc": "Eis und uralte Rüstung verschmelzen zu einem Wächter, den kein Winter bezwingen kann."
+    },
+    {
+      "id": 68,
+      "art": "wave3-03.webp",
+      "name": "Phantomreiter des Mondsturms",
+      "desc": "Ein ruheloser Reiter, der zwischen den Welten auf seinem Schattenross jagt."
+    },
+    {
+      "id": 42,
+      "art": "wave3-04.webp",
+      "name": "Himmelsgreif der Stürme",
+      "desc": "Seine gewaltigen Schwingen spalten Sturmwolken und kündigen den Wandel an."
+    },
+    {
+      "id": 21,
+      "art": "wave3-05.webp",
+      "name": "Runenmagier der Ruinen",
+      "desc": "In den Trümmern einer verlorenen Stadt bewahrt er verbotene Zeichen."
+    },
+    {
+      "id": 65,
+      "art": "wave3-06.webp",
+      "name": "Chaoskonstrukt",
+      "desc": "Ein künstlicher Wächter, dessen Kern von ungebändigter Arkanenergie pulsiert."
+    },
+    {
+      "id": 61,
+      "art": "wave3-07.webp",
+      "name": "Nachtwyrm der Abgründe",
+      "desc": "Tief unter den Wellen wartet er, bis der Mond das Meer in Bewegung setzt."
+    },
+    {
+      "id": 66,
+      "art": "wave3-08.webp",
+      "name": "Dämonenfürst der Blutfelsen",
+      "desc": "Unter einem roten Himmel erhebt sich der Herr der glutheißen Klippen."
+    },
+    {
+      "id": 27,
+      "art": "wave3-09.webp",
+      "name": "Celestia, Lichtwächterin",
+      "desc": "Ein geflügelter Lichtgeist, der mit stiller Entschlossenheit die Ruinen bewacht."
+    },
+    {
+      "id": 256,
+      "art": "wave3-10.webp",
+      "name": "Obsidian-Drache",
+      "desc": "Seine schwarzen Schuppen verschlingen das Licht und reflektieren uralte Schattenrunen."
+    }
+  ],
+  "notes": "No new cards, IDs or combat stat adjustments; first white dragon reserved for late game."
+}

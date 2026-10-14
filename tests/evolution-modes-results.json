@@ -1,0 +1,407 @@
+[
+  {
+    "mode": "defense",
+    "stage": 1,
+    "runs": 8,
+    "wins": 8,
+    "goals": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "turns": [
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22
+    ],
+    "allLossesZero": true
+  },
+  {
+    "mode": "defense",
+    "stage": 2,
+    "runs": 8,
+    "wins": 8,
+    "goals": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "turns": [
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22
+    ],
+    "allLossesZero": true
+  },
+  {
+    "mode": "defense",
+    "stage": 3,
+    "runs": 8,
+    "wins": 7,
+    "goals": [
+      2,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "turns": [
+      12,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22,
+      22
+    ],
+    "allLossesZero": true
+  },
+  {
+    "mode": "defense",
+    "stage": 4,
+    "runs": 8,
+    "wins": 8,
+    "goals": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "turns": [
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "allLossesZero": true
+  },
+  {
+    "mode": "defense",
+    "stage": 5,
+    "runs": 8,
+    "wins": 5,
+    "goals": [
+      2,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "turns": [
+      16,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "allLossesZero": true
+  },
+  {
+    "mode": "burst",
+    "stage": 1,
+    "runs": 8,
+    "wins": 8,
+    "goals": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "turns": [
+      13,
+      8,
+      7,
+      16,
+      9,
+      8,
+      9,
+      14
+    ],
+    "allLossesZero": true
+  },
+  {
+    "mode": "burst",
+    "stage": 2,
+    "runs": 8,
+    "wins": 6,
+    "goals": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      2,
+      1
+    ],
+    "turns": [
+      9,
+      8,
+      15,
+      10,
+      9,
+      10,
+      16,
+      16
+    ],
+    "allLossesZero": true
+  },
+  {
+    "mode": "burst",
+    "stage": 3,
+    "runs": 8,
+    "wins": 7,
+    "goals": [
+      0,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "turns": [
+      14,
+      12,
+      13,
+      12,
+      11,
+      12,
+      11,
+      10
+    ],
+    "allLossesZero": true
+  },
+  {
+    "mode": "burst",
+    "stage": 4,
+    "runs": 8,
+    "wins": 1,
+    "goals": [
+      3,
+      3,
+      2,
+      3,
+      2,
+      2,
+      2,
+      2
+    ],
+    "turns": [
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14
+    ],
+    "allLossesZero": true
+  },
+  {
+    "mode": "burst",
+    "stage": 5,
+    "runs": 8,
+    "wins": 0,
+    "goals": [
+      1,
+      2,
+      2,
+      1,
+      2,
+      2,
+      2,
+      1
+    ],
+    "turns": [
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12
+    ],
+    "allLossesZero": true
+  },
+  {
+    "mode": "fusion",
+    "stage": 1,
+    "runs": 8,
+    "wins": 8,
+    "goals": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "turns": [
+      17,
+      10,
+      15,
+      24,
+      22,
+      12,
+      20,
+      20
+    ],
+    "allLossesZero": true
+  },
+  {
+    "mode": "fusion",
+    "stage": 2,
+    "runs": 8,
+    "wins": 8,
+    "goals": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "turns": [
+      9,
+      10,
+      20,
+      14,
+      9,
+      12,
+      22,
+      22
+    ],
+    "allLossesZero": true
+  },
+  {
+    "mode": "fusion",
+    "stage": 3,
+    "runs": 8,
+    "wins": 7,
+    "goals": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "turns": [
+      12,
+      10,
+      13,
+      10,
+      11,
+      10,
+      11,
+      10
+    ],
+    "allLossesZero": true
+  },
+  {
+    "mode": "fusion",
+    "stage": 4,
+    "runs": 8,
+    "wins": 8,
+    "goals": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "turns": [
+      11,
+      12,
+      15,
+      12,
+      17,
+      12,
+      11,
+      20
+    ],
+    "allLossesZero": true
+  },
+  {
+    "mode": "fusion",
+    "stage": 5,
+    "runs": 8,
+    "wins": 8,
+    "goals": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "turns": [
+      19,
+      10,
+      9,
+      14,
+      20,
+      12,
+      9,
+      16
+    ],
+    "allLossesZero": true
+  }
+]

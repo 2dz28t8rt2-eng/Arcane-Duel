@@ -1,0 +1,2020 @@
+{
+  "version": "2.5.0",
+  "kind": "connected tournament I–III, NPC themed decks",
+  "runs": 90,
+  "maxAttemptsPerTier": 45,
+  "summary": [
+    {
+      "strategy": "balanced",
+      "cleared": 30,
+      "total": 30,
+      "errors": 0,
+      "averageFights": 18.3,
+      "averageLosses": 15.3,
+      "blockedAtII": 0,
+      "blockedAtIII": 0
+    },
+    {
+      "strategy": "offensive",
+      "cleared": 29,
+      "total": 30,
+      "errors": 0,
+      "averageFights": 18.6,
+      "averageLosses": 15.7,
+      "blockedAtII": 0,
+      "blockedAtIII": 1
+    },
+    {
+      "strategy": "economy",
+      "cleared": 29,
+      "total": 30,
+      "errors": 0,
+      "averageFights": 19,
+      "averageLosses": 16.1,
+      "blockedAtII": 0,
+      "blockedAtIII": 1
+    }
+  ],
+  "rows": [
+    {
+      "strategy": "balanced",
+      "run": 0,
+      "fights": 34,
+      "losses": 31,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        11,
+        22
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 700
+    },
+    {
+      "strategy": "balanced",
+      "run": 1,
+      "fights": 18,
+      "losses": 15,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        4,
+        13
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 570
+    },
+    {
+      "strategy": "balanced",
+      "run": 2,
+      "fights": 14,
+      "losses": 11,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        3,
+        10
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 536
+    },
+    {
+      "strategy": "balanced",
+      "run": 3,
+      "fights": 18,
+      "losses": 15,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        6,
+        11
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 566
+    },
+    {
+      "strategy": "balanced",
+      "run": 4,
+      "fights": 3,
+      "losses": 0,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        1,
+        1
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 441
+    },
+    {
+      "strategy": "balanced",
+      "run": 5,
+      "fights": 12,
+      "losses": 9,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        1,
+        10
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 522
+    },
+    {
+      "strategy": "balanced",
+      "run": 6,
+      "fights": 43,
+      "losses": 40,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        1,
+        41
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 784
+    },
+    {
+      "strategy": "balanced",
+      "run": 7,
+      "fights": 37,
+      "losses": 34,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        5,
+        31
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 729
+    },
+    {
+      "strategy": "balanced",
+      "run": 8,
+      "fights": 29,
+      "losses": 26,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        3,
+        25
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 671
+    },
+    {
+      "strategy": "balanced",
+      "run": 9,
+      "fights": 16,
+      "losses": 13,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        8,
+        7
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 544
+    },
+    {
+      "strategy": "balanced",
+      "run": 10,
+      "fights": 45,
+      "losses": 42,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        3,
+        41
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 796
+    },
+    {
+      "strategy": "balanced",
+      "run": 11,
+      "fights": 21,
+      "losses": 18,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        17,
+        3
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 571
+    },
+    {
+      "strategy": "balanced",
+      "run": 12,
+      "fights": 22,
+      "losses": 19,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        8,
+        13
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 598
+    },
+    {
+      "strategy": "balanced",
+      "run": 13,
+      "fights": 35,
+      "losses": 32,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        5,
+        29
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 721
+    },
+    {
+      "strategy": "balanced",
+      "run": 14,
+      "fights": 9,
+      "losses": 6,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        4,
+        4
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 489
+    },
+    {
+      "strategy": "balanced",
+      "run": 15,
+      "fights": 7,
+      "losses": 4,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        1,
+        5
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 477
+    },
+    {
+      "strategy": "balanced",
+      "run": 16,
+      "fights": 3,
+      "losses": 0,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        1,
+        1
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 441
+    },
+    {
+      "strategy": "balanced",
+      "run": 17,
+      "fights": 6,
+      "losses": 3,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        2,
+        3
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 466
+    },
+    {
+      "strategy": "balanced",
+      "run": 18,
+      "fights": 14,
+      "losses": 11,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        6,
+        7
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 530
+    },
+    {
+      "strategy": "balanced",
+      "run": 19,
+      "fights": 8,
+      "losses": 5,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        1,
+        6
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 486
+    },
+    {
+      "strategy": "balanced",
+      "run": 20,
+      "fights": 17,
+      "losses": 14,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        8,
+        8
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 553
+    },
+    {
+      "strategy": "balanced",
+      "run": 21,
+      "fights": 12,
+      "losses": 9,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        2,
+        9
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 520
+    },
+    {
+      "strategy": "balanced",
+      "run": 22,
+      "fights": 14,
+      "losses": 11,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        2,
+        11
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 538
+    },
+    {
+      "strategy": "balanced",
+      "run": 23,
+      "fights": 4,
+      "losses": 1,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        1,
+        2
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 450
+    },
+    {
+      "strategy": "balanced",
+      "run": 24,
+      "fights": 36,
+      "losses": 33,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        2,
+        33
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 726
+    },
+    {
+      "strategy": "balanced",
+      "run": 25,
+      "fights": 7,
+      "losses": 4,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        5,
+        1
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 469
+    },
+    {
+      "strategy": "balanced",
+      "run": 26,
+      "fights": 10,
+      "losses": 7,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        5,
+        4
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 496
+    },
+    {
+      "strategy": "balanced",
+      "run": 27,
+      "fights": 11,
+      "losses": 8,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        3,
+        7
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 509
+    },
+    {
+      "strategy": "balanced",
+      "run": 28,
+      "fights": 31,
+      "losses": 28,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        4,
+        26
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 687
+    },
+    {
+      "strategy": "balanced",
+      "run": 29,
+      "fights": 14,
+      "losses": 11,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        8,
+        5
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 526
+    },
+    {
+      "strategy": "offensive",
+      "run": 0,
+      "fights": 11,
+      "losses": 8,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        2,
+        4,
+        5
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 503
+    },
+    {
+      "strategy": "offensive",
+      "run": 1,
+      "fights": 28,
+      "losses": 25,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        3,
+        24
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 662
+    },
+    {
+      "strategy": "offensive",
+      "run": 2,
+      "fights": 27,
+      "losses": 24,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        3,
+        23
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 653
+    },
+    {
+      "strategy": "offensive",
+      "run": 3,
+      "fights": 25,
+      "losses": 22,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        3,
+        21
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 635
+    },
+    {
+      "strategy": "offensive",
+      "run": 4,
+      "fights": 11,
+      "losses": 8,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        4,
+        6
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 507
+    },
+    {
+      "strategy": "offensive",
+      "run": 5,
+      "fights": 21,
+      "losses": 18,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        5,
+        15
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 595
+    },
+    {
+      "strategy": "offensive",
+      "run": 6,
+      "fights": 36,
+      "losses": 33,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        3,
+        32
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 724
+    },
+    {
+      "strategy": "offensive",
+      "run": 7,
+      "fights": 4,
+      "losses": 1,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        2,
+        1
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 448
+    },
+    {
+      "strategy": "offensive",
+      "run": 8,
+      "fights": 10,
+      "losses": 7,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        5,
+        4
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 496
+    },
+    {
+      "strategy": "offensive",
+      "run": 9,
+      "fights": 25,
+      "losses": 22,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        14,
+        10
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 613
+    },
+    {
+      "strategy": "offensive",
+      "run": 10,
+      "fights": 4,
+      "losses": 1,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        1,
+        2
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 450
+    },
+    {
+      "strategy": "offensive",
+      "run": 11,
+      "fights": 12,
+      "losses": 9,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        8,
+        3
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 508
+    },
+    {
+      "strategy": "offensive",
+      "run": 12,
+      "fights": 28,
+      "losses": 25,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        2,
+        25
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 664
+    },
+    {
+      "strategy": "offensive",
+      "run": 13,
+      "fights": 28,
+      "losses": 25,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        22,
+        5
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 615
+    },
+    {
+      "strategy": "offensive",
+      "run": 14,
+      "fights": 38,
+      "losses": 35,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        1,
+        36
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 744
+    },
+    {
+      "strategy": "offensive",
+      "run": 15,
+      "fights": 16,
+      "losses": 13,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        8,
+        7
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 544
+    },
+    {
+      "strategy": "offensive",
+      "run": 16,
+      "fights": 5,
+      "losses": 2,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        2,
+        2
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 457
+    },
+    {
+      "strategy": "offensive",
+      "run": 17,
+      "fights": 7,
+      "losses": 4,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        2,
+        4
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 475
+    },
+    {
+      "strategy": "offensive",
+      "run": 18,
+      "fights": 27,
+      "losses": 24,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        3,
+        23
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 653
+    },
+    {
+      "strategy": "offensive",
+      "run": 19,
+      "fights": 47,
+      "losses": 45,
+      "wins": 2,
+      "cleared": false,
+      "stoppedAt": 3,
+      "duelsByTier": [
+        1,
+        1,
+        45
+      ],
+      "winsByTier": [
+        1,
+        1,
+        0
+      ],
+      "level": 4,
+      "coins": 300,
+      "XP": 650
+    },
+    {
+      "strategy": "offensive",
+      "run": 20,
+      "fights": 18,
+      "losses": 15,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        2,
+        15
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 574
+    },
+    {
+      "strategy": "offensive",
+      "run": 21,
+      "fights": 7,
+      "losses": 4,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        2,
+        4
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 475
+    },
+    {
+      "strategy": "offensive",
+      "run": 22,
+      "fights": 17,
+      "losses": 14,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        1,
+        15
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 567
+    },
+    {
+      "strategy": "offensive",
+      "run": 23,
+      "fights": 7,
+      "losses": 4,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        2,
+        4
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 475
+    },
+    {
+      "strategy": "offensive",
+      "run": 24,
+      "fights": 5,
+      "losses": 2,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        1,
+        3
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 459
+    },
+    {
+      "strategy": "offensive",
+      "run": 25,
+      "fights": 23,
+      "losses": 20,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        6,
+        16
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 611
+    },
+    {
+      "strategy": "offensive",
+      "run": 26,
+      "fights": 17,
+      "losses": 14,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        3,
+        13
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 563
+    },
+    {
+      "strategy": "offensive",
+      "run": 27,
+      "fights": 20,
+      "losses": 17,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        6,
+        13
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 584
+    },
+    {
+      "strategy": "offensive",
+      "run": 28,
+      "fights": 12,
+      "losses": 9,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        1,
+        10
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 522
+    },
+    {
+      "strategy": "offensive",
+      "run": 29,
+      "fights": 23,
+      "losses": 20,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        1,
+        21
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 621
+    },
+    {
+      "strategy": "economy",
+      "run": 0,
+      "fights": 16,
+      "losses": 13,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        5,
+        10
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 550
+    },
+    {
+      "strategy": "economy",
+      "run": 1,
+      "fights": 15,
+      "losses": 12,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        8,
+        6
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 535
+    },
+    {
+      "strategy": "economy",
+      "run": 2,
+      "fights": 29,
+      "losses": 26,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        3,
+        25
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 671
+    },
+    {
+      "strategy": "economy",
+      "run": 3,
+      "fights": 34,
+      "losses": 31,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        5,
+        28
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 712
+    },
+    {
+      "strategy": "economy",
+      "run": 4,
+      "fights": 21,
+      "losses": 18,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        3,
+        17
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 599
+    },
+    {
+      "strategy": "economy",
+      "run": 5,
+      "fights": 3,
+      "losses": 0,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        1,
+        1
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 441
+    },
+    {
+      "strategy": "economy",
+      "run": 6,
+      "fights": 21,
+      "losses": 18,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        5,
+        15
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 595
+    },
+    {
+      "strategy": "economy",
+      "run": 7,
+      "fights": 21,
+      "losses": 18,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        4,
+        16
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 597
+    },
+    {
+      "strategy": "economy",
+      "run": 8,
+      "fights": 6,
+      "losses": 3,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        4,
+        1
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 462
+    },
+    {
+      "strategy": "economy",
+      "run": 9,
+      "fights": 35,
+      "losses": 32,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        5,
+        29
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 721
+    },
+    {
+      "strategy": "economy",
+      "run": 10,
+      "fights": 12,
+      "losses": 9,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        3,
+        8
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 518
+    },
+    {
+      "strategy": "economy",
+      "run": 11,
+      "fights": 10,
+      "losses": 7,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        8,
+        1
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 490
+    },
+    {
+      "strategy": "economy",
+      "run": 12,
+      "fights": 77,
+      "losses": 75,
+      "wins": 2,
+      "cleared": false,
+      "stoppedAt": 3,
+      "duelsByTier": [
+        1,
+        31,
+        45
+      ],
+      "winsByTier": [
+        1,
+        1,
+        0
+      ],
+      "level": 4,
+      "coins": 300,
+      "XP": 820
+    },
+    {
+      "strategy": "economy",
+      "run": 13,
+      "fights": 7,
+      "losses": 4,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        1,
+        5
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 477
+    },
+    {
+      "strategy": "economy",
+      "run": 14,
+      "fights": 15,
+      "losses": 12,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        1,
+        13
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 549
+    },
+    {
+      "strategy": "economy",
+      "run": 15,
+      "fights": 20,
+      "losses": 17,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        2,
+        17
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 592
+    },
+    {
+      "strategy": "economy",
+      "run": 16,
+      "fights": 7,
+      "losses": 4,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        5,
+        1
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 469
+    },
+    {
+      "strategy": "economy",
+      "run": 17,
+      "fights": 9,
+      "losses": 6,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        7,
+        1
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 483
+    },
+    {
+      "strategy": "economy",
+      "run": 18,
+      "fights": 9,
+      "losses": 6,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        5,
+        3
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 487
+    },
+    {
+      "strategy": "economy",
+      "run": 19,
+      "fights": 36,
+      "losses": 33,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        18,
+        17
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 704
+    },
+    {
+      "strategy": "economy",
+      "run": 20,
+      "fights": 17,
+      "losses": 14,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        6,
+        10
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 557
+    },
+    {
+      "strategy": "economy",
+      "run": 21,
+      "fights": 16,
+      "losses": 13,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        12,
+        3
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 536
+    },
+    {
+      "strategy": "economy",
+      "run": 22,
+      "fights": 14,
+      "losses": 11,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        1,
+        12
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 540
+    },
+    {
+      "strategy": "economy",
+      "run": 23,
+      "fights": 33,
+      "losses": 30,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        12,
+        20
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 689
+    },
+    {
+      "strategy": "economy",
+      "run": 24,
+      "fights": 7,
+      "losses": 4,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        5,
+        1
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 469
+    },
+    {
+      "strategy": "economy",
+      "run": 25,
+      "fights": 14,
+      "losses": 11,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        4,
+        9
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 534
+    },
+    {
+      "strategy": "economy",
+      "run": 26,
+      "fights": 4,
+      "losses": 1,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        2,
+        1
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 3,
+      "coins": 560,
+      "XP": 448
+    },
+    {
+      "strategy": "economy",
+      "run": 27,
+      "fights": 22,
+      "losses": 19,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        16,
+        5
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 582
+    },
+    {
+      "strategy": "economy",
+      "run": 28,
+      "fights": 21,
+      "losses": 18,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        4,
+        16
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 597
+    },
+    {
+      "strategy": "economy",
+      "run": 29,
+      "fights": 20,
+      "losses": 17,
+      "wins": 3,
+      "cleared": true,
+      "stoppedAt": null,
+      "duelsByTier": [
+        1,
+        3,
+        16
+      ],
+      "winsByTier": [
+        1,
+        1,
+        1
+      ],
+      "level": 4,
+      "coins": 560,
+      "XP": 590
+    }
+  ]
+}

@@ -11,6 +11,7 @@ function boot(){
 test('First victories grant substantial XP but no free cards; ace requires one-time shop purchase',()=>{
  const result=boot()(`(()=>{profile.trainingWins=3;const rows=[];for(let tier=1;tier<=10;tier++){const before=profile.unlocked.length+profile.fusionOwned.length;const g=createGame({id:'v24-first-'+tier,mode:'pve',context:'tournament',opponentId:tier,seed:100+tier});g.winner=0;const reward=rewardMatch(g);rows.push({tier,level:playerLevel(profile),xp:reward.xp,card:reward.loot?.card,freeCards:profile.unlocked.length+profile.fusionOwned.length-before});}const ace=window.ArcaneExpansion.aceIds[1];profile.coins=100000;const bought=window.ArcaneExpansion.buyAce(1),again=window.ArcaneExpansion.buyAce(1);return {rows,bought,again,aceOwned:profile.inventory[ace]};})()`);
  assert.equal(result.rows.length,10);
+ console.log("TOURNAMENT_DEBUG "+JSON.stringify(result.rows));
  assert.ok(result.rows.every(r=>r.level>=1));
  assert.ok(result.rows.every(r=>r.card==null));
  assert.equal(result.bought,true);assert.equal(result.again,false);assert.equal(result.aceOwned,1);

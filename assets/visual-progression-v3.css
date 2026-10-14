@@ -1,0 +1,15 @@
+/* Arcane Duel 3.0 · Level 1–12 visual progression. Purely decorative, no stat effects. */
+.hand-card.tc-card.tc-lv-1 .hand-stars,.hand-card.tc-card.tc-lv-2 .hand-stars{color:#bbd4a2!important}
+.hand-card.tc-card.tc-lv-3 .hand-stars,.hand-card.tc-card.tc-lv-4 .hand-stars{color:#b5d2f2!important}
+.hand-card.tc-card.tc-lv-5 .hand-stars,.hand-card.tc-card.tc-lv-6 .hand-stars{color:#ffc797!important}
+.hand-card.tc-card.tc-lv-7 .hand-stars,.hand-card.tc-card.tc-lv-8 .hand-stars{color:#d5b5ff!important}
+.hand-card.tc-card.tc-lv-9 .hand-stars,.hand-card.tc-card.tc-lv-10 .hand-stars{color:#ffbad1!important}
+.hand-card.tc-card.tc-lv-11 .hand-stars{color:#ffdf97!important;text-shadow:0 0 5px #e4ad47}
+.hand-card.tc-card.tc-lv-12 .hand-stars{color:#fff0cf!important;text-shadow:0 0 8px #e6c2ff,0 0 13px #b78bea}
+.hand-card.tc-card.tc-lv-11 .hand-art{box-shadow:0 0 0 1px #dfc482,inset 0 0 9px #000,0 0 15px #e0ae4b70!important}
+.hand-card.tc-card.tc-lv-12 .hand-art{box-shadow:0 0 0 1px #f4e6d5,inset 0 0 11px #000,0 0 18px #c4a1ff90!important}
+.hand-card.tc-card.tc-lv-11:not(.tc-ace) .hand-title{border-color:#f0d197!important}
+.hand-card.tc-card.tc-lv-12:not(.tc-ace) .hand-title{border-color:#e8c8ff!important}
+.board-creature.tc-card.tc-lv-11 .board-art{filter:saturate(1.17) contrast(1.08)}
+.board-creature.tc-card.tc-lv-12 .board-art{filter:saturate(1.2) contrast(1.11)}
+@media(prefers-reduced-motion:reduce){.hand-card.tc-card.tc-lv-11,.hand-card.tc-card.tc-lv-12{animation:none!important}}

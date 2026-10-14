@@ -15,6 +15,32 @@ const definitions=[
 ];
 const CARDS=definitions.map(([level,name,kind,element,color],id)=>({id,level,name,kind,element,color,...statPools[level][(id*73+19)%statPools[level].length],desc:id<20?'Ein Bewohner der alten Arena.':id<35?'Nur durch Fusion erreichbar.':'Eine neue Karte deiner Sammlung.'}));
 const DEFAULT_DECK=Array.from({length:20},(_,i)=>i),BASE_CARDS=CARDS.filter(c=>c.level<=3);
+
+
+const CUSTOM_CARD_ART=[
+
+ {id:0,name:'Untoter Goblin vor dem Vollmond',art:'assets/custom-art/base-000.webp',desc:'Ein verwester Kleinkrieger, der im fahlen Vollmondlicht durch die Ruinen schleicht.'},
+ {id:1,name:'Sumpfbestie im Mondlicht',art:'assets/custom-art/base-001.webp',desc:'Eine klamme Bestie aus Moder und Schlamm, die aus schwarzem Wasser hervorbricht.'},
+ {id:2,name:'Dämonische Runenfledermaus über Mondruinen',art:'assets/custom-art/base-002.webp',desc:'Ein runenverbranntes Nachtwesen, das kreischend über zerfallene Bögen jagt.'},
+ {id:3,name:'Mondlicht-Panther in gotischen Ruinen',art:'assets/custom-art/base-003.webp',desc:'Ein lautloser Jäger mit violetten Augen, der zwischen gotischen Mauern pirscht.'},
+ {id:6,name:'Runenbasilisk im Ruinentempel',art:'assets/custom-art/base-006.webp',desc:'Ein schuppiges Schreckenstier, dessen Blick von dunklen Runen aufgeladen ist.'},
+ {id:11,name:'Spektraler Wyvern über mondbeschienenen Ruinen',art:'assets/custom-art/base-011.webp',desc:'Ein geisterhafter Wyvern, der mit kaltem Monddunst durch die Nacht gleitet.'},
+ {id:24,name:'Schattenritter unter dem Violetten Mond',art:'assets/custom-art/base-024.webp',desc:'Ein finsterer Krieger mit runengetränkter Lanze, verhüllt von flatterndem Umhang.'},
+ {id:25,name:'Sturmmantikor im Violetten Nebel',art:'assets/custom-art/base-025.webp',desc:'Ein rasender Bestienherr mit giftigen Klauen und einem Leib voller Sturmenergie.'},
+ {id:30,name:'Kristallramme im Mondlicht',art:'assets/custom-art/base-030.webp',desc:'Ein urtümlicher Widder, dessen Hörner und Fell von leuchtenden Kristallen durchzogen sind.'},
+ {id:31,name:'Untoter Wächter im Geisterfeuer',art:'assets/custom-art/base-031.webp',desc:'Ein eiserner Grabwächter, umspült von blauen Flammen und Ketten schwerer Verdammnis.'},
+ {id:7,name:'Runenspeer-Krieger unter dem Purpurmond',art:'assets/custom-art/base-007.webp',desc:'Ein entschlossener Lanzenkämpfer, der unter dem Purpurmond durch die Ruinen schreitet.'},
+ {id:9,name:'Schattenwolf im Mondlicht der Ruinen',art:'assets/custom-art/base-009.webp',desc:'Ein lautloser Mondjäger, der zwischen zerfallenen Bögen auf Beute lauert.'},
+ {id:12,name:'Skelettkrähe im Mondlicht',art:'assets/custom-art/base-012.webp',desc:'Ein unheilvoller Knochenvogel, dessen Ruf durch die kalte Nacht hallt.'},
+ {id:14,name:'Kristallhirsch im Mondlicht',art:'assets/custom-art/base-014.webp',desc:'Ein urtümlicher Hirsch, dessen Kristallgeweih im violetten Mondschein glänzt.'},
+ {id:15,name:'Dunkler Ritter unter dem Violetten Mond',art:'assets/custom-art/base-015.webp',desc:'Ein finsterer Vollstrecker in zerschlagener Rüstung, aufgeladen mit violetter Arkanenergie.'},
+ {id:17,name:'Kristallschakal im Mondlicht',art:'assets/custom-art/base-017.webp',desc:'Ein flinker Räuber, dessen Fell von scharfkantigen Kristallen durchbrochen wird.'},
+ {id:20,name:'Mondfluch-Hexe im Mondlicht',art:'assets/custom-art/base-020.webp',desc:'Eine Hexe der Nacht, die unter dem Vollmond unheilvolle Rituale webt.'},
+ {id:22,name:'Gargoyle der Mondfinsternis',art:'assets/custom-art/base-022.webp',desc:'Ein steinerner Wächter, der in der Finsternis erwacht und über die Ruinen herrscht.'},
+ {id:26,name:'Drache im Mondlicht über Ruinen',art:'assets/custom-art/base-026.webp',desc:'Ein bedrohlicher Nachtdrache, der hoch über dem zerfallenen Gemäuer kreist.'},
+ {id:29,name:'Sturmleviathan im Arkanen Meer',art:'assets/custom-art/base-029.webp',desc:'Ein titanischer Leviathan, der die Brandung und uralte Runenstürme beherrscht.'}
+];
+for(const art of CUSTOM_CARD_ART){if(CARDS[art.id])Object.assign(CARDS[art.id],art,{customArt:art.art});}
 const dataOf=c=>c.card?{...CARDS[c.id],...rpgRole(c.id),...c.card}:CARDS[c.id];
 function randomInt(g,max){let x=g.seed>>>0;x^=x<<13;x^=x>>>17;x^=x<<5;g.seed=x>>>0;return g.seed%max;}
 function buildDeck(g,ids=DEFAULT_DECK){const deck=[...ids],counts=new Map(ids.map(id=>[id,1]));while(deck.length<40){const options=ids.filter(id=>counts.get(id)<3),id=options[randomInt(g,options.length)];deck.push(id);counts.set(id,counts.get(id)+1);}for(let i=39;i>0;i--){const j=randomInt(g,i+1);[deck[i],deck[j]]=[deck[j],deck[i]];}return deck;}
@@ -597,6 +623,80 @@ function makeArt(c){const seed=c.id,variant=seed%7;
  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 184"><defs><radialGradient id="bg"><stop stop-color="${c.color}" stop-opacity=".63"/><stop offset=".57" stop-color="#1b3047"/><stop offset="1" stop-color="#0a101e"/></radialGradient><linearGradient id="creature" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${c.color}"/><stop offset=".48" stop-color="#314254"/><stop offset="1" stop-color="#090e1c"/></linearGradient><linearGradient id="shine"><stop stop-color="#fff1b6"/><stop offset=".58" stop-color="${c.color}"/><stop offset="1" stop-color="#af805b"/></linearGradient><radialGradient id="orb"><stop stop-color="#ffedb8" stop-opacity=".55"/><stop offset="1" stop-color="${c.color}" stop-opacity="0"/></radialGradient></defs><rect width="240" height="184" fill="url(#bg)"/><circle cx="120" cy="87" r="92" fill="none" stroke="${c.color}" stroke-width="1" opacity=".35"/><circle cx="120" cy="87" r="70" fill="url(#orb)"/><path d="M-10 144 L47 99 L85 136 L137 78 L203 142 L250 99" fill="none" stroke="${c.color}" stroke-width="11" opacity=".15"/><path d="M0 162 Q70 136 131 164 T240 145 L240 184 L0 184Z" fill="#060d18" opacity=".85"/>${accents}<g transform="translate(${120+(seed%5-2)*6} ${96+(seed%7-3)*3}) scale(${(seed%2?-1:1)*(.68+c.level*.035+(seed%3)*.03)} ${.7+c.level*.035+(seed%4)*.023}) translate(-120 -96)">${artShape(c.kind)}${rune}</g><circle cx="120" cy="92" r="${48+c.level*3}" fill="none" stroke="${c.color}" stroke-dasharray="${c.level*3} 9" opacity=".45"/><path d="M90 171 L120 154 L150 171 L120 180 Z" fill="${c.color}" opacity=".55"/><path d="M5 11 L30 11 M5 11 L5 36 M235 11 L210 11 M235 11 L235 36 M5 173 L30 173 M5 173 L5 148 M235 173 L210 173 M235 173 L235 148" stroke="#ebce90" stroke-width="1.4" opacity=".64"/><rect x="1" y="1" width="238" height="182" rx="2" fill="none" stroke="#b99766" stroke-width="2"/></svg>`;
  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
 }
+/* Artwork-Welle 3: reine Präsentation. Die Karten-IDs und Kampfwerte bleiben stabil. */
+const CUSTOM_CARD_ART_WAVE_3=[
+ {id:244,name:"Aschenruinen-Drache",customArt:"assets/custom-art/wave3-01.webp",desc:"Sein Feuer verwandelt uralte Festungen in eine einzige glühende Ruine."},
+ {id:34,name:"Eisgolem der Nacht",customArt:"assets/custom-art/wave3-02.webp",desc:"Eis und uralte Rüstung verschmelzen zu einem Wächter, den kein Winter bezwingen kann."},
+ {id:68,name:"Phantomreiter des Mondsturms",customArt:"assets/custom-art/wave3-03.webp",desc:"Ein ruheloser Reiter, der zwischen den Welten auf seinem Schattenross jagt."},
+ {id:42,name:"Himmelsgreif der Stürme",customArt:"assets/custom-art/wave3-04.webp",desc:"Seine gewaltigen Schwingen spalten Sturmwolken und kündigen den Wandel an."},
+ {id:21,name:"Runenmagier der Ruinen",customArt:"assets/custom-art/wave3-05.webp",desc:"In den Trümmern einer verlorenen Stadt bewahrt er verbotene Zeichen."},
+ {id:65,name:"Chaoskonstrukt",customArt:"assets/custom-art/wave3-06.webp",desc:"Ein künstlicher Wächter, dessen Kern von ungebändigter Arkanenergie pulsiert."},
+ {id:61,name:"Nachtwyrm der Abgründe",customArt:"assets/custom-art/wave3-07.webp",desc:"Tief unter den Wellen wartet er, bis der Mond das Meer in Bewegung setzt."},
+ {id:66,name:"Dämonenfürst der Blutfelsen",customArt:"assets/custom-art/wave3-08.webp",desc:"Unter einem roten Himmel erhebt sich der Herr der glutheißen Klippen."},
+ {id:27,name:"Celestia, Lichtwächterin",customArt:"assets/custom-art/wave3-09.webp",desc:"Ein geflügelter Lichtgeist, der mit stiller Entschlossenheit die Ruinen bewacht."},
+ {id:256,name:"Obsidian-Drache",customArt:"assets/custom-art/wave3-10.webp",desc:"Seine schwarzen Schuppen verschlingen das Licht und reflektieren uralte Schattenrunen."},
+ ];
+for(const art of CUSTOM_CARD_ART_WAVE_3){
+ const c=CARDS[art.id];
+ if(!c)throw new Error('Artwork-Karte fehlt: '+art.id);
+ Object.assign(c,art);
+ // Eine normale Gestalt desselben Monsters erhält exakt dasselbe Motiv.
+ for(const form of CARDS.filter(x=>x.manifestOf===art.id)){
+  form.customArt=art.customArt;
+  form.name=art.name+' · Gestalt';
+ }
+}
+/* Artwork-Welle 4: Übergang zu imposanteren Fusionen, ohne Änderungen an IDs, Elementen oder Kampfwerten. */
+const CUSTOM_CARD_ART_WAVE_4=[
+ {id:280,name:'Sonnenklinge-Wyvern',customArt:'assets/custom-art/wave4-01.webp',desc:'Seine goldenen Schwingen schneiden durch das Licht der sinkenden Sonne.'},
+ {id:90,name:'Donnerkoloss der Gebirgsspalten',customArt:'assets/custom-art/wave4-02.webp',desc:'Wo seine Schritte hallen, bersten die Berge und erwachen uralte Steine.'},
+ {id:103,name:'Tiefenlord Leviathan',customArt:'assets/custom-art/wave4-03.webp',desc:'Ein uralter Meeresjäger, dessen Ruf selbst versunkene Städte erzittern lässt.'},
+ {id:246,name:'Flammenphönix der Aschewelt',customArt:'assets/custom-art/wave4-04.webp',desc:'Er erhebt sich aus der Glut vergessener Reiche und trägt den Funken ihrer Wiedergeburt.'},
+ {id:260,name:'Schattenlord der Zwischenwelt',customArt:'assets/custom-art/wave4-05.webp',desc:'Ein schwarzer Seelenherr, der zwischen Erinnerung und Vergessen wandert.'},
+ {id:278,name:'Himmelsrichterin Seraphiel',customArt:'assets/custom-art/wave4-06.webp',desc:'Ihre Lanze erstrahlt, wenn die letzte Entscheidung über Licht und Schatten fällt.'},
+ {id:101,name:'Blutdorn-Behemoth',customArt:'assets/custom-art/wave4-07.webp',desc:'Seine Dornen nähren sich vom Kampf und wachsen mit jedem überwundenen Feind.'},
+ {id:286,name:'Kristalldrache der Sternenbrüche',customArt:'assets/custom-art/wave4-08.webp',desc:'Seine Schuppen spiegeln das zerbrochene Licht ferner Sterne.'},
+ {id:274,name:'Sturmtitan der Verlorenen Inseln',customArt:'assets/custom-art/wave4-09.webp',desc:'Er steigt aus dem tosenden Himmel auf und zieht vergessene Inseln in seinen Bann.'},
+ {id:262,name:'Nekrofusion-Drachentyrann',customArt:'assets/custom-art/wave4-10.webp',desc:'Aus Drachenknochen und ruhelosen Seelen geformt, bewacht er das Tor zur Zwischenwelt.'}
+];
+for(const art of CUSTOM_CARD_ART_WAVE_4){
+ const c=CARDS[art.id];
+ if(!c||c.customArt)throw new Error('Artwork-Welle 4: Karte fehlt oder ist bereits belegt: '+art.id);
+ Object.assign(c,art);
+ for(const form of CARDS.filter(x=>x.manifestOf===art.id)){
+  form.customArt=art.customArt;
+  form.name=art.name+' · Gestalt';
+ }
+}
+
+/* Artwork-Welle 5: zehn individuelle Originalillustrationen für fortgeschrittene Stufen. */
+const CUSTOM_CARD_ART_WAVE_5=[
+ {id:85,name:"Chronowyrm der Zeitspalten",customArt:"assets/custom-art/wave5-01.webp",desc:"Seine Schuppen bergen die Erinnerung an ungezählte Zukünfte."},
+ {id:123,name:"Umbrakaiser der Leerenrosse",customArt:"assets/custom-art/wave5-02.webp",desc:"Ein finsterer Reiter, der verlorene Seelen durch die Zwischenwelt führt."},
+ {id:105,name:"Abysskrake der Tiefseegräben",customArt:"assets/custom-art/wave5-03.webp",desc:"Er erhebt sich aus den tiefsten Gräben und verschlingt das Licht."},
+ {id:102,name:"Weltenbaum-Ent der Urwälder",customArt:"assets/custom-art/wave5-04.webp",desc:"Seine Wurzeln halten die uralten Wälder zusammen."},
+ {id:73,name:"Eisphönix der Polarnacht",customArt:"assets/custom-art/wave5-05.webp",desc:"Ein geflügeltes Wesen aus kristallklarer Wintermagie."},
+ {id:82,name:"Dämonenfürstin Lilith",customArt:"assets/custom-art/wave5-06.webp",desc:"Ihre Stimme lockt Erinnerungen in die Schatten."},
+ {id:109,name:"Stahlgolem der Himmelsfestungen",customArt:"assets/custom-art/wave5-07.webp",desc:"Ein gewaltiger Wächter über den schwebenden Festungen."},
+ {id:292,name:"Schattenhydra der Seelenkluft",customArt:"assets/custom-art/wave5-08.webp",desc:"Ihre Häupter winden sich aus dem Riss zwischen den Welten."},
+ {id:119,name:"Sternenwächter Aurelion",customArt:"assets/custom-art/wave5-09.webp",desc:"Er bewacht die Sternenpfade mit unerschütterlichem Licht."},
+ {id:298,name:"Chaosdrache der Weltenzerstörung",customArt:"assets/custom-art/wave5-10.webp",desc:"Aus den Trümmern verlorener Reiche wächst sein unheilvoller Schatten."},
+];
+for(const art of CUSTOM_CARD_ART_WAVE_5){
+ const c=CARDS[art.id];
+ if(!c||c.customArt)throw new Error("Artwork-Welle 5: Karte fehlt oder belegt: "+art.id);
+ Object.assign(c,art);
+ for(const form of CARDS.filter(x=>x.manifestOf===art.id)){form.customArt=art.customArt;form.name=art.name+" · Gestalt";}
+}
+/* Artwork-Welle 6: Originalillustrationen aus dem zuletzt freigegebenen Pack.
+   Nur Darstellung; bestehende Karten-IDs, Level und Kampfwerte bleiben unverändert. */
+const CUSTOM_CARD_ART_WAVE_6=[{"id":86,"name":"Goldener Himmelswyvern","customArt":"assets/custom-art/wave6-01.webp","desc":"Ein goldener Wächter der hohen Ruinen, dessen Schwingen das Sonnenlicht tragen."},{"id":89,"name":"Donnergolem des Sturmgebirges","customArt":"assets/custom-art/wave6-02.webp","desc":"Aus Felsen und Blitz geformt erwacht er im Auge des Gewitters."},{"id":317,"name":"Mondsturm-Leviathan","customArt":"assets/custom-art/wave6-03.webp","desc":"Aus tobenden Wassern erhebt sich ein uraltes Meereswesen."},{"id":210,"name":"Majestätischer Aschenphönix","customArt":"assets/custom-art/wave6-04.webp","desc":"Inmitten eines Feuersturms erneuert er sein glühendes Gefieder."},{"id":33,"name":"Overlord des Zerbrochenen Portals","customArt":"assets/custom-art/wave6-05.webp","desc":"Ein Herr der Zwischenwelt, der aus einem zerrissenen Portal tritt."},{"id":121,"name":"Seraphische Richterin","customArt":"assets/custom-art/wave6-06.webp","desc":"Die Hüterin erhebt ihre Sternenklinge über den donnernden Himmel."},{"id":69,"name":"Blutmond-Kristallbehemoth","customArt":"assets/custom-art/wave6-07.webp","desc":"Ein gewaltiges Schattenwesen mit blutroten Kristallstacheln."},{"id":304,"name":"Kosmischer Kristalldrache","customArt":"assets/custom-art/wave6-08.webp","desc":"Seine Schuppen tragen Splitter unbekannter Sternbilder."},{"id":106,"name":"Sturmtitan aus Stein und Meer","customArt":"assets/custom-art/wave6-09.webp","desc":"Ein uraltes Wesen aus Gestein und Wassermassen, geladen mit Blitzen."},{"id":81,"name":"Nekrodrache des Purpurmonds","customArt":"assets/custom-art/wave6-10.webp","desc":"Ein gespenstischer Drache, der an der Schwelle zur Schattenwelt kreist."}];
+for(const art of CUSTOM_CARD_ART_WAVE_6){
+ const c=CARDS[art.id];
+ if(!c||c.customArt)throw new Error('Artwork-Welle 6: Karte fehlt oder schon belegt: '+art.id);
+ Object.assign(c,art);
+ for(const form of CARDS.filter(x=>x.manifestOf===art.id)){form.customArt=art.customArt;form.name=art.name+' · Gestalt';}
+}
 CARDS.forEach(c=>c.art=window.ArcaneArt?.makeArt(c)||makeArt(c));
 
 function sound(type){if(!soundOn)return;try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const context=sound.context||(sound.context=new A());if(context.state==='suspended')context.resume();const o=context.createOscillator(),gain=context.createGain();o.type=type==='attack'?'sawtooth':'sine';let t=context.currentTime;o.frequency.setValueAtTime(type==='attack'?390:type==='win'?600:500,t);o.frequency.exponentialRampToValueAtTime(type==='attack'?110:type==='win'?1200:190,t+.23);gain.gain.setValueAtTime(.09,t);gain.gain.exponentialRampToValueAtTime(.001,t+.28);o.connect(gain).connect(context.destination);o.start(t);o.stop(t+.29);}catch(e){}}
@@ -796,3 +896,4 @@ function renderMenu(){renderMenu16();if(menuTab==='free')$('menuContent').innerH
 function menuAction(d){if(profile.rewardQueue.length){showMilestone();return;}if(d.action==='xphelp'){showXPHelp();return;}if(d.action==='booster'){if(buyBooster(Number(d.count)||10))renderMenu();else toast('Nicht genug Essenz für diesen Booster.');return;}if(d.action==='encounter'){startEncounter(d.enc);return;}menuAction16(d);}
 function showIphoneHelp(){openModal(modalHtml('MOBIL SPIELEN','Arcane Duel auf dem iPhone','📱','Spiele möglichst in Safari als Webseite. Die iOS-Dateivorschau führt JavaScript möglicherweise nicht vollständig aus.',`<ol class="rulelist"><li><b>Karten:</b> Tippe eine Handkarte an, dann auf „Beschwören“ und anschließend auf ein eigenes Feld.</li><li><b>Fusion:</b> Aktiviere „Touch-Fusion“, tippe mindestens zwei Handkarten nacheinander an und drücke „Fusionieren“. Wähle die Fusionsvorlage und dann ein eigenes Feld.</li><li><b>Angriff:</b> Tippe auf dein Monster und dann auf das gegnerische Ziel. Bei freiem Gegnerfeld nutze „Direkter Angriff“.</li><li><b>Speichern:</b> Im Menü unter „Spielstand“ regelmäßig als JSON exportieren. Ein HTML-Dateiwechsel oder Browserwechsel kann ein anderes lokales Speichergebiet verwenden.</li><li><b>Zum Home-Bildschirm:</b> Sobald das Spiel unter einer HTTPS-Webadresse in Safari läuft: Teilen → „Zum Home-Bildschirm“.</li></ol>`, '<button class="btn primary" id="iphoneHelpClose">VERSTANDEN</button>'));$('iphoneHelpClose').onclick=hideModal;}
 if(profile.rewardQueue.length)showMilestone();
+

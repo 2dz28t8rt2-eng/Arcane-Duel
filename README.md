@@ -47,3 +47,8 @@ Zuletzt geprüft: 90 zusammenhängende Turnierläufe I–III mit drei Strategien
 ## Bekannte Grenzen
 
 Die Turniersimulationen nutzen drei regelbasierte Testspieler und bilden menschliche Entscheidungen nicht vollständig ab. Ihre Siegraten sind keine Prognose für alle Spieler. Die Fusionsmodus-AI nutzt bisher meist nur das erste der drei Missionsziele, weil sie nicht gezielt auf Quests optimiert. Alle zehn ACEs haben eigene stilisierte SVG-Illustrationen; aufwendige handgemalte Charakterporträts sind noch kein Bestandteil dieser Entwicklungsfassung. Die neue Darstellung wurde mit Chromium auf Desktop- und Smartphone-Breite überprüft. Vor einer öffentlichen Freigabe sollten zusätzlich mobile Geräte und manuelle Mehrfachfusionen ausführlich getestet werden.
+
+
+## 3.0 Artwork-Integration · 60 Motive
+
+Die Development-Vorschau beinhaltet 60 eigens erstellte Monsterillustrationen aus sechs Produktionswellen, als kompakte WebP-Dateien. Weitere Karten nutzen weiterhin den prozeduralen SVG-Generator. Die vorhandenen 324 Karten-IDs und Kampfwerte sind unverändert; Manifest-Gestalten teilen dieselbe Illustration. Die neue Galerie ist über den Link »Monsteratelier 3.0« im Spiel erreichbar. Der weiße Drache ist für den späteren Ausbau vorgesehen.
