@@ -681,3 +681,71 @@
 
 /* Update B – generated SVG monsters retain their complete original silhouette. */
 .hand-card.tc-card .hand-art img.legacy-art,.board-creature.tc-card img.board-art.legacy-art{object-fit:contain!important;background:radial-gradient(ellipse at 50% 52%,#293246,#080e19 82%)}
+
+/* Update C cosmetic pass: larger levels, cleaner stats, louder ACE finish */
+.hand-card.tc-card .card-level-badge{
+ min-width:44px;
+ padding:2px 8px 1px;
+ font-size:10px!important;
+ line-height:16px!important;
+ text-align:center;
+ letter-spacing:.55px!important;
+}
+.deck-preview-card .hand-card.tc-card .card-level-badge,
+.card-preview-panel .hand-card.tc-card .card-level-badge{
+ min-width:56px;
+ padding:4px 10px 3px;
+ font-size:13px!important;
+ line-height:18px!important;
+}
+.hand-card.tc-card .hand-stats{
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+}
+.hand-card.tc-card .hand-stats .stat{
+ justify-content:center!important;
+ gap:0!important;
+}
+.hand-card.tc-card .hand-stats .stat-label{display:none!important}
+.hand-card.tc-card .hand-stats .stat-value{
+ font-size:11px!important;
+ line-height:13px!important;
+ letter-spacing:-.1px!important;
+}
+.deck-preview-card .hand-card.tc-card .hand-stats,
+.card-preview-panel .hand-card.tc-card .hand-stats{
+ flex-basis:48px!important;
+ min-height:48px!important;
+ max-height:48px!important;
+ height:48px!important;
+}
+.deck-preview-card .hand-card.tc-card .hand-stats .stat-value,
+.card-preview-panel .hand-card.tc-card .hand-stats .stat-value{
+ font-size:16px!important;
+ line-height:18px!important;
+}
+.hand-card.tc-card.tc-ace .ace-stamp{
+ position:absolute;
+ overflow:visible;
+}
+@media(prefers-reduced-motion:no-preference){
+ .hand-card.tc-card.tc-ace .ace-stamp::after,
+ .deck-preview-card .hand-card.tc-card.tc-ace .ace-stamp::after,
+ .collection-item .hand-card.tc-card.tc-ace .ace-stamp::after{
+  content:'✦ ✦';
+  position:absolute;
+  right:-18px;
+  top:-8px;
+  font-size:10px;
+  letter-spacing:10px;
+  color:#fff0b5;
+  text-shadow:0 0 8px #ffe89d,0 0 14px #fff5d6;
+  opacity:0;
+  transform:scale(.6) translateY(3px);
+  animation:ace-starblink 3.6s ease-in-out infinite;
+ }
+}
+@keyframes ace-starblink{
+ 0%,66%,100%{opacity:0;transform:scale(.6) translateY(3px)}
+ 73%{opacity:1;transform:scale(1.14) translateY(-2px)}
+ 82%{opacity:.75;transform:scale(.95) translateY(-6px)}
+}

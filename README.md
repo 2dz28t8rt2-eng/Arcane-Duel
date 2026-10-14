@@ -51,4 +51,4 @@ Die Turniersimulationen nutzen drei regelbasierte Testspieler und bilden menschl
 
 ## 3.0 Artwork-Integration · 60 Motive
 
-Die Development-Vorschau beinhaltet 60 eigens erstellte Monsterillustrationen aus sechs Produktionswellen, als kompakte WebP-Dateien. Weitere Karten nutzen weiterhin den prozeduralen SVG-Generator. Die vorhandenen 324 Karten-IDs und Kampfwerte sind unverändert; Manifest-Gestalten teilen dieselbe Illustration. Die neue Galerie ist über den Link »Monsteratelier 3.0« im Spiel erreichbar. Der weiße Drache ist für den späteren Ausbau vorgesehen.
+Die Development-Vorschau beinhaltet 60 eigens erstellte Monsterillustrationen aus sechs Produktionswellen, als kompakte WebP-Dateien. Weitere Karten nutzen weiterhin den prozeduralen SVG-Generator. Die vorhandenen 324 Karten-IDs und Kampfwerte sind unverändert; Manifest-Gestalten teilen dieselbe Illustration. Die neue Galerie ist über den Link »Monsterlexikon 3.0« im Spiel erreichbar. Der weiße Drache ist für den späteren Ausbau vorgesehen.

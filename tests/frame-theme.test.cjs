@@ -55,7 +55,7 @@ test('Der ATK/DEF-Bereich besitzt separate Zeilen und keine absolute Positionier
  assert.match(html,/class="hand-stats"[^>]*>/);
  assert.match(html,/class="stat atk"/);
  assert.match(html,/class="stat def"/);
- assert.match(html,/class="stat-label">ATK/);
+ assert.doesNotMatch(html,/class="stat-label"/);
  assert.match(html,/class="stat-value">123456/);
  assert.match(html,/class="stat-value">987654/);
  assert.match(css,/\.hand-card\.tc-card \.hand-stats\s*\{[\s\S]*?position:static!important/);

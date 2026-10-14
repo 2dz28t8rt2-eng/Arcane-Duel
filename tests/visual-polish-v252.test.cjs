@@ -42,7 +42,7 @@ test('Mode cards and ready-to-claim quests get their own visible styling',()=>{
 });
 test('Versioned entrypoint loads Fusion Evolution with fresh CSS and JS assets',()=>{
  assert.match(html,/(Alpha 2\.5\.2|3\.0 Update B)/);
- assert.match(html,/assets\/evolution\.css\?v=update-b-20261014/);
- assert.match(html,/assets\/evolution\.js\?v=update-b-20261014/);
+ assert.match(html,/assets\/evolution\.css\?v=cosmetic-c-20261014/);
+ assert.match(html,/assets\/evolution\.js\?v=cosmetic-c-20261014/);
  assert.match(js,/version:'2\.5\.2'/);
 });

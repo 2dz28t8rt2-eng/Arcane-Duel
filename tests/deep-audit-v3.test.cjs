@@ -30,7 +30,8 @@ test('Deck-card selection updates detail pane without discarding current filters
 test('Small card markup has numeric level, centered element and no body description',()=>{
  const method=scripts['game.js'].split('function fullCardHtml(')[1].split('function ensureEditorPreviewId(')[0];
  assert.match(method,/class="card-level-badge"/);
- assert.match(method,/class="hand-type">\$\{t\.element\}/);
+ assert.match(method,/class="hand-type">\$\{elementLabel\}/);
+ assert.doesNotMatch(method,/class="stat-label"/);
  assert.doesNotMatch(method,/class="hand-description"/);
  assert.match(css,/\.deck-preview-desc/);
 });
