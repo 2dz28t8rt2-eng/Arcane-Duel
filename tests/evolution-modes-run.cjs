@@ -1,0 +1,12 @@
+'use strict';const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');const root=path.resolve(__dirname,'..'),files=['assets/art-engine.js','assets/game.js','assets/expansion.js','assets/evolution.js'].map(p=>fs.readFileSync(path.join(root,p),'utf8'));
+function boot(saved=null){const nodes=new Map(),store=new Map(saved?[['arcane-duel-rpg-profile-v3',saved]]:[]);function el(id=''){return {id,innerHTML:'',textContent:'',value:'',hidden:false,disabled:false,style:{},dataset:{},classList:{add(){},remove(){},toggle(){},contains(k){return k==='hidden'}},append(){},appendChild(){},remove(){},setAttribute(){},addEventListener(){},insertAdjacentHTML(){},click(){if(typeof this.onclick==='function')this.onclick()},querySelector(){return el()},querySelectorAll(){return []},getBoundingClientRect(){return {left:0,top:0,width:100,height:100}}};}const document={body:el('body'),getElementById(id){if(!nodes.has(id))nodes.set(id,el(id));return nodes.get(id)},querySelector(){return el()},querySelectorAll(){return []},createElement:el,addEventListener(){},elementFromPoint(){return null}};const window={localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,String(v))},crypto:{getRandomValues(a){a[0]=12345;return a}},innerWidth:1200,innerHeight:800};const ctx=vm.createContext({window,document,console,setTimeout(){},setInterval(){},clearTimeout(){},clearInterval(){},Blob,URL:{createObjectURL(){return 'blob:test'},revokeObjectURL(){}}});for(const f of files)vm.runInContext(f,ctx,{timeout:15000});return {run(code){return JSON.parse(vm.runInContext('JSON.stringify('+code+')',ctx,{timeout:15000}))},ctx,store};}
+
+const rows=[];
+for(const mode of ['defense','burst','fusion'])for(let stage=1;stage<=5;stage++){
+ const b=boot();const out=b.run(`(()=>{const arr=[];for(let n=0;n<8;n++){
+ const g=createGame({id:'mode-${mode}-${stage}-'+n,mode:'pve',opponentId:1,context:'challenge',challenge:'evo-${mode}-${stage}',seed:12031+${stage}*997+n*17,starter:n%2});
+ simulateGame(g,'balanced');const goals=window.ArcaneEvolution.objectives(g),win=g.winner===0;const prize=rewardMatch(g);arr.push({winner:g.winner,turn:g.turn,goals,reward:prize?.coins||0,lossZero:!win&&prize.coins===0});
+ }return arr})()`);
+ rows.push({mode,stage,runs:out.length,wins:out.filter(x=>x.winner===0).length,goals:out.map(x=>x.goals),turns:out.map(x=>x.turn),allLossesZero:out.every(x=>x.lossZero||x.winner===0)});
+}
+fs.writeFileSync(path.join(root,'tests/evolution-modes-results.json'),JSON.stringify(rows,null,2));console.log(JSON.stringify(rows,null,2));
