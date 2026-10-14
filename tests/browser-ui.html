@@ -1,0 +1,68 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Arcane Duel – Alpha 1.9 UI Integration</title>
+<style>body{font:14px system-ui;background:#111827;color:#fff;padding:12px}iframe{width:100%;height:520px;border:1px solid #777}#result{white-space:pre-wrap}</style>
+</head><body><h1>Gameplay-UI smoke test</h1><pre id="result">Running ...</pre>
+<iframe id="app" src="../index.html" title="Alpha 1.9"></iframe>
+<script>
+const iframe=document.getElementById('app'),r=document.getElementById('result');
+iframe.addEventListener('load',()=>{
+ let steps=[],pass=true;
+ function expect(check,label){steps.push((check?'OK: ':'FEHLER: ')+label);if(!check)pass=false;}
+ try{
+  const w=iframe.contentWindow,d=w.document;
+  expect(!!w.ArcaneExpansion,'Alpha 2.2 extension available');
+  expect(d.querySelector('.guide-spread')!==null,'First-run guide has double page');
+  d.getElementById('guideNext')?.click();
+  expect(d.querySelector('.guide-header')?.textContent.includes('Deine Monsterkarten'),'Guide navigates to next chapter');
+  d.getElementById('guideClose')?.click();
+  expect(d.getElementById('modal')?.textContent.includes('Duellantenhandbuch gespeichert'),'Guide explains later Lexicon access');
+  d.getElementById('helpDismiss')?.click();
+  w.eval('profile.trainingWins=3;profile.cleared=[1];profile.dropCharges=2;profile.coins=999999;menuTab="free";saveProfile();renderMenu()');
+  expect(d.querySelector('[data-action="quick-pack"][data-id="1"]')!==null,'Free duel has direct character-pack button');
+  const button=d.getElementById('hudDropToggle');
+  expect(button!==null,'HUD drop charge toggle present');
+  button?.click();
+  expect(!!d.querySelector('.charged-opponent'),'Boost immediately colors opponent cards');
+  expect(!!d.querySelector('.reward-preview'),'Opponent cards show predicted loot');
+  w.eval('profile.packs[packKey(1,"easy")]=1;saveProfile();renderMenu()');
+  d.querySelector('[data-action="quick-pack"][data-id="1"]')?.click();
+  expect(d.querySelector('.pack-grid')!==null,'Pack quick-open actually opens selection');
+  d.querySelector('[data-pack-pick="0"]')?.click();
+  d.getElementById('packFinish')?.click();
+  expect(w.eval('profile.openPack===null'),'Quick-open pack can be completed and closed');
+  w.eval('menuTab="shop";renderMenu()');
+  expect(d.querySelector('.ace-market')!==null,'ACE market available after tournament victory');
+  expect(d.querySelector('.ace-market .ace-thumbnail')!==null,'ACE shop shows its own card artwork and rarity label');
+  d.querySelector('[data-action="buy-ace"][data-id="1"]')?.click();
+  expect(w.eval('profile.acePurchased.includes(1)'),'ACE can be purchased once');
+  expect(w.eval('fullCardHtml({id:ACE_CARD_IDS[1]}).includes("tc-ace")'),'Owned ACE has special illustrated card category');
+  d.getElementById('helpDismiss')?.click();
+  w.eval('menuTab="shop";renderMenu()');
+  const fusionPack=d.querySelector('[data-action="fusion-pack"]');
+  expect(!!fusionPack&&!fusionPack.disabled,'Guaranteed fusion booster available after first tournament win');
+  const inventoryBefore=w.eval('Object.values(profile.inventory).reduce((a,b)=>a+b,0)');
+  fusionPack?.click();
+  const inventoryAfter=w.eval('Object.values(profile.inventory).reduce((a,b)=>a+b,0)');
+  expect(inventoryAfter===inventoryBefore+1,'Fusion booster actually grants exactly one card');
+  d.getElementById('helpDismiss')?.click();
+  w.eval('menuTab="collection";renderMenu()');
+  expect(d.querySelector('#cardSearch')!==null&&d.querySelectorAll('.collection-item').length>0,'Main deck has usable filter toolbar');
+  const search=d.querySelector('#cardSearch');
+  if(search){search.value='kein-monster-mit-diesem-namen';search.dispatchEvent(new w.Event('input',{bubbles:true}));}
+  expect([...d.querySelectorAll('.collection-item')].every(x=>x.hidden),'Card search hides nonmatching cards');
+  w.eval('menuTab="fusions";renderMenu()');
+  expect(d.querySelector('#cardLevel')!==null,'Fusion deck has level filter');
+  w.eval('menuTab="lexicon";renderMenu()');
+  expect(d.querySelector('.monster-index')!==null,'Discoverable monster lexicon renders');
+  w.eval('menuTab="free";renderMenu()');
+  d.querySelector('[data-action="auto-report"]')?.click();
+  expect(d.getElementById('modal')?.textContent.includes('AUTOKAMPF-BERICHT'),'Persistent automatic duel report opens');
+  d.getElementById('autoReportClose')?.click();
+  w.eval('menuTab="free";renderMenu();startDuel("pve",1,"free","easy")');
+  expect(d.getElementById('modalGo')?.textContent.includes('DUELL STARTEN'),'Duel start modal available');
+  d.dispatchEvent(new w.KeyboardEvent('keydown',{bubbles:true,cancelable:true,key:' ',code:'Space'}));
+  expect(d.getElementById('overlay')?.classList.contains('hidden'),'Space starts duel while start modal active');
+ }catch(e){pass=false;steps.push('EXCEPTION: '+e.message+' '+(e.stack||'').slice(0,350));}
+ r.textContent=steps.join('\n');
+ document.body.dataset.uiTest=pass?'pass':'fail';
+}, {once:true});
+</script></body></html>

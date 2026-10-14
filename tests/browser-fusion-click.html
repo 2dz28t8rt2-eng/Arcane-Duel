@@ -1,0 +1,40 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Arcane Duel – Fusionsklicktest</title>
+<style>body{background:#101725;color:#f1f1e8;font:14px system-ui;padding:14px}iframe{width:100%;height:620px;border:1px solid #788}pre{white-space:pre-wrap}</style>
+</head><body><h1>Fusionsmonster – Interaktionstest</h1><pre id="result">Test läuft ...</pre>
+<iframe id="app" src="../index.html" title="Fusionsklick Testspiel"></iframe>
+<script>
+const frame=document.getElementById('app'),out=document.getElementById('result');
+frame.addEventListener('load',()=>{
+ let reports=[],failures=[];
+ function check(ok,message){reports.push((ok?'OK: ':'FEHLER: ')+message);if(!ok)failures.push(message);}
+ try{
+  const w=frame.contentWindow,d=w.document;
+  d.getElementById('guideClose')?.click();
+  d.getElementById('helpDismiss')?.click();
+  w.eval('(()=>{game=createGame({mode:"pve",starter:0,seed:13});game.materials=game.players[0].hand.slice(0,2).map(c=>c.uid);window.__fusionPicked=[];let p=game.players[0],m=p.hand.slice(0,2);chooseFusionModal(m.map(c=>dataOf(c).level),m,id=>window.__fusionPicked.push(id));return true;})()');
+  const modal=d.getElementById('modal');
+  check(modal?.classList.contains('fusion-choice-modal'),'Fusionsauswahl verwendet kompaktes Layout');
+  check(!!modal.querySelector('details.fusion-how:not([open])'),'Lange Erklärung startet zugeklappt');
+  check(!!modal.querySelector('.fusion-forecast'),'ATK und DEF bleiben vor der Auswahl sichtbar');
+  const card=modal.querySelector('.fusion-choice-grid .fusion-pick-card[data-fusion-choice]');
+  check(!!card,'Fusionsmonsterkarte ist ein auswählbares HTML-Button-Element');
+  const id=Number(card?.dataset.fusionChoice);
+  const img=card?.querySelector('.hand-art img');
+  check(!!img,'Monsterbild ist Teil der anklickbaren Karte');
+  img?.click(); // event bubbles to the actual card button
+  check(w.__fusionPicked?.length===1&&w.__fusionPicked[0]===id,'Klick aufs Monsterbild wählt die korrekte Fusion');
+  check(d.getElementById('overlay')?.classList.contains('hidden'),'Fusionsvorschau schließt nach Auswahl');
+  card?.click();
+  check(w.__fusionPicked.length===1,'Doppelklick auf dieselbe Karte verursacht keine zweite Auswahl');
+  w.eval('menuTab="fusions";renderMenu()');
+  const picker=d.querySelector('.fusion-deck-pick-card[data-action="copy"]');
+  check(!!picker,'Fusionsdeck bietet anklickbare Kartenbilder');
+  const before=w.eval('fusionDraft.length');
+  const delta=Number(picker?.dataset.delta||0);
+  picker?.querySelector('.hand-art img')?.click();
+  const after=w.eval('fusionDraft.length');
+  check(!!delta&&after===before+delta,'Klick auf Fusionsdeckbild fügt Karte hinzu oder entfernt sie');
+ }catch(e){failures.push(e.message);reports.push('EXCEPTION: '+(e.stack||e.message).slice(0,700));}
+ out.textContent=reports.join('\n');document.body.dataset.fusionClickTest=failures.length?'fail':'pass';
+}, {once:true});
+</script></body></html>

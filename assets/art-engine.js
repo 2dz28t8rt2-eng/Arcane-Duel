@@ -102,7 +102,7 @@ const cardFrameColors=['#c7cbd1','#cdb58b','#95c887','#70c7b3',
  '#e4a370','#df8668','#e26c71'];
 function artFrameColor(c){
  if(c.id<20)return '#dce4ee';
- if(c.fusionOnly||c.manifestOf!=null)return '#b8a0f3';
+ if(c.fusionOnly)return '#b8a0f3';
  const level=Math.max(1,Math.min(12,Math.trunc(Number(c.level)||1)));
  return cardFrameColors[level-1];
 }

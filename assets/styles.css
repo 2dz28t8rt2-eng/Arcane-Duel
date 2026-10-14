@@ -244,3 +244,38 @@
 .hand-card.tc-card.tc-lv-10,.board-creature.tc-card.tc-lv-10{--tc-rim:#e4a370;--tc-light:#fff1d8;--tc-mid:#e5ae7a;--tc-dark:#ae683b;--tc-shadow:#603b26;--tc-glow:rgba(231,147,77,.29);}
 .hand-card.tc-card.tc-lv-11,.board-creature.tc-card.tc-lv-11{--tc-rim:#df8668;--tc-light:#ffe7d8;--tc-mid:#e28f6e;--tc-dark:#b55740;--tc-shadow:#682d22;--tc-glow:rgba(230,111,82,.30);}
 .hand-card.tc-card.tc-lv-12,.board-creature.tc-card.tc-lv-12{--tc-rim:#e26c71;--tc-light:#ffe8e2;--tc-mid:#e48282;--tc-dark:#ad3549;--tc-shadow:#5a1f30;--tc-glow:rgba(224,69,85,.32);}
+
+/* Alpha 2.3 – Farbenblind-freundliche Rahmen: klar unterscheidbare Stufenzeichen. */
+.hand-card.tc-card{--tc-glyph:"✦";--tc-pattern:repeating-linear-gradient(45deg,transparent 0 7px,rgba(255,255,255,.08) 7px 9px)}
+.hand-card.tc-card.tc-starter{--tc-glyph:"S"}
+.hand-card.tc-card.tc-lv-1{--tc-glyph:"I"}
+.hand-card.tc-card.tc-lv-2{--tc-glyph:"II"}
+.hand-card.tc-card.tc-lv-3{--tc-glyph:"III"}
+.hand-card.tc-card.tc-lv-4{--tc-glyph:"IV"}
+.hand-card.tc-card.tc-lv-5{--tc-glyph:"V"}
+.hand-card.tc-card.tc-lv-6{--tc-glyph:"VI"}
+.hand-card.tc-card.tc-lv-7{--tc-glyph:"VII"}
+.hand-card.tc-card.tc-lv-8{--tc-glyph:"VIII"}
+.hand-card.tc-card.tc-lv-9{--tc-glyph:"IX"}
+.hand-card.tc-card.tc-lv-10{--tc-glyph:"X"}
+.hand-card.tc-card.tc-lv-11{--tc-glyph:"XI"}
+.hand-card.tc-card.tc-lv-12{--tc-glyph:"XII"}
+.hand-card.tc-card.tc-manifest::after{content:"G " var(--tc-glyph)}
+.hand-card.tc-card.tc-special::after{content:"F " var(--tc-glyph)}
+.hand-card.tc-card::after{
+ content:var(--tc-glyph);position:absolute;top:57px;left:8px;z-index:7;
+ background:#101d31;color:#fff6d9;border:1px solid #f5db9b;
+ border-radius:3px;padding:2px 4px;font:900 10px/1.1 system-ui,sans-serif;
+ box-shadow:0 1px 3px #0009;pointer-events:none;letter-spacing:.03em
+}
+.hand-card.tc-card.tc-special,.hand-card.tc-card.tc-manifest{
+ outline:2px double #f6d38e;outline-offset:-3px;
+}
+.hand-card.tc-card.tc-special .hand-art{border-style:double!important;border-width:3px!important}
+.hand-card.tc-card.tc-manifest .hand-art{border-style:dashed!important;border-width:2px!important}
+.collection-item[hidden]{display:none!important}
+.collection-filters .filter-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.collection-filters label{display:grid;gap:4px;font-size:12px;font-weight:700;min-width:125px;flex:1}
+.collection-filters input,.collection-filters select{width:100%;min-height:36px;background:#19253a;color:#fff4da;border:1px solid #b59c72;border-radius:5px;padding:6px}
+.victory-cards{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:12px 0}
+.victory-cards .hand-card{flex:0 0 132px;pointer-events:none}

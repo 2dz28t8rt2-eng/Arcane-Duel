@@ -45,7 +45,7 @@ test('Unmögliche Feldfusion lässt Karte und Feld unverändert',()=>{
 
 test('Erster Zug verhindert Angriffe; Schutzschild reduziert Schaden',()=>{
   const x=boot().run("(()=>{const g=createGame({mode:'pve',starter:0,seed:10}),p=g.players[0],e=g.players[1];p.field[0]=newInstance(g,p.originalDeck[0],0);const denied=attack(g,0,null),before=e.lp,shield=e.shield;advanceTurn(g);advanceTurn(g);const result=attack(g,0,null);return {denied,hit:!!result,delta:before-e.lp,shield,atk:dataOf(p.field[0]).atk,used:p.field[0].attacked};})()");
-  assert.equal(x.denied,null);assert.equal(x.hit,true);assert.equal(x.delta,Math.max(0,x.atk-x.shield));assert.equal(x.used,true);
+  assert.equal(x.denied,null);assert.equal(x.hit,true);assert.equal(x.delta,Math.max(0,x.atk+30-x.shield)); // Werte nach dem Angriff enthalten die neue −30-ATK-Ermüdungassert.equal(x.used,true);
 });
 
 test('Kreaturenzerfall überspringt Beschwörungszug',()=>{

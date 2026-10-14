@@ -40,5 +40,5 @@ test('Lesbarkeits- und Hilfefunktionen sind im Entwicklungszweig vorhanden',()=>
  assert.match(js,/id="hudShardsHelp"/);
  assert.match(js,/function xpMarkup/);
  assert.match(js,/Seltenheitsbonus bis dahin/);
- assert.match(js,/Keine passende Fusionskopie/);
+ assert.match(js,/Keine passende Fusionskarte/);
 });
