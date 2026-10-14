@@ -46,3 +46,9 @@ test('Buying Dornengarde gives the very same fusion card used in tournament',()=
  const x=boot().run('(()=>{profile.cleared=[1,2,3];profile.coins=50000;const tier=3,shop=ACE_CARD_IDS[tier],npc=rpgEnemyLoadout(tier),before=profile.fusionOwned.includes(shop),success=window.ArcaneExpansion.buyAce(tier),after=profile.fusionOwned.includes(shop);return {shop,before,success,after,stock:profile.inventory[shop],npcUses:npc.fusionDeck.includes(shop),fusion:CARDS[shop].fusionOnly,atk:CARDS[shop].atk,def:CARDS[shop].def};})()');
  assert.equal(x.before,false);assert.equal(x.success,true);assert.equal(x.after,true);assert.equal(x.stock,1);assert.equal(x.npcUses,true);assert.equal(x.fusion,true);assert.equal(x.atk,1080);assert.equal(x.def,1140);
 });
+
+
+test('Hard opponents also use the collectible ACE identity and their decks stay valid',()=>{
+ const x=boot().run('OPPONENTS.slice(1).map(o=>{const load=rpgEnemyLoadout(o.id,"hard"),ace=ACE_CARD_IDS[o.id];return {tier:o.id,exists:CARDS[ace].fusionOnly?load.fusionDeck.includes(ace):load.deck.includes(ace),main:!mainDeckError(load.deck),fusion:!fusionDeckError(load.fusionDeck),isFusion:CARDS[ace].fusionOnly};})');
+ for(const row of x){assert.equal(row.exists,true,`Hard mode tier ${row.tier} lacks matching ACE`);assert.equal(row.main,true);assert.equal(row.fusion,true);}
+});
