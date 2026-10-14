@@ -147,10 +147,10 @@ const RPG_OPPONENTS=[
  {id:1,name:'Der Eisenprüfer',title:'I · Tor der Arena',level:4,policy:'balanced',power:.90,coins:30,xp:24,icon:'Ⅰ',theme:'Eisen',kind:'knight',element:'ERDE',color:'#b7c6d6'},
  {id:2,name:'Die Rubinmagierin',title:'II · Gluthalle',level:5,policy:'offensive',power:.85,coins:45,xp:32,icon:'Ⅱ',theme:'Rubin',kind:'mage',element:'FEUER',color:'#ee9cac'},
  {id:3,name:'Die Dornengarde',title:'III · Wilder Hain',level:6,policy:'guardian',power:.96,coins:65,xp:42,icon:'Ⅲ',theme:'Dornen',kind:'stag',element:'ERDE',color:'#9bce8c'},
- {id:4,name:'Der Gezeitenfürst',title:'IV · Versunkener Hof',level:7,policy:'economy',power:.97,coins:90,xp:54,icon:'Ⅳ',theme:'Gezeiten',kind:'serpent',element:'WASSER',color:'#8bdfeb'},
+ {id:4,name:'Der Gezeitenfürst',title:'IV · Versunkener Hof',level:7,policy:'economy',power:1.02,coins:90,xp:54,icon:'Ⅳ',theme:'Gezeiten',kind:'serpent',element:'WASSER',color:'#8bdfeb'},
  {id:5,name:'Der Vulkanrichter',title:'V · Brennender Thron',level:8,policy:'offensive',power:1.06,coins:125,xp:68,icon:'Ⅴ',theme:'Vulkan',kind:'golem',element:'FEUER',color:'#f2a178'},
  {id:6,name:'Der Schattenjäger',title:'VI · Nachtpfad',level:9,policy:'balanced',power:1.08,coins:170,xp:84,icon:'Ⅵ',theme:'Schatten',kind:'wolf',element:'DUNKEL',color:'#b09adf'},
- {id:7,name:'Der Himmelswächter',title:'VII · Wolkenfestung',level:10,policy:'guardian',power:1.09,coins:230,xp:102,icon:'Ⅶ',theme:'Himmels',kind:'bird',element:'WIND',color:'#c9dfed'},
+ {id:7,name:'Der Himmelswächter',title:'VII · Wolkenfestung',level:10,policy:'guardian',power:1.14,coins:230,xp:102,icon:'Ⅶ',theme:'Himmels',kind:'bird',element:'WIND',color:'#c9dfed'},
  {id:8,name:'Der Runenarchont',title:'VIII · Sternenarchiv',level:11,policy:'economy',power:1.10,coins:310,xp:122,icon:'Ⅷ',theme:'Runen',kind:'mage',element:'LICHT',color:'#eed694'},
  {id:9,name:'Die Leerenkönigin',title:'IX · Letzter Abgrund',level:12,policy:'balanced',power:1.11,coins:420,xp:144,icon:'Ⅸ',theme:'Leeren',kind:'spirit',element:'DUNKEL',color:'#d2a0ef'},
  {id:10,name:'Der Astralkaiser',title:'X · Finale',level:12,policy:'balanced',power:1.12,coins:580,xp:170,icon:'Ⅹ',theme:'Astral',kind:'dragon',element:'LICHT',color:'#fff0b7'}
