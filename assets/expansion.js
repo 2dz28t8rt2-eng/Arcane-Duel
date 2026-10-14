@@ -30,7 +30,7 @@ freshProfile=function(){return normalizeExtras(stored.freshProfile(),{})};
 normalizeExtras(profile,profile);
 
 /* Ace acquisition: guaranteed single purchase; thereafter ultra-rare booster chance.
-   Cards are ordinary summonable cards, weaker than their tournament signatures.
+   The purchased ACE is the exact monster template used by its tournament opponent.
    Existing 314 card IDs are stable; new ACE cards are appended. */
 function aceCost(tier,p=profile){
  const base=Math.ceil(OPPONENTS[tier].coins*14+180);
@@ -68,10 +68,11 @@ rollBooster=function(tier,g={seed:rng(0xffffffff)||1},count=10){
  return cards;
 };
 const aceShop=()=>'<section class="menu-panel ace-market"><h2>✦ Ace-Monster · Einmalige Angebote</h2>'+
- '<p>Besiegte Turnierduellanten schalten jeweils eine junge, etwas schwächere Ace-Karte frei. Jeder direkte Kauf ist einmalig. Nach dem Kauf kann die Karte mit nur <b>0,35 % je Boosterkarte</b> erneut gezogen werden. Der Preis sinkt mit deinem Spielerlevel.</p>'+
+ '<p>Besiegte Turnierduellanten schalten genau das ACE-Monster frei, das sie selbst einsetzen – inklusive Typ und Werten. Jeder direkte Kauf ist einmalig. Nach dem Kauf kann die Karte mit nur <b>0,35 % je Boosterkarte</b> erneut gezogen werden. Der Preis sinkt mit deinem Spielerlevel.</p>'+
  '<div class="ace-grid">'+OPPONENTS.slice(1).map(o=>{
   const id=aceIds[o.id],c=CARDS[id],done=profile.acePurchased.includes(o.id),locked=!profile.cleared.includes(o.id);
-  return '<article class="ace-offer"><div class="ace-offer-head"><img class="ace-thumbnail" src="'+c.art+'" alt="'+escapeHtml(c.name)+'"><div><span class="ace-eyebrow">✦ ACE-MONSTER</span><b>'+escapeHtml(c.name)+'</b><small>Level '+c.level+' · '+fmt(c.atk)+' ATK / '+fmt(c.def)+' DEF</small></div></div>'+
+  const portrait=locked?'<div class="ace-thumbnail ace-unknown" aria-label="Noch nicht entdeckt">?</div>':'<img class="ace-thumbnail" src="'+c.art+'" alt="'+escapeHtml(c.name)+'">';
+  return '<article class="ace-offer evo-ace-tier-'+o.id+(locked?' ace-locked':'')+'"><div class="ace-offer-head">'+portrait+'<div><span class="ace-eyebrow">✦ ACE-MONSTER</span><b>'+(locked?'Unbekanntes ACE':escapeHtml(c.name))+'</b><small>'+(locked?'Besiege diesen Turniergegner, um die Karte zu entdecken.':'Level '+c.level+' · '+(c.fusionOnly?'Fusion':'Normales Monster')+' · '+fmt(c.atk)+' ATK / '+fmt(c.def)+' DEF')+'</small></div></div>'+
    '<small>'+ (locked?'Gesperrt · Turnierstufe '+o.id+' besiegen':done?'Kauf abgeschlossen · Booster-Chance freigeschaltet':'Einmaliger Kauf · '+fmt(aceCost(o.id))+' Essenz')+'</small>'+
    menuButton(locked?'Noch gesperrt':done?'✓ Bereits gekauft':'Ace kaufen','buy-ace','data-id="'+o.id+'"',locked||done||profile.coins<aceCost(o.id))+'</article>';
  }).join('')+'</div><p class="pool-note">Noch nicht besiegte Turniergegner und ihre Ace-Karten bleiben verborgen.</p></section>';
@@ -178,7 +179,7 @@ regularOpponentPanel=function(o,tournament){
  if(tournament){
   const loss=profile.tournamentLosses[o.id]||0;
   if(loss&&!profile.cleared.includes(o.id)){
-   const c=CARDS[o.signature],hint=profile.aceHints.includes(o.id);
+   const c=CARDS[o.aceCard],hint=profile.aceHints.includes(o.id);
    const low=round10(c.atk*.8),high=round10(c.atk*1.2);
    h=h.replace('</article>','<div class="ace-clue"><b>Nach deiner Niederlage: Acemonster-Spur</b><p>Geschätzte Angriffsstärke: '+fmt(low)+'–'+fmt(high)+' ATK.</p>'+
    (hint?'<p>'+escapeHtml(o.name)+' bevorzugt '+escapeHtml(o.policy==='guardian'?'Verteidigung und geduldige Züge':o.policy==='offensive'?'schnelle Angriffe':'ausgewogene Spielzüge')+'. Achte auf seine Fusionen.</p>':

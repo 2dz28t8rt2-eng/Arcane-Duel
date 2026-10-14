@@ -15,7 +15,34 @@ test('Profile and pending multi-fusion snapshot validate after reload',()=>{cons
 test('Quest only progresses on completed manual wins, caps active at three',()=>{const x=boot().run('(()=>{const g=createGame({mode:"pve",seed:32});g.totalFusions[0]=3;g.winner=0;rewardMatch(g);const q=profile.evolution.active.find(q=>q.id==="fusion3");const c=window.ArcaneEvolution.claimQuest("fusion3");return {q:q.progress,claim:c,active:profile.evolution.active.length,done:profile.evolution.done};})()');assert.equal(x.q,3);assert.equal(x.claim,true);assert.equal(x.active,3);assert.equal(x.done,1)});
 test('Evolution profile bonuses and daily quests survive a fresh page load',()=>{const a=boot();const raw=a.run('(()=>{profile.evolution.records.defense[4]=3;profile.evolution.bonuses=["defense"];profile.evolution.done=4;saveProfile();return window.localStorage.getItem(SAVE_KEY)})()');const b=boot(raw);const saved=b.run('({done:profile.evolution.done,bonus:profile.evolution.bonuses.includes("defense"),count:profile.evolution.active.length})');assert.equal(saved.done,4);assert.equal(saved.bonus,true);assert.equal(saved.count,3);});
 test('Evolution tournament III and 5-material pending fusion reload correctly',()=>{const a=boot();const snapshots=a.run('(()=>{const npc=createGame({mode:"pve",opponentId:3,context:"tournament",seed:7});const p=createGame({mode:"pve",opponentId:3,context:"tournament",seed:51,starter:0});const ids=p.players[0].hand.slice(0,5).map(c=>c.uid);prepareHandFusion(p,ids);const result=validateDuelSnapshot(JSON.parse(JSON.stringify(p)));profile.activeDuel=JSON.parse(JSON.stringify(p));saveProfile();return {npc:JSON.parse(JSON.stringify(npc)),pending:result.pending.levels.length,saved:window.localStorage.getItem(SAVE_KEY)};})()');assert.equal(snapshots.pending,5);const b=boot(snapshots.saved);const state=b.run('({resume:!!profile.activeDuel,pending:profile.activeDuel?.pending?.levels?.length,opponent:profile.activeDuel?.opponentId,storageWritable})');assert.equal(state.resume,true);assert.equal(state.pending,5);assert.equal(state.opponent,3);assert.equal(state.storageWritable,true);});
-test('Dornengarde ACE is a real fusion instead of a normal card',()=>{const x=boot().run('(()=>{const d=rpgEnemyLoadout(3),ace=d.fusionDeck.map(id=>CARDS[id]).find(c=>c.ace);return {name:ace?.name,level:ace?.level,fusion:ace?.fusionOnly,enemy:ace?.enemyOnly,mainAce:d.deck.some(id=>CARDS[id].ace)}})()');assert.ok(x.name);assert.equal(x.fusion,true);assert.equal(x.enemy,true);assert.equal(x.mainAce,false)});
+
+test('Dornengarde ACE is a real fusion instead of a normal card',()=>{const x=boot().run('(()=>{const d=rpgEnemyLoadout(3),ace=d.fusionDeck.map(id=>CARDS[id]).find(c=>c.ace);return {name:ace?.name,level:ace?.level,fusion:ace?.fusionOnly,enemy:ace?.enemyOnly,mainAce:d.deck.some(id=>CARDS[id].ace)}})()');assert.ok(x.name);assert.equal(x.fusion,true);assert.ok(!x.enemy);assert.equal(x.mainAce,false)});
 
 test('All original seven challenges remain visible in the menu',()=>{const b=boot();const x=b.run('(()=>{menuTab="challenges";renderMenu();return {custom:CHALLENGES.filter(c=>c.id.startsWith("evo-")).length,legacy:CHALLENGES.filter(c=>!c.id.startsWith("evo-")).length}})()');assert.equal(x.custom,15);assert.equal(x.legacy,7);});
 test('Finished evolution challenges survive actual next-page game profile validation',()=>{const a=boot();const saved=a.run('(()=>{profile.challenges.push("evo-defense-1","evo-fusion-3");profile.evolution.records.defense[0]=2;saveProfile();return window.localStorage.getItem(SAVE_KEY)})()');const b=boot(saved);const x=b.run('({challenges:profile.challenges,defense:profile.evolution.records.defense[0],storageWritable})');assert.equal(x.storageWritable,true);assert.equal(x.defense,2);assert.ok(x.challenges.includes('evo-defense-1'));assert.ok(x.challenges.includes('evo-fusion-3'));});
+
+test('Every tournament ACE is exactly its opponent card, visually and mechanically',()=>{
+ const x=boot().run('OPPONENTS.slice(1).map(o=>{const ace=CARDS[ACE_CARD_IDS[o.id]],load=rpgEnemyLoadout(o.id);return {tier:o.id,aceId:ace.id,name:ace.name,fusion:ace.fusionOnly,normal:load.deck.includes(ace.id),fusions:load.fusionDeck.includes(ace.id),matches:CARDS[o.aceCard]===ace,art:ace.art};})');
+ assert.equal(x.length,10);
+ for(const row of x){
+  assert.equal(row.matches,true,`Tier ${row.tier}: distinct ACE card`);
+  assert.equal(row.fusion,row.tier>=3,`Tier ${row.tier}: incorrect ACE type`);
+  assert.equal(row.fusion?row.fusions:row.normal,true,`Tier ${row.tier}: opponent does not play shop ACE`);
+  assert.match(row.art,new RegExp('^assets/ace/ace-'+String(row.tier).padStart(2,'0')+'\\.svg$'));
+  assert.match(fs.readFileSync(path.resolve(root,row.art),'utf8'),/^<svg /);
+ }
+});
+
+test('Previously purchased normal ACE moves into fusion inventory without resetting old profile',()=>{
+ const a=boot(),raw=a.run('(()=>{profile.cleared=[1,2,3,4];profile.coins=3141;profile.acePurchased=[3,4];const id=ACE_CARD_IDS[3],other=ACE_CARD_IDS[4];profile.unlocked.push(id,other);profile.fusionOwned=profile.fusionOwned.filter(x=>x!==id&&x!==other);profile.inventory[id]=2;profile.inventory[other]=1;const retired=profile.activeDeck.pop();profile.activeDeck.push(id);profile.slots[0].main=[...profile.activeDeck];profile.slots[1].main=[...profile.activeDeck];return JSON.stringify(profile);})()');
+ const b=boot(raw),r=b.run('({coins:profile.coins,inventory:profile.inventory[ACE_CARD_IDS[3]],other:profile.inventory[ACE_CARD_IDS[4]],fusionOwned:profile.fusionOwned.includes(ACE_CARD_IDS[3]),unlocked:profile.unlocked.includes(ACE_CARD_IDS[3]),mainValid:!mainDeckError(profile.activeDeck,profile.unlocked),slotValid:profile.slots.every(s=>!mainDeckError(s.main,profile.unlocked)),inFusion:profile.fusionDeck.includes(ACE_CARD_IDS[3]),saved:JSON.stringify(profile)})');
+ assert.equal(r.coins,3141);assert.equal(r.inventory,2);assert.equal(r.other,1);
+ assert.equal(r.fusionOwned,true);assert.equal(r.unlocked,false);assert.equal(r.mainValid,true);assert.equal(r.slotValid,true);assert.equal(r.inFusion,true);
+ const c=boot(r.saved),q=c.run('({coins:profile.coins,owned:profile.inventory[ACE_CARD_IDS[3]],inFusion:profile.fusionOwned.includes(ACE_CARD_IDS[3]),valid:!mainDeckError(profile.activeDeck,profile.unlocked)})');
+ assert.equal(q.coins,3141);assert.equal(q.owned,2);assert.equal(q.inFusion,true);assert.equal(q.valid,true);
+});
+
+test('Buying Dornengarde gives the very same fusion card used in tournament',()=>{
+ const x=boot().run('(()=>{profile.cleared=[1,2,3];profile.coins=50000;const tier=3,shop=ACE_CARD_IDS[tier],npc=rpgEnemyLoadout(tier),before=profile.fusionOwned.includes(shop),success=window.ArcaneExpansion.buyAce(tier),after=profile.fusionOwned.includes(shop);return {shop,before,success,after,stock:profile.inventory[shop],npcUses:npc.fusionDeck.includes(shop),fusion:CARDS[shop].fusionOnly,atk:CARDS[shop].atk,def:CARDS[shop].def};})()');
+ assert.equal(x.before,false);assert.equal(x.success,true);assert.equal(x.after,true);assert.equal(x.stock,1);assert.equal(x.npcUses,true);assert.equal(x.fusion,true);assert.equal(x.atk,1080);assert.equal(x.def,1140);
+});

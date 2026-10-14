@@ -266,7 +266,8 @@ CHALLENGES.push(
  {id:'regulars',name:'Die gewöhnlichen Helden',desc:'Besiege Kael Ardent mit drei verschiedenen normal beschworenen Monstern auf deinem Feld.',opponent:1,reward:200},
  {id:'untrained',name:'Aus eigener Kraft',desc:'Besiege Akari Hoshino ohne den Monstertraining-Bonus. Der Bonus wird nur für diese Challenge ausgesetzt.',opponent:2,reward:240}
 );
-// Register Alpha 2.5 challenge IDs before validating saved player profiles.
+// Pre-register Fusion Evolution challenge IDs before validating persisted profiles.
+// The presentation and rules are provided by evolution.js after the profile loads.
 for(const mode of ['defense','burst','fusion'])for(let stage=1;stage<=5;stage++)CHALLENGES.push({id:`evo-${mode}-${stage}`,name:`${mode} · ${stage}`,desc:'Spezialherausforderung',opponent:1,reward:0});
 function trainingStage(){return Math.min(2,profile.trainingWins||0);}
 function trainingName(stage=trainingStage()){return TRAINING_STAGES[stage].name;}
@@ -307,17 +308,23 @@ function validateDuelSnapshot(raw){if(raw.rulesVersion!==5)throw Error('Diese Pa
    Nur so können gespeicherte Ace-IDs beim nächsten Seitenaufruf validiert werden. */
 const ACE_CARD_IDS={};
 for(const o of RPG_OPPONENTS.slice(1)){
- const signature=CARDS[o.signature];
+ const signature=CARDS[o.signature],fusion=o.id>=3;
+ // Das kaufbare ACE ist dieselbe Karten-Vorlage wie die des Gegners.
+ // Vorhandene IDs bleiben stabil, selbst wenn ein ACE nun eine Fusion ist.
+ const stats=o.id===3?{level:6,atk:1080,def:1140}:fusion
+  ?{level:signature.level,atk:signature.atk,def:signature.def}
+  :{level:Math.max(2,o.level-1),atk:round10(signature.atk*.72),def:round10(signature.def*.72)};
  const id=addRpgCard({
-  name:o.name+' · Junger Champion',kind:o.kind,element:o.element,color:o.color,
-  source:o.id,level:Math.max(2,o.level-1),
-  atk:round10(signature.atk*.72),def:round10(signature.def*.72),
-  fusionOnly:false,ace:true,rarity:'ace',
-  desc:'Ace-Karte: eine seltene, schwächere Vorstufe des Turnier-Acemonsters.'
+  name:signature.name,kind:o.kind,element:o.element,color:o.color,
+  source:o.id,...stats,fusionOnly:fusion,ace:true,rarity:'ace',
+  ability:fusion?o.id===3?'guard':signature.ability:undefined,
+  desc:fusion?'Das echte Fusions-ACE von '+o.name+'.':'Das echte normale ACE von '+o.name+'.'
  });
  ACE_CARD_IDS[o.id]=id;
  o.aceCard=id;
- RPG_BASE_CARDS.push(CARDS[id]);
+ o.originalSignature=o.signature;
+ if(fusion)o.signature=id; // Fusionsgegner beschwören die kaufbare ACE-Vorlage.
+ (fusion?RPG_FUSIONS:RPG_BASE_CARDS).push(CARDS[id]);
 }
 
 const AUTO_CAP=30;
@@ -385,14 +392,47 @@ function refundQuote(id){const spent=investmentFor(id);return {coins:Math.floor(
 
 
 function freshProfile(){const p=freshLegacyProfile();p.version=3;p.inventory=Object.fromEntries(DEFAULT_DECK.map(id=>[id,2]));RPG_START_FUSIONS.forEach(id=>p.inventory[id]=2);p.fusionDeck=RPG_START_FUSIONS.flatMap(id=>[id,id]);p.slots=Array.from({length:3},(_,i)=>({name:'Deck '+(i+1),main:[...p.activeDeck],fusion:[...p.fusionDeck]}));p.activeSlot=0;p.favorites=[];p.manualEasy=Array(11).fill(0);p.hardWins=Array(11).fill(0);p.dropCharges=0;p.useDropCharges=false;p.packProgress=Array(22).fill(0);p.packs=Array(22).fill(0);p.openPack=null;p.challenges=[];p.lastReview=null;p.migrationMessage='';p.progressionVersion=3;p.trainingWins=0;p.milestones=[];p.rewardQueue=[];p.encounters=[];p.wanderer=null;p.lastBooster=null;p.acePurchased=[];p.aceHints=[];p.tournamentLosses=Array(11).fill(0);p.guideSeen=false;return p;}
-function validateProfileCore(raw){if(raw?.version===1)return migrateLegacy(raw);if(!raw||![2,3].includes(raw.version))throw Error('Nicht unterstützte Spielstand-Version.');const v3=raw.version===3,legacy={...raw,version:2,upgrades:{...raw.upgrades,power:raw.upgrades?.power||0},fusionDeck:[...RPG_START_FUSIONS],activeDuel:null,history:(raw.history||[]).map(h=>({...h,context:h.context==='challenge'?'free':h.context}))};const p=validateLegacyProfile(legacy);p.version=3;
+// Besitzer früherer normaler ACEs behalten ihre Karten. Wurden solche ACEs
+// in Alpha 2.5 zur Fusion, werden Hauptdecks vor der strengen Profilprüfung
+// repariert. Kein Zurücksetzen von Inventar, Münzen, Fortschritt oder Aufstiegen.
+function migrateFusionAceDecks(raw){
+ if(!raw||raw.version!==3||!Array.isArray(raw.unlocked))return raw;
+ const converted=new Set(RPG_OPPONENTS.slice(3).map(o=>ACE_CARD_IDS[o.id]));
+ if(!raw.unlocked.some(id=>converted.has(id)))return raw;
+ const p=JSON.parse(JSON.stringify(raw)),moving=p.unlocked.filter(id=>converted.has(id));
+ p.unlocked=p.unlocked.filter(id=>!converted.has(id));
+ p.fusionOwned=Array.isArray(p.fusionOwned)?[...new Set([...p.fusionOwned,...moving])]:moving;
+ p.inventory=p.inventory&&typeof p.inventory==='object'?p.inventory:{};
+ const options=p.unlocked.filter(id=>CARDS[id]&&!CARDS[id].fusionOnly)
+  .sort((a,b)=>(CARDS[b].atk+CARDS[b].def)-(CARDS[a].atk+CARDS[a].def));
+ function repair(deck){if(!Array.isArray(deck))return deck;
+  const fixed=[...deck];for(let i=0;i<fixed.length;i++)if(converted.has(fixed[i])){
+   let id=options.find(x=>fixed.filter(y=>y===x).length<Math.min(3,p.inventory[x]||0));
+   if(id===undefined){id=options.find(x=>fixed.filter(y=>y===x).length<3);
+    if(id!==undefined)p.inventory[id]=Math.max(p.inventory[id]||0,fixed.filter(y=>y===id).length+1);}
+   if(id===undefined)throw Error('Kein Ersatzmonster für bisheriges ACE-Hauptdeck.');fixed[i]=id;
+  }return fixed;
+ }
+ p.activeDeck=repair(p.activeDeck);
+ if(Array.isArray(p.slots))p.slots=p.slots.map(slot=>({...slot,main:repair(slot.main)}));
+ // Ein ehemals im Hauptdeck gespieltes ACE kann sofort im Fusionsdeck ausgerüstet werden.
+ if(Array.isArray(p.fusionDeck))for(const id of moving)
+  if(p.fusionDeck.length<15&&!p.fusionDeck.includes(id)&&(p.inventory[id]||0)>0)p.fusionDeck.push(id);
+ if(Array.isArray(p.slots)&&Number.isInteger(p.activeSlot)&&p.slots[p.activeSlot])
+  p.slots[p.activeSlot]={...p.slots[p.activeSlot],main:[...p.activeDeck],fusion:[...p.fusionDeck]};
+ // Eine begonnene Partie mit den alten Normal-Kartenregeln könnte unzulässig sein.
+ if(p.activeDuel&&p.activeDuel.players?.[0]?.originalDeck?.some(id=>converted.has(id)))p.activeDuel=null;
+ p.__migratedFusionAces=true;
+ return p;
+}
+function validateProfileCore(raw){raw=migrateFusionAceDecks(raw);if(raw?.version===1)return migrateLegacy(raw);if(!raw||![2,3].includes(raw.version))throw Error('Nicht unterstützte Spielstand-Version.');const v3=raw.version===3,legacy={...raw,version:2,upgrades:{...raw.upgrades,power:raw.upgrades?.power||0},fusionDeck:[...RPG_START_FUSIONS],activeDuel:null,history:(raw.history||[]).map(h=>({...h,context:h.context==='challenge'?'free':h.context}))};const p=validateLegacyProfile(legacy);p.version=3;
  if(!v3){p.inventory=Object.fromEntries([...p.unlocked,...p.fusionOwned].map(id=>[id,CARDS[id].fusionOnly?Math.max(2,countCard(raw.fusionDeck,id)):3]));p.fusionDeck=[...raw.fusionDeck];p.slots=Array.from({length:3},(_,i)=>({name:'Deck '+(i+1),main:[...p.activeDeck],fusion:[...p.fusionDeck]}));p.migrationMessage='Alpha 1.5: Sammlung und Decks übernommen. Basiskarten: drei Exemplare je bekannter Art; Fusionen: mindestens zwei. Alte laufende Duelle wurden wegen der neuen Fusionsregeln beendet. Hardmode zählt neue manuelle Easy-Siege.';return p;}
  if(!raw.inventory||typeof raw.inventory!=='object'||Array.isArray(raw.inventory))throw Error('Ungültiger Kartenbestand.');p.inventory={};for(const [key,n]of Object.entries(raw.inventory)){const id=Number(key);if(![...p.unlocked,...p.fusionOwned].includes(id)||!validInt(n,999999))throw Error('Ungültiger Kartenbestand.');p.inventory[id]=n;}
  const deck=(d,fusion=false)=>{const err=fusion?fusionDeckError(d):mainDeckError(d);if(err||inventoryError(d,p.inventory))throw Error(err||'Deck enthält fehlende Exemplare.');return [...d];};p.activeDeck=deck(raw.activeDeck);p.fusionDeck=deck(raw.fusionDeck,true);
  if(!Array.isArray(raw.slots)||raw.slots.length!==3||!validInt(raw.activeSlot,2))throw Error('Ungültige Deckplätze.');p.activeSlot=raw.activeSlot;p.slots=raw.slots.map((s,i)=>({name:'Deck '+(i+1),main:deck(s.main),fusion:deck(s.fusion,true)}));p.slots[p.activeSlot]={name:'Deck '+(p.activeSlot+1),main:[...p.activeDeck],fusion:[...p.fusionDeck]};
  const arr=(name,len,max)=>{const a=raw[name];if(!Array.isArray(a)||a.length!==len||a.some(n=>!validInt(n,max)))throw Error('Ungültiger Fortschritt: '+name);return [...a];};p.manualEasy=arr('manualEasy',11,1e9);p.hardWins=arr('hardWins',11,1e9);p.packProgress=arr('packProgress',22,999);p.packs=arr('packs',22,999999);if(!validInt(raw.dropCharges,8)||typeof raw.useDropCharges!=='boolean')throw Error('Ungültige Dropladungen.');p.dropCharges=raw.dropCharges;p.useDropCharges=raw.useDropCharges;
  if(!Array.isArray(raw.favorites)||raw.favorites.some(id=>!CARDS[id]||!ownsProfileCard(p,id)))throw Error('Ungültige Favoriten.');p.favorites=[...new Set(raw.favorites)];if(!Array.isArray(raw.challenges)||raw.challenges.some(id=>!CHALLENGES.some(c=>c.id===id)))throw Error('Ungültige Challenges.');p.challenges=[...new Set(raw.challenges)];p.openPack=raw.openPack?validatePack(raw.openPack):null;p.lastReview=raw.lastReview?validateReview(raw.lastReview):null;p.migrationMessage=typeof raw.migrationMessage==='string'?raw.migrationMessage.slice(0,400):'';
- p.activeDuel=raw.activeDuel?validateDuelSnapshot(raw.activeDuel):null;if(p.activeDuel&&p.rewardLedger.includes(p.activeDuel.id))p.activeDuel=null;return p;
+ p.activeDuel=raw.activeDuel?validateDuelSnapshot(raw.activeDuel):null;if(p.activeDuel&&p.rewardLedger.includes(p.activeDuel.id))p.activeDuel=null;if(raw.__migratedFusionAces)p.migrationMessage='ACE-Update: Gekaufte Fusions-ACEs wurden im Inventar erhalten und aus alten Hauptdecks ins Fusionsdeck übertragen. Bitte deine Deckplätze prüfen.';return p;
 }
 function syncSlot(){if(!profile.slots)return;profile.slots[profile.activeSlot]={name:'Deck '+(profile.activeSlot+1),main:[...profile.activeDeck],fusion:[...profile.fusionDeck]};}
 function ownsCard(id){return (profile.inventory[id]||0)>0;}
@@ -460,8 +500,8 @@ function rewardMatchCore(g){if(storageConflict||g.winner===null||g.rewardClaimed
  const o=OPPONENTS[g.opponentId],win=g.winner===0,automatic=g.context==='auto',hard=g.difficulty==='hard',boost=automatic&&g.boosted&&profile.dropCharges>0,ratio=automatic?(boost?.5:.3):1,scale=hard?1.6:1,first=win&&g.context==='tournament'&&!profile.cleared.includes(o.id);
  if(boost)profile.dropCharges--;const charge=automatic?0:Math.min(1,dropChargeCap()-profile.dropCharges);profile.dropCharges+=charge;
  let coins=win?Math.floor(o.coins*scale*(1+.05*profile.upgrades.loot)*ratio):g.context==='free'?Math.round(o.coins*.25):0;const noviceBonus=Math.max(0,10-playerLevel(profile))*.065;const repeatFarm=!first&&['free','auto','tournament','encounter'].includes(g.context);const xpFactor=repeatFarm?farmingXpFactor(o.id):1;let xp=Math.floor(o.xp*scale*(win?1:.15)*(1+.1*profile.upgrades.learning)*ratio*(1+noviceBonus)*xpFactor);if(first){
-  // First tournament victories grant a finite bonus instead of skipping several levels.
-  // The general XP curve is gentler; repeated farming remains soft-capped.
+  // First tournament victories grant a meaningful but finite XP bonus.
+  // The general XP curve is gentler, while repeat-farming remains soft-capped.
   xp=Math.round(xp*3);
   coins+=o.coins*3;profile.cleared.push(o.id);
  }profile.coins=Math.min(1e9,profile.coins+coins);profile.xp=Math.min(1e9,profile.xp+xp);let loot=null;
@@ -682,7 +722,7 @@ function renderHud(){
 function lootText(l){return l?`+${l.shards} ${OPPONENTS[l.source].theme}-Splitter${l.card!==null?' · '+CARDS[l.card].name+(l.duplicate?' · weiteres Exemplar':' · NEU'):''}`:'';}
 function sourceCards(fusion){return (fusion?RPG_FUSIONS:RPG_BASE_CARDS).filter(c=>ownsCard(c.id)||cardAvailable(c.id)).sort((a,b)=>fusion?b.level-a.level||b.atk-a.atk||a.name.localeCompare(b.name):a.id-b.id);}
 function previousCardEditor(c,fusion){const draft=fusion?fusionDraft:deckDraft,n=countCard(draft,c.id),owned=profile.inventory[c.id]||0,rank=profile.enhancements[c.id]||0,cost=c.rpg?enhanceCost(c.id):null;return `<article class="collection-item ${n?'chosen':''}">${fullCardHtml(profileCard(c))}<div class="collection-actions"><b>${profile.unseen.includes(c.id)?'✦ NEU · ':''}Besitz ${owned} · Entwurf ${n}/3</b>${comparisonText(c)}<div class="copy-controls">${menuButton('−','copy',`data-id="${c.id}" data-delta="-1"`,!n)}${menuButton('+','copy',`data-id="${c.id}" data-delta="1"`,n>=Math.min(3,owned)||draft.length>=(fusion?15:40))}</div>${owned?menuButton(profile.favorites.includes(c.id)?'★ Geschützt':'☆ Favorit','favorite',`data-id="${c.id}"`):''}${profile.unseen.includes(c.id)?menuButton('Als gesehen markieren','seen',`data-id="${c.id}"`):''}${c.rpg?`<span>Verstärkung +${rank}/5 · für alle Exemplare</span>${menuButton(rank===5?'Maximal verstärkt':`+4 %: ${cost.coins} ✦ / ${cost.shards} Splitter`,'enhance',`data-id="${c.id}"`,!owned||rank===5||profile.coins<cost.coins||profile.shards[cost.source]<cost.shards)}${rank?menuButton('Verstärkung zurücksetzen …','refund',`data-id="${c.id}"`):''}${menuButton(`Exemplar herstellen: 20 Splitter + ${cardCost(c.id)} ✦`,'craft',`data-id="${c.id}"`,!cardAvailable(c.id)||profile.shards[Math.max(0,c.source)]<20||profile.coins<cardCost(c.id))}`:''}${owned?menuButton(`1 Exemplar verkaufen: +${sellPrice(c.id)} Essenz`,'salvage',`data-id="${c.id}"`,profile.favorites.includes(c.id)||owned<=reservedCopies(c.id)):''}</div></article>`;}
-function regularOpponentPanel(o,tournament){const difficulty=tournament?'easy':difficultySelection[o.id],hard=difficulty==='hard',unlocked=tournament?tournamentUnlocked(o.id):opponentUnlocked(o.id),canHard=hardUnlocked(o.id),k=packKey(o.id,difficulty),auto=autoUnlocked(o.id,difficulty);return `<article class="menu-panel opponent-card"><div class="opponent-seal">${o.icon}</div><h2>${o.name}</h2><p>${o.profileLine||o.themeText}<br><b>Acemonster:</b> ${CARDS[hard?o.hardLoot[2]:o.signature].name} · Lv ${CARDS[hard?o.hardLoot[2]:o.signature].level}<br>${hard?'Hard: höhere Kartenstufen, 120 % Turnierfaktor, stärkere Handkarten.':tournament?'Volle Turnierstärke.':o.id?'Easy: 90 % Turnierwerte.':'Einsteigertraining.'}</p>${!tournament?`<div class="copy-controls">${menuButton('Easy','difficulty',`data-id="${o.id}" data-mode="easy"`)}${menuButton('Hard','difficulty',`data-id="${o.id}" data-mode="hard"`,!canHard)}</div><p>Gewählt: <b>${hard?'Hard':'Easy'}</b> · ${profile.manualEasy[o.id]}/10 manuelle Easy-Siege<br>Hard-Automatik: ${profile.hardWins[o.id]}/3 manuelle Hard-Siege</p>`:''}<p>Sieg manuell: ${Math.floor(o.coins*(hard?1.6:1)*(1+.05*profile.upgrades.loot))} ✦ · ${Math.floor(o.xp*(hard?1.6:1)*(1+.1*profile.upgrades.learning))} XP · 3 Splitter<br>Kartenchance 40 % · Auto 12 % · geboostet 20 %</p><progress max="1000" value="${profile.packProgress[k]}"></progress><small>Pack: ${profile.packProgress[k]/10} % · ${profile.packs[k]} bereit</small>${menuButton('Beutepool & Chancen','loot',`data-id="${o.id}" data-mode="${difficulty}"`)}${unlocked?menuButton(tournament?'Turnierduell':'Manuelles Duell','fight',`data-id="${o.id}" data-context="${tournament?'tournament':'free'}" data-mode="${difficulty}"`):'<p>Vorherige Prüfung abschließen.</p>'}${!tournament&&unlocked?menuButton('Autokampf · 1 Ladung','auto',`data-id="${o.id}" data-mode="${difficulty}"`,!auto||!profile.auto.energy||!!training)+menuButton('Serie · max. 10 Kämpfe','series',`data-id="${o.id}" data-mode="${difficulty}"`,!auto||!profile.auto.energy||!!training):''}</article>`;}
+function regularOpponentPanel(o,tournament){const difficulty=tournament?'easy':difficultySelection[o.id],hard=difficulty==='hard',unlocked=tournament?tournamentUnlocked(o.id):opponentUnlocked(o.id),canHard=hardUnlocked(o.id),k=packKey(o.id,difficulty),auto=autoUnlocked(o.id,difficulty);return `<article class="menu-panel opponent-card"><div class="opponent-seal">${o.icon}</div><h2>${o.name}</h2><p>${o.profileLine||o.themeText}<br><b>Acemonster:</b> ${CARDS[hard?o.hardLoot[2]:o.aceCard].name} · Lv ${CARDS[hard?o.hardLoot[2]:o.aceCard].level}<br>${hard?'Hard: höhere Kartenstufen, 120 % Turnierfaktor, stärkere Handkarten.':tournament?'Volle Turnierstärke.':o.id?'Easy: 90 % Turnierwerte.':'Einsteigertraining.'}</p>${!tournament?`<div class="copy-controls">${menuButton('Easy','difficulty',`data-id="${o.id}" data-mode="easy"`)}${menuButton('Hard','difficulty',`data-id="${o.id}" data-mode="hard"`,!canHard)}</div><p>Gewählt: <b>${hard?'Hard':'Easy'}</b> · ${profile.manualEasy[o.id]}/10 manuelle Easy-Siege<br>Hard-Automatik: ${profile.hardWins[o.id]}/3 manuelle Hard-Siege</p>`:''}<p>Sieg manuell: ${Math.floor(o.coins*(hard?1.6:1)*(1+.05*profile.upgrades.loot))} ✦ · ${Math.floor(o.xp*(hard?1.6:1)*(1+.1*profile.upgrades.learning))} XP · 3 Splitter<br>Kartenchance 40 % · Auto 12 % · geboostet 20 %</p><progress max="1000" value="${profile.packProgress[k]}"></progress><small>Pack: ${profile.packProgress[k]/10} % · ${profile.packs[k]} bereit</small>${menuButton('Beutepool & Chancen','loot',`data-id="${o.id}" data-mode="${difficulty}"`)}${unlocked?menuButton(tournament?'Turnierduell':'Manuelles Duell','fight',`data-id="${o.id}" data-context="${tournament?'tournament':'free'}" data-mode="${difficulty}"`):'<p>Vorherige Prüfung abschließen.</p>'}${!tournament&&unlocked?menuButton('Autokampf · 1 Ladung','auto',`data-id="${o.id}" data-mode="${difficulty}"`,!auto||!profile.auto.energy||!!training)+menuButton('Serie · max. 10 Kämpfe','series',`data-id="${o.id}" data-mode="${difficulty}"`,!auto||!profile.auto.energy||!!training):''}</article>`;}
 function renderMenu16(){renderHud();$('menuScreen').hidden=false;$('duelScreen').hidden=true;$('menuNav').hidden=false;$('menuNav').innerHTML=navMarkup();for(const id of ['deckBtn','restartBtn','homeBtn'])$(id).hidden=true;for(const id of ['rulesBtn','poolBtn'])$(id).disabled=false;
  $('menuHero').innerHTML=`<span class="side-kicker">ALPHA 2.2 DEV · ${profile.cleared.length}/10 TURNIERPRÜFUNGEN</span><h1>Baue dein Deck. Stell dich der Arena.</h1><p>Aktiv: Deck ${profile.activeSlot+1} · 40 Hauptkarten · ${profile.fusionDeck.length}/15 Fusionskopien.</p><label>Deck für den nächsten Kampf <select id="activeSlotSelect">${profile.slots.map((s,i)=>`<option value="${i}" ${i===profile.activeSlot?'selected':''}>${s.name}</option>`).join('')}</select></label>${profile.activeDuel?'<p><button class="btn primary" id="resumeDuelBtn">Gespeichertes Duell fortsetzen</button></p>':''}${profile.migrationMessage?`<p>${escapeHtml(profile.migrationMessage)}</p>`:''}`;
  let html='';
@@ -756,4 +796,3 @@ function renderMenu(){renderMenu16();if(menuTab==='free')$('menuContent').innerH
 function menuAction(d){if(profile.rewardQueue.length){showMilestone();return;}if(d.action==='xphelp'){showXPHelp();return;}if(d.action==='booster'){if(buyBooster(Number(d.count)||10))renderMenu();else toast('Nicht genug Essenz für diesen Booster.');return;}if(d.action==='encounter'){startEncounter(d.enc);return;}menuAction16(d);}
 function showIphoneHelp(){openModal(modalHtml('MOBIL SPIELEN','Arcane Duel auf dem iPhone','📱','Spiele möglichst in Safari als Webseite. Die iOS-Dateivorschau führt JavaScript möglicherweise nicht vollständig aus.',`<ol class="rulelist"><li><b>Karten:</b> Tippe eine Handkarte an, dann auf „Beschwören“ und anschließend auf ein eigenes Feld.</li><li><b>Fusion:</b> Aktiviere „Touch-Fusion“, tippe mindestens zwei Handkarten nacheinander an und drücke „Fusionieren“. Wähle die Fusionsvorlage und dann ein eigenes Feld.</li><li><b>Angriff:</b> Tippe auf dein Monster und dann auf das gegnerische Ziel. Bei freiem Gegnerfeld nutze „Direkter Angriff“.</li><li><b>Speichern:</b> Im Menü unter „Spielstand“ regelmäßig als JSON exportieren. Ein HTML-Dateiwechsel oder Browserwechsel kann ein anderes lokales Speichergebiet verwenden.</li><li><b>Zum Home-Bildschirm:</b> Sobald das Spiel unter einer HTTPS-Webadresse in Safari läuft: Teilen → „Zum Home-Bildschirm“.</li></ol>`, '<button class="btn primary" id="iphoneHelpClose">VERSTANDEN</button>'));$('iphoneHelpClose').onclick=hideModal;}
 if(profile.rewardQueue.length)showMilestone();
-

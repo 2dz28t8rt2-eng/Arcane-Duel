@@ -18,16 +18,16 @@
 .tc-card.tc-ace{--evo-metal:#e0b77c;--evo-night:#332018;--evo-luster:#ffe9b6;isolation:isolate;overflow:hidden;border:3px solid var(--evo-metal)!important;
  background:repeating-linear-gradient(48deg,var(--evo-night) 0px,var(--evo-night) 7px,var(--evo-metal) 8px,var(--evo-night) 11px)!important;
  box-shadow:0 0 0 2px #0c0d15,0 0 14px var(--evo-metal),inset 0 0 10px #130d1c!important}
-.tc-ace.evo-ace-tier-1{--evo-metal:#ccd5e3;--evo-night:#26344a;--evo-luster:#ffffff}
-.tc-ace.evo-ace-tier-2{--evo-metal:#d64464;--evo-night:#241017;--evo-luster:#ffbecc}
-.tc-ace.evo-ace-tier-3{--evo-metal:#85c49b;--evo-night:#142b25;--evo-luster:#d4ffba}
-.tc-ace.evo-ace-tier-4{--evo-metal:#70bfd9;--evo-night:#102338;--evo-luster:#c4f8ff}
-.tc-ace.evo-ace-tier-5{--evo-metal:#e78e5e;--evo-night:#361917;--evo-luster:#ffcf91}
-.tc-ace.evo-ace-tier-6{--evo-metal:#966db9;--evo-night:#1b1736;--evo-luster:#d6c3ff}
-.tc-ace.evo-ace-tier-7{--evo-metal:#c9d9ec;--evo-night:#203551;--evo-luster:#ffffff}
-.tc-ace.evo-ace-tier-8{--evo-metal:#bd91df;--evo-night:#241838;--evo-luster:#edd1ff}
-.tc-ace.evo-ace-tier-9{--evo-metal:#e7afd4;--evo-night:#290e28;--evo-luster:#ffebff}
-.tc-ace.evo-ace-tier-10{--evo-metal:#f7d78e;--evo-night:#302247;--evo-luster:#ffffff}
+:is(.tc-ace,.ace-offer).evo-ace-tier-1{--evo-metal:#ccd5e3;--evo-night:#26344a;--evo-luster:#ffffff}
+:is(.tc-ace,.ace-offer).evo-ace-tier-2{--evo-metal:#d64464;--evo-night:#241017;--evo-luster:#ffbecc}
+:is(.tc-ace,.ace-offer).evo-ace-tier-3{--evo-metal:#85c49b;--evo-night:#142b25;--evo-luster:#d4ffba}
+:is(.tc-ace,.ace-offer).evo-ace-tier-4{--evo-metal:#70bfd9;--evo-night:#102338;--evo-luster:#c4f8ff}
+:is(.tc-ace,.ace-offer).evo-ace-tier-5{--evo-metal:#e78e5e;--evo-night:#361917;--evo-luster:#ffcf91}
+:is(.tc-ace,.ace-offer).evo-ace-tier-6{--evo-metal:#966db9;--evo-night:#1b1736;--evo-luster:#d6c3ff}
+:is(.tc-ace,.ace-offer).evo-ace-tier-7{--evo-metal:#c9d9ec;--evo-night:#203551;--evo-luster:#ffffff}
+:is(.tc-ace,.ace-offer).evo-ace-tier-8{--evo-metal:#bd91df;--evo-night:#241838;--evo-luster:#edd1ff}
+:is(.tc-ace,.ace-offer).evo-ace-tier-9{--evo-metal:#e7afd4;--evo-night:#290e28;--evo-luster:#ffebff}
+:is(.tc-ace,.ace-offer).evo-ace-tier-10{--evo-metal:#f7d78e;--evo-night:#302247;--evo-luster:#ffffff}
 .tc-card.tc-ace::before{content:""!important;pointer-events:none;position:absolute;inset:2px;z-index:5;border-radius:3px;border:1px solid var(--evo-luster);
  background:repeating-linear-gradient(135deg,transparent 0 10px,color-mix(in srgb,var(--evo-metal) 55%,transparent) 11px,transparent 12px) top/100% 14px no-repeat,
  repeating-linear-gradient(45deg,transparent 0 10px,color-mix(in srgb,var(--evo-metal) 55%,transparent) 11px,transparent 12px) bottom/100% 14px no-repeat!important}
@@ -49,3 +49,12 @@
 @media(prefers-reduced-motion:reduce){.tc-card.tc-ace::after,.tc-card.tc-fusion .hand-art,.board-creature.tc-fusion .board-art,.evo-summon,.evo-swirl{animation:none!important}}
 
 .evo-welcome{margin-top:10px;padding:12px;border:1px solid #7786a5;border-radius:10px;background:#1e2e49;color:#f4e8d1;font-size:13px;line-height:1.6}.evo-welcome button{margin-left:8px}.evo-card-arrive{animation:evo-card-arrive .32s cubic-bezier(.16,1,.3,1)}@keyframes evo-card-arrive{from{opacity:.2;transform:translateY(-24px) scale(.86);filter:brightness(1.9)}to{opacity:1;transform:translateY(0) scale(1);filter:brightness(1)}}@media(prefers-reduced-motion:reduce){.evo-card-arrive{animation:none!important}}
+
+/* ACE shop receives the same individual motifs and metallic frame treatment. */
+.ace-offer{border:2px solid var(--evo-metal,#ad9fc8);background:repeating-linear-gradient(135deg,var(--evo-night,#20283b),var(--evo-night,#20283b) 10px,rgba(255,255,255,.07) 12px,var(--evo-night,#20283b) 14px)!important;box-shadow:0 0 10px color-mix(in srgb,var(--evo-metal,#a09bc0) 25%,transparent)}
+.ace-offer .ace-thumbnail{border:2px solid var(--evo-metal,#a09bc0)!important;box-shadow:0 0 12px color-mix(in srgb,var(--evo-metal,#a09bc0) 40%,transparent);border-radius:7px;aspect-ratio:4/3;object-fit:cover;background:#101724}
+.ace-offer .ace-eyebrow{color:var(--evo-luster,#ffdfaa)!important}
+.tc-card.tc-ace .hand-art img{object-fit:cover}
+
+.ace-offer .ace-unknown{display:grid;place-items:center;min-width:70px;min-height:84px;font-size:34px;font-weight:900;color:var(--evo-luster,#ffe0aa);background:repeating-linear-gradient(38deg,#171b27,#171b27 7px,#34394a 8px,#171b27 11px);text-shadow:0 0 16px var(--evo-metal)}
+.ace-offer.ace-locked{opacity:.86;filter:saturate(.65)}
