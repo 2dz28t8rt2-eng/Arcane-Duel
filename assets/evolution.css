@@ -58,3 +58,102 @@
 
 .ace-offer .ace-unknown{display:grid;place-items:center;min-width:70px;min-height:84px;font-size:34px;font-weight:900;color:var(--evo-luster,#ffe0aa);background:repeating-linear-gradient(38deg,#171b27,#171b27 7px,#34394a 8px,#171b27 11px);text-shadow:0 0 16px var(--evo-metal)}
 .ace-offer.ace-locked{opacity:.86;filter:saturate(.65)}
+
+
+/* Alpha 2.5.2 · Frame identity and tactile polish.
+   Fusion declarations must come AFTER the level classes in styles.css:
+   otherwise tc-lv-* overrides the fusion palette on every card. */
+.hand-card.tc-card.tc-fusion:not(.tc-ace),
+.board-creature.tc-card.tc-fusion:not(.tc-ace){
+ --tc-rim:#bea4ff;--tc-light:#aa8de7;--tc-mid:#4c387f;
+ --tc-dark:#28234f;--tc-shadow:#100e2b;--tc-glow:rgba(171,116,255,.53);
+ border:3px solid #beabff!important;
+ background:
+  linear-gradient(145deg,rgba(222,208,255,.95) 0%,rgba(119,92,195,.95) 9%,rgba(44,32,86,.99) 30%,rgba(22,21,53,.99) 63%,rgba(116,79,194,.95) 92%,rgba(221,198,255,.95) 100%),
+  #292149!important;
+ box-shadow:inset 0 0 0 1px rgba(240,220,255,.65),inset 0 0 12px #1d1045,0 3px 12px #0009,0 0 14px var(--tc-glow)!important;
+}
+/* Inlaid arcane geometry distinguishes fusions from ordinary level-metal frames.
+   This is not the intricate unique ornamental treatment reserved for ACEs. */
+.hand-card.tc-card.tc-fusion:not(.tc-ace)::before,
+.board-creature.tc-card.tc-fusion:not(.tc-ace)::before{
+ border:1px solid rgba(224,206,255,.84)!important;
+ background:
+  linear-gradient(135deg,transparent 0 46%,rgba(196,172,255,.8) 48%,rgba(196,172,255,.8) 52%,transparent 54%) left top/15px 15px no-repeat,
+  linear-gradient(225deg,transparent 0 46%,rgba(196,172,255,.8) 48%,rgba(196,172,255,.8) 52%,transparent 54%) right top/15px 15px no-repeat,
+  linear-gradient(45deg,transparent 0 46%,rgba(196,172,255,.65) 48%,rgba(196,172,255,.65) 52%,transparent 54%) left bottom/15px 15px no-repeat,
+  linear-gradient(315deg,transparent 0 46%,rgba(196,172,255,.65) 48%,rgba(196,172,255,.65) 52%,transparent 54%) right bottom/15px 15px no-repeat!important;
+}
+.hand-card.tc-card.tc-fusion:not(.tc-ace) .hand-art{border:2px double #d4bdff!important;box-shadow:inset 0 0 0 1px #31224c,0 0 8px #c6a2ff5e}
+.hand-card.tc-card.tc-fusion:not(.tc-ace) .hand-title,
+.board-creature.tc-card.tc-fusion:not(.tc-ace) .board-name{
+ border-color:#c6a4f2!important;
+ background:linear-gradient(125deg,#32245e,#191930)!important;
+}
+.hand-card.tc-card.tc-fusion .hand-type::before{content:'✧ FUSION · ';color:#6940a6;letter-spacing:.025em}
+.board-creature.tc-card.tc-fusion .board-level{border-color:#ddc9ff;background:#332653!important;color:#fff2ff!important}
+.board-creature.tc-card.tc-fusion .board-level::after{content:' ✧';color:#e3c9ff}
+.hand-card.tc-card.tc-fusion:not(.tc-ace):hover{box-shadow:0 8px 24px #000b,0 0 0 1px #c5a5ff,0 0 22px #a37cf6a0!important}
+.hand-card.tc-card.tc-fusion.selected{box-shadow:0 0 0 3px #8ceaff,0 0 19px #bca6ff!important}
+/* ACEs are engraved regardless of whether they are normal or fusion monsters. */
+.hand-card.tc-card.tc-ace,.board-creature.tc-card.tc-ace{
+ border:3px solid var(--evo-metal)!important;
+ --tc-rim:var(--evo-metal);
+ background:repeating-linear-gradient(48deg,var(--evo-night) 0 7px,var(--evo-metal) 8px,var(--evo-night) 11px)!important;
+ box-shadow:0 0 0 1px #100e17,0 0 17px var(--evo-metal),inset 0 0 11px #130d1c!important;
+}
+.board-creature.tc-card.tc-ace::before{border:1px solid var(--evo-luster);background:
+ repeating-linear-gradient(135deg,transparent 0 10px,color-mix(in srgb,var(--evo-metal) 55%,transparent) 11px,transparent 12px) top/100% 14px no-repeat,
+ repeating-linear-gradient(45deg,transparent 0 10px,color-mix(in srgb,var(--evo-metal) 55%,transparent) 11px,transparent 12px) bottom/100% 14px no-repeat!important}
+.board-creature.tc-card.tc-ace .board-name{border-color:var(--evo-metal)!important}
+.tc-card.tc-ace.tc-fusion .hand-type::before{content:'✦ ACE-FUSION · ';color:#704287}
+/* The original tc-special outline is replaced by the properly rendered fusion edge. */
+.hand-card.tc-card.tc-special:not(.tc-ace){outline:0!important}
+.hand-card.tc-card.tc-fusion:not(.tc-ace)::after{border-color:#d6c2ff!important;color:#f4eaff!important;background:#292149!important}
+/* Readable motion: short, asynchronous, reduced-motion friendly. */
+.evo-card-arrive{transform-origin:center bottom;animation:evo-card-arrive .38s cubic-bezier(.17,.89,.32,1.2),evo-arrival-halo .5s ease-out!important}
+@keyframes evo-arrival-halo{0%{filter:brightness(1.65) saturate(1.25)}100%{filter:brightness(1) saturate(1)}}
+.evo-summon{width:min(370px,90vw);max-width:100%;padding:20px 24px;gap:8px;overflow:hidden}
+.evo-summon::before{content:'';position:absolute;inset:-80%;border-radius:50%;pointer-events:none;
+ background:repeating-conic-gradient(from 0deg,transparent 0deg 17deg,rgba(211,187,255,.2) 21deg 22deg,transparent 26deg 45deg);
+ animation:evo-sigil-revolve 1.2s linear infinite}
+.evo-summon>*{position:relative;z-index:1}
+.evo-summon .evo-mat-count{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:#e1d3ff}
+.evo-summon .evo-sigil{width:74px;height:74px;display:grid;place-items:center;font-size:40px;border-radius:50%;
+ border:2px double #b8a6ff;box-shadow:0 0 0 6px #ad96e724,0 0 24px #aa8aff7d,inset 0 0 25px #a07cf85c;
+ background:radial-gradient(circle,#5e53a1 5%,#2d2257 55%,#151d36 90%);animation:evo-sigil-pop .4s ease-out}
+.evo-summon-grand .evo-sigil{border-color:#f4d39d;box-shadow:0 0 0 7px #f5c77e32,0 0 32px #efc776b7,inset 0 0 25px #cba6fe78}
+.evo-summon .evo-rolls{width:100%;display:grid;gap:5px;min-height:40px;justify-items:center}
+.evo-summon .evo-roll-number{font-size:10px;letter-spacing:.12em;color:#c8d7ff}
+.evo-summon .evo-roll-value{font-size:16px;letter-spacing:.03em;color:#ffe9b6;text-shadow:0 0 8px #eab3ff8f}
+.evo-summon .evo-roll-value .atk{color:#ffcca9}.evo-summon .evo-roll-value .def{color:#b1e4ff}
+@keyframes evo-sigil-revolve{to{transform:rotate(360deg)}}
+@keyframes evo-sigil-pop{0%{transform:scale(.5) rotate(-65deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+/* Mission cards: identify the three play styles before reading the fine print. */
+.evo-mode{position:relative;overflow:hidden;transition:border-color .15s,transform .15s,box-shadow .15s}
+.evo-mode::before{content:'';position:absolute;pointer-events:none;inset:0 0 auto;height:4px;background:var(--evo-mode-color,#a99be4)}
+.evo-mode-defense{--evo-mode-color:#84c7ad}.evo-mode-burst{--evo-mode-color:#efaa75}.evo-mode-fusion{--evo-mode-color:#ae9df6}
+.evo-mode-defense h3{color:#b6f0d2!important}.evo-mode-burst h3{color:#ffd0ae!important}.evo-mode-fusion h3{color:#e0ceff!important}
+.evo-mode:hover{border-color:var(--evo-mode-color)!important;box-shadow:0 6px 20px #0b101e7c}
+.evo-mode .evo-steps button{background:#15283b;border-color:#566988;color:#f0f1ff;min-height:46px;font-variant-numeric:tabular-nums}
+.evo-mode .evo-steps .evo-finished{background:#1e4538;border-color:#8fcdb0;color:#e8ffea}
+.evo-steps .btn:focus-visible,.evo-quest .btn:focus-visible{outline:2px solid #fff1c0;outline-offset:3px}
+.evo-quest{position:relative;overflow:hidden;transition:border-color .15s,box-shadow .15s}
+.evo-quest::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#64799b}
+.evo-quest.evo-quest-ready{border-color:#88d7ab;box-shadow:0 0 14px #64ce9970}
+.evo-quest.evo-quest-ready::before{background:#88d7ab}
+.evo-quest.evo-quest-ready strong{color:#b8ffe1}
+.evo-quest progress{width:100%;height:11px;accent-color:#b3d3fc}
+.evo-quest.evo-quest-ready progress{accent-color:#86d7ad}
+.evo-quest small{line-height:1.5}
+.evo-rulebox{border-left:3px solid #af9bef;line-height:1.65}
+.evo-fusion-preview{border-left:3px solid #baa0ff;line-height:1.65}
+@media(hover:none){.evo-mode:hover{box-shadow:none}}
+@media(max-width:600px){.evo-summon{padding:16px 18px}.evo-quest{padding:12px}.evo-mode .evo-steps button{min-height:44px}}
+@media(prefers-reduced-motion:reduce){.evo-summon::before,.evo-summon .evo-sigil,.evo-card-arrive{animation:none!important}.evo-mode,.evo-quest{transition:none}}
+
+/* Short normal-card flight: no layout shifts, no interaction blocking. */
+.evo-card-flight{position:fixed;z-index:9998;pointer-events:none;border:2px solid #e3c7a7;border-radius:7px;overflow:hidden;
+ background:#1b2340;box-shadow:0 0 12px #a3d4f6,0 0 24px #8b7bef87;transform-origin:center center}
+.evo-card-flight img{display:block;width:100%;height:100%;object-fit:cover}
+@media(prefers-reduced-motion:reduce){.evo-card-flight{display:none!important}}
