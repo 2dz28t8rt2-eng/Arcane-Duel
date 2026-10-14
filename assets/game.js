@@ -146,7 +146,7 @@ const RPG_OPPONENTS=[
  {id:0,name:'Moos-Training',title:'Freies Training',level:4,policy:'novice',power:.82,coins:18,xp:12,icon:'◇',theme:'Moos',kind:'golem',element:'ERDE',color:'#97cfa8'},
  {id:1,name:'Der Eisenprüfer',title:'I · Tor der Arena',level:4,policy:'balanced',power:.90,coins:30,xp:24,icon:'Ⅰ',theme:'Eisen',kind:'knight',element:'ERDE',color:'#b7c6d6'},
  {id:2,name:'Die Rubinmagierin',title:'II · Gluthalle',level:5,policy:'offensive',power:.85,coins:45,xp:32,icon:'Ⅱ',theme:'Rubin',kind:'mage',element:'FEUER',color:'#ee9cac'},
- {id:3,name:'Die Dornengarde',title:'III · Wilder Hain',level:6,policy:'guardian',power:.96,coins:65,xp:42,icon:'Ⅲ',theme:'Dornen',kind:'stag',element:'ERDE',color:'#9bce8c'},
+ {id:3,name:'Die Dornengarde',title:'III · Wilder Hain',level:6,policy:'guardian',power:.99,coins:65,xp:42,icon:'Ⅲ',theme:'Dornen',kind:'stag',element:'ERDE',color:'#9bce8c'},
  {id:4,name:'Der Gezeitenfürst',title:'IV · Versunkener Hof',level:7,policy:'economy',power:1.02,coins:90,xp:54,icon:'Ⅳ',theme:'Gezeiten',kind:'serpent',element:'WASSER',color:'#8bdfeb'},
  {id:5,name:'Der Vulkanrichter',title:'V · Brennender Thron',level:8,policy:'offensive',power:1.04,coins:125,xp:68,icon:'Ⅴ',theme:'Vulkan',kind:'golem',element:'FEUER',color:'#f2a178'},
  {id:6,name:'Der Schattenjäger',title:'VI · Nachtpfad',level:9,policy:'balanced',power:1.08,coins:170,xp:84,icon:'Ⅵ',theme:'Schatten',kind:'wolf',element:'DUNKEL',color:'#b09adf'},
