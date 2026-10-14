@@ -36,6 +36,27 @@ iframe.addEventListener('load',()=>{
   expect(w.eval('profile.acePurchased.includes(1)'),'ACE can be purchased once');
   expect(w.eval('fullCardHtml({id:ACE_CARD_IDS[1]}).includes("tc-ace")'),'Owned ACE has special illustrated card category');
   d.getElementById('helpDismiss')?.click();
+  w.eval('menuTab="shop";renderMenu()');
+  const fusionPack=d.querySelector('[data-action="fusion-pack"]');
+  expect(!!fusionPack&&!fusionPack.disabled,'Guaranteed fusion booster available after first tournament win');
+  const inventoryBefore=w.eval('Object.values(profile.inventory).reduce((a,b)=>a+b,0)');
+  fusionPack?.click();
+  const inventoryAfter=w.eval('Object.values(profile.inventory).reduce((a,b)=>a+b,0)');
+  expect(inventoryAfter===inventoryBefore+1,'Fusion booster actually grants exactly one card');
+  d.getElementById('helpDismiss')?.click();
+  w.eval('menuTab="collection";renderMenu()');
+  expect(d.querySelector('#cardSearch')!==null&&d.querySelectorAll('.collection-item').length>0,'Main deck has usable filter toolbar');
+  const search=d.querySelector('#cardSearch');
+  if(search){search.value='kein-monster-mit-diesem-namen';search.dispatchEvent(new w.Event('input',{bubbles:true}));}
+  expect([...d.querySelectorAll('.collection-item')].every(x=>x.hidden),'Card search hides nonmatching cards');
+  w.eval('menuTab="fusions";renderMenu()');
+  expect(d.querySelector('#cardLevel')!==null,'Fusion deck has level filter');
+  w.eval('menuTab="lexicon";renderMenu()');
+  expect(d.querySelector('.monster-index')!==null,'Discoverable monster lexicon renders');
+  w.eval('menuTab="free";renderMenu()');
+  d.querySelector('[data-action="auto-report"]')?.click();
+  expect(d.getElementById('modal')?.textContent.includes('AUTOKAMPF-BERICHT'),'Persistent automatic duel report opens');
+  d.getElementById('autoReportClose')?.click();
   w.eval('menuTab="free";renderMenu();startDuel("pve",1,"free","easy")');
   expect(d.getElementById('modalGo')?.textContent.includes('DUELL STARTEN'),'Duel start modal available');
   d.dispatchEvent(new w.KeyboardEvent('keydown',{bubbles:true,cancelable:true,key:' ',code:'Space'}));
