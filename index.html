@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#101522">
-<title>ARCANE DUEL · Alpha 2.2 DEV · RPG</title>
+<title>ARCANE DUEL · Alpha 2.5 · Fusion Evolution</title>
 <link rel="stylesheet" href="assets/styles.css?v=alpha22-balance-1">
-<link rel="stylesheet" href="assets/expansion.css?v=alpha22-balance-1">
+<link rel="stylesheet" href="assets/expansion.css?v=alpha22-balance-1"><link rel="stylesheet" href="assets/evolution.css?v=alpha25">
 </head>
 <body>
 <div class="app" id="app">
 <header class="mast">
- <div class="branding"><div class="logo">✧</div><div><div class="brandtitle">ARCANE DUEL <small>ALPHA 2.2 DEV</small></div><div class="subtitle">Sammlung · Fusion · Training</div></div></div>
+ <div class="branding"><div class="logo">✧</div><div><div class="brandtitle">ARCANE DUEL <small>ALPHA 2.5</small></div><div class="subtitle">Sammlung · Fusion · Training</div></div></div>
  <div class="mast-actions"><button class="btn tiny" id="manualSaveBtn">⇩ Speichern</button><button class="btn tiny" id="homeBtn" hidden>↶ Menü</button><button class="btn ghost tiny" id="iphoneHelpBtn">📱 iPhone-Hilfe</button><button class="btn ghost tiny" id="rulesBtn">? Regeln</button><button class="btn ghost tiny" id="deckBtn">▤ Deck ansehen</button><button class="btn ghost tiny" id="poolBtn">✦ Kartenpool</button><button class="btn ghost tiny" id="soundBtn">♪ Ton: Aus</button><button class="btn ghost tiny" id="speedBtn">» Animationen: Schnell</button><button class="btn tiny" id="restartBtn">↻ Neustart</button></div>
 </header>
 <div class="profile-hud" id="profileHud"></div><div class="storage-notice" id="storageNotice" role="status" hidden></div><nav class="menu-nav" id="menuNav" aria-label="Hauptmenü"></nav><section id="menuScreen"><div class="menu-hero" id="menuHero"></div><div id="menuContent"></div></section><div class="layout" id="duelScreen" hidden><aside class="card-preview-panel"><h2>Kartenansicht</h2><div id="largeCardPreview"><p>Wähle eine Karte.</p></div></aside>
@@ -30,7 +30,7 @@
    <div class="duelist-banner mine" id="myBanner"><div class="portrait" id="myPortrait">Ⅰ</div><div class="duelist-info"><div class="duelist-topline"><span class="duelist-name" id="myName">DUELLANT 1</span><span class="duelist-label">AKTIVER SPIELER</span></div><div class="lp-track"><span id="myLPBar"></span></div></div><div class="duelist-numbers"><div class="lp-number"><small>LP</small><span id="myLP">4000</span></div><div class="deck-count"><b id="myDeck">35</b>DECK</div></div></div>
   </section>
   <section class="summon-stage" id="summonStage" aria-label="Beschwörungsauswahl"></section>
-  <section class="cardtray" aria-label="Handkarten"><div class="tray-top"><span class="tray-title">✦ DEINE HAND <span id="handCount">(5 / 5)</span></span><span class="tray-hint">Karte antippen: wählen · Für Fusion zuerst Touch-Modus aktivieren</span></div><button class="btn touch-fusion" id="touchFusionBtn">✧ Touch-Fusion aktivieren</button><div class="hand" id="hand"></div></section>
+  <section class="cardtray" aria-label="Handkarten"><div class="tray-top"><span class="tray-title">✦ DEINE HAND <span id="handCount">(5 / 5)</span></span><span class="tray-hint">Karte antippen: beschwören · Für Fusion zuerst Touch-Modus aktivieren</span></div><button class="btn touch-fusion" id="touchFusionBtn">✧ Touch-Fusion aktivieren</button><div class="hand" id="hand"></div></section>
   <div class="notice">40 KARTEN IM HAUPTDECK · BIS ZU 15 FUSIONEN · RPG ODER LOKALES PVP</div>
  </main>
  <aside class="sidebar" aria-label="Duellsteuerung">
@@ -45,4 +45,4 @@
 <div class="toast" id="toast" role="status"></div><input type="file" id="importFile" accept=".json,application/json" hidden>
 <script src="assets/art-engine.js?v=alpha22-balance-1" defer></script>
 <script src="assets/game.js?v=alpha22-balance-1" defer></script>
-<script src="assets/expansion.js?v=alpha22-balance-1" defer></script></body></html>
+<script src="assets/expansion.js?v=alpha22-balance-1" defer></script><script src="assets/evolution.js?v=alpha25" defer></script></body></html>
