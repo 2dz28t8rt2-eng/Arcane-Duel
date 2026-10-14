@@ -1,10 +1,10 @@
 {
   "name": "arcane-duel",
   "private": true,
-  "version": "2.2.0-dev.1",
+  "version": "2.5.0-dev.1",
   "description": "Arcane Duel browser card RPG",
   "scripts": {
-    "test": "node --check assets/art-engine.js && node --check assets/game.js && node --check assets/expansion.js && node --test tests/*.test.cjs"
+    "test": "node --check assets/art-engine.js && node --check assets/game.js && node --check assets/expansion.js && node --check assets/evolution.js && node --test tests/*.test.cjs"
   },
   "engines": {
     "node": ">=20"
