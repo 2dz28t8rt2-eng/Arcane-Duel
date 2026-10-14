@@ -69,7 +69,20 @@ function npcMainDeck(tier){const o=OPPONENTS[tier];const own=o.loot.filter(id=>!
  const deck=[];for(const id of [...(tier===3?[]:[ACE_CARD_IDS[tier]]),...own])for(let j=0;j<(tier===1?2:3);j++)if(deck.length<40)deck.push(id);
  for(const id of ranked)while(deck.length<40&&countCard(deck,id)<3)deck.push(id);
  if(deck.length!==40)throw Error('NPC-Hauptdeck hat keine 40 Karten.');return deck;}
-rpgEnemyLoadout=function(id,difficulty='easy',stage){if(![1,2,3].includes(id)||difficulty==='hard')return previous.rpgEnemyLoadout(id,difficulty,stage);const o=OPPONENTS[id];return {
+rpgEnemyLoadout=function(id,difficulty='easy',stage){
+ if(difficulty==='hard'&&id>=1&&id<=10){
+  // Hard hat zusaetzliche starke Karten, benutzt aber weiterhin dasselbe ACE.
+  const load=previous.rpgEnemyLoadout(id,difficulty,stage),ace=ACE_CARD_IDS[id];
+  if(CARDS[ace].fusionOnly){
+   if(!load.fusionDeck.includes(ace)){if(load.fusionDeck.length>=15)load.fusionDeck.pop();load.fusionDeck.push(ace);}
+  }else if(!load.deck.includes(ace)){
+   const index=load.deck.findIndex(cid=>CARDS[cid].source!==id);
+   if(index>=0)load.deck[index]=ace;
+  }
+  return load;
+ }
+ if(![1,2,3].includes(id))return previous.rpgEnemyLoadout(id,difficulty,stage);
+ const o=OPPONENTS[id];return {
  deck:npcMainDeck(id),fusionDeck:id===1?[enemyFusion[1][0]]:id===2?[o.loot[2],o.loot[3]]:enemyFusion[3].flatMap(cardId=>[cardId,cardId,cardId]),
  enhancements:{},power:id===1?.91:id===2?.90:.80,style:id===1?'normal':id===2?'balanced':'fusion'};};
 const originalFusionDeckError=fusionDeckError;
