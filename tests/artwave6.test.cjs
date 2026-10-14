@@ -10,7 +10,7 @@ function cards(){
  return JSON.parse(vm.runInContext('JSON.stringify(CARDS.map(c=>({id:c.id,name:c.name,customArt:c.customArt,art:c.art,manifestOf:c.manifestOf,atk:c.atk,def:c.def,level:c.level})))',ctx));
 }
 test('60 distinct curated illustrations exist and original 324 card IDs remain unchanged',()=>{
- const all=cards();assert.equal(all.length,324);
+ const all=cards();assert.equal(all.length,483);
  const unique=new Set(all.filter(c=>c.customArt).map(c=>c.customArt));assert.equal(unique.size,60);
  for(const src of unique){const file=path.join(root,src);assert.ok(fs.existsSync(file),src);assert.ok(fs.statSync(file).size>6000,src);}
 });

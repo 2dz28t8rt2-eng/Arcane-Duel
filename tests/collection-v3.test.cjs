@@ -4,8 +4,8 @@ const root=path.resolve(__dirname,'..');
 const manifest=fs.readFileSync(path.join(root,'assets/collection-v3-data.js'),'utf8');
 const context={window:{}};vm.runInNewContext(manifest,context);
 const cards=context.window.ARCANE_COLLECTION_V3;
-test('Collection 3.0 contains all 324 actual card templates, with unique IDs',()=>{
- assert.equal(cards.length,324);assert.equal(new Set(cards.map(c=>c.id)).size,324);
+test('Collection 3.0 contains all 483 card templates, with unique IDs',()=>{
+ assert.equal(cards.length,483);assert.equal(new Set(cards.map(c=>c.id)).size,483);
  assert.ok(cards.every(c=>Number.isInteger(c.level)&&c.level>=1&&c.level<=12));
 });
 test('All twelve levels represented; level 11 and 12 stay visually special',()=>{
@@ -16,6 +16,7 @@ test('All twelve levels represented; level 11 and 12 stay visually special',()=>
 test('All custom art references exist, and manifested forms share their art',()=>{
  for(const c of cards){if(c.art)assert.ok(fs.existsSync(path.join(root,c.art)),'Missing '+c.art);if(c.manifestOf!=null&&c.art)assert.equal(c.art,cards[c.manifestOf].art);}
  assert.equal(new Set(cards.filter(c=>c.art).map(c=>c.art)).size,60);
+ for(const c of cards.filter(c=>c.variantOf!=null))assert.equal(c.art,cards[c.variantOf].art);
 });
 test('Collection view has working filter hooks and never changes saved profile',()=>{
  const html=fs.readFileSync(path.join(root,'collection-v3.html'),'utf8');

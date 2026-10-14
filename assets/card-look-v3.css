@@ -595,3 +595,40 @@
 .hand-card.tc-card.tc-lv-10:not(.tc-fusion):not(.tc-ace){--ad-rim:#f2ad57;--ad-flash:#fff0cc}
 .hand-card.tc-card.tc-lv-11:not(.tc-fusion):not(.tc-ace){--ad-rim:#fa8158;--ad-flash:#ffdbba}
 .hand-card.tc-card.tc-lv-12:not(.tc-fusion):not(.tc-ace){--ad-rim:#ff516f;--ad-flash:#ffe0ea}
+
+/* Update A · wertgerechte Zahlenbreite für schmale Karten. */
+.hand-card.tc-card .hand-stats{
+ flex:0 0 28px!important;min-height:28px!important;max-height:28px!important;height:28px!important;
+ padding:2px 2px 1px!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ align-items:stretch!important;
+}
+.hand-card.tc-card .hand-stats .stat{
+ min-width:0!important;max-width:100%!important;
+ gap:1px!important;overflow:hidden!important;
+ display:flex!important;flex-direction:column!important;
+ justify-content:center!important;align-items:center!important;
+ line-height:1!important;
+}
+.hand-card.tc-card .hand-stats .stat-label{
+ display:block;font-size:6.5px!important;line-height:8px!important;
+ font-weight:700!important;letter-spacing:0!important;
+}
+.hand-card.tc-card .hand-stats .stat-value{
+ display:block;max-width:100%;font-size:9px!important;line-height:11px!important;
+ font-weight:800!important;letter-spacing:-.25px!important;
+ font-variant-numeric:tabular-nums!important;white-space:nowrap!important;
+}
+.deck-preview-card .hand-card.tc-card .hand-stats .stat-value,
+.card-preview-panel .hand-card.tc-card .hand-stats .stat-value{
+ font-size:12px!important;line-height:15px!important;
+}
+.deck-preview-card .hand-card.tc-card .hand-stats .stat-label,
+.card-preview-panel .hand-card.tc-card .hand-stats .stat-label{font-size:8px!important;line-height:10px!important}
+.deck-family{display:grid;gap:6px;padding:10px;border:1px solid #6b668b;border-radius:12px;background:#171c2e;color:#d5d9e6;font-size:11px}
+.deck-family>b{color:#f2dca8;font:700 12px Georgia,serif}
+.deck-family-levels{display:flex;flex-wrap:wrap;gap:5px}
+.deck-family-levels span{padding:4px 7px;border-radius:999px;background:#202c3e;border:1px solid #65738b;color:#e7ebf4;font-weight:800;font-size:10px}
+.deck-family-levels span.active{border-color:#efca82;color:#fff4c8;box-shadow:0 0 8px #f0c27a50}
+.deck-family-levels span.locked{opacity:.45;border-style:dashed}
+.deck-family small{color:#afbbd0;font-size:10px;line-height:1.45}

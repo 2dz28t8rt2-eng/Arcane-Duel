@@ -16,7 +16,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   const qty=document.createElement('b');qty.textContent=String(count);
   b.append(number,label,qty);tierList.append(b);
  }
- function imageFor(c){return c.art||window.ArcaneArt.makeArt({id:c.id,kind:c.kind,level:c.level,element:c.element,color:'#b2b8d6',fusionOnly:c.fusion});}
+ function imageFor(c){const base=c.variantOf!=null?cards[c.variantOf]:c;return base.art||window.ArcaneArt.makeArt({id:base.id,kind:base.kind,level:base.level,element:base.element,color:'#b2b8d6',fusionOnly:base.fusion});}
  function render(){
   document.querySelectorAll('.tier').forEach(b=>{const active=b.dataset.level===state.level;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
   const query=state.search.trim().toLocaleLowerCase('de');
@@ -32,7 +32,7 @@ window.addEventListener('DOMContentLoaded',()=>{
    frame.append(img);
    const title=document.createElement('h3');title.textContent=c.name;
    const info=document.createElement('div');info.className='meta';info.textContent=`LV ${c.level} · ${c.element} · ${c.fusion?'FUSION':'MONSTER'}`;
-   const tag=document.createElement('span');tag.className='tag';tag.textContent=c.art?'Illustration':'Generator';
+   const tag=document.createElement('span');tag.className='tag';tag.textContent=c.variantOf!=null?'Stufenreihe':c.art?'Illustration':'Generator';
    article.append(frame,title,info,tag);frag.append(article);
   }
   $('cards').replaceChildren(frag);

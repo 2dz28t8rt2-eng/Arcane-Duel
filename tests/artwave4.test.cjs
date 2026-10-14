@@ -11,7 +11,7 @@ function cards(){
 }
 test('Artwork pack 4 maps to 10 distinct mid- and late-game cards without changing card IDs',()=>{
  const all=cards(),ids=[280,90,103,246,260,278,101,286,274,262],unique=new Set();
- assert.equal(all.length,324);
+ assert.equal(all.length,483);
  for(let i=0;i<ids.length;i++){
   const c=all[ids[i]],asset=`assets/custom-art/wave4-${String(i+1).padStart(2,'0')}.webp`;
   assert.equal(c.id,ids[i]);assert.equal(c.customArt,asset);assert.equal(c.art,asset);
@@ -21,7 +21,7 @@ test('Artwork pack 4 maps to 10 distinct mid- and late-game cards without changi
   unique.add(asset);
  }
  assert.equal(unique.size,10);
- assert.equal(all.filter(c=>c.customArt&&c.manifestOf==null).length,60);
+ assert.equal(all.slice(0,324).filter(c=>c.customArt&&c.manifestOf==null).length,60);
 });
 test('Fusion manifestations use their original creature illustration',()=>{
  const all=cards();

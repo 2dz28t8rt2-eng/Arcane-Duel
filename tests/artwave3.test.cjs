@@ -19,7 +19,7 @@ test('Artwave 3 does not change card stats or the late white-dragon slot',()=>{
  const s=fs.readFileSync(path.join(root,'assets/game.js'),'utf8');
  assert.ok(s.includes('const CUSTOM_CARD_ART_WAVE_3='));
  assert.ok(s.includes('for(const art of CUSTOM_CARD_ART_WAVE_3)'));
- assert.ok(s.includes('CARDS.forEach(c=>c.art=window.ArcaneArt?.makeArt(c)||makeArt(c));'));
+ assert.ok(s.includes('CARDS.forEach(c=>{c.art=c.variantOf==null?')); // New forms share their baseline artwork
  // The new art assets never inject ATK, DEF, cost, level or element overrides.
  for(const a of manifest.images){
   const term=`id:${a.id},name:`;
