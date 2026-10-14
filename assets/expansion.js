@@ -351,9 +351,9 @@ showFinished=function(){
  stored.showFinished();
  if(wasNew){
   const o=OPPONENTS[game.opponentId];
-  const html='<section class="first-win-box"><h3>✦ Erste Turnierprüfung bestanden!</h3><div class="victory-cards">'+fullCardHtml(profileCard(CARDS[o.loot[2]]))+fullCardHtml(profileCard(CARDS[o.easyManifest]))+'</div>'+
-   '<p>Du erhältst eine besondere Fusionskarte und ihre beschwörbare Gestalt: <b>'+escapeHtml(CARDS[o.loot[2]].name)+'</b> und <b>'+escapeHtml(CARDS[o.easyManifest].name)+'</b>.</p>'+
-   '<p>Außerdem: 6 zusätzliche Splitter, dreifache Basisessenz und <b>vollständig aufgefüllte Dropladungen ('+dropChargeCap()+')</b>. Eine jüngere Ace-Karte ist nun im Booster-Shop erhältlich.</p></section>';
+  const html='<section class="first-win-box"><h3>✦ Erste Turnierprüfung bestanden!</h3>'+
+   '<p>Die nächste Prüfung ist freigeschaltet. Das ACE-Monster des besiegten Duellanten kann ab jetzt <b>einmalig im Shop gegen Essenz gekauft</b> werden. Es wird nicht kostenlos vergeben.</p>'+
+   '<p>Zusätzliche Turnierbelohnungen, einschließlich Erfahrung und Essenz, werden in deiner Ergebnisübersicht angezeigt.</p></section>';
   const modal=$('modal');if(modal)modal.insertAdjacentHTML('afterbegin',html);
  }
 };
