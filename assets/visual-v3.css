@@ -1,0 +1,188 @@
+/* Arcane Duel · Visual Revamp 3.0 Preview 1
+ * A shared card treatment across hand, catalogue, shops and the arena.
+ * This layer deliberately changes presentation only, never saved cards or combat.
+ */
+:root{
+ --v3-ink:#080b13;--v3-night:#0f1523;--v3-cream:#fff0cf;
+ --v3-gold:#e7c687;--v3-ivory:#f6e4bc;--v3-mana:#bc91ff;
+}
+body{
+ background:
+  radial-gradient(ellipse 68% 40% at 50% -14%,#40507088,transparent 82%),
+  radial-gradient(ellipse 36% 45% at 100% 44%,#35234b40,transparent 95%),
+  linear-gradient(135deg,#070c16 0%,#0b1120 46%,#080b13 100%);
+}
+.mast{padding:0 0 14px;border-bottom:1px solid rgba(226,187,119,.26)}
+.logo{border-radius:50%;border:2px double #edcc83;background:
+ radial-gradient(circle at 50% 50%,#dfbb7040 0 16%,transparent 16.5% 46%,#d5af7345 46.5% 49%,transparent 50%),
+ linear-gradient(140deg,#354564,#101622);box-shadow:0 0 0 3px #0a111f,0 0 22px #d7a9642b}
+.brandtitle{font-variant:small-caps;letter-spacing:3.8px}
+/* Bigger portrait / fewer strips: no independent card markup forks. */
+.hand-card.tc-card{
+ --v3-bright:var(--tc-light,#e4dbc9);
+ --v3-metal:var(--tc-rim,#bca687);
+ --v3-shadow:var(--tc-shadow,#252b34);
+ --v3-accent:var(--tc-mid,#8f837e);
+ --v3-emblem:'◆';
+ width:146px;max-width:146px;flex:0 0 auto;
+ height:224px;
+ padding:7px 8px 8px!important;
+ border:3px solid var(--v3-bright)!important;
+ border-radius:9px 9px 7px 7px!important;
+ background:
+  linear-gradient(139deg,transparent 0 46%,#ffedb537 49%,transparent 53%) top left/40px 40px no-repeat,
+  linear-gradient(221deg,transparent 0 46%,#ffedb537 49%,transparent 53%) top right/40px 40px no-repeat,
+  repeating-linear-gradient(0deg,transparent 0 11px,#ffffff09 12px,transparent 13px),
+  linear-gradient(145deg,var(--v3-bright) 0%,var(--v3-metal) 3%,var(--v3-shadow) 13%,#0a1020 48%,var(--v3-shadow) 86%,var(--v3-bright) 99%)!important;
+ box-shadow:0 0 0 1px #060a14,0 0 0 2px var(--v3-metal),inset 0 0 0 1px #fce9c269,inset 0 0 14px #000,0 7px 18px #000b!important;
+ transition:transform .19s ease,filter .19s ease,box-shadow .19s ease;
+}
+.hand-card.tc-card::before{
+ content:''!important;pointer-events:none;position:absolute;inset:3px;z-index:3;
+ border:1px solid color-mix(in srgb,var(--v3-bright) 65%,transparent)!important;
+ border-radius:5px;
+ background:
+  radial-gradient(circle at 7px 7px,var(--v3-bright) 0 2px,transparent 2.5px),
+  radial-gradient(circle at calc(100% - 7px) 7px,var(--v3-bright) 0 2px,transparent 2.5px),
+  radial-gradient(circle at 7px calc(100% - 7px),var(--v3-bright) 0 2px,transparent 2.5px),
+  radial-gradient(circle at calc(100% - 7px) calc(100% - 7px),var(--v3-bright) 0 2px,transparent 2.5px),
+  linear-gradient(135deg,transparent 0 46%,var(--v3-bright) 48% 52%,transparent 54%) left top/16px 16px no-repeat,
+  linear-gradient(225deg,transparent 0 46%,var(--v3-bright) 48% 52%,transparent 54%) right top/16px 16px no-repeat,
+  linear-gradient(45deg,transparent 0 46%,var(--v3-bright) 48% 52%,transparent 54%) left bottom/16px 16px no-repeat,
+  linear-gradient(315deg,transparent 0 46%,var(--v3-bright) 48% 52%,transparent 54%) right bottom/16px 16px no-repeat!important;
+ opacity:.76;
+}
+.hand-card.tc-card:hover:not(:disabled){transform:translateY(-8px);filter:brightness(1.055);box-shadow:0 0 0 1px #060a14,0 0 0 2px var(--v3-bright),0 7px 24px #000c,0 0 20px color-mix(in srgb,var(--v3-metal) 44%,transparent)!important}
+.hand-card.tc-card.selected{transform:translateY(-10px);box-shadow:0 0 0 2px #a4ecf0,0 0 25px #72dfec88,0 9px 20px #000c!important}
+.hand-card.tc-card .hand-title{
+ flex-basis:29px;min-height:29px;max-height:29px;
+ font:700 11px/1.1 Georgia,'Times New Roman',serif!important;
+ letter-spacing:.1px;color:#fff4d7!important;
+ background:linear-gradient(90deg,#080d19,#243048 51%,#080d19)!important;
+ border:1px solid color-mix(in srgb,var(--v3-bright) 56%,transparent);
+ border-radius:4px 4px 1px 1px;
+ padding:3px 5px;
+}
+.hand-card.tc-card .hand-title span:first-child{color:#fff5dd!important;text-shadow:0 1px 2px #000}
+.hand-card.tc-card .card-attribute{color:var(--v3-bright)!important;font-size:11px}
+.hand-card.tc-card .hand-stars{
+ flex-basis:15px;min-height:15px;max-height:15px;height:15px!important;
+ margin:2px 0 3px;border:none;border-bottom:1px solid #dbc28a5e;
+ border-radius:0;background:#0b1021bb!important;
+ color:#f1ce88!important;font:800 10px/14px Georgia,serif!important;letter-spacing:.6px!important;
+}
+.hand-card.tc-card .hand-art{
+ position:relative;isolation:isolate;flex:1 1 74px;min-height:50px;
+ border:2px solid var(--v3-bright)!important;border-radius:2px;
+ background:radial-gradient(ellipse at center,#253c59,#080e1d 80%)!important;
+ box-shadow:0 0 0 1px #080a11,inset 0 0 9px #000e,0 0 11px color-mix(in srgb,var(--v3-metal) 33%,transparent)!important;
+}
+.hand-card.tc-card .hand-art img{object-fit:cover;object-position:center;filter:saturate(1.12) contrast(1.08)}
+.hand-card.tc-card .hand-art::before{
+ content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+ background:linear-gradient(165deg,#fff7d31c,transparent 24% 72%,#03071566 100%);
+ box-shadow:inset 0 0 13px #02040bd1;
+}
+.hand-card.tc-card .hand-type{
+ flex-basis:16px;min-height:16px;height:16px;
+ padding:1px 3px 0!important;color:#eee3ff!important;
+ background:linear-gradient(90deg,#131b31,#272842,#121c2c)!important;
+ border-left:1px solid #f1d99d88;border-right:1px solid #f1d99d88;
+ font:700 9px/14px Georgia,serif!important;letter-spacing:.15px;
+}
+.hand-card.tc-card .hand-description{
+ flex-basis:17px;min-height:17px;max-height:17px;height:17px;
+ padding:2px 4px!important;
+ color:#eadfc8!important;background:#182339!important;
+ border-bottom:1px solid #b7a07c83;
+ font:600 9px/13px Segoe UI,sans-serif!important;
+}
+.hand-card.tc-card .hand-stats{
+ flex-basis:31px;min-height:31px;max-height:31px;height:31px;
+ margin-top:3px!important;border:1px solid #d7c09a80!important;
+ border-radius:2px;background:linear-gradient(160deg,#29374b,#101b2d)!important;
+ color:#ffedc7!important;padding:1px 1px!important;
+}
+.hand-card.tc-card .hand-stats .stat.def{border-left:1px solid #b9a77980}
+.hand-card.tc-card .hand-stats .stat-label{font-size:8px!important;line-height:11px!important;color:#cfb58a!important}
+.hand-card.tc-card .hand-stats .stat-value{font-size:12px!important;line-height:15px!important;color:#fff0c6!important}
+.hand-card.tc-card .hand-stats .stat.def .stat-value{color:#bbdfff!important}
+/* Normal levels remain distinct, but ACE and fusion override material language. */
+.hand-card.tc-card.tc-fusion:not(.tc-ace){
+ --v3-bright:#e5c7ff;--v3-metal:#8c60d7;--v3-shadow:#2b154e;
+ border-color:#e8caff!important;
+ background:
+  radial-gradient(ellipse 80% 48% at 50% 46%,#754cc957,transparent 80%),
+  repeating-conic-gradient(from 45deg at 50% 50%,#a183d91b 0 12deg,transparent 13deg 44deg),
+  linear-gradient(145deg,#e8caff 0%,#8251c5 4%,#24113e 17%,#0c0a23 55%,#55338c 91%,#e8caff 100%)!important;
+ box-shadow:0 0 0 1px #050611,0 0 0 2px #8152c5,inset 0 0 0 1px #dbc8ff95,inset 0 0 15px #2d195f,0 7px 18px #000b,0 0 17px #8f64da55!important;
+}
+.hand-card.tc-card.tc-fusion:not(.tc-ace) .hand-title{background:linear-gradient(100deg,#140c29,#37245b,#120b27)!important}
+.hand-card.tc-card.tc-fusion:not(.tc-ace) .hand-art{border-color:#d9b4ff!important;box-shadow:0 0 0 1px #291549,inset 0 0 11px #000,0 0 13px #ad70ff9c!important}
+.hand-card.tc-card.tc-fusion:not(.tc-ace) .hand-type{background:#27143e!important;color:#f0dfff!important}
+.hand-card.tc-card.tc-fusion:not(.tc-ace)::before{opacity:1;background:
+  radial-gradient(circle at 8px 8px,#f4dfff 0 2px,transparent 3px),
+  radial-gradient(circle at calc(100% - 8px) 8px,#f4dfff 0 2px,transparent 3px),
+  linear-gradient(135deg,transparent 46%,#dfbcff 48% 52%,transparent 54%) left top/24px 24px no-repeat,
+  linear-gradient(225deg,transparent 46%,#dfbcff 48% 52%,transparent 54%) right top/24px 24px no-repeat,
+  linear-gradient(45deg,transparent 46%,#dfbcff 48% 52%,transparent 54%) left bottom/24px 24px no-repeat,
+  linear-gradient(315deg,transparent 46%,#dfbcff 48% 52%,transparent 54%) right bottom/24px 24px no-repeat!important}
+.hand-card.tc-card.tc-ace{
+ --v3-bright:var(--evo-luster);--v3-metal:var(--evo-metal);--v3-shadow:var(--evo-night);
+ border:3px solid var(--evo-luster)!important;border-radius:10px 10px 8px 8px!important;
+ background:
+  repeating-conic-gradient(from 0deg at 50% 50%,color-mix(in srgb,var(--evo-metal) 18%,transparent) 0deg 4deg,transparent 4deg 18deg),
+  radial-gradient(ellipse at 50% 40%,color-mix(in srgb,var(--evo-metal) 29%,transparent),transparent 68%),
+  linear-gradient(146deg,var(--evo-luster) 0%,var(--evo-metal) 3%,var(--evo-night) 13%,#090b18 54%,var(--evo-night) 87%,var(--evo-luster) 99%)!important;
+ box-shadow:0 0 0 1px #050612,0 0 0 2px var(--evo-metal),inset 0 0 0 2px color-mix(in srgb,var(--evo-metal) 70%,transparent),inset 0 0 22px #0009,0 0 18px color-mix(in srgb,var(--evo-metal) 60%,transparent),0 9px 20px #000a!important;
+}
+.hand-card.tc-card.tc-ace::before{
+ border:2px double var(--evo-luster)!important;inset:3px!important;
+ background:
+  radial-gradient(circle at 50% 6px,var(--evo-luster) 0 3px,transparent 4px),
+  radial-gradient(circle at 50% calc(100% - 6px),var(--evo-luster) 0 3px,transparent 4px),
+  repeating-linear-gradient(45deg,transparent 0 9px,color-mix(in srgb,var(--evo-metal) 37%,transparent) 10px,transparent 11px) top/100% 16px no-repeat,
+  repeating-linear-gradient(135deg,transparent 0 9px,color-mix(in srgb,var(--evo-metal) 37%,transparent) 10px,transparent 11px) bottom/100% 16px no-repeat,
+  linear-gradient(135deg,transparent 46%,var(--evo-luster) 48% 52%,transparent 54%) left top/25px 25px no-repeat,
+  linear-gradient(225deg,transparent 46%,var(--evo-luster) 48% 52%,transparent 54%) right top/25px 25px no-repeat,
+  linear-gradient(45deg,transparent 46%,var(--evo-luster) 48% 52%,transparent 54%) left bottom/25px 25px no-repeat,
+  linear-gradient(315deg,transparent 46%,var(--evo-luster) 48% 52%,transparent 54%) right bottom/25px 25px no-repeat!important;
+}
+.hand-card.tc-card.tc-ace .hand-title{background:linear-gradient(90deg,#1a1122,var(--evo-night),#111b2d)!important;border-color:var(--evo-metal)!important}
+.hand-card.tc-card.tc-ace .hand-art{border:2px solid var(--evo-luster)!important;box-shadow:inset 0 0 15px #000a,0 0 0 1px var(--evo-metal),0 0 15px color-mix(in srgb,var(--evo-metal) 49%,transparent)!important}
+.hand-card.tc-card.tc-ace .hand-type{border-color:var(--evo-metal)!important;background:var(--evo-night)!important}
+.hand-card.tc-card.tc-ace .hand-stats{border-color:var(--evo-metal)!important}
+/* Arena versions echo the same families at miniature sizes. */
+.board-creature.tc-card{
+ border:2px solid var(--tc-light)!important;border-radius:6px!important;
+ background:linear-gradient(135deg,var(--tc-rim),var(--tc-shadow) 20%,#0d1225 58%,var(--tc-rim))!important;
+ box-shadow:inset 0 0 0 1px #fff7d16e,0 3px 8px #0009,0 0 0 1px #090c14!important;
+}
+.board-creature.tc-card::before{content:'';position:absolute;inset:2px;z-index:2;pointer-events:none;border:1px solid #ead9af9e;border-radius:2px;
+ background:linear-gradient(135deg,#f1d7b688 0 2px,transparent 3px) left top/12px 12px no-repeat,
+ linear-gradient(225deg,#f1d7b688 0 2px,transparent 3px) right top/12px 12px no-repeat}
+.board-creature.tc-card.tc-fusion:not(.tc-ace){border-color:#dfc0ff!important;background:linear-gradient(135deg,#a67de1,#2e1856 17%,#100b2a 60%,#9261d3)!important;box-shadow:inset 0 0 0 1px #e2ccff,0 3px 8px #0009,0 0 11px #a578ef70!important}
+.board-creature.tc-card.tc-fusion:not(.tc-ace)::before{border-color:#dfbbff;background:linear-gradient(135deg,#f0d9ff 0 3px,transparent 4px) left top/16px 16px no-repeat,linear-gradient(225deg,#f0d9ff 0 3px,transparent 4px) right top/16px 16px no-repeat!important}
+.board-creature.tc-card.tc-ace{border:3px solid var(--evo-luster)!important;background:linear-gradient(150deg,var(--evo-luster),var(--evo-night) 17%,#090c1e 62%,var(--evo-metal))!important;box-shadow:inset 0 0 0 1px var(--evo-metal),0 0 0 1px #090c14,0 0 13px color-mix(in srgb,var(--evo-metal) 50%,transparent)!important}
+.board-creature.tc-card.tc-ace::before{border:1px double var(--evo-luster)!important;background:linear-gradient(135deg,var(--evo-metal) 0 3px,transparent 4px) left top/14px 14px no-repeat,linear-gradient(225deg,var(--evo-metal) 0 3px,transparent 4px) right top/14px 14px no-repeat!important}
+.board-creature.tc-card .board-art{filter:saturate(1.12) contrast(1.07)}
+.board-creature.tc-card .board-name{background:linear-gradient(90deg,#101527,#2c3046,#101527)!important;color:#f5e4c2!important;font:700 10px/1.1 Georgia,serif!important}
+.board-creature.tc-card .board-stats{background:#12172b!important;border-top:1px solid #dab9799b}
+/* Shop, guide and menu remain readable but now share the arcane inlaid look. */
+.menu-panel,.evo-mode,.evo-quests,.evo-intro,.evo-quest{
+ border-color:#a68c6570!important;
+ background:radial-gradient(ellipse at 100% -15%,#77613e26,transparent 48%),linear-gradient(145deg,#1d293e,#101929 77%)!important;
+ box-shadow:inset 0 1px 0 #d1bb8b1a,0 5px 22px #02050e33;
+}
+.menu-panel h2,.menu-panel h3,.evo-mode h3{font-family:Georgia,'Times New Roman',serif;letter-spacing:.25px}
+.evo-mode-defense{border-color:#75b9b7a0!important}.evo-mode-burst{border-color:#e8a276a0!important}.evo-mode-fusion{border-color:#ba98efaf!important}
+/* Keep layouts usable at mobile and narrow modal sizes. */
+.hand{gap:11px;min-height:246px;scrollbar-width:thin}
+.collection-item .hand-card.tc-card,.pool-grid .hand-card.tc-card{height:235px}
+.pack-grid .hand-card.tc-card{height:246px}
+.card-preview-panel .hand-card.tc-card{width:100%;max-width:100%;height:355px!important;min-height:355px!important}
+.card-preview-panel .hand-card.tc-card .hand-art{min-height:110px;flex-basis:145px}
+.fusion-choice-modal .fusion-offer .hand-card.tc-card{height:233px!important;max-width:235px}
+@media(max-width:760px){.hand{gap:8px}.hand-card.tc-card{width:136px;max-width:136px;height:218px}.mast{flex-wrap:wrap}.card-preview-panel .hand-card.tc-card{height:320px!important;min-height:320px!important}}
+@media(max-width:400px){.hand-card.tc-card{width:130px;max-width:130px;height:213px}.hand-card.tc-card .hand-title{font-size:10px!important}.fusion-choice-modal .fusion-offer .hand-card.tc-card{height:216px!important}}
+@media(prefers-reduced-motion:reduce){.hand-card.tc-card{transition:none!important}.hand-card.tc-card:hover{transform:none!important}}

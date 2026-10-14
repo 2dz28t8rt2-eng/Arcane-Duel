@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcane Duel 3.0 · Monsterkollektion</title>
+<link rel="stylesheet" href="assets/collection-v3.css?v=3.0-concept1">
+<script src="assets/art-engine.js" defer></script><script src="assets/collection-v3-data.js?v=update-a-20261014" defer></script><script src="assets/collection-v3.js?v=update-a-20261014" defer></script>
+</head><body>
+<header class="mast"><a href="index.html" class="back">← Zum Spiel</a><div><h1>✧ ARCANE DUEL <span>3.0</span></h1><p>MONSTERKOLLEKTION · VISUELLE PROGRESSION</p></div><div id="counter" class="counter" aria-live="polite">128 Kartenvorlagen</div></header>
+<main><section class="intro"><h2>Von der einfachen Kreatur zum monumentalen Wesen</h2><p>Die zwölf Stufen zeigen die <strong>echten Karten des aktuellen Spiels</strong>. Vorhandene Illustrationen werden übernommen; die übrigen Motive sind noch die bisherigen Generatorbilder. Die Konzeptillustration ist eine Stilvorlage, keine Sammlung von 128 individuellen Einzelbildern.</p></section>
+<div class="layout"><aside class="tiers" aria-label="Stufenfilter"><h2>Stufen</h2><button type="button" class="tier active" data-level="all">Alle Stufen <b id="totalCount">128</b></button><div id="tierList"></div><p class="sidebar-note">Die tatsächliche Anzahl je Level richtet sich nach den Karten im Spiel und ist nicht gleichmäßig verteilt.</p></aside>
+<section class="collection"><div class="toolbar"><label>Monster suchen <input id="search" type="search" placeholder="Name oder Element …" autocomplete="off"></label><label>Artworks <select id="artFilter"><option value="all">Alle</option><option value="custom">Neu illustriert</option><option value="generated">Generator-Artworks</option></select></label><label>Sortierung <select id="sort"><option value="level">Level aufsteigend</option><option value="level-desc">Level absteigend</option><option value="name">Name A–Z</option></select></label></div>
+<div class="result-line" id="resultCount" aria-live="polite"></div><div class="grid" id="cards"></div><p id="empty" hidden>Keine Monster für diesen Filter gefunden.</p></section></div>
+</main><footer>Arcane Duel 3.0 · Grafische Vorschau · Die ursprünglichen 128 Kartennummern und Werte bleiben unverändert; neue Stufenformen wurden ergänzt</footer>
+</body></html>

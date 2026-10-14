@@ -282,7 +282,7 @@ function showAutoReport(){
 }
 let monsterIndexPage=0;
 function monsterIndexMarkup(){
- const catalog=CARDS.filter(c=>c.rpg&&!c.milestoneOnly),known=catalog.filter(c=>ownsCard(c.id)),pages=Math.max(1,Math.ceil(catalog.length/12));
+ const catalog=UPDATE_B_ACTIVE_IDS.map(id=>CARDS[id]).filter(c=>!c.ace||ownsCard(c.id)),known=catalog.filter(c=>ownsCard(c.id)),pages=Math.max(1,Math.ceil(catalog.length/12));
  monsterIndexPage=Math.min(monsterIndexPage,pages-1);
  const slice=catalog.slice(monsterIndexPage*12,(monsterIndexPage+1)*12);
  return '<section class="menu-panel monster-index"><h2>Monsterlexikon</h2><p>'+known.length+' von '+catalog.length+' Monsterarten entdeckt. Noch nicht besessene Monster bleiben verborgen.</p><div class="monster-index-grid">'+slice.map(c=>ownsCard(c.id)?'<article class="monster-index-entry"><img src="'+c.art+'" alt="'+escapeHtml(c.name)+'"><b>'+escapeHtml(c.name)+'</b><small>Level '+c.level+' · '+c.element+' · ATK '+fmt(c.atk)+' · DEF '+fmt(c.def)+'</small></article>':'<article class="monster-index-entry undiscovered"><div class="monster-silhouette" aria-label="Noch nicht entdeckt">?</div><b>Unbekannt</b><small>Noch nicht entdeckt</small></article>').join('')+'</div><div class="monster-index-pages">'+menuButton('← Zurück','monster-index-prev','',monsterIndexPage===0)+'<span>Seite '+(monsterIndexPage+1)+' / '+pages+'</span>'+menuButton('Weiter →','monster-index-next','',monsterIndexPage>=pages-1)+'</div></section>';
@@ -351,9 +351,9 @@ showFinished=function(){
  stored.showFinished();
  if(wasNew){
   const o=OPPONENTS[game.opponentId];
-  const html='<section class="first-win-box"><h3>✦ Erste Turnierprüfung bestanden!</h3><div class="victory-cards">'+fullCardHtml(profileCard(CARDS[o.loot[2]]))+fullCardHtml(profileCard(CARDS[o.easyManifest]))+'</div>'+
-   '<p>Du erhältst eine besondere Fusionskarte und ihre beschwörbare Gestalt: <b>'+escapeHtml(CARDS[o.loot[2]].name)+'</b> und <b>'+escapeHtml(CARDS[o.easyManifest].name)+'</b>.</p>'+
-   '<p>Außerdem: 6 zusätzliche Splitter, dreifache Basisessenz und <b>vollständig aufgefüllte Dropladungen ('+dropChargeCap()+')</b>. Eine jüngere Ace-Karte ist nun im Booster-Shop erhältlich.</p></section>';
+  const html='<section class="first-win-box"><h3>✦ Erste Turnierprüfung bestanden!</h3>'+
+   '<p>Die nächste Prüfung ist freigeschaltet. Das ACE-Monster des besiegten Duellanten kann ab jetzt <b>einmalig im Shop gegen Essenz gekauft</b> werden. Es wird nicht kostenlos vergeben.</p>'+
+   '<p>Zusätzliche Turnierbelohnungen, einschließlich Erfahrung und Essenz, werden in deiner Ergebnisübersicht angezeigt.</p></section>';
   const modal=$('modal');if(modal)modal.insertAdjacentHTML('afterbegin',html);
  }
 };

@@ -78,7 +78,7 @@ test('Volles Feld verhindert Fusion ohne gültige zweite Fusionskopie',()=>{
 });
 
 test('Externer Speicherkonflikt überschreibt keine neueren Daten',()=>{
- const app=boot(),updated='{"profile":"external-update"}',key='arcane-duel-rpg-profile-v3';
+ const app=boot(),updated='{"profile":"external-update"}',key='arcane-duel-rpg-profile-v4-reborn';
  app.store.set(key,updated);
  assert.equal(app.run('saveProfile()'),false);
  assert.equal(app.store.get(key),updated);

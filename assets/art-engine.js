@@ -107,6 +107,7 @@ function artFrameColor(c){
  return cardFrameColors[level-1];
 }
 function makeArt(c){
+ if(c?.customArt)return c.customArt;
  const id=c.id||0,variant=hash(id,0)%3,kind=species[c.kind]?c.kind:'spirit';
  const figure=species[kind][variant],env=backgrounds[c.element]||backgrounds.DUNKEL;
  const flip=hash(id,9)%2?-1:1,scale=.87+(hash(id,11)%8)*.018,dx=(hash(id,12)%17)-8;
