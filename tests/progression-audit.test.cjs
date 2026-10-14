@@ -20,7 +20,7 @@ test('Progression economy: 10 farm wins per cleared tier and XP thresholds',()=>
    const g=createGame({id:'progress-farm-'+(++serial),mode:'pve',opponentId:tier,context:'free',seed:serial*131});
    g.winner=0;const r=rewardMatch(g);extra+=r.coins;if(r.loot?.card!=null)loot++;
   }
-  const level=playerLevel(profile),threshold=Math.max(10,highestCleared()*4+5),dropFactor=Math.max(.4,1-.12*Math.max(0,level-threshold));
+  const level=playerLevel(profile),threshold=farmingLevelCap(tier),dropFactor=farmingDropFactor(tier,level);
   rows.push({tier,level,xp:profile.xp,coins:profile.coins,firstCoins:reward.coins,farmCoins:extra,farmCards:loot,dropFactor:+dropFactor.toFixed(2),queued:profile.rewardQueue.length});
  }
  return {rows,lv10xp:levelFloor(10),lv20xp:levelFloor(20),lv30xp:levelFloor(30),saved:validateProfile(JSON.parse(window.localStorage.getItem(SAVE_KEY))).xp===profile.xp};
@@ -69,8 +69,8 @@ test('Stalled progression: farm first unlocked opponent for 240 wins',()=>{
  for(let n=1;n<=240;n++){
   const g=createGame({id:'stall-farm-'+n,mode:'pve',context:'free',opponentId:1,seed:1234+n*17});g.winner=0;rewardMatch(g);
   if(n%40===0){
-   const lv=playerLevel(profile),threshold=Math.max(10,highestCleared()*4+5);
-   rows.push({wins:n,level:lv,xp:profile.xp,coins:profile.coins,dropFactor:+Math.max(.4,1-.12*Math.max(0,lv-threshold)).toFixed(2),packs:profile.packs[packKey(1,'easy')],milestones:profile.milestones.length});
+   const lv=playerLevel(profile),threshold=farmingLevelCap(1);
+   rows.push({wins:n,level:lv,xp:profile.xp,coins:profile.coins,dropFactor:+farmingDropFactor(1,lv).toFixed(2),xpFactor:+farmingXpFactor(1,lv).toFixed(2),packs:profile.packs[packKey(1,'easy')],milestones:profile.milestones.length});
   }
  }
  return rows;
