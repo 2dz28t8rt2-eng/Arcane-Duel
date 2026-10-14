@@ -7,8 +7,8 @@ const game=fs.readFileSync(path.join(root,'assets/game.js'),'utf8');
 test('Visual v3 styling is loaded after existing card rules without changing gameplay code',()=>{
  const base=html.indexOf('assets/styles.css'),old=html.indexOf('assets/evolution.css'),new3=html.indexOf('assets/visual-v3.css');
  assert.ok(base>=0&&old>base&&new3>old);
- assert.match(html,/3\.0 Visual Preview/);
- assert.match(html,/3\.0 VISUAL PREVIEW/);
+ assert.match(html,/3\.0 Update B/);
+ assert.match(html,/3\.0 · BESTIARIUM/);
  assert.match(css,/presentation only, never saved cards or combat/);
  assert.match(game,/function fullCardHtml\(c,/);
 });
