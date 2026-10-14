@@ -27,13 +27,19 @@ frame.addEventListener('load',()=>{
   card?.click();
   check(w.__fusionPicked.length===1,'Doppelklick auf dieselbe Karte verursacht keine zweite Auswahl');
   w.eval('menuTab="fusions";renderMenu()');
-  const picker=d.querySelector('.fusion-deck-pick-card[data-action="copy"]');
-  check(!!picker,'Fusionsdeck bietet anklickbare Kartenbilder');
-  const before=w.eval('fusionDraft.length');
-  const delta=Number(picker?.dataset.delta||0);
+  const picker=d.querySelector('.fusion-deck-pick-card[data-preview-card]');
+  check(!!picker,'Fusionsdeck bietet anklickbare Kartenbilder für die Großansicht');
+  const targetId=Number(picker?.dataset.previewCard);
   picker?.querySelector('.hand-art img')?.click();
+  const pane=d.getElementById('deckSidePreview');
+  check(!!pane&&pane.querySelector('.deck-preview-card'),'Klick auf das Monsterbild zeigt die große Kartenansicht');
+  check(!!pane&&pane.querySelector('.deck-preview-card .hand-card')?.getAttribute('aria-label')?.includes(w.eval('CARDS['+targetId+'].name')),'Die Großansicht zeigt die ausgewählte Fusion');
+  const before=w.eval('fusionDraft.length');
+  const action=pane?.querySelector('[data-action="copy"]:not(:disabled)');
+  const delta=Number(action?.dataset.delta||0);
+  action?.click();
   const after=w.eval('fusionDraft.length');
-  check(!!delta&&after===before+delta,'Klick auf Fusionsdeckbild fügt Karte hinzu oder entfernt sie');
+  check(!!delta&&after===before+delta,'Plus/Minus in der Großansicht ändert den Fusionsdeck-Entwurf genau einmal');
  }catch(e){failures.push(e.message);reports.push('EXCEPTION: '+(e.stack||e.message).slice(0,700));}
  out.textContent=reports.join('\n');document.body.dataset.fusionClickTest=failures.length?'fail':'pass';
 }, {once:true});
