@@ -27,7 +27,8 @@ frame.addEventListener('load',()=>{
   card?.click();
   check(w.__fusionPicked.length===1,'Doppelklick auf dieselbe Karte verursacht keine zweite Auswahl');
   w.eval('menuTab="fusions";renderMenu()');
-  const picker=d.querySelector('.fusion-deck-pick-card[data-preview-card]');
+  const equippedId=w.eval('fusionDraft[0]');
+  const picker=d.querySelector('.fusion-deck-pick-card[data-preview-card="'+equippedId+'"]');
   check(!!picker,'Fusionsdeck bietet anklickbare Kartenbilder für die Großansicht');
   const targetId=Number(picker?.dataset.previewCard);
   picker?.querySelector('.hand-art img')?.click();
