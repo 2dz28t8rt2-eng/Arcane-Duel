@@ -324,8 +324,8 @@ const UPGRADES={power:{name:'Monstertraining',desc:'Abnehmender Bonus auf alle M
 function monsterTrainingBonus(level){return [50,40,30,20,15,10,5,5,5,5].slice(0,Math.max(0,Math.min(10,level||0))).reduce((a,b)=>a+b,0);}
 let storageWarning='',storageWritable=true,storageConflict=false,lastStoredProfile=null,legacyImported=false;
 function freshLegacyProfile(){return {version:2,coins:0,xp:0,wins:0,losses:0,pvpMatches:0,totalTurns:0,totalFusions:0,bestTurns:null,unlocked:[...DEFAULT_DECK],activeDeck:[...RPG_DEFAULT_DECK],fusionOwned:[...RPG_START_FUSIONS],fusionDeck:[...RPG_START_FUSIONS],enhancements:{},shards:Array(11).fill(0),pity:Array(11).fill(0),cleared:[],mastery:Array(11).fill(0),upgrades:{loot:0,learning:0,tempo:0,power:0,starter:0,fusionLore:0,resilience:0},strategy:'balanced',history:[],rewardLedger:[],nextMatch:1,settings:{animation:'fast',sound:false},unseen:[],lootHistory:[],investments:{},auto:{energy:AUTO_CAP,at:Date.now()},lastLoot:null,activeDuel:null,savedAt:0};}
-function playerLevel(p){return Math.min(100,1+Math.floor(Math.sqrt(p.xp/80)));}
-function levelFloor(level){return 80*(level-1)**2;}
+function playerLevel(p){return Math.min(100,1+Math.floor(Math.sqrt(p.xp/60)));}
+function levelFloor(level){return 60*(level-1)**2;}
 // Each cleared tournament tier supports five player levels at full farming XP.
 // Replaying an earlier opponent cannot bypass the tier's soft cap.
 function farmingLevelCap(opponentId){return 5*Math.max(1,Math.min(highestCleared(),Math.max(1,opponentId||1)));}
@@ -458,10 +458,9 @@ function rewardMatchCore(g){if(storageConflict||g.winner===null||g.rewardClaimed
  const o=OPPONENTS[g.opponentId],win=g.winner===0,automatic=g.context==='auto',hard=g.difficulty==='hard',boost=automatic&&g.boosted&&profile.dropCharges>0,ratio=automatic?(boost?.5:.3):1,scale=hard?1.6:1,first=win&&g.context==='tournament'&&!profile.cleared.includes(o.id);
  if(boost)profile.dropCharges--;const charge=automatic?0:Math.min(1,dropChargeCap()-profile.dropCharges);profile.dropCharges+=charge;
  let coins=win?Math.floor(o.coins*scale*(1+.05*profile.upgrades.loot)*ratio):g.context==='free'?Math.round(o.coins*.25):0;const noviceBonus=Math.max(0,10-playerLevel(profile))*.065;const repeatFarm=!first&&['free','auto','tournament','encounter'].includes(g.context);const xpFactor=repeatFarm?farmingXpFactor(o.id):1;let xp=Math.floor(o.xp*scale*(win?1:.15)*(1+.1*profile.upgrades.learning)*ratio*(1+noviceBonus)*xpFactor);if(first){
-  // First tournament victories advance the player near the next five-level milestone.
-  // Existing XP is never removed; remaining levels can be earned through regular play.
-  const targetLevel=Math.min(50,Math.max(1,5*o.id-2));
-  xp=Math.max(xp,levelFloor(targetLevel)-profile.xp);
+  // First tournament victories grant a finite bonus instead of skipping several levels.
+  // The general XP curve is gentler; repeated farming remains soft-capped.
+  xp=Math.round(xp*3);
   coins+=o.coins*3;profile.cleared.push(o.id);
  }profile.coins=Math.min(1e9,profile.coins+coins);profile.xp=Math.min(1e9,profile.xp+xp);let loot=null;
  if(win){profile.wins++;profile.mastery[o.id]++;if(!automatic&&g.context==='free'){if(hard)profile.hardWins[o.id]++;else profile.manualEasy[o.id]++;}let shards=automatic?(boost?2:1):3;shards+=first?6:0;profile.shards[o.id]=Math.min(1e9,profile.shards[o.id]+shards);let card=null,duplicate=false;const chance=automatic?(boost?20:12):40;const dropFactor=g.context==='free'||g.context==='auto'?farmingDropFactor(o.id):1;if(!first&&randomInt(g,100)<(g.context==='encounter'?60:chance)*dropFactor){card=drawLoot(g,o.id,g.difficulty);duplicate=addCard(card);}loot={source:o.id,shards,card,duplicate,at:Date.now()};profile.lastLoot=loot;profile.lootHistory.unshift(loot);profile.lootHistory=profile.lootHistory.slice(0,30);grantPackProgress(o.id,g.difficulty,automatic?(boost?100:60):200);profile.bestTurns=profile.bestTurns===null?g.turn:Math.min(profile.bestTurns,g.turn);
