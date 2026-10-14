@@ -45,7 +45,7 @@ function loadFrame(page){
   const n2=await reloaded;
   expect(n2.eval('profile.coins')===0,'Nach Zurücksetzen normaler Spielstand auf Startwert');
   expect(n2.eval('profile.trainingWins')===0,'Trainingsfortschritt ebenfalls zurückgesetzt');
-  expect(n2.localStorage.getItem('arcane-duel-rpg-profile-v3')!==null,'Normaler Spielstand bleibt erhalten');
+  expect(n2.localStorage.getItem(n2.eval('SAVE_KEY'))!==null,'Normaler Spielstand bleibt erhalten');
   expect(n2.localStorage.getItem('arcane-duel-admin-profile-v3')===null,'Kein neuer Admin-Spielstand wird angelegt');
  }catch(err){fail.push(err.message);report.push('EXCEPTION: '+(err.stack||err.message).slice(0,550));}
  result.textContent=report.join('\n');
