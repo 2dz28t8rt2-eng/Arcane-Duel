@@ -62,3 +62,20 @@ test('Card pack offers empirical rare rate and unique selections',()=>{
  assert.equal(out.reduce((n,x)=>n+x.errors+x.duplicates,0),0);
  console.log('PACK_RARITY_AUDIT '+JSON.stringify(out));
 });
+
+test('Stalled progression: farm first unlocked opponent for 240 wins',()=>{
+ const run=boot(),rows=run(function(){
+ profile.trainingWins=3;profile.guideSeen=true;profile.cleared=[1];const rows=[];
+ for(let n=1;n<=240;n++){
+  const g=createGame({id:'stall-farm-'+n,mode:'pve',context:'free',opponentId:1,seed:1234+n*17});g.winner=0;rewardMatch(g);
+  if(n%40===0){
+   const lv=playerLevel(profile),threshold=Math.max(10,highestCleared()*4+5);
+   rows.push({wins:n,level:lv,xp:profile.xp,coins:profile.coins,dropFactor:+Math.max(.4,1-.12*Math.max(0,lv-threshold)).toFixed(2),packs:profile.packs[packKey(1,'easy')],milestones:profile.milestones.length});
+  }
+ }
+ return rows;
+ },45000);
+ assert.equal(rows.length,6);
+ assert.ok(rows.every(x=>Number.isFinite(x.coins)));
+ console.log('STALL_FARM_AUDIT '+JSON.stringify(rows));
+});
