@@ -17,5 +17,5 @@ test('Repeated victories are XP-softcapped; first tournament victory retains ful
  assert.ok(data.free>0&&data.free<=12);assert.equal(data.first,true);assert.ok(data.firstXp>=32);
 });
 test('Vulkanrichter strength reduced slightly without altering neighboring opponents',()=>{
- const powers=run('RPG_OPPONENTS.slice(3,8).map(o=>o.power)');assert.deepEqual(powers,[.96,1.02,1.04,1.08,1.14]);
+ const powers=run('RPG_OPPONENTS.slice(3,8).map(o=>o.power)');assert.deepEqual(powers,[.99,1.02,1.04,1.08,1.14]);
 });
