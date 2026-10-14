@@ -1,0 +1,51 @@
+/* Fusion Evolution · distinct ACE borders, motion-safe effects and challenge UI */
+:root{--evo-ice:#b6e9fd;--evo-gold:#e9c77f}
+.evo-mode,.evo-quests,.evo-intro{background:linear-gradient(145deg,#202b3b,#131d2b)!important;border:1px solid #526681!important}
+.evo-mode h3{color:#ffe6aa!important}
+.evo-steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:12px}
+.evo-steps .btn{font-size:12px;min-width:0;padding:12px 3px;border-radius:7px;white-space:normal}
+.evo-steps .evo-finished{color:#c9f5d9;border-color:#6ca786;background:#173827}
+.evo-quest-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.evo-quest{display:flex;flex-direction:column;gap:9px;min-width:0;border:1px solid #596783;border-radius:10px;padding:14px;background:linear-gradient(155deg,#1e2b44,#111b2d)}
+.evo-quest strong{color:#ffdfa2}.evo-quest p{font-size:13px;line-height:1.5;flex:1;margin:0}.evo-quest progress{height:10px;accent-color:#9ecaf2}.evo-quest small{color:#cfdae7}
+.evo-live{display:flex;flex-direction:column;gap:9px;margin-top:12px;padding:14px;border:1px solid #9c8ac2;background:radial-gradient(ellipse at top,#343050,#151b30);border-radius:10px}
+.evo-live h3{margin:0;color:#ffe7b3;font-size:16px}.evo-live p{font-size:12px;line-height:1.5;margin:0;color:#dce4f4}
+.evo-goals{display:flex;gap:5px;flex-wrap:wrap}.evo-goals span{flex:1;text-align:center;border:1px solid #66708d;border-radius:6px;padding:6px 4px;font-size:11px;color:#d8dce8}
+.evo-goals .complete{border-color:#93cdab;background:#224238;color:#dcffe6}
+.evo-fusion-preview,.evo-result,.evo-rulebox{padding:10px 13px;border:1px solid #957bb7;background:linear-gradient(120deg,#302640,#222a3a);color:#f3e5ff;border-radius:9px;font-size:12px;line-height:1.5}
+.evo-fusion-preview{margin-top:10px}.evo-rulebox{margin:10px 0}.evo-result{margin-bottom:14px}
+/* ACE cards: the only individually engraved, patterned frames. */
+.tc-card.tc-ace{--evo-metal:#e0b77c;--evo-night:#332018;--evo-luster:#ffe9b6;isolation:isolate;overflow:hidden;border:3px solid var(--evo-metal)!important;
+ background:repeating-linear-gradient(48deg,var(--evo-night) 0px,var(--evo-night) 7px,var(--evo-metal) 8px,var(--evo-night) 11px)!important;
+ box-shadow:0 0 0 2px #0c0d15,0 0 14px var(--evo-metal),inset 0 0 10px #130d1c!important}
+.tc-ace.evo-ace-tier-1{--evo-metal:#ccd5e3;--evo-night:#26344a;--evo-luster:#ffffff}
+.tc-ace.evo-ace-tier-2{--evo-metal:#d64464;--evo-night:#241017;--evo-luster:#ffbecc}
+.tc-ace.evo-ace-tier-3{--evo-metal:#85c49b;--evo-night:#142b25;--evo-luster:#d4ffba}
+.tc-ace.evo-ace-tier-4{--evo-metal:#70bfd9;--evo-night:#102338;--evo-luster:#c4f8ff}
+.tc-ace.evo-ace-tier-5{--evo-metal:#e78e5e;--evo-night:#361917;--evo-luster:#ffcf91}
+.tc-ace.evo-ace-tier-6{--evo-metal:#966db9;--evo-night:#1b1736;--evo-luster:#d6c3ff}
+.tc-ace.evo-ace-tier-7{--evo-metal:#c9d9ec;--evo-night:#203551;--evo-luster:#ffffff}
+.tc-ace.evo-ace-tier-8{--evo-metal:#bd91df;--evo-night:#241838;--evo-luster:#edd1ff}
+.tc-ace.evo-ace-tier-9{--evo-metal:#e7afd4;--evo-night:#290e28;--evo-luster:#ffebff}
+.tc-ace.evo-ace-tier-10{--evo-metal:#f7d78e;--evo-night:#302247;--evo-luster:#ffffff}
+.tc-card.tc-ace::before{content:""!important;pointer-events:none;position:absolute;inset:2px;z-index:5;border-radius:3px;border:1px solid var(--evo-luster);
+ background:repeating-linear-gradient(135deg,transparent 0 10px,color-mix(in srgb,var(--evo-metal) 55%,transparent) 11px,transparent 12px) top/100% 14px no-repeat,
+ repeating-linear-gradient(45deg,transparent 0 10px,color-mix(in srgb,var(--evo-metal) 55%,transparent) 11px,transparent 12px) bottom/100% 14px no-repeat!important}
+.tc-card.tc-ace::after{content:"";pointer-events:none;position:absolute;inset:-100% 0;z-index:8;
+ background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.05) 47%,rgba(255,255,255,.25) 50%,transparent 56%);transform:translateX(-145%) rotate(5deg);animation:evo-ace-shine 9s ease-in-out infinite}
+@keyframes evo-ace-shine{0%,70%,100%{transform:translateX(-145%) rotate(5deg)}84%{transform:translateX(145%) rotate(5deg)}}
+/* Other fusion cards glow briefly but never obscure text or controls. */
+.tc-card.tc-fusion:not(.tc-ace) .hand-art,.board-creature.tc-fusion:not(.tc-ace) .board-art{animation:evo-fusion-glimmer 7s ease-in-out infinite}
+@keyframes evo-fusion-glimmer{0%,85%,100%{filter:brightness(1)}91%{filter:brightness(1.12) saturate(1.12)}}
+.evo-summon{pointer-events:none;position:fixed;left:50%;top:49%;transform:translate(-50%,-50%);z-index:10000;min-width:min(340px,90vw);padding:25px;border-radius:18px;border:1px solid #9bb7ff;
+ background:radial-gradient(circle at center,#554c93ed,#172037f5 65%);box-shadow:0 0 35px #94acff99,0 0 80px #be8ce866;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;color:#fff2d2;animation:evo-summon-in .17s ease-out}
+.evo-summon-grand{border:2px solid #f5cb7c;background:radial-gradient(circle,#8564afee,#302b5cee 53%,#16152ff5 78%);box-shadow:0 0 65px #efbe8eaf,0 0 110px #967deeb4}
+.evo-swirl{position:relative;width:80px;height:80px;display:flex;align-items:center;justify-content:center;animation:evo-spin .7s ease-out;color:#e6d7ff;font-size:38px}
+.evo-swirl span{position:absolute}.evo-swirl span:first-child{transform:translate(-25px,-11px);color:#b6dcff}.evo-swirl span:last-child{transform:translate(24px,12px);color:#f5d38c}
+.evo-summon strong{font-size:20px}.evo-summon small{color:#dfe4ff}.evo-rolls{font-weight:800;letter-spacing:1px;color:#ffe4aa;font-size:16px}
+@keyframes evo-summon-in{from{opacity:0;transform:translate(-50%,-48%) scale(.8)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes evo-spin{from{transform:rotate(-200deg) scale(.75)}to{transform:rotate(0) scale(1)}}
+@media(max-width:760px){.evo-quest-grid{grid-template-columns:1fr}.evo-steps{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.tc-card.tc-ace::after,.tc-card.tc-fusion .hand-art,.board-creature.tc-fusion .board-art,.evo-summon,.evo-swirl{animation:none!important}}
+
+.evo-welcome{margin-top:10px;padding:12px;border:1px solid #7786a5;border-radius:10px;background:#1e2e49;color:#f4e8d1;font-size:13px;line-height:1.6}.evo-welcome button{margin-left:8px}.evo-card-arrive{animation:evo-card-arrive .32s cubic-bezier(.16,1,.3,1)}@keyframes evo-card-arrive{from{opacity:.2;transform:translateY(-24px) scale(.86);filter:brightness(1.9)}to{opacity:1;transform:translateY(0) scale(1);filter:brightness(1)}}@media(prefers-reduced-motion:reduce){.evo-card-arrive{animation:none!important}}
