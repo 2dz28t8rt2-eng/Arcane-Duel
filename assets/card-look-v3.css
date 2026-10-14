@@ -1,0 +1,257 @@
+/* ARCANE DUEL 3.0 | Card Foundry – original sculpted fantasy frames
+   Influence: satisfying dimensional fantasy tabletop materials + readable TCG anatomy.
+   Presentation only. All game statistics, IDs and save data are unchanged. */
+:root{
+ --ad-gold:#e7bc6c;
+ --ad-silver:#e1d6bd;
+ --ad-parchment:#e8d6ad;
+}
+/* Shared card architecture. A deliberately substantial metallic object, not a flat UI panel. */
+.hand-card.tc-card{
+ --ad-rim:#b89557;--ad-flash:#fce9b7;--ad-deep:#3d2d21;--ad-ember:#a67b42;
+ --ad-jewel:#87745d;--ad-jewel-light:#d9c398;
+ width:152px;max-width:152px;height:262px;
+ min-width:0;flex:0 0 auto;gap:0;
+ border:3px solid #9e783e!important;
+ border-radius:19px 19px 16px 16px!important;
+ padding:8px 9px 9px!important;
+ isolation:isolate;overflow:hidden;
+ background:
+  radial-gradient(ellipse 90% 55% at 50% -9%,#fff1c37c,transparent 61%),
+  radial-gradient(ellipse 65% 55% at 100% 52%,#fff0b517,transparent),
+  linear-gradient(116deg,#f4d58c 0%,#a47a3e 3.3%,#342a24 9%,#71563b 14%,#312920 24%,#28272b 56%,#74573c 87%,#f1d48b 97%,#5b3820 100%)!important;
+ box-shadow:0 1px 0 1px #1c120d,0 0 0 2px #372720,0 0 0 3px #d6ad61a6,
+  inset 0 0 0 1px #e9c57c6e,inset 0 1px 3px #fff3ca7d,inset 0 -9px 18px #160d0bbb,
+  0 10px 24px #000a!important;
+ transform-origin:center 85%;
+ transition:transform .18s ease,box-shadow .18s ease,filter .18s ease;
+}
+/* Fine raised edge, corner scrolls and subtle hammered metal engraving */
+.hand-card.tc-card::before{
+ content:""!important;inset:3px!important;z-index:5;pointer-events:none;
+ border:1px solid #f9dc987d!important;
+ border-radius:13px 13px 11px 11px!important;
+ background:
+  radial-gradient(circle at 8px 9px,var(--ad-flash) 0 2px,#694521 2.5px 3.5px,transparent 4px),
+  radial-gradient(circle at calc(100% - 8px) 9px,var(--ad-flash) 0 2px,#694521 2.5px 3.5px,transparent 4px),
+  radial-gradient(circle at 8px calc(100% - 9px),var(--ad-flash) 0 2px,#694521 2.5px 3.5px,transparent 4px),
+  radial-gradient(circle at calc(100% - 8px) calc(100% - 9px),var(--ad-flash) 0 2px,#694521 2.5px 3.5px,transparent 4px),
+  linear-gradient(135deg,transparent 35%,var(--ad-rim) 38% 46%,transparent 49%) top left/24px 24px no-repeat,
+  linear-gradient(225deg,transparent 35%,var(--ad-rim) 38% 46%,transparent 49%) top right/24px 24px no-repeat,
+  linear-gradient(45deg,transparent 35%,var(--ad-rim) 38% 46%,transparent 49%) bottom left/24px 24px no-repeat,
+  linear-gradient(315deg,transparent 35%,var(--ad-rim) 38% 46%,transparent 49%) bottom right/24px 24px no-repeat!important;
+ opacity:1!important;
+ box-shadow:inset 0 0 0 1px #130e0b6b;
+}
+/* Existing roman-numeral cue becomes a crafted enamel medallion. */
+.hand-card.tc-card::after{
+ content:var(--tc-glyph)!important;position:absolute;z-index:7;
+ left:6px;top:62px;right:auto;bottom:auto;
+ padding:3px 4px;min-width:20px;text-align:center;
+ color:#fff5d8!important;border:1px solid var(--ad-flash)!important;
+ border-radius:7px!important;
+ font:900 8px/12px Georgia,serif!important;
+ background:radial-gradient(circle at 35% 25%,#fff0ca77,transparent 44%),linear-gradient(145deg,#816743,#251e23)!important;
+ box-shadow:inset 0 0 0 1px #271f1b,0 2px 6px #000c!important;
+ pointer-events:none;
+}
+.hand-card.tc-card .hand-title{
+ flex:0 0 32px;min-height:32px;max-height:32px;height:32px!important;
+ margin:1px 1px 0;padding:4px 5px 3px 6px!important;
+ display:flex;align-items:center;gap:3px;
+ background:linear-gradient(180deg,#35445c 0%,#172334 44%,#091421 100%)!important;
+ border:1px solid #e9c685!important;border-bottom:2px solid #98703c!important;
+ border-radius:11px 11px 5px 5px!important;
+ box-shadow:inset 0 1px 0 #ffffff35,inset 0 -2px 5px #0007,0 2px 4px #0007;
+ color:#fff4d6!important;
+ font:700 10.5px/1.1 Georgia,'Times New Roman',serif!important;
+ letter-spacing:.08px;text-shadow:0 1px 2px #000;
+}
+.hand-card.tc-card .hand-title span:first-child{
+ font-weight:700;line-height:1.16;color:#fff5db!important;
+ min-width:0;display:-webkit-box;-webkit-box-orient:vertical;
+ -webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;
+}
+/* Gemstone as elemental signifier: different gemstone materials, not a copy of any other game. */
+.hand-card.tc-card .card-attribute{
+ flex:0 0 25px;width:25px;height:25px;display:grid;place-items:center;
+ margin:-3px -3px -2px 1px;font-size:0!important;
+ background:radial-gradient(circle at 32% 22%,#ffffffcf,transparent 30%),
+   radial-gradient(circle at 42% 32%,var(--ad-jewel-light),var(--ad-jewel) 66%,#100c14 100%)!important;
+ border:2px solid #dbc187;border-radius:50%;
+ box-shadow:inset 0 0 0 1px #12151cab,0 1px 5px #000e,0 0 0 1px #4e3b2a;
+ color:#fff!important;text-shadow:0 1px 2px #000;
+ position:relative;
+}
+.hand-card.tc-card .card-attribute::before{content:'◆';font:900 13px/1 Georgia,serif;color:#fff4d9;filter:drop-shadow(0 1px 1px #111)}
+.hand-card.tc-card[data-element="FEUER"]{--ad-jewel:#ac1f18;--ad-jewel-light:#ff9652}
+.hand-card.tc-card[data-element="FEUER"] .card-attribute::before{content:'♨'}
+.hand-card.tc-card[data-element="WASSER"]{--ad-jewel:#15598e;--ad-jewel-light:#71dcff}
+.hand-card.tc-card[data-element="WASSER"] .card-attribute::before{content:'≈';font-size:19px}
+.hand-card.tc-card[data-element="WIND"]{--ad-jewel:#28755c;--ad-jewel-light:#b2f2c0}
+.hand-card.tc-card[data-element="WIND"] .card-attribute::before{content:'❧';font-size:18px}
+.hand-card.tc-card[data-element="ERDE"]{--ad-jewel:#8c5423;--ad-jewel-light:#f5d374}
+.hand-card.tc-card[data-element="ERDE"] .card-attribute::before{content:'◆'}
+.hand-card.tc-card[data-element="DUNKEL"]{--ad-jewel:#4c227e;--ad-jewel-light:#c597ff}
+.hand-card.tc-card[data-element="DUNKEL"] .card-attribute::before{content:'☾';font-size:17px}
+.hand-card.tc-card[data-element="LICHT"]{--ad-jewel:#a47616;--ad-jewel-light:#fff6bc}
+.hand-card.tc-card[data-element="LICHT"] .card-attribute::before{content:'✦'}
+.hand-card.tc-card .hand-stars{
+ flex:0 0 17px;min-height:17px;max-height:17px;height:17px!important;
+ margin:2px 6px 2px 8px;padding:1px 3px 0!important;
+ border:none!important;border-bottom:1px solid #d5a95891!important;
+ border-radius:0!important;
+ background:linear-gradient(90deg,transparent,#181927b8 16% 84%,transparent)!important;
+ color:#ffd787!important;font:800 10px/15px Georgia,serif!important;
+ letter-spacing:.15px!important;text-align:center;
+ text-shadow:0 1px 2px #000,0 0 5px #f8ba5338;
+ overflow:hidden;white-space:nowrap;
+}
+/* Portrait is the hero, framed by a brushed bronze arch. Only subtle lighting over artwork. */
+.hand-card.tc-card .hand-art{
+ position:relative;isolation:isolate;
+ flex:1 1 95px;min-height:64px;height:auto!important;
+ margin:1px 1px 0;
+ border:3px solid var(--ad-rim)!important;
+ border-radius:13px 13px 4px 4px!important;
+ overflow:hidden;
+ background:#1a1b25!important;
+ box-shadow:inset 0 0 0 2px #080c16,0 0 0 1px #191521,0 3px 10px #000a!important;
+}
+.hand-card.tc-card .hand-art img{
+ display:block;width:100%;height:100%;object-fit:cover;object-position:center 38%;
+ filter:contrast(1.04) saturate(1.03)!important;
+}
+.hand-card.tc-card .hand-art::before{
+ content:"";position:absolute;z-index:1;inset:0;pointer-events:none;
+ border:1px solid #ffe2aa69;
+ background:linear-gradient(180deg,#fff6de1b,transparent 28% 65%,#05091436 100%)!important;
+ box-shadow:inset 0 0 8px #0006!important;
+}
+/* Parchment inset: inspired by tactile collectible card objects, not flat controls. */
+.hand-card.tc-card .hand-type{
+ flex:0 0 17px;min-height:17px;max-height:17px;height:17px!important;
+ margin:0 2px!important;padding:2px 5px 0!important;
+ background:linear-gradient(180deg,#f9e7bd,#dbc193 86%,#bda272)!important;
+ border-left:1px solid #8a6535;border-right:1px solid #8a6535;
+ color:#3a2417!important;
+ font:800 9px/15px Georgia,serif!important;
+ text-align:center;letter-spacing:.12px;
+}
+.hand-card.tc-card .hand-description{
+ flex:0 0 19px;min-height:19px;max-height:19px;height:19px!important;
+ margin:0 2px!important;padding:1px 5px!important;
+ border-left:1px solid #80633d;border-right:1px solid #80633d;
+ background:linear-gradient(175deg,#ead6ab,#d7bc89)!important;
+ color:#493326!important;
+ font:600 9px/15px Georgia,serif!important;
+ text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+/* Jewel-like, separated ATK and DEF seals retain classic two-value readability. */
+.hand-card.tc-card .hand-stats{
+ display:grid!important;grid-template-columns:1fr 1fr;gap:4px;
+ flex:0 0 35px;min-height:35px;max-height:35px;height:35px!important;
+ position:static!important;margin:0 1px!important;padding:4px 4px 3px!important;
+ border:2px solid #9e763f!important;border-top:1px solid #dec181!important;
+ border-radius:2px 2px 9px 9px!important;
+ background:linear-gradient(180deg,#d9b779,#6b5031 55%,#30271e)!important;
+ box-shadow:inset 0 1px 1px #fff1b779,0 -2px 3px #0005;
+}
+.hand-card.tc-card .hand-stats .stat{
+ display:flex;flex-direction:column;justify-content:center;align-items:center;
+ padding:1px 1px;min-width:0;
+ border:1px solid #ba9262;border-radius:6px;
+ background:radial-gradient(ellipse at 50% 0%,#42516c,#111c2f 67%,#0b1019)!important;
+ box-shadow:inset 0 1px 1px #e1d3b23c,0 1px 2px #170e0b91;
+}
+.hand-card.tc-card .hand-stats .stat.def{border-left:1px solid #bd9e78;background:radial-gradient(ellipse at 50% 0%,#356072,#0d2939 67%,#0b1422)!important}
+.hand-card.tc-card .hand-stats .stat-label{font:800 8px/10px Segoe UI,sans-serif!important;letter-spacing:.4px;color:#e5c18a!important}
+.hand-card.tc-card .hand-stats .stat-value{font:900 12px/15px Segoe UI,sans-serif!important;letter-spacing:.15px;color:#fff4d8!important}
+.hand-card.tc-card .hand-stats .stat.def .stat-value{color:#c5ecff!important}
+/* A separate material language for fusion: silver-amethyst and etched arcane facets. */
+.hand-card.tc-card.tc-fusion:not(.tc-ace){
+ --ad-rim:#b4a0e8;--ad-flash:#f7e8ff;--ad-deep:#25132e;
+ border-color:#a88ecb!important;
+ background:radial-gradient(ellipse at 50% -6%,#dcc0ff93,transparent 45%),
+  repeating-conic-gradient(from 18deg at 50% 50%,#b89efa12 0 5deg,transparent 5deg 23deg),
+  linear-gradient(125deg,#eed8ff,#8468ad 4%,#2b1d3b 12%,#191525 47%,#3d255e 87%,#dabdf5 97%,#352041)!important;
+ box-shadow:0 0 0 1px #100817,0 0 0 3px #5c3c81,0 0 0 4px #bd9ce184,
+  inset 0 1px 2px #fff9e795,inset 0 -11px 21px #120b2bcc,0 7px 23px #000c,0 0 18px #9368cf41!important;
+}
+.hand-card.tc-card.tc-fusion:not(.tc-ace) .hand-title{background:linear-gradient(180deg,#5d3b7f,#251537 62%,#120c22)!important;border-color:#ddc3ff!important}
+.hand-card.tc-card.tc-fusion:not(.tc-ace) .hand-art{border-color:#cbb2ef!important;box-shadow:0 0 0 1px #39204e,0 0 12px #8853c64b!important}
+.hand-card.tc-card.tc-fusion:not(.tc-ace) .hand-stats{border-color:#a487bf!important;background:linear-gradient(180deg,#d2c1e7,#775588,#211a31)!important}
+.hand-card.tc-card.tc-fusion:not(.tc-ace)::before{border-color:#dfbdffb3!important}
+/* ACE cards: collectible centrepiece. A raised filigree rim stays visible on normal and fusion ACE. */
+.hand-card.tc-card.tc-ace{
+ --ad-rim:var(--evo-metal,#d9b878);
+ --ad-flash:var(--evo-luster,#ffebbc);
+ border-color:var(--ad-flash)!important;
+ background:
+  radial-gradient(ellipse at 50% -8%,color-mix(in srgb,var(--ad-flash) 72%,transparent),transparent 51%),
+  repeating-conic-gradient(from 10deg at 50% 48%,color-mix(in srgb,var(--ad-rim) 19%,transparent) 0 4deg,transparent 4deg 20deg),
+  linear-gradient(130deg,var(--ad-flash),var(--ad-rim) 5%,var(--evo-night,#171528) 16%,#101222 48%,var(--evo-night,#181627) 86%,var(--ad-flash) 100%)!important;
+ box-shadow:0 0 0 1px #160d19,0 0 0 3px var(--ad-rim),0 0 0 4px var(--ad-flash),
+  inset 0 0 0 2px color-mix(in srgb,var(--ad-flash) 40%,transparent),inset 0 1px 8px #fff8e355,
+  0 8px 23px #000d,0 0 20px color-mix(in srgb,var(--ad-rim) 42%,transparent)!important;
+}
+.hand-card.tc-card.tc-ace .hand-title{border-color:var(--ad-flash)!important;background:linear-gradient(180deg,var(--evo-night,#2f2136),#111425)!important}
+.hand-card.tc-card.tc-ace .hand-art{border-color:var(--ad-flash)!important;box-shadow:0 0 0 1px var(--ad-rim),0 0 17px color-mix(in srgb,var(--ad-rim) 54%,transparent)!important}
+.hand-card.tc-card.tc-ace .hand-stats{border-color:var(--ad-flash)!important}
+.hand-card.tc-card.tc-ace .ace-stamp{z-index:8;filter:drop-shadow(0 2px 3px #000)}
+.hand-card.tc-card.tc-fusion.tc-ace .hand-art{border-style:double!important;border-width:4px!important}
+.hand-card.tc-card.tc-ace::before{inset:3px!important;border:2px double var(--ad-flash)!important}
+.hand-card.tc-card.tc-ace::after{border-color:var(--ad-flash)!important}
+/* Level XI / XII: high-end inlaid gems, not illegible overblown light effects. */
+.hand-card.tc-card:is(.tc-lv-11,.tc-lv-12) .hand-stars{background:linear-gradient(90deg,transparent,#493354aa 18% 82%,transparent)!important}
+/* Interaction state takes priority over the ornament's own shadows. */
+.hand-card.tc-card:hover:not(:disabled){transform:translateY(-8px);filter:brightness(1.055);box-shadow:0 0 0 2px var(--ad-flash),0 10px 27px #000c,0 0 20px color-mix(in srgb,var(--ad-rim) 42%,transparent)!important}
+.hand-card.tc-card.selected,.hand-card.tc-card.selected:hover{transform:translateY(-8px);box-shadow:0 0 0 3px #9ee5f0,0 9px 24px #000c,0 0 22px #73eaf4a6!important}
+.hand-card.tc-card.fusion-mark{box-shadow:0 0 0 3px #d6b4ff,0 0 26px #9a69f5!important}
+.hand-card.tc-card:focus-visible{outline:3px solid #a5f0fb!important;outline-offset:4px}
+/* Arena cards: compact echo of the same metal + jewel materials; field itself stays untouched. */
+.board-creature.tc-card{
+ border:3px solid #b99659!important;border-radius:10px!important;
+ background:linear-gradient(130deg,#f2d28a,#66462c 8%,#26232b 41%,#6b4d34 92%,#ddbc7c)!important;
+ box-shadow:inset 0 0 0 1px #ffe6ad83,0 3px 8px #000b!important;
+ padding:3px;
+}
+.board-creature.tc-card::before{content:"";inset:2px;z-index:2;border:1px solid #ffe4a7a0;border-radius:7px;pointer-events:none}
+.board-creature.tc-card .board-art{border:1px solid #d5b57f;border-radius:6px 6px 1px 1px;filter:contrast(1.04) saturate(1.03);object-position:center 37%}
+.board-creature.tc-card .board-name{background:linear-gradient(180deg,#273950,#101d30)!important;font:700 9px/1.15 Georgia,serif!important;color:#fff2d8!important;border-top:1px solid #d7b879}
+.board-creature.tc-card .board-stats{border:1px solid #997a51;background:linear-gradient(180deg,#35465b,#101725)!important;border-radius:0 0 5px 5px}
+.board-creature.tc-card.tc-fusion:not(.tc-ace){border-color:#b9a0ef!important;background:linear-gradient(130deg,#d8baff,#5c397e 10%,#17112c 76%,#9b75c7)!important;box-shadow:inset 0 0 0 1px #e9d5ff8a,0 2px 8px #000c,0 0 13px #9a75e655!important}
+.board-creature.tc-card.tc-ace{border-color:var(--evo-luster,#ffce7a)!important;background:linear-gradient(130deg,var(--evo-luster,#f5dba7),var(--evo-night,#191327) 15%,#111628 74%,var(--evo-metal,#c0a76b))!important;box-shadow:inset 0 0 0 1px var(--evo-metal,#efdfbf),0 0 11px color-mix(in srgb,var(--evo-metal,#e7c47b) 48%,transparent)!important}
+/* Context-aware sizes: shop/collection feel like real cards, hand is slightly smaller. */
+#hand .hand-card.tc-card{width:148px;max-width:148px;min-width:148px;flex-basis:148px;height:248px}
+.hand{min-height:268px;gap:13px;align-items:flex-start;padding-top:14px}
+.collection-item .hand-card.tc-card,.pool-grid .hand-card.tc-card,.pack-grid .hand-card.tc-card{width:152px;max-width:100%;height:262px}
+.pack-grid .hand-card.tc-card{height:270px}
+.card-preview-panel .hand-card.tc-card{height:375px!important;min-height:375px!important;max-width:240px!important;width:100%!important}
+.card-preview-panel .hand-card.tc-card .hand-title{font-size:13px!important;height:40px!important;flex-basis:40px;min-height:40px;max-height:40px}
+.card-preview-panel .hand-card.tc-card .hand-art{min-height:140px;flex-basis:150px}
+.card-preview-panel .hand-card.tc-card .hand-description{height:auto!important;min-height:31px;max-height:45px;flex:0 0 39px;padding:4px 6px!important;white-space:normal;line-height:1.35!important;text-overflow:clip}
+.card-preview-panel .hand-card.tc-card .hand-stats{flex-basis:42px;min-height:42px;max-height:42px;height:42px!important}
+.card-preview-panel .hand-card.tc-card .hand-stats .stat-value{font-size:15px!important;line-height:18px!important}
+.fusion-choice-modal .fusion-offer .hand-card.tc-card{height:262px!important;width:152px;max-width:100%}
+@media(max-width:760px){
+ #hand .hand-card.tc-card{width:138px;min-width:138px;max-width:138px;flex-basis:138px;height:234px}
+ .hand{min-height:254px;gap:9px}
+ .collection-item .hand-card.tc-card,.pool-grid .hand-card.tc-card{width:100%;max-width:155px;height:247px}
+ .card-preview-panel .hand-card.tc-card{height:348px!important;min-height:348px!important;max-width:215px!important}
+ .fusion-choice-modal .fusion-offer .hand-card.tc-card{height:252px!important}
+}
+@media(max-width:420px){
+ #hand .hand-card.tc-card{width:130px;min-width:130px;max-width:130px;flex-basis:130px;height:226px}
+ .hand-card.tc-card{padding:7px!important}
+ .hand-card.tc-card .hand-title{font-size:9px!important}
+ .hand-card.tc-card .hand-description{font-size:8px!important}
+ .hand-card.tc-card .hand-stars{font-size:9px!important}
+ .collection-item .hand-card.tc-card,.pool-grid .hand-card.tc-card{height:238px}
+ .card-preview-panel .hand-card.tc-card{height:340px!important;min-height:340px!important}
+}
+@media(hover:none) and (pointer:coarse){.hand-card.tc-card:hover:not(.selected){transform:none;filter:none}}
+@media(prefers-reduced-motion:reduce){.hand-card.tc-card{transition:none!important;animation:none!important}.hand-card.tc-card:hover:not(.selected){transform:none!important}}
+
+/* The type plaque already says FUSION: do not duplicate legacy prefix. */
+.hand-card.tc-card.tc-fusion .hand-type::before{content:none!important}
