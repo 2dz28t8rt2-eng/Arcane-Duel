@@ -16,8 +16,8 @@ test('HTML bindet ausgelagerte CSS- und JS-Dateien ein',()=>{
  assert.doesNotMatch(html,/<style\b/);
  assert.doesNotMatch(html,/<script\s*>/);
 });
-test('Spielstand-Schlüssel bleibt kompatibel',()=>{
- assert.match(js,/arcane-duel-rpg-profile-v3/);
+test('Spielstand nutzt den bewusst neuen Neustart-Schlüssel',()=>{
+ assert.match(js,/arcane-duel-rpg-profile-v4-reborn/);
 });
 
 test('Turniergegner sind benannte Personen; ihre Kernkarten sind eindeutig benannt',()=>{
@@ -30,7 +30,7 @@ test('Turniergegner sind benannte Personen; ihre Kernkarten sind eindeutig benan
  const data=vm.runInContext("JSON.stringify({duelists:RPG_OPPONENTS.map(o=>o.name),monsterNames:RPG_OPPONENTS.flatMap(o=>[...o.loot,...o.hardLoot].map(id=>CARDS[id].name)),arts:[CARDS[0].art,CARDS[7].art]})",context);
  const r=JSON.parse(data);
  assert.equal(new Set(r.duelists).size,11);
- assert.equal(new Set(r.monsterNames).size,88);
+ assert.equal(new Set(r.monsterNames).size,45);
  assert.equal(r.arts.length,2);
  assert.notEqual(r.arts[0],r.arts[1]);
 });

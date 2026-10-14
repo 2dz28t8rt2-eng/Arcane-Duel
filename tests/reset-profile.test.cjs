@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const scripts=['assets/art-engine.js','assets/game.js','assets/expansion.js'].map(p=>fs.readFileSync(path.join(root,p),'utf8'));
-const normalKey='arcane-duel-rpg-profile-v3';
+const normalKey='arcane-duel-rpg-profile-v4-reborn';
 function boot(admin=false,storage=new Map(),options={}){
  const nodes=new Map();
  const el=(id='')=>({id,innerHTML:'',textContent:'',hidden:false,disabled:false,value:'',style:{},dataset:{},

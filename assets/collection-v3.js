@@ -6,6 +6,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   'Höchste Mächte','Transzendente Wesen','Die Ultimativen','Das absolute Maximum'
  ];
  const $=id=>document.getElementById(id);
+ const byId=new Map(cards.map(c=>[c.id,c]));
  const state={level:'all',search:'',art:'all',sort:'level'};
  const tierList=$('tierList');
  for(let level=1;level<=12;level++){
@@ -16,7 +17,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   const qty=document.createElement('b');qty.textContent=String(count);
   b.append(number,label,qty);tierList.append(b);
  }
- function imageFor(c){const base=c.variantOf!=null?cards[c.variantOf]:c;return base.art||window.ArcaneArt.makeArt({id:base.id,kind:base.kind,level:base.level,element:base.element,color:'#b2b8d6',fusionOnly:base.fusion});}
+ function imageFor(c){const base=c.variantOf!=null?(byId.get(c.variantOf)||c):c;return base.art||window.ArcaneArt.makeArt({id:base.id,kind:base.kind,level:base.level,element:base.element,color:'#b2b8d6',fusionOnly:base.fusion});}
  function render(){
   document.querySelectorAll('.tier').forEach(b=>{const active=b.dataset.level===state.level;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
   const query=state.search.trim().toLocaleLowerCase('de');
@@ -29,7 +30,7 @@ window.addEventListener('DOMContentLoaded',()=>{
    const article=document.createElement('article');article.className=`monster tier-${c.level} ${c.fusion?'fusion':''}`;
    const frame=document.createElement('div');frame.className='art-frame';
    const img=document.createElement('img');img.loading='lazy';img.decoding='async';img.alt=c.name;img.src=imageFor(c);
-   frame.append(img);
+   if(!c.art)img.style.objectFit='contain';frame.append(img);
    const title=document.createElement('h3');title.textContent=c.name;
    const info=document.createElement('div');info.className='meta';info.textContent=`LV ${c.level} · ${c.element} · ${c.fusion?'FUSION':'MONSTER'}`;
    const tag=document.createElement('span');tag.className='tag';tag.textContent=c.variantOf!=null?'Stufenreihe':c.art?'Illustration':'Generator';

@@ -10,7 +10,7 @@ function boot(){
  vm.runInContext(source,ctx,{timeout:8000});return {run:s=>vm.runInContext(s,ctx,{timeout:8000}),data};
 }
 test('Assets sind extern eingebunden',()=>{const h=fs.readFileSync(path.join(root,'index.html'),'utf8');assert.match(h,/assets\/game\.js/);assert.match(h,/assets\/styles\.css/)});
-test('Ein frisches Profil ist speicherbar und das Startdeck hat 40 Karten',()=>{const b=boot();assert.ok(b.data.has('arcane-duel-rpg-profile-v3'));assert.equal(b.run('profile.activeDeck.length'),40)});
+test('Ein frisches Profil ist speicherbar und das Startdeck hat 40 Karten',()=>{const b=boot();assert.ok(b.data.has('arcane-duel-rpg-profile-v4-reborn'));assert.equal(b.run('profile.activeDeck.length'),40)});
 test('LP und Handgrößen',()=>{const b=boot();for(const [mode,difficulty,lp] of [['pve','easy',4000],['pve','hard',8000],['pvp','easy',8000]]){const v=b.run(`(()=>{const g=createGame({mode:'${mode}',difficulty:'${difficulty}',starter:0});return [g.maxLP,g.players[0].hand.length]})()`);assert.deepEqual([...v],[lp,5])}});
 test('Handfusion verbraucht eine Kopie und beschwört das Ergebnis',()=>{const b=boot(),r=b.run(`(()=>{const g=createGame({mode:'pve',seed:13,starter:0}),p=g.players[0],before=p.remainingFusion.length,ids=p.hand.slice(0,2).map(c=>c.uid),ok=prepareHandFusion(g,ids,RPG_START_FUSIONS[0]),placed=placePending(g,0);return [ok,!!placed,p.hand.length,p.remainingFusion.length,before,!!p.field[0]]})()`);assert.deepEqual([...r],[true,true,3,1,2,true])});
 test('Keine Fusionskopie: konkrete Diagnose',()=>{const b=boot(),x=b.run(`(()=>{const g=createGame({mode:'pve',starter:0});g.players[0].remainingFusion=[];return fusionFailureReason(g,[1,1])})()`);assert.match(x,/Fusionsdeck/)});

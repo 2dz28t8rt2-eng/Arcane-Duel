@@ -678,3 +678,6 @@
  font-size:12px!important;
  line-height:14px!important;
 }
+
+/* Update B – generated SVG monsters retain their complete original silhouette. */
+.hand-card.tc-card .hand-art img.legacy-art,.board-creature.tc-card img.board-art.legacy-art{object-fit:contain!important;background:radial-gradient(ellipse at 50% 52%,#293246,#080e19 82%)}

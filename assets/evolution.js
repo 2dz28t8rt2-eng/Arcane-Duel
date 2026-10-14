@@ -33,11 +33,32 @@ function dayKey(){return new Date().toLocaleDateString('sv-SE');}
 function normalizeEvo(input){const raw=input&&typeof input==='object'?input:{},records={};for(const mode of Object.keys(MODES)){records[mode]=Array.from({length:5},(_,i)=>{const x=raw.records?.[mode]?.[i];return Number.isInteger(x)&&x>=0&&x<=3?x:0;});}
  const day=raw.day===dayKey()?raw.day:dayKey(),daily=day===raw.day&&Number.isInteger(raw.daily)&&raw.daily>=0&&raw.daily<=15?raw.daily:0;
  const done=raw.day===day&&Number.isInteger(raw.done)&&raw.done>=0&&raw.done<=15?raw.done:0;
- const active=raw.day===day&&Array.isArray(raw.active)?raw.active.filter(q=>q&&quests.some(x=>x.id===q.id)&&Number.isInteger(q.progress)&&q.progress>=0&&q.progress<=1000000).slice(0,3).map(q=>({id:q.id,progress:q.progress,duels:Array.isArray(q.duels)?q.duels.filter(v=>typeof v==='string'&&v.length<=100).slice(0,30):[]})):[];
+ const active=raw.day===day&&Array.isArray(raw.active)?raw.active.filter(q=>q&&quests.some(x=>x.id===q.id)&&Number.isInteger(q.progress)&&q.progress>=0&&q.progress<=1000000).slice(0,3).map(q=>({id:q.id,progress:q.progress,duels:Array.isArray(q.duels)?q.duels.filter(v=>typeof v==='string'&&v.length<=100).slice(0,30):[],activatedAt:Number.isSafeInteger(q.activatedAt)&&q.activatedAt>=0?q.activatedAt:0})):[];
  const used=Array.isArray(raw.used)?raw.used.filter(id=>quests.some(q=>q.id===id)).slice(0,15):[];
  return {records,day,daily,done,active,used:day===raw.day?used:[],bonuses:Object.keys(MODES).filter(m=>records[m][4]>=3)};
 }
-function refillQuests(){const x=profile.evolution;if(x.day!==dayKey()){profile.evolution=normalizeEvo({});return refillQuests();}while(x.active.length<3&&x.done+x.active.length<15){const next=quests.find(q=>!x.used.includes(q.id)&&!x.active.some(a=>a.id===q.id));if(!next)break;x.active.push({id:next.id,progress:0,duels:[]});x.used.push(next.id);}}
+function dailyQuestOrder(day){
+ // A deterministic daily rotation over all 18 tasks, without pre-completing
+ // any locked task. At most 15 can be activated per calendar day.
+ const seed=[...day].reduce((n,ch)=>(n*31+ch.charCodeAt(0))>>>0,2166136261);
+ const start=seed%quests.length;
+ const direction=seed%2?1:-1;
+ return Array.from({length:quests.length},(_,i)=>quests[(start+direction*i+quests.length*100)%quests.length]);
+}
+function refillQuests(){
+ let x=profile.evolution;
+ if(x.day!==dayKey()){
+  // Keep permanent special-mode rewards: only daily quests should reset.
+  profile.evolution=normalizeEvo({...x,day:dayKey(),active:[],used:[],done:0,daily:0});
+  x=profile.evolution;
+ }
+ while(x.active.length<3&&x.done+x.active.length<15){
+  const next=dailyQuestOrder(x.day).find(q=>!x.used.includes(q.id)&&!x.active.some(a=>a.id===q.id));
+  if(!next)break;
+  x.active.push({id:next.id,progress:0,duels:[],activatedAt:Date.now()});
+  x.used.push(next.id);
+ }
+}
 validateProfile=function(raw){const p=previous.validateProfile(raw);p.evolution=normalizeEvo(raw?.evolution);return p;};
 freshProfile=function(){const p=previous.freshProfile();p.evolution=normalizeEvo({});return p;};
 profile.evolution=normalizeEvo(profile.evolution);refillQuests();
@@ -83,7 +104,7 @@ rpgEnemyLoadout=function(id,difficulty='easy',stage){
  }
  if(![1,2,3].includes(id))return previous.rpgEnemyLoadout(id,difficulty,stage);
  const o=OPPONENTS[id];return {
- deck:npcMainDeck(id),fusionDeck:id===1?[enemyFusion[1][0]]:id===2?[o.loot[2],o.loot[3]]:enemyFusion[3].flatMap(cardId=>[cardId,cardId,cardId]),
+ deck:npcMainDeck(id),fusionDeck:id===1?[enemyFusion[1][0]]:id===2?o.loot.filter(cid=>CARDS[cid].fusionOnly).slice(0,2):enemyFusion[3].flatMap(cardId=>[cardId,cardId,cardId]),
  enhancements:{},power:id===1?.91:id===2?.90:.80,style:id===1?'normal':id===2?'balanced':'fusion'};};
 const originalFusionDeckError=fusionDeckError;
 fusionDeckError=function(ids){if(Array.isArray(ids)&&ids.length===1&&CARDS[ids[0]]?.enemyOnly)return '';return originalFusionDeckError(ids);};
@@ -141,14 +162,14 @@ placePending=function(g,idx,choice){const result=oldPlacePending(g,idx,choice);i
 // bounded multi-material and animation data from the original snapshot.
 validateDuelSnapshot=function(raw){const projected=JSON.parse(JSON.stringify(raw));if(projected.pending?.levels?.length>2)projected.pending.levels=projected.pending.levels.slice(0,2);
  for(const player of projected.players||[]){for(const card of [...(player.hand||[]),...(player.field||[]).filter(Boolean),...(player.graveyard||[])])if(card.qualityRolls>4)card.qualityRolls=4;}if(projected.pending?.card?.qualityRolls>4)projected.pending.card.qualityRolls=4;for(const pl of projected.players||[]){for(const card of [...pl.hand,...pl.field.filter(Boolean),...pl.graveyard])if(card.materialBonus&&(card.materialBonus.atk>240||card.materialBonus.def>240||card.materialBonus.atk+card.materialBonus.def>240))card.materialBonus={atk:0,def:0};}if(projected.pending?.card?.materialBonus&&(projected.pending.card.materialBonus.atk>240||projected.pending.card.materialBonus.def>240||projected.pending.card.materialBonus.atk+projected.pending.card.materialBonus.def>240))projected.pending.card.materialBonus={atk:0,def:0};
- const g=previous.validateDuelSnapshot(projected);if(raw.pending?.levels?.length>2){if(raw.pending.levels.length>5||raw.pending.levels.some(l=>!Number.isInteger(l)||l<1||l>12))throw Error('Ungültige Fusionsmaterialien.');g.pending.levels=[...raw.pending.levels];}
+ const g=previous.validateDuelSnapshot(projected);g.questActiveIds=Array.isArray(raw.questActiveIds)?raw.questActiveIds.filter(id=>quests.some(q=>q.id===id)).slice(0,3):null;if(raw.pending?.levels?.length>2){if(raw.pending.levels.length>5||raw.pending.levels.some(l=>!Number.isInteger(l)||l<1||l>12))throw Error('Ungültige Fusionsmaterialien.');g.pending.levels=[...raw.pending.levels];}
  if(raw.evolutionMode){const info=decodeId(raw.challenge);if(!info||raw.evolutionMode!==info.mode||raw.evolutionStage!==info.stage)throw Error('Ungültige Herausforderungsdaten.');g.evolutionMode=info.mode;g.evolutionStage=info.stage;g.evoStats=normalizeEvoStats(raw.evoStats);g.evolutionCashout=raw.evolutionCashout===true;}
  return g;
 };
 function normalizeEvoStats(s){const out={normalDamage:0,combos:0,five:0,materialsMax:0};for(const k of Object.keys(out))if(Number.isInteger(s?.[k])&&s[k]>=0&&s[k]<=1000000)out[k]=s[k];return out;}
 
 // New challenge types are deliberately isolated from ordinary PvE and rewards.
-createGame=function(options={}){const g=previous.createGame(options),info=decodeId(options.challenge);if(!info||g.mode!=='pve')return g;
+createGame=function(options={}){const g=previous.createGame(options),info=decodeId(options.challenge);g.questActiveIds=(profile.evolution?.active||[]).map(q=>q.id);if(!info||g.mode!=='pve')return g;
  g.evolutionMode=info.mode;g.evolutionStage=info.stage;g.evolutionCashout=false;g.evoStats=normalizeEvoStats({});g.evolutionRoundLimit=[0,9,8,7,7,6][info.stage];
  if(info.mode==='defense'){g.maxLP=8000;g.difficulty='hard';g.players[0].lp=6000;g.players[1].lp=3000;const factor=1+.07*(info.stage-1);g.players[1].power*=factor;for(const c of g.players[1].hand)for(const stat of ['atk','def'])if(c.card)c.card[stat]=round10(c.card[stat]*factor);}
  if(info.mode==='burst'){g.maxLP=8000;g.difficulty='hard';g.players[0].lp=6000;g.players[1].lp=[0,3000,4000,5000,6000,7500][info.stage];}
@@ -179,7 +200,7 @@ rewardMatch=function(g){if(!g.evolutionMode){const r=oldReward(g);if(r&&g.mode==
  profile.coins=Math.min(1e9,profile.coins+coins);profile.totalTurns+=g.turn;profile.totalFusions+=g.totalFusions[0];profile.history.unshift({opponent:1,win:!!valid,turns:g.turn,coins,xp:0,at:Date.now(),context:'challenge'});profile.history=profile.history.slice(0,30);
  applyQuests(g);saveProfile();return {coins,xp:0,challengeBonus:coins,loot:null,charge:0,evolution:true,objectives:valid?achieved:0,noReward:!valid,bonusUnlocked:valid&&stage===5&&best===3&&previousBest<3};
 };
-function applyQuests(g){if(g.mode!=='pve'||g.context==='auto'||g.surrendered||g.winner!==0)return;refillQuests();const x=profile.evolution,stats=g.evoStats||normalizeEvoStats({});for(const entry of x.active){const def=quests.find(q=>q.id===entry.id);if(!def)continue;let delta=0;
+function applyQuests(g){if(g.mode!=='pve'||g.context==='auto'||g.surrendered||g.winner!==0)return;refillQuests();const x=profile.evolution,stats=g.evoStats||normalizeEvoStats({});const activeAtStart=Array.isArray(g.questActiveIds)?new Set(g.questActiveIds):null;for(const entry of x.active){if(activeAtStart&&!activeAtStart.has(entry.id))continue;const def=quests.find(q=>q.id===entry.id);if(!def)continue;let delta=0;
  switch(def.kind){case 'fusions':delta=g.totalFusions[0];break;case 'normalDamage':delta=stats.normalDamage;break;case 'wins':delta=1;break;case 'combos':delta=stats.combos;break;case 'defenseRounds':delta=g.evolutionMode==='defense'?roundNumber(g):0;break;case 'burstDamage':delta=g.evolutionMode==='burst'?g.damageDealt[0]:0;break;case 'fiveDuels':delta=stats.five>0&&!entry.duels.includes(g.id)?1:0;if(delta)entry.duels.push(g.id);break;}
  entry.progress=Math.min(def.target,entry.progress+delta);
  }saveProfile();}
