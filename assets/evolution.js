@@ -57,10 +57,12 @@ for(const [tier,descriptions] of [[1,[[4,690,660,'Eisenfunke']]],[3,[[3,790,750,
   card.art=window.ArcaneArt?.makeArt(card)||makeArt(card);CARDS.push(card);return id;
  });
 }
+// The third duelist's actual ACE is a fusion; the collectible junior champion remains a legacy normal card.
+CARDS[enemyFusion[3][4]].ace=true;CARDS[enemyFusion[3][4]].rarity='ace';CARDS[enemyFusion[3][4]].desc='Fusions-ACE der Dornengarde: eine mächtige Verkörperung des Hains.';
 const ACE2=CARDS[ACE_CARD_IDS[2]];ACE2.atk=round10(ACE2.atk*.82);ACE2.def=round10(Math.max(ACE2.def*1.48,1250));ACE2.desc='Defensives ACE mit außergewöhnlicher Verteidigung.';
-function npcMainDeck(tier){const o=OPPONENTS[tier];const own=o.loot.filter(id=>!CARDS[id].fusionOnly);const pool=[...DEFAULT_DECK,...own,ACE_CARD_IDS[tier],...(tier===3?OPPONENTS[2].loot.filter(id=>!CARDS[id].fusionOnly):[])];
+function npcMainDeck(tier){const o=OPPONENTS[tier];const own=o.loot.filter(id=>!CARDS[id].fusionOnly);const pool=[...DEFAULT_DECK,...own,...(tier===3?[]:[ACE_CARD_IDS[tier]]),...(tier===3?OPPONENTS[2].loot.filter(id=>!CARDS[id].fusionOnly):[])];
  const ranked=[...new Set(pool)].sort((a,b)=>{const x=CARDS[a],y=CARDS[b],wx=tier===2?x.atk+x.def*1.35:tier===1?x.atk*1.5+x.def*.45:x.atk+x.def*.75,wy=tier===2?y.atk+y.def*1.35:tier===1?y.atk*1.5+y.def*.45:y.atk+y.def*.75;return wy-wx;});
- const deck=[];for(const id of [ACE_CARD_IDS[tier],...own])for(let j=0;j<(tier===1?2:3);j++)if(deck.length<40)deck.push(id);
+ const deck=[];for(const id of [...(tier===3?[]:[ACE_CARD_IDS[tier]]),...own])for(let j=0;j<(tier===1?2:3);j++)if(deck.length<40)deck.push(id);
  for(const id of ranked)while(deck.length<40&&countCard(deck,id)<3)deck.push(id);
  if(deck.length!==40)throw Error('NPC-Hauptdeck hat keine 40 Karten.');return deck;}
 rpgEnemyLoadout=function(id,difficulty='easy',stage){if(![1,2,3].includes(id)||difficulty==='hard')return previous.rpgEnemyLoadout(id,difficulty,stage);const o=OPPONENTS[id];return {
@@ -150,6 +152,7 @@ function objectives(g){if(!g?.evolutionMode)return 0;const s=g.evolutionStage,ro
  if(g.evolutionMode==='burst'){const cap=[0,3000,4000,5000,6000,7500][s];return [.25,.55,.95].filter(f=>damage>=cap*f).length;}
  const stats=g.evoStats||{},num=g.totalFusions[0];return [num>=1,num>=2&&stats.materialsMax>=3,num>=3&&stats.materialsMax>=Math.min(5,s+1)&&stats.combos>=1].filter(Boolean).length;
 }
+function goalDescriptions(g){const stage=g.evolutionStage;if(g.evolutionMode==='defense')return [3,5,7].map(n=>'Bis Runde '+(n+Math.floor((stage-1)/2))+' durchhalten');if(g.evolutionMode==='burst'){const lp=[0,3000,4000,5000,6000,7500][stage];return [.25,.55,.95].map(p=>Math.ceil(lp*p)+' LP-Schaden verursachen');}return ['Mindestens eine Fusion herstellen','Zwei Fusionen, darunter mindestens eine Dreierfusion','Drei Fusionen, eine mit mindestens '+Math.min(5,stage+1)+' Materialien und einem Kombinationsbonus'];}
 function modeCashout(){if(!game||!game.evolutionMode||!inputAllowed()||objectives(game)<1)return false;game.evolutionCashout=true;conclude(game,0,'Herausforderung nach '+objectives(game)+' erreichten Zielen beendet.');showFinished();return true;}
 const oldReward=rewardMatch;
 rewardMatch=function(g){if(!g.evolutionMode){const r=oldReward(g);if(r&&g.mode==='pve')applyQuests(g);return r;}
@@ -180,7 +183,7 @@ startDuel=function(mode,id=0,context='free',difficulty='easy',challenge=null){pr
 // Clear context even when the ordinary duel HUD is reused.
 function modeHud(){let panel=$('evolutionStatus');if(!panel){panel=document.createElement('section');panel.id='evolutionStatus';panel.className='evo-live';$('endTurnBtn').parentNode?.append(panel);}if(!game?.evolutionMode){panel.hidden=true;return;}panel.hidden=false;const mode=MODES[game.evolutionMode],done=objectives(game),stats=game.evoStats||{};
  const progress=game.evolutionMode==='defense'?`Überstandene Runde: ${roundNumber(game)} · Zerfall steigt ab Runde 3`:game.evolutionMode==='burst'?`LP-Schaden: ${game.damageDealt[0]} · Rundenlimit: ${game.evolutionRoundLimit}`:`Fusionen: ${game.totalFusions[0]} · Max. Materialien: ${stats.materialsMax||0} · Kombinationen: ${stats.combos||0}`;
- panel.innerHTML=`<h3>${mode.icon} ${mode.name} · Stufe ${game.evolutionStage}</h3><p>${mode.text}</p><p><b>${progress}</b></p><div class="evo-goals">${[1,2,3].map(n=>`<span class="${done>=n?'complete':''}">${done>=n?'✓':'○'} Ziel ${n}</span>`).join('')}</div><button class="btn primary wide" id="evoCashout" ${done<1||game.winner!==null||game.active!==0||busy||aiRunning?'disabled':''}>${done?'✓ '+done+' Ziel(e) sichern & beenden':'Erstes Ziel erreichen'}</button>`;
+ panel.innerHTML=`<h3>${mode.icon} ${mode.name} · Stufe ${game.evolutionStage}</h3><p>${mode.text}</p><p><b>${progress}</b></p><div class="evo-goals">${[1,2,3].map(n=>`<span class="${done>=n?'complete':''}">${done>=n?'✓':'○'} Ziel ${n}: ${goalDescriptions(game)[n-1]}</span>`).join('')}</div><button class="btn primary wide" id="evoCashout" ${done<1||game.winner!==null||game.active!==0||busy||aiRunning?'disabled':''}>${done?'✓ '+done+' Ziel(e) sichern & beenden':'Erstes Ziel erreichen'}</button>`;
  const cash=$('evoCashout');if(cash)cash.onclick=modeCashout;
  $('arenaStatus').textContent=game.evolutionMode==='burst'?'BURST: KEIN ZERFALL · MAX. '+game.evolutionRoundLimit+' RUNDEN':game.evolutionMode==='defense'?'VERTEIDIGUNG: NUR GEGNER VERURSACHT LP-KAMPFSCHADEN · SCHNELLER ZERFALL':$('arenaStatus').textContent;
 }
