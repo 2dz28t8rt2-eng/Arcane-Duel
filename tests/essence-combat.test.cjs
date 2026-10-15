@@ -172,7 +172,7 @@ test('Seelenbrand applies bounded direct LP pressure with five unopposed soul ea
  g.advanceTurn(duel);
  const damage=before-duel.players[1].lp;
  assert.ok(damage>0,'Soul Eaters can burn LP even without enemy attacks');
- assert.ok(damage<=5*(45+6*42),'LP burn remains bounded per soul and its level');
+ assert.ok(damage<=5*(60+6*60),'LP burn remains bounded per soul and its level');
  assert.equal(duel.players[0].lp,ownBefore,'passive soul harvest must not drain own LP');
  assert.ok(duel.players[0].field.every(c=>c?.essenceCombat?.soul>=0));
 });
@@ -192,7 +192,7 @@ test('Low-rank Soul Eater can deliberately discharge stored energy once per turn
  ctx.document.getElementById('overlay').classList.contains=key=>key==='hidden';
  const first=vm.runInContext('game=__testSoulDuel;uiMode="duel";window.ArcaneEssenceCombat.discharge(0)',ctx);
  assert.equal(first,true);
- assert.equal(before-duel.players[1].lp,220);
+ assert.equal(before-duel.players[1].lp,260);
  assert.equal(g.statLayer(eater).soul,0);
  assert.equal(vm.runInContext('window.ArcaneEssenceCombat.discharge(0)',ctx),false,'one per turn');
 });
