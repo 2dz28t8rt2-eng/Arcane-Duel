@@ -3,7 +3,7 @@
  */
 'use strict';
 (()=>{
- let anchor=null,anchorRect=null,activePanel=null,closing=false;
+ let anchor=null,anchorRect=null,activePanel=null,home=null;
  const allowed=()=>uiMode==='menu'&&(menuTab==='collection'||menuTab==='fusions');
  const motion=()=>animationSpeed!=='instant'&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
  const pause=(ms)=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -49,6 +49,16 @@
   anim.onfinish=()=>clone.remove();anim.oncancel=()=>clone.remove();
   setTimeout(()=>clone.remove(),600);
  }
+ function restore(panel){
+  if(!panel?.isConnected)return;
+  panel.classList.remove('ad-deck-portal');
+  panel.style.cssText='';
+  panel.removeAttribute('role');
+  panel.removeAttribute('aria-label');
+  panel.setAttribute('aria-hidden','true');
+  panel.querySelector('.ad-deck-close')?.remove();
+  if(home?.isConnected&&panel.parentElement!==home)home.append(panel);
+ }
  function close(immediate=false){
   const panel=activePanel;if(!panel)return;
   activePanel=null;
@@ -61,16 +71,22 @@
     {opacity:1,transform:'translateY(0) scale(1)'},
     {opacity:0,transform:'translateY(-8px) scale(.94)'}
    ],{duration:330,easing:'ease-in',fill:'forwards'});
-   anim.onfinish=()=>{if(panel.isConnected){panel.classList.remove('ad-deck-portal');panel.style.cssText='';}};
-   setTimeout(()=>{if(panel.isConnected&&!activePanel){panel.classList.remove('ad-deck-portal');panel.style.cssText='';}},400);
-  }else{panel.classList.remove('ad-deck-portal');panel.style.cssText='';}
+   anim.onfinish=()=>{if(!activePanel)restore(panel);};
+   setTimeout(()=>{if(!activePanel)restore(panel);},420);
+  }else restore(panel);
   panel.setAttribute('aria-hidden','true');
   anchor=null;anchorRect=null;
  }
  function show(){
   if(!allowed())return;
   const panel=shell();if(!panel)return;
-  activePanel=panel;closing=false;
+  activePanel=panel;
+  // Absolute requirement: escape transformed and scrolling menu ancestors.
+  // position:fixed is viewport-fixed ONLY when rendered under document.body.
+  if(panel.parentElement!==document.body){
+   home=panel.parentElement;
+   document.body.append(panel);
+  }
   panel.classList.add('ad-deck-portal');
   panel.removeAttribute('aria-hidden');
   panel.setAttribute('role','dialog');
