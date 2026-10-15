@@ -231,3 +231,15 @@ test('No legacy single-card monster matchup bonuses remain in the playable catal
   .map(c=>({name:c.name,ability:c.ability}));
  assert.deepEqual(oldAbilities,[],'legacy PvE bonuses should not survive in playable cards');
 });
+
+test('Workshop splits a free level-seven card without requiring a manually typed recipe',()=>{
+ const {g,forge}=setup(),root=0,id7=forge.stage(root,7),id3=forge.stage(root,3),id4=forge.stage(root,4);
+ g.profile.cleared=[1,2,3,4,5];
+ g.profile.inventory[id7]=(g.profile.inventory[id7]||0)+1;
+ const before3=g.profile.inventory[id3]||0,before4=g.profile.inventory[id4]||0;
+ const result=forge.transact('split',root,7,'');
+ assert.equal(result.ok,true,result.message);
+ assert.equal(g.profile.inventory[id3],before3+1);
+ assert.equal(g.profile.inventory[id4],before4+1);
+ assert.equal(g.profile.inventory[id7],0);
+});
