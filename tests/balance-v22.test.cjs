@@ -63,10 +63,10 @@ test('2.2: duel snapshot keeps decay age and attack fatigue through reload',()=>
  advanceTurn(snap);advanceTurn(snap);
  return {afterFirst,saved:{age:saved.decayAge,fatigue:saved.attackFatigue,total:saved.decayTotal},nextTotal:saved.decayTotal,nextAge:saved.decayAge};
  });
- assert.equal(x.afterFirst.age,1);assert.equal(x.afterFirst.total,50);
+ assert.equal(x.afterFirst.age,1);assert.equal(x.afterFirst.total,25);
  assert.equal(x.saved.fatigue,30);
  assert.equal(x.nextAge,2);
- assert.equal(x.nextTotal,95);
+ assert.equal(x.nextTotal,45);
 });
 test('2.2: legacy duel snapshots infer decay age from total when field is absent',()=>{
  const run=engine();
@@ -121,7 +121,7 @@ test('2.1: first tournament victory that reaches level 10 refills the new larger
  assert.equal(x.first,true);assert.equal(x.refilled,true);
  assert.equal(x.ten,true);assert.ok(x.level>=10);assert.equal(x.cap,6);assert.equal(x.charges,x.cap);
 });
-test('2.2: damage decay is bounded at 20 per round (10 for starters) and attacks cost exactly 30 ATK',()=>{
+test('2.2: ordinary monster decay remains 20 minimum, weaker balanced fusions now reach 15 minimum',()=>{
  const run=engine(),x=run(function(){
  function decay(kind){
   const g=createGame({mode:'pve',opponentId:2,seed:122,starter:0});
@@ -140,7 +140,7 @@ test('2.2: damage decay is bounded at 20 per round (10 for starters) and attacks
  }
  return {fusion:decay('fusion'),regular:decay('normal'),starter:decay('starter')};
  });
- assert.deepEqual(x.fusion,[0,50,45,40,35,30,25,20]);
+ assert.deepEqual(x.fusion,[0,25,20,15,15,15,15,15]);
  assert.deepEqual(x.regular,[0,30,25,20,20,20,20,20]);
  assert.deepEqual(x.starter,[0,20,15,10,10,10,10,10]);
 });
