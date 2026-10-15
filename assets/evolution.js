@@ -435,12 +435,15 @@ fusionAnimation=async function(level,visuals=null){
  if(animationSpeed==='instant'||window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches){
   fusionVisualMaterials=null;fusionVisualResult=null;return;
  }
- const c=game?.lastSummoned?.fusion?game.lastSummoned:fusionVisualResult||game?.pending?.card;
+ // Core placement stores a UID; direct field synthesis stores a card object.
+  const summoned=game?.lastSummoned;
+  const placed=typeof summoned==='object'?summoned:game?.players?.[game?.active]?.field?.find(x=>x?.uid===summoned);
+  const c=fusionVisualResult||placed||game?.pending?.card;
  const cards=visuals||fusionVisualMaterials||[];fusionVisualMaterials=null;
  const trace=c?.rollTrace||[],math=c?.rollMath,role=c?.roleOverride||math?.role||CARDS[c?.id]?.role||'combatant';
  const labels={predator:'PREDATOR',guardian:'WÄCHTER',soul:'SEELENZEHRER'};
  const count=c?.materialsUsed||cards.length||2,pattern=c?.pattern||'Fusion',grand=count>=4;
- const fx=document.createElement('div');fx.className='evo-summon evo-fusion-scene evo-stamp-scene'+(grand?' evo-summon-grand':'');
+ const fx=document.createElement('div');fx.className='evo-summon evo-fusion-scene evo-stamp-scene'+(grand?' evo-summon-grand':'')+(!['predator','guardian','soul'].includes(role)?' evo-no-role-stamp':'');
  fx.setAttribute('role','status');fx.setAttribute('aria-label','Fusion: Rollenprägung und '+trace.length+' echte Wertewürfe');
  fx.innerHTML='<div class="evo-mat-count">✧ '+count+' Materialien · '+escapeHtml(pattern)+' ✧</div>'+
   '<div class="evo-visual-stage"><div class="evo-material-layer" aria-hidden="true"></div>'+
@@ -449,8 +452,8 @@ fusionAnimation=async function(level,visuals=null){
   escapeHtml(labels[role]||'FUSION')+'</div><div class="evo-card-final"></div></div>'+
   '<div class="evo-fusion-flash" aria-hidden="true"></div></div>'+
   '<strong class="evo-fusion-caption">'+escapeHtml(pattern)+'</strong>'+
-  '<div class="evo-calc-heading">PRÄGUNG · '+trace.length+' WERTEWÜRFE</div>'+
-  '<div class="evo-rolls" aria-live="off"></div>';
+  '<div class="evo-popup-panel"><div class="evo-calc-heading">PRÄGUNG · '+trace.length+' WERTEWÜRFE</div>'+
+  '<div class="evo-rolls" aria-live="off"></div></div>';
  const layer=fx.querySelector('.evo-material-layer');
  const shown=cards.length?cards:Array.from({length:count},()=>({art:c?dataOf(c).art:'',level:1}));
  for(let i=0;i<shown.length;i++){
@@ -469,7 +472,7 @@ fusionAnimation=async function(level,visuals=null){
  try{
   fx.classList.add('evo-phase-orbit');await animationWait(grand?970:810);
   fx.classList.remove('evo-phase-orbit');fx.classList.add('evo-phase-merge');await animationWait(510);
-  fx.classList.add('evo-phase-reveal');await animationWait(420);
+  fx.classList.add('evo-phase-reveal');await animationWait(1050);
   fx.classList.add('evo-stamp-impact');sound('summon');await animationWait(650);
   fx.classList.add('evo-stamp-settled','evo-phase-rolls');
   const log=fx.querySelector('.evo-rolls');
@@ -484,17 +487,17 @@ fusionAnimation=async function(level,visuals=null){
    el.className='evo-calc-row evo-calc-spinning';
    el.innerHTML='<span>Wurf '+(i+1)+'</span><b class="evo-calc-atk"></b><b class="evo-calc-def"></b>';
    log.append(el);const values=el.querySelectorAll('b');
-   for(let tick=0;tick<5;tick++){
+   for(let tick=0;tick<9;tick++){
     for(let k=0;k<2;k++){
      const digits=String(Math.max(10,k?draw.def:draw.atk)).length;
      values[k].textContent=Array.from({length:digits},(_,d)=>String(1+(i*7+tick*5+d*3+k*4)%9)).join('');
     }
-    await animationWait(52);
+    await animationWait(68);
    }
    values[0].textContent=num(draw.atk);values[1].textContent=num(draw.def);
    el.classList.remove('evo-calc-spinning');el.classList.add('evo-calc-stamped');
    if(math&&i===math.winnerIndex)el.classList.add('evo-calc-winning');
-   await animationWait(160);
+   await animationWait(260);
   }
   if(math){
    const win=trace[math.winnerIndex]||math.winner;
@@ -506,10 +509,10 @@ fusionAnimation=async function(level,visuals=null){
     row('− Abzug',math.penalty,math.penalty)+
     '<div class="evo-calc-divider evo-double"></div>'+
     row('= ENDWERT',math.final.atk,math.final.def,'evo-calc-final'));
-   fx.classList.add('evo-calc-sum');await animationWait(820);
+   fx.classList.add('evo-calc-sum');await animationWait(1250);
    fx.querySelector('.evo-card-final').innerHTML='<b>ATK '+num(math.final.atk)+'</b>'+
     '<b>DEF '+num(math.final.def)+'</b>';
-   fx.classList.add('evo-calc-absorb');await animationWait(600);
+   fx.classList.add('evo-calc-absorb');await animationWait(1000);
   }
   // Fly the actual revealed card toward its real occupied field zone.
   // This is presentation only; the authoritative placement already succeeded.
