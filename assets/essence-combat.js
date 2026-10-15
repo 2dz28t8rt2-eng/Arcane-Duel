@@ -53,8 +53,8 @@
  }
  const essence=()=>profile.essence||(profile.essence=defaults());
  const isOwn=(card)=>!!card&&card.id===essence().chosen;
- const isSoul=c=>CARDS[c?.id]?.role==='soul';
- const isDefender=c=>['soul','guardian'].includes(CARDS[c?.id]?.role);
+ const isSoul=c=>(c?.roleOverride||CARDS[c?.id]?.role)==='soul';
+ const isDefender=c=>['soul','guardian'].includes(c?.roleOverride||CARDS[c?.id]?.role);
  const isEssenceDuel=g=>g?.mode==='pve'&&g.essenceRules===true;
  const buffTier=g=>Math.max(0,g?.essenceTier||0);
  const activeSchool=g=>g?.essenceSchool||null;
@@ -200,8 +200,7 @@
  effectiveAttack=function(g,a,d){
   let atk=oldEffective(g,a,d);
   if(!isEssenceDuel(g))return atk;
-  const role=CARDS[a?.id]?.role;
-  if(role==='predator'&&d?.mode==='def')atk=Math.floor(atk*1.12);
+  const role=a?.roleOverride||CARDS[a?.id]?.role;
   if(!a?.fusion&&g.players[g.active].field.some(c=>c&&c!==a&&CARDS[c.id]?.role==='support'&&c.mode==='def'))
    atk+=Math.min(160,25+dataOf(a).level*8);
   if(a?.id===essence().chosen&&CARDS[a.id]?.essenceSchool==='predator'&&a.essenceCombat?.doubleChoice===2)atk=Math.floor(atk*.7);
