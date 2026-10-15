@@ -459,3 +459,35 @@ body:has(#menuScreen.atlas-screen:not([hidden])) .modal :is(button,summary,input
 /* The optional auto-run information stays secondary to duel and deck actions. */
 #menuScreen.atlas-screen .auto-history,
 #menuScreen.atlas-screen .evo-quests{border-color:#9384a46b}
+
+
+/* Remaining utility views: statistics, progress and card management. */
+#menuScreen.atlas-screen .atlas-etched-panel h3{
+ color:#efdbb2;font:700 clamp(15px,1.5vw,19px)/1.3 Georgia,serif}
+#menuScreen.atlas-screen .history-table,
+#menuScreen.atlas-screen .arcane-rule-table{
+ width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;
+ border:1px solid #b0977280;border-radius:9px;background:#0f192b}
+#menuScreen.atlas-screen .history-table th,
+#menuScreen.atlas-screen .arcane-rule-table th{
+ color:#ffebbf;background:linear-gradient(#374256,#243249);
+ border-bottom:1px solid #b49a6c;text-align:left;font:750 12px system-ui,sans-serif}
+#menuScreen.atlas-screen .history-table td,
+#menuScreen.atlas-screen .arcane-rule-table td{
+ border-bottom:1px solid #ffffff14;color:#dde3ef}
+#menuScreen.atlas-screen .history-table tr:last-child td,
+#menuScreen.atlas-screen .arcane-rule-table tr:last-child td{border-bottom:0}
+#menuScreen.atlas-screen .table-scroll{border-radius:10px}
+#menuScreen.atlas-screen .stat-box,
+#menuScreen.atlas-screen .evo-quest{
+ border-color:#a98e6f70;box-shadow:inset 0 1px #fff1d51a}
+#menuScreen.atlas-screen .shard-strip span{
+ border:1px solid #a58b6c80;background:#1a2538;color:#e2d9c6}
+#menuScreen.atlas-screen .unknown-card{
+ border:1px dashed #9e8f9c;background:
+ radial-gradient(ellipse at 50% 32%,#8a78b31e,transparent 58%),linear-gradient(#263146,#111a2d);
+ color:#aeb9cf}
+#menuScreen.atlas-screen .deck-editor-shell{padding:clamp(15px,2vw,24px)}
+#menuScreen.atlas-screen .loot-banner{border-color:#8ecaa9;background:#1a3836;color:#dcf4e8!important}
+#menuScreen.atlas-screen .error-note{color:#ffc59d!important}
+#menuScreen.atlas-screen .pack-shortcut{border-color:#af9265}
