@@ -176,6 +176,67 @@ function fusionReferenceStat(template,stat,p){
  return fusionReferenceStats(template.level)[stat]*baseStat(template,stat,p)/Math.max(1,template[stat]);
 }
 
+/* Progressive tournament tactics: I–III retain their tutorial policies.
+ * From IV onward the opponent compares expected real Fusion-3.1 stats
+ * against its best available normal creature before consuming materials.
+ * Stronger opponents examine progressively larger hand combinations.
+ * No hidden boosts to dice or to the NPC's fusion quality are introduced.
+ */
+const previousProgressiveOpponent=chooseAiAction;
+function opponentFusionCandidates(g,materials,p){
+ const lv=materials.map(c=>dataOf(c).level);
+ const possibilities=fusionOptions(g,lv);
+ if(!possibilities.length)return null;
+ const template=[...possibilities].sort((a,b)=>b.level-a.level||b.atk-a.atk)[0];
+ const quality=tunedFusionQuality(g,lv,materials.map(c=>dataOf(c).element));
+ const rolls=Math.min(7,qualityRolls(lv)+quality.rollBonus);
+ const expectedRoll=1+.018*Math.max(0,rolls-1); // mild average benefit of best-of-N
+ const ref=fusionReferenceStats(template.level);
+ const scale=(p.power||1)*quality.factor*expectedRoll;
+ return {materials,level:template.level,
+  atk:ref.atk*scale,def:ref.def*scale,spend:materials.length};
+}
+chooseAiAction=function(g,policy='balanced'){
+ if(g.mode!=='pve'||g.active!==1||g.opponentId<4||g.context==='encounter'||
+    g.aiPhase!=='summon'||g.summoned||g.pending||g.winner!==null)
+  return previousProgressiveOpponent(g,policy);
+ const p=g.players[1];
+ if(!p.field.some(c=>!c))return previousProgressiveOpponent(g,policy);
+ const hand=p.hand.filter(c=>!isFateCard(c));
+ if(!hand.length)return previousProgressiveOpponent(g,policy);
+ const lvl=g.opponentId;
+ const intent=OPPONENTS[lvl]?.policy==='guardian'?'def':
+  OPPONENTS[lvl]?.policy==='offensive'?'atk':'both';
+ const weight=(atk,def)=>intent==='def'?atk*.4+def:
+   intent==='atk'?atk+def*.35:atk*.85+def*.65;
+ const bestNormal=[...hand].sort((a,b)=>weight(dataOf(b).atk,dataOf(b).def)-
+   weight(dataOf(a).atk,dataOf(a).def))[0];
+ const normalValue=weight(dataOf(bestNormal).atk,dataOf(bestNormal).def);
+ const maxMaterials=lvl>=9?5:lvl>=7?4:lvl>=5?3:2;
+ let best=null;
+ for(let count=2;count<=Math.min(maxMaterials,hand.length);count++){
+  function check(start,chosen){
+   if(chosen.length===count){
+    const candidate=opponentFusionCandidates(g,chosen,p);
+    if(!candidate)return;
+    // Spend at least two material cards; each extra sacrificed monster raises
+    // the necessary tactical advantage. Avoid spamming low-value fusion copies.
+    const opportunity=1.04+.055*(count-2);
+    const score=weight(candidate.atk,candidate.def)/Math.max(1,normalValue)/opportunity;
+    if(!best||score>best.score)best={...candidate,score};
+    return;
+   }
+   for(let j=start;j<=hand.length-(count-chosen.length);j++)
+    check(j+1,[...chosen,hand[j]]);
+  }
+  check(0,[]);
+ }
+ g.aiPhase='positions';
+ if(best&&best.score>=1.08)
+  return {type:'fusion',uids:best.materials.map(c=>c.uid)};
+ return {type:'normal',uid:bestNormal.uid};
+};
+
 fusedInstance=function(g,instances,levels){if(instances.length>5||instances.length<2)return null;if(g.mode!=='pve')return previous.fusedInstance(g,instances,levels);const p=g.players[g.active],pool=fusionOptions(g,levels),template=g.fusionChoice!==undefined?pool.find(c=>c.id===g.fusionChoice):[...pool].sort((a,b)=>b.level-a.level||b.atk-a.atk)[0];if(!template)return null;
  const f=tunedFusionQuality(g,levels,instances.map(c=>dataOf(c).element));const rolls=Math.min(7,qualityRolls(levels)+f.rollBonus+(window.ArcaneEssenceCombat?.fusionRollBonus?.(g)||0)+instances.filter(c=>dataOf(c).ability==='guide').length+(g.active===0&&!g.totalFusions[0]?(profile.upgrades.fusionLore||0):0));
  let best=null,trace=[];
