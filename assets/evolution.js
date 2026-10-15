@@ -511,7 +511,23 @@ fusionAnimation=async function(level,visuals=null){
     '<b>DEF '+num(math.final.def)+'</b>';
    fx.classList.add('evo-calc-absorb');await animationWait(600);
   }
-  fx.classList.add('evo-card-land');await animationWait(460);
+  // Fly the actual revealed card toward its real occupied field zone.
+  // This is presentation only; the authoritative placement already succeeded.
+  const actor=fx.querySelector('.evo-fusion-result');
+  const index=game?.players?.[game?.active]?.field?.findIndex(x=>x?.uid===c?.uid)??-1;
+  const selector=game?.active===0?'#ownRow [data-mine="'+index+'"]':'#enemyRow [data-enemy="'+index+'"]';
+  const slot=index>=0?document.querySelector(selector):null;
+  if(slot&&typeof actor?.animate==='function'){
+   const from=actor.getBoundingClientRect(),to=slot.getBoundingClientRect();
+   const dx=(to.left+to.width/2)-(from.left+from.width/2);
+   const dy=(to.top+to.height/2)-(from.top+from.height/2);
+   const scale=Math.max(.20,Math.min(1,to.width/Math.max(1,from.width)));
+   const flight=actor.animate([
+    {transform:'translate(0,0) scale(1)',opacity:1},
+    {transform:'translate('+dx+'px,'+dy+'px) scale('+scale+')',opacity:0}
+   ],{duration:520,easing:'cubic-bezier(.24,.7,.18,1)',fill:'forwards'});
+   await new Promise(resolve=>{flight.onfinish=resolve;flight.oncancel=resolve;});
+  }else{fx.classList.add('evo-card-land');await animationWait(460);}
  }finally{fx.remove();fusionVisualResult=null;}
 };
 // Small card-flight for normal summons: animation is only presentation, never a game action.
