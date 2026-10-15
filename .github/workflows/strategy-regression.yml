@@ -28,3 +28,6 @@ jobs:
         run: node --test tests/strategy-engine.test.cjs
       - name: Smoke-test real gameplay with isolated synthetic profiles
         run: node tests/battle-simulator.cjs --samples 5
+
+      - name: Run Essence combat and save-safety regressions
+        run: node --test tests/essence-combat.test.cjs
