@@ -120,3 +120,49 @@ Dieses Dokument hält die im Gespräch festgelegten Designentscheidungen für da
 ### Technischer Nachtrag: Regression gegen dauerhafte DEF-Erhöhung
 Bei einem gezielten Test eines Seelenzehrers mit Grund-DEF + instabiler Seelenessenz + verdichteter DEF wurde eine echte Logiklücke gefunden: Die alte Zerfallsroutine nutzte den sichtbaren Gesamt-DEF-Wert als Ausgangswert und schrieb dadurch temporäre DEF in die permanente Grund-DEF. **Korrigiert:** Normaler Kreaturenzerfall reduziert ausschließlich `card.atk/card.def`, temporäre Schichten verbleiben separat. Kontrollbeispiel: Grund-DEF 260 → 230, Seelenessenz 200 → 110, verdichtete DEF 90 → 60, 90 LP-Burn. Automatischer Regressionstest angelegt.
 Zusätzlich liefen 300 simulierte Leihdeck-Prüfungen über die drei Schulen und fünf Schwierigkeitsstufen sowie weitere 110 reguläre Essenz-Duelle erfolgreich durch. Diese Ergebnisse belegen die technische Ausführbarkeit, nicht das finale Balancing oder eine reale Browser-UX-Abnahme.
+
+## L. Neue Konzeptideen – rollengetragene Fusionen und formbare Monsterfamilien (Diskussion, KEINE Implementation)
+
+**Status: KONZEPTVORSCHLAG vom Nutzer, noch nicht final ausbalanciert.** Vor Codierung Zustands-, Wirtschafts- und Mechaniktests festlegen.
+
+### L1. Vererbte Rolle einer Kampf-Fusion
+- Die vorhandenen Materialien bestimmen einen **temporären Typ der beschworenen Fusionsinstanz**, nicht die dauerhafte Karten-ID oder die Grundvorlage im Sammlungsbestand.
+- Zähle `D` = Anzahl physisch eingesetzter Verteidiger (`guardian`/ggf. `soul`) und `P` = Anzahl physisch eingesetzter Predatoren (`predator`).
+- **Exakt die gewünschte Drei-Punkte-Differenz:** `D - P >= 3` ⇒ Verteidiger-Fusion; `P - D >= 3` ⇒ Predator-Fusion; sonst **normale neutrale Fusion** mit allen bestehenden Fähigkeiten und Fusions-/Pokerboni. Neutrale und übrige Rollen beeinflussen das Delta nicht. Deshalb gibt es keine Rollenfusion aus zwei Materialien.
+- Beispiele: 3D/0P⇒DEF; 3D/2Neutrale⇒DEF; 4D/1P⇒DEF; 3D/1P⇒neutral; 3P/2Neutrale⇒Predator; 2D/2P⇒neutral.
+- Ein Feldfusionsmonster mit vererbter Rolle zählt beim **späteren** Einsatz **als ein Material mit einer Stimme**; nicht alle historischen Ursprungsmaterialien mehrfach gewichten. Die vorhandene Zahl eingesetzter Materialkarten bleibt maßgeblich.
+- Nach dem regulären qualitativen Fusionswurf eine **rollenspezifische ATK/DEF-Modifikation** berechnen (früher reiner TESTVORSCHLAG: Predator +20% ATK / −25% DEF; Verteidiger −25% ATK / +25% DEF). Die Modifikation muss relativ zum vorhandenen Monsterlevel und der Vorlage begrenzt, lesbar und in der Fusionsvorschau erkennbar sein. Fusionsrollen dürfen nicht mehrfach stapelbar sein und keine „gratis“ Seelenzehrer-Fähigkeit verursachen.
+- In Fusion, Feld-Fusion, Fusionsvorschau, Besitz-/Kampfstatistiken, Snapshot-/Save-Restore und KI dieselbe Berechnung verwenden; alte Duelle und PvP vor Migration gesondert behandeln.
+
+### L2. Kombinieren und Zerlegen von **normalen Monstern**
+- Völlig **getrennt von der Kampf-Fusion**: Eine reversible Werkstatt-Mechanik für im Besitz befindliche Exemplare **derselben Monsterfamilie**.
+- **Stufenerhalt** als Grundgesetz: Summe der Stufen vor und nach einer Werkstatt-Transaktion bleibt exakt gleich. Beispiele:
+  - 7 × Level 1 → 1 × Level 7.
+  - 1 × Level 7 → 2 × Level 3 + 1 × Level 1.
+  - 1 × Level 7 → 3 × Level 2 + 1 × Level 1.
+  - 1 × Level 7 → 7 × Level 1.
+  - Umgekehrt mehrere höhere Stufen gemeinsam in genau einen gewünschten Ziellevel überführen, sofern Summe, Besitz, Familienbindung und Cap passen.
+- **Kein Fraktions-/Rundungsverlust**, der Duplizierung oder Upgrade-Schleifen zulässt. In derselben atomaren Transaktion allokieren, Bestand prüfen, Ausgangskarten abbuchen und Zielkarten gutschreiben. Splits müssen erlaubte, exakte Aufteilungen und verschiedene Rezepte anbieten.
+- Das ist eine **Level-Transformation**, nicht die Herstellung einer Fusion, kein zufälliger Quality-Roll und keine Beute-/Kartendrop-Trigger.
+- Geplant bis **maximal Level 12**. Der **aktuell anhand Turnierfortschritt erlaubte Werkstatt-Level-Cap** muss verhindern, dass man nach frühen Duellen mit 12 Lv1-Kopien sofort ein Lv12-Monster baut. Regeln der Stufenfreigabe und Erwerbsökonomie zuerst simulieren.
+- Bestandsüberschuss darf nicht in beschränkte Karten umgewandelt werden: **Essenzmonster, Schicksalswesen, einzigartige/seltene Spezialkarten, echte Fusionsvorlagen und zeitlich begrenzte Leihdecks ausnehmen**, sofern nicht ausdrücklich einzeln freigegeben.
+- Bestehendes `lineRoot`/`variantOf`/`lineStep` der 22 normalen Familien wiederverwenden. Aktuell nur die Wurzel plus 1–3 Varianten; für Level 1–12 sind weitere **stabile, explizite Karten-IDs** mit Familienzugehörigkeit erforderlich; vorhandene IDs nie verschieben. Familien, deren bisherige Wurzel bei Level >1 startet, brauchen beim vollständigen Level-1-Splitting vorher definierte, gültige Level-1-Formen.
+- Nur neue, freigeschaltete Varianten dürfen gezogen/hergestellt werden. Umwandeln muss gültige Inventargrenzen und **max. drei Kopien je Karten-ID im Kampfdeck** respektieren. 7 Exemplare im Inventar können dennoch gesammelt werden; Sammlungsinventar und 40er-Deck sind nicht dasselbe.
+- Vor Umwandlung prüfen, ob eine Karte in aktivem Deck, gespeicherten Deck-Slots oder gesichertem laufenden Duell verwendet wird. Unzureichender Bestand ⇒ klarer Dialog und Transaktion ablehnen oder absichtlich Deckersatz anbieten; niemals unbemerkt Deck invalidieren.
+- Aufstiegs-/Duplikat-Upgrades, bereits investierte Verstärkungen, Seltenheit, Meilensteinfortschritt, Sammlungsziele und Questbelohnung nicht über beliebige Levelumwandlungen vervielfachen. Hin-und-zurück ohne Gewinn möglich, optional moderater Ressourcenkostenansatz nur für Komfort/Balancing, nicht zum stopfen eines fehlerhaften Erhaltungssystems.
+- Aktuelles Kartensystem enthält 22 normale Familien und ~90 Hauptdeckkarten; darüber hinaus werden weitere **echte Monsterfamilien** gebraucht, damit reine Level-1/2/7/12-Decks verschieden genug aufgebaut werden können. Anzahl/Verteilung gezielt nach Rollen und Elementen bestimmen, nicht bloß kosmetische Levelkopien.
+
+### L3. Normale Monster konkurrenzfähig halten, ohne den Kern „Fusionen“ abzuwerten
+- Späte gewöhnliche Monster bekommen Zugriff auf stufenstarke Varianten bis 12; sie müssen **nützliche Rollenentscheidungen, Angriffs- und Verteidigungskraft und eigene Synergien** bieten.
+- Fusion bleibt eigenständig durch Fusionsmuster, Quality-Rolls, Materialkombination, sofortiges hohes Powerpotential und vererbbare Rolle; nicht pauschal fusionierte Monster nerfen.
+- Normale Monster sollen eine andere Stärke erhalten: **Feldkontinuität, Rollen-Teamwork, besondere Schutz- oder Ziel-Effekte, direktes Spiel ohne Mehrkarten-Fusionskosten**. Mögliche, getrennt zu testende Synergien: Dreierformation desselben Rollentyps oder „Veteranen“-Effekte nach Verweildauer; beachten, dass normales Kreaturenzerfallssystem nicht zum Stallen anregt.
+- Konkret messen: reale Erwerbswege, 4.000–10.000 LP, Stufen I–X, reiner Normalspielstil, Normal+Fusion-Hybrid, Rolle+Fusion-Hybrid, DEF/Burn-Setup und Konterdeck; gleiche Seeds, reale Fähigkeitsaktivierung, kein automatisches Verhalten, das überall Fusionen priorisiert.
+
+### L4. Offen vor Programmierung
+1. Welche zusätzlichen Monsterfamilien und wie viele je Typ/Element? Nicht nur prozedurale Kopien eines zu kleinen Pools.
+2. **Freischaltkurve je Turniergegner** für Level 8–12 / benötigte Duplikate und ggf. Werkstattkosten.
+3. Welche Seltenheits-, Enhancement-/Aufstiegs- und Duplikat-Systeme sind ausdrücklich umwandelbar? Wie die gesamte Wirtschaft gegen Hin-und-zurück-Exploits schützen?
+4. Bei Rollenfusion genau wie stark werden ATK und DEF umverteilt? Wie zählen bestehende Fusionsmonster als spätere Materialien, wenn sie bereits einen Rolle-Tag haben?
+5. Separate Normalmonster-Boni definieren und vor finalem Release mit vergleichbaren, strategiefähigen KI-Gegnern testen.
+
+**Hinweis:** Dieser Abschnitt ist Designprotokoll, keine Behauptung bereits veröffentlichter Spielfunktionen.
