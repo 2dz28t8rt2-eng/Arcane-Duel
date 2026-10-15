@@ -7,7 +7,7 @@
  const esc=v=>escapeHtml(String(v));
  const roots=[...new Set([...ARCANE_STAGE_IDS.keys()].map(k=>Number(k.split(':')[0])))];
  const stage=(root,lv)=>ARCANE_STAGE_IDS.get(root+':'+lv);
- const levelCap=()=>highestCleared()>=8?12:highestCleared()>=7?10:highestCleared()>=5?8:highestCleared()>=3?6:4;
+ const levelCap=()=>highestCleared()>=7?10:highestCleared()>=5?8:highestCleared()>=3?6:4;
  let chosenRoot=roots[0],combineLevel=2,splitLevel=2,combineText='',splitText='';
  const usedCopies=id=>Math.max(0,...profile.slots.map(s=>s.main.filter(x=>x===id).length),
   profile.activeDeck.filter(x=>x===id).length);
@@ -99,7 +99,7 @@
    '<label>Gewünschte niedrigere Stufen<input type="text" id="arcaneForgeSplitRecipe" value="'+esc(splitText)+'" placeholder="z. B. 3+3+1"></label>'+
    '<p>Beispiele für eine LV-7-Karte: 3+3+1, 2+2+2+1 oder siebenmal 1. Alle Summen müssen exakt aufgehen.</p>'+
    btn('split','Monster zerlegen')+'</div></div>'+
-   '<p class="arcane-forge-limit">Stufenbegrenzung durch den Turnierfortschritt. Bis LV 12 erst nach Turniergegner VIII. Essenzmonster, ACE- und Fusionskarten sind ausgeschlossen.</p>';
+   '<p class="arcane-forge-limit">Stufenbegrenzung durch den Turnierfortschritt. Level 11 und 12 bleiben für zukünftige Inhalte gesperrt. Essenzmonster, ACE- und Fusionskarten sind ausgeschlossen.</p>';
   target.prepend(area);
  }
  const oldMenu=renderMenu;
