@@ -435,10 +435,17 @@ fusionAnimation=async function(level,visuals=null){
  if(animationSpeed==='instant'||window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches){
   fusionVisualMaterials=null;fusionVisualResult=null;return;
  }
- // Core placement stores a UID; direct field synthesis stores a card object.
-  const summoned=game?.lastSummoned;
-  const placed=typeof summoned==='object'?summoned:game?.players?.[game?.active]?.field?.find(x=>x?.uid===summoned);
-  const c=fusionVisualResult||placed||game?.pending?.card;
+ // Resolve the committed fusion instance rather than just its card catalog template.
+ const summoned=game?.lastSummoned;
+ const placed=typeof summoned==='object'?summoned:game?.players?.[game?.active]?.field?.find(x=>x?.uid===summoned);
+ const c=fusionVisualResult||placed||game?.pending?.card;
+ // The engine has already committed the summon; reveal it only once the card lands.
+ const owner=game?.players?.findIndex(p=>p.field?.some(x=>x&&c&&x.uid===c.uid))??-1;
+ const zone=owner>=0?game.players[owner].field.findIndex(x=>x&&c&&x.uid===c.uid):-1;
+ const fieldSelector=zone<0?null:(owner===0?'#ownRow [data-mine="'+zone+'"]':'#enemyRow [data-enemy="'+zone+'"]');
+ const fieldSlot=fieldSelector?document.querySelector(fieldSelector):null;
+ const fieldCard=fieldSlot?.querySelector('.board-creature');
+ if(fieldCard)fieldCard.classList.add('evo-fusion-awaiting');
  const cards=visuals||fusionVisualMaterials||[];fusionVisualMaterials=null;
  const trace=c?.rollTrace||[],math=c?.rollMath,role=c?.roleOverride||math?.role||CARDS[c?.id]?.role||'combatant';
  const labels={predator:'PREDATOR',guardian:'WÄCHTER',soul:'SEELENZEHRER'};
@@ -470,10 +477,16 @@ fusionAnimation=async function(level,visuals=null){
   '</span><b class="evo-calc-atk">'+num(atk)+'</b><b class="evo-calc-def">'+num(def)+'</b></div>';
  document.body.append(fx);sound('summon');
  try{
+  // Phase 1: real materials orbit, then merge.
   fx.classList.add('evo-phase-orbit');await animationWait(grand?970:810);
-  fx.classList.remove('evo-phase-orbit');fx.classList.add('evo-phase-merge');await animationWait(510);
-  fx.classList.add('evo-phase-reveal');await animationWait(1050);
-  fx.classList.add('evo-stamp-impact');sound('summon');await animationWait(650);
+  fx.classList.remove('evo-phase-orbit');fx.classList.add('evo-phase-merge');await animationWait(560);
+  // Phase 2: an empty calculation popup appears, followed by the slowly revealed result.
+  fx.classList.add('evo-phase-shell');await animationWait(430);
+  fx.classList.add('evo-phase-reveal');await animationWait(1080);
+  // Phase 3: the heavy role stamp lands on the finished card BEFORE the dice.
+  if(['predator','guardian','soul'].includes(role)){
+   fx.classList.add('evo-stamp-impact');sound('summon');await animationWait(780);
+  }
   fx.classList.add('evo-stamp-settled','evo-phase-rolls');
   const log=fx.querySelector('.evo-rolls');
   const shift=math?.roleWeights;
@@ -517,10 +530,9 @@ fusionAnimation=async function(level,visuals=null){
   // Fly the actual revealed card toward its real occupied field zone.
   // This is presentation only; the authoritative placement already succeeded.
   const actor=fx.querySelector('.evo-fusion-result');
-  const index=Number.isInteger(c?.uid)?(game?.players?.[game?.active]?.field?.findIndex(x=>x?.uid===c.uid)??-1):-1;
-  const selector=game?.active===0?'#ownRow [data-mine="'+index+'"]':'#enemyRow [data-enemy="'+index+'"]';
-  const slot=index>=0?document.querySelector(selector):null;
+  const slot=fieldSlot;
   if(slot&&typeof actor?.animate==='function'){
+   fx.classList.add('evo-phase-landing');
    const from=actor.getBoundingClientRect(),to=slot.getBoundingClientRect();
    const dx=(to.left+to.width/2)-(from.left+from.width/2);
    const dy=(to.top+to.height/2)-(from.top+from.height/2);
@@ -531,7 +543,14 @@ fusionAnimation=async function(level,visuals=null){
    ],{duration:520,easing:'cubic-bezier(.24,.7,.18,1)',fill:'forwards'});
    await Promise.race([new Promise(resolve=>{flight.onfinish=resolve;flight.oncancel=resolve;}),animationWait(700)]);
   }else{fx.classList.add('evo-card-land');await animationWait(460);}
- }finally{fx.remove();fusionVisualResult=null;}
+  }finally{
+  fx.remove();fusionVisualResult=null;
+  if(fieldCard){
+   fieldCard.classList.remove('evo-fusion-awaiting');
+   fieldCard.classList.add('evo-fusion-landed');
+   setTimeout(()=>fieldCard.classList.remove('evo-fusion-landed'),900);
+  }
+ }
 };
 // Small card-flight for normal summons: animation is only presentation, never a game action.
 function animateCardPlacement(card,from,to){
