@@ -101,3 +101,17 @@
  .arcane-sealed-choices{grid-template-columns:repeat(2,minmax(0,1fr))}
  .arcane-fusion-pick img{height:100px}
 }
+
+/* Field role and charged next-turn Vorstoß are visible before the opponent acts. */
+.board-creature.tc-card{position:relative}
+.arcane-board-role{position:absolute;z-index:7;left:4px;bottom:36px;max-width:calc(100% - 8px);
+ overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+ color:#f8dea5;background:#111a2def;border:1px solid #b79b65c0;border-radius:4px;
+ font:800 8px/1.25 system-ui,sans-serif;padding:2px 4px;pointer-events:none}
+.arcane-board-guardian,.arcane-board-soul{border-color:#81bdaa;color:#d9f9ed}
+.arcane-board-predator{border-color:#c68e71;color:#ffd1bc}
+.arcane-rush-ready{position:absolute!important;right:2px;top:2px;z-index:12;
+ background:#673a17eb;border:1px solid #f6b669;color:#fff0be;border-radius:5px;
+ padding:2px 4px;font:850 8px/1.2 system-ui,sans-serif;pointer-events:none;
+ box-shadow:0 0 8px #f49d4380}
+#menuScreen [data-action="loot"]{font-size:13px!important;min-height:35px;padding:8px 11px!important}
