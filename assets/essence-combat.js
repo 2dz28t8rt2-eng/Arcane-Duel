@@ -291,10 +291,17 @@
   if(e.attacksThisTurn>0||e.lastToggle===game.turn)return false;
   e.doubleChoice=e.doubleChoice===2?1:2;e.lastToggle=game.turn;render();return true;
  }
+ function beginTrial(key,school,stage){
+  if(!['predator','fusion','defense'].includes(school)||!Number.isInteger(stage)||stage<0||stage>4)return false;
+  if(uiMode!=='menu'||busy||aiRunning||storageConflict||profile.activeDuel){toast('Schließe zuerst deine gespeicherte Partie ab.');return false;}
+  trial={key,school,stage};
+  try{startDuel('pve',1,'challenge','easy');}finally{trial=null;}
+  return true;
+ }
  function fusionRollBonus(g){
   if(!isEssenceDuel(g)||g.active!==0)return 0;
   const c=g.players[0].field.find(c=>c?.id===essence().chosen&&CARDS[c.id]?.essenceSchool==='fusion');
   return c?1+(activeSchool(g)==='fusion'&&perkRank(buffTier(g))>=3?1:0):0;
  }
- window.ArcaneEssenceCombat={condense,discharge,predatorMode,fusionRollBonus,statLayer,perkRank,evolvedLevel,essence,schools,schoolName,monsterIds};
+ window.ArcaneEssenceCombat={condense,discharge,predatorMode,fusionRollBonus,beginTrial,statLayer,perkRank,evolvedLevel,rankCap,nextCost,essence,schools,schoolName,monsterIds};
 })();
