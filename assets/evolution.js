@@ -514,7 +514,7 @@ fusionAnimation=async function(level,visuals=null){
   // Fly the actual revealed card toward its real occupied field zone.
   // This is presentation only; the authoritative placement already succeeded.
   const actor=fx.querySelector('.evo-fusion-result');
-  const index=game?.players?.[game?.active]?.field?.findIndex(x=>x?.uid===c?.uid)??-1;
+  const index=Number.isInteger(c?.uid)?(game?.players?.[game?.active]?.field?.findIndex(x=>x?.uid===c.uid)??-1):-1;
   const selector=game?.active===0?'#ownRow [data-mine="'+index+'"]':'#enemyRow [data-enemy="'+index+'"]';
   const slot=index>=0?document.querySelector(selector):null;
   if(slot&&typeof actor?.animate==='function'){
@@ -526,7 +526,7 @@ fusionAnimation=async function(level,visuals=null){
     {transform:'translate(0,0) scale(1)',opacity:1},
     {transform:'translate('+dx+'px,'+dy+'px) scale('+scale+')',opacity:0}
    ],{duration:520,easing:'cubic-bezier(.24,.7,.18,1)',fill:'forwards'});
-   await new Promise(resolve=>{flight.onfinish=resolve;flight.oncancel=resolve;});
+   await Promise.race([new Promise(resolve=>{flight.onfinish=resolve;flight.oncancel=resolve;}),animationWait(700)]);
   }else{fx.classList.add('evo-card-land');await animationWait(460);}
  }finally{fx.remove();fusionVisualResult=null;}
 };
