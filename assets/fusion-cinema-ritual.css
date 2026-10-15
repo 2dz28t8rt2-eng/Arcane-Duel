@@ -1,0 +1,296 @@
+/* Arcane Duel: isolated floating-card fusion ritual (uses role palette from Bestiarium).
+   Animation choreography inspired by Animate.css bounceInDown/fadeInUp,
+   but scoped and tuned locally to avoid changing ordinary gameplay elements.
+   tsParticles Slim paints optional arcane motes; CSS sparks work without internet. */
+.ritual-overlay.evo-summon{
+ position:fixed!important;inset:0!important;z-index:30000!important;
+ box-sizing:border-box!important;width:100vw!important;height:100dvh!important;
+ min-width:0!important;max-width:none!important;max-height:none!important;
+ margin:0!important;padding:10px!important;border:0!important;border-radius:0!important;
+ display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+ background:radial-gradient(ellipse at 50% 42%,#151c32e8,#080a15f4 73%)!important;
+ overflow-y:auto!important;overflow-x:hidden!important;box-shadow:none!important;
+ isolation:isolate;pointer-events:auto;
+ --ritual-role-color:#d0b7ff;
+}
+.ritual-overlay::before,.ritual-overlay::after{display:none!important}
+.ritual-overlay[data-role="predator"]{--ritual-role-color:#f26c66}
+.ritual-overlay[data-role="guardian"]{--ritual-role-color:#75c7f9}
+.ritual-overlay[data-role="soul"]{--ritual-role-color:#da9eff}
+.ritual-overlay .ritual-window{
+ position:relative;box-sizing:border-box;flex:0 0 auto;
+ width:min(500px,calc(100vw - 28px));
+ height:min(570px,calc(100dvh - 110px));
+ min-height:min(455px,calc(100dvh - 25px));
+ margin:65px auto 8px;
+ border:2px solid transparent;border-radius:17px;
+ background:transparent;box-shadow:none;
+ transition:none!important;overflow:visible;
+}
+.ritual-overlay.evo-phase-shell .ritual-window{
+ animation:ritual-window-open .55s ease-out both;
+}
+.ritual-overlay .evo-mat-count{
+ position:absolute!important;left:8px!important;right:8px!important;top:248px!important;
+ z-index:2!important;text-align:center;font-size:11px!important;
+ color:#f9dca8!important;text-shadow:0 2px 8px #070611;
+}
+.ritual-overlay .evo-visual-stage{
+ position:absolute!important;top:0!important;left:0!important;right:0!important;
+ width:100%!important;height:295px!important;flex:none!important;overflow:visible!important;
+}
+.ritual-overlay .evo-fusion-core{top:47%!important}
+.ritual-overlay .evo-actual-material{top:46%!important}
+.ritual-overlay .evo-fusion-flash{top:48%!important}
+.ritual-overlay .evo-fusion-result.monster-card{
+ position:absolute!important;left:50%!important;top:-57px!important;
+ box-sizing:border-box!important;width:214px!important;height:298px!important;
+ margin:0!important;padding:10px!important;
+ display:flex!important;flex-direction:column!important;justify-content:space-between!important;gap:5px!important;
+ opacity:0;transform:translateX(-50%) translateY(38px) scale(.90);
+ background:linear-gradient(145deg,#38304e,#192338 70%,#0b1629)!important;
+ border:5px solid #d5b676!important;border-radius:12px!important;
+ box-shadow:0 15px 30px #04050bbb,0 0 26px #ab8bdd66!important;
+ overflow:visible!important;z-index:10!important;pointer-events:none;
+}
+.ritual-overlay .ritual-card-name{
+ max-width:100%;font:800 14px/1.25 Georgia,serif!important;letter-spacing:0!important;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#f9dfb0;
+ text-shadow:0 2px 3px #050914;text-align:center;
+}
+.ritual-overlay .ritual-card-art{
+ position:relative;flex:1 1 auto;min-height:0;width:100%;overflow:visible;
+ background:#121527;border:2px solid #9e85be;border-radius:5px;
+}
+.ritual-overlay .ritual-card-art img{
+ display:block;width:100%!important;height:100%!important;max-width:none!important;object-fit:cover;border-radius:3px;
+}
+.ritual-overlay .ritual-card-level{
+ text-align:center;font:800 10px/1.1 system-ui,sans-serif;
+ color:#ebd4ae;letter-spacing:.08em;
+}
+.ritual-overlay .ritual-card-stats{
+ display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+ gap:6px;width:100%;font:700 12px/1.3 ui-monospace,Consolas,monospace;flex:none;
+}
+.ritual-overlay .ritual-stat{
+ display:flex;flex-direction:column;justify-content:center;align-items:center;
+ min-width:0;min-height:38px;padding:3px 2px;border-radius:6px;
+ border:1px solid #ac8d51;background:#111728;color:#e5c98c;
+ font-size:10px;letter-spacing:0;
+}
+.ritual-overlay .ritual-stat b{
+ display:block;max-width:100%;font:850 14px/1.2 ui-monospace,Consolas,monospace!important;
+ white-space:nowrap;overflow:hidden;text-overflow:clip;letter-spacing:-.35px;color:#ffe2a0;
+}
+.ritual-overlay .ritual-stat.def b{color:#a5e3ff}
+.ritual-overlay .ritual-stat.rolling b{color:#ff9b60;filter:blur(.35px)}
+.ritual-overlay .ritual-particles{
+ position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1;
+}
+.ritual-overlay .ritual-particles canvas{pointer-events:none!important}
+.ritual-overlay .ritual-sparks{
+ position:absolute;inset:0;pointer-events:none;z-index:1;
+}
+.ritual-overlay .ritual-spark{
+ position:absolute;left:50%;top:47%;width:5px;height:5px;border-radius:50%;
+ opacity:0;background:var(--ritual-role-color);box-shadow:0 0 10px var(--ritual-role-color),0 0 16px #eddaac;
+}
+.ritual-overlay.evo-phase-orbit .ritual-spark,
+.ritual-overlay.evo-phase-merge .ritual-spark{
+ animation:ritual-spark-float 1.35s ease-in-out infinite alternate;
+ animation-delay:var(--delay,0s);
+}
+/* The art receives the real role-specific seal; it is never drawn on miniatures. */
+.ritual-overlay .evo-role-seal.role-stamp{
+ position:absolute!important;z-index:12!important;top:34%!important;left:5%!important;
+ width:90%!important;max-width:90%!important;box-sizing:border-box!important;
+ padding:8px 2px!important;border:5px double currentColor!important;border-radius:5px!important;
+ background:#151b2ad9!important;color:var(--ritual-role-color)!important;
+ font:900 18px/1.05 Georgia,serif!important;letter-spacing:.055em!important;
+ text-align:center;text-shadow:0 2px 3px #000!important;
+ box-shadow:0 5px 9px #000a,0 0 18px currentColor!important;
+ transform:scale(4.5) rotate(-16deg);opacity:0;pointer-events:none;
+}
+.ritual-overlay.evo-stamp-impact .evo-role-seal.role-stamp{
+ animation:ritual-stamp-thunder .48s cubic-bezier(.25,.95,.32,1) both!important;
+}
+.ritual-overlay.evo-phase-rolls .evo-role-seal.role-stamp,
+.ritual-overlay.evo-calc-absorb .evo-role-seal.role-stamp{
+ animation:none!important;opacity:.79!important;transform:scale(1) rotate(-10deg)!important;
+}
+/* Stamp fades after the arithmetic has become final, not before dice finish. */
+.ritual-overlay.evo-card-locked .evo-role-seal.role-stamp{
+ animation:ritual-ink-fade 2.1s ease-out forwards!important;
+ opacity:.79!important;
+}
+.ritual-overlay.evo-phase-reveal .evo-fusion-result.monster-card{
+ animation:ritual-card-rise 1s cubic-bezier(.18,.89,.32,1.24) both!important;
+}
+.ritual-overlay.evo-stamp-impact .evo-fusion-result.monster-card{
+ animation:ritual-card-thud .5s ease-out both!important;
+}
+.ritual-overlay.evo-phase-rolls .evo-fusion-result.monster-card{
+ animation:ritual-card-aura 1.35s ease-in-out infinite alternate!important;
+ opacity:1!important;transform:translateX(-50%)!important;
+}
+.ritual-overlay.evo-phase-landing .evo-fusion-result.monster-card{
+ animation:none!important;opacity:1!important;transform:translateX(-50%);
+}
+.ritual-overlay.ritual-screen-shake .ritual-window{
+ animation:ritual-window-shake .135s linear 3!important;
+}
+.ritual-overlay .evo-popup-panel.math-zone{
+ position:absolute!important;left:18px!important;right:18px!important;bottom:20px!important;
+ box-sizing:border-box!important;width:auto!important;height:min(245px,37dvh)!important;
+ min-height:155px!important;max-height:none!important;padding:12px!important;
+ display:block!important;overflow-y:auto!important;
+ opacity:0;transform:translateY(35px) scale(.96);
+ border:2px solid #8d7bb2!important;border-radius:10px!important;
+ background:linear-gradient(150deg,#151c30f5,#211934fa)!important;
+ box-shadow:inset 0 1px 20px #7961ae47,0 8px 22px #0009!important;
+ scrollbar-width:thin;z-index:3;
+}
+.ritual-overlay.evo-phase-shell .math-zone{
+ animation:ritual-math-open .55s ease-out both!important;
+}
+.ritual-overlay .evo-calc-heading{
+ text-align:center;font:900 11px/1.25 system-ui,sans-serif!important;
+ letter-spacing:.08em;color:#e7ceff!important;
+}
+.ritual-overlay .evo-role-math{font-size:10px!important}
+.ritual-overlay .evo-rolls{
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ gap:4px!important;justify-items:stretch!important;min-height:0!important;padding:6px 0 0;
+}
+.ritual-overlay .evo-calc-cols,.ritual-overlay .evo-calc-row{
+ display:grid!important;grid-template-columns:minmax(95px,1fr) minmax(50px,75px) minmax(50px,75px)!important;
+ padding:5px 7px!important;gap:4px!important;width:100%!important;
+ font:650 12px/1.4 ui-monospace,Consolas,monospace!important;box-sizing:border-box;
+}
+.ritual-overlay .evo-calc-row b{font-size:12px!important;white-space:nowrap!important}
+.ritual-overlay .evo-calc-row.math-row{transform:scale(2);opacity:0}
+.ritual-overlay .evo-calc-row.math-row.stamped{
+ animation:ritual-row-stamp .2s ease-out both!important;
+}
+.ritual-overlay .evo-calc-row.math-row.stamped::after{
+ content:'✦';position:absolute;inset:auto 7px 2px auto;border:0;
+ font:900 14px Georgia,serif;opacity:.35;color:var(--ritual-role-color);
+}
+.ritual-overlay.evo-calc-absorb .math-zone .evo-rolls>*{
+ animation:ritual-math-absorb .8s cubic-bezier(.52,.08,.71,.21) both!important;
+}
+.ritual-overlay.evo-card-locked .ritual-stat{
+ box-shadow:0 0 10px #d5ae68a1;border-color:#f0d59f;
+}
+.ritual-overlay .evo-card-final{display:none!important}
+.ritual-overlay .evo-fusion-caption{display:none!important}
+@keyframes ritual-window-open{
+ from{background:transparent;border-color:transparent;box-shadow:none}
+ to{background:linear-gradient(155deg,#25253bf3,#121727f8);border-color:#a78ec6;box-shadow:0 16px 60px #000c,inset 0 0 24px #8b75ac3a}
+}
+@keyframes ritual-math-open{
+ from{opacity:0;transform:translateY(35px) scale(.96)}
+ to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes ritual-card-rise{
+ from{opacity:0;transform:translateX(-50%) translateY(45px) scale(.88)}
+ to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+}
+@keyframes ritual-card-thud{
+ 0%{opacity:1;transform:translateX(-50%) translateY(0) scale(1);filter:brightness(1)}
+ 30%{transform:translateX(calc(-50% - 3px)) translateY(3px) scale(.96);filter:brightness(1.8)}
+ 60%{transform:translateX(calc(-50% + 3px)) translateY(-2px) scale(1.04)}
+ 100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1);filter:brightness(1)}
+}
+@keyframes ritual-card-aura{
+ from{filter:drop-shadow(0 0 5px #bea0ff50)}
+ to{filter:drop-shadow(0 0 14px #d9adff9a)}
+}
+@keyframes ritual-stamp-thunder{
+ 0%{opacity:0;transform:translateY(-180px) scale(4.5) rotate(-17deg)}
+ 45%{opacity:1;transform:translateY(5px) scale(1.17) rotate(-13deg)}
+ 58%{transform:translateY(-5px) scale(.90) rotate(-10deg)}
+ 100%{opacity:.79;transform:translateY(0) scale(1) rotate(-10deg)}
+}
+@keyframes ritual-row-stamp{
+ 0%{opacity:0;transform:scale(2.4)}
+ 65%{opacity:1;transform:scale(.96)}
+ 100%{opacity:1;transform:scale(1)}
+}
+@keyframes ritual-math-absorb{
+ from{opacity:1;transform:translateY(0) scale(1)}
+ to{opacity:0;transform:translateY(-205px) scale(.14)}
+}
+@keyframes ritual-ink-fade{from{opacity:.79}to{opacity:0}}
+@keyframes ritual-spark-float{
+ 0%{opacity:0;transform:rotate(var(--angle)) translateX(25px) scale(.4)}
+ 50%{opacity:.85}
+ 100%{opacity:0;transform:rotate(var(--angle)) translateX(160px) scale(1.3)}
+}
+@keyframes ritual-window-shake{
+ 0%,100%{transform:translate(0,0)}
+ 20%{transform:translate(-4px,2px)}
+ 40%{transform:translate(4px,-3px)}
+ 65%{transform:translate(-3px,-1px)}
+ 85%{transform:translate(2px,2px)}
+}
+/* Real duel card preview: favor fit INSIDE numeric chambers over headline size. */
+#duelScreen #largeCardPreview .hand-card.tc-card .card-name,
+#duelScreen .card-preview-panel .hand-card.tc-card .card-name,
+.arcane-enemy-large .hand-card.tc-card .card-name{
+ font-size:12px!important;line-height:14px!important;
+ letter-spacing:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+}
+#duelScreen #largeCardPreview .hand-card.tc-card .hand-stats .stat-value,
+#duelScreen .card-preview-panel .hand-card.tc-card .hand-stats .stat-value,
+.arcane-enemy-large .hand-card.tc-card .hand-stats .stat-value{
+ font:750 11px/13px ui-monospace,Consolas,monospace!important;letter-spacing:-.15px!important;
+ min-width:0!important;max-width:100%!important;display:block!important;text-align:center!important;
+ white-space:nowrap!important;overflow:hidden!important;
+}
+#duelScreen #largeCardPreview .hand-card.tc-card .hand-stats .arcane-stat-long,
+.arcane-enemy-large .hand-card.tc-card .hand-stats .arcane-stat-long{font-size:9px!important;letter-spacing:-.35px!important}
+#duelScreen #largeCardPreview .hand-card.tc-card .hand-stats,
+#duelScreen .card-preview-panel .hand-card.tc-card .hand-stats{
+ height:35px!important;min-height:35px!important;max-height:35px!important;flex-basis:35px!important;
+}
+#duelScreen #largeCardPreview .hand-card.tc-card .hand-stats .stat,
+.arcane-enemy-large .hand-card.tc-card .hand-stats .stat{
+ padding:1px 3px!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;
+}
+/* Deck selection is intentionally taller, not larger text. */
+#menuScreen .deck-preview-card .hand-card.tc-card{
+ height:415px!important;min-height:415px!important;max-height:415px!important;
+}
+#menuScreen .deck-preview-card .hand-card.tc-card .hand-art{
+ flex-basis:250px!important;min-height:250px!important;
+}
+#menuScreen .deck-preview-card .hand-card.tc-card .hand-stats .stat-value{
+ font-size:13px!important;line-height:15px!important;letter-spacing:-.2px!important;
+}
+@media(max-width:520px){
+ .ritual-overlay .ritual-window{
+  width:calc(100vw - 22px);height:min(535px,calc(100dvh - 100px));
+  min-height:min(405px,calc(100dvh - 20px));margin:64px auto 5px;
+ }
+ .ritual-overlay .evo-fusion-result.monster-card{top:-55px!important;width:182px!important;height:254px!important;padding:8px!important}
+ .ritual-overlay .ritual-card-name{font-size:12px!important}
+ .ritual-overlay .ritual-card-stats{gap:3px;font-size:9px}
+ .ritual-overlay .ritual-stat{min-height:32px}
+ .ritual-overlay .ritual-stat b{font-size:11px!important}
+ .ritual-overlay .evo-mat-count{top:210px!important;font-size:9px!important}
+ .ritual-overlay .evo-visual-stage{height:255px!important}
+ .ritual-overlay .evo-popup-panel.math-zone{bottom:12px!important;left:9px!important;right:9px!important;height:min(215px,36dvh)!important;padding:7px!important}
+ .ritual-overlay .evo-role-seal.role-stamp{font-size:14px!important;padding:5px 1px!important}
+ .ritual-overlay .evo-calc-cols,.ritual-overlay .evo-calc-row{
+  grid-template-columns:minmax(80px,1fr) 55px 55px!important;gap:2px!important;
+  padding:4px!important;font-size:10px!important;
+ }
+ .ritual-overlay .evo-calc-row b{font-size:10px!important}
+ #menuScreen .deck-preview-card .hand-card.tc-card{height:380px!important;min-height:380px!important;max-height:380px!important}
+ #menuScreen .deck-preview-card .hand-card.tc-card .hand-art{flex-basis:220px!important;min-height:220px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .ritual-overlay,.ritual-overlay *{animation:none!important;transition:none!important}
+}
