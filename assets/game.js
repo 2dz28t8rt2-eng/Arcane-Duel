@@ -331,10 +331,36 @@ function fusionDeckError(ids){if(!Array.isArray(ids)||ids.length<2||ids.length>1
 function inventoryError(ids,inventory){return ids.some(id=>countCard(ids,id)>(inventory[id]||0))?'Nicht genügend Exemplare im Besitz.':'';}
 function bestFusionDeck(ids,enhancements={},inventory=null){const sorted=[...new Set(ids)].filter(id=>CARDS[id]?.fusionOnly&&(!inventory||inventory[id]>0)).sort((a,b)=>(CARDS[b].atk+ascensionStep(b)*(enhancements[b]||0))-(CARDS[a].atk+ascensionStep(a)*(enhancements[a]||0)));const levels=[...new Set(sorted.map(id=>CARDS[id].level))].sort((a,b)=>a-b);let chosen=levels.map(l=>sorted.find(id=>CARDS[id].level===l));if(chosen.length>15)chosen=chosen.slice(0,15);for(let pass=0;pass<2;pass++)for(const id of sorted){if(chosen.length>=15)break;if(countCard(chosen,id)<Math.min(3,inventory?inventory[id]||0:3))chosen.push(id);}return chosen;}
 function strongestMainDeck(ids,enhancements={},inventory=null){
- const score=id=>CARDS[id].atk+CARDS[id].def+2*ascensionStep(id)*(enhancements[id]||0)+
-  (inventory?normalRoleBonus(CARDS[id],'atk',0)+normalRoleBonus(CARDS[id],'def',0):0);
- return [...new Set(ids)].filter(id=>CARDS[id]&&!CARDS[id].fusionOnly)
-  .sort((a,b)=>score(b)-score(a)).flatMap(id=>Array(Math.min(3,inventory?inventory[id]||0:3)).fill(id)).slice(0,40);
+ const score=id=>CARDS[id].atk*1.08+CARDS[id].def*.92+
+  2*ascensionStep(id)*(enhancements[id]||0)+
+  (inventory?1.08*normalRoleBonus(CARDS[id],'atk',0)+.92*normalRoleBonus(CARDS[id],'def',0):0);
+ const sorted=[...new Set(ids)].filter(id=>CARDS[id]&&!CARDS[id].fusionOnly).sort((a,b)=>score(b)-score(a));
+ // An enemy loadout still uses its original independent order.
+ if(!inventory)return sorted.flatMap(id=>Array(3).fill(id)).slice(0,40);
+ // Auto-equip is a balanced RECOMMENDATION, never a restriction on custom decks.
+ // Respect purchased specialisations without accidentally filling all 40 slots
+ // with blockers just because DEF was buffed.
+ const boosts=profile?.upgrades||{},pred=boosts.jagdinstinkt||0,def=boosts.schildwall||0;
+ const predatorTarget=pred>def?22:def>pred?10:14;
+ const defenderTarget=def>pred?22:pred>def?10:14;
+ const selected=[],counts=new Map();
+ const add=(id,limit=40)=>{
+  const have=counts.get(id)||0,free=Math.min(3,inventory[id]||0)-have;
+  const n=Math.max(0,Math.min(free,limit-selected.length,40-selected.length));
+  for(let i=0;i<n;i++)selected.push(id);
+  if(n)counts.set(id,have+n);
+ };
+ const reserve=(roles,quota)=>{
+  const start=selected.length;
+  for(const id of sorted.filter(id=>roles.includes(CARDS[id].role))){
+   if(selected.length-start>=quota)break;
+   add(id,start+quota);
+  }
+ };
+ reserve(['predator'],predatorTarget);
+ reserve(['guardian','soul'],defenderTarget);
+ for(const id of sorted)add(id);
+ return selected.slice(0,40);
 }
 function themedEnemyLoadout(id,difficulty='easy'){const o=RPG_OPPONENTS[id],available=RPG_OPPONENTS.filter(x=>x.id<=id).flatMap(x=>x.loot),hard=difficulty==='hard';const ownBasics=o.loot.filter(cid=>!CARDS[cid].fusionOnly),basics=[...DEFAULT_DECK,...available.filter(cid=>!CARDS[cid].fusionOnly),...(hard?o.hardLoot.filter(cid=>!CARDS[cid].fusionOnly):[])];const deck=strongestMainDeck(basics);for(const cid of ownBasics)while(countCard(deck,cid)<3){const replace=deck.findIndex(x=>!ownBasics.includes(x)&&countCard(deck,x)>1);if(replace<0)break;deck[replace]=cid;}
  const manifestation=hard?o.hardManifest:o.easyManifest;if(manifestation!==undefined){const amount=hard?3:id>=5?2:1;for(let n=0;n<amount;n++){const candidates=deck.map((cid,i)=>({cid,i})).filter(x=>!ownBasics.includes(x.cid)&&x.cid!==manifestation).sort((a,b)=>CARDS[a.cid].atk-CARDS[b.cid].atk);if(candidates.length)deck[candidates[0].i]=manifestation;}}
