@@ -19,7 +19,7 @@ function start(){
   setTimeout(){return 0},setInterval(){return 0},clearTimeout(){},clearInterval(){},
   console,Date,Math,JSON,Set,Map,Array,Number,Object,String,RegExp,Error,TypeError,Uint32Array,Boolean,Infinity,NaN});
  const source=files.map(x=>fs.readFileSync(path.join(__dirname,'../assets',x),'utf8')).join('\n;\n');
- vm.runInContext(source+'\n;globalThis.__essenceTest={createGame,simulateGame,profile,CARDS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,ESSENCE_MONSTER_IDS,advanceTurn,attack,damagePlayer,randomInt};',context,{timeout:10000});
+ vm.runInContext(source+'\n;globalThis.__essenceTest={createGame,simulateGame,profile,CARDS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,ESSENCE_MONSTER_IDS,advanceTurn,attack,newInstance,damagePlayer,randomInt,statLayer:window.ArcaneEssenceCombat.statLayer};',context,{timeout:10000});
  return {g:context.__essenceTest,w:window};
 }
 test('Old save defaults do not grant an exclusive monster or perk',()=>{
@@ -66,4 +66,24 @@ test('Essence companion never drains currency banked before the duel',()=>{
  const code=fs.readFileSync(path.join(__dirname,'../assets/essence-progression.js'),'utf8');
  assert.match(code,/Math\.min\(Math\.max\(0,result\.coins\),profile\.coins,Math\.max\(0,feed\)\)/);
  assert.match(code,/result\.essenceFood=actual;result\.coins-=actual/);
+});
+
+test('Seelenzehrer absorbs real enemy values and records separate soul DEF',()=>{
+ const {g}=start();
+ const duel=g.createGame({mode:'pve',context:'free',opponentId:1,seed:4310,
+  deck:g.RPG_DEFAULT_DECK,fusionDeck:g.RPG_START_FUSIONS});
+ duel.players[0].field.fill(null);duel.players[1].field.fill(null);
+ const soulId=g.CARDS.find(c=>c.role==='soul'&&!c.fusionOnly).id;
+ const soul=g.newInstance(duel,soulId,0);
+ soul.mode='def';soul.summonedTurn=0;duel.players[0].field[0]=soul;
+ const opponent=g.newInstance(duel,g.CARDS.find(c=>c.role==='predator'&&!c.fusionOnly).id,1);
+ opponent.summonedTurn=0;duel.players[1].field[0]=opponent;
+ duel.turn=2;duel.active=1;
+ const enemyBefore=[opponent.card.atk,opponent.card.def],defBefore=soul.card.def;
+ g.advanceTurn(duel);
+ const soulPower=g.statLayer(soul).soul;
+ assert.ok(soulPower>0,'Energy should grow if enemy had nonzero stats');
+ assert.ok(opponent.card.atk<enemyBefore[0]);
+ assert.ok(opponent.card.def<enemyBefore[1]);
+ assert.equal(soul.card.def,defBefore,'Absorbed DEF must stay separate from base DEF');
 });
