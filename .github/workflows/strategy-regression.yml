@@ -31,3 +31,5 @@ jobs:
 
       - name: Run Essence combat and save-safety regressions
         run: node --test tests/essence-combat.test.cjs
+      - name: Run level crafting and role-fusion regressions
+        run: node --test tests/arcane-overhaul.test.cjs
