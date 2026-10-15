@@ -218,6 +218,9 @@ const RPG_START_FUSIONS=[CARDS.length,CARDS.length+1];
 function addRpgCard(spec){const id=CARDS.length;CARDS.push({kind:'dragon',element:'LICHT',color:'#e8c879',desc:'RPG-Monster',rpg:true,...spec,id});return id;}
 addRpgCard({name:'Funkenwyrm',level:2,atk:460,def:350,kind:'serpent',element:'FEUER',color:'#eda46e',source:-1,fusionOnly:true,desc:'Startfusion · Brücke zu höheren Stufen.'});
 addRpgCard({name:'Runengreif',level:4,atk:900,def:720,kind:'bird',element:'WIND',color:'#a0ccdf',source:-1,fusionOnly:true,desc:'Startfusion · durch stärkeren Loot ersetzbar.'});
+// Level 11/12 are reserved for a later post-tournament expansion.
+// Keep their technical IDs stable, but do not expose them in current gameplay.
+const TOURNAMENT_LEVEL_CAP=10;
 const RPG_OPPONENTS=[
  {id:0,name:'Moos-Training',title:'Freies Training',level:4,policy:'novice',power:.82,coins:18,xp:12,icon:'◇',theme:'Moos',kind:'golem',element:'ERDE',color:'#97cfa8'},
  {id:1,name:'Der Eisenprüfer',title:'I · Tor der Arena',level:4,policy:'balanced',power:.90,coins:30,xp:24,icon:'Ⅰ',theme:'Eisen',kind:'knight',element:'ERDE',color:'#b7c6d6'},
@@ -227,9 +230,9 @@ const RPG_OPPONENTS=[
  {id:5,name:'Der Vulkanrichter',title:'V · Brennender Thron',level:8,policy:'offensive',power:1.04,coins:125,xp:68,icon:'Ⅴ',theme:'Vulkan',kind:'golem',element:'FEUER',color:'#f2a178'},
  {id:6,name:'Der Schattenjäger',title:'VI · Nachtpfad',level:9,policy:'balanced',power:1.08,coins:170,xp:84,icon:'Ⅵ',theme:'Schatten',kind:'wolf',element:'DUNKEL',color:'#b09adf'},
  {id:7,name:'Der Himmelswächter',title:'VII · Wolkenfestung',level:10,policy:'guardian',power:1.14,coins:230,xp:102,icon:'Ⅶ',theme:'Himmels',kind:'bird',element:'WIND',color:'#c9dfed'},
- {id:8,name:'Der Runenarchont',title:'VIII · Sternenarchiv',level:11,policy:'economy',power:1.10,coins:310,xp:122,icon:'Ⅷ',theme:'Runen',kind:'mage',element:'LICHT',color:'#eed694'},
- {id:9,name:'Die Leerenkönigin',title:'IX · Letzter Abgrund',level:12,policy:'balanced',power:1.11,coins:420,xp:144,icon:'Ⅸ',theme:'Leeren',kind:'spirit',element:'DUNKEL',color:'#d2a0ef'},
- {id:10,name:'Der Astralkaiser',title:'X · Finale',level:12,policy:'balanced',power:1.12,coins:580,xp:170,icon:'Ⅹ',theme:'Astral',kind:'dragon',element:'LICHT',color:'#fff0b7'}
+ {id:8,name:'Der Runenarchont',title:'VIII · Sternenarchiv',level:10,policy:'economy',power:1.10,coins:310,xp:122,icon:'Ⅷ',theme:'Runen',kind:'mage',element:'LICHT',color:'#eed694'},
+ {id:9,name:'Die Leerenkönigin',title:'IX · Letzter Abgrund',level:10,policy:'balanced',power:1.11,coins:420,xp:144,icon:'Ⅸ',theme:'Leeren',kind:'spirit',element:'DUNKEL',color:'#d2a0ef'},
+ {id:10,name:'Der Astralkaiser',title:'X · Finale',level:10,policy:'balanced',power:1.12,coins:580,xp:170,icon:'Ⅹ',theme:'Astral',kind:'dragon',element:'LICHT',color:'#fff0b7'}
 ];
 const FUSION_POWER={2:440,4:900,5:1110,6:1350,7:1610,8:1890,9:2200,10:2540,11:2890,12:3260};
 const round10=n=>Math.round(n/10)*10;
@@ -249,7 +252,7 @@ function enhancementFactor(rank){return 1;}
 
 
 const RPG_DEFAULT_DECK=DEFAULT_DECK.flatMap(id=>[id,id]);
-function mainDeckError(ids,owned=RPG_BASE_CARDS.map(c=>c.id)){if(!Array.isArray(ids)||ids.length!==40||ids.some(id=>!owned.includes(id)))return 'Das Hauptdeck benötigt genau 40 freigeschaltete Basiskarten.';if(ids.some(id=>ids.filter(x=>x===id).length>3))return 'Höchstens drei Exemplare je Kartenart.';return '';}
+function mainDeckError(ids,owned=RPG_BASE_CARDS.map(c=>c.id)){if(!Array.isArray(ids)||ids.length!==40||ids.some(id=>!owned.includes(id)||!CARDS[id]||CARDS[id].level>TOURNAMENT_LEVEL_CAP||CARDS[id].retired))return 'Das Hauptdeck benötigt genau 40 freigeschaltete Basiskarten.';if(ids.some(id=>ids.filter(x=>x===id).length>3))return 'Höchstens drei Exemplare je Kartenart.';return '';}
 
 
 function enemyFusionDeck(ids){const chosen=bestFusionDeck(ids),levels=chosen.map(id=>CARDS[id].level);for(const id of [...ids].reverse())if(chosen.length<15&&!chosen.includes(id)&&levels.includes(CARDS[id].level))chosen.push(id);return chosen;}
@@ -315,7 +318,7 @@ CARDS.forEach(c=>{if(c.rpg&&/^Beute: /.test(c.desc))c.desc=CREATURE_FLAVOR[c.kin
 const CHALLENGES=[{id:'arsenal',name:'Knappes Arsenal',desc:'Besiege Kael Ardent mit höchstens fünf Fusionskopien im Deck.',opponent:1,reward:180}, {id:'unique',name:'Ohne Wiederholung',desc:'Besiege Akari Hoshino ohne doppelte Fusionsvorlagen.',opponent:2,reward:260}, {id:'blitz',name:'Blitzduell',desc:'Besiege den aktuellen Trainingsgegner bis Ende der vierten Runde.',opponent:0,reward:160}, {id:'theme',name:'Eisenbund',desc:'Besiege Kael Ardent mit mindestens sechs Eisen-Karten im Hauptdeck.',opponent:1,reward:220}];
 const ENHANCE_SHARDS=[3,5,6,8,9];
 function countCard(ids,id){return ids.filter(x=>x===id).length;}
-function fusionDeckError(ids){if(!Array.isArray(ids)||ids.length<2||ids.length>15||ids.some(id=>!CARDS[id]?.rpg||!CARDS[id].fusionOnly||countCard(ids,id)>3))return '2–15 Fusionskopien; höchstens drei je Art.';return '';}
+function fusionDeckError(ids){if(!Array.isArray(ids)||ids.length<2||ids.length>15||ids.some(id=>!CARDS[id]?.rpg||CARDS[id].level>TOURNAMENT_LEVEL_CAP||CARDS[id].retired||!CARDS[id].fusionOnly||countCard(ids,id)>3))return '2–15 Fusionskopien; höchstens drei je Art.';return '';}
 function inventoryError(ids,inventory){return ids.some(id=>countCard(ids,id)>(inventory[id]||0))?'Nicht genügend Exemplare im Besitz.':'';}
 function bestFusionDeck(ids,enhancements={},inventory=null){const sorted=[...new Set(ids)].filter(id=>CARDS[id]?.fusionOnly&&(!inventory||inventory[id]>0)).sort((a,b)=>(CARDS[b].atk+ascensionStep(b)*(enhancements[b]||0))-(CARDS[a].atk+ascensionStep(a)*(enhancements[a]||0)));const levels=[...new Set(sorted.map(id=>CARDS[id].level))].sort((a,b)=>a-b);let chosen=levels.map(l=>sorted.find(id=>CARDS[id].level===l));if(chosen.length>15)chosen=chosen.slice(0,15);for(let pass=0;pass<2;pass++)for(const id of sorted){if(chosen.length>=15)break;if(countCard(chosen,id)<Math.min(3,inventory?inventory[id]||0:3))chosen.push(id);}return chosen;}
 function strongestMainDeck(ids,enhancements={},inventory=null){return [...new Set(ids)].filter(id=>CARDS[id]&&!CARDS[id].fusionOnly).sort((a,b)=>(CARDS[b].atk+CARDS[b].def+2*ascensionStep(b)*(enhancements[b]||0))-(CARDS[a].atk+CARDS[a].def+2*ascensionStep(a)*(enhancements[a]||0))).flatMap(id=>Array(Math.min(3,inventory?inventory[id]||0:3)).fill(id)).slice(0,40);}
@@ -689,8 +692,11 @@ function workshopValues(level,role){
  return [Math.max(80,round10(budget*share)),Math.max(80,round10(budget*(1-share)))];
 }
 function registerWorkshopStage(card,rootId,level,origin){
+ // Reserve stage IDs for later content without exposing these cards to players.
+ if(level>TOURNAMENT_LEVEL_CAP){card.retired=true;card.workshopOnly=true;card.requiredTier=11;return;}
  card.lineRoot=rootId;card.variantOf=card.id===rootId?undefined:rootId;
- card.requiredTier=Math.max(workshopTierFor(level),Math.max(0,origin||0));
+ // Preserve pre-existing variant requirements; otherwise booster cards leak into tier 0.
+ card.requiredTier=Math.max(workshopTierFor(level),Math.max(0,origin||0),Math.max(0,card.requiredTier||0));
  card.retired=false;card.rpg=true;card.fusionOnly=false;card.essenceMonster=false;
  card.ace=false;card.milestoneOnly=false;card.trainingReward=false;
  ARCANE_STAGE_IDS.set(rootId+':'+level,card.id);
@@ -721,7 +727,7 @@ for(const [name,role,element,origin,kind,color] of ARCANE_NEW_FAMILIES){
  const [atk,def]=workshopValues(1,role);
  const id=addRpgCard({name,level:1,atk,def,kind,element,color,role,source:origin,
   fusionOnly:false,rarity:'common',soulRank:role==='soul'?1:undefined,
-  desc:'Neue normale Monsterfamilie. Durch die Monsterwerkstatt bis Stufe 12 entwickelbar.'});
+  desc:'Neue normale Monsterfamilie. Im regulären Turnier bis Stufe 10 entwickelbar.'});
  const root=CARDS[id];
  root.art=window.ArcaneArt?.makeArt?.(root)||makeArt(root);
  registerWorkshopStage(root,id,1,origin);
@@ -848,7 +854,7 @@ function ownsCard(id){return (profile.inventory[id]||0)>0;}
 function addCard(id){const c=CARDS[id],owned=ownsCard(id);profile.inventory[id]=Math.min(999999,(profile.inventory[id]||0)+1);const list=c.fusionOnly?profile.fusionOwned:profile.unlocked;if(!list.includes(id))list.push(id);if(!profile.unseen.includes(id))profile.unseen.push(id);return owned;}
 function hardUnlocked(id){return opponentUnlocked(id)&&profile.manualEasy[id]>=10&&(id!==0||profile.trainingWins===3&&profile.cleared.includes(1));}
 function autoUnlocked(id,difficulty='easy'){return id===0&&(profile.trainingWins||0)<3?false:difficulty==='hard'?hardUnlocked(id)&&profile.hardWins[id]>=3:opponentUnlocked(id)&&profile.mastery[id]>=3;}
-function cardAvailable(id){const c=CARDS[id];return UPDATE_B_SET.has(id)&&(!c.ace||ownsCard(id))&&c?.rpg&&(c.requiredTier==null||highestCleared()>=c.requiredTier)&&(!c.milestoneOnly||ownsCard(id))&&(!c.trainingReward||profile.trainingWins>=3)&&(c.source<0||opponentUnlocked(c.source)&&(!c.hard||hardUnlocked(c.source)&&profile.hardWins[c.source]>=1)&&(!c.manifestOf||ownsProfileCard(profile,c.manifestOf)||c.milestoneOnly&&ownsCard(id)));}
+function cardAvailable(id){const c=CARDS[id];return !!c&&c.level<=TOURNAMENT_LEVEL_CAP&&UPDATE_B_SET.has(id)&&(!c.ace||ownsCard(id))&&c?.rpg&&(c.requiredTier==null||highestCleared()>=c.requiredTier)&&(!c.milestoneOnly||ownsCard(id))&&(!c.trainingReward||profile.trainingWins>=3)&&(c.source<0||opponentUnlocked(c.source)&&(!c.hard||hardUnlocked(c.source)&&profile.hardWins[c.source]>=1)&&(!c.manifestOf||ownsProfileCard(profile,c.manifestOf)||c.milestoneOnly&&ownsCard(id)));}
 function craftCard(id){const c=CARDS[id],source=Math.max(0,c?.source??0);if(storageConflict||c?.essenceMonster||!cardAvailable(id)||profile.shards[source]<20||profile.coins<cardCost(id))return false;profile.shards[source]-=20;profile.coins-=cardCost(id);addCard(id);saveProfile();return true;}
 
 function setActiveDeck(ids){if(storageConflict||mainDeckError(ids)||inventoryError(ids,profile.inventory))return false;profile.activeDeck=[...ids];saveProfile();return true;}
