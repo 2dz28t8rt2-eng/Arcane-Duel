@@ -304,7 +304,38 @@ placePending=function(g,idx,choice){const result=oldPlacePending(g,idx,choice);i
 // bounded multi-material and animation data from the original snapshot.
 validateDuelSnapshot=function(raw){const projected=JSON.parse(JSON.stringify(raw));if(projected.pending?.levels?.length>2)projected.pending.levels=projected.pending.levels.slice(0,2);
  for(const player of projected.players||[]){for(const card of [...(player.hand||[]),...(player.field||[]).filter(Boolean),...(player.graveyard||[])])if(card.qualityRolls>4)card.qualityRolls=4;}if(projected.pending?.card?.qualityRolls>4)projected.pending.card.qualityRolls=4;for(const pl of projected.players||[]){for(const card of [...pl.hand,...pl.field.filter(Boolean),...pl.graveyard])if(card.materialBonus&&(card.materialBonus.atk>240||card.materialBonus.def>240||card.materialBonus.atk+card.materialBonus.def>240))card.materialBonus={atk:0,def:0};}if(projected.pending?.card?.materialBonus&&(projected.pending.card.materialBonus.atk>240||projected.pending.card.materialBonus.def>240||projected.pending.card.materialBonus.atk+projected.pending.card.materialBonus.def>240))projected.pending.card.materialBonus={atk:0,def:0};
- const g=previous.validateDuelSnapshot(projected);g.questActiveIds=Array.isArray(raw.questActiveIds)?raw.questActiveIds.filter(id=>quests.some(q=>q.id===id)).slice(0,3):null;if(raw.pending?.levels?.length>2){if(raw.pending.levels.length>5||raw.pending.levels.some(l=>!Number.isInteger(l)||l<1||l>12))throw Error('Ungültige Fusionsmaterialien.');g.pending.levels=[...raw.pending.levels];}
+ const g=previous.validateDuelSnapshot(projected);
+ // Reattach bounded PvE-only fusion metadata discarded by the old base save
+ // validator. Inherited class tags must survive page reload / resumed duels.
+ function restoreFusion(to,from){
+  if(!to||!from||to.id!==from.id||to.uid!==from.uid||!to.fusion)return;
+  if(['predator','guardian','soul'].includes(from.roleOverride)){
+   to.roleOverride=from.roleOverride;to.roleOrigin='material';
+   to.roleMaterials=Number.isInteger(from.roleMaterials)&&from.roleMaterials>=3&&from.roleMaterials<=5?from.roleMaterials:3;
+  }
+  if(from.soulAwakened===true&&to.roleOverride==='soul')to.soulAwakened=true;
+  if(typeof from.pattern==='string'&&from.pattern.length<=50)to.pattern=from.pattern;
+  if(Number.isInteger(from.materialsUsed)&&from.materialsUsed>=2&&from.materialsUsed<=5)to.materialsUsed=from.materialsUsed;
+  const finite=n=>Number.isInteger(n)&&n>=0&&n<=10000;
+  if(Array.isArray(from.rollTrace)&&from.rollTrace.length>=1&&from.rollTrace.length<=7&&
+   from.rollTrace.every(x=>finite(x?.atk)&&finite(x?.def)))
+   to.rollTrace=from.rollTrace.map(x=>({atk:x.atk,def:x.def}));
+  const m=from.rollMath;
+  if(m&&to.rollTrace&&Number.isInteger(m.winnerIndex)&&m.winnerIndex>=0&&m.winnerIndex<to.rollTrace.length&&
+   finite(m.bonus?.atk)&&finite(m.bonus?.def)&&finite(m.penalty)&&
+   finite(m.final?.atk)&&finite(m.final?.def)&&m.final.atk===to.card?.atk&&m.final.def===to.card?.def)
+   to.rollMath={winnerIndex:m.winnerIndex,winner:{...to.rollTrace[m.winnerIndex]},
+    bonus:{atk:m.bonus.atk,def:m.bonus.def},penalty:m.penalty,
+    final:{atk:m.final.atk,def:m.final.def},role:to.roleOverride||CARDS[to.id].role};
+ }
+ for(let owner=0;owner<2;owner++)for(const place of ['hand','graveyard']){
+  for(let i=0;i<g.players[owner][place].length;i++)
+   restoreFusion(g.players[owner][place][i],raw.players?.[owner]?.[place]?.[i]);
+ }
+ for(let owner=0;owner<2;owner++)for(let i=0;i<5;i++)
+  restoreFusion(g.players[owner].field[i],raw.players?.[owner]?.field?.[i]);
+ restoreFusion(g.pending?.card,raw.pending?.card);
+ g.questActiveIds=Array.isArray(raw.questActiveIds)?raw.questActiveIds.filter(id=>quests.some(q=>q.id===id)).slice(0,3):null;if(raw.pending?.levels?.length>2){if(raw.pending.levels.length>5||raw.pending.levels.some(l=>!Number.isInteger(l)||l<1||l>12))throw Error('Ungültige Fusionsmaterialien.');g.pending.levels=[...raw.pending.levels];}
  if(raw.evolutionMode){const info=decodeId(raw.challenge);if(!info||raw.evolutionMode!==info.mode||raw.evolutionStage!==info.stage)throw Error('Ungültige Herausforderungsdaten.');g.evolutionMode=info.mode;g.evolutionStage=info.stage;g.evoStats=normalizeEvoStats(raw.evoStats);g.evolutionCashout=raw.evolutionCashout===true;}
  return g;
 };
