@@ -187,6 +187,9 @@ test('Low-rank Soul Eater can deliberately discharge stored energy once per turn
  g.statLayer(eater).soul=200;duel.active=0;duel.turn=4;duel.players[1].shield=0;
  const before=duel.players[1].lp;
  ctx.__testSoulDuel=duel;
+ // This UI-action test needs an open duel overlay state; the generic VM
+ // element stub defaults all classList.contains calls to false.
+ ctx.document.getElementById('overlay').classList.contains=key=>key==='hidden';
  const first=vm.runInContext('game=__testSoulDuel;uiMode="duel";window.ArcaneEssenceCombat.discharge(0)',ctx);
  assert.equal(first,true);
  assert.equal(before-duel.players[1].lp,220);
