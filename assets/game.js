@@ -185,8 +185,8 @@ function createGame16(options={}){const g=coreCreateGame(options);g.rulesVersion
 
 function canCompleteHandFusion(g,levels,choice){const p=g.players[g.active];if(p.field.some(c=>!c))return true;const remain=[...p.remainingFusion],i=remain.indexOf(choice);if(i<0)return false;remain.splice(i,1);return p.field.some(c=>remain.some(id=>CARDS[id].level<=fusionBudget([...levels,dataOf(c).level],g)));}
 
-function effectiveAttack(g,a,d){const c=dataOf(a);return Math.floor((c.atk+(g.mode==='pve'&&a.surgeTurn===g.turn?80:0))*(g.mode==='pve'&&c.ability==='hunt'&&d?.fusion?1.15:1));}
-function normalAiScore(g,c,policy){const t=dataOf(c),enemy=g.players[1-g.active];return t.atk+(t.ability==='rush'?80:0)+(t.ability==='hunt'&&enemy.field.some(x=>x?.fusion)?t.atk*.15:0)+(policy==='guardian'&&t.ability==='guard'?100:0);}
+function effectiveAttack(g,a,d){const c=dataOf(a);return Math.floor(c.atk+(g.mode==='pve'&&a.surgeTurn===g.turn?80:0));}
+function normalAiScore(g,c,policy){const t=dataOf(c),enemy=g.players[1-g.active];return t.atk+(t.ability==='rush'?80:0)+(policy==='guardian'&&t.ability==='guard'?100:0);}
 
 // Normal tournament and free duels share the same LP tiers by opponent number.
 // Training stays at 4,000; hard mode and classic PvP retain their own 8,000 LP rules.
@@ -538,7 +538,7 @@ for(const rootId of NORMAL_LINE_ROOT_IDS){
    atk:round10(root.atk+step*(90+root.level*20)),
    def:round10(root.def+step*(75+root.level*15)),
    variantOf:rootId,lineRoot:rootId,lineStep:step,requiredTier,
-   desc:root.desc+' · Stufenreihe: '+(root.level+step)+'.'
+   desc:root.desc+' · Entwicklungsstufe: '+(root.level+step)+'.'
   });
   NORMAL_LINE_VARIANT_IDS.push(id);
   RPG_BASE_CARDS.push(CARDS[id]);
@@ -1014,7 +1014,7 @@ for(const art of CUSTOM_CARD_ART_WAVE_6){
  for(const form of CARDS.filter(x=>x.manifestOf===art.id)){form.customArt=art.customArt;form.name=art.name+' · Gestalt';}
 }
 CARDS.forEach(c=>{c.art=c.variantOf==null?(window.ArcaneArt?.makeArt(c)||makeArt(c)):CARDS[c.variantOf].art;});
-for(const id of NORMAL_LINE_VARIANT_IDS){const stage=CARDS[id],root=CARDS[stage.variantOf];stage.name=root.name;stage.desc=root.desc+' · Stufenreihe: '+stage.level+'.';}
+for(const id of NORMAL_LINE_VARIANT_IDS){const stage=CARDS[id],root=CARDS[stage.variantOf];stage.name=root.name;stage.desc=root.desc+' · Entwicklungsstufe: '+stage.level+'.';}
 // Each normal monster stage uses exactly the same image URL/data and final name as its base form.
 
 function sound(type){if(!soundOn)return;try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const context=sound.context||(sound.context=new A());if(context.state==='suspended')context.resume();const o=context.createOscillator(),gain=context.createGain();o.type=type==='attack'?'sawtooth':'sine';let t=context.currentTime;o.frequency.setValueAtTime(type==='attack'?390:type==='win'?600:500,t);o.frequency.exponentialRampToValueAtTime(type==='attack'?110:type==='win'?1200:190,t+.23);gain.gain.setValueAtTime(.09,t);gain.gain.exponentialRampToValueAtTime(.001,t+.28);o.connect(gain).connect(context.destination);o.start(t);o.stop(t+.29);}catch(e){}}
