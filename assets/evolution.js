@@ -71,14 +71,11 @@ packPrice=function(source,difficulty,pick){return Math.ceil(previous.packPrice(s
 
 // Character-specific tournament decks, with enemy-only templates. The stock and
 // rarity of existing collectible cards remain unchanged.
-const enemyFusion={};
-for(const [tier,descriptions] of [[1,[[4,690,660,'Eisenfunke']]],[3,[[3,790,750,'Dornenklinge'],[4,900,860,'Hainwacht'],[5,1040,950,'Wurzelwolf'],[6,1130,1050,'Kronenhirsch'],[6,1080,1140,'Schildholz']]]]){
- enemyFusion[tier]=descriptions.map(([level,atk,def,name],index)=>{
-  const o=OPPONENTS[tier],id=CARDS.length;
-  const card={id,rpg:true,enemyOnly:true,fusionOnly:true,name,level,atk,def,source:tier,element:o.element,kind:o.kind,color:o.color,rarity:'normal',ability:index%2?'guard':'pierce',desc:'Spezielle Gegnerfusion für '+o.name};
-  card.art=window.ArcaneArt?.makeArt(card)||makeArt(card);CARDS.push(card);return id;
- });
-}
+const enemyFusion={1:[...EVOLUTION_ENEMY_IDS[1]],3:[...EVOLUTION_ENEMY_IDS[3]]};
+// IDs are now registered in game.js before loading saves. Do not append them
+// again: existing game snapshots may reference these exact enemy templates.
+for(const [tier,list] of Object.entries(enemyFusion))for(const id of list)
+ if(!CARDS[id]?.enemyOnly||CARDS[id].source!==Number(tier))throw Error('Gegner-Fusionskatalog inkonsistent.');
 // Die Dornengarde führt die exakt gleiche Fusionskarte wie der Shop.
 // Die fünfte Gegnervorlage bleibt aus ID-Stabilitätsgründen reserviert.
 enemyFusion[3][4]=ACE_CARD_IDS[3];
