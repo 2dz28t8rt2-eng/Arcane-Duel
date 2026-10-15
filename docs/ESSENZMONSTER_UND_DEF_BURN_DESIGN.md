@@ -1,5 +1,5 @@
 # ARCANE DUEL – Essenzmonster, Spezialisierungen, Monsterrollen und DEF-Burn
-**Entwicklungsentwurf v0.9 · 15.10.2026 · Branch `development` · noch NICHT implementiert**
+**Entwicklungsentwurf v1.0 · 15.10.2026 · Branch `development` · erste spielbare Preview implementiert; Balancing und Regressionen laufen**
 
 Dieses Dokument hält die im Gespräch festgelegten Designentscheidungen für das NÄCHSTE große Gameplay-Update fest. 
 **Statuskonvention:** **BESCHLOSSEN** = ausdrücklich vom Nutzer bestätigt; **TESTWERT** = im Balancing zu überprüfen; **OFFEN** = vor Umsetzung auszuhandeln. Keine Zahlen aus TESTWERT/OFFEN heimlich als finale Spielregel behandeln.
@@ -108,3 +108,11 @@ Dieses Dokument hält die im Gespräch festgelegten Designentscheidungen für da
 - Der Benutzer möchte **mehr als bloß 1 überlebende DEF** für Rang 5: „Letztes Bollwerk“ braucht 1–2 Runden wirkungsvolle **Angriffsimmunität** nach dem ansonsten tödlichen Angriff. Empfehlung für den Test: **2 gegnerische Züge**, einmal je Duell, keine wiederholte Aktivierung. Offenes Detail: Interaktion mit Zielzwang, Gegenschlag und natürlichem Zerfall.
 - Bei **„Verdichten“** entfällt der frühere harte Recast-Vorbehalt „nur wenn keinerlei überschüssige DEF existiert“. Stattdessen besteht **drei Runden Cooldown** und **Seelenessenz-Aufnahme läuft ununterbrochen weiter**. Technisch die drei Werte **Grund-DEF, Seelenessenz, verdichtete Überschuss-DEF** strikt trennen.
 - Ausdrücklich **keine produktive Kampfcode-Änderung** durch diesen Nachtrag; erst mit passendem Duellsimulations- und Migrationstest implementieren.
+
+
+## K. Implementierungs- und Teststand – Entwicklungs-Preview
+- Der `development`-Branch enthält den ersten spielbaren Essenz-Kampfkern (`assets/essence-combat.js`), die Bindungs-, Lexikon-, Trainings- und Progressionsoberfläche (`assets/essence-progression.js`) sowie die Rollenverteilung im Kartenkatalog (`assets/game.js`). Die Dokumentation oben ist die Designabsicht; Details stehen bis nach dem Balancing unter Vorbehalt.
+- Ausdrücklich **keine fertige Balance-Freigabe**: 110 reguläre isolierte Kampfsimulationen und 480 zusätzliche Voll-Duelle mit Essenzschulen liefen technisch durch; die 480 nutzten größtenteils unveränderte Starterkarten gegen fortgeschrittene Gegner und erlauben **keinen** fairen Vergleich der drei Archetypen.
+- Bereinigte Bugs: DEF-Lebensraub nur bei tatsächlich gewählter DEF-Entzugsrichtung; nach Aktivierung von „Letztes Bollwerk“ dürfen **weitere** während Angriffsimmunität eintreffende Angriffe nicht immer wieder kostenlose Gegenschläge erzeugen (der auslösende tödliche Treffer kann weiter Gegenschlag bewirken); die Nahrung darf keine **vorher angesparte Spielerkassen-Essenz** abziehen, sondern höchstens die Essenzbelohnung des betreffenden Duells.
+- Reproduzierbare neue Tests `tests/essence-combat.test.cjs` und CI-Eintrag in `.github/workflows/strategy-regression.yml`.
+- Noch offen: vollständige vergleichende Balance, strategische DEF-KI und echte Erwerbs-/Deckprogression, allfällige Spezialkampfinteraktionen im PvP (das bleibt im Preview beim alten Modus), UI-/Mobiltest und Migrationstests mit realen älteren Spielständen.
