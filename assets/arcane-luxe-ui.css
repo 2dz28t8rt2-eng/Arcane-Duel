@@ -102,8 +102,8 @@
  border:3px double var(--ad-essence-accent)!important;
  box-shadow:0 0 0 1px #faf1ff8a,inset 0 0 0 2px #111227,0 0 22px color-mix(in srgb,var(--ad-essence-accent) 55%,transparent)!important;
 }
-.hand-card.tc-card.tc-essence-def,
-.board-creature.tc-card.tc-essence-def{--ad-essence-accent:#92daff}
+.hand-card.tc-card.tc-essence-defense,
+.board-creature.tc-card.tc-essence-defense{--ad-essence-accent:#92daff}
 .hand-card.tc-card.tc-essence-predator,
 .board-creature.tc-card.tc-essence-predator{--ad-essence-accent:#ffa49c}
 .hand-card.tc-card.tc-essence-fusion,
