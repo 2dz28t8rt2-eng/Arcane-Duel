@@ -16,6 +16,15 @@
   const stamp='<span class="arcane-card-role arcane-role-'+esc(role)+'" title="Monsterrolle: '+esc(label)+'">'+esc(label)+'</span>';
   return html.replace('<div class="hand-type">',stamp+'<div class="hand-type">');
  };
+ // Show the role directly on both miniature field cards, including an inherited
+ // role that exists only on this fused instance.
+ const previousBoardCard=cardHtml;
+ cardHtml=function(c,side){
+  const html=previousBoardCard(c,side);
+  const role=roleOf(c),label=roleName[role]||roleName.combatant;
+  return html.replace('<div class="board-name">',
+   '<span class="arcane-board-role arcane-board-'+esc(role)+'" title="Monsterrolle: '+esc(label)+'">'+esc(label)+'</span><div class="board-name">');
+ };
  // Clicking an already prepared normal card cancels it, instead of forcing a summon.
  const previousHand=onHand;
  onHand=function(uid){
