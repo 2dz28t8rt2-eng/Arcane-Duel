@@ -18,17 +18,32 @@
  '<path d="M150 25 162 56 150 72 138 56Z M150 228 162 244 150 275 138 244Z M25 150 56 138 72 150 56 162Z M228 150 244 138 275 150 244 162Z" fill="none" stroke="currentColor" stroke-width="1.5"/>'+
  '<path d="M150 88 165 135 212 150 165 165 150 212 135 165 88 150 135 135Z M150 109 191 150 150 191 109 150Z M150 65V103 M150 197V235 M65 150H103 M197 150H235" fill="none" stroke="currentColor" stroke-width="1.3"/>'+
  '<circle cx="150" cy="150" r="12" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="150" cy="150" r="3.5" fill="currentColor"/></svg></div>';
+ // Rotating, spoiler-friendly hero art from every CURRENT playable monster family and fusion.
+ // Cards are only previews: this never changes ownership, drops or active decks.
+ let showcaseLast=[];
  function featureArt(){
-  const ids=Array.isArray(profile?.activeDeck)?profile.activeDeck:[];
-  // Show the player's most distinctive owned deck cards, not arbitrary first slots.
-  const seen=new Set(),cards=[];
-  const ordered=[...new Set(ids)].map(id=>CARDS[id]).filter(Boolean)
-   .sort((a,b)=>(Number(b.level)||0)-(Number(a.level)||0)||Number(Boolean(b.ace))-Number(Boolean(a.ace)));
-  for(const c of ordered){
-   if(!c||typeof c.art!=='string'||!/^(assets\/|data:image\/svg\+xml)/.test(c.art)||seen.has(c.art))continue;
-   seen.add(c.art);cards.push(c);if(cards.length===3)break;
+  const pool=CARDS.filter(c=>c.rpg&&c.level<=10&&!c.retired&&c.art&&
+   /^(assets\/|data:image\/svg\+xml)/.test(c.art));
+  const options=pool.filter(c=>!showcaseLast.includes(c.id));
+  const used=new Set(),cards=[];
+  for(let pass=0;pass<2&&cards.length<3;pass++){
+   const available=pass===0?options:pool;
+   for(const c of [...available].sort(()=>Math.random()-.5)){
+    if(used.has(c.art))continue;
+    used.add(c.art);cards.push(c);if(cards.length===3)break;
+   }
   }
+  showcaseLast=cards.map(c=>c.id);
   return cards;
+ }
+ function rotateShowcase(){
+  if(uiMode!=='menu'||document.hidden)return;
+  const rack=$('menuHero')?.querySelector('.atlas-showcase-cards');if(!rack)return;
+  rack.replaceChildren();
+  rack.insertAdjacentHTML('beforeend',featureArt().map((c,i)=>
+   '<div class="atlas-preview-card atlas-preview-'+i+'"><span class="atlas-preview-corner">✦</span>'+
+   '<img src="'+escape(c.art)+'" alt="" loading="lazy" decoding="async">'+
+   '<span class="atlas-preview-footer">LV '+c.level+'</span></div>').join(''));
  }
  function enhanceHero(hero){
   const content=hero.querySelector('.fm-hero-content'),tools=hero.querySelector('.fm-hero-utility');
@@ -84,5 +99,7 @@
  }
  renderMenu=function(){previous();decorate();};
  if(uiMode==='menu')renderMenu();
- window.ArcaneArchiveTheme={version:'1.0.0',name:'Gilded Archive'};
+ window.ArcaneArchiveTheme={version:'1.1.0',name:'Gilded Archive'};
+ // One timer per page instance, no whole-menu rerender and no gameplay changes.
+ setInterval(rotateShowcase,12000);
 })();
