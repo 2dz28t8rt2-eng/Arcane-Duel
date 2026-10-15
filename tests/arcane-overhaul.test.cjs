@@ -32,11 +32,11 @@ function start(){
  return context.__qa;
 }
 const tournament=(p,tier)=>{p.cleared=Array.from({length:tier},(_,i)=>i+1);};
-test('32 ordinary families have one stable stage at every level 1–12',()=>{
+test('32 ordinary families have one stable accessible stage at levels 1–10',()=>{
  const g=start();
  const roots=[...new Set(g.ARCANE_WORKSHOP_IDS.map(id=>g.CARDS[id].lineRoot))];
  assert.equal(roots.length,32);
- for(const root of roots)for(let lv=1;lv<=12;lv++){
+ for(const root of roots)for(let lv=1;lv<=10;lv++){
   const id=g.ARCANE_STAGE_IDS.get(root+':'+lv);
   assert.ok(Number.isInteger(id),'missing stage '+root+'/'+lv);
   assert.equal(g.CARDS[id].level,lv);
@@ -48,8 +48,9 @@ test('level 11–12 remain unavailable until future post-tournament content',()=
  const g=start();tournament(g.profile,10);
  assert.equal(g.forge.levelCap(),10);
  const root=0;
- assert.ok(g.CARDS[g.forge.stage(root,11)].requiredTier>=11);
- assert.ok(g.CARDS[g.forge.stage(root,12)].requiredTier>=11);
+ assert.equal(g.forge.stage(root,11),undefined);
+ assert.equal(g.forge.stage(root,12),undefined);
+ assert.ok(g.CARDS.filter(c=>[11,12].includes(c.level)).every(c=>c.retired&&!g.UPDATE_B_SET.has(c.id)));
 });
 test('forge combines and decomposes exactly, preserving level points and profile validation',()=>{
  const g=start();tournament(g.profile,7);
