@@ -665,7 +665,8 @@ for(const c of RPG_FUSIONS)if((c.role==='guardian'&&c.level>=4&&c.level%3===1)||
 
 /* Monsterwerkstatt 3.1: deterministic stage cards added AFTER the original
  * roster and the three exclusive Essence creatures. Existing IDs never move.
- * Full 1–12 normal families are craftable; acquisition caps follow tournaments.
+ * Each family reserves stable IDs through 12; only levels 1–10 are playable.
+ * Levels 11/12 are held for a future post-tournament expansion.
  */
 const ARCANE_NEW_FAMILIES=[
  ['Frostklingen-Greif','predator','WIND',1,'bird','#9bcfe9'],
