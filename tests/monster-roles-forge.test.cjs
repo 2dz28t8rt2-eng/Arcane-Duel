@@ -131,3 +131,48 @@ test('Reserved Lv11/12 are absent from shop, card pool, workshop and loot',()=>{
  assert.notEqual(g.mainDeckError(invalidDeck,[...g.profile.unlocked,hidden[0].id]),'');
  assert.notEqual(g.fusionDeckError([hidden[0].id,hidden[0].id]),'');
 });
+
+test('Lv10 tournament strategy comparison: predator, guardian/soul and fusion against VIII–X',()=>{
+ const {g}=setup();
+ // Diagnostic only: deliberately strong synthetic decks, NOT an economically
+ // simulated player inventory or a prediction of human win probability.
+ const main=g.RPG_BASE_CARDS.filter(c=>!c.retired&&!c.essenceMonster&&!c.ace&&!c.fusionOnly&&c.level<=10);
+ const fusionPool=g.RPG_FUSIONS.filter(c=>!c.retired&&c.level<=10&&c.fusionOnly)
+  .sort((a,b)=>b.level-a.level||b.atk-a.atk);
+ const fusionDeck=fusionPool.slice(0,15).map(c=>c.id);
+ const archetypes=[
+  {name:'predator',roles:['predator'],policy:'offensive',sort:(a,b)=>b.atk-a.atk||b.level-a.level},
+  {name:'guardian-soul',roles:['guardian','soul'],policy:'guardian',sort:(a,b)=>b.def-a.def||b.level-a.level},
+  {name:'fusion-focused',roles:[],policy:'economy',sort:(a,b)=>a.level-b.level||b.atk-a.atk}
+ ];
+ const summary=[];
+ for(const archetype of archetypes){
+  let options;
+  if(archetype.name==='fusion-focused'){
+   // Two creatures for each low/mid level, plus high-level finishers.
+   options=[...Array.from({length:6},(_,i)=>i+1).flatMap(lv=>main.filter(c=>c.level===lv).sort((a,b)=>b.atk+b.def-a.atk-a.def).slice(0,2)),
+    ...main.filter(c=>c.level===10).sort((a,b)=>b.atk+b.def-a.atk-a.def).slice(0,2)];
+  }else options=main.filter(c=>archetype.roles.includes(c.role)).sort(archetype.sort).slice(0,14);
+  assert.ok(options.length>=14,archetype.name+' must have 14 distinct cards');
+  const deck=options.slice(0,14).flatMap(c=>[c.id,c.id,c.id]).slice(0,40);
+  assert.equal(deck.length,40);
+  assert.ok(deck.every(id=>g.CARDS[id].level<=10));
+  for(const opponentId of [8,9,10]){
+   let wins=0,turns=0,fusions=0;
+   for(let trial=0;trial<24;trial++){
+    g.profile.cleared=Array.from({length:opponentId-1},(_,i)=>i+1);
+    const duel=g.createGame({mode:'pve',context:'tournament',opponentId,
+     seed:75001+opponentId*499+trial*313,deck,fusionDeck});
+    g.simulateGame(duel,archetype.policy);
+    assert.ok(duel.winner===0||duel.winner===1,'duel must finish');
+    assert.ok(duel.players.flatMap(p=>p.originalDeck.concat(p.fusionDeck)).every(id=>g.CARDS[id].level<=10),'all battle decks capped');
+    wins+=Number(duel.winner===0);turns+=duel.turn;fusions+=duel.totalFusions[0];
+   }
+   summary.push({archetype:archetype.name,opponentId,samples:24,wins,
+    winPercent:Math.round(100*wins/24),meanHalfTurns:+(turns/24).toFixed(1),
+    meanFusions:+(fusions/24).toFixed(1)});
+  }
+ }
+ console.log('LEVEL10_SYNTHETIC_STRATEGY_DIAGNOSTIC '+JSON.stringify(summary));
+ assert.equal(summary.length,9);
+});
