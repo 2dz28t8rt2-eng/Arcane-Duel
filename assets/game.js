@@ -394,6 +394,19 @@ for(const rootId of NORMAL_LINE_ROOT_IDS){
  }
 }
 
+/* Artwork-Pack 01: zehn neue Normalmonsterfamilien, vier Stufen pro Motiv.
+   Kartennummern, Elemente und Kampfwerte bleiben erhalten. */
+const NORMAL_ART_PACK_01=Object.freeze([{"root":0,"art":"assets/custom-art/normal-pack-01-01.webp","name":"Schatzkobold der Glutgruben","desc":"Ein gewitzter Kobold, der Gold und glimmende Relikte aus verlassenen Minen stiehlt."},{"root":8,"art":"assets/custom-art/normal-pack-01-02.webp","name":"Aschenwolke der Sturmhöhen","desc":"Eine rußige Wolkengestalt, in deren Innerem Feuerblitze und uralte Stimmen kreisen."},{"root":10,"art":"assets/custom-art/normal-pack-01-03.webp","name":"Blattklingen-Mantis","desc":"Ein lauernder Waldjäger mit gezackten Blattklingen und schimmernden Augen."},{"root":5,"art":"assets/custom-art/normal-pack-01-04.webp","name":"Leuchtangler der Tiefenruinen","desc":"Ein uralter Tiefseejäger, der Beute mit seinen leuchtenden Fühlern in versunkene Tempel lockt."},{"root":1,"art":"assets/custom-art/normal-pack-01-05.webp","name":"Moospanzer-Nashorn","desc":"Eine schwer gepanzerte Urbestie, auf deren Rücken ganze Moosgärten wachsen."},{"root":4,"art":"assets/custom-art/normal-pack-01-06.webp","name":"Laternengeist der Vergessenen","desc":"Ein rastloser Schatten, der verirrte Seelen mit gespenstischen Laternen anlockt."},{"root":16,"art":"assets/custom-art/normal-pack-01-07.webp","name":"Sonnenreiher der Ruinen","desc":"Ein langbeiniger Lichtvogel, der in verwunschenen Wasserbecken nach Erinnerungen sucht."},{"root":13,"art":"assets/custom-art/normal-pack-01-08.webp","name":"Pilzschnecke des Moderwalds","desc":"Ein schleichender Waldbewohner mit giftigen Pilzen und wachsamen Fühleraugen."},{"root":18,"art":"assets/custom-art/normal-pack-01-09.webp","name":"Dünenplünderer mit dem Rotmantel","desc":"Ein listiger Wüstenschakal, dessen Klingen in der flirrenden Mittagshitze glühen."},{"root":19,"art":"assets/custom-art/normal-pack-01-10.webp","name":"Kristallpanzerschildkröte","desc":"Ein geduldiger Wächter der Höhlen, dessen Panzer aus leuchtenden Kristallen wächst."}]);
+for(const entry of NORMAL_ART_PACK_01){
+ const root=CARDS[entry.root];
+ if(!root||root.fusionOnly)throw Error('Artwork-Pack 01: ungueltige Familie '+entry.root);
+ for(const card of CARDS){
+  if(card.id!==entry.root&&card.variantOf!==entry.root)continue;
+  card.name=entry.name;card.art=entry.art;
+  card.desc=entry.desc+(card.variantOf===entry.root?' · Stufe '+card.level+'.':'');
+ }
+}
+
 const AUTO_CAP=30;
 /* Arcane Duel 3.0 · UPDATE B: Curated roster, no legacy collection migration.
    Legacy templates remain internal because older duel functions reference fixed
@@ -825,7 +838,7 @@ function animationWait(ms){return new Promise(resolve=>setTimeout(resolve,animat
 function toast(msg){showToast(msg);}
 function hideModal(){if(profile.rewardQueue?.length){showMilestone();return;}if(profile.openPack&&!profile.openPack.taken.length){showPack();return;}$('overlay').classList.add('hidden');}
 function modalHtml(kicker,title,icon,text,extra,buttons){return `<div class="modal-icon">${icon}</div><div class="modal-kicker">${kicker}</div><h2>${title}</h2><p>${text}</p>${extra||''}<div class="modal-actions">${buttons}</div>`;}
-function openModal(html){$('modal').classList.remove('pool-modal');$('modal').innerHTML=html;$('overlay').classList.remove('hidden');}
+function openModal(html){$('modal').classList.remove('pool-modal','arcane-rule-modal');$('modal').innerHTML=html;$('overlay').classList.remove('hidden');}
 
 
 
