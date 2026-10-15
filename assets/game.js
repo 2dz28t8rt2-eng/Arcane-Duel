@@ -456,7 +456,27 @@ function rpgEnemyLoadout(id,difficulty='easy',stage){if(id===0&&difficulty!=='ha
  for(const target of [signature,roleCard])if(target!==undefined)while(countCard(load.fusionDeck,target)<3){const i=load.fusionDeck.findIndex(cid=>cid!==target&&cid!==signature&&CARDS[cid].level>=o.level);if(load.fusionDeck.length<15)load.fusionDeck.push(target);else if(i>=0)load.fusionDeck[i]=target;else break;}
  return load;
 }
-function baseStat(c,stat,p){const starterBonus=c.id<20&&p?.id===0&&p?.enhancements?35*(profile?.upgrades?.starter||0):0;return c[stat]*(p?.power||1)+ascensionStep(c.id)*(p?.enhancements?.[c.id]||0)+(p?.flatBonus||0)+starterBonus;}
+// The midpoint used by Fusion 3.1 stays grounded in the unmodified original card catalog.
+// PvE-only normal monsters gain marginal level progression and a defensive role identity.
+function normalRoleBonus(c,stat,owner=0,upgrades=profile?.upgrades){
+ if(!c||c.fusionOnly||c.essenceMonster||!c.rpg)return 0;
+ const level=Math.max(1,Math.min(10,c.level||1));
+ const defRole=c.role==='guardian'||c.role==='soul';
+ const hunter=c.role==='predator';
+ const highLevel=level>=6?20*(level-5):0; // LV6 +20, LV10 +100 to each stat.
+ const guardianBonus=stat==='def'&&defRole?round10(workshopBudget(level)*.09):0;
+ if(owner!==0)return highLevel+guardianBonus;
+ const hunting= hunter?(upgrades?.jagdinstinkt||0):0;
+ const shielding=defRole?(upgrades?.schildwall||0):0;
+ const specialized=stat==='atk'?hunting*(15+8*level)+shielding*(5+2*level):
+   hunting*(5+2*level)+shielding*(20+8*level);
+ return highLevel+guardianBonus+specialized;
+}
+function baseStat(c,stat,p){
+ const starterBonus=c.id<20&&p?.id===0&&p?.enhancements?35*(profile?.upgrades?.starter||0):0;
+ return c[stat]*(p?.power||1)+ascensionStep(c.id)*(p?.enhancements?.[c.id]||0)+(p?.flatBonus||0)+starterBonus+
+  (p?normalRoleBonus(c,stat,p.id):0);
+}
 
 const XP_MILESTONES=[5,10,15,20,25,30,35,40,45,50];
 function ascensionStep(id){return id<20?10:CARDS[id]?.fusionOnly?20:30;}
@@ -762,10 +782,12 @@ for(const c of CARDS)if(c.rpg&&RETIRED_SINGLE_CARD_ABILITIES.has(c.ability)){
   c.desc='Monster mit allgemeinen Klassenfähigkeiten. Individuelle Schadensboni gegen andere Monster sind deaktiviert.';
 }
 const SAVE_KEY='arcane-duel-rpg-profile-v4-reborn',LEGACY_SAVE_KEY='arcane-duel-alpha-profile-v1',PROFILE_VERSION=3,OPPONENTS=RPG_OPPONENTS;
-const UPGRADES={power:{name:'Monstertraining',desc:'Abnehmender Bonus auf alle Monster: +50/+40/+30/+20/+15/+10/+5 je weitere Stufe; gilt ab dem nächsten Duell',base:120,max:10},loot:{name:'Beutestudien',desc:'+5 % Essenz pro Stufe',base:240,max:5},learning:{name:'Werkzeugkunde',desc:'−5 % Herstellungskosten, +10 % XP pro Stufe',base:180,max:5},tempo:{name:'Trainingsroutine',desc:'Verkürzt Autokämpfe von 6 auf mindestens 3 Sekunden',base:100,max:4},starter:{name:'Grundausbildung',desc:'Je Stufe +35 ATK und +35 DEF auf die 20 ursprünglichen Startmonster.',base:60,max:8},fusionLore:{name:'Fusionskunde',desc:'Stufe 1: erster Fusionsversuch pro Duell erhält einen zusätzlichen Wertewurf (maximal vier).',base:430,max:1},resilience:{name:'Standhaftigkeit',desc:'Verlangsamt den automatischen Kreaturenzerfall eigener Monster um 3 Punkte pro Stufe (maximal zwei).',base:320,max:2},fusionPrecision:{name:'Runenpräzision',desc:'Bei Spezialfusionen mit mindestens drei Materialien je Stufe +1,5 Prozentpunkte Qualität; maximal +4,5 %, allgemeine Qualitätsobergrenze bleibt bestehen.',base:310,max:3},combatDiscipline:{name:'Kampfdisziplin',desc:'Eigene Monster verlieren pro Angriff 2 ATK weniger je Stufe: 28 / 26 / 24 statt 30.',base:260,max:3},openingAegis:{name:'Vorhut-Schutz',desc:'Zu Beginn jedes Einzelspielerduells erhältst du je Stufe 25 zusätzliche Schildpunkte (maximal +75).',base:350,max:3}};
-function monsterTrainingBonus(level){return [50,40,30,20,15,10,5,5,5,5].slice(0,Math.max(0,Math.min(10,level||0))).reduce((a,b)=>a+b,0);}
+const UPGRADES={power:{name:'Monstertraining',desc:'Kleiner allgemeiner Bonus auf alle eigenen Monster, maximal +110 ATK und +110 DEF. Spezialisierungen lohnen sich stärker.',base:120,max:10},loot:{name:'Beutestudien',desc:'+5 % Essenz pro Stufe',base:240,max:5},learning:{name:'Werkzeugkunde',desc:'−5 % Herstellungskosten, +10 % XP pro Stufe',base:180,max:5},tempo:{name:'Trainingsroutine',desc:'Verkürzt Autokämpfe von 6 auf mindestens 3 Sekunden',base:100,max:4},starter:{name:'Grundausbildung',desc:'Je Stufe +35 ATK und +35 DEF auf die 20 ursprünglichen Startmonster.',base:60,max:8},fusionLore:{name:'Fusionskunde',desc:'Stufe 1: erster Fusionsversuch pro Duell erhält einen zusätzlichen Wertewurf (maximal vier).',base:430,max:1},resilience:{name:'Standhaftigkeit',desc:'Verlangsamt den automatischen Kreaturenzerfall eigener Monster um 3 Punkte pro Stufe (maximal zwei).',base:320,max:2},fusionPrecision:{name:'Runenpräzision',desc:'Bei Spezialfusionen mit mindestens drei Materialien je Stufe +1,5 Prozentpunkte Qualität; maximal +4,5 %, allgemeine Qualitätsobergrenze bleibt bestehen.',base:310,max:3},combatDiscipline:{name:'Kampfdisziplin',desc:'Eigene Monster verlieren pro Angriff 2 ATK weniger je Stufe: 28 / 26 / 24 statt 30.',base:260,max:3},openingAegis:{name:'Vorhut-Schutz',desc:'Zu Beginn jedes Einzelspielerduells erhältst du je Stufe 25 zusätzliche Schildpunkte (maximal +75).',base:350,max:3},
+jagdinstinkt:{name:'Jagdinstinkt',desc:'Nur normale Predatoren: je Rang +15 ATK und +5 DEF, zusätzlich +8 ATK und +2 DEF pro Monsterlevel; maximal 5 Ränge.',base:260,max:5},
+schildwall:{name:'Schildwall',desc:'Nur normale Wächter und Seelenzehrer: je Rang +20 DEF und +5 ATK, zusätzlich +8 DEF und +2 ATK pro Monsterlevel; maximal 5 Ränge.' ,base:280,max:5}};
+function monsterTrainingBonus(level){return [35,25,15,10,8,6,4,3,2,2].slice(0,Math.max(0,Math.min(10,level||0))).reduce((a,b)=>a+b,0);}
 let storageWarning='',storageWritable=true,storageConflict=false,lastStoredProfile=null,legacyImported=false;
-function freshLegacyProfile(){return {version:2,coins:0,xp:0,wins:0,losses:0,pvpMatches:0,totalTurns:0,totalFusions:0,bestTurns:null,unlocked:[...DEFAULT_DECK],activeDeck:[...RPG_DEFAULT_DECK],fusionOwned:[...RPG_START_FUSIONS],fusionDeck:[...RPG_START_FUSIONS],enhancements:{},shards:Array(11).fill(0),pity:Array(11).fill(0),cleared:[],mastery:Array(11).fill(0),upgrades:{loot:0,learning:0,tempo:0,power:0,starter:0,fusionLore:0,resilience:0,fusionPrecision:0,combatDiscipline:0,openingAegis:0},strategy:'balanced',history:[],rewardLedger:[],nextMatch:1,settings:{animation:'fast',sound:false},unseen:[],lootHistory:[],investments:{},auto:{energy:AUTO_CAP,at:Date.now()},lastLoot:null,activeDuel:null,savedAt:0};}
+function freshLegacyProfile(){return {version:2,coins:0,xp:0,wins:0,losses:0,pvpMatches:0,totalTurns:0,totalFusions:0,bestTurns:null,unlocked:[...DEFAULT_DECK],activeDeck:[...RPG_DEFAULT_DECK],fusionOwned:[...RPG_START_FUSIONS],fusionDeck:[...RPG_START_FUSIONS],enhancements:{},shards:Array(11).fill(0),pity:Array(11).fill(0),cleared:[],mastery:Array(11).fill(0),upgrades:{loot:0,learning:0,tempo:0,power:0,starter:0,fusionLore:0,resilience:0,fusionPrecision:0,combatDiscipline:0,openingAegis:0,jagdinstinkt:0,schildwall:0},strategy:'balanced',history:[],rewardLedger:[],nextMatch:1,settings:{animation:'fast',sound:false},unseen:[],lootHistory:[],investments:{},auto:{energy:AUTO_CAP,at:Date.now()},lastLoot:null,activeDuel:null,savedAt:0};}
 function playerLevel(p){return Math.min(100,1+Math.floor(Math.sqrt(p.xp/60)));}
 function levelFloor(level){return 60*(level-1)**2;}
 // Each cleared tournament tier supports five player levels at full farming XP.
@@ -787,7 +809,7 @@ function validateLegacyProfile(raw){if(raw?.version===1)return migrateLegacy(raw
  p.cleared=ids(raw.cleared,OPPONENTS.slice(1).map(o=>o.id));if(p.cleared.some(id=>id>1&&!p.cleared.includes(id-1)))throw Error('Turnierstufen müssen der Reihe nach freigeschaltet sein.');
  for(const k of ['shards','pity','mastery']){if(!Array.isArray(raw[k])||raw[k].length!==11||raw[k].some(x=>!validInt(x,k==='pity'?4:1e9)))throw Error('Ungültiger Fortschritt.');p[k]=[...raw[k]];}
  for(const [id,rank]of Object.entries(raw.enhancements||{})){if(![...p.unlocked,...p.fusionOwned].includes(Number(id))||!(CARDS[Number(id)]?.rpg||Number(id)<20)||!validInt(rank,5))throw Error('Ungültige Verstärkung.');p.enhancements[id]=rank;}
- for(const key of Object.keys(UPGRADES)){const rank=['starter','fusionLore','resilience','fusionPrecision','combatDiscipline','openingAegis'].includes(key)?(raw.upgrades?.[key]??0):raw.upgrades?.[key];if(!validInt(rank,UPGRADES[key].max))throw Error('Ungültiger Ausbau.');p.upgrades[key]=rank;}
+ for(const key of Object.keys(UPGRADES)){const rank=['starter','fusionLore','resilience','fusionPrecision','combatDiscipline','openingAegis','jagdinstinkt','schildwall'].includes(key)?(raw.upgrades?.[key]??0):raw.upgrades?.[key];if(!validInt(rank,UPGRADES[key].max))throw Error('Ungültiger Ausbau.');p.upgrades[key]=rank;}
  if(!['balanced','offensive','economy'].includes(raw.strategy))throw Error('Ungültige Strategie.');p.strategy=raw.strategy;if(raw.bestTurns!==null&&!validInt(raw.bestTurns,30))throw Error('Ungültige Statistik.');p.bestTurns=raw.bestTurns;
  if(!Array.isArray(raw.rewardLedger)||raw.rewardLedger.length>512||raw.rewardLedger.some(x=>typeof x!=='string'||x.length>100))throw Error('Ungültige Belohnungen.');p.rewardLedger=[...new Set(raw.rewardLedger)];
  if(!Array.isArray(raw.history)||raw.history.length>30)throw Error('Ungültige Historie.');p.history=raw.history.map(h=>{if(!validInt(h.opponent,10)||typeof h.win!=='boolean'||!validInt(h.turns,30)||!validInt(h.coins)||!validInt(h.xp)||!validInt(h.at,1e15)||!['free','tournament','auto'].includes(h.context))throw Error('Ungültiger Duelleintrag.');return {opponent:h.opponent,win:h.win,turns:h.turns,coins:h.coins,xp:h.xp,at:h.at,context:h.context};});
@@ -1140,7 +1162,7 @@ function openModal(html){$('modal').classList.remove('pool-modal','arcane-rule-m
 
 
 
-function profileCard(c){const factor=enhancementFactor(profile.enhancements[c.id]||0),flat=monsterTrainingBonus(profile.upgrades.power)+(c.id<20?35*(profile.upgrades.starter||0):0);return {id:c.id,card:{atk:round10(c.atk+ascensionStep(c.id)*(profile.enhancements[c.id]||0)+flat),def:round10(c.def+ascensionStep(c.id)*(profile.enhancements[c.id]||0)+flat),level:c.level}};}
+function profileCard(c){const factor=enhancementFactor(profile.enhancements[c.id]||0),flat=monsterTrainingBonus(profile.upgrades.power)+(c.id<20?35*(profile.upgrades.starter||0):0);return {id:c.id,card:{atk:round10(c.atk+ascensionStep(c.id)*(profile.enhancements[c.id]||0)+flat+normalRoleBonus(c,'atk',0)),def:round10(c.def+ascensionStep(c.id)*(profile.enhancements[c.id]||0)+flat+normalRoleBonus(c,'def',0)),level:c.level}};}
 
 
 
