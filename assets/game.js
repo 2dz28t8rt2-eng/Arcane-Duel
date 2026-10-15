@@ -252,7 +252,7 @@ function enhancementFactor(rank){return 1;}
 
 
 const RPG_DEFAULT_DECK=DEFAULT_DECK.flatMap(id=>[id,id]);
-function mainDeckError(ids,owned=RPG_BASE_CARDS.map(c=>c.id)){if(!Array.isArray(ids)||ids.length!==40||ids.some(id=>!owned.includes(id)||!CARDS[id]||CARDS[id].level>TOURNAMENT_LEVEL_CAP||CARDS[id].retired))return 'Das Hauptdeck benötigt genau 40 freigeschaltete Basiskarten.';if(ids.some(id=>ids.filter(x=>x===id).length>3))return 'Höchstens drei Exemplare je Kartenart.';return '';}
+function mainDeckError(ids,owned=RPG_BASE_CARDS.map(c=>c.id)){if(!Array.isArray(ids)||ids.length!==40||ids.some(id=>!owned.includes(id)||!CARDS[id]||CARDS[id].level>TOURNAMENT_LEVEL_CAP))return 'Das Hauptdeck benötigt genau 40 freigeschaltete Basiskarten.';if(ids.some(id=>ids.filter(x=>x===id).length>3))return 'Höchstens drei Exemplare je Kartenart.';return '';}
 
 
 function enemyFusionDeck(ids){const chosen=bestFusionDeck(ids),levels=chosen.map(id=>CARDS[id].level);for(const id of [...ids].reverse())if(chosen.length<15&&!chosen.includes(id)&&levels.includes(CARDS[id].level))chosen.push(id);return chosen;}
@@ -263,7 +263,7 @@ for(const o of RPG_OPPONENTS){
  const ability=['aegis','pierce','hunt'][o.id%3];
  const signature=addRpgCard({name:o.theme+'souverän',kind:o.kind,element:o.element,color:o.color,source:o.id,level:o.level,atk:round10(FUSION_POWER[o.level]*1.13),def:round10(FUSION_POWER[o.level]*.8),fusionOnly:true,rarity:'rare',ability,desc:ability==='aegis'?'Signatur: beim Beschwören 240 LP-Schild (Gesamtschild max. 600).':ability==='hunt'?'Signatur: +15 % Angriffsleistung beim Angriff auf ein Fusionsmonster.':'Signatur: 25 % Durchbruchschaden gegen Verteidigung.'});
  o.signature=signature;o.loot.push(signature);o.hardLoot=[];
- const l=Math.min(12,o.level+2),base=FUSION_POWER[l]*1.10;
+ const l=Math.min(TOURNAMENT_LEVEL_CAP,o.level+2),base=FUSION_POWER[l]*1.10;
  o.hardLoot.push(addRpgCard({name:o.theme+'vorreiter',kind:o.kind,element:o.element,color:o.color,source:o.id,hard:true,level:4,atk:round10((550+o.id*115)*1.2),def:round10((550+o.id*115)*.8),fusionOnly:false,ability:'guide',desc:'Hardmode · Lv 4 in der Hand. Fusionshilfe: +1 Wertewurf.'}));
  o.hardLoot.push(addRpgCard({name:o.theme+'erzbrecher',kind:o.kind,element:o.element,color:o.color,source:o.id,hard:true,level:l,atk:round10(base*1.12),def:round10(base*.7),fusionOnly:true,rarity:'rare',ability:'pierce',desc:'Hardmode · 25 % Durchbruchschaden gegen Verteidigung.'}));
  o.hardLoot.push(addRpgCard({name:o.theme+'erzregent',kind:o.kind,element:o.element,color:o.color,source:o.id,hard:true,level:l,atk:round10(base),def:round10(base*.95),fusionOnly:true,rarity:'rare',ability:'hunt',desc:'Hardmode · +15 % Angriffsleistung gegen Fusionsmonster.'}));
@@ -318,7 +318,7 @@ CARDS.forEach(c=>{if(c.rpg&&/^Beute: /.test(c.desc))c.desc=CREATURE_FLAVOR[c.kin
 const CHALLENGES=[{id:'arsenal',name:'Knappes Arsenal',desc:'Besiege Kael Ardent mit höchstens fünf Fusionskopien im Deck.',opponent:1,reward:180}, {id:'unique',name:'Ohne Wiederholung',desc:'Besiege Akari Hoshino ohne doppelte Fusionsvorlagen.',opponent:2,reward:260}, {id:'blitz',name:'Blitzduell',desc:'Besiege den aktuellen Trainingsgegner bis Ende der vierten Runde.',opponent:0,reward:160}, {id:'theme',name:'Eisenbund',desc:'Besiege Kael Ardent mit mindestens sechs Eisen-Karten im Hauptdeck.',opponent:1,reward:220}];
 const ENHANCE_SHARDS=[3,5,6,8,9];
 function countCard(ids,id){return ids.filter(x=>x===id).length;}
-function fusionDeckError(ids){if(!Array.isArray(ids)||ids.length<2||ids.length>15||ids.some(id=>!CARDS[id]?.rpg||CARDS[id].level>TOURNAMENT_LEVEL_CAP||CARDS[id].retired||!CARDS[id].fusionOnly||countCard(ids,id)>3))return '2–15 Fusionskopien; höchstens drei je Art.';return '';}
+function fusionDeckError(ids){if(!Array.isArray(ids)||ids.length<2||ids.length>15||ids.some(id=>!CARDS[id]?.rpg||CARDS[id].level>TOURNAMENT_LEVEL_CAP||!CARDS[id].fusionOnly||countCard(ids,id)>3))return '2–15 Fusionskopien; höchstens drei je Art.';return '';}
 function inventoryError(ids,inventory){return ids.some(id=>countCard(ids,id)>(inventory[id]||0))?'Nicht genügend Exemplare im Besitz.':'';}
 function bestFusionDeck(ids,enhancements={},inventory=null){const sorted=[...new Set(ids)].filter(id=>CARDS[id]?.fusionOnly&&(!inventory||inventory[id]>0)).sort((a,b)=>(CARDS[b].atk+ascensionStep(b)*(enhancements[b]||0))-(CARDS[a].atk+ascensionStep(a)*(enhancements[a]||0)));const levels=[...new Set(sorted.map(id=>CARDS[id].level))].sort((a,b)=>a-b);let chosen=levels.map(l=>sorted.find(id=>CARDS[id].level===l));if(chosen.length>15)chosen=chosen.slice(0,15);for(let pass=0;pass<2;pass++)for(const id of sorted){if(chosen.length>=15)break;if(countCard(chosen,id)<Math.min(3,inventory?inventory[id]||0:3))chosen.push(id);}return chosen;}
 function strongestMainDeck(ids,enhancements={},inventory=null){return [...new Set(ids)].filter(id=>CARDS[id]&&!CARDS[id].fusionOnly).sort((a,b)=>(CARDS[b].atk+CARDS[b].def+2*ascensionStep(b)*(enhancements[b]||0))-(CARDS[a].atk+CARDS[a].def+2*ascensionStep(a)*(enhancements[a]||0))).flatMap(id=>Array(Math.min(3,inventory?inventory[id]||0:3)).fill(id)).slice(0,40);}
