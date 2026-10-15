@@ -45,8 +45,8 @@
   }
   result.roleOrigin='material';
   result.roleMaterials=materials.length;
-  logEvent(g,dataOf(result).name+' erbt '+(roleName[result.roleOverride]||result.roleOverride)+
-   ' aus '+materials.length+' Materialien; ATK '+result.card.atk+' / DEF '+result.card.def+'.');
+  logEvent(g,dataOf(result).name+' erbt eine '+(roleName[result.roleOverride]||result.roleOverride)+
+   '-Ausrichtung aus '+materials.length+' Materialien. ATK und DEF werden erst auf dem Feld enthüllt.');
   return result;
  };
  // Legacy saves may include the removed one-off Rush bonus.
