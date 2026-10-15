@@ -243,3 +243,47 @@ test('Workshop splits a free level-seven card without requiring a manually typed
  assert.equal(g.profile.inventory[id4],before4+1);
  assert.equal(g.profile.inventory[id7],0);
 });
+
+test('Fusion reference is the midpoint of ordinary monster stat potentials at every unlocked level',()=>{
+ const {g,evolution}=setup();
+ const workshopIds=[...g.ARCANE_STAGE_IDS.values()];
+ for(let level=2;level<=10;level++){
+  const normals=workshopIds.map(id=>g.CARDS[id]).filter(c=>c.level===level&&!c.retired);
+  assert.ok(normals.length>=22,'ordinary comparison pool for level '+level);
+  const reference=evolution.fusionReferenceStats(level);
+  for(const stat of ['atk','def']){
+   const values=normals.map(c=>c[stat]);
+   const expected=Math.round(((Math.min(...values)+Math.max(...values))/2)/10)*10;
+   assert.equal(reference[stat],expected,stat+' level '+level);
+   assert.ok(reference[stat]>=Math.min(...values)&&reference[stat]<=Math.max(...values));
+  }
+ }
+});
+test('Fusion no longer inherits a guaranteed 95% of an overpowered material',()=>{
+ const {g,evolution}=setup(),duel=g.createGame({mode:'pve',context:'free',opponentId:1,seed:71991,
+  deck:g.RPG_DEFAULT_DECK,fusionDeck:g.RPG_START_FUSIONS});
+ const materials=[0,1].map(id=>g.newInstance(duel,id,0));
+ for(const c of materials){c.card.atk=9000;c.card.def=9000;}
+ const levels=materials.map(c=>c.card.level),fused=g.fusedInstance(duel,materials,levels);
+ assert.ok(fused,'the existing fusion template is selectable');
+ const ref=evolution.fusionReferenceStats(fused.card.level);
+ assert.ok(fused.card.atk<ref.atk*2&&fused.card.def<ref.def*2,
+  'result uses normal-monster potential, not the strongest inflated material');
+ assert.ok(fused.card.atk<9000&&fused.card.def<9000);
+});
+test('Ordinary 2-material fusion may roll below the normal level reference',()=>{
+ let weaker=false,stronger=false;
+ for(let seed=100;seed<160;seed++){
+  const {g,evolution}=setup(),duel=g.createGame({mode:'pve',context:'free',opponentId:1,seed,
+   deck:g.RPG_DEFAULT_DECK,fusionDeck:g.RPG_START_FUSIONS});
+  const cards=[0,1].map(id=>g.newInstance(duel,id,0));
+  const fused=g.fusedInstance(duel,cards,cards.map(c=>c.card.level));
+  assert.ok(fused);
+  const ref=evolution.fusionReferenceStats(fused.card.level);
+  weaker||=fused.card.atk+fused.card.def<ref.atk+ref.def;
+  stronger||=fused.card.atk+fused.card.def>ref.atk+ref.def;
+  if(weaker&&stronger)break;
+ }
+ assert.ok(weaker,'some fusion rolls should have a real downside');
+ assert.ok(stronger,'some fusion rolls should create a useful upside');
+});
