@@ -20,35 +20,23 @@
  function soulOdds(materials){
   return Math.min(.75,.20+materials.reduce((n,c)=>n+.035+.007*Math.min(12,Math.max(1,dataOf(c).level)),0));
  }
+ function imprint(g,materials){
+  if(g?.mode!=='pve'||materials.length<3)return null;
+  const inherited=inheritance(materials);
+  if(!inherited)return null;
+  if(inherited==='predator')return {role:'predator',source:'material',materials:materials.length};
+  const field=Array.isArray(g.arcaneFieldInputs)?g.arcaneFieldInputs:[];
+  const sameField=field.length>=3&&field.every(x=>['guardian','soul'].includes(roleOf(x)));
+  const odds=soulOdds(materials);
+  const awakened=sameField||randomInt(g,10000)<Math.floor(odds*10000);
+  return {role:awakened?'soul':'guardian',source:'material',materials:materials.length,
+   soulOdds:odds,soulAwakened:awakened};
+ }
+ // Evolution calculates the role *before* the 88–112% stat rolls.
+ // This wrapper deliberately no longer multiplies the final card a second time.
  const oldFuse=fusedInstance;
- fusedInstance=function(g,materials,levels){
-  const result=oldFuse(g,materials,levels);
-  if(!result||g.mode!=='pve'||!result.card||materials.length<3)return result;
-  const role=inheritance(materials);
-  if(!role)return result;
-  if(role==='predator'){
-   result.card.atk=r10(result.card.atk*1.20);
-   result.card.def=r10(result.card.def*.75);
-   result.roleOverride='predator';
-  }else{
-   result.card.atk=r10(result.card.atk*.75);
-   result.card.def=r10(result.card.def*1.25);
-   const fieldCount=Array.isArray(g.arcaneFieldInputs)?g.arcaneFieldInputs.length:0;
-   // A deliberately constructed fusion with three field defenders earns the
-   // class awakening reliably. Hand-only builds retain a seeded 20–75% chance.
-   const sameField=fieldCount>=3&&g.arcaneFieldInputs.every(x=>['guardian','soul'].includes(roleOf(x)));
-   const odds=soulOdds(materials);
-   const awakening=sameField||randomInt(g,10000)<Math.floor(odds*10000);
-   result.roleOverride=awakening?'soul':'guardian';
-   result.soulOdds=odds;
-   result.soulAwakened=awakening;
-  }
-  result.roleOrigin='material';
-  result.roleMaterials=materials.length;
-  logEvent(g,dataOf(result).name+' erbt eine '+(roleName[result.roleOverride]||result.roleOverride)+
-   '-Ausrichtung aus '+materials.length+' Materialien. ATK und DEF werden erst auf dem Feld enthüllt.');
-  return result;
- };
+ fusedInstance=function(g,materials,levels){return oldFuse(g,materials,levels);};
+
  // Legacy saves may include the removed one-off Rush bonus.
  // Clean it once when a resumed PvE duel advances; never grant a new bonus.
  const oldAdvanceTurn=advanceTurn;
@@ -149,5 +137,5 @@
    if(q.p.field[idx])b.classList.add('arcane-synth-available');
   });
  };
- window.ArcaneRoleFusion=Object.freeze({version:'1.0.0',inheritance,soulOdds,reset});
+ window.ArcaneRoleFusion=Object.freeze({version:'1.1.0',inheritance,soulOdds,imprint,reset});
 })();
