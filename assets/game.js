@@ -649,14 +649,14 @@ for(const spec of [
 for(const c of RPG_BASE_CARDS.concat(RPG_FUSIONS)){
  if(c.essenceMonster)continue;
  const ratio=(Number(c.def)||0)/Math.max(1,Number(c.atk)||0);
- c.role=c.ability==='guide'?'weaver':c.ability==='hunt'?'hunter':ratio>=1.22?'guardian':ratio<=.66?'predator':'combatant';
+ c.role=c.ability==='guide'?'weaver':c.ability==='hunt'?'hunter':ratio>=1.09?'guardian':ratio<=.82?'predator':(c.id%8===0?'support':'combatant');
 }
 const ROLE_SOUL_CANDIDATES=RPG_BASE_CARDS.filter(c=>!c.essenceMonster&&c.role==='guardian'&&c.level>=2);
 for(let i=0;i<ROLE_SOUL_CANDIDATES.length;i++){
  const card=ROLE_SOUL_CANDIDATES[i];
- if(i%3===0){card.role='soul';card.soulRank=Math.min(5,Math.max(1,Math.floor((card.level+1)/2)));}
+ if(i%3===0||[7,22,387].includes(card.id)){card.role='soul';card.soulRank=Math.min(5,Math.max(1,Math.floor((card.level+1)/2)));}
 }
-for(const c of RPG_FUSIONS)if(c.role==='guardian'&&c.level>=4&&c.level%3===1){c.role='soul';c.soulRank=Math.min(5,Math.floor(c.level/2));}
+for(const c of RPG_FUSIONS)if((c.role==='guardian'&&c.level>=4&&c.level%3===1)||(c.ability==='guard'&&c.level>=7&&c.id%5===0)){c.role='soul';c.soulRank=Math.min(5,Math.floor(c.level/2));}
 
 const SAVE_KEY='arcane-duel-rpg-profile-v4-reborn',LEGACY_SAVE_KEY='arcane-duel-alpha-profile-v1',PROFILE_VERSION=3,OPPONENTS=RPG_OPPONENTS;
 const UPGRADES={power:{name:'Monstertraining',desc:'Abnehmender Bonus auf alle Monster: +50/+40/+30/+20/+15/+10/+5 je weitere Stufe; gilt ab dem nächsten Duell',base:120,max:10},loot:{name:'Beutestudien',desc:'+5 % Essenz pro Stufe',base:240,max:5},learning:{name:'Werkzeugkunde',desc:'−5 % Herstellungskosten, +10 % XP pro Stufe',base:180,max:5},tempo:{name:'Trainingsroutine',desc:'Verkürzt Autokämpfe von 6 auf mindestens 3 Sekunden',base:100,max:4},starter:{name:'Grundausbildung',desc:'Je Stufe +35 ATK und +35 DEF auf die 20 ursprünglichen Startmonster.',base:60,max:8},fusionLore:{name:'Fusionskunde',desc:'Stufe 1: erster Fusionsversuch pro Duell erhält einen zusätzlichen Wertewurf (maximal vier).',base:430,max:1},resilience:{name:'Standhaftigkeit',desc:'Verlangsamt den automatischen Kreaturenzerfall eigener Monster um 3 Punkte pro Stufe (maximal zwei).',base:320,max:2},fusionPrecision:{name:'Runenpräzision',desc:'Bei Spezialfusionen mit mindestens drei Materialien je Stufe +1,5 Prozentpunkte Qualität; maximal +4,5 %, allgemeine Qualitätsobergrenze bleibt bestehen.',base:310,max:3},combatDiscipline:{name:'Kampfdisziplin',desc:'Eigene Monster verlieren pro Angriff 2 ATK weniger je Stufe: 28 / 26 / 24 statt 30.',base:260,max:3},openingAegis:{name:'Vorhut-Schutz',desc:'Zu Beginn jedes Einzelspielerduells erhältst du je Stufe 25 zusätzliche Schildpunkte (maximal +75).',base:350,max:3}};
