@@ -316,7 +316,7 @@ test('Jagdinstinkt and Schildwall apply 80/20 level scaling for both stats, max 
  const predator=cards.find(c=>c.level===level&&c.role==='predator');
  const guardian=cards.find(c=>c.level===level&&c.role==='guardian');
  const soul=cards.find(c=>c.level===level&&c.role==='soul');
- const base=p=>g.normalRoleBonus(p,'atk',0),def=p=>g.normalRoleBonus(p,'def',0);
+ const base=p=>g.normalRoleBonus(p,'atk',1),def=p=>g.normalRoleBonus(p,'def',1);
  g.profile.upgrades.jagdinstinkt=5;g.profile.upgrades.schildwall=5;
  assert.equal(g.normalRoleBonus(predator,'atk',0)-base(predator),5*(15+8*level));
  assert.equal(g.normalRoleBonus(predator,'def',0)-def(predator),5*(5+2*level));
