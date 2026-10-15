@@ -26,8 +26,8 @@ function setup(){
   setTimeout(){return 0},setInterval(){return 0},clearTimeout(){},clearInterval(){},
   console,Date,Math,JSON,Map,Set,Array,Number,Object,RegExp,String,Error,TypeError,
   Uint32Array,Boolean,Infinity,NaN});
- vm.runInContext(scripts+'\n;globalThis.testGame={profile,CARDS,ARCANE_STAGE_IDS,RPG_BASE_CARDS,RPG_FUSIONS,RPG_OPPONENTS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,UPDATE_B_ACTIVE_IDS,boosterPools,lootPool,rpgEnemyLoadout,mainDeckError,fusionDeckError,cardAvailable,createGame,simulateGame,fusedInstance,newInstance,fusionOptions};',vmContext,{timeout:10000});
- return {g:vmContext.testGame,forge:window.ArcaneMonsterForge,role:window.ArcaneRoleFusion};
+ vm.runInContext(scripts+'\n;globalThis.testGame={profile,CARDS,ARCANE_STAGE_IDS,RPG_BASE_CARDS,RPG_FUSIONS,RPG_OPPONENTS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,UPDATE_B_ACTIVE_IDS,boosterPools,lootPool,rpgEnemyLoadout,mainDeckError,fusionDeckError,cardAvailable,sharedShards,craftCard,rewardMatch,sourceCards,createGame,simulateGame,fusedInstance,newInstance,fusionOptions};',vmContext,{timeout:10000});
+ return {g:vmContext.testGame,forge:window.ArcaneMonsterForge,role:window.ArcaneRoleFusion,evolution:window.ArcaneEvolution};
 }
 test('All 32 workshop families stop at level 10; levels 11/12 remain reserved',()=>{
  const {g}=setup();
@@ -178,4 +178,47 @@ test('Lv10 tournament strategy comparison: predator, guardian/soul and fusion ag
  }
  console.log('LEVEL10_SYNTHETIC_STRATEGY_DIAGNOSTIC '+JSON.stringify(summary));
  assert.equal(summary.length,9);
+});
+
+
+test('Grand straight is awarded for Lv1+2+3+4, with greater reward for five cards',()=>{
+ const {evolution}=setup();
+ const four=evolution.fusionPattern([1,2,3,4]),five=evolution.fusionPattern([1,2,3,4,5]),three=evolution.fusionPattern([1,2,3]);
+ assert.equal(three.name,'Kleine Straße');
+ assert.equal(four.name,'Große Straße');
+ assert.equal(five.name,'Große Straße');
+ assert.ok(five.qualityBonus>four.qualityBonus);
+ assert.ok(four.qualityBonus>three.qualityBonus);
+});
+test('Common shards can be spent across formerly separate opponent banks',()=>{
+ const {g}=setup();
+ g.profile.shards=Array(11).fill(0);
+ g.profile.shards[1]=18;g.profile.shards[2]=12;g.profile.coins=999999;
+ const c=g.CARDS.find(c=>c.rpg&&!c.fusionOnly&&!c.essenceMonster&&!c.ace&&c.source===0&&g.cardAvailable(c.id));
+ assert.ok(c,'requires an obtainable source-0 card');
+ const before=g.profile.inventory[c.id]||0;
+ assert.equal(g.sharedShards(),30);
+ assert.equal(g.craftCard(c.id),true);
+ assert.equal(g.sharedShards(),0);
+ assert.equal(g.profile.inventory[c.id],before+1);
+});
+test('A conceded tournament duel appears as an actual loss in the persistent match chronicle',()=>{
+ const {g}=setup();
+ const duel=g.createGame({mode:'pve',opponentId:1,context:'tournament',seed:49019});
+ duel.surrendered=true;duel.winner=1;duel.winReason='Aufgegeben';
+ const before=g.profile.losses;
+ const reward=g.rewardMatch(duel);
+ assert.ok(reward.surrendered);
+ assert.equal(g.profile.losses,before+1);
+ assert.equal(g.profile.history[0].win,false);
+ assert.equal(g.profile.history[0].opponent,1);
+ assert.equal(g.profile.history[0].context,'tournament');
+ assert.equal(g.profile.history[0].coins,0);
+});
+test('Unowned fusion cards remain discoverable elsewhere but are not in the fusion deck editor',()=>{
+ const {g}=setup();
+ const cards=g.sourceCards(true);
+ assert.ok(cards.length>=2);
+ assert.ok(cards.every(c=>(g.profile.inventory[c.id]||0)>0));
+ assert.ok(g.RPG_FUSIONS.some(c=>(g.profile.inventory[c.id]||0)===0),'unowned cards exist');
 });
