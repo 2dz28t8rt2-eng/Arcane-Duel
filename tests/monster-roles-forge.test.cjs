@@ -26,7 +26,7 @@ function setup(){
   setTimeout(){return 0},setInterval(){return 0},clearTimeout(){},clearInterval(){},
   console,Date,Math,JSON,Map,Set,Array,Number,Object,RegExp,String,Error,TypeError,
   Uint32Array,Boolean,Infinity,NaN});
- vm.runInContext(scripts+'\n;globalThis.testGame={profile,CARDS,ARCANE_STAGE_IDS,RPG_BASE_CARDS,RPG_FUSIONS,RPG_OPPONENTS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,UPDATE_B_ACTIVE_IDS,boosterPools,lootPool,rpgEnemyLoadout,mainDeckError,fusionDeckError,cardAvailable,sharedShards,craftCard,rewardMatch,sourceCards,createGame,simulateGame,fusedInstance,newInstance,fusionOptions};',vmContext,{timeout:10000});
+ vm.runInContext(scripts+'\n;globalThis.testGame={profile,CARDS,ARCANE_STAGE_IDS,RPG_BASE_CARDS,RPG_FUSIONS,RPG_OPPONENTS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,UPDATE_B_ACTIVE_IDS,boosterPools,lootPool,rpgEnemyLoadout,mainDeckError,fusionDeckError,cardAvailable,sharedShards,craftCard,rewardMatch,sourceCards,createGame,simulateGame,fusedInstance,newInstance,fusionOptions,baseStat,normalRoleBonus,profileCard,UPGRADES,buyUpgrade,upgradeCost,validateProfile,workshopBudget,attack,dataOf};',vmContext,{timeout:10000});
  return {g:vmContext.testGame,forge:window.ArcaneMonsterForge,role:window.ArcaneRoleFusion,evolution:window.ArcaneEvolution};
 }
 test('All 32 workshop families stop at level 10; levels 11/12 remain reserved',()=>{
@@ -286,4 +286,80 @@ test('Ordinary 2-material fusion may roll below the normal level reference',()=>
  }
  assert.ok(weaker,'some fusion rolls should have a real downside');
  assert.ok(stronger,'some fusion rolls should create a useful upside');
+});
+
+test('Defenders have 9% extra base DEF and normal high-level bonus, without buffing Fusion 3.1 reference',()=>{
+ const {g,evolution}=setup();
+ for(const level of [2,4,6,8,10]){
+  const normal=[...g.ARCANE_STAGE_IDS.values()].map(id=>g.CARDS[id]);
+  const guardian=normal.find(c=>c.level===level&&c.role==='guardian');
+  const soul=normal.find(c=>c.level===level&&c.role==='soul');
+  const predator=normal.find(c=>c.level===level&&c.role==='predator');
+  for(const defender of [guardian,soul]){
+   assert.ok(defender,'a defender at level '+level);
+   const budget=g.workshopBudget(level);
+   const expected=Math.round(budget*.09/10)*10+(level>=6?20*(level-5):0);
+   assert.equal(g.normalRoleBonus(defender,'def',1),expected,'defense '+defender.role+' '+level);
+   assert.equal(g.normalRoleBonus(defender,'atk',1),level>=6?20*(level-5):0);
+   assert.equal(g.normalRoleBonus(defender,'def',0),expected,'unperked player and NPC same baseline');
+  }
+  assert.equal(g.normalRoleBonus(predator,'def',1),level>=6?20*(level-5):0);
+  const ref=evolution.fusionReferenceStats(level);
+  assert.ok(ref.atk>0&&ref.def>0);
+  assert.equal(g.normalRoleBonus({rpg:true,fusionOnly:true,role:'guardian',level},'def',0),0);
+ }
+});
+test('Jagdinstinkt and Schildwall apply 80/20 level scaling for both stats, max five ranks',()=>{
+ const {g}=setup();
+ const level=10;
+ const cards=[...g.ARCANE_STAGE_IDS.values()].map(id=>g.CARDS[id]);
+ const predator=cards.find(c=>c.level===level&&c.role==='predator');
+ const guardian=cards.find(c=>c.level===level&&c.role==='guardian');
+ const soul=cards.find(c=>c.level===level&&c.role==='soul');
+ const base=p=>g.normalRoleBonus(p,'atk',0),def=p=>g.normalRoleBonus(p,'def',0);
+ g.profile.upgrades.jagdinstinkt=5;g.profile.upgrades.schildwall=5;
+ assert.equal(g.normalRoleBonus(predator,'atk',0)-base(predator),5*(15+8*level));
+ assert.equal(g.normalRoleBonus(predator,'def',0)-def(predator),5*(5+2*level));
+ for(const c of [guardian,soul]){
+  assert.equal(g.normalRoleBonus(c,'atk',0)-base(c),5*(5+2*level));
+  assert.equal(g.normalRoleBonus(c,'def',0)-def(c),5*(20+8*level));
+ }
+ const fakeFusion={...predator,fusionOnly:true};
+ assert.equal(g.normalRoleBonus(fakeFusion,'atk',0),0);
+ assert.equal(g.normalRoleBonus(fakeFusion,'def',0),0);
+});
+test('Global training caps at 110 and new class ranks have real upgrade costs and save validation',()=>{
+ const {g}=setup();
+ assert.equal(g.UPGRADES.jagdinstinkt.max,5);
+ assert.equal(g.UPGRADES.schildwall.max,5);
+ const p=g.profile;
+ assert.equal(p.upgrades.jagdinstinkt,0);assert.equal(p.upgrades.schildwall,0);
+ const copy=JSON.parse(JSON.stringify(p));
+ copy.upgrades.power=10;
+ const validated=g.validateProfile(copy);
+ assert.ok(validated);
+ const atk=g.CARDS.find(c=>c.role==='predator'&&!c.fusionOnly&&c.rpg);
+ const before=g.baseStat(atk,'atk',{id:0,power:1,enhancements:{},flatBonus:110});
+ assert.ok(before>=atk.atk+110);
+ p.coins=10000;
+ const price=g.upgradeCost('schildwall');assert.ok(price>0);
+ assert.equal(g.buyUpgrade('schildwall'),true);
+ assert.equal(p.upgrades.schildwall,1);
+ assert.equal(p.coins,10000-price);
+ const roundtrip=g.validateProfile(JSON.parse(JSON.stringify(p)));
+ assert.equal(roundtrip.upgrades.schildwall,1);
+});
+test('Legacy power purchase receives one-time 40% compensation, no second refund after saving',()=>{
+ const {g}=setup();
+ const raw=JSON.parse(JSON.stringify(g.profile));
+ raw.upgrades.power=3;raw.coins=100;delete raw.specializationRebalance;
+ delete raw.upgrades.schildwall;delete raw.upgrades.jagdinstinkt;
+ const loaded=g.validateProfile(raw);
+ assert.equal(loaded.upgrades.schildwall,0);
+ assert.equal(loaded.upgrades.jagdinstinkt,0);
+ const spent=[120,180,270].reduce((a,b)=>a+b,0);
+ assert.equal(loaded.coins,100+Math.floor(spent*.4));
+ assert.equal(loaded.specializationRebalance,true);
+ const second=g.validateProfile(JSON.parse(JSON.stringify(loaded)));
+ assert.equal(second.coins,loaded.coins);
 });
