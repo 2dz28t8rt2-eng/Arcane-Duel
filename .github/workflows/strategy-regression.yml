@@ -26,3 +26,5 @@ jobs:
           done
       - name: Execute deterministic 40-card analysis tests
         run: node --test tests/strategy-engine.test.cjs
+      - name: Smoke-test real gameplay with isolated synthetic profiles
+        run: node tests/battle-simulator.cjs --samples 5
