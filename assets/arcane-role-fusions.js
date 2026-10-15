@@ -138,7 +138,7 @@
   const stage=$('summonStage');if(!stage)return;
   const count=picked().length;
   stage.insertAdjacentHTML('beforeend','<section class="arcane-field-synthesis">'+
-   '<strong>✧ Freie Feldfusion</strong><p>Die Handkarte eröffnet die Fusion. Wähle danach bis zu vier deiner Feldmonster. Drei Karten mehr derselben Rolle als aus der Gegenrolle erzeugen eine spezialisierte Fusion.</p>'+
+   '<strong>✧ Freie Feldfusion</strong><p>Die Handkarte eröffnet die Fusion. Wähle danach bis zu vier deiner Feldmonster. Zwei gleichartige Materialien vererben ihre Rolle. Bei gemischten Gruppen entscheidet die Mehrheit. Zwei Seelenzehrer bleiben Seelenzehrer.</p>'+
    '<button type="button" class="btn" data-field-synthesis="toggle">'+(fieldPick?'Feldmaterialwahl beenden':'Feldmonster auswählen')+'</button>'+
    (fieldPick?'<span class="arcane-synth-status">'+count+' Feldmonster gewählt</span>'+
    '<button type="button" class="btn primary" data-field-synthesis="commit" '+(!count?'disabled':'')+'>Feldfusion mit '+(count+1)+' Materialien</button>':'')+'</section>');
