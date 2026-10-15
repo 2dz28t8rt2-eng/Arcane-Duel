@@ -90,7 +90,7 @@
   game.totalFusions[0]++;
   game.summoned=true;game.pending=null;game.selection=null;game.materials=[];game.lastSummoned=result;
   logEvent(game,'Gezielte Feldfusion: 1 Handkarte + '+m.length+' Feldmonster → '+dataOf(result).name+'.');
-  reset();render();saveDuelSnapshot();
+  game.cinemaActive=true;reset();render();saveDuelSnapshot();
   return true;
  }
  function launch(){
@@ -102,8 +102,8 @@
    if(!commitFusion(id)){toast('Die Feldfusion konnte nicht abgeschlossen werden.');return;}
    const result=game.lastSummoned;if(!result)return;
    busy=true;
-   try{await fusionAnimation(dataOf(result).level,visualMaterials);}
-   finally{busy=false;render();}
+   try{await fusionAnimation(dataOf(result).level,visualMaterials,'field');}
+   finally{busy=false;game.cinemaActive=false;render();}
   },'Feldmonster werden tatsächlich verbraucht.');
  }
  $('ownRow')?.addEventListener('click',ev=>{
