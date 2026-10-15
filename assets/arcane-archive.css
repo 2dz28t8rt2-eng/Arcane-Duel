@@ -491,3 +491,26 @@ body:has(#menuScreen.atlas-screen:not([hidden])) .modal :is(button,summary,input
 #menuScreen.atlas-screen .loot-banner{border-color:#8ecaa9;background:#1a3836;color:#dcf4e8!important}
 #menuScreen.atlas-screen .error-note{color:#ffc59d!important}
 #menuScreen.atlas-screen .pack-shortcut{border-color:#af9265}
+
+/* October UX: isolated navigation scroll and readable card details */
+@media(min-width:981px){
+ #menuScreen.fm-screen.atlas-screen #menuNav.fm-navigation.atlas-nav{
+  max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;
+  scrollbar-color:#c0a477 #192131;scrollbar-width:thin;
+ }
+}
+#menuScreen .deck-side-preview .deck-side-sticky{position:static!important;top:auto!important}
+#menuScreen .deck-preview-head h3{font-size:clamp(19px,1.7vw,26px)!important;line-height:1.25!important}
+#menuScreen .deck-preview-desc,#menuScreen .deck-preview-meta p,#menuScreen .deck-family small{font-size:13px!important;line-height:1.6!important}
+#menuScreen .deck-side-preview{scroll-margin-top:20px}
+#menuScreen .deck-preview-card .card-name,#duelScreen #largeCardPreview .card-name{font-size:clamp(18px,1.7vw,24px)!important;line-height:1.15!important}
+#menuScreen .deck-preview-card .stat-value,#duelScreen #largeCardPreview .stat-value{font-size:clamp(20px,2vw,29px)!important}
+#menuScreen .deck-preview-pills,#menuScreen .deck-family-levels{font-size:13px!important}
+#menuScreen .menu-panel button[data-action="loot"],#menuScreen .menu-panel button[data-action="dropchance"]{font-size:13px!important;padding:9px 12px!important}
+#duelScreen .stage-card{cursor:pointer}
+#duelScreen .stage-card:has(.hand-card):hover{filter:brightness(1.08)}
+#duelScreen .fusion-mystery{display:flex;flex-direction:column;align-items:center;gap:8px;min-height:190px;justify-content:center}
+#duelScreen .fusion-sigil,.fusion-choice-modal .fusion-sigil{font-size:39px;color:#ead19b;text-shadow:0 0 20px #dfbf74b0}
+.fusion-choice-modal .fusion-mystery{min-height:200px;text-align:center}
+.fusion-choice-modal .fusion-mystery h3{font-size:16px;color:#edd7b2}
+.fusion-choice-modal .fusion-mystery p{font-size:12px}
