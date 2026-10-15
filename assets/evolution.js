@@ -380,8 +380,8 @@ onHand=function(uid){if(!inputAllowed()||game.summoned||game.pending)return;if(m
 prepareFusion=async function(choice){if(!inputAllowed()||game.summoned||game.pending)return;if(game.materials.length<2){toast('Wähle zwei bis fünf Fusionsmaterialien.');return;}const ids=[...game.materials],materials=ids.map(uid=>self().hand.find(c=>c.uid===uid));if(materials.some(x=>!x))return;
  if(choice===undefined&&game.mode==='pve'){chooseFusionModal(materials.map(m=>dataOf(m).level),materials,id=>prepareFusion(id),'Alle markierten Materialien werden wirklich fusioniert. Weitere Materialien können bei schlechtem Levelmix schwächen.');return;}
  if(!prepareHandFusion(game,ids,choice)){toast(fusionFailureReason(game,materials.map(m=>dataOf(m).level)));return;}
- const fusionVisuals=fusionVisualSnapshot(materials);
- busy=true;render();try{await fusionAnimation(dataOf(game.pending.card).level,fusionVisuals);}finally{busy=false;render();}};
+ fusionVisualMaterials=fusionVisualSnapshot(materials);
+ render();toast('Fusion vorbereitet. Wähle die Zielzone für Rollenstempel und Würfelenthüllung.');};
 fusionPreview=function(g,c,materials,levels=materials.map(m=>dataOf(m).level)){const p=g.players[g.active],f=tunedFusionQuality(g,levels,materials.map(m=>dataOf(m).element)),bonus=materialBlocks(g,materials).reduce((a,b)=>a+b,0),inherited=window.ArcaneRoleFusion?.inheritance?.(materials),role=inherited||c.role,weights=fusionRoleWeights(role),range=stat=>[Math.max(0,round10(fusionReferenceStat(c,stat,p)*weights[stat]*.88*f.factor)-fusionPenalty(g)),Math.max(0,round10(fusionReferenceStat(c,stat,p)*weights[stat]*1.12*f.factor)+bonus-fusionPenalty(g))];return {atk:range('atk'),def:range('def'),bonus,remaining:countCard(p.remainingFusion,c.id)-1,attackSpent:materials.some(m=>m.attacked),rolls:Math.min(7,qualityRolls(levels)+f.rollBonus+(window.ArcaneEssenceCombat?.fusionRollBonus?.(g)||0)+materials.filter(m=>dataOf(m).ability==='guide').length+(g.active===0&&!g.totalFusions[0]?(profile.upgrades.fusionLore||0):0)),pattern:f.name};};
 chooseFusionModal=function(levels,materials,callback,extra=''){const options=fusionOptions(game,levels).filter(c=>game.pending||canCompleteHandFusion(game,levels,c.id)).sort((a,b)=>b.level-a.level||b.atk-a.atk);if(!options.length){toast(fusionFailureReason(game,levels));return;}const f=tunedFusionQuality(game,levels,materials.map(m=>dataOf(m).element));openModal(modalHtml('FUSIONSVORSCHAU',f.name,'✧','Tippe eine Monsterkarte an, um die Fusionsvorlage auszuwählen. Alle markierten Materialien werden eingesetzt.',`<p><b>Material:</b> ${materials.map(m=>escapeHtml(dataOf(m).name)).join(' + ')}</p><p>Qualität: <b>${(f.factor*100).toFixed(0)} %</b> · Niveau ${f.average.toFixed(1)} · mögliche Stufe bis <b>${fusionBudget(levels,game)}</b>. ${extra}</p><details class="fusion-how"><summary>Wie berechnet sich die Fusion?</summary><p>Die durchschnittliche Materialstufe entscheidet über das Potenzial. Hohe Differenzen zwischen Materialien senken die Qualität. Spezialkombinationen und Elemente können diese verbessern. Fusionen starten bei den mittleren ATK-/DEF-Werten gewöhnlicher Monster ihrer Zielstufe. Pro Wurf entstehen 88–112 % dieses Referenzwerts; der beste Gesamtwurf gewinnt. Es gibt keine garantierte Stärke durch das beste Material. Material-Aufstiegsboni werden zusätzlich zufällig auf ATK oder DEF verteilt. Eine schlechte Fusion kann schwächer als ihr stärkstes Material ausfallen.</p></details><div class="pool-grid fusion-choice-grid">${options.map(c=>{const v=fusionPreview(game,c,materials,levels);return `<article class="fusion-offer">${fullCardHtml({id:c.id,card:{level:c.level,atk:round10((v.atk[0]+v.atk[1])/2),def:round10((v.def[0]+v.def[1])/2)}},`data-fusion-choice="${c.id}" title="${escapeHtml(c.name)} auswählen"`,'fusion-pick-card')}<div class="fusion-forecast"><strong>ATK ${fmt(v.atk[0])}–${fmt(v.atk[1])}</strong><strong>DEF ${fmt(v.def[0])}–${fmt(v.def[1])}</strong></div><p class="fusion-short">${v.rolls} Wertewürfe · ${escapeHtml(v.pattern)} · Materialbonus +${v.bonus}<br>Noch ${v.remaining} Fusionskopie(n)</p><button class="btn" data-fusion-choice="${c.id}">Diese Fusion wählen</button></article>`;}).join('')}</div>`, '<button class="btn" id="fusionCancel">ZURÜCK</button>'));$('modal').classList.add('pool-modal','fusion-choice-modal');$('fusionCancel').onclick=hideModal;let chosen=false;document.querySelectorAll('[data-fusion-choice]').forEach(b=>b.onclick=()=>{if(chosen)return;chosen=true;hideModal();callback(Number(b.dataset.fusionChoice));});};
 // Real material art is captured before materials leave the hand / field.
@@ -398,38 +398,81 @@ applyAiAction=function(g,action){
  const result=previousApplyAiAction(g,action);if(!result)fusionVisualMaterials=null;return result;
 };
 fusionAnimation=async function(level,visuals=null){
- if(animationSpeed==='instant'||window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches){fusionVisualMaterials=null;fusionVisualResult=null;return;}
- const c=game?.pending?.card||fusionVisualResult||game?.players?.[game.active]?.field?.find(x=>x?.fusion);
+ if(animationSpeed==='instant'||window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches){
+  fusionVisualMaterials=null;fusionVisualResult=null;return;
+ }
+ const c=game?.lastSummoned?.fusion?game.lastSummoned:fusionVisualResult||game?.pending?.card;
  const cards=visuals||fusionVisualMaterials||[];fusionVisualMaterials=null;
- const count=c?.materialsUsed||cards.length||2,pattern=c?.pattern||'Fusion',trace=c?.rollTrace||[];
- const grand=count>=4;
- const fx=document.createElement('div');fx.className='evo-summon evo-fusion-scene'+(grand?' evo-summon-grand':'');
- fx.setAttribute('role','status');fx.setAttribute('aria-label',`Fusionsbeschwörung: ${pattern}, ${count} Materialien, Level ${level}`);
- fx.innerHTML=`<div class="evo-mat-count">✧ ${count} Materialien · ${escapeHtml(pattern)} ✧</div><div class="evo-visual-stage"><div class="evo-material-layer" aria-hidden="true"></div><div class="evo-fusion-core" aria-hidden="true">✧</div><div class="evo-fusion-result" aria-hidden="true"><img alt=""><span>LV ${level}</span></div><div class="evo-fusion-flash" aria-hidden="true"></div></div><strong class="evo-fusion-caption">${escapeHtml(pattern)}</strong><div class="evo-rolls" aria-live="off"></div>`;
+ const trace=c?.rollTrace||[],math=c?.rollMath,role=c?.roleOverride||math?.role||CARDS[c?.id]?.role||'combatant';
+ const labels={predator:'PREDATOR',guardian:'WÄCHTER',soul:'SEELENZEHRER'};
+ const count=c?.materialsUsed||cards.length||2,pattern=c?.pattern||'Fusion',grand=count>=4;
+ const fx=document.createElement('div');fx.className='evo-summon evo-fusion-scene evo-stamp-scene'+(grand?' evo-summon-grand':'');
+ fx.setAttribute('role','status');fx.setAttribute('aria-label','Fusion: Rollenprägung und '+trace.length+' echte Wertewürfe');
+ fx.innerHTML='<div class="evo-mat-count">✧ '+count+' Materialien · '+escapeHtml(pattern)+' ✧</div>'+
+  '<div class="evo-visual-stage"><div class="evo-material-layer" aria-hidden="true"></div>'+
+  '<div class="evo-fusion-core" aria-hidden="true">✧</div><div class="evo-fusion-result"><img alt="">'+
+  '<span>LV '+level+'</span><div class="evo-role-seal evo-seal-'+role+'">'+
+  escapeHtml(labels[role]||'FUSION')+'</div><div class="evo-card-final"></div></div>'+
+  '<div class="evo-fusion-flash" aria-hidden="true"></div></div>'+
+  '<strong class="evo-fusion-caption">'+escapeHtml(pattern)+'</strong>'+
+  '<div class="evo-calc-heading">PRÄGUNG · '+trace.length+' WERTEWÜRFE</div>'+
+  '<div class="evo-rolls" aria-live="off"></div>';
  const layer=fx.querySelector('.evo-material-layer');
- const shownCards=cards.length?cards:Array.from({length:count},()=>({art:c?dataOf(c).art:'',name:'Material',level:1}));
- for(let i=0;i<shownCards.length;i++){
+ const shown=cards.length?cards:Array.from({length:count},()=>({art:c?dataOf(c).art:'',level:1}));
+ for(let i=0;i<shown.length;i++){
   const item=document.createElement('div');item.className='evo-actual-material';
-  const angle=-Math.PI/2+i*2*Math.PI/shownCards.length;
+  const angle=-Math.PI/2+i*2*Math.PI/shown.length;
   item.style.setProperty('--start-x',Math.round(Math.cos(angle)*118)+'px');
   item.style.setProperty('--start-y',Math.round(Math.sin(angle)*78)+'px');
   item.style.setProperty('--spin',Math.round(360+i*38)+'deg');
-  const img=document.createElement('img');img.src=shownCards[i].art;img.alt='';item.append(img);layer.append(item);
+  const img=document.createElement('img');img.src=shown[i].art;img.alt='';item.append(img);layer.append(item);
  }
- const resultImg=fx.querySelector('.evo-fusion-result img');if(c)resultImg.src=dataOf(c).art;
+ if(c)fx.querySelector('.evo-fusion-result img').src=dataOf(c).art;
+ const num=n=>Math.max(0,Math.floor(n||0)).toLocaleString('de-AT');
+ const row=(label,atk,def,css='')=>'<div class="evo-calc-row '+css+'"><span>'+escapeHtml(label)+
+  '</span><b class="evo-calc-atk">'+num(atk)+'</b><b class="evo-calc-def">'+num(def)+'</b></div>';
  document.body.append(fx);sound('summon');
  try{
-  fx.classList.add('evo-phase-orbit');await animationWait(grand?980:830);
-  fx.classList.remove('evo-phase-orbit');fx.classList.add('evo-phase-merge');await animationWait(grand?560:460);
+  fx.classList.add('evo-phase-orbit');await animationWait(grand?970:810);
+  fx.classList.remove('evo-phase-orbit');fx.classList.add('evo-phase-merge');await animationWait(510);
   fx.classList.add('evo-phase-reveal');await animationWait(420);
-  fx.classList.add('evo-phase-rolls');const el=fx.querySelector('.evo-rolls');
-  // The cinematic must not expose rolled numbers or the finished stats.
-  for(let i=0;i<Math.min(trace.length,7);i++){
-   el.innerHTML='<span class="evo-roll-number">✧ WERTEWURF '+(i+1)+' / '+trace.length+'</span><span class="evo-roll-value">Die endgültigen Werte bleiben bis zur Platzierung verborgen.</span>';
-   await animationWait(grand?300:265);
+  fx.classList.add('evo-stamp-impact');sound('summon');await animationWait(650);
+  fx.classList.add('evo-stamp-settled','evo-phase-rolls');
+  const log=fx.querySelector('.evo-rolls');
+  log.innerHTML='<div class="evo-calc-cols"><span>WÜRFE (BESTWERT GEWINNT)</span><b>ATK</b><b>DEF</b></div>';
+  for(let i=0;i<trace.length;i++){
+   const draw=trace[i],el=document.createElement('div');
+   el.className='evo-calc-row evo-calc-spinning';
+   el.innerHTML='<span>Wurf '+(i+1)+'</span><b class="evo-calc-atk"></b><b class="evo-calc-def"></b>';
+   log.append(el);const values=el.querySelectorAll('b');
+   for(let tick=0;tick<5;tick++){
+    for(let k=0;k<2;k++){
+     const digits=String(Math.max(10,k?draw.def:draw.atk)).length;
+     values[k].textContent=Array.from({length:digits},(_,d)=>String(1+(i*7+tick*5+d*3+k*4)%9)).join('');
+    }
+    await animationWait(52);
+   }
+   values[0].textContent=num(draw.atk);values[1].textContent=num(draw.def);
+   el.classList.remove('evo-calc-spinning');el.classList.add('evo-calc-stamped');
+   if(math&&i===math.winnerIndex)el.classList.add('evo-calc-winning');
+   await animationWait(160);
   }
-  if(c)el.innerHTML='<span class="evo-roll-number">✦ FUSION VORBEREITET ✦</span><span class="evo-roll-value">Wähle eine Monsterzone und enthülle ihre Stärke.</span>';
-  await animationWait(650);
+  if(math){
+   const win=trace[math.winnerIndex]||math.winner;
+   // We never ADD the alternative rolls: the strongest *one* is selected,
+   // and only then are the real material additions/penalty calculated.
+   log.insertAdjacentHTML('beforeend','<div class="evo-calc-divider"></div>'+
+    row('Bester Wurf',win.atk,win.def,'evo-calc-winning')+
+    row('+ Material',math.bonus.atk,math.bonus.def)+
+    row('− Abzug',math.penalty,math.penalty)+
+    '<div class="evo-calc-divider evo-double"></div>'+
+    row('= ENDWERT',math.final.atk,math.final.def,'evo-calc-final'));
+   fx.classList.add('evo-calc-sum');await animationWait(820);
+   fx.querySelector('.evo-card-final').innerHTML='<b>ATK '+num(math.final.atk)+'</b>'+
+    '<b>DEF '+num(math.final.def)+'</b>';
+   fx.classList.add('evo-calc-absorb');await animationWait(600);
+  }
+  fx.classList.add('evo-card-land');await animationWait(460);
  }finally{fx.remove();fusionVisualResult=null;}
 };
 // Small card-flight for normal summons: animation is only presentation, never a game action.
