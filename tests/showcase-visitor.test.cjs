@@ -36,3 +36,7 @@ test('Special character pack can be opened without unlocking opponent VIII',()=>
  const r=boot()(`(()=>{profile.trainingWins=3;profile.showcase.seen=true;const g=createGame({id:'showcase-pack',mode:'pve',context:'challenge',opponentId:8,enemy:showcaseEnemy(),showcase:true});g.showcase=true;g.winner=0;rewardMatch(g);const available=profile.packs[packKey(8,'easy')];const opened=openCharacterPack(8,'easy');return {available,opened,source:profile.openPack?.source,cards:profile.openPack?.cards?.length};})()`);
  assert.equal(r.available,1);assert.equal(r.opened,true);assert.equal(r.source,8);assert.equal(r.cards,3);
 });
+test('Showcase enemy completes multiple AI-controlled exhibition battles without runtime errors',()=>{
+ const r=boot()(`(()=>{const results=[];for(let i=0;i<12;i++){const g=createGame({id:'showcase-sim-'+i,seed:1400+i,mode:'pve',context:'challenge',opponentId:8,enemy:showcaseEnemy(),showcase:true});g.showcase=true;simulateGame(g,'balanced',OPPONENTS[8].policy);results.push({winner:g.winner,turn:g.turn});}return results;})()`);
+ assert.equal(r.length,12);assert.ok(r.every(x=>[0,1].includes(x.winner)&&x.turn>0&&x.turn<=30));
+});
