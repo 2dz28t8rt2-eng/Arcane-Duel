@@ -770,14 +770,14 @@ function addCard(id){const c=CARDS[id],owned=ownsCard(id);profile.inventory[id]=
 function hardUnlocked(id){return opponentUnlocked(id)&&profile.manualEasy[id]>=10&&(id!==0||profile.trainingWins===3&&profile.cleared.includes(1));}
 function autoUnlocked(id,difficulty='easy'){return id===0&&(profile.trainingWins||0)<3?false:difficulty==='hard'?hardUnlocked(id)&&profile.hardWins[id]>=3:opponentUnlocked(id)&&profile.mastery[id]>=3;}
 function cardAvailable(id){const c=CARDS[id];return UPDATE_B_SET.has(id)&&(!c.ace||ownsCard(id))&&c?.rpg&&(c.requiredTier==null||highestCleared()>=c.requiredTier)&&(!c.milestoneOnly||ownsCard(id))&&(!c.trainingReward||profile.trainingWins>=3)&&(c.source<0||opponentUnlocked(c.source)&&(!c.hard||hardUnlocked(c.source)&&profile.hardWins[c.source]>=1)&&(!c.manifestOf||ownsProfileCard(profile,c.manifestOf)||c.milestoneOnly&&ownsCard(id)));}
-function craftCard(id){const c=CARDS[id],source=Math.max(0,c?.source??0);if(storageConflict||!cardAvailable(id)||profile.shards[source]<20||profile.coins<cardCost(id))return false;profile.shards[source]-=20;profile.coins-=cardCost(id);addCard(id);saveProfile();return true;}
+function craftCard(id){const c=CARDS[id],source=Math.max(0,c?.source??0);if(storageConflict||c?.essenceMonster||!cardAvailable(id)||profile.shards[source]<20||profile.coins<cardCost(id))return false;profile.shards[source]-=20;profile.coins-=cardCost(id);addCard(id);saveProfile();return true;}
 
 function setActiveDeck(ids){if(storageConflict||mainDeckError(ids)||inventoryError(ids,profile.inventory))return false;profile.activeDeck=[...ids];saveProfile();return true;}
 function setFusionDeck(ids){if(storageConflict||fusionDeckError(ids)||inventoryError(ids,profile.inventory))return false;profile.fusionDeck=[...ids];saveProfile();return true;}
 function equipBest(){if(storageConflict)return;profile.activeDeck=strongestMainDeck(profile.unlocked,profile.enhancements,profile.inventory);profile.fusionDeck=bestFusionDeck(profile.fusionOwned,profile.enhancements,profile.inventory);saveProfile();}
 function selectDeckSlot(index){if(storageConflict||!validInt(index,2))return false;syncSlot();profile.activeSlot=index;profile.activeDeck=[...profile.slots[index].main];profile.fusionDeck=[...profile.slots[index].fusion];saveProfile();return true;}
 function reservedCopies(id){syncSlot();return Math.max(...profile.slots.map(s=>countCard(CARDS[id].fusionOnly?s.fusion:s.main,id)));}
-function salvageCard(id){if(storageConflict||!ownsCard(id)||profile.favorites.includes(id)||profile.inventory[id]<=Math.max(1,reservedCopies(id)))return false;profile.inventory[id]--;const source=Math.max(0,CARDS[id].source||0),gain=CARDS[id].fusionOnly?4:2;profile.shards[source]=Math.min(1e9,profile.shards[source]+gain);saveProfile();return true;}
+function salvageCard(id){if(storageConflict||CARDS[id]?.essenceMonster||!ownsCard(id)||profile.favorites.includes(id)||profile.inventory[id]<=Math.max(1,reservedCopies(id)))return false;profile.inventory[id]--;const source=Math.max(0,CARDS[id].source||0),gain=CARDS[id].fusionOnly?4:2;profile.shards[source]=Math.min(1e9,profile.shards[source]+gain);saveProfile();return true;}
 function lootPool(source,difficulty='easy'){return [...(difficulty==='hard'?UPDATE_B_LOOT[source]?.hard:UPDATE_B_LOOT[source]?.easy)||[]];}
 function lootWeights16(source,difficulty='easy',pack=false){
  const pool=lootPool(source,difficulty),commons=pool.filter(id=>!CARDS[id].fusionOnly),rares=pool.filter(id=>CARDS[id].fusionOnly);
@@ -860,10 +860,10 @@ function validateProfile16(raw){
 }
 function freeCopies(id){return profile.favorites.includes(id)?0:Math.max(0,(profile.inventory[id]||0)-Math.max(1,reservedCopies(id)));}
 function enhanceCost(id){const c=CARDS[id],rank=profile.enhancements[id]||0;return {copies:(c?.fusionOnly&&c.rarity==='rare'?[1,3,4,5,5]:[3,5,7,9,11])[rank]||0,coins:0,shards:0,source:Math.max(0,c?.source||0)};}
-function enhanceCard(id){const cost=enhanceCost(id);if(storageConflict||!CARDS[id]||!ownsCard(id)||(profile.enhancements[id]||0)>=5||!cost.copies||freeCopies(id)<cost.copies)return false;profile.inventory[id]-=cost.copies;profile.enhancements[id]=(profile.enhancements[id]||0)+1;saveProfile();return true;}
+function enhanceCard(id){const cost=enhanceCost(id);if(storageConflict||!CARDS[id]||CARDS[id].essenceMonster||!ownsCard(id)||(profile.enhancements[id]||0)>=5||!cost.copies||freeCopies(id)<cost.copies)return false;profile.inventory[id]-=cost.copies;profile.enhancements[id]=(profile.enhancements[id]||0)+1;saveProfile();return true;}
 function resetEnhancement(){return false;}
 function sellPrice(id){return CARDS[id].fusionOnly?8:3;}
-function sellCard(id){if(storageConflict||!CARDS[id]||freeCopies(id)<1)return false;profile.inventory[id]--;profile.coins=Math.min(1e9,profile.coins+sellPrice(id));saveProfile();return true;}
+function sellCard(id){if(storageConflict||!CARDS[id]||CARDS[id].essenceMonster||freeCopies(id)<1)return false;profile.inventory[id]--;profile.coins=Math.min(1e9,profile.coins+sellPrice(id));saveProfile();return true;}
 function challengeCompleted(g){if(g.challenge==='singlefusion')return g.totalFusions[0]<=1;if(g.challenge==='regulars')return new Set(g.players[0].field.filter(c=>c&&!c.fusion).map(c=>c.id)).size>=3;if(g.challenge==='untrained')return g.players[0].flatBonus===0;return true;}
 function rewardMatch16(g){
  if(storageConflict||g.winner===null||g.rewardClaimed||profile.rewardLedger.includes(g.id))return null;
