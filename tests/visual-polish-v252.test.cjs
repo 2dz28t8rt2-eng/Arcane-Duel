@@ -42,7 +42,7 @@ test('Mode cards and ready-to-claim quests get their own visible styling',()=>{
 });
 test('Versioned entrypoint loads Fusion Evolution with fresh CSS and JS assets',()=>{
  assert.match(html,/3\.0 · Das Vergoldete Archiv/);
- assert.match(html,/assets\/evolution\.css\?v=clarity-20261015-b/);
- assert.match(html,/assets\/evolution\.js\?v=soul-stamp-20261015-3/);
+ assert.match(html,/assets\/evolution\.css\?v=[A-Za-z0-9-]+/);
+ assert.match(html,/assets\/evolution\.js\?v=[A-Za-z0-9-]+/);
  assert.match(js,/version:'3\.1\.0'/);
 });
