@@ -28,7 +28,7 @@ test('Fusion cinema uses real material artwork, with reduced-motion and instant 
  assert.match(js,/fusionVisualSnapshot\(materials\)/);
  assert.match(js,/fusionVisualSnapshot\(\[pending\.card,game\.players\[game\.active\]\.field\[idx\]\]\)/);
  assert.match(js,/item\.append\(img\)/);
- assert.match(js,/resultImg\.src=dataOf\(c\)\.art/);
+ assert.match(js,/querySelector\('\.evo-fusion-result img'\)\.src=dataOf\(c\)\.art/);
  assert.match(js,/prefers-reduced-motion: reduce/);
  assert.match(css,/evo-cinema-orbit/);
  assert.match(css,/evo-cinema-merge/);
