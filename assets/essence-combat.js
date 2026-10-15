@@ -97,7 +97,7 @@
   // even when attackers wisely refuse to hit the blockade.
   // Cap applies per eater and round to keep five defenders from bursting
   // 10,000 LP in one turn. Full defensive stat absorption still has a price.
-  const soulBrand=Math.min(40+lv*30,Math.floor(earned*.90));
+  const soulBrand=Math.min(45+lv*42,Math.floor(earned*1.35));
   if(soulBrand>0)addBurn(g,owner,soulBrand,dataOf(creature).name+' · Seelenbrand');
   if(rank>=3&&store.drainPreference===2&&drainedDef){
    // Heal only actual DEF drained, at 30%; no overheal.
