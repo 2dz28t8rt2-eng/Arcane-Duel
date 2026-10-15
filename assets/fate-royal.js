@@ -23,8 +23,10 @@ fateAnimation=async function(g){
  layer.setAttribute('aria-label','Schicksalszug – fünf Schicksalsmonster erscheinen');
  const particles=Array.from({length:instant?12:52},(_,n)=>{
   const i=(n+1)*13.41,variation=(n*31)%100;
-  const kind=['✧','✦','◆','·'][n%4];
-  return '<span class="fate-royal-particle" aria-hidden="true" style="--px:'+(variation)+'%;--py:'+((n*53)%100)+'%;--delay:'+(-n*.137).toFixed(2)+'s;--drift:'+((n*19)%80-40)+'px;--size:'+(n%7===0?19:8+n%8)+'px">'+kind+'</span>';
+  const symbolSets=[['✦','✧','⋆','✺'],['✺','✶','✴','·'],['◆','◇','❖','✧'],['⌛','◇','·','✧'],['❁','✺','✦','❋'],['✧','⋆','✶','◆'],['☾','·','✧','☁'],['☄','✶','✦','·'],['✥','◇','✧','✦'],['◈','✦','⋆','✧']];
+  const artIndex=indices[n%Math.max(1,indices.length)]??0;
+  const kind=symbolSets[artIndex][n%4];
+  return '<span class="fate-royal-particle" aria-hidden="true" style="color:'+visuals.entries[artIndex].primary+';--px:'+(variation)+'%;--py:'+((n*53)%100)+'%;--delay:'+(-n*.137).toFixed(2)+'s;--drift:'+((n*19)%80-40)+'px;--size:'+(n%7===0?19:8+n%8)+'px">'+kind+'</span>';
  }).join('');
  const cards=indices.map((idx,i)=>{
   const item=visuals.entries[idx];
