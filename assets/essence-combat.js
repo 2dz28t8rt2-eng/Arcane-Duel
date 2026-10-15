@@ -169,7 +169,15 @@
  };
  const oldAttackPlan=attackPlan;
  attackPlan=function(g){
-  const result=oldAttackPlan(g);
+  let result=oldAttackPlan(g);
+  if(isEssenceDuel(g)&&g.active===1&&result&&Number.isInteger(result.di)&&g.players[0].field[result.di]?.essenceCombat?.guardLeft>0){
+   // The classic attack planner assumes it can destroy a 1-DEF creature.
+   // Never waste attacks against Last Bastion when another legal target exists.
+   const others=g.players[0].field.map((c,i)=>({c,i})).filter(x=>x.c&&!(x.c.essenceCombat?.guardLeft>0));
+   if(!others.length)return null;
+   others.sort((a,b)=>dataOf(a.c).def-dataOf(b.c).def);
+   result={ai:result.ai,di:others[0].i};
+  }
   if(result||!isEssenceDuel(g)||g.active!==1||g.winner!==null)return result;
   // Legacy AI attacks only if it can destroy DEF in a single blow.
   // With new monster-HP, predators must also chip away at dangerous blockers.
