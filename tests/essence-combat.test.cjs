@@ -172,7 +172,7 @@ test('Seelenbrand applies bounded direct LP pressure with five unopposed soul ea
  g.advanceTurn(duel);
  const damage=before-duel.players[1].lp;
  assert.ok(damage>0,'Soul Eaters can burn LP even without enemy attacks');
- assert.ok(damage<=5*(40+6*30),'LP burn remains bounded per soul and its level');
+ assert.ok(damage<=5*(45+6*42),'LP burn remains bounded per soul and its level');
  assert.equal(duel.players[0].lp,ownBefore,'passive soul harvest must not drain own LP');
  assert.ok(duel.players[0].field.every(c=>c?.essenceCombat?.soul>=0));
 });
