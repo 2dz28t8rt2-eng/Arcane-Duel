@@ -26,7 +26,7 @@
   const checkStreet=length=>levels.some((start,i)=>levels.slice(i,i+length).length===length&&levels.slice(i,i+length).every((v,j)=>v===start+j));
   const matched={
    pair:vals.some(v=>v>=2),lowPair,
-   twoPairs:vals.filter(v=>v>=2).length>=2||vals.some(v=>v>=4),
+   twoPairs:vals.filter(v=>v>=2).length>=2,
    three:vals.some(v=>v>=3),four:vals.some(v=>v>=4),five:vals.some(v=>v>=5),
    smallStraight:checkStreet(3),bigStraight:checkStreet(5),
    fullHouse:(vals[0]>=3&&vals[1]>=2)
