@@ -54,7 +54,7 @@
   for(const lv of plan.output){const id=stage(root,lv);if(id===undefined)return {ok:false,message:'Diese Monsterstufe existiert nicht.'};credit.set(id,(credit.get(id)||0)+1);}
   const all=[...new Set([...debit.keys(),...credit.keys()])];
   for(const id of all){
-   if(!UPDATE_B_SET.has(id)||CARDS[id]?.fusionOnly||CARDS[id]?.essenceMonster||CARDS[id]?.ace||CARDS[id]?.rarity!=='common')return {ok:false,message:'Nur gewöhnliche Monster dürfen umgewandelt werden.'};
+   if(!UPDATE_B_SET.has(id)||!ARCANE_WORKSHOP_IDS.includes(id)||CARDS[id]?.fusionOnly||CARDS[id]?.essenceMonster||CARDS[id]?.ace||['rare','essence','legendary','mythic'].includes(CARDS[id]?.rarity))return {ok:false,message:'Nur gewöhnliche Monster dürfen umgewandelt werden.'};
    if(profile.favorites.includes(id)&&debit.has(id))return {ok:false,message:'Eine geschützte Karte ist ausgewählt. Entferne zuerst ihren Favoritenstatus.'};
    if((debit.get(id)||0)>free(id))return {ok:false,message:'Zu wenige freie Kopien. In Deckplätzen verwendete Karten sind geschützt.'};
    const after=(profile.inventory[id]||0)-(debit.get(id)||0)+(credit.get(id)||0);
