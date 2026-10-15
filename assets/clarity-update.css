@@ -1,0 +1,94 @@
+/* Arcane Duel · readability and navigation polish · post-3.0 QA.
+   Style-only changes; all values remain governed by the battle engine. */
+@media(min-width:981px){
+ #menuScreen.fm-screen.atlas-screen #menuNav.fm-navigation.atlas-nav{
+  position:sticky!important;top:12px!important;align-self:start!important;
+  height:calc(100dvh - 30px)!important;max-height:calc(100dvh - 30px)!important;
+  min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;
+  overscroll-behavior-y:contain!important;scrollbar-width:thin;
+  scrollbar-color:#d4b77b #192336;
+ }
+ #menuScreen.fm-screen #menuContent{min-width:0}
+}
+#menuScreen .fm-submenu[hidden]{display:none!important}
+#menuScreen .fm-group-button[aria-expanded="false"] .fm-arrow{transform:rotate(0deg)}
+#menuScreen .fm-shop-guide{
+ display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 16px;margin-bottom:15px;
+ border:1px solid #b79c68a8;border-radius:12px;
+ background:linear-gradient(115deg,#292736,#182d35);color:#f2e9cf;
+}
+#menuScreen .fm-shop-guide strong{font:700 15px Georgia,serif}
+#menuScreen .fm-shop-guide span{font-size:13px;line-height:1.55;flex:1 1 210px}
+#menuScreen .fm-shop-guide .btn{min-height:37px}
+#menuScreen .fm-hint-link{border:1px solid #bd9e6b!important;background:#272a3a!important;color:#f9dfa5!important;
+ white-space:normal!important;text-align:left!important;padding:12px!important;font-size:12px!important}
+#menuScreen .essence-role-chip,#menuScreen .arcane-card-role{display:none!important}
+#menuScreen .deck-editor-grid .collection-item .arcane-role-readout{
+ display:block;position:static!important;box-sizing:border-box;max-width:100%;
+ margin:10px 3px 5px;padding:8px 10px;border-radius:8px;
+ font:800 11px/1.4 system-ui,sans-serif;letter-spacing:.045em;
+ color:#f7e4be;border:1px solid #b69c78;background:#222c3c;
+ text-shadow:none;overflow-wrap:anywhere;white-space:normal;
+}
+#menuScreen .deck-preview-meta .arcane-role-readout{
+ display:block;margin:9px 0 11px;padding:12px 14px;border:1px solid #b8a073;
+ border-radius:10px;background:#263346;color:#f5e6c8;
+ font:800 14px/1.4 system-ui,sans-serif;letter-spacing:.06em;
+}
+#menuScreen .arcane-role-readout.arcane-role-predator{border-color:#d99980;color:#ffccab;background:#332531}
+#menuScreen .arcane-role-readout.arcane-role-guardian{border-color:#8ccda9;color:#d1ffdf;background:#1a3336}
+#menuScreen .arcane-role-readout.arcane-role-soul{border-color:#b7a1e9;color:#e7d9ff;background:#30263f}
+#menuScreen .arcane-role-readout.arcane-role-hunter{border-color:#a4c5ee;color:#d5eaff;background:#1e3441}
+#menuScreen .arcane-role-readout.arcane-role-support{border-color:#8bb9ea;color:#d3e9ff;background:#24324a}
+#menuScreen .arcane-role-readout.arcane-role-weaver{border-color:#c2a3ed;color:#f0d9ff;background:#2f2a46}
+#menuScreen .arcane-role-readout.arcane-role-combatant{border-color:#aa9d87;color:#f3ddbb;background:#2c2b31}
+#menuScreen .deck-preview-card .hand-card.tc-card .card-name{
+ font-size:clamp(19px,1.9vw,24px)!important;line-height:1.17!important;
+ overflow-wrap:anywhere;white-space:normal!important;display:block;
+}
+#menuScreen .deck-preview-head h3{font-size:clamp(22px,2.1vw,28px)!important;line-height:1.3!important;
+ overflow-wrap:anywhere}
+#menuScreen .deck-preview-desc,#menuScreen .deck-preview-meta p,
+#menuScreen .deck-family small,#menuScreen .essence-role-description{
+ font-size:15px!important;line-height:1.75!important;color:#e0e6ed!important
+}
+#menuScreen .deck-family{padding:15px!important}
+#menuScreen .deck-family>b{font-size:16px!important;line-height:1.45!important}
+#menuScreen .collection-actions{font-size:12px!important;line-height:1.55}
+#menuScreen .collection-actions>b{font-size:12px!important}
+#menuScreen .collection-actions small{font-size:12px!important}
+#menuScreen .shard-strip{font-size:14px!important;line-height:1.6!important}
+#duelScreen .hand-card.tc-card .arcane-card-role{
+ font:800 9px/1.25 system-ui,sans-serif!important;padding:5px 7px!important;
+ max-width:65%!important;bottom:43px!important;left:5px!important;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+#duelScreen .hand-card.tc-card .hand-type{
+ text-align:right!important;padding-left:52%!important;padding-right:8px!important;
+ box-sizing:border-box;font-size:10px!important;white-space:nowrap;
+}
+#duelScreen .card-preview-panel .arcane-fusion-concealed{min-height:235px;justify-content:center}
+#menuScreen .arcane-reward-showcase,.arcane-reward-showcase{
+ margin:14px auto;padding:14px;border-radius:14px;border:1px solid #bfa477;
+ background:radial-gradient(ellipse at top,#4b3b613d,#141e30 73%);
+ text-align:center;display:grid;justify-items:center;gap:10px;
+}
+.arcane-reward-showcase>strong{font:800 12px/1.6 system-ui;letter-spacing:.08em;color:#f8ddb3}
+.arcane-reward-showcase>.hand-card{width:190px!important;min-width:190px!important;max-width:190px!important;margin:auto}
+.arcane-reward-showcase>small{font-size:13px;line-height:1.6;color:#f3e7d4;max-width:360px}
+.arcane-essence-ceremony{border:1px solid #c9b1ec;padding:18px;border-radius:15px;
+ background:radial-gradient(ellipse at 50% 0%,#61489266,#181f35 78%);text-align:center}
+.arcane-essence-ceremony .essence-ceremony-glyph{font:70px/1 Georgia,serif;color:#ead5ff;
+ text-shadow:0 0 30px #c7a6ff;animation:arcane-essence-glow 2.8s ease-in-out infinite alternate}
+.arcane-essence-ceremony h3{font:700 24px Georgia,serif;color:#f5dfb7;margin:8px 0}
+.arcane-essence-ceremony p{color:#ede6fc;font-size:14px;line-height:1.7}
+@keyframes arcane-essence-glow{to{text-shadow:0 0 44px #dfc6ff;transform:scale(1.04)}}
+@media(prefers-reduced-motion:reduce){.arcane-essence-ceremony .essence-ceremony-glyph{animation:none}}
+@media(max-width:980px){
+ #menuScreen.fm-screen #menuNav.fm-navigation{height:auto!important;max-height:none!important;overflow:visible!important}
+}
+@media(max-width:580px){
+ #menuScreen .deck-preview-desc,#menuScreen .deck-preview-meta p,#menuScreen .deck-family small{font-size:14px!important}
+ #menuScreen .deck-preview-meta .arcane-role-readout{font-size:13px!important}
+ .arcane-reward-showcase>.hand-card{width:160px!important;min-width:160px!important}
+}
