@@ -363,3 +363,25 @@ test('Legacy power purchase receives one-time 40% compensation, no second refund
  const second=g.validateProfile(JSON.parse(JSON.stringify(loaded)));
  assert.equal(second.coins,loaded.coins);
 });
+
+test('Gegenschlag uses half the actual defender ATK, including bonus and battle fatigue',()=>{
+ const {g}=setup();
+ const ids=[...g.ARCANE_STAGE_IDS.values()];
+ const predator=ids.find(id=>g.CARDS[id].level===6&&g.CARDS[id].role==='predator');
+ const guard=ids.find(id=>g.CARDS[id].level===6&&g.CARDS[id].role==='guardian');
+ assert.ok(predator!==undefined&&guard!==undefined);
+ g.profile.upgrades.schildwall=5;
+ const duel=g.createGame({mode:'pve',context:'free',opponentId:4,seed:213314,
+  deck:g.RPG_DEFAULT_DECK,fusionDeck:g.RPG_START_FUSIONS});
+ duel.players[0].field[0]=g.newInstance(duel,guard,0);
+ duel.players[1].field[0]=g.newInstance(duel,predator,1);
+ duel.players[0].field[0].mode='def';duel.turn=2;duel.active=1;duel.players[1].shield=0;
+ const defender=duel.players[0].field[0],predatorInst=duel.players[1].field[0];
+ const expectedAtk=defender.card.atk;
+ defender.card.atk=Math.max(0,expectedAtk-60); // accumulated battle wear
+ const expectedCounter=Math.floor(defender.card.atk/2);
+ const before=duel.players[1].lp;
+ assert.ok(g.attack(duel,0,0),'attack should resolve');
+ assert.equal(before-duel.players[1].lp,expectedCounter,'counter uses live ATK, not source card');
+ assert.notEqual(expectedCounter,Math.floor(g.CARDS[guard].atk/2));
+});
