@@ -222,3 +222,12 @@ test('Unowned fusion cards remain discoverable elsewhere but are not in the fusi
  assert.ok(cards.every(c=>(g.profile.inventory[c.id]||0)>0));
  assert.ok(g.RPG_FUSIONS.some(c=>(g.profile.inventory[c.id]||0)===0),'unowned cards exist');
 });
+
+test('No legacy single-card monster matchup bonuses remain in the playable catalog',()=>{
+ const {g}=setup();
+ const removed=new Set(['aegis','pierce','hunt','guide','rush','guard']);
+ const oldAbilities=[...g.RPG_BASE_CARDS,...g.RPG_FUSIONS]
+  .filter(c=>c.level<=10&&!c.retired&&removed.has(c.ability))
+  .map(c=>({name:c.name,ability:c.ability}));
+ assert.deepEqual(oldAbilities,[],'legacy PvE bonuses should not survive in playable cards');
+});
