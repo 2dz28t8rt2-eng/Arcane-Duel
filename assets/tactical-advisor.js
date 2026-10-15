@@ -74,8 +74,8 @@
   if(!zone||modal.querySelector('.tactic-fusion-explainer')||!game||!Array.isArray(materials)||materials.length<2)return result;
   const strongestAtk=Math.max(...materials.map(m=>Number(dataOf(m).atk)||0));
   const strongestDef=Math.max(...materials.map(m=>Number(dataOf(m).def)||0));
-  const f=tunedFusionQuality(game,levels,materials.map(m=>dataOf(m).element));
   const pool=fusionOptions(game,levels).filter(c=>game.pending||canCompleteHandFusion(game,levels,c.id)).sort((a,b)=>b.level-a.level||b.atk-a.atk);
+  const patternName=fusionPreview(game,pool[0],materials,levels)?.pattern||'Fusion';
   if(!pool.length)return result;
   const examples=pool.slice(0,3).map(c=>{
    const v=fusionPreview(game,c,materials,levels);
@@ -87,7 +87,7 @@
   const wrap=document.createElement('details');
   wrap.className='tactic-fusion-explainer';
   wrap.innerHTML='<summary>✧ Fusion genauer verstehen · Materialvergleich</summary>'+
-   '<div><p><strong>'+escape(f.name)+'</strong> · Qualitätsfaktor <strong>'+Math.round(f.factor*100)+' %</strong>'+
+   '<div><p><strong>'+escape(patternName)+'</strong>'+
    ' · '+levels.length+' Materialien. <strong>Vergleichsbasis</strong>: stärkstes eingesetztes Material mit ATK '+strongestAtk+' / DEF '+strongestDef+'.</p>'+
    '<div class="table-scroll"><table><thead><tr><th>Fusionsvorlage</th><th>ATK gegenüber Material</th><th>DEF gegenüber Material</th><th>Würfe</th></tr></thead>'+
    '<tbody>'+examples+'</tbody></table></div>'+
