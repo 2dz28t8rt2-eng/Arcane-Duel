@@ -9,22 +9,27 @@
  const roleName={predator:'Predator',guardian:'Verteidiger',soul:'Seelenzehrer'};
  const r10=n=>Math.max(10,Math.round(n/10)*10);
  function inheritance(materials){
-  let defense=0,predator=0;
-  for(const item of materials){
-   const role=roleOf(item);
-   if(role==='guardian'||role==='soul')defense++;
-   if(role==='predator')predator++;
-  }
-  return defense-predator>=3?'guardian':predator-defense>=3?'predator':null;
+  // Equal roles (including two soul eaters) must win over an unrelated template tag.
+  if(!Array.isArray(materials)||materials.length<2)return null;
+  const roles=materials.map(roleOf);
+  if(roles.every(r=>r==='soul'))return 'soul';
+  const defense=roles.filter(r=>r==='guardian'||r==='soul').length;
+  const predators=roles.filter(r=>r==='predator').length;
+  const majority=Math.floor(roles.length/2)+1;
+  if(defense>=majority&&defense>predators)return 'guardian';
+  if(predators>=majority&&predators>defense)return 'predator';
+  return null;
  }
  function soulOdds(materials){
   return Math.min(.75,.20+materials.reduce((n,c)=>n+.035+.007*Math.min(12,Math.max(1,dataOf(c).level)),0));
  }
  function imprint(g,materials){
-  if(g?.mode!=='pve'||materials.length<3)return null;
+  if(g?.mode!=='pve'||materials.length<2)return null;
   const inherited=inheritance(materials);
   if(!inherited)return null;
-  if(inherited==='predator')return {role:'predator',source:'material',materials:materials.length};
+  if(inherited==='predator'||inherited==='soul')return {role:inherited,source:'material',materials:materials.length};
+  // Only 3+ guardian materials can roll for a Seelenzehrer awakening.
+  if(materials.length===2)return {role:'guardian',source:'material',materials:2,soulOdds:0,soulAwakened:false};
   const field=Array.isArray(g.arcaneFieldInputs)?g.arcaneFieldInputs:[];
   const sameField=field.length>=3&&field.every(x=>['guardian','soul'].includes(roleOf(x)));
   const odds=soulOdds(materials);
@@ -143,5 +148,5 @@
    if(q.p.field[idx])b.classList.add('arcane-synth-available');
   });
  };
- window.ArcaneRoleFusion=Object.freeze({version:'1.1.0',inheritance,soulOdds,imprint,reset});
+ window.ArcaneRoleFusion=Object.freeze({version:'1.2.0',inheritance,soulOdds,imprint,reset});
 })();
