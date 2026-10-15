@@ -4,6 +4,8 @@
    tsParticles Slim paints optional arcane motes; CSS sparks work without internet. */
 .ritual-overlay.evo-summon{
  position:fixed!important;inset:0!important;z-index:30000!important;
+ /* Fixed overlay stretches between the layout viewport edges, not the 100vw scrollbar. */
+ width:auto!important;
  box-sizing:border-box!important;width:100vw!important;height:100dvh!important;
  min-width:0!important;max-width:none!important;max-height:none!important;
  margin:0!important;padding:10px!important;border:0!important;border-radius:0!important;
@@ -294,3 +296,5 @@
 @media(prefers-reduced-motion:reduce){
  .ritual-overlay,.ritual-overlay *{animation:none!important;transition:none!important}
 }
+
+.ritual-overlay.evo-summon{width:auto!important;left:0!important;right:0!important}
