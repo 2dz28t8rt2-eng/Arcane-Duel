@@ -26,7 +26,7 @@
   const color={predator:'#f26c66',guardian:'#75c7f9',soul:'#da9eff'}[role]||'#c8b0ff';
   return engine.load({id:'arcane-fusion-motes',options:{
    fullScreen:{enable:false},fpsLimit:40,
-   particles:{number:{value:26,density:{enable:false}},color:{value:[color,'#f2d29a','#cfb0ff']},
+   particles:{number:{value:host.dataset.variant==='field'?58:26,density:{enable:false}},color:{value:[color,'#f2d29a','#cfb0ff']},
     shape:{type:['circle','star']},opacity:{value:{min:.15,max:.7}},size:{value:{min:1,max:3}},
     move:{enable:true,speed:{min:.4,max:1.2},direction:'none',outModes:{default:'out'}},
     links:{enable:false},collisions:{enable:false}},
@@ -34,7 +34,7 @@
   }});
  }
 
- async function play({instance:c,materials=[],battle:g,card:t,level,wait,playSound}){
+ async function play({instance:c,materials=[],battle:g,card:t,level,variant='full',wait,playSound}){
   if(running)return;
   if(!c?.fusion||!t||!g)return;
   if(!Array.isArray(c.rollTrace)||!c.rollMath)return;
@@ -49,6 +49,7 @@
   const overlay=document.createElement('div');
   overlay.className='evo-summon evo-fusion-scene evo-stamp-scene ritual-overlay';
   overlay.dataset.role=role;
+  overlay.dataset.variant=variant;
   overlay.setAttribute('role','status');
   overlay.setAttribute('aria-label','Fusion von '+t.name+': '+rolls.length+' echte Wertewürfe');
   overlay.innerHTML=
@@ -79,9 +80,9 @@
    '</div>';
   const layer=overlay.querySelector('.evo-material-layer');
   const sparkContainer=overlay.querySelector('.ritual-sparks');
-  for(let i=0;i<18;i++){
+  for(let i=0;i<(variant==='field'?38:18);i++){
    const spark=document.createElement('span');spark.className='ritual-spark';
-   spark.style.setProperty('--angle',i*20+'deg');
+   spark.style.setProperty('--angle',i*(variant==='field'?9.47:20)+'deg');
    spark.style.setProperty('--delay',(-i*.11)+'s');sparkContainer.append(spark);
   }
   const samples=materials.length?materials:[{art:t.art,level:t.level}];
