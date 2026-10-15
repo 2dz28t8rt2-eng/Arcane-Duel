@@ -598,7 +598,7 @@ const baseOnOwnSlot=onOwnSlot;onOwnSlot=async function(idx,choice){
   if(normal)animateCardPlacement(normal,from,to);
  }
 };
-frameClassForCard=function(c){const css=previous.frameClassForCard(c);const t=dataOf(c);return t.ace?css+' evo-ace-tier-'+t.source:css;};
+frameClassForCard=function(c){const css=previous.frameClassForCard(c);const t=dataOf(c);return t.ace?css+' evo-ace-tier-'+t.source:t.essenceMonster?css+' tc-essence tc-essence-'+(t.essenceSchool||'fusion'):css;};
 showFinished=function(){const mode=game?.evolutionMode,already=game?.finishShown;previous.showFinished();if(game?.mode==='pve'&&game?.context==='tournament'&&game?.winner===0){}if(!mode||already||!game?.finishShown)return;const r=objectives(game),won=game.evolutionCashout||game.winner===0&&game.players[1].lp===0&&r>0;
  const note=`<div class="evo-result"><h3>${won?'✦ Herausforderung abgeschlossen':'⚠ Versuch gescheitert'}</h3><p>${won?r+' von 3 Zielen erfüllt. Mehr Belohnungen gibt es beim erneuten Versuch mit weiteren Zielen.':'Keine Belohnung für diesen Versuch. Bereits abgeschlossene frühere Versuche bleiben erhalten.'}</p>${game.evolutionStage===5&&won&&r===3?'<p>✦ Permanenter Kategorievorteil freigeschaltet!</p>':''}</div>`;$('modal')?.insertAdjacentHTML('afterbegin',note);};
 // Current version handbook: expandable chapters and an actual bonus reference.
