@@ -20,7 +20,7 @@ iframe.addEventListener('load',async()=>{
   d.getElementById('modalGo')?.click();
   w.eval('game.selection={type:"hand",uid:game.players[0].hand[0].uid};render()');
   const own=stats('#duelScreen .card-preview-panel .stat-value');
-  check(own.length===2&&own.every(el=>fontSize(el)<=12.1),'Große Duellkarte: ATK/DEF maximal 12px');
+  check(own.length===2&&own.every(el=>fontSize(el)<=12.1),'Große Duellkarte: ATK/DEF maximal 12px (Anzahl '+own.length+', Schrift '+own.map(fontSize).join('/')+', HTML '+d.getElementById('largeCardPreview')?.innerHTML.slice(0,180)+')');
   w.eval('game.selection=null;game.players[1].field[0]=newInstance(game,0,1);render();onEnemySlot(0)');
   const enemy=stats('.arcane-enemy-large .stat-value');
   check(enemy.length===2&&enemy.every(el=>fontSize(el)<=12.1),'Große Gegnerkarte: ATK/DEF maximal 12px');
