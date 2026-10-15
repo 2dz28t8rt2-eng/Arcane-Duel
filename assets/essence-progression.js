@@ -147,11 +147,20 @@
   if(!result||g.mode!=='pve'||g.surrendered)return result;
   const e=E();
   if(g.essenceTrial&&g.winner===0&&!result.pvp){
-   if(g.essenceTrial==='intro-'+e.intro&&e.intro<3)e.intro++;
-   else if(e.switchTarget&&g.essenceTrial==='switch-'+e.switchTarget+'-'+e.switchStep&&e.switchStep<5)e.switchStep++;
-   const reward=examReward(g.essenceTrial.startsWith('intro-')?e.intro-1:e.switchStep-1);
-   profile.coins=Math.min(1e9,profile.coins+reward);result.essenceExamReward=reward;
-   saveProfile();
+   // A completed trial grants its small progress reward only once,
+   // when the corresponding stage actually advances. Replays must not mint Essence.
+   let completedStage=-1;
+   if(g.essenceTrial==='intro-'+e.intro&&e.intro<3){
+    completedStage=e.intro;e.intro++;
+   }else if(e.switchTarget&&g.essenceTrial==='switch-'+e.switchTarget+'-'+e.switchStep&&e.switchStep<5){
+    completedStage=e.switchStep;e.switchStep++;
+   }
+   if(completedStage>=0){
+    const reward=examReward(completedStage);
+    profile.coins=Math.min(1e9,profile.coins+reward);
+    result.essenceExamReward=reward;
+    saveProfile();
+   }
   }
   if(g.essenceParticipated&&e.chosen!==null&&g.essenceTrial===null&&result.coins>0){
    const feed=Math.floor(result.coins*.05)+2*(g.essenceKills||0)+3*(g.essenceTurns||0);
