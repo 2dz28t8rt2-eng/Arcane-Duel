@@ -139,11 +139,14 @@ test('Lv10 tournament strategy comparison: predator, guardian/soul and fusion ag
  const main=g.RPG_BASE_CARDS.filter(c=>!c.retired&&!c.essenceMonster&&!c.ace&&!c.fusionOnly&&c.level<=10);
  const fusionPool=g.RPG_FUSIONS.filter(c=>!c.retired&&c.level<=10&&c.fusionOnly)
   .sort((a,b)=>b.level-a.level||b.atk-a.atk);
- const fusionDeck=fusionPool.slice(0,15).map(c=>c.id);
+ // Include low/mid and high fusion levels. A late-only stock mislabels a deck as
+ // fusion-focused even though its opening material combinations cannot fuse.
+ const bridges=[2,4,5,6,7,8,9,10].map(lv=>fusionPool.find(c=>c.level===lv)?.id).filter(id=>id!==undefined);
+ const fusionDeck=[...new Set([...bridges,...fusionPool.map(c=>c.id)])].slice(0,15);
  const archetypes=[
   {name:'predator',roles:['predator'],policy:'offensive',sort:(a,b)=>b.atk-a.atk||b.level-a.level},
   {name:'guardian-soul',roles:['guardian','soul'],policy:'guardian',sort:(a,b)=>b.def-a.def||b.level-a.level},
-  {name:'fusion-focused',roles:[],policy:'economy',sort:(a,b)=>a.level-b.level||b.atk-a.atk}
+  {name:'fusion-focused',roles:[],policy:'balanced',sort:(a,b)=>a.level-b.level||b.atk-a.atk}
  ];
  const summary=[];
  for(const archetype of archetypes){
