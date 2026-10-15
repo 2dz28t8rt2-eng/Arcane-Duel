@@ -56,8 +56,12 @@ Dieses Dokument hält die im Gespräch festgelegten Designentscheidungen für da
 ### Energiearten / Alternative [BESCHLOSSEN, Umsetzungsschnittstelle OFFEN]
 - **Automatischer Burn** beim besonderen Seelen-DEF-Verfall ist Standard.
 - Einzelne Elite-Seelenzehrer dürfen **aktiv entladen**. Ein besonderer **Wächter-/Buffer-Typ** kann anderen Seelenzehrern die aktive Entladung temporär verleihen. Aktive Entladung verbraucht Energie genau einmal; keine Doppelverwertung.
-- **„Verdichten“:** bewusster DEF-Modus. Vorübergehender zusätzlicher Schutz wird über drei **eigene Zugenden** zu jeweils **1/3 des ursprünglichen Verdichtungsbonus** abgebaut, ohne zusätzlichen Zerfall/Burn für diesen verdichteten Anteil. Kein sofortiges Wiederauffüllen/Spammen.
-- Die Nutzerforderung „Verdichten nur, wenn keine überschüssige DEF existiert“ und die Idee „vorhandene Seelenenergie zu DEF verdichten“ widersprechen sich wörtlich. **OFFEN: sauber unterscheiden zwischen absorbierter Seelen-DEF, verfügbarem Energievorrat und bereits laufender Verdichtung.** Plausibler Lösungsansatz: Verdichtung einmal bei verfügbaren Seelenpunkten möglich, aber kein Recast, solange verdichtete DEF aktiv ist. Vor Coding ausdrücklich festlegen.
+- **Drei getrennte Werte (BESCHLOSSEN):**
+  1. **Grund-DEF:** eigentliche, reguläre Monster-DEF; unterliegt normalem Kreaturenzerfall und ggf. „Bollwerk“.
+  2. **Seelenessenz:** aktuell absorbierte **instabile Bonus-DEF**; entsteht auch während „Verdichten“ auf Cooldown ist. Ihr schneller natürlicher Zerfall verursacht Burn (Testwert 100 %); durch Angriffe verlorene Seelenessenz verursacht verminderten Burn (Testwert 50 %). Dieser Wert kann nur einmal verbraucht/zerstört/verfallen.
+  3. **Überschüssige / verdichtete DEF:** aus bestehender Seelenessenz umgewandelter temporärer **stabiler Schutz**; sie ist **nicht zusätzlich erzeugte** DEF. Verfällt zu je 1/3 des bei Aktivierung festgelegten Bonus am Ende von drei eigenen Zügen; **kein Burn aus diesem Verdichtungszerfall**.
+- **„Verdichten“ (BESCHLOSSEN):** ein aktiver Knopf wandelt verfügbare Seelenessenz in verdichtete Überschuss-DEF um und startet einen **Cooldown von drei eigenen Runden**. Der Seelenzehrer saugt **während des Cooldowns weiterhin ganz normal Energie** auf; neue Seelenessenz bleibt dem **instabilen** Vorrat zugeordnet und wird nicht automatisch mitverdichtet. Der Knopf lässt sich bis Cooldownende nicht erneut aktivieren, auch wenn der alte Bonus vorher entfernt wird. Ein vorhandener alter Bonus wird bei Cooldownende wie oben vollständig abgebaut.
+- **OFFEN / Testen:** Die genaue Schadensverteilung eines Angriffs auf die drei Schichten (empfohlen: verdichtete Überschuss-DEF → Seelenessenz → Grund-DEF), Rundung der Drittel und Verhalten beim vorzeitigen Zerstören. Jeder Wert darf nur in genau einer Schicht geführt werden und **nie mehrfach Burn** auslösen.
 
 ### Stufe, Priorität, Lebensraub [BESCHLOSSEN / TESTWERTE]
 - Seelenzehrer-Fähigkeit hat **Ausbauränge 1–5**, mit wachsender Lategame-Relevanz und Spezialvarianten (Schwarm-, gezielter ATK-, gezielter DEF-Zehrer).
@@ -71,7 +75,7 @@ Dieses Dokument hält die im Gespräch festgelegten Designentscheidungen für da
 - **Rang 2:** Zerfallsreduktion bleibt **15 %**, plus **kleiner Energieaufnahmebonus**.
 - **Rang 3:** **–25 % normaler Grundwertzerfall**.
 - **Rang 4:** **stärkerer Energieaufnahmebonus**.
-- **Rang 5:** zusätzliche im Lategame signifikante **passive Fähigkeit**, nicht bloß +5/10 Statuspunkte; konkreten Mechanismus mit Lategame-Tests entscheiden.
+- **Rang 5: „Letztes Bollwerk“ (BESCHLOSSENE RICHTUNG, DAUER TESTWERT):** Einmal pro Duell für die eigene Seite überlebt ein ansonsten durch einen Angriff tödlich getroffener Verteidiger mit mindestens 1 verbleibender Grund-DEF und erhält anschließend **Angriffsimmunität für vorläufig zwei gegnerische Züge** (alternativer Test: ein Zug). Das ist **nicht** generelle Effekt- oder Zerfallsimmunität: Seelenzehrer saugt weiterhin Energie; andere gegnerische Monster, Wächter und Unterstützer bleiben angreifbar. Fähigkeit kann nicht durch Heilung oder andere Effekte erneut ausgelöst werden. **Angriffsimmunität muss nicht automatisch zusätzliche Gegenschläge, erzwungene Zielwahl oder weitere Schadenseffekte erzeugen**; Anti-Stall und Zielwahl in der KI mit testen. Wenn der Grundwert mit 1 DEF natürlichen Zerfall erfährt, darf daraus kein unsichtbarer Instanttod entstehen, sondern braucht eine eindeutige Regel im neuen Monster-HP-Modell.
 - Grundwertzerfall ist separat von dem bewusst beschleunigten Zerfall der gespeicherten Seelen-DEF; ersteren reduziert der Perk, letzteren **nicht**.
 
 ## G. DEF als Monster-HP, Gegenschlag und Wächter [BESCHLOSSEN als Ziel; Details OFFEN]
@@ -91,10 +95,16 @@ Dieses Dokument hält die im Gespräch festgelegten Designentscheidungen für da
 - Aktuelle Challenges/Deckberater/Fusionsvorschau bewahren, Lexikon aktualisieren. `development` zuerst, `main` nur auf gesondertes Go.
 
 ## I. Noch vor Implementierung eindeutig klären [OFFEN]
-1. Verdichten vs. „nur wenn keine überschüssige DEF“: Wie genau werden Reservoire/Soul-DEF/verdichtete DEF voneinander getrennt?
-2. Gegenschlag: per Monsterfähigkeit ODER nur über Wächter an ausgewählte Verteidiger? Ob tödliche Treffer Gegenschlag auslösen, und Verhältnis zum alten Rückstoß.
+1. Drei Werte für Verdichten sind festgelegt; offen sind nur **Trefferreihenfolge**, Rundung und das Verhalten bei vorzeitig durch Angriff entferntem Schutz.
+2. Gegenschlag: per Monsterfähigkeit ODER nur über Wächter an ausgewählte Verteidiger? Ob tödliche Treffer Gegenschlag auslösen, und Verhältnis zum alten Rückstoß. Während „Letztes Bollwerk“ unverwundbar gegen Angriffe ist, darf erzwungene Zielwahl keinen Gegner in eine Endlosschleife zwingen.
 3. Wann genau sind Erst-Spezialisierungsübungen verfügbar, wie hoch sind Umspezialisierungskosten/Belohnungen?
 4. Essenz-Bonus +2 je Kill/+3 je Feldzug: ausschließlich Umverteilung der Duellbelohnung oder zusätzliche eigens gespeicherte Energie? 5 % sicher aus Belohnung und auf aktive Deckteilnahme beschränkt.
-5. Werte/Stufen/Schutz/Healing-/Energy-Caps und Lategame-Rang-5-Effekt erst nach Simulation festlegen.
+5. Werte/Stufen/Schutz/Healing-/Energy-Caps und **Dauer von „Letztes Bollwerk“ (1 vs. 2 gegnerische Züge)** mit späteren Gegnern simulieren; Wirkung von Zerfall bei 1 Grund-DEF explizit festlegen.
 
 **WICHTIG:** Dieses Dokument hält Gesprächsbeschlüsse und offene Designfragen fest. Es löst ausdrücklich KEINE automatische Implementierung aus.
+
+
+## J. Nachtrag 15.10.2026 – DEF-Recovery und drei Schutzschichten
+- Der Benutzer möchte **mehr als bloß 1 überlebende DEF** für Rang 5: „Letztes Bollwerk“ braucht 1–2 Runden wirkungsvolle **Angriffsimmunität** nach dem ansonsten tödlichen Angriff. Empfehlung für den Test: **2 gegnerische Züge**, einmal je Duell, keine wiederholte Aktivierung. Offenes Detail: Interaktion mit Zielzwang, Gegenschlag und natürlichem Zerfall.
+- Bei **„Verdichten“** entfällt der frühere harte Recast-Vorbehalt „nur wenn keinerlei überschüssige DEF existiert“. Stattdessen besteht **drei Runden Cooldown** und **Seelenessenz-Aufnahme läuft ununterbrochen weiter**. Technisch die drei Werte **Grund-DEF, Seelenessenz, verdichtete Überschuss-DEF** strikt trennen.
+- Ausdrücklich **keine produktive Kampfcode-Änderung** durch diesen Nachtrag; erst mit passendem Duellsimulations- und Migrationstest implementieren.
