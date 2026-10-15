@@ -95,7 +95,6 @@
   const gain=Math.min(Math.max(0,250+lv*125-store.soul),Math.floor(earned*intake));
   store.soul+=gain;
   if(tier>=3&&rank>=3&&drainedDef){
-   const heal=Math.min(g.players[owner].lp+0,g.maxLP)-g.players[owner].lp;
    // Heal only actual DEF drained, at 30%; no overheal.
    g.players[owner].lp=Math.min(g.maxLP,g.players[owner].lp+Math.floor(drainedDef*.3));
   }
@@ -138,6 +137,13 @@
   g.essenceTrial=isTrial?trial.key:null;
   g.essenceParticipated=!isTrial&&essence().chosen!==null&&profile.activeDeck.includes(essence().chosen)&&options.context!=='auto';
   g.essenceTurns=0;g.essenceKills=0;g.essenceGuardSpent=false;g.essenceTurnAttacks=0;
+  for(const card of [...g.players[0].hand,...g.players[0].field.filter(Boolean)]){
+   if(card.id===essence().chosen&&CARDS[card.id]?.essenceMonster&&g.essenceParticipated){
+    const lev=evolvedLevel(g.essenceTier);card.card.level=lev;
+    card.card.atk=Math.min(10000,card.card.atk+lev*45+essence().rank*35);
+    card.card.def=Math.min(10000,card.card.def+lev*70+essence().rank*55);
+   }
+  }
   return g;
  };
  const oldInstance=newInstance;
@@ -214,7 +220,7 @@
    const destroyedEnemy=result.destroyed?.filter(s=>s.startsWith('1:')).length||0;
    g.essenceKills=Math.min(100,g.essenceKills+destroyedEnemy);
   }
-  if(result&&g.active===0&&!a?.fusion)g.evoStats.normalDamage=(g.evoStats.normalDamage||0)+Math.max(0,beforeEnemyLP-g.players[1].lp);
+  if(result&&g.active===0&&!a?.fusion){g.evoStats=g.evoStats||{normalDamage:0,combos:0,five:0,materialsMax:0};g.evoStats.normalDamage=(g.evoStats.normalDamage||0)+Math.max(0,beforeEnemyLP-g.players[1].lp);}
   return result;
  };
  const oldAdvance=advanceTurn;
@@ -239,8 +245,7 @@
    if(!c.essenceCombat||!c.card)continue;
    if(isSoul(c))soulDecay(g,c,ending);
    else if(c.essenceCombat.cooldown>0)c.essenceCombat.cooldown--;
-   if(c.essenceCombat.guardLeft>0&&ending===1&&c.essenceCombat.guardGrantedTurn!==g.turn-1)c.essenceCombat.guardLeft--;
-   if(c.essenceCombat.guardLeft>0&&ending===0){} // status is measured in enemy turns
+   // Immunity is counted in completed opponent turns, not own turns.
   }
   // Enemy just ended their turn; new current player can now use energy.
   if(g.winner===null)for(const c of g.players[g.active].field.filter(Boolean)){
@@ -249,6 +254,7 @@
   }
   for(const c of g.players[g.active].field.filter(Boolean)){
    const e=statLayer(c);e.attacksThisTurn=0;e.lastToggle=0;
+   if(ending===1&&g.active===0&&e.guardLeft>0&&e.guardGrantedTurn<g.turn-1)e.guardLeft--;
   }
   return ok;
  };
