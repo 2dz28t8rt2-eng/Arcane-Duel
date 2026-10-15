@@ -67,33 +67,6 @@
  const oldMenu=renderMenu;
  renderMenu=function(){oldMenu();renderAdvice();};
  if(uiMode==='menu')renderAdvice();
- const previousChoose=chooseFusionModal;
- chooseFusionModal=function(levels,materials,callback,extra=''){
-  const result=previousChoose(levels,materials,callback,extra);
-  const modal=$('modal'),zone=modal?.querySelector('.fusion-choice-grid');
-  if(!zone||modal.querySelector('.tactic-fusion-explainer')||!game||!Array.isArray(materials)||materials.length<2)return result;
-  const strongestAtk=Math.max(...materials.map(m=>Number(dataOf(m).atk)||0));
-  const strongestDef=Math.max(...materials.map(m=>Number(dataOf(m).def)||0));
-  const pool=fusionOptions(game,levels).filter(c=>game.pending||canCompleteHandFusion(game,levels,c.id)).sort((a,b)=>b.level-a.level||b.atk-a.atk);
-  const patternName=fusionPreview(game,pool[0],materials,levels)?.pattern||'Fusion';
-  if(!pool.length)return result;
-  const examples=pool.slice(0,3).map(c=>{
-   const v=fusionPreview(game,c,materials,levels);
-   const atkDiff=[v.atk[0]-strongestAtk,v.atk[1]-strongestAtk];
-   const defDiff=[v.def[0]-strongestDef,v.def[1]-strongestDef];
-   const signed=n=>(n>=0?'+':'')+Math.round(n);
-   return '<tr><th scope="row">'+escape(c.name)+'</th><td>'+signed(atkDiff[0])+' bis '+signed(atkDiff[1])+'</td><td>'+signed(defDiff[0])+' bis '+signed(defDiff[1])+'</td><td>'+v.rolls+'</td></tr>';
-  }).join('');
-  const wrap=document.createElement('details');
-  wrap.className='tactic-fusion-explainer';
-  wrap.innerHTML='<summary>✧ Fusion genauer verstehen · Materialvergleich</summary>'+
-   '<div><p><strong>'+escape(patternName)+'</strong>'+
-   ' · '+levels.length+' Materialien. <strong>Vergleichsbasis</strong>: stärkstes eingesetztes Material mit ATK '+strongestAtk+' / DEF '+strongestDef+'.</p>'+
-   '<div class="table-scroll"><table><thead><tr><th>Fusionsvorlage</th><th>ATK gegenüber Material</th><th>DEF gegenüber Material</th><th>Würfe</th></tr></thead>'+
-   '<tbody>'+examples+'</tbody></table></div>'+
-   '<p>Die Differenzen sind <strong>mögliche Bereiche, keine garantierten Zuwächse</strong>. Die Fusionsauswahl selbst bleibt unverändert.</p></div>';
-  zone.insertAdjacentElement('beforebegin',wrap);
-  return result;
- };
+ // Combat fusion outcomes stay secret until summoning; advisory odds remain in the deck editor.
  window.ArcaneTacticalAdvisor={version:'1.0.0',analyzeCurrentDeck:activeAnalysis};
 })();
