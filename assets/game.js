@@ -679,7 +679,7 @@ const ARCANE_NEW_FAMILIES=[
 const ARCANE_STAGE_IDS=new Map();
 const ARCANE_WORKSHOP_IDS=[];
 function workshopTierFor(level){
- return level<=4?0:level<=6?3:level<=8?5:level<=10?7:8;
+ return level<=4?0:level<=6?3:level<=8?5:level<=10?7:11;
 }
 function workshopBudget(level){return 150+30*level*level;}
 function workshopValues(level,role){
