@@ -59,10 +59,14 @@ test('Workshop refuses to consume cards required by active decks',()=>{
  g.profile.inventory[one]=g.profile.activeDeck.filter(id=>id===one).length;
  assert.equal(forge.transact('combine',root,2,'1+1').ok,false);
 });
-test('Fusion specialization needs a three-material majority gap',()=>{
+test('Role inheritance from two matching cards prevents unrelated fusion tags',()=>{
  const {role}=setup();
  assert.equal(role.inheritance([{id:1,roleOverride:'guardian'},{id:2,roleOverride:'guardian'},{id:3,roleOverride:'guardian'}]),'guardian');
- assert.equal(role.inheritance([{id:1,roleOverride:'guardian'},{id:2,roleOverride:'guardian'},{id:3,roleOverride:'predator'}]),null);
+ assert.equal(role.inheritance([{id:1,roleOverride:'guardian'},{id:2,roleOverride:'guardian'},{id:3,roleOverride:'predator'}]),'guardian');
+ assert.equal(role.inheritance([{id:1,roleOverride:'guardian'},{id:2,roleOverride:'guardian'}]),'guardian');
+ assert.equal(role.inheritance([{id:1,roleOverride:'soul'},{id:2,roleOverride:'soul'}]),'soul');
+ assert.equal(role.inheritance([{id:1,roleOverride:'predator'},{id:2,roleOverride:'predator'}]),'predator');
+ assert.equal(role.inheritance([{id:1,roleOverride:'guardian'},{id:2,roleOverride:'predator'}]),null);
  assert.equal(role.inheritance([{id:1,roleOverride:'predator'},{id:2,roleOverride:'predator'},{id:3,roleOverride:'predator'}]),'predator');
 });
 test('Soul awakening probability is below 75 percent or capped',()=>{
