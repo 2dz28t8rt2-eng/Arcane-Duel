@@ -146,3 +146,22 @@
  .fate-royal-scene *, .fate-royal-scene *::before,.fate-royal-scene *::after,.tc-fate::before,.fate-sparkle{animation:none!important;transition:none!important}
  .fate-royal-card-inner{transform:rotateY(180deg)}
 }
+/* Fate gallery: opt-in spoilers, ten gallery entries with individual palettes. */
+.royal-fate-entry{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+ background:linear-gradient(110deg,#322447,#17233a);border:1px solid #ad8eea72;border-radius:12px;
+ margin-top:14px;padding:13px 15px;color:#ffe5ad;font-weight:750;font-size:13px}
+.royal-gallery-modal{width:min(1050px,94vw)!important;max-width:1050px!important}
+.royal-gallery-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:20px 0}
+.royal-gallery-card{background:linear-gradient(150deg,#201a33,#0d1526);border:2px solid var(--gallery-color,#ffe7a8);
+ box-shadow:0 0 11px color-mix(in srgb,var(--gallery-accent) 45%,transparent);border-radius:12px;padding:7px;
+ color:#fff;display:flex;flex-direction:column;gap:4px;text-align:center;cursor:pointer;overflow:hidden;min-width:0}
+.royal-gallery-card:hover,.royal-gallery-card:focus-visible{transform:translateY(-4px);box-shadow:0 0 21px var(--gallery-accent);outline:2px solid #fff8de;outline-offset:2px}
+.royal-gallery-card img{display:block;width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:6px}
+.royal-gallery-card strong{font-size:clamp(10px,1.2vw,14px);overflow-wrap:anywhere;margin-top:5px}
+.royal-gallery-card span{font-size:11px;color:var(--gallery-color);line-height:1.35}
+.royal-gallery-large{text-align:center;margin:14px auto;max-width:460px}
+.royal-gallery-large img{width:min(100%,320px);aspect-ratio:2/3;object-fit:cover;border:4px double var(--gallery-color);
+ border-radius:14px;box-shadow:0 0 35px color-mix(in srgb,var(--gallery-color) 60%,transparent)}
+.royal-gallery-large p{font-size:13px;line-height:1.5}
+@media(max-width:760px){.royal-gallery-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:480px){.royal-gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.royal-gallery-card{padding:5px}}
