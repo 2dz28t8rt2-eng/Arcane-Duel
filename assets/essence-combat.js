@@ -254,7 +254,13 @@
   const beforeEnemyLP=g.players[1].lp;
   let result;
   if(d?.mode==='def'){
-   const s=statLayer(d),strength=guardedFirst?Math.floor(effectiveAttack(g,a,d)*.5):effectiveAttack(g,a,d);
+   const s=statLayer(d),rawStrength=guardedFirst?Math.floor(effectiveAttack(g,a,d)*.5):effectiveAttack(g,a,d);
+    // PvE only: guardian and soul roles dampen incoming HP damage.
+    // Attackers still win via focused fire; no immunity and no free ATK counter buff.
+    const mitigation=isDefender(d)?.35:0;
+    const strength=Math.max(0,Math.floor(rawStrength*(1-mitigation)));
+    if(mitigation&&strength<rawStrength)logEvent(g,dataOf(d).name+
+      ' · Verteidiger-Rüstung: '+(rawStrength-strength)+' Schaden abgewehrt (35 %).');
    const immuneBefore=s.guardLeft>0;
    let remaining=immuneBefore?0:strength;
    const condemned=s.condensed?Math.min(s.condensed,remaining):0;
