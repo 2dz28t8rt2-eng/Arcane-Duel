@@ -28,7 +28,11 @@ function migrateLearning(p,raw){
 const oldFresh=freshProfile,oldValidate=validateProfile;
 freshProfile=function(){return migrateLearning(oldFresh(),null);};
 validateProfile=function(raw){return migrateLearning(oldValidate(raw),raw);};
-migrateLearning(profile,profile);
+// The base game validates the save before this extension loads and drops unknown
+// fields. Recover our versioned optional flags directly from that same save once.
+let initialLearningSave=null;
+try{const text=window.localStorage.getItem(SAVE_KEY);if(text)initialLearningSave=JSON.parse(text);}catch(e){/* invalid save: keep safe defaults */}
+migrateLearning(profile,initialLearningSave||profile);
 
 function lessonDeck(lesson){
  const eligible=RPG_BASE_CARDS.filter(c=>c.rpg&&!c.fusionOnly&&!c.ace&&c.level<=5);

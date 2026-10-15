@@ -1,13 +1,14 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const root=path.resolve(__dirname,'..');
-function boot(){
+function boot(persisted=false){
  const nodes=new Map(),store=new Map(),handlers={};
  function el(id=''){return {id,innerHTML:'',textContent:'',value:'',hidden:false,disabled:false,style:{},dataset:{},classList:{add(){},remove(){},toggle(){},contains(){return false}},append(){},appendChild(){},remove(){},setAttribute(){},addEventListener(){},insertAdjacentHTML(){},click(){this.onclick?.()},querySelector(){return el()},querySelectorAll(){return []},getBoundingClientRect(){return {left:0,top:0,width:100,height:100}}};}
  const document={_handlers:handlers,body:el('body'),getElementById(id){if(!nodes.has(id))nodes.set(id,el(id));return nodes.get(id)},querySelector(){return el()},querySelectorAll(){return []},createElement:el,addEventListener(k,f){(handlers[k]||=[]).push(f)},elementFromPoint(){return null}};
  const window={localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,String(v))},crypto:{getRandomValues(a){a[0]=123456;return a}},innerWidth:1200,innerHeight:800};
  const ctx=vm.createContext({window,document,console,setTimeout(){},setInterval(){},clearTimeout(){},clearInterval(){},Blob,URL:{createObjectURL(){return 'blob:test'},revokeObjectURL(){}}});
  for(const file of ['art-engine.js','game.js','expansion.js','evolution.js'])vm.runInContext(fs.readFileSync(path.join(root,'assets',file),'utf8'),ctx,{timeout:20000});
+ if(persisted)vm.runInContext(`profile.fateDiscovered=true;profile.lessonCompleted=['pair'];saveProfile();profile=validateProfile(JSON.parse(window.localStorage.getItem(SAVE_KEY)));`,ctx,{timeout:20000});
  vm.runInContext('async function fateAnimation(g){}',ctx);
  vm.runInContext(fs.readFileSync(path.join(root,'assets/learning.js'),'utf8'),ctx,{timeout:20000});
  return expr=>JSON.parse(vm.runInContext(`JSON.stringify(${expr})`,ctx,{timeout:20000}));
@@ -61,4 +62,9 @@ test('every lesson combination has a valid available fusion template in its prac
 test('Fate information is initially undiscovered and preserved in save-validation',()=>{
  const run=boot(),r=run(`(()=>{const initial=profile.fateDiscovered;profile.fateDiscovered=true;const validated=validateProfile(JSON.parse(JSON.stringify(profile))).fateDiscovered;return {initial,validated};})()`);
  assert.equal(r.initial,false);assert.equal(r.validated,true);
+});
+
+test('discovery and learning completion survive base-game save validation on reload',()=>{
+ const run=boot(true),r=run('({discovered:profile.fateDiscovered,completed:profile.lessonCompleted})');
+ assert.equal(r.discovered,true);assert.deepEqual(r.completed,['pair']);
 });
