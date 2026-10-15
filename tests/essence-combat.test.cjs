@@ -196,3 +196,38 @@ test('Low-rank Soul Eater can deliberately discharge stored energy once per turn
  assert.equal(g.statLayer(eater).soul,0);
  assert.equal(vm.runInContext('window.ArcaneEssenceCombat.discharge(0)',ctx),false,'one per turn');
 });
+
+
+test('Guardians absorb 35 percent of PvE DEF-HP damage but do not become invulnerable',()=>{
+ const {g}=start();
+ const duel=g.createGame({id:'guardian-mitigation',mode:'pve',context:'free',opponentId:1,
+  seed:98013,deck:g.RPG_DEFAULT_DECK,fusionDeck:g.RPG_START_FUSIONS});
+ duel.players[0].field.fill(null);duel.players[1].field.fill(null);
+ const id=g.CARDS.find(c=>c.role==='guardian'&&!c.fusionOnly).id;
+ const attackerId=g.CARDS.find(c=>c.role==='predator'&&!c.fusionOnly).id;
+ const guard=g.newInstance(duel,id,0),pred=g.newInstance(duel,attackerId,1);
+ guard.mode='def';guard.card.def=1000;guard.card.atk=120;
+ pred.mode='atk';pred.card.atk=800;
+ duel.players[0].field[0]=guard;duel.players[1].field[0]=pred;duel.active=1;duel.turn=4;
+ const out=g.attack(duel,0,0);
+ assert.ok(out);
+ assert.equal(guard.card.def,480,'800 incoming ATK must become 520 DEF damage');
+ assert.equal(duel.players[0].field[0],guard,'Guardian survives first predator attack');
+ assert.equal(duel.players[1].lp,duel.maxLP-60,'Counterattack still functions');
+});
+test('Rune Fusion trial loans diverse fusion levels without unlocking inventory',()=>{
+ const {g}=start();
+ const before=JSON.stringify(g.profile.inventory);
+ const duel=g.runTrial('switch-fusion-0','fusion',0,145291);
+ const deck=duel.players[0].fusionDeck;
+ assert.equal(deck.length,15);
+ assert.ok(new Set(deck.map(id=>g.CARDS[id].level)).size>=5,'Distinct fusion rungs available');
+ assert.ok(deck.some(id=>g.CARDS[id].level>=6),'Advanced fusion at hand');
+ assert.equal(JSON.stringify(g.profile.inventory),before,'Loan cards do not become owned');
+});
+test('First essence school trials explicitly award a character pack, not on repeat',()=>{
+ const text=fs.readFileSync(path.join(__dirname,'../assets/essence-progression.js'),'utf8');
+ assert.match(text,/g\.essenceTrial\.startsWith\('intro-'\)/);
+ assert.match(text,/result\.essenceTrialPack=true/);
+ assert.match(text,/completedStage>=0/);
+});
