@@ -23,7 +23,7 @@
     '<button class="btn primary" data-essence-intro="'+step+'">✦ '+names[key]+' üben</button></section>';
   }
   if(e.chosen===null)return '<section class="menu-panel essence-academy"><span class="essence-eyebrow">✧ DREI PRÜFUNGEN GEMEISTERT</span><h2>Deine Bindung wartet</h2>'+
-   '<p>Du darfst jetzt **ein einziges Essenzmonster** wählen. Diese Karte kannst du in diesem Spielstand <b>nie austauschen</b>. Erst danach wählst du den passiven Perk, den du später unter sehr schweren Bedingungen wechseln kannst.</p>'+
+   '<p>Du darfst jetzt <b>ein einziges Essenzmonster</b> wählen. Diese Karte kannst du in diesem Spielstand <b>nie austauschen</b>. Erst danach wählst du den passiven Perk, den du später unter sehr schweren Bedingungen wechseln kannst.</p>'+
    '<button type="button" class="btn primary" data-essence-open-choice>✦ Essenzwesen kennenlernen und wählen</button></section>';
   if(!e.school)return '<section class="menu-panel essence-academy"><h2>Deine zweite Entscheidung</h2><p>Du hast dein Essenzmonster gewählt. Jetzt wähle die aktive Spezialisierung; nur dieser passive Bonus ist unter strengen Bedingungen später wechselbar.</p>'+
    '<button class="btn primary" data-essence-open-perk>Passiven Bonus wählen</button></section>';
@@ -197,7 +197,7 @@
    };
   }
  }
- $('menuScreen')?.addEventListener('click',ev=>{const btn=ev.target.closest('button[data-essence-intro],button[data-essence-open-choice],button[data-essence-open-perk],button[data-essence-upgrade],button[data-essence-switch],button[data-essence-exam],button[data-essence-abandon],button[data-essence-commit]');if(btn)executeAction(btn)});
+ $('menuScreen')?.addEventListener('click',ev=>{const btn=ev.target.closest('button[data-essence-intro],button[data-essence-open-choice],button[data-essence-open-perk],button[data-essence-upgrade],button[data-essence-switch],button[data-essence-exam],button[data-essence-abandon],button[data-essence-commit],button[data-essence-read]');if(btn)executeAction(btn)});
  $('overlay')?.addEventListener('click',ev=>{const btn=ev.target.closest('button[data-essence-pick],button[data-essence-perk],button[data-essence-read]');if(btn)executeAction(btn)});
  const oldRender=render;
  render=function(){
