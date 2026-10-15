@@ -237,25 +237,59 @@ chooseAiAction=function(g,policy='balanced'){
  return {type:'normal',uid:bestNormal.uid};
 };
 
-fusedInstance=function(g,instances,levels){if(instances.length>5||instances.length<2)return null;if(g.mode!=='pve')return previous.fusedInstance(g,instances,levels);const p=g.players[g.active],pool=fusionOptions(g,levels),template=g.fusionChoice!==undefined?pool.find(c=>c.id===g.fusionChoice):[...pool].sort((a,b)=>b.level-a.level||b.atk-a.atk)[0];if(!template)return null;
- const f=tunedFusionQuality(g,levels,instances.map(c=>dataOf(c).element));const rolls=Math.min(7,qualityRolls(levels)+f.rollBonus+(window.ArcaneEssenceCombat?.fusionRollBonus?.(g)||0)+instances.filter(c=>dataOf(c).ability==='guide').length+(g.active===0&&!g.totalFusions[0]?(profile.upgrades.fusionLore||0):0));
- let best=null,trace=[];
+function fusionRoleWeights(role){
+ return role==='predator'?{atk:1.20,def:.75}:role==='guardian'||role==='soul'?{atk:.75,def:1.25}:{atk:1,def:1};
+}
+fusedInstance=function(g,instances,levels){
+ if(instances.length>5||instances.length<2)return null;
+ if(g.mode!=='pve')return previous.fusedInstance(g,instances,levels);
+ const p=g.players[g.active],pool=fusionOptions(g,levels),
+  template=g.fusionChoice!==undefined?pool.find(c=>c.id===g.fusionChoice):
+   [...pool].sort((a,b)=>b.level-a.level||b.atk-a.atk)[0];
+ if(!template)return null;
+ const imprint=window.ArcaneRoleFusion?.imprint?.(g,instances)||null;
+ const role=imprint?.role||template.role||'combatant';
+ const roleWeights=fusionRoleWeights(role);
+ const f=tunedFusionQuality(g,levels,instances.map(c=>dataOf(c).element));
+ const rolls=Math.min(7,qualityRolls(levels)+f.rollBonus+
+  (window.ArcaneEssenceCombat?.fusionRollBonus?.(g)||0)+
+  instances.filter(c=>dataOf(c).ability==='guide').length+
+  (g.active===0&&!g.totalFusions[0]?(profile.upgrades.fusionLore||0):0));
+ // The chosen role shifts the ATK/DEF midpoint BEFORE every real dice roll.
+ const baseline={
+  atk:fusionReferenceStat(template,'atk',p)*roleWeights.atk*f.factor,
+  def:fusionReferenceStat(template,'def',p)*roleWeights.def*f.factor
+ };
+ let best=null,bestIndex=-1;const trace=[];
  for(let i=0;i<rolls;i++){
-  // Actual risk: 88-112% rolled on a normal-monster midpoint, not the fusion
-  // card's legacy strength. Poker quality and material roles determine upside.
   const atkPercent=.88+randomInt(g,25)/100,defPercent=.88+randomInt(g,25)/100;
-  const candidate={atk:round10(fusionReferenceStat(template,'atk',p)*atkPercent*f.factor),
-   def:round10(fusionReferenceStat(template,'def',p)*defPercent*f.factor)};
-  trace.push({atk:candidate.atk,def:candidate.def});
-  if(!best||candidate.atk+candidate.def>best.atk+best.def)best=candidate;
+  const candidate={atk:round10(baseline.atk*atkPercent),def:round10(baseline.def*defPercent)};
+  trace.push(candidate);
+  if(!best||candidate.atk+candidate.def>best.atk+best.def){best=candidate;bestIndex=i;}
  }
- const bonus={atk:0,def:0};for(const n of materialBlocks(g,instances))bonus[randomInt(g,2)?'atk':'def']+=n;
- // Deliberately omit the former 95%-of-strongest-material floor: a poor roll
- // can now underperform its ingredients. It also prevents repeat-fusion snowball.
- for(const stat of ['atk','def'])best[stat]=Math.max(0,best[stat]+bonus[stat]-fusionPenalty(g));
- const used=p.remainingFusion.indexOf(template.id);if(used<0)return null;p.remainingFusion.splice(used,1);
- const result={...newInstance(g,template.id),card:{level:template.level,...best},fusion:true,materialBonus:bonus,qualityRolls:rolls,pattern:f.name,materialsUsed:instances.length,rollTrace:trace,attacked:instances.some(c=>c.attacked)};
- logEvent(g,`${template.name}: ${instances.length} Materialien · ${f.name} · ${rolls} Würfe · Werte werden nach der Feldplatzierung enthüllt.`);return result;
+ const winner={...best},bonus={atk:0,def:0};
+ for(const n of materialBlocks(g,instances))bonus[randomInt(g,2)?'atk':'def']+=n;
+ const penalty=fusionPenalty(g);
+ for(const stat of ['atk','def'])best[stat]=Math.max(0,best[stat]+bonus[stat]-penalty);
+ const used=p.remainingFusion.indexOf(template.id);if(used<0)return null;
+ p.remainingFusion.splice(used,1);
+ const result={...newInstance(g,template.id),card:{level:template.level,...best},
+  fusion:true,materialBonus:bonus,qualityRolls:rolls,pattern:f.name,
+  materialsUsed:instances.length,rollTrace:trace,
+  rollMath:{base:{atk:round10(baseline.atk),def:round10(baseline.def)},
+   winnerIndex:bestIndex,winner,bonus:{...bonus},penalty,final:{...best},
+   role,roleWeights,quality:f.factor},
+  attacked:instances.some(c=>c.attacked)};
+ if(imprint){
+  result.roleOverride=imprint.role;result.roleOrigin='material';
+  result.roleMaterials=imprint.materials;
+  if(imprint.soulOdds!==undefined){result.soulOdds=imprint.soulOdds;result.soulAwakened=imprint.soulAwakened;}
+  logEvent(g,dataOf(result).name+' erbt '+imprint.role+' durch '+instances.length+
+   ' Materialien: die Rolle prägt bereits die Würfelgrundwerte.');
+ }
+ logEvent(g,template.name+': '+instances.length+' Materialien · '+f.name+' · '+rolls+
+  ' Rollenwürfe · final ATK '+best.atk+' / DEF '+best.def+'.');
+ return result;
 };
 prepareHandFusion=function(g,uids,choice){if(g.mode!=='pve')return previous.prepareHandFusion(g,uids,choice);if(g.winner!==null||g.summoned||g.pending||uids.length<2||uids.length>5||new Set(uids).size!==uids.length)return false;const p=g.players[g.active],materials=uids.map(uid=>p.hand.find(c=>c.uid===uid));if(materials.some(c=>!c))return false;const levels=materials.map(c=>dataOf(c).level),options=fusionOptions(g,levels).filter(c=>canCompleteHandFusion(g,levels,c.id));if(choice===undefined)choice=options.sort((a,b)=>b.level-a.level||b.atk-a.atk)[0]?.id;if(!options.some(c=>c.id===choice))return false;
  g.fusionChoice=choice;let card;try{card=fusedInstance(g,materials,levels);}finally{delete g.fusionChoice;}if(!card)return false;p.hand=p.hand.filter(c=>!uids.includes(c.uid));p.graveyard.push(...materials);g.pending={kind:'fusion',card,levels};g.materials=[];g.selection=null;g.totalFusions[g.active]++;
@@ -348,7 +382,7 @@ prepareFusion=async function(choice){if(!inputAllowed()||game.summoned||game.pen
  if(!prepareHandFusion(game,ids,choice)){toast(fusionFailureReason(game,materials.map(m=>dataOf(m).level)));return;}
  const fusionVisuals=fusionVisualSnapshot(materials);
  busy=true;render();try{await fusionAnimation(dataOf(game.pending.card).level,fusionVisuals);}finally{busy=false;render();}};
-fusionPreview=function(g,c,materials,levels=materials.map(m=>dataOf(m).level)){const p=g.players[g.active],f=tunedFusionQuality(g,levels,materials.map(m=>dataOf(m).element)),bonus=materialBlocks(g,materials).reduce((a,b)=>a+b,0),range=stat=>[Math.max(0,round10(fusionReferenceStat(c,stat,p)*.88*f.factor)-fusionPenalty(g)),Math.max(0,round10(fusionReferenceStat(c,stat,p)*1.12*f.factor)+bonus-fusionPenalty(g))];return {atk:range('atk'),def:range('def'),bonus,remaining:countCard(p.remainingFusion,c.id)-1,attackSpent:materials.some(m=>m.attacked),rolls:Math.min(7,qualityRolls(levels)+f.rollBonus+(window.ArcaneEssenceCombat?.fusionRollBonus?.(g)||0)+materials.filter(m=>dataOf(m).ability==='guide').length+(g.active===0&&!g.totalFusions[0]?(profile.upgrades.fusionLore||0):0)),pattern:f.name};};
+fusionPreview=function(g,c,materials,levels=materials.map(m=>dataOf(m).level)){const p=g.players[g.active],f=tunedFusionQuality(g,levels,materials.map(m=>dataOf(m).element)),bonus=materialBlocks(g,materials).reduce((a,b)=>a+b,0),inherited=window.ArcaneRoleFusion?.inheritance?.(materials),role=inherited||c.role,weights=fusionRoleWeights(role),range=stat=>[Math.max(0,round10(fusionReferenceStat(c,stat,p)*weights[stat]*.88*f.factor)-fusionPenalty(g)),Math.max(0,round10(fusionReferenceStat(c,stat,p)*weights[stat]*1.12*f.factor)+bonus-fusionPenalty(g))];return {atk:range('atk'),def:range('def'),bonus,remaining:countCard(p.remainingFusion,c.id)-1,attackSpent:materials.some(m=>m.attacked),rolls:Math.min(7,qualityRolls(levels)+f.rollBonus+(window.ArcaneEssenceCombat?.fusionRollBonus?.(g)||0)+materials.filter(m=>dataOf(m).ability==='guide').length+(g.active===0&&!g.totalFusions[0]?(profile.upgrades.fusionLore||0):0)),pattern:f.name};};
 chooseFusionModal=function(levels,materials,callback,extra=''){const options=fusionOptions(game,levels).filter(c=>game.pending||canCompleteHandFusion(game,levels,c.id)).sort((a,b)=>b.level-a.level||b.atk-a.atk);if(!options.length){toast(fusionFailureReason(game,levels));return;}const f=tunedFusionQuality(game,levels,materials.map(m=>dataOf(m).element));openModal(modalHtml('FUSIONSVORSCHAU',f.name,'✧','Tippe eine Monsterkarte an, um die Fusionsvorlage auszuwählen. Alle markierten Materialien werden eingesetzt.',`<p><b>Material:</b> ${materials.map(m=>escapeHtml(dataOf(m).name)).join(' + ')}</p><p>Qualität: <b>${(f.factor*100).toFixed(0)} %</b> · Niveau ${f.average.toFixed(1)} · mögliche Stufe bis <b>${fusionBudget(levels,game)}</b>. ${extra}</p><details class="fusion-how"><summary>Wie berechnet sich die Fusion?</summary><p>Die durchschnittliche Materialstufe entscheidet über das Potenzial. Hohe Differenzen zwischen Materialien senken die Qualität. Spezialkombinationen und Elemente können diese verbessern. Fusionen starten bei den mittleren ATK-/DEF-Werten gewöhnlicher Monster ihrer Zielstufe. Pro Wurf entstehen 88–112 % dieses Referenzwerts; der beste Gesamtwurf gewinnt. Es gibt keine garantierte Stärke durch das beste Material. Material-Aufstiegsboni werden zusätzlich zufällig auf ATK oder DEF verteilt. Eine schlechte Fusion kann schwächer als ihr stärkstes Material ausfallen.</p></details><div class="pool-grid fusion-choice-grid">${options.map(c=>{const v=fusionPreview(game,c,materials,levels);return `<article class="fusion-offer">${fullCardHtml({id:c.id,card:{level:c.level,atk:round10((v.atk[0]+v.atk[1])/2),def:round10((v.def[0]+v.def[1])/2)}},`data-fusion-choice="${c.id}" title="${escapeHtml(c.name)} auswählen"`,'fusion-pick-card')}<div class="fusion-forecast"><strong>ATK ${fmt(v.atk[0])}–${fmt(v.atk[1])}</strong><strong>DEF ${fmt(v.def[0])}–${fmt(v.def[1])}</strong></div><p class="fusion-short">${v.rolls} Wertewürfe · ${escapeHtml(v.pattern)} · Materialbonus +${v.bonus}<br>Noch ${v.remaining} Fusionskopie(n)</p><button class="btn" data-fusion-choice="${c.id}">Diese Fusion wählen</button></article>`;}).join('')}</div>`, '<button class="btn" id="fusionCancel">ZURÜCK</button>'));$('modal').classList.add('pool-modal','fusion-choice-modal');$('fusionCancel').onclick=hideModal;let chosen=false;document.querySelectorAll('[data-fusion-choice]').forEach(b=>b.onclick=()=>{if(chosen)return;chosen=true;hideModal();callback(Number(b.dataset.fusionChoice));});};
 // Real material art is captured before materials leave the hand / field.
 // The animation never modifies the duel state, and honors instant/reduced-motion.
