@@ -499,7 +499,7 @@ fusionAnimation=async function(level,visuals=null){
    const draw=trace[i],el=document.createElement('div');
    el.className='evo-calc-row evo-calc-spinning';
    el.innerHTML='<span>Wurf '+(i+1)+'</span><b class="evo-calc-atk"></b><b class="evo-calc-def"></b>';
-   log.append(el);const values=el.querySelectorAll('b');
+   log.append(el);log.parentElement.scrollTop=log.parentElement.scrollHeight;const values=el.querySelectorAll('b');
    for(let tick=0;tick<9;tick++){
     for(let k=0;k<2;k++){
      const digits=String(Math.max(10,k?draw.def:draw.atk)).length;
@@ -522,6 +522,7 @@ fusionAnimation=async function(level,visuals=null){
     row('− Abzug',math.penalty,math.penalty)+
     '<div class="evo-calc-divider evo-double"></div>'+
     row('= ENDWERT',math.final.atk,math.final.def,'evo-calc-final'));
+   log.parentElement.scrollTop=log.parentElement.scrollHeight;
    fx.classList.add('evo-calc-sum');await animationWait(1250);
    fx.querySelector('.evo-card-final').innerHTML='<b>ATK '+num(math.final.atk)+'</b>'+
     '<b>DEF '+num(math.final.def)+'</b>';
