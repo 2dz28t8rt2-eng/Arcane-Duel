@@ -386,24 +386,21 @@ test('Gegenschlag uses half the actual defender ATK, including bonus and battle 
  assert.notEqual(expectedCounter,Math.floor(g.CARDS[guard].atk/2));
 });
 
-test('Auto-equip respects specialization while retaining both Predator and Defender attack options',()=>{
+test('Neutral auto-equip remains consistent when optional role perks are purchased',()=>{
  const {g}=setup();
  const ids=[...g.ARCANE_STAGE_IDS.values()]
   .filter(id=>[6,7,8,9,10].includes(g.CARDS[id].level)&&
    ['predator','guardian','soul'].includes(g.CARDS[id].role));
  const inventory=Object.fromEntries(ids.map(id=>[id,3]));
  assert.ok(ids.length>=40);
- g.profile.upgrades.jagdinstinkt=0;g.profile.upgrades.schildwall=5;
- let deck=g.strongestMainDeck(ids,{},inventory);
- assert.equal(deck.length,40);
- let offense=deck.filter(id=>g.CARDS[id].role==='predator').length;
- let defense=deck.filter(id=>['guardian','soul'].includes(g.CARDS[id].role)).length;
- assert.ok(offense>=10,'defense preset keeps a meaningful attack group: '+offense);
- assert.ok(defense>=22,'defense preset gets specialists: '+defense);
- g.profile.upgrades.jagdinstinkt=5;g.profile.upgrades.schildwall=0;
- deck=g.strongestMainDeck(ids,{},inventory);
- offense=deck.filter(id=>g.CARDS[id].role==='predator').length;
- defense=deck.filter(id=>['guardian','soul'].includes(g.CARDS[id].role)).length;
- assert.ok(offense>=22,'predator preset gets attack group');
- assert.ok(defense>=10,'predator preset preserves a defensive group');
+ g.profile.upgrades.jagdinstinkt=0;g.profile.upgrades.schildwall=0;
+ const baseline=g.strongestMainDeck(ids,{},inventory);
+ assert.equal(baseline.length,40);
+ for(const perk of ['jagdinstinkt','schildwall']){
+  g.profile.upgrades[perk]=5;
+  const proposed=g.strongestMainDeck(ids,{},inventory);
+  assert.deepEqual(proposed,baseline,'auto-selection does not force specialist role composition');
+  assert.ok(proposed.every(id=>g.CARDS[id].level<=10));
+  g.profile.upgrades[perk]=0;
+ }
 });
