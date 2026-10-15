@@ -89,6 +89,24 @@ iframe.addEventListener('load',async()=>{
   expect(d.getElementById('modalGo')?.textContent.includes('DUELL STARTEN'),'Duel start modal available');
   d.dispatchEvent(new w.KeyboardEvent('keydown',{bubbles:true,cancelable:true,key:' ',code:'Space'}));
   expect(d.getElementById('overlay')?.classList.contains('hidden'),'Space starts duel while start modal active');
+  // Exercise the actual DOM/CSS cinematic in Chromium (a fixture card is used
+  // solely for UI validation; real engine arithmetic is tested in Node).
+  w.eval(`game.lastSummoned={id:RPG_START_FUSIONS[0],fusion:true,card:{level:4,atk:470,def:870},
+   roleOverride:'guardian',materialsUsed:3,pattern:'Drilling',
+   rollTrace:[{atk:440,def:830},{atk:470,def:850}],
+   rollMath:{winnerIndex:1,winner:{atk:470,def:850},bonus:{atk:0,def:20},
+    penalty:0,final:{atk:470,def:870},role:'guardian'}};
+   animationSpeed='fast';
+   window.__roleStampSmoke=fusionAnimation(4,[
+    {art:CARDS[0].art,level:1},{art:CARDS[1].art,level:1},{art:CARDS[13].art,level:2}]);`);
+  expect(!!d.querySelector('.evo-stamp-scene .evo-actual-material img'),
+   'Fusion cinema displays actual monster material artwork');
+  expect(!!d.querySelector('.evo-stamp-scene .evo-role-seal.evo-seal-guardian'),
+   'Defender role appears as a heavy cinematic seal on the resulting monster');
+  await w.__roleStampSmoke;
+  expect(!d.querySelector('.evo-stamp-scene'),'Fusion cinematic completes and cleans up the overlay');
+  w.eval('game.lastSummoned=null');
+
  }catch(e){pass=false;steps.push('EXCEPTION: '+e.message+' '+(e.stack||'').slice(0,350));}
  r.textContent=steps.join('\n');
  document.body.dataset.uiTest=pass?'pass':'fail';
