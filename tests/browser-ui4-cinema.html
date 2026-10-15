@@ -38,7 +38,7 @@ document.getElementById('app').addEventListener('load',async ()=>{
   const other=cards[0];other?.scrollIntoView({block:'center',behavior:'instant'});other?.click();
   test(!!d.querySelector('.ad-deck-portal'),'A different row of cards can open its own preview');
   d.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
-  await pause(410);
+  await pause(540);
   test(!d.querySelector('.ad-deck-portal'),'Escape dismisses the card portal');
   const pair=w.ArcaneFusionBonus.describe({pattern:'Paar',materialsUsed:2,
    rollMath:{combo:{name:'Paar',qualityPct:5.5,rollBonus:0,materialCount:2}}});
