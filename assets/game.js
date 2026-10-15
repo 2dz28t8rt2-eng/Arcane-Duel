@@ -1279,10 +1279,10 @@ function showLoot(id,difficulty='easy'){
  const normal=lootWeights(id,difficulty);
  const panel='<div class="pool-grid">'+normal.map(r=>{
   const chance=(r.weight*.4).toFixed(2).replace('.',',');
-  return '<article>'+fullCardHtml({id:r.id})+'<p><strong>'+chance+' %</strong> Richtwert pro wiederholbarem manuellen Sieg (vor Farm-Abzügen)</p></article>';
+  return '<article>'+fullCardHtml({id:r.id})+'<p><strong>'+chance+' %</strong> Chance pro manuellem Sieg (ungefähr)</p></article>';
  }).join('')+'</div>';
  openModal(modalHtml('DROPCHANCEN',OPPONENTS[id].name+' · '+difficulty,'✦',
-  'Basis-Chance auf die jeweilige Karte beim wiederholten manuellen Sieg. Manuelle Duelle haben 40 % allgemeine Kartendropchance; automatische 12 %, mit Dropladung 20 %. Höhere Spielerstufen können seltene Karten innerhalb des Drops begünstigen. Erstsiege und Farming-Abzüge folgen eigenen Regeln.',
+  'Hier siehst du die ungefähre Chance pro manuellem Sieg. Mehr Seltenheitsbonus erhöht die Chance auf seltene Karten.',
   panel,'<button class="btn primary" id="modalGo">ZURÜCK</button>'));
  $('modal').classList.add('pool-modal');$('modalGo').onclick=hideModal;
 }
