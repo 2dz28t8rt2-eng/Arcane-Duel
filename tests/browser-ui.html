@@ -51,6 +51,19 @@ iframe.addEventListener('load',()=>{
   expect([...d.querySelectorAll('.collection-item')].every(x=>x.hidden),'Card search hides nonmatching cards');
   w.eval('menuTab="fusions";renderMenu()');
   expect(d.querySelector('#cardLevel')!==null,'Fusion deck has level filter');
+  expect(!!d.querySelector('.collection-item .arcane-role-readout'),'Monster roles appear below card art rather than obscuring the card element');
+  const shownCards=[...d.querySelectorAll('.collection-item [data-preview-card]')];
+  expect(shownCards.length>=2&&shownCards.every(b=>w.eval('Number(profile.inventory['+Number(b.dataset.previewCard)+']||0)>0')),
+   'Fusion deck editor only shows actually owned fusion cards');
+  const group=d.querySelector('#menuNav [data-fm-group="deck"]');
+  group?.click();
+  expect(group?.getAttribute('aria-expanded')==='false'&&group.closest('.fm-menu-group')?.querySelector('.fm-submenu')?.hidden,
+   'Pressing active menu group closes its submenu');
+  group?.click();
+  expect(group?.getAttribute('aria-expanded')==='true'&&!group.closest('.fm-menu-group')?.querySelector('.fm-submenu')?.hidden,
+   'Pressing again reopens its submenu');
+  if(w.innerWidth>=981)expect(w.getComputedStyle(d.getElementById('menuNav')).overflowY==='auto',
+   'Desktop navigation scrolls independently from the menu content');
   w.eval('menuTab="lexicon";renderMenu()');
   expect(d.querySelector('.monster-index')!==null,'Discoverable monster lexicon renders');
   w.eval('menuTab="free";renderMenu()');
