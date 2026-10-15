@@ -44,5 +44,5 @@ test('Versioned entrypoint loads Fusion Evolution with fresh CSS and JS assets',
  assert.match(html,/3\.0 · Das Vergoldete Archiv/);
  assert.match(html,/assets\/evolution\.css\?v=clarity-20261015-b/);
  assert.match(html,/assets\/evolution\.js\?v=clarity-20261015-b/);
- assert.match(js,/version:'3\.0\.0'/);
+ assert.match(js,/version:'3\.1\.0'/);
 });
