@@ -49,26 +49,18 @@
    ' aus '+materials.length+' Materialien; ATK '+result.card.atk+' / DEF '+result.card.def+'.');
   return result;
  };
- // Vorstoß: charge visibly at the end of the summoning turn, ready on the
- // following own turn. Remove its temporary +80 when that following turn ends.
+ // Legacy saves may include the removed one-off Rush bonus.
+ // Clean it once when a resumed PvE duel advances; never grant a new bonus.
  const oldAdvanceTurn=advanceTurn;
  advanceTurn=function(g){
-  if(g?.mode!=='pve')return oldAdvanceTurn(g);
-  const ending=g.active,turn=g.turn;
-  const cards=g.players[ending].field.filter(Boolean);
-  const toArm=cards.filter(c=>c.surgeTurn===turn+2&&!c.rushBoostActive);
-  const toExpire=cards.filter(c=>c.rushBoostActive&&c.rushUntil===turn);
-  const result=oldAdvanceTurn(g);
-  for(const c of toExpire)if(g.players[ending].field.includes(c)){
-   c.card.atk=Math.max(0,c.card.atk-c.rushBoostActive);
-   delete c.rushBoostActive;delete c.rushUntil;
+  if(g?.mode==='pve')for(const p of g.players)for(const c of p.field.filter(Boolean)){
+   if(c.rushBoostActive){
+    c.card.atk=Math.max(0,c.card.atk-c.rushBoostActive);
+    delete c.rushBoostActive;delete c.rushUntil;
+   }
+   delete c.surgeTurn;
   }
-  for(const c of toArm)if(g.players[ending].field.includes(c)){
-   c.card.atk=Math.min(10000,c.card.atk+80);
-   c.rushBoostActive=80;c.rushUntil=turn+2;c.surgeTurn=0;
-   logEvent(g,dataOf(c).name+': Vorstoß ist aufgeladen (+80 ATK bis zum Ende des nächsten eigenen Zugs).');
-  }
-  return result;
+  return oldAdvanceTurn(g);
  };
  const oldShowHud=render;
  let fieldPick=false,zones=[];
