@@ -219,3 +219,23 @@
 .ad-motion-disabled .tc-card.tc-essence::before,
 .ad-motion-disabled .atlas-preview-card,
 .ad-motion-disabled .atlas-preview-card::after{animation:none!important}
+
+/* Large editor card stays legible; long-digit fusions stay inside the cell. */
+#menuScreen .deck-preview-card .hand-card.tc-card .hand-stats .stat-value{
+ font:850 17px/19px ui-monospace,Consolas,monospace!important;
+ max-width:100%!important;min-width:0!important;letter-spacing:-.15px!important;
+ white-space:nowrap!important;text-overflow:clip!important;overflow:hidden!important;
+}
+#menuScreen .deck-preview-card .hand-card.tc-card .hand-stats .arcane-stat-long{
+ font-size:12px!important;line-height:16px!important;letter-spacing:-.4px!important;
+}
+#menuScreen .deck-preview-card .hand-card.tc-card .hand-stats .stat{
+ min-width:0!important;overflow:hidden!important;padding:2px 3px!important;
+}
+/* The selected material thumbnail uses a genuinely flexible art chamber so
+ * cramped viewports cannot push its ATK/DEF below the frame. */
+#duelScreen #hand .hand-card.tc-card{display:flex!important;flex-direction:column!important}
+#duelScreen #hand .hand-card.tc-card .hand-title{width:100%!important}
+#duelScreen #hand .hand-card.tc-card .hand-type{flex:0 0 16px!important;min-height:16px!important;height:16px!important}
+#duelScreen #hand .hand-card.tc-card .hand-art{height:auto!important;flex:1 1 0!important;min-height:0!important}
+#duelScreen #hand .hand-card.tc-card .hand-stats{width:100%!important}
