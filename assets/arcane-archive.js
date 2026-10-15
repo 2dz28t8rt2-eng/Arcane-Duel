@@ -42,6 +42,13 @@
    if(seen.has(c.art))continue;
    seen.add(c.art);results.push(c);
   }
+  // Highlight a Level-10 showcase card at the FRONT/CENTER, never hidden
+  // under the other two decorative cards during its special reveal.
+  const top=results.findIndex(c=>c.level>=10);
+  if(top>=0&&results.length===3){
+   const [legend]=results.splice(top,1);
+   results.splice(1,0,legend);
+  }
   showcaseLastArt=results.map(c=>c.art);
   return results;
  }
