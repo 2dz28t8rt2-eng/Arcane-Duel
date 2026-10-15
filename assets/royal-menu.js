@@ -152,6 +152,16 @@ function decorateRules(){
  oldRules();
  const modal=$('modal'),book=modal?.querySelector('.arcane-handbook');
  if(!book||book.querySelector('.royal-handbook-intro'))return;
+ if(!book.querySelector('#fm-perk-rule')){
+  book.insertAdjacentHTML('beforeend',
+   '<details class="arcane-rule-chapter" id="fm-perk-rule"><summary>12 · Skills, Perks &amp; sichere Investitionen</summary>'+
+   '<div class="arcane-rule-body"><p>Skills kosten <b>Essenz</b>, sind dauerhaft und haben feste Maximalstufen. Die Spezialboni gelten nur im Einzelspieler-Modus. Bereits gekaufte Upgrades bleiben bestehen.</p>'+
+   '<ul><li><b>Runenpräzision:</b> +1,5 Prozentpunkte Fusionsqualität pro Rang, maximal +4,5 Punkte, nur bei Spezialkombinationen mit mindestens drei Materialien. Die Obergrenze von 148 % gilt weiterhin.</li>'+
+   '<li><b>Kampfdisziplin:</b> Verhindert je Rang 2 Punkte des normalen Angriffsverschleißes – statt −30 sind es −28, −26 oder −24 ATK.</li>'+
+   '<li><b>Vorhut-Schutz:</b> +25 Schildpunkte pro Rang bei Duellbeginn, maximal +75; die Gesamtobergrenze des Schildes bleibt 600.</li>'+
+   '<li><b>Monstertraining, Grundausbildung und Standhaftigkeit:</b> sind weiterhin ergänzende Werte- beziehungsweise Zerfall-Skills. Fusionskunde, Beutestudien, Werkzeugkunde und Trainingsroutine stärken andere Spielbereiche.</li></ul>'+
+   '<p><b>Tagesquests</b> findest du ausschließlich unter <b>Herausforderungen → Challenges &amp; Quests</b>. Sie sammeln nur für aktive Aufgaben Fortschritt.</p></div></details>');
+ }
  const chapters=[...book.querySelectorAll('.arcane-rule-chapter')];
  const intro=document.createElement('div');intro.className='royal-handbook-intro';
  const heading=makeText('h3','', 'Willkommen im Duellantenhandbuch');
