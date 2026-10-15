@@ -26,17 +26,17 @@ function setup(){
   setTimeout(){return 0},setInterval(){return 0},clearTimeout(){},clearInterval(){},
   console,Date,Math,JSON,Map,Set,Array,Number,Object,RegExp,String,Error,TypeError,
   Uint32Array,Boolean,Infinity,NaN});
- vm.runInContext(scripts+'\n;globalThis.testGame={profile,CARDS,ARCANE_STAGE_IDS,RPG_BASE_CARDS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,createGame,simulateGame,fusedInstance,newInstance,fusionOptions};',vmContext,{timeout:10000});
+ vm.runInContext(scripts+'\n;globalThis.testGame={profile,CARDS,ARCANE_STAGE_IDS,RPG_BASE_CARDS,RPG_FUSIONS,RPG_OPPONENTS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,UPDATE_B_ACTIVE_IDS,boosterPools,lootPool,rpgEnemyLoadout,mainDeckError,fusionDeckError,cardAvailable,createGame,simulateGame,fusedInstance,newInstance,fusionOptions};',vmContext,{timeout:10000});
  return {g:vmContext.testGame,forge:window.ArcaneMonsterForge,role:window.ArcaneRoleFusion};
 }
-test('Every workshop family has unique level IDs including level 12',()=>{
+test('All 32 workshop families stop at level 10; levels 11/12 remain reserved',()=>{
  const {g}=setup();
  const families=[...new Set([...g.ARCANE_STAGE_IDS.keys()].map(k=>k.split(':')[0]))];
- assert.ok(families.length>=22);
+ assert.equal(families.length,32);
  const ids=[...g.ARCANE_STAGE_IDS.values()];
  assert.equal(new Set(ids).size,ids.length);
- for(const root of families)for(let lv=1;lv<=12;lv++)
-  assert.ok(Number.isInteger(g.ARCANE_STAGE_IDS.get(root+':'+lv)),root+' level '+lv);
+ for(const root of families){for(let lv=1;lv<=10;lv++)assert.ok(Number.isInteger(g.ARCANE_STAGE_IDS.get(root+':'+lv)),root+' level '+lv);
+  for(const lv of [11,12])assert.equal(g.ARCANE_STAGE_IDS.has(root+':'+lv),false,root+' level '+lv+' must be reserved');}
 });
 test('Tournament limits prevent early Lv7 crafting, then allow reversible conversion',()=>{
  const {g,forge}=setup(),root=0,id1=forge.stage(root,1),id7=forge.stage(root,7);
@@ -92,4 +92,42 @@ test('Actual game runs 40 seeded duels with new role rules and no deadlocks',()=
   assert.ok(duel.winner===0||duel.winner===1);
   for(const p of duel.players)assert.ok(p.lp>=0&&p.lp<=duel.maxLP);
  }
+});
+
+test('Tournament opponents and every playable deck stop at Lv10 in easy and hard mode',()=>{
+ const {g}=setup();
+ assert.equal(g.RPG_OPPONENTS.length,11);
+ for(const opponent of g.RPG_OPPONENTS){
+  assert.ok(opponent.level<=10,'tournament opponent '+opponent.id);
+  for(const difficulty of ['easy','hard']){
+   const load=g.rpgEnemyLoadout(opponent.id,difficulty);
+   assert.equal(g.mainDeckError(load.deck),'',opponent.id+' '+difficulty+' main');
+   assert.equal(g.fusionDeckError(load.fusionDeck),'',opponent.id+' '+difficulty+' fusion');
+   for(const id of [...load.deck,...load.fusionDeck])assert.ok(g.CARDS[id].level<=10,'NPC '+opponent.id+' '+difficulty+' card '+id);
+  }
+ }
+});
+test('Reserved Lv11/12 are absent from shop, card pool, workshop and loot',()=>{
+ const {g,forge}=setup();
+ const active=g.UPDATE_B_ACTIVE_IDS;
+ assert.ok(active.length>=128);
+ assert.ok(active.every(id=>g.CARDS[id].level<=10));
+ assert.ok(g.RPG_BASE_CARDS.every(c=>c.level<=10));
+ assert.ok(g.RPG_FUSIONS.every(c=>c.level<=10));
+ const hidden=g.CARDS.filter(c=>c.level===11||c.level===12);
+ assert.ok(hidden.length>=64,'technical card IDs are reserved for a future update');
+ assert.ok(hidden.every(c=>c.retired&&c.workshopOnly));
+ assert.ok(hidden.every(c=>!active.includes(c.id)&&!g.cardAvailable(c.id)));
+ for(let tier=0;tier<=10;tier++){
+  const pools=g.boosterPools(tier);
+  for(const pool of Object.values(pools))assert.ok(pool.every(id=>g.CARDS[id].level<=10),'booster '+tier);
+  for(const mode of ['easy','hard'])assert.ok(g.lootPool(tier,mode).every(id=>g.CARDS[id].level<=10),'loot '+tier);
+ }
+ const root=Number([...g.ARCANE_STAGE_IDS.keys()][0].split(':')[0]);
+ assert.equal(forge.stage(root,11),undefined);
+ assert.equal(forge.stage(root,12),undefined);
+ assert.equal(forge.transact('combine',root,11,'1+1+1+1+1+1+1+1+1+1+1').ok,false);
+ const invalidDeck=[...g.profile.activeDeck];invalidDeck[0]=hidden[0].id;
+ assert.notEqual(g.mainDeckError(invalidDeck,[...g.profile.unlocked,hidden[0].id]),'');
+ assert.notEqual(g.fusionDeckError([hidden[0].id,hidden[0].id]),'');
 });
