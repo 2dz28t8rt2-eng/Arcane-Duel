@@ -26,7 +26,7 @@ function setup(){
   setTimeout(){return 0},setInterval(){return 0},clearTimeout(){},clearInterval(){},
   console,Date,Math,JSON,Map,Set,Array,Number,Object,RegExp,String,Error,TypeError,
   Uint32Array,Boolean,Infinity,NaN});
- vm.runInContext(scripts+'\n;globalThis.testGame={profile,CARDS,ARCANE_STAGE_IDS,RPG_BASE_CARDS,RPG_FUSIONS,RPG_OPPONENTS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,UPDATE_B_ACTIVE_IDS,boosterPools,lootPool,rpgEnemyLoadout,mainDeckError,fusionDeckError,cardAvailable,sharedShards,craftCard,rewardMatch,sourceCards,createGame,simulateGame,fusedInstance,newInstance,fusionOptions,baseStat,normalRoleBonus,profileCard,UPGRADES,buyUpgrade,upgradeCost,validateProfile,workshopBudget,attack,dataOf};',vmContext,{timeout:10000});
+ vm.runInContext(scripts+'\n;globalThis.testGame={profile,CARDS,ARCANE_STAGE_IDS,RPG_BASE_CARDS,RPG_FUSIONS,RPG_OPPONENTS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,UPDATE_B_ACTIVE_IDS,boosterPools,lootPool,rpgEnemyLoadout,mainDeckError,fusionDeckError,cardAvailable,sharedShards,craftCard,rewardMatch,sourceCards,createGame,simulateGame,fusedInstance,newInstance,fusionOptions,baseStat,normalRoleBonus,profileCard,UPGRADES,buyUpgrade,upgradeCost,validateProfile,workshopBudget,attack,dataOf,strongestMainDeck};',vmContext,{timeout:10000});
  return {g:vmContext.testGame,forge:window.ArcaneMonsterForge,role:window.ArcaneRoleFusion,evolution:window.ArcaneEvolution};
 }
 test('All 32 workshop families stop at level 10; levels 11/12 remain reserved',()=>{
@@ -384,4 +384,26 @@ test('Gegenschlag uses half the actual defender ATK, including bonus and battle 
  assert.ok(g.attack(duel,0,0),'attack should resolve');
  assert.equal(before-duel.players[1].lp,expectedCounter,'counter uses live ATK, not source card');
  assert.notEqual(expectedCounter,Math.floor(g.CARDS[guard].atk/2));
+});
+
+test('Auto-equip respects specialization while retaining both Predator and Defender attack options',()=>{
+ const {g}=setup();
+ const ids=[...g.ARCANE_STAGE_IDS.values()]
+  .filter(id=>[6,7,8,9,10].includes(g.CARDS[id].level)&&
+   ['predator','guardian','soul'].includes(g.CARDS[id].role));
+ const inventory=Object.fromEntries(ids.map(id=>[id,3]));
+ assert.ok(ids.length>=40);
+ g.profile.upgrades.jagdinstinkt=0;g.profile.upgrades.schildwall=5;
+ let deck=g.strongestMainDeck(ids,{},inventory);
+ assert.equal(deck.length,40);
+ let offense=deck.filter(id=>g.CARDS[id].role==='predator').length;
+ let defense=deck.filter(id=>['guardian','soul'].includes(g.CARDS[id].role)).length;
+ assert.ok(offense>=10,'defense preset keeps a meaningful attack group: '+offense);
+ assert.ok(defense>=22,'defense preset gets specialists: '+defense);
+ g.profile.upgrades.jagdinstinkt=5;g.profile.upgrades.schildwall=0;
+ deck=g.strongestMainDeck(ids,{},inventory);
+ offense=deck.filter(id=>g.CARDS[id].role==='predator').length;
+ defense=deck.filter(id=>['guardian','soul'].includes(g.CARDS[id].role)).length;
+ assert.ok(offense>=22,'predator preset gets attack group');
+ assert.ok(defense>=10,'predator preset preserves a defensive group');
 });
