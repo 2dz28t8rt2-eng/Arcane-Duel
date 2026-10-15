@@ -1,0 +1,50 @@
+/* ARCANE DUEL – Essence Academy and layered defensive combat (development) */
+.essence-academy,.essence-dashboard,.essence-lore-teaser{
+ border:1px solid #c7ae83!important;background:linear-gradient(145deg,#263246,#151e31)!important;
+ box-shadow:inset 0 1px #f0d7a523,0 12px 29px #0004!important;
+ border-radius:13px;padding:clamp(17px,2vw,26px);color:#ddd7d0}
+.essence-academy h2,.essence-dashboard h2,.essence-lore-teaser h2{
+ font-family:Georgia,serif;color:#f9e6b5;font-size:clamp(21px,2vw,28px);margin:9px 0 13px}
+.essence-eyebrow{font-size:10px;font-weight:850;letter-spacing:.18em;color:#dfbe83}
+.essence-academy p,.essence-dashboard p,.essence-lore-teaser p{color:#cad5e4;line-height:1.7}
+.essence-training-stages{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:17px 0}
+.essence-training-stages>div{display:flex;flex-direction:column;gap:8px;justify-content:center;min-height:83px;
+ padding:11px;border:1px solid #8796ab70;border-radius:9px;background:linear-gradient(130deg,#202c40,#131e30)}
+.essence-training-stages>div b{color:#f1e0bf;font:700 16px Georgia,serif}
+.essence-training-stages>div small{color:#b8c8d8;font-size:10px;font-weight:800;letter-spacing:.08em}
+.essence-training-stages>div.done{border-color:#80c6a7;background:#162d31}
+.essence-training-stages>div.current{border-color:#eac57e;box-shadow:0 0 17px #e6c27d22}
+.essence-training-stages>div.locked{opacity:.55}
+.essence-card-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:15px 0}
+.essence-card-choices>article{
+ display:flex;flex-direction:column;align-items:stretch;gap:9px;min-width:0;
+ border:1px solid #bda47c69;border-radius:11px;padding:14px;
+ background:linear-gradient(150deg,#2c3450,#161e30)}
+.essence-card-choices>article .hand-card{max-width:175px;width:100%;margin:0 auto}
+.essence-card-choices h3{color:#f7e6bd;font:700 18px Georgia,serif;margin:4px 0}
+.essence-card-choices p{flex:1;font-size:12px;line-height:1.55;color:#cad3df}
+.essence-card-choices .btn{white-space:normal;min-height:44px;line-height:1.35}
+.essence-upgrade,.essence-status{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;
+ border:1px solid #b39b747a;border-radius:9px;padding:13px;background:#182337}
+.essence-status.resonant{border-color:#dabb8d;background:#383044}
+.essence-choice-buttons{display:flex;flex-wrap:wrap;gap:9px;margin:13px 0}
+.essence-secret{margin-top:20px;border:1px solid #a08cb2;border-radius:10px;background:#1c1b30;padding:13px}
+.essence-secret>summary{cursor:pointer;font:700 17px Georgia,serif;color:#eedbb6}
+.essence-secret p{font-size:12px}
+.essence-lore{margin:15px 0;border:1px solid #bbac8d;border-radius:10px}
+.essence-lore .arcane-rule-body{line-height:1.75}
+.essence-lore>summary{font-family:Georgia,serif;color:#fce8bb}
+.essence-exam-result{margin-top:15px;border-left:3px solid #d1b381;padding:13px;background:#2b2c43;border-radius:7px}
+.essence-exam-result strong{color:#f0d9a3}
+.essence-exam-result p{color:#cbd8e8}
+.essence-actions{display:flex;flex-direction:column;gap:8px;margin-top:13px;padding:12px;border:1px solid #c3a879;
+ border-radius:9px;background:linear-gradient(120deg,#2a2745,#15273b)}
+.essence-actions strong{font-family:Georgia,serif;color:#ead6a9}
+.essence-actions small{color:#e0d5ed}
+.essence-actions .btn{white-space:normal;font-size:12px}
+@media(max-width:800px){
+ .essence-card-choices{grid-template-columns:repeat(auto-fit,minmax(185px,1fr))}
+ .essence-training-stages{grid-template-columns:1fr}
+ .essence-training-stages>div{min-height:auto}
+}
+@media(max-width:420px){.essence-card-choices{grid-template-columns:1fr}}
