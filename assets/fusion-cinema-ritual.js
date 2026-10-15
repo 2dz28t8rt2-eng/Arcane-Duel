@@ -6,7 +6,34 @@
  const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
  const num=v=>Math.max(0,Math.floor(Number(v)||0)).toLocaleString('de-AT');
  const STAMPS={predator:'PREDATOR',guardian:'VERTEIDIGER',soul:'SEELENZEHRER'};
- let running=false;
+ let running=false,particleLoader=null;
+ function addScript(url,check){
+  if(check())return Promise.resolve();
+  return new Promise((ok,fail)=>{
+   const tag=document.createElement('script');tag.src=url;tag.async=true;tag.crossOrigin='anonymous';
+   tag.onload=()=>check()?ok():fail(new Error('missing particle engine'));
+   tag.onerror=()=>fail(new Error('particle CDN unavailable'));document.head.append(tag);
+  });
+ }
+ async function motes(host,role){
+  // Optional tsParticles Slim from its official browser CDN, backed by CSS sparks.
+  if(!particleLoader)particleLoader=(async()=>{
+   await addScript('https://cdn.jsdelivr.net/npm/@tsparticles/engine@4/tsparticles.engine.min.js',()=>!!window.tsParticles);
+   await addScript('https://cdn.jsdelivr.net/npm/@tsparticles/slim@4/tsparticles.slim.bundle.min.js',()=>!!window.loadSlim);
+   await window.loadSlim(window.tsParticles);return window.tsParticles;
+  })().catch(()=>null);
+  const engine=await particleLoader;if(!engine||!host.isConnected)return null;
+  const color={predator:'#f26c66',guardian:'#75c7f9',soul:'#da9eff'}[role]||'#c8b0ff';
+  return engine.load({id:'arcane-fusion-motes',options:{
+   fullScreen:{enable:false},fpsLimit:40,
+   particles:{number:{value:26,density:{enable:false}},color:{value:[color,'#f2d29a','#cfb0ff']},
+    shape:{type:['circle','star']},opacity:{value:{min:.15,max:.7}},size:{value:{min:1,max:3}},
+    move:{enable:true,speed:{min:.4,max:1.2},direction:'none',outModes:{default:'out'}},
+    links:{enable:false},collisions:{enable:false}},
+   interactivity:{events:{onHover:{enable:false},onClick:{enable:false}}}
+  }});
+ }
+
  async function play({instance:c,materials=[],battle:g,card:t,level,wait,playSound}){
   if(running)return;
   if(!c?.fusion||!t||!g)return;
@@ -21,18 +48,21 @@
   const boardCard=slot?.querySelector('.board-creature');
   const overlay=document.createElement('div');
   overlay.className='evo-summon evo-fusion-scene evo-stamp-scene ritual-overlay';
+  overlay.dataset.role=role;
   overlay.setAttribute('role','status');
   overlay.setAttribute('aria-label','Fusion von '+t.name+': '+rolls.length+' echte Wertewürfe');
   overlay.innerHTML=
    '<div class="ritual-window">'+
+    '<div class="ritual-particles" id="arcane-fusion-motes" aria-hidden="true"></div>'+
     '<div class="evo-mat-count">✧ '+(c.materialsUsed||materials.length||2)+' MATERIALIEN · '+esc(c.pattern||'FUSION')+' ✧</div>'+
     '<div class="evo-visual-stage">'+
+     '<div class="ritual-sparks" aria-hidden="true"></div>'+ 
      '<div class="evo-material-layer" aria-hidden="true"></div>'+
      '<div class="evo-fusion-core" aria-hidden="true">✧</div>'+
      '<div class="evo-fusion-result monster-card">'+
       '<div class="ritual-card-name">'+esc(t.name)+'</div>'+
       '<div class="ritual-card-art"><img alt="" src="'+esc(t.art)+'">'+
-       (seal?'<div class="evo-role-seal role-stamp '+(role==='guardian'?'defender':role)+'">'+esc(seal)+'</div>':'')+
+       (seal?'<div class="evo-role-seal evo-seal-'+role+' role-stamp '+(role==='guardian'?'defender':role)+'">'+esc(seal)+'</div>':'')+
       '</div>'+
       '<div class="ritual-card-level">LV '+esc(level)+'</div>'+
       '<div class="ritual-card-stats">'+
@@ -48,6 +78,12 @@
     '</div>'+
    '</div>';
   const layer=overlay.querySelector('.evo-material-layer');
+  const sparkContainer=overlay.querySelector('.ritual-sparks');
+  for(let i=0;i<18;i++){
+   const spark=document.createElement('span');spark.className='ritual-spark';
+   spark.style.setProperty('--angle',i*20+'deg');
+   spark.style.setProperty('--delay',(-i*.11)+'s');sparkContainer.append(spark);
+  }
   const samples=materials.length?materials:[{art:t.art,level:t.level}];
   for(let i=0;i<samples.length;i++){
    const item=document.createElement('div'),img=document.createElement('img');
@@ -74,6 +110,7 @@
   };
   if(boardCard)boardCard.classList.add('evo-fusion-awaiting');
   document.body.append(overlay);
+  const particleTask=motes(overlay,role).catch(()=>null);
   playSound('summon');
   try{
    // 1. Material orbit and actual fusion merge: there is no popup yet.
@@ -158,6 +195,7 @@
    }else{overlay.classList.add('evo-card-land');await wait(550);}
   }finally{
    overlay.remove();running=false;
+   particleTask.then(container=>container?.destroy?.()).catch(()=>{});
    if(boardCard){
     boardCard.classList.remove('evo-fusion-awaiting');
     boardCard.classList.add('evo-fusion-landed');
