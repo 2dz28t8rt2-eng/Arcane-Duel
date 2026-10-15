@@ -151,14 +151,50 @@ function tunedFusionQuality(g,levels,elements=[]){
 }
 fusionBudget=function(levels,g){if(!levels.length||levels.length>5)return 0;if(g?.mode!=='pve')return previous.fusionBudget(levels,g);const f=fusionQuality(levels);return Math.min(12,Math.max(1,Math.min(levels.reduce((a,b)=>a+b,0),Math.floor(f.average+2+(levels.length-2)*.70+(g?.active===1?0:f.levelBonus)-.45*f.spread))));};
 baseStat=function(c,stat,p){const result=previous.baseStat(c,stat,p);if(!p||p.id!==0||game?.mode==='pvp'||!profile?.evolution)return result;const bonuses=profile.evolution.bonuses;return result*(c.fusionOnly?bonuses.includes('fusion')?1.015:1:bonuses.includes(stat==='atk'?'burst':'defense')?1.03:1);};
+/* Fusion rolls begin at the midpoint of ordinary monster potential for the
+ * same TARGET level. The catalog's high fusion-template stats do not compound.
+ * Existing neutral PvP combat, permanent cards and saved IDs are unaffected. */
+const fusionLevelReferences=new Map();
+for(let level=1;level<=10;level++){
+ const pool=ARCANE_WORKSHOP_IDS.map(id=>CARDS[id]).filter(c=>
+  c&&c.level===level&&!c.retired&&!c.fusionOnly&&!c.essenceMonster&&
+  Number.isFinite(c.atk)&&Number.isFinite(c.def));
+ const midpoint=pool.length?Object.fromEntries(['atk','def'].map(stat=>{
+  const values=pool.map(c=>c[stat]);
+  return [stat,round10((Math.min(...values)+Math.max(...values))/2)];
+ })):{atk:round10(workshopBudget(level)/2),def:round10(workshopBudget(level)/2)};
+ fusionLevelReferences.set(level,Object.freeze(midpoint));
+}
+function fusionReferenceStats(level){
+ const stats=fusionLevelReferences.get(level);
+ if(stats)return {...stats};
+ const mean=round10(workshopBudget(Math.max(1,Math.min(10,level)))/2);
+ return {atk:mean,def:mean};
+}
+function fusionReferenceStat(template,stat,p){
+ // Preserve legitimate training/upgrade multipliers, not template's base ATK.
+ return fusionReferenceStats(template.level)[stat]*baseStat(template,stat,p)/Math.max(1,template[stat]);
+}
+
 fusedInstance=function(g,instances,levels){if(instances.length>5||instances.length<2)return null;if(g.mode!=='pve')return previous.fusedInstance(g,instances,levels);const p=g.players[g.active],pool=fusionOptions(g,levels),template=g.fusionChoice!==undefined?pool.find(c=>c.id===g.fusionChoice):[...pool].sort((a,b)=>b.level-a.level||b.atk-a.atk)[0];if(!template)return null;
  const f=tunedFusionQuality(g,levels,instances.map(c=>dataOf(c).element));const rolls=Math.min(7,qualityRolls(levels)+f.rollBonus+(window.ArcaneEssenceCombat?.fusionRollBonus?.(g)||0)+instances.filter(c=>dataOf(c).ability==='guide').length+(g.active===0&&!g.totalFusions[0]?(profile.upgrades.fusionLore||0):0));
- let best=null,trace=[];for(let i=0;i<rolls;i++){const atkPercent=.94+randomInt(g,13)/100,defPercent=.94+randomInt(g,13)/100;const candidate={atk:round10(baseStat(template,'atk',p)*atkPercent*f.factor),def:round10(baseStat(template,'def',p)*defPercent*f.factor)};trace.push({atk:candidate.atk,def:candidate.def});if(!best||candidate.atk+candidate.def>best.atk+best.def)best=candidate;}
+ let best=null,trace=[];
+ for(let i=0;i<rolls;i++){
+  // Actual risk: 88-112% rolled on a normal-monster midpoint, not the fusion
+  // card's legacy strength. Poker quality and material roles determine upside.
+  const atkPercent=.88+randomInt(g,25)/100,defPercent=.88+randomInt(g,25)/100;
+  const candidate={atk:round10(fusionReferenceStat(template,'atk',p)*atkPercent*f.factor),
+   def:round10(fusionReferenceStat(template,'def',p)*defPercent*f.factor)};
+  trace.push({atk:candidate.atk,def:candidate.def});
+  if(!best||candidate.atk+candidate.def>best.atk+best.def)best=candidate;
+ }
  const bonus={atk:0,def:0};for(const n of materialBlocks(g,instances))bonus[randomInt(g,2)?'atk':'def']+=n;
- for(const stat of ['atk','def'])best[stat]=Math.max(0,Math.max(best[stat],Math.ceil(Math.max(...instances.map(c=>materialBase(c,stat)))*.95/10)*10)+bonus[stat]-fusionPenalty(g));
+ // Deliberately omit the former 95%-of-strongest-material floor: a poor roll
+ // can now underperform its ingredients. It also prevents repeat-fusion snowball.
+ for(const stat of ['atk','def'])best[stat]=Math.max(0,best[stat]+bonus[stat]-fusionPenalty(g));
  const used=p.remainingFusion.indexOf(template.id);if(used<0)return null;p.remainingFusion.splice(used,1);
  const result={...newInstance(g,template.id),card:{level:template.level,...best},fusion:true,materialBonus:bonus,qualityRolls:rolls,pattern:f.name,materialsUsed:instances.length,rollTrace:trace,attacked:instances.some(c=>c.attacked)};
- logEvent(g,`${template.name}: ${instances.length} Materialien · ${f.name} · ${rolls} Würfe · ATK ${best.atk} / DEF ${best.def}.`);return result;
+ logEvent(g,`${template.name}: ${instances.length} Materialien · ${f.name} · ${rolls} Würfe · Werte werden nach der Feldplatzierung enthüllt.`);return result;
 };
 prepareHandFusion=function(g,uids,choice){if(g.mode!=='pve')return previous.prepareHandFusion(g,uids,choice);if(g.winner!==null||g.summoned||g.pending||uids.length<2||uids.length>5||new Set(uids).size!==uids.length)return false;const p=g.players[g.active],materials=uids.map(uid=>p.hand.find(c=>c.uid===uid));if(materials.some(c=>!c))return false;const levels=materials.map(c=>dataOf(c).level),options=fusionOptions(g,levels).filter(c=>canCompleteHandFusion(g,levels,c.id));if(choice===undefined)choice=options.sort((a,b)=>b.level-a.level||b.atk-a.atk)[0]?.id;if(!options.some(c=>c.id===choice))return false;
  g.fusionChoice=choice;let card;try{card=fusedInstance(g,materials,levels);}finally{delete g.fusionChoice;}if(!card)return false;p.hand=p.hand.filter(c=>!uids.includes(c.uid));p.graveyard.push(...materials);g.pending={kind:'fusion',card,levels};g.materials=[];g.selection=null;g.totalFusions[g.active]++;
@@ -251,8 +287,8 @@ prepareFusion=async function(choice){if(!inputAllowed()||game.summoned||game.pen
  if(!prepareHandFusion(game,ids,choice)){toast(fusionFailureReason(game,materials.map(m=>dataOf(m).level)));return;}
  const fusionVisuals=fusionVisualSnapshot(materials);
  busy=true;render();try{await fusionAnimation(dataOf(game.pending.card).level,fusionVisuals);}finally{busy=false;render();}};
-fusionPreview=function(g,c,materials,levels=materials.map(m=>dataOf(m).level)){const p=g.players[g.active],f=tunedFusionQuality(g,levels,materials.map(m=>dataOf(m).element)),bonus=materialBlocks(g,materials).reduce((a,b)=>a+b,0),range=stat=>{const floor=Math.ceil(Math.max(...materials.map(m=>materialBase(m,stat)))*.95/10)*10;return [Math.max(0,Math.max(floor,round10(baseStat(c,stat,p)*.94*f.factor))-fusionPenalty(g)),Math.max(0,Math.max(floor,round10(baseStat(c,stat,p)*1.06*f.factor))+bonus-fusionPenalty(g))];};return {atk:range('atk'),def:range('def'),bonus,remaining:countCard(p.remainingFusion,c.id)-1,attackSpent:materials.some(m=>m.attacked),rolls:Math.min(7,qualityRolls(levels)+f.rollBonus+(window.ArcaneEssenceCombat?.fusionRollBonus?.(g)||0)+materials.filter(m=>dataOf(m).ability==='guide').length+(g.active===0&&!g.totalFusions[0]?(profile.upgrades.fusionLore||0):0)),pattern:f.name};};
-chooseFusionModal=function(levels,materials,callback,extra=''){const options=fusionOptions(game,levels).filter(c=>game.pending||canCompleteHandFusion(game,levels,c.id)).sort((a,b)=>b.level-a.level||b.atk-a.atk);if(!options.length){toast(fusionFailureReason(game,levels));return;}const f=tunedFusionQuality(game,levels,materials.map(m=>dataOf(m).element));openModal(modalHtml('FUSIONSVORSCHAU',f.name,'✧','Tippe eine Monsterkarte an, um die Fusionsvorlage auszuwählen. Alle markierten Materialien werden eingesetzt.',`<p><b>Material:</b> ${materials.map(m=>escapeHtml(dataOf(m).name)).join(' + ')}</p><p>Qualität: <b>${(f.factor*100).toFixed(0)} %</b> · Niveau ${f.average.toFixed(1)} · mögliche Stufe bis <b>${fusionBudget(levels,game)}</b>. ${extra}</p><details class="fusion-how"><summary>Wie berechnet sich die Fusion?</summary><p>Die durchschnittliche Materialstufe entscheidet über das Potenzial. Hohe Differenzen zwischen Materialien senken die Qualität. Spezialkombinationen und Elemente können diese verbessern. Pro Wurf liegen Grundwerte zwischen 94 und 106 %; der beste Gesamtwurf gewinnt. Material-Aufstiegsboni werden zusätzlich zufällig auf ATK oder DEF verteilt. Eine schlechte Fusion kann schwächer als ihr stärkstes Material ausfallen.</p></details><div class="pool-grid fusion-choice-grid">${options.map(c=>{const v=fusionPreview(game,c,materials,levels);return `<article class="fusion-offer">${fullCardHtml({id:c.id,card:{level:c.level,atk:round10((v.atk[0]+v.atk[1])/2),def:round10((v.def[0]+v.def[1])/2)}},`data-fusion-choice="${c.id}" title="${escapeHtml(c.name)} auswählen"`,'fusion-pick-card')}<div class="fusion-forecast"><strong>ATK ${fmt(v.atk[0])}–${fmt(v.atk[1])}</strong><strong>DEF ${fmt(v.def[0])}–${fmt(v.def[1])}</strong></div><p class="fusion-short">${v.rolls} Wertewürfe · ${escapeHtml(v.pattern)} · Materialbonus +${v.bonus}<br>Noch ${v.remaining} Fusionskopie(n)</p><button class="btn" data-fusion-choice="${c.id}">Diese Fusion wählen</button></article>`;}).join('')}</div>`, '<button class="btn" id="fusionCancel">ZURÜCK</button>'));$('modal').classList.add('pool-modal','fusion-choice-modal');$('fusionCancel').onclick=hideModal;let chosen=false;document.querySelectorAll('[data-fusion-choice]').forEach(b=>b.onclick=()=>{if(chosen)return;chosen=true;hideModal();callback(Number(b.dataset.fusionChoice));});};
+fusionPreview=function(g,c,materials,levels=materials.map(m=>dataOf(m).level)){const p=g.players[g.active],f=tunedFusionQuality(g,levels,materials.map(m=>dataOf(m).element)),bonus=materialBlocks(g,materials).reduce((a,b)=>a+b,0),range=stat=>[Math.max(0,round10(fusionReferenceStat(c,stat,p)*.88*f.factor)-fusionPenalty(g)),Math.max(0,round10(fusionReferenceStat(c,stat,p)*1.12*f.factor)+bonus-fusionPenalty(g))];return {atk:range('atk'),def:range('def'),bonus,remaining:countCard(p.remainingFusion,c.id)-1,attackSpent:materials.some(m=>m.attacked),rolls:Math.min(7,qualityRolls(levels)+f.rollBonus+(window.ArcaneEssenceCombat?.fusionRollBonus?.(g)||0)+materials.filter(m=>dataOf(m).ability==='guide').length+(g.active===0&&!g.totalFusions[0]?(profile.upgrades.fusionLore||0):0)),pattern:f.name};};
+chooseFusionModal=function(levels,materials,callback,extra=''){const options=fusionOptions(game,levels).filter(c=>game.pending||canCompleteHandFusion(game,levels,c.id)).sort((a,b)=>b.level-a.level||b.atk-a.atk);if(!options.length){toast(fusionFailureReason(game,levels));return;}const f=tunedFusionQuality(game,levels,materials.map(m=>dataOf(m).element));openModal(modalHtml('FUSIONSVORSCHAU',f.name,'✧','Tippe eine Monsterkarte an, um die Fusionsvorlage auszuwählen. Alle markierten Materialien werden eingesetzt.',`<p><b>Material:</b> ${materials.map(m=>escapeHtml(dataOf(m).name)).join(' + ')}</p><p>Qualität: <b>${(f.factor*100).toFixed(0)} %</b> · Niveau ${f.average.toFixed(1)} · mögliche Stufe bis <b>${fusionBudget(levels,game)}</b>. ${extra}</p><details class="fusion-how"><summary>Wie berechnet sich die Fusion?</summary><p>Die durchschnittliche Materialstufe entscheidet über das Potenzial. Hohe Differenzen zwischen Materialien senken die Qualität. Spezialkombinationen und Elemente können diese verbessern. Fusionen starten bei den mittleren ATK-/DEF-Werten gewöhnlicher Monster ihrer Zielstufe. Pro Wurf entstehen 88–112 % dieses Referenzwerts; der beste Gesamtwurf gewinnt. Es gibt keine garantierte Stärke durch das beste Material. Material-Aufstiegsboni werden zusätzlich zufällig auf ATK oder DEF verteilt. Eine schlechte Fusion kann schwächer als ihr stärkstes Material ausfallen.</p></details><div class="pool-grid fusion-choice-grid">${options.map(c=>{const v=fusionPreview(game,c,materials,levels);return `<article class="fusion-offer">${fullCardHtml({id:c.id,card:{level:c.level,atk:round10((v.atk[0]+v.atk[1])/2),def:round10((v.def[0]+v.def[1])/2)}},`data-fusion-choice="${c.id}" title="${escapeHtml(c.name)} auswählen"`,'fusion-pick-card')}<div class="fusion-forecast"><strong>ATK ${fmt(v.atk[0])}–${fmt(v.atk[1])}</strong><strong>DEF ${fmt(v.def[0])}–${fmt(v.def[1])}</strong></div><p class="fusion-short">${v.rolls} Wertewürfe · ${escapeHtml(v.pattern)} · Materialbonus +${v.bonus}<br>Noch ${v.remaining} Fusionskopie(n)</p><button class="btn" data-fusion-choice="${c.id}">Diese Fusion wählen</button></article>`;}).join('')}</div>`, '<button class="btn" id="fusionCancel">ZURÜCK</button>'));$('modal').classList.add('pool-modal','fusion-choice-modal');$('fusionCancel').onclick=hideModal;let chosen=false;document.querySelectorAll('[data-fusion-choice]').forEach(b=>b.onclick=()=>{if(chosen)return;chosen=true;hideModal();callback(Number(b.dataset.fusionChoice));});};
 // Real material art is captured before materials leave the hand / field.
 // The animation never modifies the duel state, and honors instant/reduced-motion.
 let fusionVisualMaterials=null;
@@ -358,6 +394,6 @@ showRules=function(){
 showIphoneHelp=function(){previous.showIphoneHelp();$('modal')?.insertAdjacentHTML('beforeend','<p class="evo-rulebox">Arcane Duel 3.0: Handkarte einmal antippen und Feldzone wählen. Für Fusionen „Touch-Fusion“ aktivieren und zwei bis fünf Materialien antippen; es wird nichts mehr bloß abgeworfen.</p>');};
 if(window.__arcaneEvolutionPendingSave){try{profile.activeDuel=validateDuelSnapshot(window.__arcaneEvolutionPendingSave);saveProfile();}catch(err){console.warn('Fusion Evolution: gespeicherte Partie nicht wiederhergestellt',err);profile.migrationMessage='Ein laufendes Duell konnte nicht wiederhergestellt werden. Der übrige Spielstand bleibt erhalten.';}delete window.__arcaneEvolutionPendingSave;}
 // Public diagnostics for automated tests and balancing. No hidden admin mode.
-window.ArcaneEvolution={version:'3.0.0',MODES,decodeId,fusionPattern,fusionQuality,objectives,claimQuest,skipQuest,quests,modeCashout,refillQuests};
+window.ArcaneEvolution={version:'3.1.0',MODES,decodeId,fusionPattern,fusionQuality,fusionReferenceStats,objectives,claimQuest,skipQuest,quests,modeCashout,refillQuests};
 if(uiMode==='menu')renderMenu();else if(game)render();
 })();
