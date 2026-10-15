@@ -1,0 +1,65 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Arcane Duel · Fusion Visual Integration</title>
+<style>body{font:14px system-ui;background:#121827;color:#eee;padding:10px}iframe{width:100%;height:760px;border:1px solid #788}pre{white-space:pre-wrap}</style>
+</head><body><h1>Fusionskino / Kartenzahlen QA</h1><pre id="result">Läuft ...</pre>
+<iframe id="app" src="../index.html" title="Arcane Duel"></iframe>
+<script>
+const iframe=document.getElementById('app'),out=document.getElementById('result');
+iframe.addEventListener('load',async()=>{
+ const checks=[],fails=[],wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+ const check=(ok,message)=>{checks.push((ok?'OK: ':'FEHLER: ')+message);if(!ok)fails.push(message);};
+ try{
+  const w=iframe.contentWindow,d=w.document;
+  const fontSize=el=>parseFloat(w.getComputedStyle(el).fontSize);
+  const stats=selector=>[...d.querySelectorAll(selector)];
+  d.getElementById('guideClose')?.click();d.getElementById('helpDismiss')?.click();
+  w.eval('profile.trainingWins=3;profile.cleared=[1];menuTab="collection";renderMenu()');
+  const deck=stats('#deckSidePreview .deck-preview-card .stat-value');
+  check(deck.length===2,'Große Deckkarte hat zwei getrennte Wertekammern');
+  check(deck.every(el=>fontSize(el)<=13.1),'Große Deckkarte: ATK/DEF höchstens 13px');
+  w.eval('menuTab="free";renderMenu();startDuel("pve",1,"free","easy")');
+  d.getElementById('modalGo')?.click();
+  w.eval('game.selection={type:"hand",uid:game.players[0].hand[0].uid};render()');
+  const own=stats('#duelScreen .card-preview-panel .stat-value');
+  check(own.length===2&&own.every(el=>fontSize(el)<=12.1),'Große Duellkarte: ATK/DEF maximal 12px');
+  w.eval('game.selection=null;game.players[1].field[0]=newInstance(game,0,1);render();onEnemySlot(0)');
+  const enemy=stats('.arcane-enemy-large .stat-value');
+  check(enemy.length===2&&enemy.every(el=>fontSize(el)<=12.1),'Große Gegnerkarte: ATK/DEF maximal 12px');
+  d.getElementById('arcaneCloseEnemy')?.click();
+  w.eval(`(()=>{
+   const c=newInstance(game,RPG_START_FUSIONS[0],0);
+   c.card={level:4,atk:12345,def:23456};c.roleOverride='guardian';c.fusion=true;
+   c.materialsUsed=3;c.pattern='Drilling';
+   c.rollTrace=[{atk:12000,def:23000},{atk:12305,def:23436}];
+   c.rollMath={winnerIndex:1,winner:{atk:12305,def:23436},bonus:{atk:40,def:20},penalty:0,
+    final:{atk:12345,def:23456},role:'guardian',roleWeights:{atk:.75,def:1.25},
+    base:{atk:11300,def:21200}};
+   game.players[0].field[0]=c;game.lastSummoned=c.uid;render();animationSpeed='fast';
+   window.__fusionCinemaQA=fusionAnimation(4,[
+    {art:CARDS[0].art,level:1},{art:CARDS[1].art,level:1},{art:CARDS[13].art,level:2}
+   ]);
+  })()`);
+  const scene=d.querySelector('.evo-stamp-scene');
+  const field=d.querySelector('#ownRow [data-mine="0"] .board-creature');
+  check(!!scene&&!!field,'Fusionsszene und reale Zielzone existieren');
+  check(!scene?.classList.contains('evo-phase-shell')&&!scene?.classList.contains('evo-phase-reveal'),'Materialring startet ohne Fusionskarte und Fenster');
+  check(field?.classList.contains('evo-fusion-awaiting')&&w.getComputedStyle(field).visibility==='hidden','Fertig berechnete Feldkarte bleibt vor Landung verborgen');
+  await wait(1600);
+  check(scene?.classList.contains('evo-phase-shell')&&!scene?.classList.contains('evo-phase-reveal'),'Erst wird das LEERE Ritualfenster geöffnet');
+  await wait(450);
+  check(scene?.classList.contains('evo-phase-reveal')&&!scene?.classList.contains('evo-stamp-impact'),'Fusionskarte wird langsam eingeblendet, bevor der Stempel trifft');
+  await wait(1180);
+  check(scene?.classList.contains('evo-stamp-impact'),'Schwerer Wächterstempel folgt erst nach Kartengenerierung');
+  await wait(700);
+  check(scene?.classList.contains('evo-phase-rolls')&&!!scene?.querySelector('.evo-rolls .evo-calc-row'),'Erst danach beginnen die echten Wertewürfe');
+  const rect=scene?.getBoundingClientRect(),width=d.documentElement.clientWidth;
+  check(!!rect&&rect.left>=-2&&rect.right<=width+2,'Fusionsfenster bleibt innerhalb der Bildschirmbreite');
+  await w.__fusionCinemaQA;
+  check(!d.querySelector('.evo-stamp-scene'),'Ritual entfernt alle temporären Overlays');
+  check(!field?.classList.contains('evo-fusion-awaiting')&&w.getComputedStyle(field).visibility!=='hidden','Fusionsmonster wird erst nach Kartenflug sichtbar');
+  const role=field?.querySelector('.arcane-board-role');
+  check(!role||w.getComputedStyle(role).display==='none','Kleine Feldkarte hat keinen sichtbaren Rollentag');
+ }catch(e){fails.push(String(e));checks.push('EXCEPTION: '+String(e.stack||e).slice(0,850));}
+ out.textContent=checks.join('\n');
+ document.body.dataset.fusionCinemaUi=fails.length?'fail':'pass';
+}, {once:true});
+</script></body></html>
