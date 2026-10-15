@@ -53,7 +53,7 @@ function renderRoyalMenu(){
  const activeGroup=categories.find(g=>g.tabs.includes(menuTab))||categories[0];
  for(const group of categories){
   const active=group.id===activeGroup.id,section=document.createElement('section');section.className='fm-menu-group'+(active?' selected':'');
-  section.innerHTML='<button type="button" class="fm-group-button" data-fm-group="'+group.id+'" aria-expanded="'+active+'">'+
+  section.innerHTML='<button type="button" class="fm-group-button" data-fm-group="'+group.id+'" aria-expanded="'+(active&&!collapsedGroups.has(group.id))+'">'+
    '<span class="fm-group-icon">'+group.icon+'</span><span class="fm-group-copy"><strong>'+group.title+'</strong><small>'+group.subtitle+'</small></span><span class="fm-arrow">'+(active&&!collapsedGroups.has(group.id)?'⌄':'›')+'</span></button>';
   if(active){
    const sub=document.createElement('div');sub.className='fm-submenu';sub.hidden=collapsedGroups.has(group.id);
