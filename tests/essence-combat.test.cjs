@@ -19,7 +19,7 @@ function start(){
   setTimeout(){return 0},setInterval(){return 0},clearTimeout(){},clearInterval(){},
   console,Date,Math,JSON,Set,Map,Array,Number,Object,String,RegExp,Error,TypeError,Uint32Array,Boolean,Infinity,NaN});
  const source=files.map(x=>fs.readFileSync(path.join(__dirname,'../assets',x),'utf8')).join('\n;\n');
- vm.runInContext(source+'\n;globalThis.__essenceTest={createGame,simulateGame,profile,CARDS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,ESSENCE_MONSTER_IDS,advanceTurn,attack,newInstance,damagePlayer,randomInt,validateDuelSnapshot,statLayer:window.ArcaneEssenceCombat.statLayer,runTrial:(key,school,stage,seed)=>{let created=null;const old=startDuel;startDuel=function(mode,id,context,difficulty){created=createGame({mode,opponentId:id,context,difficulty,seed});};try{if(!window.ArcaneEssenceCombat.beginTrial(key,school,stage)||!created)throw Error(\"Could not start Essence trial\");return simulateGame(created,school===\"defense\"?\"guardian\":\"balanced\",\"balanced\");}finally{startDuel=old;}}};',context,{timeout:10000});
+ vm.runInContext(source+'\n;globalThis.__essenceTest={createGame,simulateGame,profile,CARDS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,ESSENCE_MONSTER_IDS,advanceTurn,attack,newInstance,damagePlayer,randomInt,validateProfile,validateDuelSnapshot,statLayer:window.ArcaneEssenceCombat.statLayer,runTrial:(key,school,stage,seed)=>{let created=null;const old=startDuel;startDuel=function(mode,id,context,difficulty){created=createGame({mode,opponentId:id,context,difficulty,seed});};try{if(!window.ArcaneEssenceCombat.beginTrial(key,school,stage)||!created)throw Error(\"Could not start Essence trial\");return simulateGame(created,school===\"defense\"?\"guardian\":\"balanced\",\"balanced\");}finally{startDuel=old;}}};',context,{timeout:10000});
  return {g:context.__essenceTest,w:window};
 }
 test('Old save defaults do not grant an exclusive monster or perk',()=>{
@@ -139,4 +139,17 @@ test('PvP still creates legacy-rules matches without Essence powers',()=>{
  const {g}=start();
  const duel=g.createGame({mode:'pvp',seed:10013});
  assert.ok(duel.essenceRules!==true);
+});
+
+test('Reject any saved profile with two different exclusive Essence cards',()=>{
+ const {g}=start();
+ const id=g.ESSENCE_MONSTER_IDS.defense;
+ const raw=JSON.parse(JSON.stringify(g.profile));
+ raw.unlocked.push(id);raw.inventory[id]=1;
+ raw.essence={intro:3,chosen:id,school:'defense',loreRead:true,
+  switchTarget:null,switchStep:0,nourished:150,spent:0,rank:0};
+ assert.equal(g.validateProfile(raw).essence.chosen,id);
+ const other=g.ESSENCE_MONSTER_IDS.fusion;
+ raw.unlocked.push(other);raw.inventory[other]=1;
+ assert.throws(()=>g.validateProfile(raw),/Es darf nur ein Essenzmonster geben/);
 });
