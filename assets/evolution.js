@@ -192,9 +192,12 @@ function opponentFusionCandidates(g,materials,p){
  const rolls=Math.min(7,qualityRolls(lv)+quality.rollBonus);
  const expectedRoll=1+.018*Math.max(0,rolls-1); // mild average benefit of best-of-N
  const ref=fusionReferenceStats(template.level);
+ const inherited=window.ArcaneRoleFusion?.inheritance?.(materials);
+ const role=inherited||template.role||'combatant';
+ const weights=fusionRoleWeights(role);
  const scale=(p.power||1)*quality.factor*expectedRoll;
  return {materials,level:template.level,
-  atk:ref.atk*scale,def:ref.def*scale,spend:materials.length};
+  atk:ref.atk*weights.atk*scale,def:ref.def*weights.def*scale,spend:materials.length};
 }
 chooseAiAction=function(g,policy='balanced'){
  if(g.mode!=='pve'||g.active!==1||g.opponentId<4||g.context==='encounter'||
