@@ -212,6 +212,10 @@
   if(CARB(sel)==='soul'&&sel.mode==='def'){
    html+='<small>Seelenessenz '+e.soul+' · Verdichtet '+e.condensed+' · Cooldown '+e.cooldown+'</small>';
    html+='<button class="btn" data-essence-combat="condense" '+(e.cooldown||e.soul<40?'disabled':'')+'>◇ Verdichten (3 Züge)</button>';
+   if((CARDS[sel.id]?.soulRank||0)>=3)html+='<div class="essence-target"><small>Entzugsfokus: '+(e.drainPreference===1?'ATK':e.drainPreference===2?'DEF':'Ausgewogen')+'</small>'+
+    '<button type="button" class="btn ghost" data-essence-drain="atk" '+(e.lastDrainSwitch===g.turn?'disabled':'')+'>ATK priorisieren</button>'+
+    '<button type="button" class="btn ghost" data-essence-drain="def" '+(e.lastDrainSwitch===g.turn?'disabled':'')+'>DEF priorisieren</button></div>';
+
    const hasBuffer=g.players[0].field.some(x=>x&&x!==sel&&CARDS[x.id].role==='guardian'&&dataOf(x).level>=5);
    if((CARDS[sel.id].soulRank||0)>=5||hasBuffer)html+='<button class="btn" data-essence-combat="discharge" '+(e.soul<40||e.lastDischarge===g.turn?'disabled':'')+'>✦ Aktiv entladen</button>';
   }
@@ -223,10 +227,11 @@
  };
  const CARB=c=>CARDS[c?.id]?.role;
  $('duelScreen')?.addEventListener('click',ev=>{
-  const button=ev.target.closest('button[data-essence-combat]');if(!button)return;
+  const button=ev.target.closest('button[data-essence-combat],button[data-essence-drain]');if(!button)return;
   if(!game||game.selection?.type!=='field')return;
   const idx=game.selection.idx;
   if(button.dataset.essenceCombat==='condense')C.condense(idx);
+  if(button.dataset.essenceDrain)C.chooseDrain(idx,button.dataset.essenceDrain);
   else if(button.dataset.essenceCombat==='discharge')C.discharge(idx);
   else if(button.dataset.essenceCombat==='predator')C.predatorMode(idx);
  });
