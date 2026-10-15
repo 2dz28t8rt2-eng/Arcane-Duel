@@ -167,6 +167,27 @@
   }
   return r;
  };
+ const oldAttackPlan=attackPlan;
+ attackPlan=function(g){
+  const result=oldAttackPlan(g);
+  if(result||!isEssenceDuel(g)||g.active!==1||g.winner!==null)return result;
+  // Legacy AI attacks only if it can destroy DEF in a single blow.
+  // With new monster-HP, predators must also chip away at dangerous blockers.
+  const owner=g.players[g.active],foe=g.players[1-g.active];
+  const attackers=owner.field.map((c,i)=>({c,i})).filter(x=>canAttack(g,x.c));
+  const defenders=foe.field.map((c,i)=>({c,i})).filter(x=>x.c?.mode==='def'&&!(x.c.essenceCombat?.guardLeft>0));
+  let best=null;
+  for(const a of attackers)for(const d of defenders){
+   const atk=effectiveAttack(g,a.c,d.c),hp=dataOf(d.c).def,role=CARDS[d.c.id]?.role;
+   const counter=isDefender(d.c)?Math.floor((CARDS[d.c.id].atk||0)*.5):0;
+   // Favor damage that can be completed by the team; avoid avoidable self-lethality.
+   const score=Math.min(hp,atk)*1.3+(role==='soul'?200:role==='guardian'?120:0)
+    -(hp>atk?Math.max(0,hp-atk)*.14:0)-counter*.6;
+   if(owner.lp<=counter+10)continue;
+   if(!best||score>best.score)best={ai:a.i,di:d.i,score};
+  }
+  return best?{ai:best.ai,di:best.di}:null;
+ };
  const oldAttack=attack,oldEffective=effectiveAttack;
  effectiveAttack=function(g,a,d){
   let atk=oldEffective(g,a,d);
