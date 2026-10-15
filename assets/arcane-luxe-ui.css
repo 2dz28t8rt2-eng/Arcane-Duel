@@ -74,6 +74,7 @@
 }
 .hand-card.tc-card.tc-ace,.board-creature.tc-card.tc-ace{
  --ad-card-metal:var(--evo-metal,#e3b56e);
+ --ad-frame-png:url("frames/ace-regalia.svg");--ad-overlay-png:url("frames/ace-regalia.svg");
  background-image:var(--ad-frame-png),
   radial-gradient(ellipse at 20% 0%,#fff6d850,transparent 35%),
   linear-gradient(145deg,var(--evo-luster,#fff2c5) 0%,var(--evo-metal,#d9ad64) 3%,#141326 11%,#0a1322 77%,var(--evo-metal,#d9ad64) 97%,var(--evo-luster,#fff2c5))!important;
@@ -95,6 +96,7 @@
 }
 .hand-card.tc-card.tc-essence,.board-creature.tc-card.tc-essence{
  --ad-card-metal:#b7a2f0;
+ --ad-frame-png:url("frames/essence-aegis.svg");--ad-overlay-png:url("frames/essence-aegis.svg");
  --ad-essence-accent:#d6b5ff;
  background-image:var(--ad-frame-png),
   radial-gradient(ellipse at 50% -12%,color-mix(in srgb,var(--ad-essence-accent) 29%,transparent),transparent 65%),
