@@ -642,7 +642,7 @@ for(const spec of [
  {school:'predator',name:'Essenzbestie · Reißzahn',level:3,atk:720,def:330,kind:'wolf',element:'DUNKEL',color:'#e4a272',role:'predator',desc:'Ein unabhängiges Essenzwesen. Seine Angriffe folgen seinem eigenen Instinkt.'},
  {school:'fusion',name:'Essenzbestie · Runenherz',level:3,atk:460,def:550,kind:'mage',element:'LICHT',color:'#b8a1f4',role:'weaver',desc:'Ein eigensinniges Essenzwesen, das Fusionswürfe beeinflusst.'},
  {school:'defense',name:'Essenzbestie · Aschenhort',level:3,atk:230,def:920,kind:'golem',element:'ERDE',color:'#98d8b9',role:'guardian',desc:'Ein unabhängiges Essenzwesen, dessen Widerstand aus fremdem Lebenswillen wächst.'}
-]){const id=addRpgCard({...spec,essenceMonster:true,source:-1,rarity:'essence',fusionOnly:false});ESSENCE_MONSTER_IDS[spec.school]=id;RPG_BASE_CARDS.push(CARDS[id]);}
+]){const id=addRpgCard({...spec,essenceMonster:true,source:-1,rarity:'essence',fusionOnly:false});CARDS[id].art=window.ArcaneArt?.makeArt(CARDS[id])||makeArt(CARDS[id]);ESSENCE_MONSTER_IDS[spec.school]=id;RPG_BASE_CARDS.push(CARDS[id]);}
 /* Explicit creature roles; old card stats/IDs and PvP remain unchanged.
  * Roles are assigned on CARD objects, not inferred by the duel UI.
  */
