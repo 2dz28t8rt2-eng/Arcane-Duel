@@ -570,8 +570,8 @@ const UPDATE_B_FUSION_IDS=Object.freeze([
  90,102,105,121,260
 ]);
 const UPDATE_B_ACE_IDS=Object.freeze(RPG_OPPONENTS.slice(1).map(o=>ACE_CARD_IDS[o.id]));
-const UPDATE_B_MAIN_IDS=Object.freeze([...UPDATE_B_NORMAL_ROOTS,...NORMAL_LINE_VARIANT_IDS,...UPDATE_B_ACE_IDS.filter(id=>!CARDS[id].fusionOnly)]);
-const UPDATE_B_ACTIVE_IDS=Object.freeze([...UPDATE_B_MAIN_IDS,...UPDATE_B_FUSION_IDS,...UPDATE_B_ACE_IDS.filter(id=>CARDS[id].fusionOnly)]);
+const UPDATE_B_MAIN_IDS=[...UPDATE_B_NORMAL_ROOTS,...NORMAL_LINE_VARIANT_IDS,...UPDATE_B_ACE_IDS.filter(id=>!CARDS[id].fusionOnly)];
+const UPDATE_B_ACTIVE_IDS=[...UPDATE_B_MAIN_IDS,...UPDATE_B_FUSION_IDS,...UPDATE_B_ACE_IDS.filter(id=>CARDS[id].fusionOnly)];
 const UPDATE_B_SET=new Set(UPDATE_B_ACTIVE_IDS);
 if(UPDATE_B_FUSION_IDS.length!==30||UPDATE_B_MAIN_IDS.length!==90||UPDATE_B_ACTIVE_IDS.length!==128||new Set(UPDATE_B_ACTIVE_IDS).size!==128)throw Error('Update B: ungueltiger Kartenpool');
 for(const c of CARDS)c.retired=!UPDATE_B_SET.has(c.id);
@@ -658,6 +658,84 @@ for(let i=0;i<ROLE_SOUL_CANDIDATES.length;i++){
  if(i%3===0||[7,22,387].includes(card.id)){card.role='soul';card.soulRank=Math.min(5,Math.max(1,Math.floor((card.level+1)/2)));}
 }
 for(const c of RPG_FUSIONS)if((c.role==='guardian'&&c.level>=4&&c.level%3===1)||(c.ability==='guard'&&c.level>=7&&c.id%5===0)){c.role='soul';c.soulRank=Math.min(5,Math.floor(c.level/2));}
+
+
+/* Monsterwerkstatt 3.1: deterministic stage cards added AFTER the original
+ * roster and the three exclusive Essence creatures. Existing IDs never move.
+ * Full 1–12 normal families are craftable; acquisition caps follow tournaments.
+ */
+const ARCANE_NEW_FAMILIES=[
+ ['Frostklingen-Greif','predator','WIND',1,'bird','#9bcfe9'],
+ ['Basalt-Rammbock','guardian','ERDE',1,'golem','#a6b9ad'],
+ ['Schattenegel der Tiefen','soul','DUNKEL',2,'serpent','#9d8fd1'],
+ ['Glutjäger der Dünen','predator','FEUER',2,'wolf','#e4ac78'],
+ ['Runenkröte des Moores','weaver','WASSER',2,'spirit','#85b9c5'],
+ ['Kristallbastion','guardian','ERDE',3,'golem','#8cbdc3'],
+ ['Nachtpirscher','predator','DUNKEL',3,'wolf','#b397d5'],
+ ['Wurzelhüter der Dämmerung','guardian','ERDE',3,'plant','#94b986'],
+ ['Spiegelmotte','support','LICHT',4,'bird','#d9c1f0'],
+ ['Seelensumpf-Hydra','soul','WASSER',4,'serpent','#a4b4d4']
+];
+const ARCANE_STAGE_IDS=new Map();
+const ARCANE_WORKSHOP_IDS=[];
+function workshopTierFor(level){
+ return level<=4?0:level<=6?3:level<=8?5:level<=10?7:8;
+}
+function workshopBudget(level){return 150+30*level*level;}
+function workshopValues(level,role){
+ const budget=workshopBudget(level);
+ const share=role==='predator'?.76:role==='guardian'?.25:role==='soul'?.22:
+  role==='support'?.43:role==='weaver'?.40:.53;
+ return [Math.max(80,round10(budget*share)),Math.max(80,round10(budget*(1-share)))];
+}
+function registerWorkshopStage(card,rootId,level,origin){
+ card.lineRoot=rootId;card.variantOf=card.id===rootId?undefined:rootId;
+ card.requiredTier=Math.max(workshopTierFor(level),Math.max(0,origin||0));
+ card.retired=false;card.rpg=true;card.fusionOnly=false;card.essenceMonster=false;
+ card.ace=false;card.milestoneOnly=false;card.trainingReward=false;
+ ARCANE_STAGE_IDS.set(rootId+':'+level,card.id);
+ if(!RPG_BASE_CARDS.some(c=>c.id===card.id))RPG_BASE_CARDS.push(card);
+ if(!UPDATE_B_SET.has(card.id)){
+  UPDATE_B_SET.add(card.id);UPDATE_B_MAIN_IDS.push(card.id);UPDATE_B_ACTIVE_IDS.push(card.id);
+ }
+ if(!ARCANE_WORKSHOP_IDS.includes(card.id))ARCANE_WORKSHOP_IDS.push(card.id);
+}
+for(const rootId of NORMAL_LINE_ROOT_IDS){
+ const root=CARDS[rootId],origin=Math.max(0,root.source||0);
+ // Keep every pre-existing card's values/ID. Create the missing stages only.
+ const existing=[root,...NORMAL_LINE_VARIANT_IDS.map(id=>CARDS[id]).filter(x=>x?.variantOf===rootId)];
+ for(const card of existing)registerWorkshopStage(card,rootId,card.level,origin);
+ for(let level=1;level<=12;level++){
+  if(ARCANE_STAGE_IDS.has(rootId+':'+level))continue;
+  const [atk,def]=workshopValues(level,root.role);
+  const card={...root,id:undefined,name:root.name,art:root.art,level,atk,def,
+   role:root.role,soulRank:root.role==='soul'?Math.min(5,Math.ceil(level/2)):undefined,
+   rarity:'common',variantOf:rootId,lineRoot:rootId,lineStep:level-root.level,
+   source:origin,requiredTier:Math.max(origin,workshopTierFor(level)),
+   desc:'Entwicklungsform Stufe '+level+' der Monsterfamilie '+root.name+'.'};
+  const id=addRpgCard(card);
+  registerWorkshopStage(CARDS[id],rootId,level,origin);
+ }
+}
+for(const [name,role,element,origin,kind,color] of ARCANE_NEW_FAMILIES){
+ const [atk,def]=workshopValues(1,role);
+ const id=addRpgCard({name,level:1,atk,def,kind,element,color,role,source:origin,
+  fusionOnly:false,rarity:'common',soulRank:role==='soul'?1:undefined,
+  desc:'Neue normale Monsterfamilie. Durch die Monsterwerkstatt bis Stufe 12 entwickelbar.'});
+ const root=CARDS[id];
+ root.art=window.ArcaneArt?.makeArt?.(root)||makeArt(root);
+ registerWorkshopStage(root,id,1,origin);
+ for(let level=2;level<=12;level++){
+  const [a,d]=workshopValues(level,role);
+  const childId=addRpgCard({...root,id:undefined,level,atk:a,def:d,
+   soulRank:role==='soul'?Math.min(5,Math.ceil(level/2)):undefined,
+   art:root.art,variantOf:id,lineRoot:id,lineStep:level-1,
+   requiredTier:Math.max(origin,workshopTierFor(level)),
+   desc:'Entwicklungsform Stufe '+level+' der Monsterfamilie '+name+'.'});
+  registerWorkshopStage(CARDS[childId],id,level,origin);
+ }
+}
+// Full levels are deterministic IDs; no new copies are granted by this setup.
 
 const SAVE_KEY='arcane-duel-rpg-profile-v4-reborn',LEGACY_SAVE_KEY='arcane-duel-alpha-profile-v1',PROFILE_VERSION=3,OPPONENTS=RPG_OPPONENTS;
 const UPGRADES={power:{name:'Monstertraining',desc:'Abnehmender Bonus auf alle Monster: +50/+40/+30/+20/+15/+10/+5 je weitere Stufe; gilt ab dem nächsten Duell',base:120,max:10},loot:{name:'Beutestudien',desc:'+5 % Essenz pro Stufe',base:240,max:5},learning:{name:'Werkzeugkunde',desc:'−5 % Herstellungskosten, +10 % XP pro Stufe',base:180,max:5},tempo:{name:'Trainingsroutine',desc:'Verkürzt Autokämpfe von 6 auf mindestens 3 Sekunden',base:100,max:4},starter:{name:'Grundausbildung',desc:'Je Stufe +35 ATK und +35 DEF auf die 20 ursprünglichen Startmonster.',base:60,max:8},fusionLore:{name:'Fusionskunde',desc:'Stufe 1: erster Fusionsversuch pro Duell erhält einen zusätzlichen Wertewurf (maximal vier).',base:430,max:1},resilience:{name:'Standhaftigkeit',desc:'Verlangsamt den automatischen Kreaturenzerfall eigener Monster um 3 Punkte pro Stufe (maximal zwei).',base:320,max:2},fusionPrecision:{name:'Runenpräzision',desc:'Bei Spezialfusionen mit mindestens drei Materialien je Stufe +1,5 Prozentpunkte Qualität; maximal +4,5 %, allgemeine Qualitätsobergrenze bleibt bestehen.',base:310,max:3},combatDiscipline:{name:'Kampfdisziplin',desc:'Eigene Monster verlieren pro Angriff 2 ATK weniger je Stufe: 28 / 26 / 24 statt 30.',base:260,max:3},openingAegis:{name:'Vorhut-Schutz',desc:'Zu Beginn jedes Einzelspielerduells erhältst du je Stufe 25 zusätzliche Schildpunkte (maximal +75).',base:350,max:3}};
