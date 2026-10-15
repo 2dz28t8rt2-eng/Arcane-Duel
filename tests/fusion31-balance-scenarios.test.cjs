@@ -259,7 +259,43 @@ function makeScenarioForVm(){
   auditPolicy='default';logEvent=priorLog;
   return records;
  }
- globalThis.runAuditDuels=runAuditDuels;globalThis.runAuditFusions=runAuditFusions;globalThis.runRoleBench=runRoleBench;globalThis.runRolePerkMatrix=runRolePerkMatrix;
+
+ function runSoulVersusPredators(){
+  const results=[],oldLog=logEvent;
+  logEvent=function(g,message){
+   const match=/Seelenbrand: (\d+) LP Burn/.exec(message);
+   if(match)g.auditBrand=(g.auditBrand||0)+Number(match[1]);
+   return oldLog(g,message);
+  };
+  for(const tier of [4,7,10]){
+   const cap=tier===4?6:tier===7?8:10;
+   const pool=[...ARCANE_STAGE_IDS.values()].map(id=>CARDS[id]).filter(c=>!c.retired&&c.level<=cap);
+   for(const name of ['predator','guardian','soul']){
+    const selected=pool.filter(c=>name==='guardian'?['guardian','soul'].includes(c.role):c.role===name)
+      .sort((a,b)=>b.level-a.level|| (name==='predator'?b.atk-a.atk:b.def-a.def)).slice(0,14);
+    if(selected.length<14)throw Error('Not enough '+name+' cards for tier '+tier);
+    const deck=selected.flatMap(c=>[c.id,c.id,c.id]).slice(0,40);
+    if(mainDeckError(deck))throw Error('Role-only deck invalid');
+    for(const rank of [0,5]){
+     profile.upgrades.schildwall=name!=='predator'?rank:0;
+     profile.upgrades.jagdinstinkt=name==='predator'?rank:0;
+     for(let i=0;i<12;i++){
+      const seed=97813+tier*1307+i*161;
+      profile.cleared=Array.from({length:tier-1},(_,j)=>j+1);
+      auditPolicy='normal-only';
+      const duel=createGame({mode:'pve',context:'tournament',opponentId:tier,seed,starter:i%2,
+       deck,fusionDeck:RPG_START_FUSIONS});
+      simulateGame(duel,name==='predator'?'offensive':'guardian');
+      results.push({tier,name,rank,seed,win:duel.winner===0,turn:duel.turn,
+       lp:duel.players[0].lp,brand:duel.auditBrand||0,fusions:duel.totalFusions[0]});
+     }
+    }
+   }
+  }
+  auditPolicy='default';logEvent=oldLog;profile.upgrades.schildwall=0;profile.upgrades.jagdinstinkt=0;
+  return results;
+ }
+ globalThis.runAuditDuels=runAuditDuels;globalThis.runAuditFusions=runAuditFusions;globalThis.runRoleBench=runRoleBench;globalThis.runRolePerkMatrix=runRolePerkMatrix;globalThis.runSoulVersusPredators=runSoulVersusPredators;
 }
 test('Fusion 3.1 paired individual duels: normal-only, default, fusion-seeking',()=>{
  const values=vm.runInContext('runAuditDuels()',boot(),{timeout:120000}),result=[];
@@ -333,4 +369,20 @@ test('Defender vs predator speciality: 432 role-only battles with rank 0, 3, 5 a
  assert.ok(rows.every(r=>r.playerFusions===0&&r.halfTurns>0));
  assert.ok(rows.some(r=>r.counterDamage>0),'defenders need to inflict real counterstrikes');
  assert.ok(rows.some(r=>r.archetype==='Verteidiger'&&r.rank===5&&r.counterDamage>0));
+});
+
+test('Seelenbrand bench: 216 seeded pure Soul/Guardian/Predator encounters across perks and tournaments',()=>{
+ const rows=vm.runInContext('runSoulVersusPredators()',boot(),{timeout:120000}),result=[];
+ for(const tier of [4,7,10])for(const name of ['predator','guardian','soul'])for(const rank of [0,5]){
+  const group=rows.filter(x=>x.tier===tier&&x.name===name&&x.rank===rank);
+  result.push({tier,name,rank,duels:group.length,wins:group.filter(x=>x.win).length,
+   meanHalfTurns:+(group.reduce((a,b)=>a+b.turn,0)/group.length).toFixed(2),
+   meanOwnLP:+(group.reduce((a,b)=>a+b.lp,0)/group.length).toFixed(0),
+   soulBrandDamage:group.reduce((a,b)=>a+b.brand,0)});
+ }
+ console.log('SOUL_BRAND_ROLE_DIAGNOSTIC '+JSON.stringify(result));
+ assert.equal(rows.length,216);
+ assert.ok(rows.every(x=>x.fusions===0));
+ assert.ok(rows.some(x=>x.name==='soul'&&x.brand>0),'pure Soul deck must do direct LP burn');
+ assert.ok(rows.every(x=>x.turn<250));
 });
