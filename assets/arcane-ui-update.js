@@ -121,28 +121,7 @@
    if(done)return;done=true;hideModal();callback(Number(btn.dataset.fusionChoice));
   });
  };
- // Large deck preview appears near the pressed card, not far above viewport.
- let previewAnchor=null;
- document.querySelector('#menuScreen')?.addEventListener('click',e=>{
-  const btn=e.target.closest('[data-preview-card]');
-  if(!btn)return;
-  const box=btn.getBoundingClientRect();
-  previewAnchor={x:box.right,y:box.top};
- },true);
- const oldPreview=updateDeckPreview;
- updateDeckPreview=function(fusion,id){
-  oldPreview(fusion,id);
-  if(!previewAnchor||window.innerWidth<850)return;
-  const panel=$('deckSidePreview');if(!panel)return;
-  panel.classList.add('arcane-floating-preview');
-  panel.style.top=Math.max(8,Math.min(previewAnchor.y,window.innerHeight-140))+'px';
-  panel.style.left=Math.max(8,Math.min(previewAnchor.x+12,window.innerWidth-370))+'px';
-  const sticky=panel.querySelector('.deck-side-sticky');if(sticky)sticky.style.position='static';
-  const close=document.createElement('button');close.type='button';
-  close.className='arcane-preview-close';close.textContent='×';close.title='Kartenvorschau schließen';
-  close.onclick=()=>{panel.classList.remove('arcane-floating-preview');panel.style.top='';panel.style.left='';};
-  panel.prepend(close);
- };
+ // Deck 4.0 uses viewport-aware card portal instead of legacy fixed-offset positioning.
  const previousMenu=renderMenu;
  renderMenu=function(){
   previousMenu();
