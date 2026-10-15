@@ -12,6 +12,9 @@
  const previousCard=fullCardHtml;
  fullCardHtml=function(c,attrs='',classes='',badge=''){
   let html=previousCard(c,attrs,classes,badge);
+  // Actual digit count, rather than a global 23px style, sets the fit of long stats.
+  html=html.replace(/<strong class="stat-value">([0-9]+)<\/strong>/g,(match,digits)=>
+   digits.length>=5?'<strong class="stat-value arcane-stat-long">'+digits+'</strong>':match);
   const role=roleOf(c),label=roleName[role]||roleName.combatant;
   const stamp='<span class="arcane-card-role arcane-role-'+esc(role)+'" title="Monsterrolle: '+esc(label)+'">'+esc(label)+'</span>';
   return html.replace('<div class="hand-type">',stamp+'<div class="hand-type">');
