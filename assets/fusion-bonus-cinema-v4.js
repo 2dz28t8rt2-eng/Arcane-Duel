@@ -31,11 +31,11 @@
    percent,tier:weighted,rollBonus:combo?.rollBonus||0
   });
  }
- function makeImpact(root,bonus){
+ function makeImpact(root,bonus,pace=1){
   const node=document.createElement('div');
   node.className='ad-combo-ritual ad-combo-tier-'+bonus.tier;
   node.setAttribute('aria-hidden','true');
-  node.style.setProperty('--ad-combo-duration',(1350+bonus.tier*115)+'ms');
+  node.style.setProperty('--ad-combo-duration',Math.round((1350+bonus.tier*115)*pace)+'ms');
   const text=document.createElement('div');text.className='ad-combo-ink';
   const title=document.createElement('strong');title.textContent=bonus.title;
   const subtitle=document.createElement('span');
@@ -60,10 +60,10 @@
   node.append(sparks);root.append(node);
   return node;
  }
- async function stamp(root,card,wait=ms=>new Promise(r=>setTimeout(r,ms))){
+ async function stamp(root,card,wait=ms=>new Promise(r=>setTimeout(r,ms)),pace=1){
   const bonus=describe(card);
   if(!bonus||reduced())return bonus;
-  const node=makeImpact(root,bonus);
+  const node=makeImpact(root,bonus,pace);
   root.classList.add('ad-combo-visible','ritual-screen-shake');
   const duration=1350+bonus.tier*115;
   try{
