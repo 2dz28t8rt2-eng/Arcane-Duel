@@ -1,9 +1,13 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'..'),read=p=>fs.readFileSync(path.join(root,p),'utf8');
-test('Handfusion placed on an empty zone still plays the full ritual',()=>{
+test('Hand fusion reveals before placement; occupied zone runs a second fast ritual',()=>{
  const js=read('assets/game.js');
- assert.ok(js.includes("if(result.fused||(game.mode==='pve'&&result.card?.fusion))await fusionAnimation"));
+ assert.ok(js.includes("result.fused?'field':'full'"));
+ assert.ok(js.includes("!wasRevealed"));
+ const evo=read('assets/evolution.js');
+ assert.ok(evo.includes('game.pending.revealed=true'));
+ assert.ok(evo.includes("variant==='field'"));
 });
 test('Ritual resolves placed fusion instance, reuses actual roll trace and keeps addition auditable',()=>{
  const js=read('assets/evolution.js');
