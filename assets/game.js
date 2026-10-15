@@ -1076,7 +1076,7 @@ async function fateAnimation(g){
  const cards=event.cards.map(id=>CARDS[id]);
  layer.innerHTML='<div class="fate-cinema-aura"></div><div class="fate-cinema-title">✦ DAS SCHICKSAL ERWACHT ✦</div>'+
  '<div class="fate-cinema-sub">Duellant '+(event.owner+1)+' · Eine letzte Chance</div>'+
- '<div class="fate-cinema-cards">'+cards.map((c,i)=>'<div class="fate-reveal" style="--fate-i:'+i+'"><div class="fate-reveal-inner"><div class="fate-reveal-back">✧</div><div class="fate-reveal-front"><img src="'+c.art+'" alt=""><b>'+escapeHtml(c.name)+'</b><span>✦ SCHICKSAL ✦</span></div></div></div>').join('')+'</div>'+
+ '<div class="fate-cinema-cards">'+cards.map((c,i)=>'<div class="fate-reveal" style="--fate-i:'+i+'"><div class="fate-reveal-inner"><div class="fate-reveal-back">✧</div><div class="fate-reveal-front"><img src="'+CARDS[FATE_ART_IDS[FATE_CARD_IDS.indexOf(c.id)]].art+'" alt=""><b>✦ '+escapeHtml(FATE_NAMES[FATE_CARD_IDS.indexOf(c.id)])+'</b><span>✦ SCHICKSAL ✦</span></div></div></div>').join('')+'</div>'+
  '<div class="fate-cinema-foot">Fünf Karten · Unverschmelzbar · Nur für dieses Duell</div>';
  document.body.append(layer);sound('summon');
  await new Promise(resolve=>setTimeout(resolve,animationSpeed==='instant'?850:2800));
