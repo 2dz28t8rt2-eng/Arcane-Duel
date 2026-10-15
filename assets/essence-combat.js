@@ -187,7 +187,7 @@
   let best=null;
   for(const a of attackers)for(const d of defenders){
    const atk=effectiveAttack(g,a.c,d.c),hp=dataOf(d.c).def,role=CARDS[d.c.id]?.role;
-   const counter=isDefender(d.c)?Math.floor((CARDS[d.c.id].atk||0)*.5):0;
+   const counter=isDefender(d.c)?Math.floor(Math.max(0,dataOf(d.c).atk)*.5):0;
    // Favor damage that can be completed by the team; avoid avoidable self-lethality.
    const score=Math.min(hp,atk)*1.3+(role==='soul'?200:role==='guardian'?120:0)
     -(hp>atk?Math.max(0,hp-atk)*.14:0)-counter*.6;
@@ -238,7 +238,7 @@
    }
    if(endDefense){q.graveyard.push(d);q.field[di]=null;destroyed.push(q.id+':'+di);}
    if(isDefender(d)&&!immuneBefore){
-    const counter= Math.floor((CARDS[d.id].atk||0)*.5);
+    const counter= Math.floor(Math.max(0,dataOf(d).atk)*.5);
     if(counter>0){const actual=damagePlayer(g,p.id,counter);g.damageDealt[q.id]+=actual;logEvent(g,dataOf(d).name+' · Gegenschlag: '+actual+' LP.');}
    }
    if(p.field[ai]===a){
