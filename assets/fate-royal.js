@@ -21,7 +21,7 @@ fateAnimation=async function(g){
  layer.setAttribute('role','dialog');
  layer.setAttribute('aria-modal','true');
  layer.setAttribute('aria-label','Schicksalszug – fünf Schicksalsmonster erscheinen');
- const particles=Array.from({length:instant?12:52},(_,n)=>{
+ const particles=Array.from({length:instant?12:82},(_,n)=>{
   const i=(n+1)*13.41,variation=(n*31)%100;
   const symbolSets=[['✦','✧','⋆','✺'],['✺','✶','✴','·'],['◆','◇','❖','✧'],['⌛','◇','·','✧'],['❁','✺','✦','❋'],['✧','⋆','✶','◆'],['☾','·','✧','☁'],['☄','✶','✦','·'],['✥','◇','✧','✦'],['◈','✦','⋆','✧']];
   const artIndex=indices[n%Math.max(1,indices.length)]??0;
@@ -55,7 +55,7 @@ fateAnimation=async function(g){
   function onKey(e){if(e.key==='Escape'||e.key==='Enter'&&document.activeElement?.classList.contains('fate-royal-skip'))finish();}
   layer.addEventListener('click',onClick);
   document.addEventListener('keydown',onKey);
-  timer=setTimeout(finish,instant?700:4200);
+  timer=setTimeout(finish,instant?700:5200);
  });
  if(g.fateEvent===event)g.fateEvent=null;
 };
