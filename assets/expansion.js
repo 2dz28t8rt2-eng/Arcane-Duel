@@ -170,7 +170,7 @@ renderHud=function(){
   b.onclick=()=>{oldClick?.();if(uiMode==='menu')renderMenu();};
  }
  if($('hudShardsHelp'))$('hudShardsHelp').onclick=()=>popupHelp('Splitter sammeln und einsetzen',
-  'Splitter sind an den jeweiligen Gegner gebunden. Du erhältst sie durch Duelle und kannst im Deckbau damit Karten herstellen. Für eine Herstellung benötigst du normalerweise 20 passende Splitter plus Essenz.');
+  'Alle erhaltenen Splitter gehören zu einem einzigen gemeinsamen Vorrat. Für die Herstellung einer Karte benötigst du 30 Splitter und die angezeigte Essenzmenge.');
 };
 /* Free duel cards show real auto-loot, highlighted when boost active.
    Quick-open pack button follows original profile.packs indices. */
@@ -380,7 +380,7 @@ renderMenu=function(){
   el.insertAdjacentHTML('beforeend','<section class="menu-panel reset-panel" aria-label="Spielstand zurücksetzen">'+
    '<h2>Spielstand zurücksetzen</h2>'+
    '<p>Hier kannst du den aktuellen <b>'+resetProfileKind()+'</b> vollständig neu beginnen. <b>Alle Fortschritte dieses Spielstands werden überschrieben.</b></p>'+
-   '<p>Du musst den Vorgang zweimal ausdrücklich bestätigen. Ein vorheriger JSON-Export wird empfohlen.</p>'+
+   '<p>Du musst den Vorgang zweimal ausdrücklich bestätigen. Bitte Spielstand vorher sichern.</p>'+
    menuButton('Spielstand zurücksetzen …','reset-profile')+'</section>');
  }
  const intro=el.querySelector('.menu-panel > p');if(intro)intro.classList.add('tab-intro');
