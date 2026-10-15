@@ -126,6 +126,12 @@
     overlay.classList.add('evo-stamp-impact','ritual-screen-shake');playSound('summon');
     await wait(460);overlay.classList.remove('ritual-screen-shake');await wait(370);
    }
+   // After the role's card seal, stamp the ACTUAL combination quality across
+   // the whole scene. This does not re-roll or modify the persisted numbers.
+   if(window.ArcaneFusionBonus?.stamp){
+    try{await window.ArcaneFusionBonus.stamp(overlay,c,wait,variant==='field'?.54:1);}
+    catch(error){console.warn('Bonus-Cinema übersprungen:',error);}
+   }
    overlay.classList.add('evo-phase-rolls','evo-stamp-settled');
    const weights=math.roleWeights||{atk:1,def:1};
    const information=document.createElement('div');
