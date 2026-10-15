@@ -1,0 +1,72 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Arcane Duel 4.0 – Deck Portal & Bonus-Cinema QA</title>
+<style>body{font:14px system-ui;background:#101726;color:#eee}iframe{display:block;width:100%;height:930px;border:0}pre{white-space:pre-wrap}</style></head>
+<body><pre id="qaStatus">Running UI4 checks ...</pre><iframe id="app" src="../index.html" title="Arcane Duel"></iframe>
+<script>
+const output=document.getElementById('qaStatus');
+document.getElementById('app').addEventListener('load',async ()=>{
+ const w=document.getElementById('app').contentWindow,d=w.document;
+ const records=[];let passed=true;
+ function test(ok,name){records.push((ok?'OK: ':'FAIL: ')+name);if(!ok)passed=false;}
+ const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+ try{
+  d.getElementById('guideClose')?.click();
+  d.getElementById('helpDismiss')?.click();
+  w.eval('profile.trainingWins=3;profile.cleared=[1];profile.showcase.seen=true;profile.showcase.pending=false;menuTab="collection";renderMenu()');
+  test(!!w.ArcaneDeckPortal&&!!w.ArcaneFusionBonus&&!!w.ArcaneArtCatalog,'All three 4.0 modules available');
+  test(d.querySelector('#deckSidePreview')?.getBoundingClientRect().height===0,
+   'Before selecting a card there is no fixed detail panel in row 1');
+  const cards=[...d.querySelectorAll('.deck-editor-grid [data-preview-card]')];
+  test(cards.length>2,'Deck editor offers clickable miniature cards');
+  const selected=cards[Math.max(0,cards.length-1)];
+  selected?.scrollIntoView({block:'center',behavior:'instant'});
+  await pause(70);
+  const thumbnail=selected?.getBoundingClientRect();
+  selected?.click();
+  const panel=d.getElementById('deckSidePreview'),rect=panel?.getBoundingClientRect();
+  test(!!panel?.classList.contains('ad-deck-portal'),'Pressing a thumbnail opens its contextual card portal');
+  test(!!rect&&rect.left>=8&&rect.right<=w.innerWidth-7&&rect.top>=8&&rect.bottom<=w.innerHeight-5,
+   'Portal remains inside viewport bounds: '+(rect?[rect.left,rect.top,rect.right,rect.bottom].map(Math.round).join('/'):'none'));
+  test(!!thumbnail&&!!rect&&Math.min(Math.abs(rect.left-thumbnail.right),Math.abs(rect.right-thumbnail.left))<Math.max(30,w.innerWidth*.5),
+   'Portal appears near the chosen card, not permanently in the first row');
+  test(!!panel?.querySelector('.ad-deck-close'),'Large preview has a visible close control');
+  await pause(520);
+  d.querySelector('.ad-deck-close')?.click();
+  await pause(460);
+  test(!d.getElementById('deckSidePreview')?.classList.contains('ad-deck-portal'),
+   'Closing the portal returns to the grid and removes its overlay');
+  test(d.querySelectorAll('.ad-deck-ghost').length===0,'No flying thumbnail ghost persists after closing');
+  const other=cards[0];other?.scrollIntoView({block:'center',behavior:'instant'});other?.click();
+  test(!!d.querySelector('.ad-deck-portal'),'A different row of cards can open its own preview');
+  d.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+  await pause(410);
+  test(!d.querySelector('.ad-deck-portal'),'Escape dismisses the card portal');
+  const pair=w.ArcaneFusionBonus.describe({pattern:'Paar',materialsUsed:2,
+   rollMath:{combo:{name:'Paar',qualityPct:5.5,rollBonus:0,materialCount:2}}});
+  const triplet=w.ArcaneFusionBonus.describe({pattern:'Drilling',materialsUsed:3,
+   rollMath:{combo:{name:'Drilling',qualityPct:8,rollBonus:1,materialCount:3}}});
+  const five=w.ArcaneFusionBonus.describe({pattern:'Fünfling',materialsUsed:5,
+   rollMath:{combo:{name:'Fünfling',qualityPct:18,rollBonus:3,materialCount:5}}});
+  test(pair.title==='ZWILLING'&&pair.percent===5.5,'Twin stamp uses actual pair bonus (5.5 percent)');
+  test(triplet.tier>pair.tier&&five.tier>triplet.tier,
+   'Higher poker combinations become more extravagant; five cards always rank highest');
+  const overlay=d.createElement('div');overlay.className='ritual-overlay';d.body.append(overlay);
+  const promise=w.ArcaneFusionBonus.stamp(overlay,{pattern:'Fünfling',materialsUsed:5,
+   rollMath:{combo:{name:'Fünfling',qualityPct:18,rollBonus:3,materialCount:5}}},()=>Promise.resolve());
+  const scene=overlay.querySelector('.ad-combo-ritual');
+  test(!!scene&&scene.querySelector('strong')?.textContent==='FÜNFLING',
+   'Fullscreen stamp displays the correct combination and tier');
+  test(!!scene&&scene.textContent.includes('18')&&scene.querySelectorAll('.ad-combo-particles i').length>80,
+   'Bonus percentage and strong particle density use saved fusion metadata');
+  await promise;
+  test(!overlay.querySelector('.ad-combo-ritual'),'Bonus stamp removes temporary DOM after finishing');
+  overlay.remove();
+  const preview=w.ArcaneArtCatalog;
+  test(preview.key({id:123,level:10,fusionOnly:true})==='fusion/sovereign/0123',
+   'Artwork foundation provides stable IDs and high-level category slots');
+  test(preview.resolve({id:123,level:10,fusionOnly:true})===null,
+   'Artwork foundation does not silently replace live game art or monster names');
+ }catch(err){passed=false;records.push('EXCEPTION: '+(err?.stack||err));}
+ output.textContent=records.join('\n');
+ output.dataset.ui4Test=passed?'pass':'fail';
+});
+</script></body></html>
