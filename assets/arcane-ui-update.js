@@ -120,17 +120,21 @@
   previousMenu();
   if(uiMode!=='menu')return;
   const area=$('menuContent');if(!area)return;
-  const advice=area.querySelector('#arcaneTacticPanel');
-  if(advice){
-   advice.innerHTML=advice.innerHTML.replaceAll('ATK-betonte Karten','Karten mit höherer Angriffskraft')
-    .replaceAll('DEF-betonte Karten','Karten mit höherer Verteidigungskraft');
+  // Change text nodes only: replacing innerHTML would discard the game's event handlers.
+  const walker=document.createTreeWalker(area,4);
+  let node;
+  while((node=walker.nextNode())){
+   node.nodeValue=node.nodeValue
+    .replaceAll('ATK-betonte Karten','Karten mit höherer Angriffskraft')
+    .replaceAll('DEF-betonte Karten','Karten mit höherer Verteidigungskraft')
+    .replaceAll('unverbindlicher Vorschlag','Tipp für deinen nächsten Kampf')
+    .replace(/Charakterpack(s?)(?!-Booster)/g,'Charakter-Boosterpack$1');
   }
   area.querySelectorAll('.fm-extra-info').forEach(details=>{
    const summary=details.querySelector('summary');
    if(summary)summary.textContent='Tipps zu diesem Bereich';
   });
-  area.innerHTML=area.innerHTML.replaceAll('unverbindlicher Vorschlag','Tipp für deinen nächsten Kampf')
-   .replaceAll('Charakterpack','Charakter-Boosterpack');
+
  };
  window.ArcaneInterfaceUpdate={version:'1.0.0',roleName};
 })();
