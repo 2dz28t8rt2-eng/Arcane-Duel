@@ -160,6 +160,12 @@
     const reward=examReward(completedStage);
     profile.coins=Math.min(1e9,profile.coins+reward);
     result.essenceExamReward=reward;
+    // Each introductory school trial yields one pack on its FIRST win.
+    if(g.essenceTrial.startsWith('intro-')){
+     const key=packKey(1,'easy');
+     profile.packs[key]=Math.min(999999,(profile.packs[key]||0)+1);
+     result.essenceTrialPack=true;
+    }
     saveProfile();
    }
   }
@@ -181,6 +187,10 @@
    $('modal').insertAdjacentHTML('beforeend','<p class="loot-banner">✦ Essenzwesen hat '+g.essenceFoodReported+' Essenz aus dieser Duellbelohnung aufgenommen. Die angezeigte Essenzbelohnung ist bereits netto.</p>');
   }
   if(!wasTrial||!$('modal'))return;
+  if(success&&g.essenceTrial?.startsWith('intro-')){
+   $('modal').insertAdjacentHTML('beforeend',
+    '<p class="loot-banner">✦ Charakter-Boosterpack von Gegner I verdient! Öffne es unter Fortschritt → Charakter-Boosterpacks. Vorrat: '+(profile.packs[packKey(1,'easy')]||0)+'</p>');
+  }
   const passed=success?'✓ Prüfung bestanden':'Prüfung noch nicht bestanden';
   $('modal').insertAdjacentHTML('beforeend','<div class="essence-exam-result"><strong>'+passed+'</strong><p>'+(success?'Deine Bindung wächst durch Erfahrung. '+(E().intro===3&&!E().chosen?'Alle drei Übungen geschafft – wähle als Nächstes dein Essenzwesen.':'Die nächste Prüfung wartet im Menü.'):'Du kannst die Prüfung mit dem Leihdeck erneut versuchen. Deine eigene Sammlung bleibt unverändert.')+'</p></div>');
   // Explicit ceremonial reveal at the exact moment the third school lesson is won.
