@@ -52,7 +52,7 @@ body:has(#menuScreen.atlas-screen:not([hidden])) .xp-meter{
  height:8px;background:#0b1220;border:1px solid #917e5980;box-shadow:inset 0 1px 4px #0009}
 body:has(#menuScreen.atlas-screen:not([hidden])) .xp-meter i{
  background:linear-gradient(90deg,#7ba4c5,#cdbaed 65%,#f2e1a9);box-shadow:0 0 12px #cdaaf1}
-#menuScreen.atlas-screen .fm-navigation.atlas-nav{
+#menuScreen.fm-screen.atlas-screen #menuNav.fm-navigation.atlas-nav{
  position:sticky;top:16px;border:2px solid #a5875675!important;
  border-radius:19px!important;padding:17px!important;
  background:
@@ -143,7 +143,7 @@ body:has(#menuScreen.atlas-screen:not([hidden])) .xp-meter i{
 #menuScreen.atlas-screen .fm-start-link{
  border:1px solid #a08b698c;background:linear-gradient(#2c364b,#171f2f);
  color:#eadfc9}
-#menuScreen.atlas-screen .atlas-hero{
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero{
  border:2px solid #a890647f!important;border-radius:19px!important;
  padding:25px 27px 19px!important;min-width:0!important;overflow:hidden;
  background:
@@ -153,9 +153,9 @@ body:has(#menuScreen.atlas-screen:not([hidden])) .xp-meter i{
  box-shadow:0 0 0 4px #090e19,0 0 0 5px #96744a45,0 16px 40px #0008,inset 0 1px #fae0ad38,inset 0 0 60px #03071470;
  position:relative;isolation:isolate;
 }
-#menuScreen.atlas-screen .atlas-hero::before{
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero::before{
  content:"";position:absolute;inset:8px;border:1px solid #c8ab7040;border-radius:12px;pointer-events:none;z-index:1}
-#menuScreen.atlas-screen .atlas-hero::after{
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero::after{
  content:"";position:absolute;right:13px;top:13px;width:18px;height:18px;
  border-top:2px solid #f1d39f9e;border-right:2px solid #f1d39f9e;
  opacity:1;font-size:0;pointer-events:none}
@@ -163,12 +163,12 @@ body:has(#menuScreen.atlas-screen:not([hidden])) .xp-meter i{
  display:grid;grid-template-columns:minmax(0,1.12fr) minmax(235px,.88fr);
  gap:16px;align-items:center;min-height:205px;position:relative;z-index:2;}
 #menuScreen.atlas-screen .fm-hero-content>div:first-child:not(.atlas-showcase){position:relative;z-index:3}
-#menuScreen.atlas-screen .atlas-hero .fm-eyebrow{color:var(--atlas-hue);letter-spacing:.25em;font-size:10px}
-#menuScreen.atlas-screen .atlas-hero h1{
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-eyebrow{color:var(--atlas-hue);letter-spacing:.25em;font-size:10px}
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero h1{
  color:#fff2d3;font:700 clamp(28px,3.2vw,45px)/1.13 Georgia,serif;
  text-shadow:0 2px 3px #080b12,0 0 28px rgba(var(--atlas-hue-rgb),.12);
  margin:14px 0 12px;max-width:15ch;letter-spacing:.02em}
-#menuScreen.atlas-screen .atlas-hero .fm-hero-content p{
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-hero-content p{
  color:#c6d0dc;font-size:13px;line-height:1.7;max-width:38ch}
 .atlas-showcase{position:relative;min-width:0;width:100%;height:217px;display:grid;place-items:center}
 .atlas-arcane-crest{
@@ -199,20 +199,20 @@ body:has(#menuScreen.atlas-screen:not([hidden])) .xp-meter i{
  border-radius:50%;animation:atlas-mote 5.5s ease-in-out infinite}
 .atlas-dust-one{top:15%;left:15%;animation-delay:-2s}
 .atlas-dust-two{bottom:15%;right:9%;animation-delay:-4.5s}
-#menuScreen.atlas-screen .atlas-hero .fm-hero-utility{
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-hero-utility{
  display:flex;flex:initial;align-items:center;justify-content:space-between;flex-wrap:wrap;
  min-width:0;width:100%;gap:14px;margin-top:12px;padding:15px 2px 1px;
  border-top:1px solid #d9be8861;position:relative;z-index:3;
 }
-#menuScreen.atlas-screen .atlas-hero .fm-hero-rules{
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-hero-rules{
  position:relative;flex:0 1 auto;min-height:42px;padding:10px 16px;
  border:1px solid #d8b674;border-radius:8px;
  background:linear-gradient(110deg,#5b4630,#2a3141)!important;
  color:#fff1cf;box-shadow:inset 0 1px #f8d6a535;
  font-family:Georgia,serif;letter-spacing:.02em;font-weight:700;cursor:pointer}
-#menuScreen.atlas-screen .atlas-hero .fm-hero-utility label{
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-hero-utility label{
  display:flex;align-items:center;gap:11px;font-weight:750;color:#d1c4b0}
-#menuScreen.atlas-screen .atlas-hero .fm-hero-utility select{
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-hero-utility select{
  background:linear-gradient(#28344a,#172236);
  border:1px solid #bca477;color:#fff5dd;border-radius:7px;
  min-width:160px;width:auto;min-height:41px;font:700 12px system-ui,sans-serif;padding:7px 9px}
@@ -324,15 +324,15 @@ body:has(#menuScreen.atlas-screen:not([hidden])) .xp-meter i{
  .atlas-arcane-crest{transform:translate(-50%,-50%) scale(.85)}
 }
 @media(max-width:980px){
- #menuScreen.atlas-screen .fm-navigation.atlas-nav{position:relative;top:auto}
+ #menuScreen.fm-screen.atlas-screen #menuNav.fm-navigation.atlas-nav{position:relative;top:auto}
  #menuScreen.atlas-screen .fm-hero-content{grid-template-columns:minmax(0,1fr) minmax(185px,.65fr)}
 }
 @media(max-width:650px){
- #menuScreen.atlas-screen .fm-navigation.atlas-nav{padding:13px!important}
+ #menuScreen.fm-screen.atlas-screen #menuNav.fm-navigation.atlas-nav{padding:13px!important}
  #menuScreen.atlas-screen .fm-hero-content{grid-template-columns:minmax(0,1fr) 112px;gap:6px;min-height:170px}
- #menuScreen.atlas-screen .atlas-hero{padding:19px 16px!important}
- #menuScreen.atlas-screen .atlas-hero h1{font-size:clamp(24px,6vw,32px);max-width:14ch}
- #menuScreen.atlas-screen .atlas-hero .fm-hero-content p{font-size:11px;line-height:1.55}
+ #menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero{padding:19px 16px!important}
+ #menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero h1{font-size:clamp(24px,6vw,32px);max-width:14ch}
+ #menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-hero-content p{font-size:11px;line-height:1.55}
  .atlas-showcase{height:150px;width:120px}
  .atlas-showcase-cards{width:106px;height:155px;transform:none}
  .atlas-arcane-crest{transform:translate(-50%,-50%) scale(.48)}
@@ -344,14 +344,14 @@ body:has(#menuScreen.atlas-screen:not([hidden])) .xp-meter i{
  #menuScreen.atlas-screen .atlas-brand strong{font-size:15px}
  #menuScreen.atlas-screen .fm-group-copy strong{font-size:13px}
  #menuScreen.atlas-screen .fm-group-icon{font-size:25px}
- #menuScreen.atlas-screen .atlas-hero .fm-hero-utility{gap:10px}
- #menuScreen.atlas-screen .atlas-hero .fm-hero-utility select{width:auto;min-width:125px}
+ #menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-hero-utility{gap:10px}
+ #menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-hero-utility select{width:auto;min-width:125px}
 }
 @media(max-width:390px){
  #menuScreen.atlas-screen .fm-hero-content{grid-template-columns:minmax(0,1fr) 86px}
  .atlas-showcase{width:86px}.atlas-showcase-cards{width:86px}
  .atlas-preview-card{width:75px;height:119px;left:4px;top:16px}
- #menuScreen.atlas-screen .atlas-hero h1{font-size:22px}
+ #menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero h1{font-size:22px}
 }
 @keyframes atlas-foil{0%,25%{transform:translateX(-90%) skewX(-20deg)}55%,100%{transform:translateX(190%) skewX(-20deg)}}
 @keyframes atlas-rule-glimmer{0%,66%{left:-100px}84%,100%{left:120%}}
