@@ -58,6 +58,11 @@ function renderRoyalMenu(){
   if(active){
    const sub=document.createElement('div');sub.className='fm-submenu';sub.hidden=collapsedGroups.has(group.id);
    for(const id of group.tabs){const button=tabs.get(id);if(!button)continue;button.textContent=titles[id];sub.append(button);}
+   if(group.id==='deck'){
+    const forge=document.createElement('button');forge.type='button';
+    forge.className='menu-tab fm-forge-shortcut';forge.dataset.royal='forge';
+    forge.textContent='⚒ Monsterwerkstatt · Verbinden & Zerlegen';sub.append(forge);
+   }
    section.append(sub);
   }
   nav.append(section);
@@ -147,6 +152,13 @@ const delegate=e=>{
  if(action==='rules'){showRules();return;}
  if(action==='start'){openStart();return;}
  if(action==='gallery'){openGallery();return;}
+ if(action==='forge'){
+  if(menuTab!=='collection')go('collection');
+  else if(!document.getElementById('arcaneMonsterForge'))renderMenu();
+  const forge=document.getElementById('arcaneMonsterForge');
+  if(forge)forge.scrollIntoView({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?'auto':'smooth',block:'start'});
+  return;
+ }
  if(action==='resume'){resumeDuel();return;}
  if(categories.some(group=>group.tabs.includes(action))){go(action);return;}
 };
