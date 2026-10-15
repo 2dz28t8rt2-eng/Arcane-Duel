@@ -26,7 +26,7 @@ function setup(){
   setTimeout(){return 0},setInterval(){return 0},clearTimeout(){},clearInterval(){},
   console,Date,Math,JSON,Map,Set,Array,Number,Object,RegExp,String,Error,TypeError,
   Uint32Array,Boolean,Infinity,NaN});
- vm.runInContext(scripts+'\n;globalThis.testGame={profile,CARDS,ARCANE_STAGE_IDS,RPG_BASE_CARDS,RPG_FUSIONS,RPG_OPPONENTS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,UPDATE_B_ACTIVE_IDS,boosterPools,lootPool,rpgEnemyLoadout,mainDeckError,fusionDeckError,cardAvailable,sharedShards,craftCard,rewardMatch,sourceCards,createGame,simulateGame,fusedInstance,newInstance,fusionOptions,baseStat,normalRoleBonus,profileCard,UPGRADES,buyUpgrade,upgradeCost,validateProfile,workshopBudget,attack,dataOf,strongestMainDeck};',vmContext,{timeout:10000});
+ vm.runInContext(scripts+'\n;globalThis.testGame={profile,CARDS,ARCANE_STAGE_IDS,RPG_BASE_CARDS,RPG_FUSIONS,RPG_OPPONENTS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,UPDATE_B_ACTIVE_IDS,boosterPools,lootPool,rpgEnemyLoadout,mainDeckError,fusionDeckError,cardAvailable,sharedShards,craftCard,rewardMatch,sourceCards,createGame,simulateGame,fusedInstance,newInstance,fusionOptions,baseStat,normalRoleBonus,profileCard,UPGRADES,buyUpgrade,upgradeCost,validateProfile,workshopBudget,attack,dataOf,strongestMainDeck,validateDuelSnapshot};',vmContext,{timeout:10000});
  return {g:vmContext.testGame,forge:window.ArcaneMonsterForge,role:window.ArcaneRoleFusion,evolution:window.ArcaneEvolution};
 }
 test('All 32 workshop families stop at level 10; levels 11/12 remain reserved',()=>{
@@ -403,4 +403,53 @@ test('Neutral auto-equip remains consistent when optional role perks are purchas
   assert.ok(proposed.every(id=>g.CARDS[id].level<=10));
   g.profile.upgrades[perk]=0;
  }
+});
+
+test('Imprinted fusion chooses role before rolling and displays exact best-roll math',()=>{
+ const {g}=setup();
+ const duel=g.createGame({mode:'pve',context:'free',opponentId:4,seed:711333,
+  deck:g.RPG_DEFAULT_DECK,fusionDeck:g.RPG_START_FUSIONS});
+ const materials=[0,1,13].map(id=>g.newInstance(duel,id,0));
+ const result=g.fusedInstance(duel,materials,materials.map(c=>c.card.level));
+ assert.ok(result);
+ assert.ok(['guardian','soul'].includes(result.roleOverride));
+ assert.equal(result.roleOrigin,'material');
+ const calculation=result.rollMath;
+ assert.ok(calculation&&Number.isInteger(calculation.winnerIndex));
+ assert.equal(calculation.role,result.roleOverride);
+ assert.equal(calculation.roleWeights.atk,.75);
+ assert.equal(calculation.roleWeights.def,1.25);
+ const best=result.rollTrace[calculation.winnerIndex];
+ assert.ok(result.rollTrace.length>=1&&result.rollTrace.length<=7);
+ assert.equal(best.atk+best.def,Math.max(...result.rollTrace.map(x=>x.atk+x.def)));
+ for(const stat of ['atk','def']){
+  const expected=Math.max(0,best[stat]+calculation.bonus[stat]-calculation.penalty);
+  assert.equal(result.card[stat],expected,'arithmetic for '+stat);
+  assert.equal(calculation.final[stat],expected);
+ }
+});
+test('Imprinted role and bounded fusion math survive actual saved duel reload',()=>{
+ const {g}=setup();
+ const duel=g.createGame({mode:'pve',context:'free',opponentId:4,seed:712434,
+  deck:g.RPG_DEFAULT_DECK,fusionDeck:g.RPG_START_FUSIONS});
+ const materials=[0,1,13].map(id=>g.newInstance(duel,id,0));
+ const result=g.fusedInstance(duel,materials,materials.map(c=>c.card.level));
+ assert.ok(result?.roleOverride);
+ duel.players[0].field[0]=result;duel.nextUid+=1;
+ const saved=JSON.parse(JSON.stringify(duel));
+ const restored=g.validateDuelSnapshot(saved);
+ assert.equal(restored.players[0].field[0].roleOverride,result.roleOverride);
+ assert.deepEqual(JSON.parse(JSON.stringify(restored.players[0].field[0].rollMath.final)),
+  JSON.parse(JSON.stringify(result.rollMath.final)));
+ assert.equal(restored.players[0].field[0].rollTrace.length,result.rollTrace.length);
+});
+test('Cinematic assets animate role stamps, real rolls and final math instead of inventing data',()=>{
+ const entry=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+ const scene=fs.readFileSync(path.join(__dirname,'../assets/evolution.js'),'utf8');
+ const css=fs.readFileSync(path.join(__dirname,'../assets/fusion-stamp.css'),'utf8');
+ assert.match(entry,/assets\/fusion-stamp\.css/);
+ assert.match(scene,/winnerIndex/);assert.match(scene,/rollTrace/);
+ assert.match(scene,/evo-stamp-impact/);assert.match(scene,/evo-calc-absorb/);
+ assert.match(css,/@keyframes evo-role-impact/);
+ assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
 });
