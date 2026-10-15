@@ -297,6 +297,17 @@
     if(g.winner!==null)break;
    }
   }
+  // A defense-position monster with no DEF layers left cannot block forever.
+  // Last Bastion preserves one base-DEF during its promised immunity window.
+  for(const player of g.players)for(let index=0;index<player.field.length;index++){
+   const c=player.field[index];if(!c||c.mode!=='def'||!c.card)continue;
+   const s=statLayer(c);
+   if(s.guardLeft>0)c.card.def=Math.max(1,c.card.def);
+   if(c.card.def+s.soul+s.condensed<=0){
+    player.graveyard.push(c);player.field[index]=null;
+    logEvent(g,dataOf(c).name+' zerfällt vollständig und verlässt das Feld.');
+   }
+  }
   for(const c of g.players[g.active].field.filter(Boolean)){
    const e=statLayer(c);e.attacksThisTurn=0;e.lastToggle=0;e.lastDrainSwitch=0;
    if(ending===1&&g.active===0&&e.guardLeft>0&&e.guardGrantedTurn<g.turn-1)e.guardLeft--;
