@@ -87,3 +87,22 @@ test('Seelenzehrer absorbs real enemy values and records separate soul DEF',()=>
  assert.ok(opponent.card.def<enemyBefore[1]);
  assert.equal(soul.card.def,defBefore,'Absorbed DEF must stay separate from base DEF');
 });
+
+test('Seelenenergie must not permanently inflate base DEF during end-turn decay',()=>{
+ const {g}=start();
+ const duel=g.createGame({mode:'pve',context:'free',opponentId:1,seed:4310,
+  deck:g.RPG_DEFAULT_DECK,fusionDeck:g.RPG_START_FUSIONS});
+ duel.players[0].field.fill(null);duel.players[1].field.fill(null);
+ const soul=g.newInstance(duel,g.CARDS.find(c=>c.role==='soul'&&!c.fusionOnly).id,0);
+ soul.mode='def';soul.summonedTurn=0;duel.players[0].field[0]=soul;
+ const energy=g.statLayer(soul);
+ energy.soul=200;energy.condensed=90;energy.condenseLeft=3;
+ energy.condenseSlice=30;energy.cooldown=3;
+ duel.turn=3;duel.active=0;duel.players[1].shield=0;
+ const baseBefore=soul.card.def,lpBefore=duel.players[1].lp;
+ g.advanceTurn(duel);
+ assert.ok(soul.card.def<baseBefore,'Base DEF must decay, never increase from stored bonus DEF');
+ assert.equal(energy.condensed,60);
+ assert.equal(energy.soul,110);
+ assert.equal(lpBefore-duel.players[1].lp,90,'Only unstable soul decay creates burn');
+});
