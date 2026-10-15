@@ -23,6 +23,7 @@ const lessonDone=()=>Array.isArray(profile.lessonCompleted)?profile.lessonComple
 function migrateLearning(p,raw){
  p.fateDiscovered=raw?.fateDiscovered===true;
  p.lessonCompleted=Array.isArray(raw?.lessonCompleted)?[...new Set(raw.lessonCompleted.filter(validLesson))]:[];
+ p.lessonSeen=Array.isArray(raw?.lessonSeen)?[...new Set(raw.lessonSeen.filter(id=>Number.isInteger(id)&&id>=0&&id<CARDS.length))].slice(0,4000):[];
  return p;
 }
 const oldFresh=freshProfile,oldValidate=validateProfile;
@@ -34,6 +35,12 @@ let initialLearningSave=null;
 try{const text=window.localStorage.getItem(SAVE_KEY);if(text)initialLearningSave=JSON.parse(text);}catch(e){/* invalid save: keep safe defaults */}
 migrateLearning(profile,initialLearningSave||profile);
 
+function markSeen(ids){
+  const visited=new Set(profile.lessonSeen||[]);
+  for(const id of ids)if(CARDS[id]&&Number.isInteger(id))visited.add(id);
+  profile.lessonSeen=[...visited].slice(0,4000);
+  saveProfile();
+}
 function lessonDeck(lesson){
  const eligible=RPG_BASE_CARDS.filter(c=>c.rpg&&!c.fusionOnly&&!c.ace&&c.level<=5);
  const output=[],copies=new Map();
@@ -59,10 +66,11 @@ createGame=function(options={}){
  if(options.context!=='lesson')return oldCreate(options);
  const lesson=LESSON_MAP.get(selectedLesson);
  if(!lesson)throw Error('Keine Lernherausforderung ausgewählt.');
- const deck=lessonDeck(lesson);
+ const deck=lessonDeck(lesson),loanFusions=fusionLoan();
+ markSeen([...deck,...loanFusions]);
  // Loan deck / enemy are purely ephemeral: inventory and the active deck remain untouched.
  const beginnerEnemy={deck:lessonDeck(LESSON_MAP.get('pair')),fusionDeck:[...RPG_START_FUSIONS,...RPG_START_FUSIONS],enhancements:{},power:.68,flatBonus:0};
- const g=oldCreate({...options,context:'challenge',deck,fusionDeck:fusionLoan(),enemy:beginnerEnemy,enhancements:{},flatBonus:0});
+ const g=oldCreate({...options,context:'challenge',deck,fusionDeck:loanFusions,enemy:beginnerEnemy,enhancements:{},flatBonus:0});
  g.lessonId=lesson.id;g.lessonPatterns=[];g.maxLP=6000;g.players.forEach(p=>p.lp=6000);
  return g;
 };
@@ -110,7 +118,7 @@ rewardMatch=function(g){
  if(passed&&!lessonDone().includes(g.lessonId)){
   profile.lessonCompleted.push(g.lessonId);
   const pack=packKey(1,'easy');profile.packs[pack]=Math.min(999999,(profile.packs[pack]||0)+1);
-  reward.lessonPack=true;saveProfile();
+  reward.lessonPack=true;reward.lessonPackSource=1;saveProfile();
  }
  return reward;
 };
@@ -121,7 +129,7 @@ showFinished=function(){
  if(!firstPending||!g||!$('modal'))return;
  const completed=accomplished(g),win=g.winner===0&&!g.surrendered;
  const already=lessonDone().includes(g.lessonId);
- const detail=win&&completed?`<strong>✓ Spezialkombination gemeistert!</strong> ${already?'Die erste Belohnung liegt im Charakterpack-Bereich bereit, falls du sie noch nicht geöffnet hast.':'Du kannst die Übung jederzeit wiederholen.'}`:
+ const detail=win&&completed?`<strong>✓ Spezialkombination gemeistert!</strong> ${already?'Dein erstes Charakterpack wurde gutgeschrieben.':'Bereits abgeschlossen.'} Öffne deinen Vorrat unter <b>Fortschritt → Charakter-Boosterpacks</b> (Gegner I: ${profile.packs[packKey(1,'easy')]||0}).`:
   `<strong>Übungsziel noch nicht erreicht.</strong> ${win?'Du hast gewonnen, aber die geforderte Fusion nicht gespielt.':'Ein Sieg und die geforderte Fusion sind für den ersten Abschluss nötig.'}`;
  $('modal').insertAdjacentHTML('beforeend',`<div class="lesson-result">${detail}<p>Dein persönliches Deck wurde nicht verändert.</p></div>`);
  if($('modalAgain'))$('modalAgain').onclick=()=>{selectedLesson=g.lessonId;hideModal();game=null;startDuel('pve',1,'lesson');};
@@ -209,6 +217,6 @@ document.addEventListener('click',e=>{
  }
 });
 // The full lesson definition stays in the browser; no external services or admin controls.
-window.ArcaneLearning={version:'1.0',lessons:LESSONS.map(x=>({id:x.id,title:x.title,levels:[...x.levels],weights:{...x.weights}})),buildDeck:id=>lessonDeck(LESSON_MAP.get(id)),isPassed:g=>accomplished(g)};
+window.ArcaneLearning={version:'1.1',markSeen,seen:id=>(profile.lessonSeen||[]).includes(id),lessons:LESSONS.map(x=>({id:x.id,title:x.title,levels:[...x.levels],weights:{...x.weights}})),buildDeck:id=>lessonDeck(LESSON_MAP.get(id)),isPassed:g=>accomplished(g)};
 if(uiMode==='menu')renderMenu();
 })();
