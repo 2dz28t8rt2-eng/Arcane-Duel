@@ -15,15 +15,15 @@ iframe.addEventListener('load',async()=>{
   w.eval('profile.trainingWins=3;profile.cleared=[1];menuTab="collection";renderMenu()');
   const deck=stats('#deckSidePreview .deck-preview-card .stat-value');
   check(deck.length===2,'Große Deckkarte hat zwei getrennte Wertekammern');
-  check(deck.every(el=>fontSize(el)<=13.1),'Große Deckkarte: ATK/DEF höchstens 13px');
+  check(deck.every(el=>fontSize(el)>=15&&fontSize(el)<=18),'Große Deckkarte: ATK/DEF lesbare 15–18px');
   // Isolate the visual QA from an asynchronous AI move or a random starting player.
   w.eval('game=createGame({mode:"pve",opponentId:1,context:"free",starter:0,seed:1337});uiMode="duel";busy=false;aiRunning=false;$("menuScreen").hidden=true;$("duelScreen").hidden=false;render()');
   w.eval('game.selection={type:"hand",uid:game.players[0].hand[0].uid};render()');
   const own=stats('#duelScreen .card-preview-panel .stat-value');
-  check(own.length===2&&own.every(el=>fontSize(el)<=12.1),'Große Duellkarte: ATK/DEF maximal 12px (Anzahl '+own.length+', Schrift '+own.map(fontSize).join('/')+', HTML '+d.getElementById('largeCardPreview')?.innerHTML.slice(0,180)+')');
+  check(own.length===2&&own.every(el=>fontSize(el)>=15&&fontSize(el)<=17),'Große Duellkarte: ATK/DEF lesbare 15–17px (Anzahl '+own.length+', Schrift '+own.map(fontSize).join('/')+')');
   w.eval('game.selection=null;game.players[1].field[0]=newInstance(game,0,1);render();onEnemySlot(0)');
   const enemy=stats('.arcane-enemy-large .stat-value');
-  check(enemy.length===2&&enemy.every(el=>fontSize(el)<=12.1),'Große Gegnerkarte: ATK/DEF maximal 12px');
+  check(enemy.length===2&&enemy.every(el=>fontSize(el)>=15&&fontSize(el)<=17),'Große Gegnerkarte: ATK/DEF lesbare 15–17px');
   d.getElementById('arcaneCloseEnemy')?.click();
   w.eval(`(()=>{
    const c=newInstance(game,RPG_START_FUSIONS[0],0);
@@ -77,7 +77,7 @@ iframe.addEventListener('load',async()=>{
   const placedRole=placedCard?.querySelector('.arcane-card-role');
   const longValues=[...(placedCard?.querySelectorAll('.arcane-stat-long')||[])];
   check(!!placedRole&&w.getComputedStyle(placedRole).display!=='none','Geerbte Rolle ist nach der Landung NUR in der großen Kartenansicht sichtbar');
-  check(longValues.length===2&&longValues.every(el=>fontSize(el)<=10.1),'Auch fünfstellige Fusionswerte bleiben sauber in beiden Zahlenkästen');
+  check(longValues.length===2&&longValues.every(el=>fontSize(el)<=12.5),'Auch fünfstellige Fusionswerte bleiben sauber in beiden Zahlenkästen');
  }catch(e){fails.push(String(e));checks.push('EXCEPTION: '+String(e.stack||e).slice(0,850));}
  out.textContent=checks.join('\n');
  document.body.dataset.fusionCinemaUi=fails.length?'fail':'pass';
