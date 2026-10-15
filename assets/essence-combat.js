@@ -215,7 +215,8 @@
   let result;
   if(d?.mode==='def'){
    const s=statLayer(d),strength=guardedFirst?Math.floor(effectiveAttack(g,a,d)*.5):effectiveAttack(g,a,d);
-   let remaining=s.guardLeft>0?0:strength;
+   const immuneBefore=s.guardLeft>0;
+   let remaining=immuneBefore?0:strength;
    const condemned=s.condensed?Math.min(s.condensed,remaining):0;
    s.condensed-=condemned;remaining-=condemned;
    const soulLost=Math.min(s.soul,remaining);
@@ -229,7 +230,7 @@
     logEvent(g,'Letztes Bollwerk: '+dataOf(d).name+' überlebt und ist für zwei weitere gegnerische Züge angriffsimmun.');
    }
    if(endDefense){q.graveyard.push(d);q.field[di]=null;destroyed.push(q.id+':'+di);}
-   if(isDefender(d)&&s.guardLeft===0){
+   if(isDefender(d)&&!immuneBefore){
     const counter= Math.floor((CARDS[d.id].atk||0)*.5);
     if(counter>0){const actual=damagePlayer(g,p.id,counter);g.damageDealt[q.id]+=actual;logEvent(g,dataOf(d).name+' · Gegenschlag: '+actual+' LP.');}
    }
