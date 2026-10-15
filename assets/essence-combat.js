@@ -97,7 +97,7 @@
   // even when attackers wisely refuse to hit the blockade.
   // Cap applies per eater and round to keep five defenders from bursting
   // 10,000 LP in one turn. Full defensive stat absorption still has a price.
-  const soulBrand=Math.min(45+lv*42,Math.floor(earned*1.35));
+  const soulBrand=Math.min(60+lv*60,Math.floor(earned*1.75));
   if(soulBrand>0)addBurn(g,owner,soulBrand,dataOf(creature).name+' · Seelenbrand');
   if(rank>=3&&store.drainPreference===2&&drainedDef){
    // Heal only actual DEF drained, at 30%; no overheal.
@@ -354,7 +354,7 @@
   // naturally by harvesting more essence; the one-use-per-turn gate remains.
   if(e.lastDischarge===game.turn||e.soul<40)return false;
   const amount=e.soul;e.soul=0;e.lastDischarge=game.turn;
-  addBurn(game,0,Math.floor(amount*1.10),dataOf(c).name+' · aktive Entladung');
+  addBurn(game,0,Math.floor(amount*1.30),dataOf(c).name+' · aktive Entladung');
   render();if(game.winner!==null)showFinished();return true;
  }
  function predatorMode(idx){
