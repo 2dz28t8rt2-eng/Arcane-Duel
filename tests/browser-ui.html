@@ -95,10 +95,10 @@ iframe.addEventListener('load',async()=>{
   const preview=d.querySelector('#largeCardPreview .hand-card.tc-card');
   const pv=preview?.querySelector('.hand-stats .stat-value');
   const pn=preview?.querySelector('.card-name');
-  expect(!!pv&&parseFloat(w.getComputedStyle(pv).fontSize)<=12,
-   'Duel inspection ATK and DEF font does not exceed 12px');
-  expect(!!pn&&parseFloat(w.getComputedStyle(pn).fontSize)<=13,
-   'Duel inspection card title does not exceed 13px');
+  expect(!!pv&&parseFloat(w.getComputedStyle(pv).fontSize)>=15&&parseFloat(w.getComputedStyle(pv).fontSize)<=17,
+   'Duel inspection ATK and DEF are readable at 15–17px');
+  expect(!!pn&&parseFloat(w.getComputedStyle(pn).fontSize)>=14&&parseFloat(w.getComputedStyle(pn).fontSize)<=16,
+   'Duel inspection card name is readable at 14–16px');
   expect(!!w.ArcaneFusionCinema,
    'Arcane Fusion Cinema module loaded after the evolution engine');
   // Exercise the actual DOM/CSS cinematic in Chromium (a fixture card is used
