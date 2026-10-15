@@ -12,7 +12,7 @@ iframe.addEventListener('load',()=>{
   expect(!!w.ArcaneExpansion,'Alpha 2.2 extension available');
   expect(d.querySelector('.guide-spread')!==null,'First-run guide has double page');
   d.getElementById('guideNext')?.click();
-  expect(d.querySelector('.guide-header')?.textContent.includes('Deine Monsterkarten'),'Guide navigates to next chapter');
+  expect(d.querySelector('.guide-header')?.textContent.includes('Deine Monsterkarte'),'Guide navigates to next chapter');
   d.getElementById('guideClose')?.click();
   expect(d.getElementById('modal')?.textContent.includes('Duellantenhandbuch gespeichert'),'Guide explains later Lexicon access');
   d.getElementById('helpDismiss')?.click();
