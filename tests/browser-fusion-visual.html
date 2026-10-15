@@ -59,7 +59,7 @@ iframe.addEventListener('load',async()=>{
   });
   watcher.observe(scene,{attributes:true,attributeFilter:['class']});
   const rect=(scene?.querySelector('.ritual-window')||scene)?.getBoundingClientRect(),width=d.documentElement.clientWidth;
-  check(!!rect&&rect.left>=-2&&rect.right<=width+2,'Fusionsfenster bleibt innerhalb der Bildschirmbreite');
+  check(!!rect&&rect.left>=-2&&rect.right<=width+2,'Fusionsfenster bleibt innerhalb der Bildschirmbreite ('+Math.round(rect?.left||0)+' .. '+Math.round(rect?.right||0)+' / '+width+')');
   await w.__fusionCinemaQA;
   watcher.disconnect();
   check(phases.every(p=>seen.includes(p))&&phases.every((p,i)=>i===0||seen.indexOf(phases[i-1])<seen.indexOf(p)),
