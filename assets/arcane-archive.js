@@ -47,7 +47,7 @@
  }
  function showcaseMarkup(cards){
   return cards.map((c,i)=>'<div class="atlas-preview-card atlas-preview-'+i+
-   (c.level>=10?' atlas-lv10':'')+'" data-card-level="'+c.level+'">'+
+   (c.level>=10?' atlas-lv10':c.level===9?' atlas-lv9':c.level===8?' atlas-lv8':'')+'" data-card-level="'+c.level+'">'+
    '<span class="atlas-preview-corner">✦</span>'+
    '<img src="'+escape(c.art)+'" alt="" loading="lazy" decoding="async">'+
    '<span class="atlas-preview-footer">LV '+c.level+'</span>'+
