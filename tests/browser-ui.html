@@ -15,7 +15,7 @@ iframe.addEventListener('load',async()=>{
   expect(previousShowcase.length===3,'Main menu shows three monsters instead of a static gallery');
   w.ArcaneArchiveTheme.rotateShowcase();
   expect(!!d.querySelector('.atlas-showcase-cards.atlas-depart'),'Showcase starts an animated disappearance');
-  await new Promise(resolve=>setTimeout(resolve,530));
+  await new Promise(resolve=>setTimeout(resolve,1350));
   expect(showcase().length===3&&!showcase().every((src,i)=>src===previousShowcase[i]),
    'Showcase rotates to three different artworks after the disappearing transition');
   expect(!!d.querySelector('.atlas-showcase-cards.atlas-arrive'),'Showcase animated reappearance runs');
