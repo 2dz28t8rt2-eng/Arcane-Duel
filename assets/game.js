@@ -621,6 +621,18 @@ for(const o of RPG_OPPONENTS){
 // The 3 initial quest/fusion stages and ACE purchases retain their identity.
 // No additional cards may become available just by lingering in CARDS.
 
+/* Reserve the six pre-existing evolution enemy-card IDs BEFORE save loading.
+ * The earlier evolution layer registered them only after loadProfile(), which
+ * was unsafe for paused duels; these exact IDs (390–395) are preserved.
+ */
+const EVOLUTION_ENEMY_IDS={};
+for(const [tier,items] of [[1,[[4,690,660,'Eisenfunke']]],[3,[[3,790,750,'Dornenklinge'],[4,900,860,'Hainwacht'],[5,1040,950,'Wurzelwolf'],[6,1130,1050,'Kronenhirsch'],[6,1080,1140,'Schildholz']]]]){
+ EVOLUTION_ENEMY_IDS[tier]=items.map(([level,atk,def,name],index)=>{
+  const o=RPG_OPPONENTS[tier],id=CARDS.length;
+  const card={id,rpg:true,enemyOnly:true,fusionOnly:true,name,level,atk,def,source:tier,element:o.element,kind:o.kind,color:o.color,rarity:'normal',ability:index%2?'guard':'pierce',desc:'Spezielle Gegnerfusion für '+o.name};
+  card.art=window.ArcaneArt?.makeArt(card)||makeArt(card);CARDS.push(card);return id;
+ });
+}
 /* ESSENCE BOND · stable catalogue expansion, before any profile is validated.
  * New IDs are appended ONLY after all pre-existing cards; old IDs stay unchanged.
  * Entries are never in booster/loot/milestone pools. Ownership is quest-exclusive.
