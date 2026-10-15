@@ -6,11 +6,11 @@ const oldMenu=renderMenu;
 const oldRules=showRules;
 const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const categories=[
- {label:'⚔ SPIELEN',tabs:['tournament','free','pvp']},
- {label:'✦ LERNEN',tabs:['challenges','lexicon']},
- {label:'▤ SAMMLUNG',tabs:['collection','fusions','decks']},
- {label:'✧ FORTSCHRITT',tabs:['shop','packs','xp','upgrades']},
- {label:'⚙ SYSTEM',tabs:['stats','settings']}
+ {id:'play',icon:'⚔',title:'Duellieren',subtitle:'Arena, Duelle & PvP',tabs:['tournament','free','pvp']},
+ {id:'deck',icon:'▤',title:'Deck & Sammlung',subtitle:'Karten und Deckbau',tabs:['collection','fusions','decks','lexicon']},
+ {id:'missions',icon:'✧',title:'Herausforderungen',subtitle:'Lernpfad und Quests',tabs:['challenges']},
+ {id:'growth',icon:'✦',title:'Fortschritt',subtitle:'Skills und Belohnungen',tabs:['upgrades','xp','shop','packs']},
+ {id:'options',icon:'⚙',title:'Spielstand & Extras',subtitle:'Chronik und Optionen',tabs:['stats','settings']}
 ];
 const descriptions={
  tournament:['Die zehn Prüfungen','Fordere den nächsten Turnierduellanten heraus und erschließe neue Karten.'],
@@ -40,62 +40,70 @@ function openStart(){
 function renderRoyalMenu(){
  oldMenu();
  if(uiMode!=='menu')return;
- const nav=$('menuNav'),hero=$('menuHero'),panel=$('menuContent');
- if(!nav||!hero||!panel)return;
- const buttons=new Map([...nav.querySelectorAll('[data-tab]')].map(b=>[b.dataset.tab,b]));
- nav.innerHTML='';
- nav.classList.add('royal-menu-sections');
- for(const category of categories){
-  const group=document.createElement('div');group.className='royal-nav-section';
-  group.setAttribute('role','group');group.setAttribute('aria-label',category.label.replace(/^[^\wÄÖÜ]+/,''));
-  const title=document.createElement('span');title.className='royal-nav-label';title.textContent=category.label;
-  group.append(title);
-  for(const tab of category.tabs){
-   const button=buttons.get(tab);
-   if(button){if(tab==='lexicon')button.textContent='📖 Regeln & Lexikon';group.append(button);}
+ const nav=$('menuNav'),hero=$('menuHero'),panel=$('menuContent'),screen=$('menuScreen');
+ if(!nav||!hero||!panel||!screen)return;
+ // Put the existing nav inside the menu grid; listeners and native deck actions survive.
+ if(nav.parentElement!==screen)screen.insertBefore(nav,hero);
+ screen.classList.add('fm-screen');document.body.classList.add('fm-menu-active');
+ const tabs=new Map([...nav.querySelectorAll('button[data-tab]')].map(btn=>[btn.dataset.tab,btn]));
+ nav.replaceChildren();nav.className='fm-navigation';
+ nav.innerHTML='<div class="fm-nav-brand"><span>✧</span><div><strong>ARCANE DUEL</strong><small>3.0 · BESTIARIUM</small></div></div>';
+ const titles={tournament:'Turnier',free:'Freie Duelle',pvp:'Lokales PvP',collection:'Hauptdeck',fusions:'Fusionsdeck',decks:'Deckplätze',lexicon:'Monsterlexikon',challenges:'Challenges & Quests',upgrades:'Skills & Perks',xp:'Levelbelohnungen',shop:'Booster-Shop',packs:'Charakterpacks',stats:'Chronik',settings:'Einstellungen'};
+ const activeGroup=categories.find(g=>g.tabs.includes(menuTab))||categories[0];
+ for(const group of categories){
+  const active=group.id===activeGroup.id,section=document.createElement('section');section.className='fm-menu-group'+(active?' selected':'');
+  section.innerHTML='<button type="button" class="fm-group-button" data-fm-group="'+group.id+'" aria-expanded="'+active+'">'+
+   '<span class="fm-group-icon">'+group.icon+'</span><span class="fm-group-copy"><strong>'+group.title+'</strong><small>'+group.subtitle+'</small></span><span class="fm-arrow">'+(active?'⌄':'›')+'</span></button>';
+  if(active){
+   const sub=document.createElement('div');sub.className='fm-submenu';
+   for(const id of group.tabs){const button=tabs.get(id);if(!button)continue;button.textContent=titles[id];sub.append(button);}
+   section.append(sub);
   }
-  nav.append(group);
+  nav.append(section);
  }
- for(const [name,btn] of buttons)if(!categories.some(c=>c.tabs.includes(name)))nav.append(btn);
- const utility=document.createElement('div');utility.className='royal-hero-utility';
- while(hero.firstChild)utility.append(hero.firstChild); // DOM move retains native select/resume handlers
- const primary=profile.activeDuel?'<button class="btn primary" type="button" data-royal="resume">↶ Duell fortsetzen</button>':
- '<button class="btn primary" type="button" data-royal="tournament">⚔ Abenteuer starten</button>';
- const cleared=Array.isArray(profile.cleared)?profile.cleared.length:0;
- const heroBlock=document.createElement('section');heroBlock.className='royal-menu-hero';
- heroBlock.innerHTML='<div><span class="royal-menu-kicker">✦ ARCANE DUEL 3.0 · BESTIARIUM REBORN</span>'+
- '<h1>Dein Duell. Deine Legende.</h1>'+
- '<p>Gestalte dein Deck, meistere Spezialkombinationen und entdecke das seltene Eingreifen des Schicksals. Beginne mit der Arena – alles Weitere erschließt sich Schritt für Schritt.</p>'+
- '<div class="royal-menu-actions">'+primary+
- '<button class="btn" type="button" data-royal="collection">▤ Deck bearbeiten</button>'+
- '<button class="btn" type="button" data-royal="pvp">⚔ Lokales PvP</button></div></div>'+
- '<div class="royal-menu-aside"><button class="royal-menu-feature" type="button" data-royal="rules">'+
- '<span class="royal-feature-icon" aria-hidden="true">📖</span><span><strong>Regel-Lexikon</strong>'+
- '<small>Alle Mechaniken, illustriert und durchsuchbar. Ein Klick genügt.</small></span></button>'+
- '<button class="royal-menu-feature" type="button" data-royal="start">'+
- '<span class="royal-feature-icon" aria-hidden="true">✧</span><span><strong>Startanleitung</strong>'+
- '<small>Für neue Duellanten: Ziel, Karten, Zug und Fusion.</small></span></button>'+
- '<div class="royal-menu-status">✦ Turnierfortschritt: '+cleared+' / 10 Prüfungen · Deckplatz '+(profile.activeSlot+1)+'</div></div>';
- hero.append(heroBlock,utility);
- const current=descriptions[menuTab]||descriptions.tournament;
- const focus=document.createElement('div');focus.className='royal-menu-focus';
- focus.innerHTML='<div><strong>'+safe(current[0])+'</strong><p>'+safe(current[1])+'</p></div>'+
- '<div class="royal-menu-actions"><button class="btn" type="button" data-royal="rules">📖 Regel-Lexikon</button>'+
- '<button class="btn" type="button" data-royal="start">✧ Erste Schritte</button></div>';
- panel.insertBefore(focus,panel.firstChild);
+ const help=document.createElement('div');help.className='fm-help';
+ help.innerHTML='<button type="button" class="fm-rule-link" data-royal="rules">📖 <strong>Regel-Lexikon</strong><small>Alle Mechaniken & Suche</small></button>'+
+ '<button type="button" class="fm-start-link" data-royal="start">✧ Startanleitung</button>';
+ nav.append(help);
+ const hidden=document.createElement('div');hidden.hidden=true;hidden.className='fm-tab-storage';
+ for(const [,button] of tabs)if(!button.isConnected)hidden.append(button);
+ nav.append(hidden);
+ const slot=$('activeSlotSelect'),current=descriptions[menuTab]||descriptions.tournament;
+ hero.innerHTML='<div class="fm-hero-content"><div><span class="fm-eyebrow">✦ ARCANE DUEL 3.0 · '+safe(activeGroup.title)+'</span>'+
+ '<h1>'+safe(current[0])+'</h1><p>'+safe(current[1])+'</p></div>'+
+ '<div class="fm-hero-utility"><button type="button" class="fm-hero-rules" data-royal="rules">📖 Regel-Lexikon</button>'+
+ '<label>Aktives Deck <span id="fmDeckSlot"></span></label></div></div>'+
+ (profile.activeDuel?'<div class="fm-resume-bar"><b>↶ Laufendes Duell</b><button type="button" class="btn primary" data-royal="resume">Duell fortsetzen</button></div>':'')+
+ (profile.migrationMessage?'<p class="fm-migration">'+safe(profile.migrationMessage)+'</p>':'');
+ if(slot)$('fmDeckSlot').append(slot);
+ if(menuTab==='upgrades'){
+  const groups=[['⚔ Kampf & Schutz',['power','starter','combatDiscipline','openingAegis','resilience']],
+   ['✧ Fusion & Kombinationen',['fusionLore','fusionPrecision']],
+   ['✦ Ressourcen & Training',['loot','learning','tempo']]];
+  panel.innerHTML='<div class="fm-perk-intro"><h2>Duellanten-Akademie</h2><p>Spezialisierte Fähigkeiten mit festen Obergrenzen. Deine bestehenden Ränge bleiben unverändert.</p></div>'+
+  groups.map(([heading,keys])=>'<section class="fm-perk-category"><h3>'+heading+'</h3><div class="fm-perk-grid">'+keys.map(key=>{
+   const u=UPGRADES[key];if(!u)return '';
+   const rank=profile.upgrades[key]||0,maxed=rank>=u.max,cost=maxed?0:upgradeCost(key);
+   return '<article class="fm-perk-card"><div class="fm-perk-head"><strong>'+safe(u.name)+'</strong><span>'+rank+' / '+u.max+'</span></div>'+
+   '<p>'+safe(u.desc)+'</p><div class="fm-perk-ranks">'+Array.from({length:u.max},(_,i)=>'<i class="'+(i<rank?'filled':'')+'"></i>').join('')+'</div>'+
+   '<button class="btn" type="button" data-action="upgrade" data-key="'+key+'" '+(maxed||profile.coins<cost?'disabled':'')+'>'+
+   (maxed?'✓ Maximal':cost+' Essenz · Verbessern')+'</button></article>';
+  }).join('')+'</div></section>').join('');
+  bindMenu();
+ }
  if(menuTab==='lexicon'){
-  const entry=document.createElement('section');entry.className='menu-panel lesson-overview';
-  entry.innerHTML='<div class="lesson-eyebrow">✦ WISSENSPFAD</div><h2>Womit möchtest du beginnen?</h2>'+
-  '<div class="royal-start-steps"><button class="royal-menu-feature" type="button" data-royal="start">'+
-  '<span class="royal-feature-icon">①</span><span><strong>Geführter Einstieg</strong><small>Das Spiel in kurzen illustrierten Seiten entdecken.</small></span></button>'+
-  '<button class="royal-menu-feature" type="button" data-royal="rules">'+
-  '<span class="royal-feature-icon">②</span><span><strong>Alle Spielregeln</strong><small>Suche, Themenübersicht und aktuelle Werte.</small></span></button>'+
-  '<button class="royal-menu-feature" type="button" data-royal="challenges">'+
-  '<span class="royal-feature-icon">③</span><span><strong>Spielend lernen</strong><small>Spezialkombinationen mit Leihdeck üben.</small></span></button></div>';
-  panel.insertBefore(entry,focus.nextSibling);
-  const preview=document.createElement('div');preview.className='royal-fate-entry';
-  preview.innerHTML='<span>✧ Die zehn legendären Schicksalsmonster kennenlernen</span><button class="btn" type="button" data-royal="gallery">✦ Schicksalsgalerie ansehen · Spoiler</button>';
-  entry.append(preview);
+  const entry=document.createElement('section');entry.className='menu-panel fm-lexicon-intro';
+  entry.innerHTML='<h2>📖 Schneller zu den Spielregeln</h2><p>Regelbuch und Einstieg sind ab sofort getrennt und sofort erreichbar.</p>'+
+   '<div class="fm-lexicon-links"><button type="button" data-royal="rules"><strong>📖 Regel-Lexikon</strong><small>Mechaniken & Suchfunktion</small></button>'+
+   '<button type="button" data-royal="start"><strong>✧ Startanleitung</strong><small>Für Neulinge</small></button>'+
+   '<button type="button" data-royal="challenges"><strong>⚔ Lernherausforderungen</strong><small>Spielend lernen</small></button></div>'+
+   '<div class="royal-fate-entry"><span>Die zehn Schicksalsmonster kennenlernen</span><button class="btn" data-royal="gallery">✦ Schicksalsgalerie · Spoiler</button></div>';
+  panel.prepend(entry);
+ }
+ if(menuTab!=='challenges'&&menuTab!=='upgrades'){
+  const first=[...panel.children].find(el=>el.matches?.('.menu-panel')&&!el.classList.contains('fm-lexicon-intro'));
+  const lead=first?.querySelector(':scope > p');
+  if(lead&&lead.textContent.length>220){const more=document.createElement('details');more.className='fm-extra-info';more.innerHTML='<summary>Details zu diesem Bereich</summary>';lead.replaceWith(more);more.append(lead);}
  }
 }
 renderMenu=renderRoyalMenu;
@@ -135,9 +143,10 @@ const delegate=e=>{
  if(action==='start'){openStart();return;}
  if(action==='gallery'){openGallery();return;}
  if(action==='resume'){resumeDuel();return;}
- if(['tournament','collection','pvp','challenges','lexicon','free'].includes(action)){go(action);return;}
+ if(categories.some(group=>group.tabs.includes(action))){go(action);return;}
 };
 $('menuScreen')?.addEventListener('click',delegate);
+ $('menuNav')?.addEventListener('click',e=>{const btn=e.target.closest('[data-fm-group]');if(!btn)return;const group=categories.find(g=>g.id===btn.dataset.fmGroup);if(group)go(group.tabs.includes(menuTab)?menuTab:group.tabs[0]);});
 function makeText(node,cls,label){const p=document.createElement(node);p.className=cls;p.textContent=label;return p;}
 function decorateRules(){
  oldRules();
