@@ -41,8 +41,8 @@ test('Mode cards and ready-to-claim quests get their own visible styling',()=>{
  assert.match(js,/evo-quest \$\{a\.progress>=q\.target/);
 });
 test('Versioned entrypoint loads Fusion Evolution with fresh CSS and JS assets',()=>{
- assert.match(html,/(Alpha 2\.5\.2|3\.0 Update B)/);
+ assert.match(html,/3\.0 · Das Vergoldete Archiv/);
  assert.match(html,/assets\/evolution\.css\?v=fusion-cinema-20261015/);
  assert.match(html,/assets\/evolution\.js\?v=fusion-cinema-20261015/);
- assert.match(js,/version:'2\.5\.2'/);
+ assert.match(js,/version:'3\.0\.0'/);
 });
