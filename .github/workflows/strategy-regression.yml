@@ -1,0 +1,28 @@
+name: Arcane Duel – Code & Strategy Checks
+
+on:
+  push:
+    branches: [development]
+  pull_request:
+    branches: [development]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  strategy-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax of gameplay and extensions
+        run: |
+          for js in assets/*.js; do
+            node --check "$js"
+          done
+      - name: Execute deterministic 40-card analysis tests
+        run: node --test tests/strategy-engine.test.cjs
