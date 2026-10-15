@@ -22,7 +22,7 @@ const descriptions={
  fusions:['Deine Fusionen','Verwalte die Vorlagen für mächtige Verschmelzungen.'],
  decks:['Deckplätze','Organisiere deine drei Deckvarianten.'],
  shop:['Booster-Shop','Entdecke neue Kreaturen und Sonderangebote.'],
- packs:['Charakterpacks','Öffne bereits verdiente Charakterpacks.'],
+ packs:['Charakter-Boosterpacks','Öffne bereits verdiente Charakter-Boosterpacks.'],
  xp:['Levelbelohnungen','Sieh deine nächsten Fortschrittsmeilensteine.'],
  upgrades:['Skills & Perks','Passe deine langfristigen Verbesserungen an.'],
  stats:['Chronik & Hinweise','Deine Duelle, Taktiken und Statistiken.'],
@@ -48,7 +48,7 @@ function renderRoyalMenu(){
  const tabs=new Map([...nav.querySelectorAll('button[data-tab]')].map(btn=>[btn.dataset.tab,btn]));
  nav.replaceChildren();nav.className='fm-navigation';
  nav.innerHTML='<div class="fm-nav-brand"><span>✧</span><div><strong>ARCANE DUEL</strong><small>3.0 · BESTIARIUM</small></div></div>';
- const titles={tournament:'Turnier',free:'Freie Duelle',pvp:'Lokales PvP',collection:'Hauptdeck',fusions:'Fusionsdeck',decks:'Deckplätze',lexicon:'Monsterlexikon',challenges:'Challenges & Quests',upgrades:'Skills & Perks',xp:'Levelbelohnungen',shop:'Booster-Shop',packs:'Charakterpacks',stats:'Chronik',settings:'Einstellungen'};
+ const titles={tournament:'Turnier',free:'Freie Duelle',pvp:'Lokales PvP',collection:'Hauptdeck',fusions:'Fusionsdeck',decks:'Deckplätze',lexicon:'Monsterlexikon',challenges:'Challenges & Quests',upgrades:'Skills & Perks',xp:'Levelbelohnungen',shop:'Booster-Shop',packs:'Charakter-Boosterpacks',stats:'Chronik',settings:'Einstellungen'};
  const activeGroup=categories.find(g=>g.tabs.includes(menuTab))||categories[0];
  for(const group of categories){
   const active=group.id===activeGroup.id,section=document.createElement('section');section.className='fm-menu-group'+(active?' selected':'');
@@ -103,7 +103,7 @@ function renderRoyalMenu(){
  if(menuTab!=='challenges'&&menuTab!=='upgrades'){
   const first=[...panel.children].find(el=>el.matches?.('.menu-panel')&&!el.classList.contains('fm-lexicon-intro'));
   const lead=first?.querySelector(':scope > p');
-  if(lead&&lead.textContent.length>220){const more=document.createElement('details');more.className='fm-extra-info';more.innerHTML='<summary>Details zu diesem Bereich</summary>';lead.replaceWith(more);more.append(lead);}
+  if(lead&&lead.textContent.length>220){const more=document.createElement('details');more.className='fm-extra-info';more.innerHTML='<summary>Tipps & Hintergrund</summary>';lead.replaceWith(more);more.append(lead);}
  }
 }
 renderMenu=renderRoyalMenu;
