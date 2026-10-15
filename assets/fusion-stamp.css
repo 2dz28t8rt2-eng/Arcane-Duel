@@ -48,3 +48,52 @@
 .evo-stamp-scene .evo-calc-stamped::after{content:'✦';position:absolute;top:50%;left:52%;font:bold 16px Georgia,serif;transform:translate(-50%,-50%) rotate(-18deg);color:#f7b980;opacity:0;pointer-events:none;animation:evo-ink-roll .35s cubic-bezier(.14,.9,.27,1) both}
 .evo-stamp-scene .evo-calc-winning::after{color:#fff2aa}
 @keyframes evo-ink-roll{0%{opacity:0;transform:translate(-50%,-170%) scale(3.4) rotate(-24deg)}56%{opacity:.95;transform:translate(-50%,-50%) scale(1.3) rotate(-18deg)}100%{opacity:.5;transform:translate(-50%,-50%) scale(.8) rotate(-18deg)}}
+
+
+/* Fusion UX revision: no role overlays on miniature cards, field cards or hand cards. */
+.hand-card.tc-card .arcane-card-role,.board-creature.tc-card .arcane-board-role{display:none!important}
+#duelScreen .card-preview-panel .hand-card.tc-card .arcane-card-role,
+#menuScreen .deck-preview-card .hand-card.tc-card .arcane-card-role,
+.arcane-enemy-large .hand-card.tc-card .arcane-card-role{display:block!important;bottom:51px!important;left:6px!important;max-width:calc(100% - 12px);font-size:10px!important;padding:3px 7px!important}
+/* Duel card numbers and names no longer inherit overly large editor styles. */
+#duelScreen .card-preview-panel .hand-card.tc-card .card-name,
+.arcane-enemy-large .hand-card.tc-card .card-name{font-size:13px!important;line-height:1.18!important;letter-spacing:0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;overflow-wrap:normal!important}
+#duelScreen .card-preview-panel .hand-card.tc-card .hand-stats .stat-value,
+.arcane-enemy-large .hand-card.tc-card .hand-stats .stat-value{font-size:14px!important;line-height:17px!important;letter-spacing:0!important;max-width:100%!important;overflow:hidden!important}
+#duelScreen .card-preview-panel .hand-card.tc-card .stat,
+.arcane-enemy-large .hand-card.tc-card .stat{min-width:0!important;overflow:hidden!important}
+/* Deck editor: taller card, without enlarging numbers beyond the stat boxes. */
+#menuScreen .deck-preview-card .hand-card.tc-card{height:410px!important;min-height:410px!important;max-height:410px!important;max-width:100%!important}
+#menuScreen .deck-preview-card .hand-card.tc-card .hand-art{min-height:245px!important;flex-basis:245px!important}
+#menuScreen .deck-preview-card .hand-card.tc-card .card-name{font-size:17px!important;line-height:1.18!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+#menuScreen .deck-preview-card .hand-card.tc-card .hand-stats .stat-value{font-size:16px!important;line-height:18px!important;max-width:100%!important;overflow:hidden!important;letter-spacing:0!important}
+#menuScreen .deck-preview-card .hand-card.tc-card .hand-stats{min-height:48px!important;max-height:48px!important;height:48px!important}
+.arcane-sealed-choice .arcane-fusion-potential{display:block;padding:7px 4px;margin-top:7px;border:1px solid #b5a0818a;border-radius:6px;background:#131c2a;color:#fce8bd;font:800 11px/1.55 system-ui,sans-serif;white-space:normal}
+.arcane-sealed-choice small{display:block;line-height:1.45}
+/* First materials orbit/merge, then the empty calculation panel opens below the card. */
+.evo-stamp-scene:not(.evo-phase-reveal){background:transparent!important;border-color:transparent!important;box-shadow:none!important}
+.evo-stamp-scene.evo-phase-reveal{animation:evo-ritual-window 1s ease-out both}
+.evo-stamp-scene .evo-popup-panel{opacity:0;transform:translateY(20px) scale(.96);width:100%;padding:10px 11px;border:1px solid #b9a4dfb3;border-radius:11px;background:linear-gradient(160deg,#101b32f0,#211a39f0);box-shadow:inset 0 1px 18px #7355a43b}
+.evo-stamp-scene.evo-phase-reveal .evo-popup-panel{animation:evo-popup-rise 1s ease-out both}
+.evo-stamp-scene.evo-phase-reveal .evo-fusion-result{animation-duration:1.05s!important}
+.evo-stamp-scene.evo-no-role-stamp .evo-role-seal{display:none!important}
+.evo-stamp-scene.evo-phase-rolls .evo-role-seal{animation:evo-role-ink-settle 2.2s ease-out both!important}
+.evo-stamp-scene.evo-calc-absorb .evo-role-seal{animation:evo-role-ink-fade 1.3s ease-out both!important}
+.evo-stamp-scene .evo-calc-spinning b{display:inline-block;animation:evo-slot-reel .19s ease-in-out infinite alternate;will-change:transform,filter}
+.evo-stamp-scene .evo-calc-stamped::after{content:'GEWÜRFELT';left:62%;top:45%;font:bold 9px/1 system-ui,sans-serif;border:2px solid currentColor;border-radius:3px;padding:3px 5px;box-shadow:0 0 3px #f9d69888;opacity:0;letter-spacing:.025em}
+.evo-stamp-scene.evo-calc-absorb .evo-calc-row,.evo-stamp-scene.evo-calc-absorb .evo-calc-divider{animation:evo-true-absorb .87s cubic-bezier(.4,0,.9,.6) both}
+.evo-stamp-scene.evo-calc-absorb .evo-card-final{animation:evo-card-stat-appear 1s ease-out both}
+@keyframes evo-ritual-window{0%{background:transparent;border-color:transparent;box-shadow:none}100%{opacity:1}}
+@keyframes evo-popup-rise{0%{opacity:0;transform:translateY(25px) scale(.94)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes evo-role-ink-settle{0%{opacity:.86;filter:brightness(1.8)}100%{opacity:.72;filter:brightness(1)}}
+@keyframes evo-role-ink-fade{from{opacity:.72}to{opacity:0}}
+@keyframes evo-slot-reel{0%{transform:translateY(-22%) skewY(-3deg);filter:blur(1px)}100%{transform:translateY(22%) skewY(3deg);filter:blur(.3px)}}
+@keyframes evo-true-absorb{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-240px) scale(.18)}}
+.atlas-showcase-cards.atlas-depart{animation-duration:1.25s!important;animation-timing-function:ease-in-out!important}
+.atlas-showcase-cards.atlas-arrive{animation-duration:1.55s!important;animation-timing-function:ease-in-out!important}
+@media(max-width:520px){
+ .evo-stamp-scene .evo-popup-panel{padding:7px 6px}
+ #menuScreen .deck-preview-card .hand-card.tc-card{height:385px!important;min-height:385px!important;max-height:385px!important}
+ #menuScreen .deck-preview-card .hand-card.tc-card .hand-art{min-height:225px!important;flex-basis:225px!important}
+}
+@media(prefers-reduced-motion:reduce){.evo-stamp-scene .evo-popup-panel{opacity:1;transform:none}.evo-stamp-scene.evo-phase-reveal{animation:none!important}}
