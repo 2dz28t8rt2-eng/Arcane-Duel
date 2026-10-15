@@ -60,3 +60,9 @@ test('Last Bastion attack immunity cannot repeatedly counterstrike',()=>{
  const code=fs.readFileSync(path.join(__dirname,'../assets/essence-combat.js'),'utf8');
  assert.match(code,/if\(isDefender\(d\)&&s\.guardLeft===0\)/);
 });
+
+test('Essence companion never drains currency banked before the duel',()=>{
+ const code=fs.readFileSync(path.join(__dirname,'../assets/essence-progression.js'),'utf8');
+ assert.match(code,/Math\.min\(Math\.max\(0,result\.coins\),profile\.coins,Math\.max\(0,feed\)\)/);
+ assert.match(code,/result\.essenceFood=actual;result\.coins-=actual/);
+});
