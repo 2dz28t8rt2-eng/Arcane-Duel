@@ -93,6 +93,12 @@
   const intake=tier>=4?1.22:tier>=2?1.08:1;
   const gain=Math.min(Math.max(0,250+lv*125-store.soul),Math.floor(earned*intake));
   store.soul+=gain;
+  // Offensive identity of defensive decks: essence is a steady pressure source,
+  // even when attackers wisely refuse to hit the blockade.
+  // Cap applies per eater and round to keep five defenders from bursting
+  // 10,000 LP in one turn. Full defensive stat absorption still has a price.
+  const soulBrand=Math.min(40+lv*30,Math.floor(earned*.90));
+  if(soulBrand>0)addBurn(g,owner,soulBrand,dataOf(creature).name+' · Seelenbrand');
   if(rank>=3&&store.drainPreference===2&&drainedDef){
    // Heal only actual DEF drained, at 30%; no overheal.
    g.players[owner].lp=Math.min(g.maxLP,g.players[owner].lp+Math.floor(drainedDef*.3));
@@ -102,8 +108,11 @@
  function soulDecay(g,c,owner){
   const s=statLayer(c);
   if(s.soul>0){
-   const amount=Math.min(s.soul,Math.max(10,Math.ceil(s.soul*.45)));
-   s.soul-=amount;addBurn(g,owner,amount,dataOf(c).name+' · Seelenzerfall');
+   const amount=Math.min(s.soul,Math.max(10,Math.ceil(s.soul*.32)));
+   s.soul-=amount;
+   // Stored essence is unstable, but most of its upkeep is now lost shield,
+   // rather than equal LP self-damage that punishes a defensive playstyle.
+   addBurn(g,owner,Math.floor(amount*.35),dataOf(c).name+' · Seelenzerfall');
   }
   if(s.condenseLeft>0){
    s.condensed=Math.max(0,s.condensed-Math.min(s.condensed,s.condenseSlice));
@@ -339,12 +348,12 @@
  function discharge(idx){
   if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0)return false;
   const c=game.players[0].field[idx];if(!c||!isSoul(c)||c.mode!=='def')return false;
-  const elite=(CARDS[c.id].soulRank||0)>=5;
-  const buffer=game.players[0].field.some(x=>x&&x!==c&&CARDS[x.id].role==='guardian'&&dataOf(x).level>=5);
   const e=statLayer(c);
-  if(!elite&&!buffer||e.lastDischarge===game.turn||e.soul<40)return false;
+  // All Soul Eaters have an offensive release. Higher rank gains its edge
+  // naturally by harvesting more essence; the one-use-per-turn gate remains.
+  if(e.lastDischarge===game.turn||e.soul<40)return false;
   const amount=e.soul;e.soul=0;e.lastDischarge=game.turn;
-  addBurn(game,0,Math.floor(amount*.85),dataOf(c).name+' · aktive Entladung');
+  addBurn(game,0,Math.floor(amount*1.10),dataOf(c).name+' · aktive Entladung');
   render();if(game.winner!==null)showFinished();return true;
  }
  function predatorMode(idx){
