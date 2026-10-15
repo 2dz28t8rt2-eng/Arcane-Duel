@@ -58,8 +58,8 @@
   if(transitioning||uiMode!=='menu'||document.hidden||!document.getElementById('menuHero'))return;
   const rack=document.querySelector('#menuHero .atlas-showcase-cards');
   if(!rack)return;
-  if(reduceMotion()){
-   rack.innerHTML=showcaseMarkup(featureArt());return;
+  if(reduceMotion()||animationSpeed==='instant'){
+   return;
   }
   transitioning=true;
   rack.classList.remove('atlas-arrive');
@@ -70,8 +70,8 @@
    rack.innerHTML=showcaseMarkup(featureArt());
    rack.classList.remove('atlas-depart');
    rack.classList.add('atlas-arrive');
-   rotationTimer=setTimeout(()=>{rack.classList.remove('atlas-arrive');transitioning=false;},650);
-  },440);
+   rotationTimer=setTimeout(()=>{rack.classList.remove('atlas-arrive');transitioning=false;},1550);
+  },1250);
  }
  function enhanceHero(hero){
   const content=hero.querySelector('.fm-hero-content'),tools=hero.querySelector('.fm-hero-utility');
