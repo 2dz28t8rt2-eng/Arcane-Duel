@@ -1,0 +1,72 @@
+/* The role stamp strikes the CARD; only afterwards can a poker bonus strike the SCREEN. */
+.ritual-overlay .ad-combo-ritual{
+ position:fixed;inset:0;width:100%;height:100%;
+ z-index:180!important;pointer-events:none!important;isolation:isolate;
+ display:grid;place-items:center;overflow:hidden;
+ --ad-combo-color:#d5e9ff;--ad-combo-secondary:#8abfea;
+ background:radial-gradient(ellipse at center,#739bd01d,transparent 65%);
+}
+.ritual-overlay .ad-combo-tier-1{--ad-combo-color:#e2cd9a;--ad-combo-secondary:#c09d63}
+.ritual-overlay .ad-combo-tier-2{--ad-combo-color:#bbe3eb;--ad-combo-secondary:#68b7e9}
+.ritual-overlay .ad-combo-tier-3{--ad-combo-color:#eac8ff;--ad-combo-secondary:#ad87ff}
+.ritual-overlay .ad-combo-tier-4{--ad-combo-color:#ffe5a0;--ad-combo-secondary:#ffb34c}
+.ritual-overlay .ad-combo-tier-5{--ad-combo-color:#fffbdf;--ad-combo-secondary:#e7a5ff}
+.ritual-overlay .ad-combo-ink{
+ position:relative;display:flex;flex-direction:column;align-items:center;
+ justify-content:center;gap:clamp(7px,2vmin,15px);max-width:calc(100vw - 30px);
+ padding:18px 20px;color:var(--ad-combo-color);text-align:center;
+ border:clamp(3px,.65vw,7px) double currentColor;border-radius:8px;
+ background:linear-gradient(150deg,#171a32e9,#35233ce0);
+ box-shadow:0 6px 35px #060815ee,0 0 36px var(--ad-combo-secondary),
+  inset 0 0 21px #ffe6ab3b;
+ transform-origin:center;animation:ad-combo-impact var(--ad-combo-duration) both;
+}
+.ritual-overlay .ad-combo-ink strong{
+ font:900 clamp(30px,7.4vw,100px)/1.05 Georgia,serif;
+ letter-spacing:.045em;text-transform:uppercase;
+ max-width:100%;overflow-wrap:anywhere;
+ text-shadow:0 0 13px currentColor,0 4px 3px #000;
+}
+.ritual-overlay .ad-combo-ink span{
+ color:#fff4db;font:850 clamp(13px,2.2vw,24px)/1.4 ui-monospace,Consolas,monospace;
+ letter-spacing:.12em;
+}
+.ritual-overlay .ad-combo-ink small{
+ color:#d7c9e9;letter-spacing:.2em;font:750 clamp(10px,1.6vw,17px)/1.4 system-ui;
+}
+.ritual-overlay .ad-combo-tier-5 .ad-combo-ink{
+ border-color:#fff5cf;box-shadow:0 0 70px #fff8cfab,0 0 105px #b38fff8c,inset 0 0 40px #fff3bc60;
+}
+.ritual-overlay .ad-combo-particles{position:absolute;inset:0;pointer-events:none}
+.ritual-overlay .ad-combo-particles>i{
+ position:absolute;left:50%;top:49%;width:5px;height:5px;
+ border-radius:50%;opacity:0;transform:scale(var(--spark-scale));
+ background:var(--ad-combo-color);box-shadow:0 0 9px var(--ad-combo-secondary);
+ animation:ad-combo-burst var(--ad-combo-duration) ease-out var(--delay) both;
+}
+.ritual-overlay .ad-combo-tier-4 .ad-combo-particles>i,
+.ritual-overlay .ad-combo-tier-5 .ad-combo-particles>i{
+ border-radius:2px;box-shadow:0 0 13px 3px var(--ad-combo-secondary);
+}
+@keyframes ad-combo-impact{
+ 0%{opacity:0;transform:perspective(600px) translateZ(480px) scale(4) rotate(-11deg);filter:blur(6px)}
+ 13%{opacity:1;transform:perspective(600px) translateZ(0) scale(.88) rotate(-6deg);filter:blur(0)}
+ 20%{transform:scale(1.08) rotate(-4deg)}
+ 31%{transform:scale(1) rotate(-5deg)}
+ 55%{opacity:1;transform:scale(1) rotate(-5deg)}
+ 85%{opacity:.65;transform:perspective(700px) translateZ(170px) scale(2.15) rotate(-2deg)}
+ 100%{opacity:0;transform:perspective(700px) translateZ(400px) scale(3.35);filter:blur(15px)}
+}
+@keyframes ad-combo-burst{
+ 0%{opacity:0;transform:translate(0,0) scale(.2)}
+ 12%{opacity:.9}
+ 62%{opacity:1;transform:translate(var(--px),var(--py)) scale(var(--spark-scale))}
+ 100%{opacity:0;transform:translate(calc(var(--px)*1.3),calc(var(--py)*1.3)) scale(.1)}
+}
+@media(max-width:550px){
+ .ritual-overlay .ad-combo-ink{padding:13px 12px;max-width:95vw}
+ .ritual-overlay .ad-combo-ink strong{font-size:clamp(27px,8.7vw,48px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .ritual-overlay .ad-combo-ritual{display:none!important}
+}
