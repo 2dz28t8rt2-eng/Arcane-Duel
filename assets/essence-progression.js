@@ -78,6 +78,39 @@
   if(menuTab==='upgrades')p.insertAdjacentHTML('beforeend',essenceDashboard());
   if(menuTab==='lexicon'&&E().school)p.insertAdjacentHTML('beforeend','<section class="menu-panel essence-lore-teaser"><h2>✧ Die vergessenen Schriften</h2><p>Ein neues Kapitel erzählt vom Bund zwischen Duellanten und Essenzwesen.</p>'+loreMarkup()+'</section>');
  }
+ const roleLabel={predator:'PREDATOR',guardian:'WÄCHTER',soul:'SEELENZEHRER',support:'UNTERSTÜTZER',weaver:'RUNENWEBER',hunter:'JÄGER',combatant:'KÄMPFER'};
+ const roleText={
+  predator:'Predator: verursacht erhöhten Druck gegen Verteidiger-HP.',
+  guardian:'Wächter: regeneriert in DEF-Position die Grund-DEF verbündeter Verteidiger.',
+  soul:'Seelenzehrer: saugt ATK und DEF aller gegnerischen Monster ab. Gespeicherte Seelen-DEF verursacht beim Zerfall Burn; Verdichten schafft stabilen Schutz.',
+  support:'Unterstützer: verstärkt in DEF-Position den Angriff verbündeter gewöhnlicher Monster.',
+  weaver:'Runenweber: unterstützt präzise Fusionen.',
+  hunter:'Jäger: spezialisiert auf große Fusionsgegner.',
+  combatant:'Allrounder: eine ausgewogene Kreatur ohne zusätzlichen Rollenbonus.'
+ };
+ const originalFullCardHtml=fullCardHtml;
+ fullCardHtml=function(card,attrs='',classes='',badge=''){
+  const html=originalFullCardHtml(card,attrs,classes,badge),c=CARDS[card?.id],role=c?.role;
+  if(!role||role==='combatant'||!html.includes('<div class="hand-title">'))return html;
+  const text=c.essenceMonster?'ESSENZWESEN':roleLabel[role]||role;
+  return html.replace('<div class="hand-title">','<span class="essence-role-chip essence-role-'+role+'">'+esc(text)+'</span><div class="hand-title">');
+ };
+ const oldDetail=cardDetailPanel;
+ cardDetailPanel=function(card,fusion){
+  if(!card)return oldDetail(card,fusion);
+  if(card.essenceMonster){
+   const inDeck=deckDraft.filter(id=>id===card.id).length,lv=C.evolvedLevel(tier());
+   return '<aside class="deck-side-preview" id="deckSidePreview"><div class="deck-side-sticky"><div class="deck-preview-card">'+fullCardHtml(profileCard(card))+'</div>'+
+   '<div class="deck-preview-meta"><h3>'+esc(card.name)+'</h3><p>Ein unwiderruflich gebundenes Essenzmonster. Stufe '+lv+'. Unverkäuflich, unzerlegbar und nur einmal im Besitz. Formen wachsen automatisch mit dem Turnier; Verstärkung unter Skills &amp; Perks.</p>'+
+   '<p>'+esc(roleText[card.role]||'')+'</p><p>Im Hauptdeck: '+inDeck+'/1</p>'+
+   '<div class="deck-preview-actions"><button class="btn" data-action="copy" data-id="'+card.id+'" data-delta="-1" '+(!inDeck?'disabled':'')+'>Aus dem Deck nehmen</button>'+
+   '<button class="btn primary" data-action="copy" data-id="'+card.id+'" data-delta="1" '+(inDeck||deckDraft.length>=40?'disabled':'')+'>Ins Deck legen</button></div>'+
+   '<p>Das Hauptdeck benötigt weiterhin genau 40 Karten. Tausche eine andere Karte aus, um Platz zu schaffen.</p></div></div></aside>';
+  }
+  const result=oldDetail(card,fusion);
+  const note=roleText[card.role]||'';
+  return note?result.replace('<div class="deck-preview-pills">','<p class="essence-role-description"><strong>'+esc(roleLabel[card.role]||card.role)+':</strong> '+esc(note)+'</p><div class="deck-preview-pills">'):result;
+ };
  const normalProfileCard=profileCard;
  profileCard=function(c){
   const display=normalProfileCard(c);
@@ -95,7 +128,19 @@
   return card?.id===E().chosen?html.replace('Stufe '+card.level+' ·','Stufe '+C.evolvedLevel(tier())+' ·'):html;
  };
  const oldMenu=renderMenu;renderMenu=function(){oldMenu();menuExtras();};
- const oldRules=showRules;showRules=function(){oldRules();const book=$('modal')?.querySelector('.arcane-handbook');if(book&&E().school&&!book.querySelector('.essence-lore'))book.insertAdjacentHTML('beforeend',loreMarkup());};
+ const oldRules=showRules;showRules=function(){
+  oldRules();const modal=$('modal'),book=modal?.querySelector('.arcane-handbook');
+  if(!book)return;
+  if(!book.querySelector('#essenceCombatRules'))book.insertAdjacentHTML('beforeend',
+   '<details class="arcane-rule-chapter" id="essenceCombatRules"><summary>14 · Monsterrollen, DEF-HP &amp; Seelenessenz</summary>'+
+   '<div class="arcane-rule-body"><p>In neuen Einzelspielerduellen verteidigt jedes Monster in DEF-Position mit seinen verbliebenen DEF-Punkten wie mit Monster-HP. Mehrere schwächere Angriffe können einen starken Blocker besiegen. Im lokalen PvP bleiben die klassischen Regeln unverändert.</p>'+
+   '<p><b>Predatoren</b> sind gegen Verteidigungsstellungen gefährlicher. <b>Wächter</b> regenerieren Grund-DEF verbündeter Blocker; <b>Unterstützer</b> stärken normale Angreifer. Nur ausgewählte <b>Seelenzehrer</b> schwächen in DEF-Position sämtliche gegnerischen Monster um 10 ATK und 10 DEF plus pro Stufe einen 5-Punkte-Wurf auf ATK oder DEF.</p>'+
+   '<p>Diese Energie erscheint als <b>instabile Seelenessenz</b>, die zusätzliche DEF verleiht. Verfällt Seelenessenz natürlich, verursacht sie gleich viel LP-Burn; wird sie durch einen Angriff zerstört, verursacht sie halb so viel Burn. <b>Verdichten</b> wandelt einen Teil davon für drei eigene Zugenden in stabile DEF um, mit drei Zügen Cooldown. Verdichtete DEF zerfällt ohne Burn, während neue Seelenessenz weiterhin gesammelt wird.</p>'+
+   '<p><b>Gegenschlag</b>: Ein angegriffener Verteidiger verursacht 50 % seiner Grund-ATK als direkten LP-Schaden. Dies ersetzt in der neuen DEF-HP-Regel den alten Rückstoß. <b>Bollwerk</b> verringert nur den normalen Grundwertzerfall der Verteidiger (Rang 1: 15 %, Rang 3: 25 %); höhere Ränge verbessern die Seelenaufnahme. Rang 5 ermöglicht einmal pro Duell das <b>Letzte Bollwerk</b>: ein tödlich getroffener Verteidiger überlebt mit 1 Grund-DEF und erhält Schutz vor Angriffen für zwei weitere gegnerische Züge.</p>'+
+   '<p><b>LP-Kurve</b>: Turnier I–III 4.000, IV–VI 6.000, VII–VIII 7.000, IX–X 10.000. Lokales PvP 8.000.</p>'+
+   '</div></details>');
+  if(E().school&&!book.querySelector('.essence-lore'))book.insertAdjacentHTML('beforeend',loreMarkup());
+ };
  const oldReward=rewardMatch;
  rewardMatch=function(g){
   const result=oldReward(g);
