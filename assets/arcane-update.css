@@ -1,0 +1,117 @@
+/* ARCANE DUEL – Monsterwerkstatt, readable card inspections and navigation. */
+#menuScreen.fm-screen.atlas-screen #menuNav.fm-navigation.atlas-nav{
+ max-height:calc(100dvh - 34px)!important;overflow-y:auto!important;
+ overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#b69c6e #11192b;
+}
+#menuScreen .fm-submenu[hidden]{display:none!important}
+.arcane-card-role{position:absolute;bottom:35px;left:5px;z-index:8;
+ border:1px solid #d3b779aa;border-radius:5px;padding:2px 5px;
+ background:#101a2dec;color:#f6e1a8;font:800 8px/1.25 system-ui,sans-serif;
+ letter-spacing:.06em;max-width:calc(100% - 10px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ pointer-events:none;box-shadow:0 2px 8px #0009}
+.arcane-role-predator{border-color:#e8a38d;color:#ffd1bd}
+.arcane-role-guardian,.arcane-role-soul{border-color:#a1daca;color:#d9fff0}
+.arcane-role-soul{color:#dfcffb;border-color:#bca9ee}
+.arcane-role-weaver{color:#e1d8ff}
+.deck-preview-card .hand-card.tc-card .card-name,
+.arcane-enemy-large .hand-card.tc-card .card-name{font-size:17px!important;line-height:1.25!important}
+.deck-preview-card .hand-card.tc-card .stat-value,
+.arcane-enemy-large .hand-card.tc-card .stat-value{font-size:23px!important;line-height:1.2!important}
+.deck-preview-card .hand-card.tc-card .hand-stats,
+.arcane-enemy-large .hand-card.tc-card .hand-stats{min-height:35px!important;flex-basis:35px!important;max-height:40px!important}
+.deck-preview-card .arcane-card-role,.arcane-enemy-large .arcane-card-role{bottom:47px;font-size:10px;padding:4px 7px}
+.deck-side-preview .deck-preview-head h3{font-size:23px!important}
+.deck-side-preview .deck-preview-desc,.deck-side-preview .deck-family,
+.deck-side-preview .deck-preview-meta small{font-size:13px!important;line-height:1.6!important}
+.deck-side-preview .deck-family>b{font-size:15px}
+.deck-side-preview.arcane-floating-preview{
+ position:fixed!important;z-index:90!important;width:min(350px,90vw)!important;
+ max-height:calc(100dvh - 26px);overflow-y:auto;border-radius:14px;
+ box-shadow:0 25px 75px #000c,0 0 0 2px #c2a26c;
+ background:#121b2e;scrollbar-width:thin
+}
+.arcane-preview-close{display:block;position:sticky;top:3px;margin:4px 7px -32px auto;
+ border:1px solid #ddbd7c;border-radius:50%;background:#253550;color:#fff6db;
+ font:bold 21px/24px system-ui;width:30px;height:30px;cursor:pointer;z-index:10}
+.arcane-stage-cancel{cursor:pointer!important;outline:2px dashed #d1ab67a0;outline-offset:3px}
+.arcane-stage-cancel::after{content:'NOCHMALS KLICKEN = ZURÜCKZIEHEN';
+ display:block;font:800 10px system-ui;letter-spacing:.07em;color:#f6d994;padding:5px}
+.arcane-fusion-concealed{width:100%;border:1px solid #bba0eb;display:grid;gap:9px;
+ padding:18px;text-align:center;border-radius:12px;color:#efe3ff;
+ background:radial-gradient(circle at 50% 0%,#9b7fe130,#151b2d 75%)}
+.arcane-fusion-concealed span{font-size:11px;font-weight:900;letter-spacing:.16em;color:#d9c49b}
+.arcane-fusion-concealed strong{font:700 23px Georgia,serif;color:#fbe7bc}
+.arcane-fusion-concealed p{font-size:12px;line-height:1.5;margin:0}
+.arcane-sealed-choices{grid-template-columns:repeat(auto-fill,minmax(156px,1fr))}
+.arcane-sealed-choice{border:1px solid #c9b18b80;border-radius:11px;overflow:hidden;
+ background:linear-gradient(#242b45,#131b2d);min-width:0}
+.arcane-fusion-pick{appearance:none;display:grid;align-content:start;justify-items:center;
+ gap:8px;width:100%;height:100%;cursor:pointer;padding:10px;border:0;background:transparent;
+ color:#fce8be;text-align:center;font:700 13px/1.35 Georgia,serif}
+.arcane-fusion-pick img{display:block;width:100%;height:140px;object-fit:cover;border-radius:7px;border:1px solid #ccad82}
+.arcane-fusion-pick span{font:700 11px system-ui;color:#d8dcee}
+.arcane-fusion-pick small{font:700 10px system-ui;color:#eaca8e}
+.arcane-fusion-pick:hover,.arcane-fusion-pick:focus-visible{background:#50406899}
+.arcane-fusion-emblem{font:44px Georgia,serif!important;min-height:110px;display:grid;place-items:center}
+.arcane-fusion-mystery{font-style:italic;color:#e1c9f5;line-height:1.6}
+.arcane-enemy-large{display:grid;justify-items:center;gap:16px;padding:16px}
+.arcane-enemy-large .hand-card.tc-card{width:min(310px,100%)!important;max-width:310px!important;
+ height:420px!important;min-height:420px!important;cursor:default}
+.arcane-enemy-large .hand-card.tc-card .hand-art{min-height:260px;flex-basis:260px}
+.arcane-enemy-large>p{max-width:40ch;text-align:center;color:#e8d8bc;font-size:14px;line-height:1.6}
+.vael-afterword{margin:17px 0 0;padding:15px 18px;border-left:3px solid #deb875;
+ background:#382d265e;color:#f0d3a3;line-height:1.75;font-style:italic}
+.arcane-field-synthesis{width:100%;display:flex;flex-wrap:wrap;align-items:center;
+ gap:10px;padding:12px;border-radius:10px;border:1px solid #9e8ccc;
+ background:#242942;color:#eee1ff}
+.arcane-field-synthesis strong{width:100%;font-size:13px}
+.arcane-field-synthesis p{width:100%;margin:0 0 4px;line-height:1.55;font-size:12px;color:#dfd8f2}
+.arcane-synth-status{padding:6px 12px;font-weight:800;color:#f8dea7}
+.monster-slot.arcane-synth-available{outline:2px dotted #d5bd8d;outline-offset:2px;cursor:pointer}
+.monster-slot.arcane-synth-picked{outline:3px solid #d8a7ff!important;outline-offset:3px;box-shadow:0 0 16px #aa74ec}
+.arcane-forge{border:1px solid #bca47c!important;padding:21px!important;
+ background:radial-gradient(ellipse at top right,#c3a06327,transparent 52%),linear-gradient(140deg,#2b3047,#121f30)!important}
+.arcane-forge-header>span{font-size:11px;font-weight:900;letter-spacing:.15em;color:#e9cb91}
+.arcane-forge-header h2{font:700 26px Georgia,serif;color:#f9e3b3;margin:6px 0 8px}
+.arcane-forge-header p{font-size:13px;color:#d4d9e5;line-height:1.6}
+.arcane-forge>label{display:grid;gap:6px;margin:14px 0;font-size:13px;color:#e9e0ca;font-weight:700}
+.arcane-forge select,.arcane-forge input{min-height:38px;width:100%;border:1px solid #978768;
+ border-radius:8px;background:#101c2c;color:#f9e4ba;padding:8px;font:500 13px system-ui}
+.arcane-forge-inventory{font-size:12px;color:#e1e2eb;line-height:1.6;margin:15px 0;padding:12px;
+ background:#101927;border-radius:8px;border:1px solid #d2b9825e}
+.arcane-forge-inventory strong{color:#f6dea9}
+.arcane-forge-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.arcane-forge-grid>div{padding:15px;background:#18233a;border-radius:11px;border:1px solid #dfb67b77}
+.arcane-forge-grid h3{font:700 19px Georgia,serif;color:#ffe0ac;margin:0 0 11px}
+.arcane-forge-grid label{display:grid;gap:5px;font-size:12px;font-weight:750;color:#dfd8c9;margin:10px 0}
+.arcane-forge-grid p{font-size:11px;line-height:1.65;color:#c6d2e6}
+.arcane-forge-grid button{width:100%}
+.arcane-forge-limit{color:#d2d8e2;font-size:11px;margin:14px 0 0;line-height:1.6}
+#menuScreen .monster-index-entry button,#menuScreen .drop-chance-button{font-size:13px;min-height:32px}
+@media(max-width:980px){
+ #menuScreen.fm-screen.atlas-screen #menuNav.fm-navigation.atlas-nav{
+  max-height:none!important;overflow:visible!important}
+ .deck-side-preview.arcane-floating-preview{position:static!important;width:auto!important;
+  max-height:none!important;box-shadow:none}
+ .arcane-forge-grid{grid-template-columns:1fr}
+}
+@media(max-width:500px){
+ .arcane-enemy-large .hand-card.tc-card{max-width:260px!important;height:355px!important;min-height:355px!important}
+ .arcane-enemy-large .hand-card.tc-card .hand-art{min-height:205px;flex-basis:205px}
+ .arcane-sealed-choices{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .arcane-fusion-pick img{height:100px}
+}
+
+/* Field role and charged next-turn Vorstoß are visible before the opponent acts. */
+.board-creature.tc-card{position:relative}
+.arcane-board-role{position:absolute;z-index:7;left:4px;bottom:36px;max-width:calc(100% - 8px);
+ overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+ color:#f8dea5;background:#111a2def;border:1px solid #b79b65c0;border-radius:4px;
+ font:800 8px/1.25 system-ui,sans-serif;padding:2px 4px;pointer-events:none}
+.arcane-board-guardian,.arcane-board-soul{border-color:#81bdaa;color:#d9f9ed}
+.arcane-board-predator{border-color:#c68e71;color:#ffd1bc}
+.arcane-rush-ready{position:absolute!important;right:2px;top:2px;z-index:12;
+ background:#673a17eb;border:1px solid #f6b669;color:#fff0be;border-radius:5px;
+ padding:2px 4px;font:850 8px/1.2 system-ui,sans-serif;pointer-events:none;
+ box-shadow:0 0 8px #f49d4380}
+#menuScreen [data-action="loot"]{font-size:13px!important;min-height:35px;padding:8px 11px!important}

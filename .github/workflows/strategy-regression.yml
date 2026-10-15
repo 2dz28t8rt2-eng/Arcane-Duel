@@ -1,0 +1,37 @@
+name: Arcane Duel – Code & Strategy Checks
+
+on:
+  push:
+    branches: [development]
+  pull_request:
+    branches: [development]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  strategy-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax of gameplay and extensions
+        run: |
+          for js in assets/*.js; do
+            node --check "$js"
+          done
+      - name: Execute deterministic 40-card analysis tests
+        run: node --test tests/strategy-engine.test.cjs
+      - name: Smoke-test real gameplay with isolated synthetic profiles
+        run: node tests/battle-simulator.cjs --samples 5
+
+      - name: Run Essence combat and save-safety regressions
+        run: node --test tests/essence-combat.test.cjs
+      - name: Run level crafting and role-fusion regressions
+        run: node --test tests/arcane-overhaul.test.cjs
+      - name: Monster families, field roles and workshop regression
+        run: node --test tests/monster-roles-forge.test.cjs

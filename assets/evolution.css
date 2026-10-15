@@ -214,3 +214,57 @@
  40%{opacity:.95;transform:scale(4.4)}
  to{opacity:0;transform:scale(6.1)}
 }
+
+/* Bestiarium Fusion Cinema: actual material artwork -> orbit -> merge -> result -> readable rolls */
+.evo-fusion-scene{width:min(440px,94vw)!important;min-width:0!important;max-height:min(92vh,640px);padding:18px 18px 20px!important;gap:7px!important;overflow:hidden}
+.evo-fusion-scene .evo-mat-count{font-size:12px!important;letter-spacing:.065em!important}
+.evo-visual-stage{height:252px;width:100%;position:relative!important;isolation:isolate;flex:none}
+.evo-fusion-scene .evo-material-layer{position:absolute;inset:0;z-index:3;pointer-events:none}
+.evo-fusion-scene .evo-actual-material{position:absolute;left:50%;top:50%;width:64px;height:90px;margin:-45px 0 0 -32px;padding:3px;border:2px solid #ddc9ff;border-radius:7px;background:#261d40;box-shadow:0 0 12px #d3adff88,0 4px 12px #000b;transform:translate(var(--start-x),var(--start-y)) rotate(-8deg);opacity:1;will-change:transform,opacity}
+.evo-fusion-scene .evo-actual-material img{width:100%;height:100%;object-fit:cover;border-radius:3px;display:block}
+.evo-fusion-scene .evo-fusion-core{position:absolute;left:50%;top:50%;width:68px;height:68px;margin:-34px 0 0 -34px;border:2px solid #cbb5ff;border-radius:50%;display:grid;place-items:center;font-size:38px;color:#fff0c3;box-shadow:0 0 24px #b78affaa,inset 0 0 24px #d2a6ff66;background:radial-gradient(circle,#5a4b9d,#251b4a);z-index:2;animation:evo-cinema-core 1.8s linear infinite}
+.evo-fusion-scene .evo-fusion-result{position:absolute;left:50%;top:50%;width:115px;height:168px;margin:-84px 0 0 -57.5px;border:3px solid #e3c7ff;border-radius:10px;background:linear-gradient(140deg,#372158,#131c36);box-shadow:0 0 30px #d7b4ffad,0 0 60px #ffd69b55;z-index:5;opacity:0;transform:scale(.25) rotate(-12deg);display:flex;flex-direction:column;align-items:center;padding:6px;gap:3px}
+.evo-fusion-scene .evo-fusion-result img{width:100%;height:133px;object-fit:cover;border-radius:5px;display:block}
+.evo-fusion-scene .evo-fusion-result span{font-size:12px;font-weight:900;color:#ffe8b3;line-height:14px}
+.evo-fusion-scene .evo-fusion-flash{position:absolute;left:50%;top:50%;width:25px;height:25px;margin:-12.5px 0 0 -12.5px;border-radius:50%;background:radial-gradient(circle,#fff 0%,#ffe6a6 17%,#bb8aff 42%,transparent 70%);z-index:4;opacity:0;pointer-events:none}
+.evo-fusion-scene.evo-phase-orbit .evo-actual-material{animation:evo-cinema-orbit .85s ease-in-out both}
+.evo-fusion-scene.evo-phase-merge .evo-actual-material{animation:evo-cinema-merge .5s ease-in both}
+.evo-fusion-scene.evo-phase-merge .evo-fusion-flash{animation:evo-cinema-flash .55s ease-out both}
+.evo-fusion-scene.evo-phase-reveal .evo-actual-material{opacity:0;transform:translate(0,0) scale(.1)}
+.evo-fusion-scene.evo-phase-reveal .evo-fusion-result{animation:evo-cinema-reveal .42s cubic-bezier(.16,.9,.25,1.25) both;opacity:1;transform:scale(1)}
+.evo-fusion-scene.evo-phase-reveal .evo-fusion-core{opacity:.25}
+.evo-fusion-scene.evo-phase-rolls .evo-fusion-result{animation:evo-cinema-rollglow .85s ease-in-out infinite alternate}
+.evo-fusion-scene .evo-fusion-caption{font-size:18px!important}
+.evo-fusion-scene .evo-rolls{min-height:52px!important;gap:4px!important}
+.evo-fusion-scene .evo-roll-value{font-size:18px!important;line-height:1.4}
+@keyframes evo-cinema-orbit{0%{transform:translate(var(--start-x),var(--start-y)) rotate(-8deg)}55%{transform:translate(calc(var(--start-x)*-.72),calc(var(--start-y)*-.72)) rotate(var(--spin))}100%{transform:translate(var(--start-x),var(--start-y)) rotate(calc(var(--spin)*1.6))}}
+@keyframes evo-cinema-merge{0%{opacity:1;transform:translate(var(--start-x),var(--start-y)) scale(1) rotate(0deg)}65%{opacity:1;transform:translate(calc(var(--start-x)*.25),calc(var(--start-y)*.25)) scale(.65) rotate(280deg)}100%{opacity:0;transform:translate(0,0) scale(.1) rotate(520deg)}}
+@keyframes evo-cinema-flash{0%,18%{opacity:0;transform:scale(.4)}65%{opacity:1;transform:scale(8)}100%{opacity:0;transform:scale(13)}}
+@keyframes evo-cinema-reveal{from{opacity:0;transform:scale(.25) rotate(-12deg);filter:brightness(2.4)}70%{opacity:1;transform:scale(1.09) rotate(2deg)}to{opacity:1;transform:scale(1) rotate(0deg);filter:brightness(1)}}
+@keyframes evo-cinema-rollglow{from{box-shadow:0 0 18px #d7b4ff66,0 0 35px #ffd69b44}to{box-shadow:0 0 30px #e5b5ffee,0 0 55px #ffc87499}}
+@keyframes evo-cinema-core{to{transform:rotate(360deg)}}
+@media(max-width:480px){.evo-visual-stage{height:214px}.evo-fusion-scene .evo-actual-material{width:52px;height:75px;margin:-37.5px 0 0 -26px;transform:translate(calc(var(--start-x)*.78),calc(var(--start-y)*.8))}.evo-fusion-scene .evo-fusion-result{width:105px;height:155px;margin:-77.5px 0 0 -52.5px}.evo-fusion-scene .evo-fusion-result img{height:122px}}
+@media(prefers-reduced-motion:reduce){.evo-fusion-scene,.evo-fusion-scene *{animation:none!important;transition:none!important}}
+
+/* Arcane Duel 3.0 handbook: accessible, scrollable, chapter-based reference */
+.arcane-rule-modal{width:min(820px,96vw)!important;max-width:96vw!important;max-height:90vh!important;overflow-y:auto!important;text-align:left}
+.arcane-rule-modal .modal-icon,.arcane-rule-modal .modal-kicker,.arcane-rule-modal h2,.arcane-rule-modal>.modal-actions{text-align:center}
+.arcane-rule-modal>p{max-width:none!important;text-align:center;margin:10px auto 14px!important}
+.arcane-handbook{font-size:13px;color:#dce6f1;line-height:1.65;text-align:left}
+.arcane-handbook .arcane-rule-intro{margin:8px 0 16px!important;max-width:none!important;text-align:left!important;color:#f0e1c2}
+.arcane-rule-chapter{border:1px solid #526079;border-radius:10px;margin:9px 0;background:linear-gradient(130deg,#202c42,#131d2f);overflow:hidden}
+.arcane-rule-chapter>summary{cursor:pointer;list-style:none;padding:13px 16px;font-weight:800;font-size:14px;color:#f3dcac;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.arcane-rule-chapter>summary::after{content:'＋';font-size:16px;color:#c2a4f3}
+.arcane-rule-chapter[open]>summary::after{content:'−'}
+.arcane-rule-chapter>summary::-webkit-details-marker{display:none}
+.arcane-rule-chapter>summary:focus-visible{outline:2px solid #d9bbff;outline-offset:-2px}
+.arcane-rule-body{padding:4px 17px 15px;border-top:1px solid #526079;color:#dce6f1}
+.arcane-rule-body ul,.arcane-rule-body ol{padding-left:20px}
+.arcane-rule-body li{margin:8px 0}
+.arcane-rule-body p{max-width:none!important;text-align:left!important;color:#dce6f1!important;margin:10px 0!important;font-size:13px!important}
+.arcane-rule-table-wrap{overflow-x:auto}
+.arcane-rule-table{width:100%;border-collapse:collapse;font-size:12px;min-width:390px;font-variant-numeric:tabular-nums}
+.arcane-rule-table th,.arcane-rule-table td{padding:8px;border-bottom:1px solid #43536d;text-align:left}
+.arcane-rule-table th{color:#f0d7a2;background:#25344a}
+.arcane-rule-table td:not(:first-child){white-space:nowrap}
+@media(max-width:520px){.arcane-rule-modal{padding:15px!important}.arcane-rule-chapter>summary{font-size:12px;padding:11px}.arcane-rule-body{padding:3px 11px 12px}}

@@ -1,0 +1,516 @@
+/* ARCANE DUEL 3.0 · THE GILDED ARCHIVE
+   Design system derived from the game's sculpted card frames:
+   satin-dark metal, ivory script, enchanted gilding, jewel-tone accents.
+   Presentation only. Scoped to the open menu; challenges keep their proven layouts.
+*/
+#menuScreen.atlas-screen{
+ --atlas-paper:#f5e7c8;--atlas-muted:#c1bdc3;--atlas-brass:#ddbd7e;
+ --atlas-brass-hi:#fff0c3;--atlas-line:#9c805a;--atlas-shadow:#060912;
+ --atlas-hue:#e0b56e;--atlas-hue-rgb:224,181,110;--atlas-aura:#d4a562;
+ --atlas-engrave:#f3d39a;--atlas-surface:#141b2c;
+ color:var(--atlas-paper);
+}
+#menuScreen.atlas-screen[data-atlas-theme="silver"]{--atlas-hue:#b6dfdf;--atlas-hue-rgb:182,223,223;--atlas-aura:#8ddde2;--atlas-engrave:#cae5f0}
+#menuScreen.atlas-screen[data-atlas-theme="violet"]{--atlas-hue:#cebbff;--atlas-hue-rgb:206,187,255;--atlas-aura:#a98bff;--atlas-engrave:#e5d6ff}
+#menuScreen.atlas-screen[data-atlas-theme="jade"]{--atlas-hue:#a4e1c0;--atlas-hue-rgb:164,225,192;--atlas-aura:#72cfab;--atlas-engrave:#e5f6d1}
+#menuScreen.atlas-screen[data-atlas-theme="steel"]{--atlas-hue:#b5c9ef;--atlas-hue-rgb:181,201,239;--atlas-aura:#8ba9d7;--atlas-engrave:#dce6f8}
+body:has(#menuScreen.atlas-screen:not([hidden])){
+ background:
+  radial-gradient(ellipse 85% 70% at 50% -23%,#5b487354,transparent 65%),
+  radial-gradient(ellipse 58% 48% at 3% 55%,#184c6950,transparent 88%),
+  radial-gradient(ellipse 70% 90% at 102% 80%,#5f463b40,transparent 86%),
+  repeating-linear-gradient(93deg,transparent 0 112px,#f0c99005 113px 114px,transparent 115px 182px),
+  linear-gradient(155deg,#070b14,#111526 47%,#070b13);
+ background-attachment:fixed;
+}
+body:has(#menuScreen.atlas-screen:not([hidden])) .app{max-width:1580px}
+body:has(#menuScreen.atlas-screen:not([hidden])) .mast{
+ position:relative;padding:7px 0 15px;margin-bottom:8px;
+ border-bottom:1px solid #d7b06c37}
+body:has(#menuScreen.atlas-screen:not([hidden])) .mast::after{
+ content:"✧";position:absolute;left:50%;bottom:-13px;transform:translateX(-50%);
+ background:#101525;padding:0 12px;font:20px Georgia,serif;color:#d9b777}
+body:has(#menuScreen.atlas-screen:not([hidden])) .mast .logo{
+ border:2px double #f0d49d;border-radius:12px;
+ box-shadow:inset 0 0 16px #ffc77924,0 0 22px #f9ba6a1a;
+ background:radial-gradient(circle at 50% 34%,#645038,#1b2032 73%);
+ color:#fff1cc}
+body:has(#menuScreen.atlas-screen:not([hidden])) .mast .brandtitle{
+ color:#fff3d8;letter-spacing:.12em;text-shadow:0 2px 12px #120b0a}
+body:has(#menuScreen.atlas-screen:not([hidden])) .mast .subtitle{
+ color:#c5b9b0;letter-spacing:.18em}
+body:has(#menuScreen.atlas-screen:not([hidden])) .profile-hud{
+ position:relative;border:1px solid #a38e676a;border-radius:11px;
+ background:linear-gradient(110deg,#1b2538eb,#121929e8);
+ box-shadow:inset 0 1px #fff2,0 10px 24px #03060b30;
+ gap:14px;padding:13px 19px;margin:7px 0 20px;color:#c5cddd;
+}
+body:has(#menuScreen.atlas-screen:not([hidden])) .profile-hud>span{
+ padding:4px 11px;border-right:1px solid #ebd09c24}
+body:has(#menuScreen.atlas-screen:not([hidden])) .profile-hud b{color:#f4d694}
+body:has(#menuScreen.atlas-screen:not([hidden])) .xp-meter{
+ height:8px;background:#0b1220;border:1px solid #917e5980;box-shadow:inset 0 1px 4px #0009}
+body:has(#menuScreen.atlas-screen:not([hidden])) .xp-meter i{
+ background:linear-gradient(90deg,#7ba4c5,#cdbaed 65%,#f2e1a9);box-shadow:0 0 12px #cdaaf1}
+#menuScreen.fm-screen.atlas-screen #menuNav.fm-navigation.atlas-nav{
+ position:sticky;top:16px;border:2px solid #a5875675!important;
+ border-radius:19px!important;padding:17px!important;
+ background:
+  radial-gradient(ellipse at 60% -8%,#f7d7a91c,transparent 48%),
+  repeating-linear-gradient(60deg,transparent 0 13px,#fff1c703 14px,transparent 15px 32px),
+  linear-gradient(155deg,#222a3b,#111828 58%,#211c2e)!important;
+ box-shadow:0 0 0 4px #080d18,0 0 0 5px #90714f40,0 20px 43px #02050bb5,inset 0 0 20px #f9cd7811!important;
+ isolation:isolate;
+}
+#menuScreen.atlas-screen .atlas-nav::before,
+#menuScreen.atlas-screen .atlas-nav::after{
+ content:"";position:absolute;pointer-events:none;z-index:0;
+ border:1px solid #cfb68b76;width:20px;height:20px}
+#menuScreen.atlas-screen .atlas-nav::before{top:9px;left:9px;border-bottom:0;border-right:0}
+#menuScreen.atlas-screen .atlas-nav::after{right:9px;bottom:9px;border-top:0;border-left:0}
+#menuScreen.atlas-screen .atlas-nav>*{position:relative;z-index:1}
+#menuScreen.atlas-screen .atlas-brand{
+ padding:13px 7px 21px;border-bottom:1px solid #c3a36a76;position:relative}
+#menuScreen.atlas-screen .atlas-brand::after{
+ content:"◆";position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);
+ padding:0 9px;color:#e9ca85;background:#1a1f2d;font-size:15px}
+#menuScreen.atlas-screen .atlas-brand>span:first-child{
+ border-radius:50%;border:2px double #ebcc94;box-shadow:0 0 0 4px #e8c28a17,inset 0 0 20px #d8a8613c;
+ background:radial-gradient(circle,#624e3a,#131c2c 74%);color:#fff1cc}
+#menuScreen.atlas-screen .atlas-brand strong{
+ font-family:Georgia,serif;font-size:18px;letter-spacing:.1em;color:#fff0cf;text-shadow:0 0 10px #f0bf6638}
+#menuScreen.atlas-screen .atlas-brand small{letter-spacing:.19em;color:#cdbf9f}
+.atlas-brand-seal{margin-left:auto;color:#f0cf98;opacity:.8;font:26px Georgia,serif}
+#menuScreen.atlas-screen .atlas-nav-item{
+ position:relative;border-radius:10px;border:1px solid #af936c12;overflow:visible;
+ box-shadow:inset 0 0 11px #03091255;transition:transform .18s ease,border-color .18s ease}
+#menuScreen.atlas-screen .atlas-nav-item.selected{
+ border-color:rgba(var(--atlas-hue-rgb),.65)!important;
+ background:linear-gradient(120deg,rgba(var(--atlas-hue-rgb),.1),#1e2539)!important;
+ box-shadow:0 0 22px rgba(var(--atlas-hue-rgb),.09),inset 0 0 14px rgba(var(--atlas-hue-rgb),.08)}
+#menuScreen.atlas-screen .fm-group-button{
+ overflow:hidden;position:relative;border:1px solid #67718c73;border-radius:10px;
+ background:linear-gradient(140deg,#313d51,#1c263b 60%,#111a2c);
+ box-shadow:inset 0 2px #e0d5c714,inset 0 -3px #050d16aa;transition:background .2s,border-color .2s,box-shadow .2s,transform .2s}
+#menuScreen.atlas-screen .atlas-nav-item.selected .fm-group-button{
+ border-color:var(--atlas-hue)!important;
+ background:radial-gradient(ellipse at 12% 50%,rgba(var(--atlas-hue-rgb),.27),transparent 69%),linear-gradient(110deg,#35374b,#1b2134)!important;
+ box-shadow:inset 0 2px #fff4d529,0 0 14px rgba(var(--atlas-hue-rgb),.16)}
+#menuScreen.atlas-screen .fm-group-button:hover{
+ transform:translateX(2px);border-color:#f2dba8;
+ box-shadow:inset 0 2px #fff3d13b,0 0 18px #dfc28c22}
+#menuScreen.atlas-screen .fm-group-copy strong{
+ font-family:Georgia,serif;font-size:16px;font-weight:700;color:#f5e9d0;letter-spacing:.014em}
+#menuScreen.atlas-screen .fm-group-copy small{color:#b9c5d8}
+#menuScreen.atlas-screen .fm-group-icon{
+ position:relative;width:43px;flex-shrink:0;color:#e8cb8f;
+ font-size:30px;text-shadow:0 1px 13px #edc27f4d;
+ filter:drop-shadow(0 2px 3px #0006)}
+#menuScreen.atlas-screen .atlas-nav-item.selected .fm-group-icon{color:var(--atlas-hue)}
+#menuScreen.atlas-screen .fm-arrow{color:#e7d3ad}
+.atlas-nav-engraving{
+ position:absolute;right:23px;bottom:-13px;width:80px;height:50px;
+ pointer-events:none;opacity:.35;transform:rotate(-20deg);
+ background:radial-gradient(circle at 70% 50%,#dcb981,transparent 22%),
+ repeating-linear-gradient(90deg,transparent 0 6px,#f8ddaa25 7px,transparent 8px 11px);
+ mask-image:linear-gradient(90deg,transparent,#000);
+}
+#menuScreen.atlas-screen .fm-submenu{
+ padding:8px 8px 10px 54px;background:#080d1a31;
+ border-top:1px solid rgba(var(--atlas-hue-rgb),.3);gap:2px}
+#menuScreen.atlas-screen .fm-submenu>.menu-tab{
+ border-radius:4px;position:relative;transition:background .17s,color .17s;
+ font-weight:650;min-height:39px}
+#menuScreen.atlas-screen .fm-submenu>.menu-tab.active{
+ color:var(--atlas-hue);border-left:3px solid var(--atlas-hue);
+ background:linear-gradient(90deg,rgba(var(--atlas-hue-rgb),.18),transparent 90%)}
+#menuScreen.atlas-screen .fm-submenu>.menu-tab:hover:not(.active){
+ color:#ffedcf;background:#c3a97313}
+#menuScreen.atlas-screen .fm-help{
+ border-top:1px solid #d4b57e83;margin-top:13px;padding-top:20px;gap:10px}
+.atlas-help-caption{color:#c8b78f;font-size:10px;letter-spacing:.2em;font-weight:900;text-align:center}
+#menuScreen.atlas-screen .fm-rule-link{
+ position:relative;overflow:hidden;border:1px solid #f1ce85!important;
+ box-shadow:inset 0 0 17px #f2c67716,0 0 18px #facb6326;
+ background:linear-gradient(110deg,#715735,#322c34 50%,#283448)!important;
+ color:#fff3dc;font-family:Georgia,serif}
+#menuScreen.atlas-screen .fm-rule-link::after{
+ content:"";position:absolute;top:-60%;bottom:-60%;width:50px;left:-80px;
+ transform:skewX(-25deg);background:linear-gradient(90deg,transparent,#ffedc839,transparent);
+ animation:atlas-rule-glimmer 9s ease-in-out infinite;pointer-events:none}
+#menuScreen.atlas-screen .fm-rule-link strong{font-size:17px}
+#menuScreen.atlas-screen .fm-rule-link small{font-family:system-ui,sans-serif;color:#e1d2ba}
+#menuScreen.atlas-screen .fm-start-link{
+ border:1px solid #a08b698c;background:linear-gradient(#2c364b,#171f2f);
+ color:#eadfc9}
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero{
+ border:2px solid #a890647f!important;border-radius:19px!important;
+ padding:25px 27px 19px!important;min-width:0!important;overflow:hidden;
+ background:
+  radial-gradient(ellipse at 78% 37%,rgba(var(--atlas-hue-rgb),.21),transparent 45%),
+  repeating-linear-gradient(125deg,#fff2cc04 0 1px,transparent 2px 36px),
+  linear-gradient(135deg,#27334b 0%,#10182a 55%,#202037 100%)!important;
+ box-shadow:0 0 0 4px #090e19,0 0 0 5px #96744a45,0 16px 40px #0008,inset 0 1px #fae0ad38,inset 0 0 60px #03071470;
+ position:relative;isolation:isolate;
+}
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero::before{
+ content:"";position:absolute;inset:8px;border:1px solid #c8ab7040;border-radius:12px;pointer-events:none;z-index:1}
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero::after{
+ content:"";position:absolute;right:13px;top:13px;width:18px;height:18px;
+ border-top:2px solid #f1d39f9e;border-right:2px solid #f1d39f9e;
+ opacity:1;font-size:0;pointer-events:none}
+#menuScreen.atlas-screen .fm-hero-content{
+ display:grid;grid-template-columns:minmax(0,1.12fr) minmax(235px,.88fr);
+ gap:16px;align-items:center;min-height:205px;position:relative;z-index:2;}
+#menuScreen.atlas-screen .fm-hero-content>div:first-child:not(.atlas-showcase){position:relative;z-index:3}
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-eyebrow{color:var(--atlas-hue);letter-spacing:.25em;font-size:10px}
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero h1{
+ color:#fff2d3;font:700 clamp(28px,3.2vw,45px)/1.13 Georgia,serif;
+ text-shadow:0 2px 3px #080b12,0 0 28px rgba(var(--atlas-hue-rgb),.12);
+ margin:14px 0 12px;max-width:15ch;letter-spacing:.02em}
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-hero-content p{
+ color:#c6d0dc;font-size:13px;line-height:1.7;max-width:38ch}
+.atlas-showcase{position:relative;min-width:0;width:100%;height:217px;display:grid;place-items:center}
+.atlas-arcane-crest{
+ width:min(245px,90%);height:245px;position:absolute;inset:50% auto auto 50%;
+ transform:translate(-50%,-50%);color:var(--atlas-hue);
+ filter:drop-shadow(0 0 18px rgba(var(--atlas-hue-rgb),.35));
+ animation:atlas-crest-breathe 8s ease-in-out infinite;opacity:.7;pointer-events:none}
+.atlas-arcane-crest svg{display:block;width:100%;height:100%;animation:atlas-orbit 28s linear infinite}
+.atlas-showcase-cards{position:relative;width:min(270px,100%);height:208px;z-index:2}
+.atlas-preview-card{position:absolute;top:24px;left:calc(50% - 50px);height:159px;width:106px;z-index:1;
+ overflow:hidden;border:4px double #f0cf8b;border-radius:13px 13px 10px 10px;
+ box-shadow:0 0 0 1px #392a25,0 0 24px rgba(var(--atlas-hue-rgb),.2),0 9px 20px #03040cc9;
+ padding:5px;background:linear-gradient(145deg,#c9a673,#2c2731 20%,#131c2c 80%,#d6b27e);
+ transform-origin:50% 85%;pointer-events:none}
+.atlas-preview-card::before,.atlas-preview-card::after{position:absolute;content:"";inset:1px;border:1px solid #fff4c54b;border-radius:8px;pointer-events:none;z-index:4}
+.atlas-preview-card::after{inset:-30%;border:0;border-radius:0;
+ background:linear-gradient(115deg,transparent 38%,#fff0 46%,#fff9 50%,#fff0 54%,transparent 62%);
+ transform:translateX(-70%);animation:atlas-foil 8s ease-in-out infinite;animation-delay:2s}
+.atlas-preview-card img{width:100%;height:100%;object-fit:cover;border-radius:5px;filter:saturate(1.07);display:block}
+.atlas-preview-corner{position:absolute;top:3px;left:5px;z-index:5;color:#fff8de;text-shadow:0 0 8px #ffe8aa;font-size:15px}
+.atlas-preview-footer{
+ position:absolute;bottom:6px;right:8px;z-index:4;background:#111629d9;border:1px solid #f1d08a;
+ border-radius:4px;padding:2px 5px;font-size:9px;font-weight:800;color:#ffe9ae}
+.atlas-preview-0{transform:rotate(-16deg) translate(-61px,9px);z-index:1}
+.atlas-preview-1{transform:rotate(0) translate(0,-6px);z-index:3;box-shadow:0 0 0 1px #392a25,0 0 29px rgba(var(--atlas-hue-rgb),.35),0 16px 27px #03040cd9}
+.atlas-preview-2{transform:rotate(15deg) translate(60px,9px);z-index:2}
+.atlas-showcase-dust{position:absolute;width:5px;height:5px;background:#ffedc6;box-shadow:0 0 11px #f5d89f;z-index:2;pointer-events:none;
+ border-radius:50%;animation:atlas-mote 5.5s ease-in-out infinite}
+.atlas-dust-one{top:15%;left:15%;animation-delay:-2s}
+.atlas-dust-two{bottom:15%;right:9%;animation-delay:-4.5s}
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-hero-utility{
+ display:flex;flex:initial;align-items:center;justify-content:space-between;flex-wrap:wrap;
+ min-width:0;width:100%;gap:14px;margin-top:12px;padding:15px 2px 1px;
+ border-top:1px solid #d9be8861;position:relative;z-index:3;
+}
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-hero-rules{
+ position:relative;flex:0 1 auto;min-height:42px;padding:10px 16px;
+ border:1px solid #d8b674;border-radius:8px;
+ background:linear-gradient(110deg,#5b4630,#2a3141)!important;
+ color:#fff1cf;box-shadow:inset 0 1px #f8d6a535;
+ font-family:Georgia,serif;letter-spacing:.02em;font-weight:700;cursor:pointer}
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-hero-utility label{
+ display:flex;align-items:center;gap:11px;font-weight:750;color:#d1c4b0}
+#menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-hero-utility select{
+ background:linear-gradient(#28344a,#172236);
+ border:1px solid #bca477;color:#fff5dd;border-radius:7px;
+ min-width:160px;width:auto;min-height:41px;font:700 12px system-ui,sans-serif;padding:7px 9px}
+#menuScreen.atlas-screen .atlas-content{min-width:0}
+.atlas-content-banner{
+ position:relative;display:flex;align-items:center;justify-content:space-between;gap:14px;
+ margin:0 0 18px;padding:12px 18px 13px;
+ border-bottom:1px solid rgba(var(--atlas-hue-rgb),.58);
+ background:linear-gradient(90deg,rgba(var(--atlas-hue-rgb),.09),transparent 75%);
+ border-radius:8px 8px 0 0;
+}
+.atlas-content-kicker{display:flex;align-items:center;gap:13px}
+.atlas-kicker-mark{font:31px Georgia,serif;color:var(--atlas-hue);width:36px;text-align:center;text-shadow:0 0 18px rgba(var(--atlas-hue-rgb),.23)}
+.atlas-content-kicker small{display:block;color:var(--atlas-hue);font:800 10px/1.5 system-ui,sans-serif;letter-spacing:.17em}
+.atlas-content-kicker strong{display:block;color:#dfd4c0;font:600 12px/1.6 system-ui,sans-serif;letter-spacing:.07em}
+.atlas-divider-symbol{color:var(--atlas-hue);letter-spacing:.2em;font-size:15px;opacity:.7}
+#menuScreen.atlas-screen .atlas-etched-panel{
+ position:relative;isolation:isolate;
+ border:1px solid #9b815a88!important;border-radius:13px!important;
+ background:
+  linear-gradient(145deg,#fff2cb08,transparent 30%),
+  radial-gradient(ellipse at 98% 6%,rgba(var(--atlas-hue-rgb),.065),transparent 48%),
+  linear-gradient(155deg,#242f45,#131d2d 77%,#1b2334)!important;
+ box-shadow:0 1px 0 #fce5ae24 inset,0 0 0 3px #09101d87,0 14px 26px #0004;
+}
+#menuScreen.atlas-screen .atlas-etched-panel::before{
+ content:"";position:absolute;inset:5px;border:1px solid #f7dcad1e;border-radius:8px;
+ pointer-events:none;z-index:-1}
+#menuScreen.atlas-screen .atlas-etched-panel::after{
+ content:"✦";position:absolute;top:8px;right:11px;
+ color:rgba(var(--atlas-hue-rgb),.42);font:18px Georgia,serif;pointer-events:none}
+#menuScreen.atlas-screen .atlas-etched-panel h2,
+#menuScreen.atlas-screen .fm-perk-intro h2{
+ color:#f9e9c9;font:700 clamp(19px,1.7vw,25px)/1.23 Georgia,serif;
+ letter-spacing:.01em}
+#menuScreen.atlas-screen .atlas-etched-panel h2::before{
+ content:"◆";display:inline-block;font:11px Georgia,serif;vertical-align:middle;margin-right:10px;color:var(--atlas-hue)}
+#menuScreen.atlas-screen .atlas-etched-panel p{color:#c8d2e1;font-size:13px;line-height:1.72}
+#menuScreen.atlas-screen .opponent-card.atlas-etched-panel{
+ border-color:#9a805b99!important;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+#menuScreen.atlas-screen .opponent-card.atlas-etched-panel:hover{
+ transform:translateY(-3px);border-color:var(--atlas-hue)!important;
+ box-shadow:0 1px 0 #ffe8bd3a inset,0 0 0 3px #101525,0 18px 35px #01040995}
+#menuScreen.atlas-screen .opponent-seal{
+ border:2px double #eed19f;border-radius:50%;
+ background:radial-gradient(circle at 50% 40%,#a07a4538,#202438 77%);
+ box-shadow:inset 0 0 11px #f8d9a31c,0 0 0 3px #efca791a;color:#f1d5a0}
+#menuScreen.atlas-screen .atlas-etched-panel .btn,
+#menuScreen.atlas-screen .fm-submenu .menu-tab{position:relative}
+#menuScreen.atlas-screen .btn:not(.primary){
+ border-color:#8892a58c;background:linear-gradient(180deg,#35425a,#202b40);
+ color:#f5ead8;box-shadow:inset 0 1px #fff2,inset 0 -2px #070e1d54;
+ transition:background .2s,border-color .2s,box-shadow .2s,transform .2s}
+#menuScreen.atlas-screen .btn:not(.primary):hover:not(:disabled){
+ border-color:var(--atlas-hue);background:linear-gradient(180deg,#46516b,#2c3650);
+ box-shadow:inset 0 1px #ffeacc39,0 0 12px rgba(var(--atlas-hue-rgb),.14)}
+#menuScreen.atlas-screen .btn.primary{
+ border:1px solid #ffe4ac!important;border-radius:8px;color:#22212b!important;
+ background:linear-gradient(180deg,#ffe6ad 0%,#e9c580 45%,#ad8046 100%)!important;
+ box-shadow:inset 0 1px #fffae9,0 3px 0 #624420,0 9px 20px #e6b26024;font-weight:900;
+ text-shadow:0 1px #ffedbc88}
+#menuScreen.atlas-screen .btn.primary:hover:not(:disabled){
+ filter:brightness(1.06);box-shadow:inset 0 1px #fff,0 3px 0 #73502e,0 0 18px #ffdb8c7b}
+#menuScreen.atlas-screen button:focus-visible,#menuScreen.atlas-screen select:focus-visible,
+#menuScreen.atlas-screen input:focus-visible,#menuScreen.atlas-screen summary:focus-visible{
+ outline:2px solid #ffe0a1!important;outline-offset:3px!important}
+#menuScreen.atlas-screen button:disabled{cursor:not-allowed;filter:saturate(.68);opacity:.56}
+#menuScreen.atlas-screen .fm-perk-intro{border-color:#c3ad877d!important}
+#menuScreen.atlas-screen .fm-perk-card{
+ border-color:#a48c638c;background:linear-gradient(150deg,#26354a,#171e32);
+ border-radius:13px;box-shadow:inset 0 1px #fff1ca25,0 9px 25px #0004}
+#menuScreen.atlas-screen .fm-perk-head strong{color:#f8e6bf;font-family:Georgia,serif;font-size:17px}
+#menuScreen.atlas-screen .fm-perk-head span{color:var(--atlas-hue)}
+#menuScreen.atlas-screen .fm-perk-ranks i{height:7px;border:1px solid #6a6c77}
+#menuScreen.atlas-screen .fm-perk-ranks i.filled{
+ border-color:#f0cf8a;background:linear-gradient(#fff1b5,#b78445);
+ box-shadow:0 0 6px #f6cb7c54}
+#menuScreen.atlas-screen progress{
+ overflow:hidden;border-radius:6px;border:1px solid #b99e6a71;
+ height:12px;background:#091322;accent-color:var(--atlas-hue)}
+#menuScreen.atlas-screen progress::-webkit-progress-bar{background:#08101e}
+#menuScreen.atlas-screen progress::-webkit-progress-value{
+ background:linear-gradient(90deg,#86653f,var(--atlas-hue),#fff1b9);border-radius:5px}
+#menuScreen.atlas-screen progress::-moz-progress-bar{
+ background:linear-gradient(90deg,#86653f,var(--atlas-hue),#fff1b9)}
+#menuScreen.atlas-screen .fm-lexicon-intro{
+ border-color:#e0bd7d!important;background:linear-gradient(120deg,#3b3450,#1a293b)!important}
+#menuScreen.atlas-screen .fm-lexicon-links button{
+ border:2px double #d8b880;box-shadow:inset 0 0 17px #ddc0961c;
+ background:linear-gradient(120deg,#30354e,#182338);color:#fff0d4}
+#menuScreen.atlas-screen .fm-lexicon-links button:hover{box-shadow:0 0 18px #f8d89330}
+#menuScreen.atlas-screen .fm-lexicon-links strong{font-family:Georgia,serif;font-size:17px}
+#menuScreen.atlas-screen .fm-lexicon-links small{font-size:12px}
+#menuScreen.atlas-screen .royal-fate-entry{
+ background:linear-gradient(110deg,#463751,#16293e);border-color:#b69adb}
+#menuScreen.atlas-screen .fm-extra-info{
+ background:linear-gradient(#28334a,#172136);border-color:#b19a7770}
+#menuScreen.atlas-screen .fm-extra-info summary{color:#f4dcae}
+/* Challenges deliberately retain their own cards, trial panels and reward colors. */
+#menuScreen.atlas-screen[data-atlas-theme="violet"] .lesson-card,
+#menuScreen.atlas-screen[data-atlas-theme="violet"] .evo-mode,
+#menuScreen.atlas-screen[data-atlas-theme="violet"] .evo-quest{
+ box-shadow:0 10px 28px #0003}
+/* Responsive card art remains visually connected without obscuring actions. */
+@media(max-width:1120px){
+ #menuScreen.atlas-screen .fm-hero-content{grid-template-columns:minmax(0,1fr) 210px}
+ .atlas-showcase{height:200px}
+ .atlas-showcase-cards{transform:scale(.82)}
+ .atlas-arcane-crest{transform:translate(-50%,-50%) scale(.85)}
+}
+@media(max-width:980px){
+ #menuScreen.fm-screen.atlas-screen #menuNav.fm-navigation.atlas-nav{position:relative;top:auto}
+ #menuScreen.atlas-screen .fm-hero-content{grid-template-columns:minmax(0,1fr) minmax(185px,.65fr)}
+}
+@media(max-width:650px){
+ #menuScreen.fm-screen.atlas-screen #menuNav.fm-navigation.atlas-nav{padding:13px!important}
+ #menuScreen.atlas-screen .fm-hero-content{grid-template-columns:minmax(0,1fr) 112px;gap:6px;min-height:170px}
+ #menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero{padding:19px 16px!important}
+ #menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero h1{font-size:clamp(24px,6vw,32px);max-width:14ch}
+ #menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-hero-content p{font-size:11px;line-height:1.55}
+ .atlas-showcase{height:150px;width:120px}
+ .atlas-showcase-cards{width:106px;height:155px;transform:none}
+ .atlas-arcane-crest{transform:translate(-50%,-50%) scale(.48)}
+ .atlas-preview-card{height:139px;width:92px;left:8px;top:8px}
+ .atlas-preview-0,.atlas-preview-2{display:none}
+ .atlas-preview-1{transform:rotate(9deg) translate(0,0)}
+ .atlas-divider-symbol{display:none}
+ .atlas-content-banner{padding:10px 12px}
+ #menuScreen.atlas-screen .atlas-brand strong{font-size:15px}
+ #menuScreen.atlas-screen .fm-group-copy strong{font-size:13px}
+ #menuScreen.atlas-screen .fm-group-icon{font-size:25px}
+ #menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-hero-utility{gap:10px}
+ #menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero .fm-hero-utility select{width:auto;min-width:125px}
+}
+@media(max-width:390px){
+ #menuScreen.atlas-screen .fm-hero-content{grid-template-columns:minmax(0,1fr) 86px}
+ .atlas-showcase{width:86px}.atlas-showcase-cards{width:86px}
+ .atlas-preview-card{width:75px;height:119px;left:4px;top:16px}
+ #menuScreen.fm-screen.atlas-screen #menuHero.atlas-hero h1{font-size:22px}
+}
+@keyframes atlas-foil{0%,25%{transform:translateX(-90%) skewX(-20deg)}55%,100%{transform:translateX(190%) skewX(-20deg)}}
+@keyframes atlas-rule-glimmer{0%,66%{left:-100px}84%,100%{left:120%}}
+@keyframes atlas-orbit{to{transform:rotate(360deg)}}
+@keyframes atlas-crest-breathe{50%{opacity:.95;filter:drop-shadow(0 0 25px rgba(var(--atlas-hue-rgb),.45))}}
+@keyframes atlas-mote{0%,100%{opacity:.15;transform:translateY(14px)}50%{opacity:.95;transform:translateY(-16px)}}
+@media(prefers-reduced-motion:reduce){
+ #menuScreen.atlas-screen *,#menuScreen.atlas-screen *::before,#menuScreen.atlas-screen *::after{
+ animation:none!important;transition:none!important;scroll-behavior:auto!important}
+ #menuScreen.atlas-screen .fm-group-button:hover{transform:none}
+ #menuScreen.atlas-screen .opponent-card:hover{transform:none}
+}
+
+
+/* The handbook and onboarding books are part of the archive experience. */
+body:has(#menuScreen.atlas-screen:not([hidden])) .modal.arcane-rule-modal,
+body:has(#menuScreen.atlas-screen:not([hidden])) .modal.guide-modal,
+body:has(#menuScreen.atlas-screen:not([hidden])) .modal.royal-gallery-modal{
+ border:2px solid #bea174!important;border-radius:18px!important;
+ background:
+  radial-gradient(ellipse at 48% 0%,#604b5a38,transparent 52%),
+  linear-gradient(155deg,#252e41,#111827 70%,#202338)!important;
+ box-shadow:0 0 0 5px #080b14,0 0 0 6px #b995613d,0 35px 110px #000c,inset 0 0 45px #070b176b!important;
+}
+body:has(#menuScreen.atlas-screen:not([hidden])) .modal.arcane-rule-modal::before,
+body:has(#menuScreen.atlas-screen:not([hidden])) .modal.guide-modal::before{
+ border:1px solid #d9b8796b!important;pointer-events:none}
+body:has(#menuScreen.atlas-screen:not([hidden])) .modal.arcane-rule-modal h2,
+body:has(#menuScreen.atlas-screen:not([hidden])) .modal.guide-modal h2{
+ color:#ffeed0!important;text-shadow:0 2px 8px #0009;
+ font-family:Georgia,serif}
+body:has(#menuScreen.atlas-screen:not([hidden])) .arcane-handbook .royal-handbook-intro{
+ position:relative;border:1px solid #cda76e8e;background:
+  radial-gradient(ellipse at 85% 20%,#e7c98813,transparent 45%),
+  linear-gradient(135deg,#333348,#19273b 80%);box-shadow:inset 0 1px #ffffff2c;
+}
+body:has(#menuScreen.atlas-screen:not([hidden])) .arcane-handbook .royal-handbook-intro h3{
+ font:700 21px Georgia,serif;color:#fff1d0}
+body:has(#menuScreen.atlas-screen:not([hidden])) .arcane-rule-chapter{
+ border:1px solid #9f876280;border-radius:10px;background:linear-gradient(132deg,#253248,#151d30);
+ box-shadow:inset 0 1px #ffe4b312}
+body:has(#menuScreen.atlas-screen:not([hidden])) .arcane-rule-chapter[open]{
+ border-color:#e0bd7f;box-shadow:inset 0 1px #ffe4b326,0 0 17px #ddbe7c12}
+body:has(#menuScreen.atlas-screen:not([hidden])) .arcane-rule-chapter>summary{
+ color:#f4dfb5;font-family:Georgia,serif;letter-spacing:.015em}
+body:has(#menuScreen.atlas-screen:not([hidden])) .arcane-rule-chapter>summary:hover{
+ background:linear-gradient(90deg,#cab1791d,transparent 86%)}
+body:has(#menuScreen.atlas-screen:not([hidden])) .royal-rule-directory button{
+ border:1px solid #c3ab7d80;background:linear-gradient(#344158,#1b2c41);
+ color:#fff2d2}
+body:has(#menuScreen.atlas-screen:not([hidden])) .royal-rule-directory button:hover{border-color:#ffe5b0}
+body:has(#menuScreen.atlas-screen:not([hidden])) .guide-spread{
+ border:1px solid #cdac74;background:#211e2f;box-shadow:0 0 0 3px #0b0f1c}
+body:has(#menuScreen.atlas-screen:not([hidden])) .guide-page{
+ border:2px double #9c703d;border-radius:6px;
+ background:
+  repeating-linear-gradient(18deg,transparent 0 10px,#794b1511 11px,transparent 12px 24px),
+  linear-gradient(155deg,#fff2da,#ddc8a4 75%,#caa979);
+ color:#2f2b29;box-shadow:inset 0 0 24px #7655332e}
+body:has(#menuScreen.atlas-screen:not([hidden])) .guide-page h3{color:#613a29;font:700 23px Georgia,serif}
+body:has(#menuScreen.atlas-screen:not([hidden])) .guide-page .royal-guide-flow>div{
+ border-color:#926e4a;background:#efe2c7}
+body:has(#menuScreen.atlas-screen:not([hidden])) .guide-page .royal-guide-flow strong{
+ color:#603d2d}
+body:has(#menuScreen.atlas-screen:not([hidden])) .guide-page .royal-guide-flow span{
+ color:#514333}
+body:has(#menuScreen.atlas-screen:not([hidden])) .guide-page .royal-guide-note{
+ background:#b89a6433;color:#392e25;border-left-color:#a27639}
+body:has(#menuScreen.atlas-screen:not([hidden])) .modal .btn.primary{
+ background:linear-gradient(#f9e1a9,#d6af68 63%,#a57844);
+ color:#1b2331;border-color:#ffe7b6}
+body:has(#menuScreen.atlas-screen:not([hidden])) .modal :is(button,summary,input):focus-visible{
+ outline:2px solid #ffe1aa;outline-offset:3px}
+
+/* Special utility surfaces feel like engraved objects, not generic forms. */
+#menuScreen.atlas-screen .deck-editor-toolbar{
+ background:linear-gradient(110deg,#604d3b30,#25344a44);
+ border:1px solid #c8ab7978;border-radius:10px;padding:10px 13px;
+}
+#menuScreen.atlas-screen .collection-filters{
+ border-color:#b6a07b!important;background:linear-gradient(145deg,#283b4b,#182336)!important;
+}
+#menuScreen.atlas-screen .collection-filters input,
+#menuScreen.atlas-screen .collection-filters select,
+#menuScreen.atlas-screen .menu-panel select{
+ border:1px solid #bca577;background:#152238;color:#fff1dc;border-radius:7px;
+}
+#menuScreen.atlas-screen .collection-item.atlas-etched-panel{
+ border:1px solid #a38b6580!important;
+ background:linear-gradient(#222c3f,#111c2e)!important}
+#menuScreen.atlas-screen .collection-item.chosen{border-color:#a3d7b7!important}
+#menuScreen.atlas-screen .reset-panel{border-color:#bd8b725e!important}
+#menuScreen.atlas-screen .reset-panel h2{color:#f3be99!important}
+@media(prefers-reduced-motion:reduce){
+ body:has(#menuScreen.atlas-screen:not([hidden])) .modal *,
+ body:has(#menuScreen.atlas-screen:not([hidden])) .modal *::before,
+ body:has(#menuScreen.atlas-screen:not([hidden])) .modal *::after{animation:none!important;transition:none!important}
+}
+
+/* Mobile GPU budget: preserve the fantasy look without a fixed painted canvas. */
+@media(max-width:650px){
+ body:has(#menuScreen.atlas-screen:not([hidden])){background-attachment:scroll}
+ #menuScreen.atlas-screen .atlas-etched-panel{box-shadow:inset 0 1px #fce5ae20,0 7px 17px #0005}
+}
+/* The optional auto-run information stays secondary to duel and deck actions. */
+#menuScreen.atlas-screen .auto-history,
+#menuScreen.atlas-screen .evo-quests{border-color:#9384a46b}
+
+
+/* Remaining utility views: statistics, progress and card management. */
+#menuScreen.atlas-screen .atlas-etched-panel h3{
+ color:#efdbb2;font:700 clamp(15px,1.5vw,19px)/1.3 Georgia,serif}
+#menuScreen.atlas-screen .history-table,
+#menuScreen.atlas-screen .arcane-rule-table{
+ width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;
+ border:1px solid #b0977280;border-radius:9px;background:#0f192b}
+#menuScreen.atlas-screen .history-table th,
+#menuScreen.atlas-screen .arcane-rule-table th{
+ color:#ffebbf;background:linear-gradient(#374256,#243249);
+ border-bottom:1px solid #b49a6c;text-align:left;font:750 12px system-ui,sans-serif}
+#menuScreen.atlas-screen .history-table td,
+#menuScreen.atlas-screen .arcane-rule-table td{
+ border-bottom:1px solid #ffffff14;color:#dde3ef}
+#menuScreen.atlas-screen .history-table tr:last-child td,
+#menuScreen.atlas-screen .arcane-rule-table tr:last-child td{border-bottom:0}
+#menuScreen.atlas-screen .table-scroll{border-radius:10px}
+#menuScreen.atlas-screen .stat-box,
+#menuScreen.atlas-screen .evo-quest{
+ border-color:#a98e6f70;box-shadow:inset 0 1px #fff1d51a}
+#menuScreen.atlas-screen .shard-strip span{
+ border:1px solid #a58b6c80;background:#1a2538;color:#e2d9c6}
+#menuScreen.atlas-screen .unknown-card{
+ border:1px dashed #9e8f9c;background:
+ radial-gradient(ellipse at 50% 32%,#8a78b31e,transparent 58%),linear-gradient(#263146,#111a2d);
+ color:#aeb9cf}
+#menuScreen.atlas-screen .deck-editor-shell{padding:clamp(15px,2vw,24px)}
+#menuScreen.atlas-screen .loot-banner{border-color:#8ecaa9;background:#1a3836;color:#dcf4e8!important}
+#menuScreen.atlas-screen .error-note{color:#ffc59d!important}
+#menuScreen.atlas-screen .pack-shortcut{border-color:#af9265}
+
+/* October UX: isolated navigation scroll and readable card details */
+@media(min-width:981px){
+ #menuScreen.fm-screen.atlas-screen #menuNav.fm-navigation.atlas-nav{
+  max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;
+  scrollbar-color:#c0a477 #192131;scrollbar-width:thin;
+ }
+}
+#menuScreen .deck-side-preview .deck-side-sticky{position:static!important;top:auto!important}
+#menuScreen .deck-preview-head h3{font-size:clamp(19px,1.7vw,26px)!important;line-height:1.25!important}
+#menuScreen .deck-preview-desc,#menuScreen .deck-preview-meta p,#menuScreen .deck-family small{font-size:13px!important;line-height:1.6!important}
+#menuScreen .deck-side-preview{scroll-margin-top:20px}
+#menuScreen .deck-preview-card .card-name,#duelScreen #largeCardPreview .card-name{font-size:clamp(18px,1.7vw,24px)!important;line-height:1.15!important}
+#menuScreen .deck-preview-card .stat-value,#duelScreen #largeCardPreview .stat-value{font-size:clamp(20px,2vw,29px)!important}
+#menuScreen .deck-preview-pills,#menuScreen .deck-family-levels{font-size:13px!important}
+#menuScreen .menu-panel button[data-action="loot"],#menuScreen .menu-panel button[data-action="dropchance"]{font-size:13px!important;padding:9px 12px!important}
+#duelScreen .stage-card{cursor:pointer}
+#duelScreen .stage-card:has(.hand-card):hover{filter:brightness(1.08)}
+#duelScreen .fusion-mystery{display:flex;flex-direction:column;align-items:center;gap:8px;min-height:190px;justify-content:center}
+#duelScreen .fusion-sigil,.fusion-choice-modal .fusion-sigil{font-size:39px;color:#ead19b;text-shadow:0 0 20px #dfbf74b0}
+.fusion-choice-modal .fusion-mystery{min-height:200px;text-align:center}
+.fusion-choice-modal .fusion-mystery h3{font-size:16px;color:#edd7b2}
+.fusion-choice-modal .fusion-mystery p{font-size:12px}
