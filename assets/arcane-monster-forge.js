@@ -12,11 +12,11 @@
  const usedCopies=id=>Math.max(0,...profile.slots.map(s=>s.main.filter(x=>x===id).length),
   profile.activeDeck.filter(x=>x===id).length);
  const free=id=>Math.max(0,(profile.inventory[id]||0)-usedCopies(id));
- const available=root=>Array.from({length:12},(_,i)=>i+1).filter(lv=>stage(root,lv)!=null);
+ const available=root=>Array.from({length:10},(_,i)=>i+1).filter(lv=>stage(root,lv)!=null);
  function parseRecipe(value){
   if(!/^\s*\d+(?:\s*[+,]\s*\d+)*\s*$/.test(String(value||'')))return null;
   const parts=String(value).split(/[+,]/).map(n=>Number(n.trim()));
-  return parts.length>=1&&parts.length<=12&&parts.every(n=>Number.isInteger(n)&&n>=1&&n<=12)?parts:null;
+  return parts.length>=1&&parts.length<=10&&parts.every(n=>Number.isInteger(n)&&n>=1&&n<=10)?parts:null;
  }
  function findComposition(root,target){
   const caps=available(root).filter(lv=>lv<target).map(lv=>({lv,available:free(stage(root,lv))})).filter(x=>x.available);
@@ -99,7 +99,7 @@
    '<label>Gewünschte niedrigere Stufen<input type="text" id="arcaneForgeSplitRecipe" value="'+esc(splitText)+'" placeholder="z. B. 3+3+1"></label>'+
    '<p>Beispiele für eine LV-7-Karte: 3+3+1, 2+2+2+1 oder siebenmal 1. Alle Summen müssen exakt aufgehen.</p>'+
    btn('split','Monster zerlegen')+'</div></div>'+
-   '<p class="arcane-forge-limit">Stufenbegrenzung durch den Turnierfortschritt. Level 11 und 12 bleiben für zukünftige Inhalte gesperrt. Essenzmonster, ACE- und Fusionskarten sind ausgeschlossen.</p>';
+   '<p class="arcane-forge-limit">Stufenbegrenzung durch den Turnierfortschritt. Level 10 ist die maximale Monsterstufe im regulären Turnier. Level 11 und 12 erscheinen erst in einer späteren Erweiterung. Essenzmonster, ACE- und Fusionskarten sind ausgeschlossen.</p>';
   target.prepend(area);
  }
  const oldMenu=renderMenu;
