@@ -134,10 +134,11 @@
 }
 .ritual-overlay.evo-phase-rolls .evo-fusion-result.monster-card{
  animation:ritual-card-aura 1.35s ease-in-out infinite alternate!important;
- opacity:1!important;transform:translateX(-50%)!important;
+ opacity:1;transform:translateX(-50%)!important;
 }
 .ritual-overlay.evo-phase-landing .evo-fusion-result.monster-card{
- animation:none!important;opacity:1!important;transform:translateX(-50%);
+ animation:none!important;transform:translateX(-50%);
+ /* No !important opacity: Web Animations must be allowed to fade during the flight. */
 }
 .ritual-overlay.ritual-screen-shake .ritual-window{
  animation:ritual-window-shake .135s linear 3!important;
