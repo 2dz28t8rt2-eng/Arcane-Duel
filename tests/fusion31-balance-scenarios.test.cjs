@@ -141,7 +141,47 @@ function makeScenarioForVm(){
   }
   return rows;
  }
- globalThis.runAuditDuels=runAuditDuels;globalThis.runAuditFusions=runAuditFusions;
+
+ function runRoleBench(){
+  const out=[];
+  const roles=[
+   {name:'Predator (nur normal)',roles:['predator'],policy:'offensive'},
+   {name:'Wächter (nur normal)',roles:['guardian','soul'],policy:'guardian'},
+   {name:'Gemischt (nur normal)',roles:[],policy:'balanced'}
+  ];
+  for(const tier of [4,7,10]){
+   const cap=tier===4?6:tier===7?8:10;
+   const available=[...ARCANE_STAGE_IDS.values()].map(id=>CARDS[id]).filter(c=>c&&!c.retired&&c.level<=cap);
+   for(const archetype of roles){
+    const pick=archetype.roles.length?available.filter(c=>archetype.roles.includes(c.role)):available;
+    const byLevel=lv=>pick.filter(c=>c.level===lv).sort((a,b)=>
+     archetype.name.startsWith('Wächter')?b.def-a.def:b.atk-a.atk);
+    const cards=[...new Map([...byLevel(cap).slice(0,8),...byLevel(Math.max(1,cap-1)).slice(0,5),
+     ...byLevel(Math.max(1,cap-2)).slice(0,5),...pick.sort((a,b)=>b.level-a.level)]
+      .map(c=>[c.id,c])).values()].slice(0,14);
+    if(cards.length<14)throw Error('Insufficient role cards '+archetype.name+' at '+tier);
+    const deck=cards.flatMap(c=>[c.id,c.id,c.id]).slice(0,40);
+    if(mainDeckError(deck))throw Error('Invalid role deck '+archetype.name+' / '+tier);
+    for(let i=0;i<24;i++){
+     const seed=44117+tier*1009+i*83;
+     auditPolicy='normal-only';
+     profile.cleared=Array.from({length:tier-1},(_,i)=>i+1);
+     const g=createGame({mode:'pve',context:'tournament',opponentId:tier,seed,starter:i%2,
+      deck,fusionDeck:RPG_START_FUSIONS});
+     simulateGame(g,archetype.policy);
+     if(g.winner!==0&&g.winner!==1)throw Error('Unfinished role fight');
+     out.push({archetype:archetype.name,tier,cap,seed,win:g.winner===0,halfTurns:g.turn,
+      damage:g.damageDealt[0],leftLP:g.players[0].lp,
+      playerFusions:g.totalFusions[0],opponentFusions:g.totalFusions[1],
+      remainingField:g.players[0].field.filter(Boolean).length,
+      remainingEnemyField:g.players[1].field.filter(Boolean).length});
+    }
+   }
+  }
+  auditPolicy='default';
+  return out;
+ }
+ globalThis.runAuditDuels=runAuditDuels;globalThis.runAuditFusions=runAuditFusions;globalThis.runRoleBench=runRoleBench;
 }
 test('Fusion 3.1 paired individual duels: normal-only, default, fusion-seeking',()=>{
  const values=vm.runInContext('runAuditDuels()',boot(),{timeout:120000}),result=[];
@@ -177,4 +217,21 @@ test('Fusion 3.1 280 rolled actual fusion outcomes: normal, poker and risk',()=>
  console.log('FUSION31_STATS_BY_RECIPE '+JSON.stringify(report));
  assert.equal(rows.length,280);
  assert.ok(rows.some(r=>r.ratio<1)&&rows.some(r=>r.ratio>1));
+});
+
+
+test('Role benchmark: pure Predator vs pure Guardian vs mixed, no player fusions, same seeds',()=>{
+ const duels=vm.runInContext('runRoleBench()',boot(),{timeout:120000}),result=[];
+ for(const tier of [4,7,10])for(const archetype of ['Predator (nur normal)','Wächter (nur normal)','Gemischt (nur normal)']){
+  const rows=duels.filter(r=>r.tier===tier&&r.archetype===archetype);
+  result.push({tier,archetype,duels:rows.length,wins:rows.filter(r=>r.win).length,
+   meanHalfTurns:+(rows.reduce((a,b)=>a+b.halfTurns,0)/rows.length).toFixed(2),
+   meanDamage:+(rows.reduce((a,b)=>a+b.damage,0)/rows.length).toFixed(0),
+   meanRemainingLP:+(rows.reduce((a,b)=>a+b.leftLP,0)/rows.length).toFixed(0),
+   meanRemainingMonsters:+(rows.reduce((a,b)=>a+b.remainingField,0)/rows.length).toFixed(2)});
+ }
+ console.log('FUSION31_ROLE_ONLY_DUELS '+JSON.stringify(result));
+ assert.equal(duels.length,216);
+ assert.ok(duels.every(r=>r.playerFusions===0),'no player fusions, actual role-only strategy');
+ assert.ok(duels.every(r=>r.halfTurns>=1&&r.halfTurns<250));
 });
