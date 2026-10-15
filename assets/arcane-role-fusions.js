@@ -49,6 +49,27 @@
    ' aus '+materials.length+' Materialien; ATK '+result.card.atk+' / DEF '+result.card.def+'.');
   return result;
  };
+ // Vorstoß: charge visibly at the end of the summoning turn, ready on the
+ // following own turn. Remove its temporary +80 when that following turn ends.
+ const oldAdvanceTurn=advanceTurn;
+ advanceTurn=function(g){
+  if(g?.mode!=='pve')return oldAdvanceTurn(g);
+  const ending=g.active,turn=g.turn;
+  const cards=g.players[ending].field.filter(Boolean);
+  const toArm=cards.filter(c=>c.surgeTurn===turn+2&&!c.rushBoostActive);
+  const toExpire=cards.filter(c=>c.rushBoostActive&&c.rushUntil===turn);
+  const result=oldAdvanceTurn(g);
+  for(const c of toExpire)if(g.players[ending].field.includes(c)){
+   c.card.atk=Math.max(0,c.card.atk-c.rushBoostActive);
+   delete c.rushBoostActive;delete c.rushUntil;
+  }
+  for(const c of toArm)if(g.players[ending].field.includes(c)){
+   c.card.atk=Math.min(10000,c.card.atk+80);
+   c.rushBoostActive=80;c.rushUntil=turn+2;c.surgeTurn=0;
+   logEvent(g,dataOf(c).name+': Vorstoß ist aufgeladen (+80 ATK bis zum Ende des nächsten eigenen Zugs).');
+  }
+  return result;
+ };
  const oldShowHud=render;
  let fieldPick=false,zones=[];
  function reset(){fieldPick=false;zones=[];}
@@ -113,6 +134,14 @@
  });
  render=function(){
   oldShowHud();
+  if(game&&uiMode==='duel'){
+   for(const [row,owner,kind] of [['ownRow',game.mode==='pve'?0:game.active,'mine'],['enemyRow',game.mode==='pve'?1:1-game.active,'enemy']]){
+    $(row)?.querySelectorAll('[data-'+kind+']').forEach(slot=>{
+     const c=game.players[owner].field[Number(slot.dataset[kind])];
+     if(c?.rushBoostActive)slot.insertAdjacentHTML('beforeend','<span class="arcane-rush-ready">⚡ VORSTOSS +80</span>');
+    });
+   }
+  }
   const q=candidates();
   if(!q){if(!game?.pending||game.pending.kind!=='normal')reset();return;}
   const stage=$('summonStage');if(!stage)return;
