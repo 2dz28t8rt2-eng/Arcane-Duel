@@ -193,7 +193,73 @@ function makeScenarioForVm(){
   auditPolicy='default';
   return out;
  }
- globalThis.runAuditDuels=runAuditDuels;globalThis.runAuditFusions=runAuditFusions;globalThis.runRoleBench=runRoleBench;
+
+ function runRolePerkMatrix(){
+  const records=[];
+  const roles=[
+   {name:'Predator',class:'predator',policy:'offensive'},
+   {name:'Verteidiger',class:'guardian',policy:'guardian'},
+   {name:'Gemischt',class:'mixed',policy:'balanced'}
+  ];
+  const priorLog=logEvent;
+  logEvent=function(g,message){
+   const m=/Gegenschlag:\s*(\d+)\s*LP/.exec(message);
+   if(m){
+    g.auditCounterstrikes??=[{hits:0,damage:0},{hits:0,damage:0}];
+    const owner=1-g.active;
+    g.auditCounterstrikes[owner].hits++;
+    g.auditCounterstrikes[owner].damage+=Number(m[1]);
+   }
+   return priorLog(g,message);
+  };
+  for(const tier of [4,7,10]){
+   const cap=tier===4?6:tier===7?8:10;
+   const available=[...ARCANE_STAGE_IDS.values()].map(id=>CARDS[id]).filter(c=>c&&!c.retired&&c.level<=cap);
+   const rankBy=(role,lv)=>available.filter(c=>c.level===lv&&(
+    role==='predator'?c.role==='predator':['guardian','soul'].includes(c.role)))
+    .sort((a,b)=>role==='predator'?b.atk-a.atk:b.def-a.def);
+   for(const archetype of roles){
+    let cards;
+    if(archetype.class==='mixed')cards=['predator','guardian'].flatMap(role=>
+     [rankBy(role,cap).slice(0,3),rankBy(role,cap-1).slice(0,2),rankBy(role,cap-2).slice(0,2)].flat());
+    else cards=[...rankBy(archetype.class,cap).slice(0,8),
+     ...rankBy(archetype.class,cap-1).slice(0,5),
+     ...rankBy(archetype.class,cap-2).slice(0,5)];
+    cards=[...new Map(cards.map(c=>[c.id,c])).values()].slice(0,14);
+    if(cards.length<14)throw Error('Insufficient role cards at '+tier+' '+archetype.name);
+    const deck=cards.flatMap(c=>[c.id,c.id,c.id]).slice(0,40);
+    if(mainDeckError(deck))throw Error('Invalid role deck at '+tier+' '+archetype.name);
+    for(const rank of [0,3,5]){
+     // Pure lists spend exactly "rank" specialization levels. A mixed deck
+     // splits the same approximate budget instead of buying 2x the upgrades.
+     profile.upgrades.jagdinstinkt=archetype.class==='predator'?rank:
+      archetype.class==='mixed'?Math.floor(rank/2):0;
+     profile.upgrades.schildwall=archetype.class==='guardian'?rank:
+      archetype.class==='mixed'?Math.ceil(rank/2):0;
+     for(let i=0;i<16;i++){
+      const seed=68177+tier*1409+i*127;
+      auditPolicy='normal-only';
+      profile.cleared=Array.from({length:tier-1},(_,i)=>i+1);
+      const g=createGame({mode:'pve',context:'tournament',opponentId:tier,seed,starter:i%2,
+       deck,fusionDeck:RPG_START_FUSIONS});
+      simulateGame(g,archetype.policy);
+      if(g.winner!==0&&g.winner!==1)throw Error('Unfinished specialty fight');
+      records.push({tier,archetype:archetype.name,rank,seed,win:g.winner===0,
+       halfTurns:g.turn,ownLP:g.players[0].lp,damage:g.damageDealt[0],
+       enemyDamage:g.damageDealt[1],
+       playerFusions:g.totalFusions[0],npcFusions:g.totalFusions[1],
+       counters:g.auditCounterstrikes?.[0]?.hits||0,
+       counterDamage:g.auditCounterstrikes?.[0]?.damage||0,
+       surviving:g.players[0].field.filter(Boolean).length});
+     }
+    }
+   }
+  }
+  profile.upgrades.jagdinstinkt=0;profile.upgrades.schildwall=0;
+  auditPolicy='default';logEvent=priorLog;
+  return records;
+ }
+ globalThis.runAuditDuels=runAuditDuels;globalThis.runAuditFusions=runAuditFusions;globalThis.runRoleBench=runRoleBench;globalThis.runRolePerkMatrix=runRolePerkMatrix;
 }
 test('Fusion 3.1 paired individual duels: normal-only, default, fusion-seeking',()=>{
  const values=vm.runInContext('runAuditDuels()',boot(),{timeout:120000}),result=[];
@@ -246,4 +312,25 @@ test('Role benchmark: pure Predator vs pure Guardian vs mixed, no player fusions
  assert.equal(duels.length,216);
  assert.ok(duels.every(r=>r.playerFusions===0),'no player fusions, actual role-only strategy');
  assert.ok(duels.every(r=>r.halfTurns>=1&&r.halfTurns<250));
+});
+
+
+test('Defender vs predator speciality: 432 role-only battles with rank 0, 3, 5 and real counter damage',()=>{
+ const rows=vm.runInContext('runRolePerkMatrix()',boot(),{timeout:120000}),report=[];
+ for(const tier of [4,7,10])for(const archetype of ['Predator','Verteidiger','Gemischt'])
+  for(const rank of [0,3,5]){
+   const subset=rows.filter(r=>r.tier===tier&&r.archetype===archetype&&r.rank===rank);
+   report.push({tier,archetype,rank,fights:subset.length,wins:subset.filter(r=>r.win).length,
+    avgHalfTurns:+(subset.reduce((n,r)=>n+r.halfTurns,0)/subset.length).toFixed(2),
+    avgLP:+(subset.reduce((n,r)=>n+r.ownLP,0)/subset.length).toFixed(0),
+    avgDamage:+(subset.reduce((n,r)=>n+r.damage,0)/subset.length).toFixed(0),
+    counterHits:subset.reduce((n,r)=>n+r.counters,0),
+    totalCounterDamage:subset.reduce((n,r)=>n+r.counterDamage,0),
+    avgSurvivors:+(subset.reduce((n,r)=>n+r.surviving,0)/subset.length).toFixed(2)});
+  }
+ console.log('ROLE33_PERK_MATRIX '+JSON.stringify(report));
+ assert.equal(rows.length,432);
+ assert.ok(rows.every(r=>r.playerFusions===0&&r.halfTurns>0));
+ assert.ok(rows.some(r=>r.counterDamage>0),'defenders need to inflict real counterstrikes');
+ assert.ok(rows.some(r=>r.archetype==='Verteidiger'&&r.rank===5&&r.counterDamage>0));
 });
