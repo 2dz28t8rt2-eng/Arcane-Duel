@@ -58,6 +58,12 @@ iframe.addEventListener('load',async()=>{
   check(!field?.classList.contains('evo-fusion-awaiting')&&w.getComputedStyle(field).visibility!=='hidden','Fusionsmonster wird erst nach Kartenflug sichtbar');
   const role=field?.querySelector('.arcane-board-role');
   check(!role||w.getComputedStyle(role).display==='none','Kleine Feldkarte hat keinen sichtbaren Rollentag');
+  w.eval('game.selection={type:"field",idx:0};render()');
+  const placedCard=d.querySelector('#largeCardPreview .hand-card.tc-card');
+  const placedRole=placedCard?.querySelector('.arcane-card-role');
+  const longValues=[...placedCard?.querySelectorAll('.arcane-stat-long')||[]];
+  check(!!placedRole&&w.getComputedStyle(placedRole).display!=='none','Geerbte Rolle ist nach der Landung NUR in der großen Kartenansicht sichtbar');
+  check(longValues.length===2&&longValues.every(el=>fontSize(el)<=10.1),'Auch fünfstellige Fusionswerte bleiben sauber in beiden Zahlenkästen');
  }catch(e){fails.push(String(e));checks.push('EXCEPTION: '+String(e.stack||e).slice(0,850));}
  out.textContent=checks.join('\n');
  document.body.dataset.fusionCinemaUi=fails.length?'fail':'pass';
