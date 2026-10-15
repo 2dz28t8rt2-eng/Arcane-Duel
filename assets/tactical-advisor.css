@@ -1,0 +1,69 @@
+/* Arcane Duel – Tactical UI, visual layer. All rules stay in strategy-engine.js. */
+#menuScreen .tactic-advisor{
+ --tactic-ink:#f9ebce;--tactic-violet:#c0acf4;--tactic-green:#a0dfb2;
+ border:1px solid #d9b776!important;
+ background:
+  radial-gradient(ellipse at 94% 4%,#d7aa631c,transparent 48%),
+  linear-gradient(132deg,#30324a,#17253a 58%,#202739)!important;
+ box-shadow:inset 0 1px #f9eacb3d,0 10px 24px #0004!important;
+}
+.tactic-advisor-head{display:flex;justify-content:space-between;gap:17px;flex-wrap:wrap;align-items:center}
+.tactic-advisor-head h2{font:700 clamp(20px,2vw,27px)/1.2 Georgia,serif;color:#ffe5ac!important;margin:5px 0 8px}
+.tactic-advisor-head p{color:#ccd6e1;font-size:12px;margin:0;line-height:1.5}
+.tactic-eyebrow{font-weight:900;font-size:10px;letter-spacing:.16em;color:#d8c1f6}
+.tactic-advisor-pills{display:flex;gap:6px;flex-wrap:wrap}
+.tactic-advisor-pills span{font:750 11px system-ui,sans-serif;color:#eadab9;border:1px solid #d2b78082;
+ background:#1b2538;padding:7px 10px;border-radius:20px}
+.tactic-spotlight{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:17px 0}
+.tactic-mini-stat{min-width:0;border:1px solid #c7b07748;border-radius:10px;
+ background:linear-gradient(#101d31,#263148);padding:13px;display:flex;flex-direction:column;gap:5px}
+.tactic-mini-stat strong{font:700 clamp(16px,1.8vw,23px)/1.2 Georgia,serif;color:#ffe3a1;overflow-wrap:anywhere}
+.tactic-mini-stat span{font-size:11px;color:#d3daeb;font-weight:700}
+.tactic-mini-stat small{font-size:10px;color:#c6d8db}
+#menuScreen .tactic-expand{width:100%;min-height:45px;cursor:pointer}
+.tactic-details{margin-top:17px}
+.tactic-details[hidden]{display:none!important}
+.tactic-insights{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:9px;margin-bottom:17px}
+.tactic-insight{padding:12px;border-left:3px solid #aab4d6;border-radius:7px;
+ background:#182639;color:#c9d4e8;box-shadow:inset 0 1px #ffffff17}
+.tactic-insight strong{display:block;font-size:12px;color:#fce9c3;margin-bottom:6px}
+.tactic-insight p{font-size:11px;line-height:1.55;margin:0;color:#c6d2e1}
+.tactic-insight.tactic-strength{border-left-color:#8bd5ab}
+.tactic-insight.tactic-warning{border-left-color:#f1bd7b}
+.tactic-insight.tactic-tradeoff{border-left-color:#c6a9ef}
+.tactic-analysis-columns{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;margin:19px 0}
+.tactic-analysis-columns>section{background:#121e30ad;border:1px solid #c5a67856;border-radius:10px;padding:15px}
+.tactic-analysis-columns h3{font:700 17px Georgia,serif;color:#f6d9a5;margin:0 0 6px}
+.tactic-analysis-columns p{font-size:11px;color:#cbd6e3;line-height:1.6}
+.tactic-prob-row{display:grid;grid-template-columns:minmax(95px,1fr) minmax(70px,1fr) 59px;gap:9px;align-items:center;
+ border-bottom:1px solid #d4bd8e1a;padding:8px 0}
+.tactic-prob-row>span{font-size:11px;color:#e3e2e3}
+.tactic-prob-row>strong{font-size:11px;color:#f6dea5;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tactic-prob-track{height:8px;background:#0b1321;border:1px solid #9d8a6954;border-radius:8px;overflow:hidden}
+.tactic-prob-track i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#9b8bbb,#e9c985);
+ box-shadow:0 0 7px #c8abf080}
+.tactic-levels{display:flex;align-items:end;gap:10px;min-height:135px;padding:10px 0;
+ border-bottom:1px solid #c1ac8166}
+.tactic-level{display:flex;flex:1;flex-direction:column;justify-content:end;align-items:center;gap:5px;
+ height:130px;min-width:0;font-size:10px;color:#eedab2}
+.tactic-level i{width:min(100%,28px);background:linear-gradient(180deg,#e7c990,#6a7eac);
+ border-radius:4px 4px 0 0;box-shadow:0 0 6px #d3b9863b}
+.tactic-level strong{font-size:11px;color:#f4e3c4}
+.tactic-disclaimer{font-size:11px;color:#b5c5d6;font-style:italic;line-height:1.5;margin-bottom:0}
+.tactic-fusion-explainer{border:1px solid #b8a2e4;border-radius:11px;margin:12px 0 18px;
+ background:linear-gradient(115deg,#302b4e,#19263b);text-align:left;color:#ecdcff}
+.tactic-fusion-explainer>summary{cursor:pointer;font:800 13px system-ui,sans-serif;padding:14px;color:#f8e8b8}
+.tactic-fusion-explainer>div{padding:0 14px 13px}
+.tactic-fusion-explainer p{font-size:12px;line-height:1.6;max-width:none!important;margin:9px 0!important;color:#e1dce9}
+.tactic-fusion-explainer table{border-collapse:collapse;width:100%;min-width:410px;text-align:left;font-size:11px}
+.tactic-fusion-explainer th,.tactic-fusion-explainer td{border-bottom:1px solid #ecdbba32;padding:9px 7px;white-space:nowrap}
+.tactic-fusion-explainer thead th{background:#1a233c;color:#f9e5bc}
+.tactic-fusion-explainer tbody th{color:#ece1ff}
+.tactic-fusion-explainer .table-scroll{overflow-x:auto}
+@media(max-width:690px){
+ .tactic-spotlight{grid-template-columns:1fr 1fr}
+ .tactic-analysis-columns{grid-template-columns:1fr}
+ .tactic-prob-row{grid-template-columns:minmax(105px,1fr) minmax(45px,1fr) 60px;gap:6px}
+}
+@media(max-width:380px){.tactic-spotlight{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.tactic-prob-track i{transition:none!important}}
