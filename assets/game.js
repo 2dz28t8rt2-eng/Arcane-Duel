@@ -753,6 +753,14 @@ for(const [name,role,element,origin,kind,color] of ARCANE_NEW_FAMILIES){
 }
 // Full levels are deterministic IDs; no new copies are granted by this setup.
 
+// Normalize legacy per-card combat perks after ALL RPG templates and workshop stages
+// have been registered. General role abilities are deliberately unaffected.
+const RETIRED_SINGLE_CARD_ABILITIES=new Set(['aegis','pierce','hunt','guide','rush','guard']);
+for(const c of CARDS)if(c.rpg&&RETIRED_SINGLE_CARD_ABILITIES.has(c.ability)){
+ c.ability=undefined;
+ if(/(?:25 %|15 %|120 LP|240 LP|Fusionshilfe|Vorstoß|Durchbruch|Hüter:|Jäger:|Signatur:)/i.test(c.desc||''))
+  c.desc='Monster mit allgemeinen Klassenfähigkeiten. Individuelle Schadensboni gegen andere Monster sind deaktiviert.';
+}
 const SAVE_KEY='arcane-duel-rpg-profile-v4-reborn',LEGACY_SAVE_KEY='arcane-duel-alpha-profile-v1',PROFILE_VERSION=3,OPPONENTS=RPG_OPPONENTS;
 const UPGRADES={power:{name:'Monstertraining',desc:'Abnehmender Bonus auf alle Monster: +50/+40/+30/+20/+15/+10/+5 je weitere Stufe; gilt ab dem nächsten Duell',base:120,max:10},loot:{name:'Beutestudien',desc:'+5 % Essenz pro Stufe',base:240,max:5},learning:{name:'Werkzeugkunde',desc:'−5 % Herstellungskosten, +10 % XP pro Stufe',base:180,max:5},tempo:{name:'Trainingsroutine',desc:'Verkürzt Autokämpfe von 6 auf mindestens 3 Sekunden',base:100,max:4},starter:{name:'Grundausbildung',desc:'Je Stufe +35 ATK und +35 DEF auf die 20 ursprünglichen Startmonster.',base:60,max:8},fusionLore:{name:'Fusionskunde',desc:'Stufe 1: erster Fusionsversuch pro Duell erhält einen zusätzlichen Wertewurf (maximal vier).',base:430,max:1},resilience:{name:'Standhaftigkeit',desc:'Verlangsamt den automatischen Kreaturenzerfall eigener Monster um 3 Punkte pro Stufe (maximal zwei).',base:320,max:2},fusionPrecision:{name:'Runenpräzision',desc:'Bei Spezialfusionen mit mindestens drei Materialien je Stufe +1,5 Prozentpunkte Qualität; maximal +4,5 %, allgemeine Qualitätsobergrenze bleibt bestehen.',base:310,max:3},combatDiscipline:{name:'Kampfdisziplin',desc:'Eigene Monster verlieren pro Angriff 2 ATK weniger je Stufe: 28 / 26 / 24 statt 30.',base:260,max:3},openingAegis:{name:'Vorhut-Schutz',desc:'Zu Beginn jedes Einzelspielerduells erhältst du je Stufe 25 zusätzliche Schildpunkte (maximal +75).',base:350,max:3}};
 function monsterTrainingBonus(level){return [50,40,30,20,15,10,5,5,5,5].slice(0,Math.max(0,Math.min(10,level||0))).reduce((a,b)=>a+b,0);}
