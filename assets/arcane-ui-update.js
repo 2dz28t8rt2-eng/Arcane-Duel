@@ -72,10 +72,24 @@
   });
   const stage=$('summonStage');
   if(stage&&game.pending?.kind==='fusion'){
-   const t=dataOf(game.pending.card),m=game.pending.card.rollMath;
-    const range=stat=>{if(!m?.base)return '?';const base=m.base[stat],pen=m.penalty||0,extra=m.bonus?.[stat]||0;return fmt(Math.max(0,Math.floor(base*.88/10)*10-pen-10))+'–'+fmt(Math.max(0,Math.ceil(base*1.12/10)*10+extra-pen+10));};
-    stage.innerHTML='<div class="arcane-fusion-concealed"><span>✧ DIE FUSION IST ENTSTANDEN ✧</span>'+
-    '<strong>'+esc(t.name)+'</strong><p>Potenzial · ATK '+range('atk')+' · DEF '+range('def')+'</p><p>Wähle eine eigene Monsterzone. Die echten Würfe und Endwerte erscheinen erst in der Animation.</p></div>';
+   const card=game.pending.card,t=dataOf(card),m=card.rollMath;
+   const range=stat=>{
+    if(!m?.base)return '?';
+    const v=m.base[stat],pen=m.penalty||0,extra=m.bonus?.[stat]||0;
+    return fmt(Math.max(0,Math.floor(v*.88/10)*10-pen-10))+'–'+fmt(Math.max(0,Math.ceil(v*1.12/10)*10+extra-pen+10));
+   };
+   if(game.pending.revealed&&!game.cinemaActive){
+    // REAL first-phase end values only after the complete pre-placement ritual.
+    stage.innerHTML='<div class="stage-card arcane-fusion-ready-card">'+
+     fullCardHtml(card,'disabled','arcane-pending-fusion')+'</div>'+
+     '<div class="stage-copy"><span class="step">SCHRITT 2 · FUSION ENTHÜLLT</span>'+
+     '<b>'+esc(t.name)+' · LV '+t.level+'</b><br>ATK '+fmt(t.atk)+' / DEF '+fmt(t.def)+
+     '<br>Wähle jetzt eine Monsterzone. Auf belegten Zonen entsteht eine <b>zweite, schnellere Fusion</b>.</div>';
+   }else{
+    stage.innerHTML='<div class="arcane-fusion-concealed"><span>✧ FUSION IM RITUAL ✧</span>'+
+     '<strong>'+esc(t.name)+'</strong><p>Potenzial · ATK '+range('atk')+' · DEF '+range('def')+
+     '</p><p>Die echten Würfe werden gerade in der Fusionsanimation enthüllt.</p></div>';
+   }
   }else if(stage&&game.pending?.kind==='normal'){
    const card=stage.querySelector('.stage-card');
    if(card){card.classList.add('arcane-stage-cancel');card.title='Erneut antippen, um die Beschwörung zurückzuziehen';}
