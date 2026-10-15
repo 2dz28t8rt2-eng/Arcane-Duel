@@ -93,7 +93,7 @@
   const intake=tier>=4?1.22:tier>=2?1.08:1;
   const gain=Math.min(Math.max(0,250+lv*125-store.soul),Math.floor(earned*intake));
   store.soul+=gain;
-  if(tier>=3&&rank>=3&&drainedDef){
+  if(rank>=3&&store.drainPreference===2&&drainedDef){
    // Heal only actual DEF drained, at 30%; no overheal.
    g.players[owner].lp=Math.min(g.maxLP,g.players[owner].lp+Math.floor(drainedDef*.3));
   }
@@ -229,7 +229,7 @@
     logEvent(g,'Letztes Bollwerk: '+dataOf(d).name+' überlebt und ist für zwei weitere gegnerische Züge angriffsimmun.');
    }
    if(endDefense){q.graveyard.push(d);q.field[di]=null;destroyed.push(q.id+':'+di);}
-   if(isDefender(d)){
+   if(isDefender(d)&&s.guardLeft===0){
     const counter= Math.floor((CARDS[d.id].atk||0)*.5);
     if(counter>0){const actual=damagePlayer(g,p.id,counter);g.damageDealt[q.id]+=actual;logEvent(g,dataOf(d).name+' · Gegenschlag: '+actual+' LP.');}
    }
