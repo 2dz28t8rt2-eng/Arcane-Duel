@@ -1,6 +1,16 @@
-# Arcane Duel — Fusion Evolution · Alpha 2.5.2 (Development)
+# Arcane Duel 3.0 – Monster Reborn (Development)
 
-Die stabile Version wird weiterhin über den Branch `main` ausgeliefert. Dieser Entwicklungsstand enthält die spielbare Alpha 2.5, die die bestehenden Spielstände und Karten-IDs berücksichtigt. Vor dem Einspielen bitte einen JSON-Spielstand im Menü exportieren.
+Die stabile Version liegt auf Branch `main`; der aktuelle Entwicklungsstand wird auf `development` geprüft. **Das reguläre Turnier I–X ist auf LV 10 begrenzt.** Level 11/12 bleiben für eine spätere Post-Turnier-Erweiterung zurückgehalten und sind in den derzeitigen aktiven Karten- und Werkstattpools nicht zugänglich. Technische ID-Reservierungen bleiben zur Konsistenz bestehen. Vor großen Updates empfiehlt sich ein JSON-Spielstandexport.
+
+**Aktuelle Qualitätssicherung (15.10.2026):** 227 automatisierte Node-Tests grün, beide GitHub-Workflows erfolgreich und 216 synthetische Level-10-Vergleichsduelle gegen VIII–X. Die gesonderte reale Progressions-/Balancestudie und vollständige mobile Touch-Abnahme sind weiterhin offen.
+
+Siehe [Turnier-LV10- und QA-Bericht](tests/TOURNAMENT_LEVEL10_QA_20261015.md) für Änderungen, Testmethodik, Siege nach Spielweise und verbleibende Aufgaben.
+
+---
+
+## Historische Versionsnotizen: Fusion Evolution · Alpha 2.5.2
+
+Die folgenden Abschnitte dokumentieren frühere Entwicklungsstände und Testergebnisse; sie ersetzen nicht den oben verlinkten aktuellen QA-Bericht.
 
 ## Neue Inhalte
 
@@ -26,7 +36,7 @@ node tests/evolution-journey-run.cjs
 node tests/evolution-modes-run.cjs
 ```
 
-`npm test`: 110 automatisierte Tests, darunter Speichern und Neuladen der Fusions- und Questdaten. Die zusätzlichen Simulationsskripte schreiben JSON-Dateien mit den Ergebnissen in `tests/`.
+Historischer Stand: damals 110 automatisierte Tests. Der aktuelle 3.0-Stand umfasst 227 Tests; siehe verlinkten QA-Bericht. Die zusätzlichen Simulationsskripte schreiben JSON-Dateien mit den Ergebnissen in `tests/`.
 
 Zuletzt geprüft: 90 zusammenhängende Turnierläufe I–III mit drei Strategien, 120 Spezialmodus-Simulationen, sowie ein Chromium-Browsertest mit normaler Beschwörung, Challenge-Start und neuer Oberfläche.
 
