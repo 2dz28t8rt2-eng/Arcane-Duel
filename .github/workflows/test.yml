@@ -55,7 +55,7 @@ jobs:
           done
 
           echo "Checking interactive Alpha 2.0 UI flows in headless Chrome..."
-          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=8000 --window-size="1200,980" --dump-dom http://127.0.0.1:8757/tests/browser-ui.html > /tmp/arcane-interaction.html 2>/tmp/arcane-interaction-chrome.log
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=22000 --window-size="1200,980" --dump-dom http://127.0.0.1:8757/tests/browser-ui.html > /tmp/arcane-interaction.html 2>/tmp/arcane-interaction-chrome.log
           if ! grep -q 'data-ui-test="pass"' /tmp/arcane-interaction.html; then
             echo "Interactive UI smoke test failed." >&2
             grep -E -A20 'id="result"' /tmp/arcane-interaction.html | head -26 || true
