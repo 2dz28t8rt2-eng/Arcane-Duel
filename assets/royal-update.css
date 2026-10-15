@@ -67,6 +67,9 @@
 .fate-royal-skip{position:absolute;z-index:5;bottom:17px;right:18px;border:1px solid #ffedae77;background:#10172cc9;color:#fff8e3;
  border-radius:11px;padding:11px 16px;font:700 12px system-ui,sans-serif;cursor:pointer}
 .fate-royal-skip:hover,.fate-royal-skip:focus-visible{background:#423460;outline:2px solid #fff9d8;outline-offset:2px}
+.fate-royal-short .fate-royal-card,.fate-royal-short .fate-royal-card-inner,.fate-royal-short .fate-royal-eyebrow{animation:none!important}
+.fate-royal-short .fate-royal-card-inner{transform:rotateY(180deg)}
+.fate-royal-short .fate-royal-particle{animation:none!important;opacity:.4}
 @keyframes royal-space{to{transform:scale(1.09) rotate(1deg)}}
 @keyframes royal-spin{to{transform:rotate(360deg)}}
 @keyframes royal-mote{0%,100%{opacity:0;transform:translateY(30px) translateX(0)}45%{opacity:.9}75%{opacity:.4;transform:translateY(-50px) translateX(var(--drift))}}
