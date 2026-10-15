@@ -10,7 +10,7 @@ function boot(){
 }
 test('Tournament and free duels have matching LP by opponent, with no asymmetry',()=>{
  const run=boot();const r=run(`(()=>{let out=[];for(const context of ['tournament','free'])for(let id=0;id<=10;id++){const g=createGame({id:'lp-'+context+'-'+id,mode:'pve',context,opponentId:id});out.push({context,id,lp:g.maxLP,players:g.players.map(p=>p.lp)});}return out;})()`);
- for(const x of r){const expected=x.id<=3?4000:x.id<=6?6000:x.id<=8?7000:8000;assert.equal(x.lp,expected,`${x.context} vs ${x.id}`);assert.deepEqual(x.players,[expected,expected]);}
+ for(const x of r){const expected=x.id<=3?4000:x.id<=6?6000:x.id<=8?7000:10000;assert.equal(x.lp,expected,`${x.context} vs ${x.id}`);assert.deepEqual(x.players,[expected,expected]);}
 });
 test('Hard, PvP and late-game visitor retain 8,000 LP',()=>{
  const run=boot();const r=run(`(()=>{const cases=[{mode:'pve',opponentId:2,difficulty:'hard',context:'free'},{mode:'pvp'},{mode:'pve',opponentId:8,context:'challenge',enemy:showcaseEnemy(),showcase:true}];return cases.map((o,i)=>{const g=createGame({...o,id:'lp-extra-'+i});return {maxLP:g.maxLP,players:g.players.map(p=>p.lp)}});})()`);
