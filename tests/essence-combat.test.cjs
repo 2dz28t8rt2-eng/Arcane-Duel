@@ -20,7 +20,7 @@ function start(){
   console,Date,Math,JSON,Set,Map,Array,Number,Object,String,RegExp,Error,TypeError,Uint32Array,Boolean,Infinity,NaN});
  const source=files.map(x=>fs.readFileSync(path.join(__dirname,'../assets',x),'utf8')).join('\n;\n');
  vm.runInContext(source+'\n;globalThis.__essenceTest={createGame,simulateGame,profile,CARDS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,ESSENCE_MONSTER_IDS,advanceTurn,attack,newInstance,damagePlayer,randomInt,validateProfile,validateDuelSnapshot,statLayer:window.ArcaneEssenceCombat.statLayer,runTrial:(key,school,stage,seed)=>{let created=null;const old=startDuel;startDuel=function(mode,id,context,difficulty){created=createGame({mode,opponentId:id,context,difficulty,seed});};try{if(!window.ArcaneEssenceCombat.beginTrial(key,school,stage)||!created)throw Error(\"Could not start Essence trial\");return simulateGame(created,school===\"defense\"?\"guardian\":\"balanced\",\"balanced\");}finally{startDuel=old;}}};',context,{timeout:10000});
- return {g:context.__essenceTest,w:window};
+ return {g:context.__essenceTest,w:window,ctx:context};
 }
 test('Old save defaults do not grant an exclusive monster or perk',()=>{
  const {g}=start();
@@ -175,4 +175,21 @@ test('Seelenbrand applies bounded direct LP pressure with five unopposed soul ea
  assert.ok(damage<=5*(45+6*42),'LP burn remains bounded per soul and its level');
  assert.equal(duel.players[0].lp,ownBefore,'passive soul harvest must not drain own LP');
  assert.ok(duel.players[0].field.every(c=>c?.essenceCombat?.soul>=0));
+});
+
+test('Low-rank Soul Eater can deliberately discharge stored energy once per turn',()=>{
+ const {g,ctx}=start();
+ const duel=g.createGame({mode:'pve',context:'free',opponentId:4,seed:930277,
+  deck:g.RPG_DEFAULT_DECK,fusionDeck:g.RPG_START_FUSIONS});
+ duel.players[0].field.fill(null);duel.players[1].field.fill(null);
+ const c=g.CARDS.find(x=>x.role==='soul'&&!x.fusionOnly&&x.level<=3);
+ const eater=g.newInstance(duel,c.id,0);eater.mode='def';duel.players[0].field[0]=eater;
+ g.statLayer(eater).soul=200;duel.active=0;duel.turn=4;duel.players[1].shield=0;
+ const before=duel.players[1].lp;
+ ctx.__testSoulDuel=duel;
+ const first=vm.runInContext('game=__testSoulDuel;uiMode="duel";window.ArcaneEssenceCombat.discharge(0)',ctx);
+ assert.equal(first,true);
+ assert.equal(before-duel.players[1].lp,220);
+ assert.equal(g.statLayer(eater).soul,0);
+ assert.equal(vm.runInContext('window.ArcaneEssenceCombat.discharge(0)',ctx),false,'one per turn');
 });
