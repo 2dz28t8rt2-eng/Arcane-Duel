@@ -93,15 +93,47 @@ function renderRoyalMenu(){
   '<button class="royal-menu-feature" type="button" data-royal="challenges">'+
   '<span class="royal-feature-icon">③</span><span><strong>Spielend lernen</strong><small>Spezialkombinationen mit Leihdeck üben.</small></span></button></div>';
   panel.insertBefore(entry,focus.nextSibling);
+  const preview=document.createElement('div');preview.className='royal-fate-entry';
+  preview.innerHTML='<span>✧ Die zehn legendären Schicksalsmonster kennenlernen</span><button class="btn" type="button" data-royal="gallery">✦ Schicksalsgalerie ansehen · Spoiler</button>';
+  entry.append(preview);
  }
 }
 renderMenu=renderRoyalMenu;
+function showGallery(){
+ const gallery=window.ArcaneFateVisuals;if(!gallery)return;
+ const list=gallery.entries.map((item,i)=>'<button class="royal-gallery-card" type="button" data-gallery-card="'+i+'" style="--gallery-color:'+item.primary+';--gallery-accent:'+item.accent+'">'+
+ '<img loading="lazy" src="'+gallery.artFor(i)+'" alt="'+safe(item.name)+'"><strong>'+safe(item.name)+'</strong><span>'+safe(item.motto)+'</span></button>').join('');
+ openModal(modalHtml('✦ SCHICKSALSKUNST','Galerie der zehn Erscheinungen','✧',
+ 'Alle Designs sind exklusiv für den Schicksalszug. Im Duell bleibt das Eingreifen selten.',
+ '<div class="royal-gallery-grid">'+list+'</div>',
+ '<button class="btn primary" id="royalGalleryClose">ZURÜCK</button>'));
+ $('modal')?.classList.add('royal-gallery-modal');
+ $('royalGalleryClose').onclick=hideModal;
+ $('modal').querySelectorAll('[data-gallery-card]').forEach(button=>button.onclick=()=>{
+  const i=Number(button.dataset.galleryCard),item=gallery.entries[i];
+  if(!item)return;
+  openModal(modalHtml('✦ SCHICKSALSMONSTER',item.name,item.symbol,item.motto,
+   '<div class="royal-gallery-large" style="--gallery-color:'+item.primary+'"><img src="'+gallery.artFor(i)+'" alt="'+safe(item.name)+'"><p>'+safe(item.kind)+' · Individueller Rahmen, eigene Aura und prunkvoller Karten-Reveal.</p></div>',
+   '<button class="btn primary" id="royalGalleryBack">← ZUR GALERIE</button>'));
+  $('royalGalleryBack').onclick=showGallery;
+ });
+}
+function openGallery(){
+ if(profile.fateDiscovered){showGallery();return;}
+ openModal(modalHtml('GEHEIME KARTEN','Schicksalsgalerie enthüllen?','✧',
+ 'Die Galerie zeigt zehn noch unentdeckte Schicksalsmonster.',
+ '<p>Diese Vorschau enthält <b>Spoiler</b>. Im normalen Duell bleibt das Schicksal geheim, bis es zum ersten Mal eingreift.</p>',
+ '<button class="btn" id="royalSpoilerCancel">ZURÜCK</button><button class="btn primary" id="royalSpoilerOpen">GALERIE ENTHÜLLEN</button>'));
+ $('royalSpoilerCancel').onclick=hideModal;
+ $('royalSpoilerOpen').onclick=showGallery;
+}
 const delegate=e=>{
  const button=e.target.closest('[data-royal]');
  if(!button)return;
  const action=button.dataset.royal;
  if(action==='rules'){showRules();return;}
  if(action==='start'){openStart();return;}
+ if(action==='gallery'){openGallery();return;}
  if(action==='resume'){resumeDuel();return;}
  if(['tournament','collection','pvp','challenges','lexicon','free'].includes(action)){go(action);return;}
 };
