@@ -13,13 +13,13 @@ function start(){
   addEventListener(){},append(){},appendChild(){},setAttribute(){}});
  const document={getElementById(id){if(!nodes.has(id))nodes.set(id,el());return nodes.get(id)},
   createElement:el,querySelector(){return null},querySelectorAll(){return []},addEventListener(){},body:el()};
- const storage={getItem(){return null},setItem(){},removeItem(){}};
+ const saved=new Map();const storage={getItem(k){return saved.get(k)??null},setItem(k,v){saved.set(k,v)},removeItem(k){saved.delete(k)}};
  const window={localStorage:storage,location:{hostname:'isolated.test'},matchMedia(){return {matches:true}},addEventListener(){}};
  const context=vm.createContext({window,document,navigator:{},localStorage:storage,
   setTimeout(){return 0},setInterval(){return 0},clearTimeout(){},clearInterval(){},
   console,Date,Math,JSON,Set,Map,Array,Number,Object,String,RegExp,Error,TypeError,Uint32Array,Boolean,Infinity,NaN});
  const source=files.map(x=>fs.readFileSync(path.join(__dirname,'../assets',x),'utf8')).join('\n;\n');
- vm.runInContext(source+'\n;globalThis.__essenceTest={createGame,simulateGame,profile,CARDS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,ESSENCE_MONSTER_IDS,advanceTurn,attack,newInstance,damagePlayer,randomInt,statLayer:window.ArcaneEssenceCombat.statLayer};',context,{timeout:10000});
+ vm.runInContext(source+'\n;globalThis.__essenceTest={createGame,simulateGame,profile,CARDS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,ESSENCE_MONSTER_IDS,advanceTurn,attack,newInstance,damagePlayer,randomInt,statLayer:window.ArcaneEssenceCombat.statLayer,runTrial:(key,school,stage,seed)=>{let created=null;const old=startDuel;startDuel=function(mode,id,context,difficulty){created=createGame({mode,opponentId:id,context,difficulty,seed});};try{if(!window.ArcaneEssenceCombat.beginTrial(key,school,stage)||!created)throw Error(\"Could not start Essence trial\");return simulateGame(created,school===\"defense\"?\"guardian\":\"balanced\",\"balanced\");}finally{startDuel=old;}}};',context,{timeout:10000});
  return {g:context.__essenceTest,w:window};
 }
 test('Old save defaults do not grant an exclusive monster or perk',()=>{
@@ -105,4 +105,19 @@ test('Seelenenergie must not permanently inflate base DEF during end-turn decay'
  assert.equal(energy.condensed,60);
  assert.equal(energy.soul,110);
  assert.equal(lpBefore-duel.players[1].lp,90,'Only unstable soul decay creates burn');
+});
+
+test('All specialization lessons and five-stage retraining paths run on loan decks',()=>{
+ const {g}=start();
+ for(const school of ['predator','fusion','defense']){
+  for(let stage=0;stage<5;stage++){
+   for(let seed=0;seed<4;seed++){
+    const duel=g.runTrial('switch-'+school+'-'+stage,school,stage,
+     240000+stage*101+seed*17);
+    assert.ok(duel.winner===0||duel.winner===1);
+    assert.equal(duel.essenceTrial,'switch-'+school+'-'+stage);
+    assert.ok(duel.turn>0);
+   }
+  }
+ }
 });
