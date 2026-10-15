@@ -58,7 +58,8 @@ test('Only DEF-preferred Seelenzehrer has healing trigger',()=>{
 });
 test('Last Bastion attack immunity cannot repeatedly counterstrike',()=>{
  const code=fs.readFileSync(path.join(__dirname,'../assets/essence-combat.js'),'utf8');
- assert.match(code,/if\(isDefender\(d\)&&s\.guardLeft===0\)/);
+ assert.match(code,/const immuneBefore=s\.guardLeft>0/);
+ assert.match(code,/if\(isDefender\(d\)&&!immuneBefore\)/);
 });
 
 test('Essence companion never drains currency banked before the duel',()=>{
