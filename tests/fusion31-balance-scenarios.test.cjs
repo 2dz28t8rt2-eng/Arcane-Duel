@@ -154,11 +154,23 @@ function makeScenarioForVm(){
    const available=[...ARCANE_STAGE_IDS.values()].map(id=>CARDS[id]).filter(c=>c&&!c.retired&&c.level<=cap);
    for(const archetype of roles){
     const pick=archetype.roles.length?available.filter(c=>archetype.roles.includes(c.role)):available;
-    const byLevel=lv=>pick.filter(c=>c.level===lv).sort((a,b)=>
-     archetype.name.startsWith('Wächter')?b.def-a.def:b.atk-a.atk);
-    const cards=[...new Map([...byLevel(cap).slice(0,8),...byLevel(Math.max(1,cap-1)).slice(0,5),
-     ...byLevel(Math.max(1,cap-2)).slice(0,5),...pick.sort((a,b)=>b.level-a.level)]
-      .map(c=>[c.id,c])).values()].slice(0,14);
+    const rank=(role,lv)=>available.filter(c=>c.level===lv&&(role==='guardian'
+      ?['guardian','soul'].includes(c.role):role==='predator'?c.role==='predator':true))
+      .sort((a,b)=>role==='guardian'?b.def-a.def:b.atk-a.atk);
+    let cards;
+    if(archetype.name.startsWith('Gemischt')){
+     // A true 50/50 control, not another predator deck chosen by highest ATK.
+     cards=['predator','guardian'].flatMap(role=>
+      [rank(role,cap).slice(0,3),rank(role,cap-1).slice(0,2),
+       rank(role,cap-2).slice(0,2)].flat());
+     cards=[...new Map(cards.map(c=>[c.id,c])).values()];
+    }else{
+     const byLevel=lv=>pick.filter(c=>c.level===lv).sort((a,b)=>
+      archetype.name.startsWith('Wächter')?b.def-a.def:b.atk-a.atk);
+     cards=[...new Map([...byLevel(cap).slice(0,8),...byLevel(Math.max(1,cap-1)).slice(0,5),
+      ...byLevel(Math.max(1,cap-2)).slice(0,5),...pick.sort((a,b)=>b.level-a.level)]
+       .map(c=>[c.id,c])).values()].slice(0,14);
+    }
     if(cards.length<14)throw Error('Insufficient role cards '+archetype.name+' at '+tier);
     const deck=cards.flatMap(c=>[c.id,c.id,c.id]).slice(0,40);
     if(mainDeckError(deck))throw Error('Invalid role deck '+archetype.name+' / '+tier);
