@@ -20,9 +20,11 @@
  '<circle cx="150" cy="150" r="12" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="150" cy="150" r="3.5" fill="currentColor"/></svg></div>';
  function featureArt(){
   const ids=Array.isArray(profile?.activeDeck)?profile.activeDeck:[];
+  // Show the player's most distinctive owned deck cards, not arbitrary first slots.
   const seen=new Set(),cards=[];
-  for(const id of ids){
-   const c=CARDS[id];
+  const ordered=[...new Set(ids)].map(id=>CARDS[id]).filter(Boolean)
+   .sort((a,b)=>(Number(b.level)||0)-(Number(a.level)||0)||Number(Boolean(b.ace))-Number(Boolean(a.ace)));
+  for(const c of ordered){
    if(!c||typeof c.art!=='string'||!/^(assets\/|data:image\/svg\+xml)/.test(c.art)||seen.has(c.art))continue;
    seen.add(c.art);cards.push(c);if(cards.length===3)break;
   }
