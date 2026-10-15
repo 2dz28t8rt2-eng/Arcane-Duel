@@ -78,6 +78,21 @@ iframe.addEventListener('load',async()=>{
   const longValues=[...(placedCard?.querySelectorAll('.arcane-stat-long')||[])];
   check(!!placedRole&&w.getComputedStyle(placedRole).display!=='none','Geerbte Rolle ist nach der Landung NUR in der großen Kartenansicht sichtbar');
   check(longValues.length===2&&longValues.every(el=>fontSize(el)<=12.5),'Auch fünfstellige Fusionswerte bleiben sauber in beiden Zahlenkästen');
+  // Real two-step interaction: first hand fusion reveal, then choose empty zone.
+  w.eval('game=createGame({mode:"pve",opponentId:1,context:"free",starter:0,seed:93713});uiMode="duel";busy=false;aiRunning=false;animationSpeed="fast";game.active=0;render()');
+  const started=w.eval('(()=>{const p=game.players[0],materials=p.hand.slice(0,2),levels=materials.map(c=>dataOf(c).level),choice=fusionOptions(game,levels)[0];if(!choice)return false;game.materials=materials.map(c=>c.uid);window.__earlyFuse=prepareFusion(choice.id);return true;})()');
+  check(started,'Authentic two-material hand fusion is available for first-stage cinema');
+  if(started){
+   const whileRolling=d.getElementById('largeCardPreview')?.textContent||'';
+   check(whileRolling.includes('FUSIONSRITUAL'),'Left-hand inspection cannot leak end values during first cinematic');
+   await w.__earlyFuse;
+   const ready=d.querySelector('#summonStage .arcane-fusion-ready-card .hand-card');
+   check(!!ready&&w.eval('!!game.pending?.revealed'),'Revealed fusion card enters summon staging BEFORE zone is chosen');
+   check(!!ready&&ready.textContent.includes(String(w.eval('dataOf(game.pending.card).atk'))),'Summon stage shows real ATK after first cinematic');
+   await w.eval('onOwnSlot(0)');
+   check(!w.eval('game.pending')&&!!d.querySelector('#ownRow [data-mine="0"] .board-creature'),'Choosing an empty zone places the card');
+   check(!d.querySelector('.ritual-overlay'),'Empty-zone placement does not replay the full ritual');
+  }
  }catch(e){fails.push(String(e));checks.push('EXCEPTION: '+String(e.stack||e).slice(0,850));}
  out.textContent=checks.join('\n');
  document.body.dataset.fusionCinemaUi=fails.length?'fail':'pass';
