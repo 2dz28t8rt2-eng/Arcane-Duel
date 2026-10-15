@@ -78,6 +78,22 @@
   if(menuTab==='upgrades')p.insertAdjacentHTML('beforeend',essenceDashboard());
   if(menuTab==='lexicon'&&E().school)p.insertAdjacentHTML('beforeend','<section class="menu-panel essence-lore-teaser"><h2>✧ Die vergessenen Schriften</h2><p>Ein neues Kapitel erzählt vom Bund zwischen Duellanten und Essenzwesen.</p>'+loreMarkup()+'</section>');
  }
+ const normalProfileCard=profileCard;
+ profileCard=function(c){
+  const display=normalProfileCard(c);
+  if(c?.id===E().chosen&&c.essenceMonster){
+   const lev=C.evolvedLevel(tier());
+   display.card.level=lev;
+   display.card.atk=Math.min(10000,display.card.atk+lev*45+E().rank*35);
+   display.card.def=Math.min(10000,display.card.def+lev*70+E().rank*55);
+  }
+  return display;
+ };
+ const previousCardEditor=cardEditor;
+ cardEditor=function(card,fusion){
+  const html=previousCardEditor(card,fusion);
+  return card?.id===E().chosen?html.replace('Stufe '+card.level+' ·','Stufe '+C.evolvedLevel(tier())+' ·'):html;
+ };
  const oldMenu=renderMenu;renderMenu=function(){oldMenu();menuExtras();};
  const oldRules=showRules;showRules=function(){oldRules();const book=$('modal')?.querySelector('.arcane-handbook');if(book&&E().school&&!book.querySelector('.essence-lore'))book.insertAdjacentHTML('beforeend',loreMarkup());};
  const oldReward=rewardMatch;
