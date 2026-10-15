@@ -787,7 +787,7 @@ jagdinstinkt:{name:'Jagdinstinkt',desc:'Nur normale Predatoren: je Rang +15 ATK 
 schildwall:{name:'Schildwall',desc:'Nur normale Wächter und Seelenzehrer: je Rang +20 DEF und +5 ATK, zusätzlich +8 DEF und +2 ATK pro Monsterlevel; maximal 5 Ränge.' ,base:280,max:5}};
 function monsterTrainingBonus(level){return [35,25,15,10,8,6,4,3,2,2].slice(0,Math.max(0,Math.min(10,level||0))).reduce((a,b)=>a+b,0);}
 let storageWarning='',storageWritable=true,storageConflict=false,lastStoredProfile=null,legacyImported=false;
-function freshLegacyProfile(){return {version:2,coins:0,xp:0,wins:0,losses:0,pvpMatches:0,totalTurns:0,totalFusions:0,bestTurns:null,unlocked:[...DEFAULT_DECK],activeDeck:[...RPG_DEFAULT_DECK],fusionOwned:[...RPG_START_FUSIONS],fusionDeck:[...RPG_START_FUSIONS],enhancements:{},shards:Array(11).fill(0),pity:Array(11).fill(0),cleared:[],mastery:Array(11).fill(0),upgrades:{loot:0,learning:0,tempo:0,power:0,starter:0,fusionLore:0,resilience:0,fusionPrecision:0,combatDiscipline:0,openingAegis:0,jagdinstinkt:0,schildwall:0},strategy:'balanced',history:[],rewardLedger:[],nextMatch:1,settings:{animation:'fast',sound:false},unseen:[],lootHistory:[],investments:{},auto:{energy:AUTO_CAP,at:Date.now()},lastLoot:null,activeDuel:null,savedAt:0};}
+function freshLegacyProfile(){return {version:2,coins:0,xp:0,wins:0,losses:0,pvpMatches:0,totalTurns:0,totalFusions:0,bestTurns:null,unlocked:[...DEFAULT_DECK],activeDeck:[...RPG_DEFAULT_DECK],fusionOwned:[...RPG_START_FUSIONS],fusionDeck:[...RPG_START_FUSIONS],enhancements:{},shards:Array(11).fill(0),pity:Array(11).fill(0),cleared:[],mastery:Array(11).fill(0),upgrades:{loot:0,learning:0,tempo:0,power:0,starter:0,fusionLore:0,resilience:0,fusionPrecision:0,combatDiscipline:0,openingAegis:0,jagdinstinkt:0,schildwall:0},specializationRebalance:true,strategy:'balanced',history:[],rewardLedger:[],nextMatch:1,settings:{animation:'fast',sound:false},unseen:[],lootHistory:[],investments:{},auto:{energy:AUTO_CAP,at:Date.now()},lastLoot:null,activeDuel:null,savedAt:0};}
 function playerLevel(p){return Math.min(100,1+Math.floor(Math.sqrt(p.xp/60)));}
 function levelFloor(level){return 60*(level-1)**2;}
 // Each cleared tournament tier supports five player levels at full farming XP.
@@ -810,6 +810,22 @@ function validateLegacyProfile(raw){if(raw?.version===1)return migrateLegacy(raw
  for(const k of ['shards','pity','mastery']){if(!Array.isArray(raw[k])||raw[k].length!==11||raw[k].some(x=>!validInt(x,k==='pity'?4:1e9)))throw Error('Ungültiger Fortschritt.');p[k]=[...raw[k]];}
  for(const [id,rank]of Object.entries(raw.enhancements||{})){if(![...p.unlocked,...p.fusionOwned].includes(Number(id))||!(CARDS[Number(id)]?.rpg||Number(id)<20)||!validInt(rank,5))throw Error('Ungültige Verstärkung.');p.enhancements[id]=rank;}
  for(const key of Object.keys(UPGRADES)){const rank=['starter','fusionLore','resilience','fusionPrecision','combatDiscipline','openingAegis','jagdinstinkt','schildwall'].includes(key)?(raw.upgrades?.[key]??0):raw.upgrades?.[key];if(!validInt(rank,UPGRADES[key].max))throw Error('Ungültiger Ausbau.');p.upgrades[key]=rank;}
+ // Existing Monstertraining investments were bought at the old +185 maximum.
+ // Keep purchased ranks, credit a one-time 40% refund of their essence price.
+ // New profiles are marked compensated already. Validation never alters the
+ // original saved JSON; the credit becomes durable on the next successful save.
+ p.specializationRebalance=raw.specializationRebalance===true;
+ if(!p.specializationRebalance){
+  const oldRanks=p.upgrades.power||0;
+  if(oldRanks){
+   let spent=0;for(let i=0;i<oldRanks;i++)spent+=Math.ceil(120*1.5**i);
+   const refund=Math.min(1e9-p.coins,Math.floor(spent*.40));
+   p.coins+=refund;
+   p.migrationMessage='Monstertraining wurde neu balanciert. Deine '+oldRanks+' gekauften Stufen bleiben erhalten; als Ausgleich erhältst du '+refund+' Essenz für neue Spezialisierungen.';
+  }
+  p.specializationRebalance=true;
+ }
+
  if(!['balanced','offensive','economy'].includes(raw.strategy))throw Error('Ungültige Strategie.');p.strategy=raw.strategy;if(raw.bestTurns!==null&&!validInt(raw.bestTurns,30))throw Error('Ungültige Statistik.');p.bestTurns=raw.bestTurns;
  if(!Array.isArray(raw.rewardLedger)||raw.rewardLedger.length>512||raw.rewardLedger.some(x=>typeof x!=='string'||x.length>100))throw Error('Ungültige Belohnungen.');p.rewardLedger=[...new Set(raw.rewardLedger)];
  if(!Array.isArray(raw.history)||raw.history.length>30)throw Error('Ungültige Historie.');p.history=raw.history.map(h=>{if(!validInt(h.opponent,10)||typeof h.win!=='boolean'||!validInt(h.turns,30)||!validInt(h.coins)||!validInt(h.xp)||!validInt(h.at,1e15)||!['free','tournament','auto'].includes(h.context))throw Error('Ungültiger Duelleintrag.');return {opponent:h.opponent,win:h.win,turns:h.turns,coins:h.coins,xp:h.xp,at:h.at,context:h.context};});
