@@ -33,3 +33,5 @@ jobs:
         run: node --test tests/essence-combat.test.cjs
       - name: Run level crafting and role-fusion regressions
         run: node --test tests/arcane-overhaul.test.cjs
+      - name: Monster families, field roles and workshop regression
+        run: node --test tests/monster-roles-forge.test.cjs
