@@ -23,7 +23,7 @@
  let showcaseLastArt=[],showcaseCycle=0,transitioning=false,rotationTimer=null;
  const reduceMotion=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
  const allArt=()=>CARDS.filter(c=>c?.rpg&&c.level>=1&&c.level<=10&&!c.retired&&
-   typeof c.art==='string'&&/^(assets\\/|data:image\\/svg\\+xml)/.test(c.art));
+   typeof c.art==='string'&&/^(assets\/|data:image\/svg\+xml)/.test(c.art));
  function shuffled(values){
   const arr=[...values];
   for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
