@@ -103,8 +103,8 @@ test('Seelenenergie must not permanently inflate base DEF during end-turn decay'
  g.advanceTurn(duel);
  assert.ok(soul.card.def<baseBefore,'Base DEF must decay, never increase from stored bonus DEF');
  assert.equal(energy.condensed,60);
- assert.equal(energy.soul,110);
- assert.equal(lpBefore-duel.players[1].lp,90,'Only unstable soul decay creates burn');
+ assert.equal(energy.soul,136);
+ assert.equal(lpBefore-duel.players[1].lp,22,'Unstable energy loses 32%, but only 35% of that causes opponent LP burn');
 });
 
 test('All specialization lessons and five-stage retraining paths run on loan decks',()=>{
