@@ -155,8 +155,10 @@
   }
   if(g.essenceParticipated&&e.chosen!==null&&g.essenceTrial===null&&result.coins>0){
    const feed=Math.floor(result.coins*.05)+2*(g.essenceKills||0)+3*(g.essenceTurns||0);
-   const actual=Math.min(profile.coins,Math.max(0,feed));
-   profile.coins-=actual;e.nourished=Math.min(1e9,e.nourished+actual);result.essenceFood=actual;
+   // Never consume the player's previously saved Essence: only this duel's earnings.
+   const actual=Math.min(Math.max(0,result.coins),profile.coins,Math.max(0,feed));
+   profile.coins-=actual;e.nourished=Math.min(1e9,e.nourished+actual);
+   result.essenceFood=actual;result.coins-=actual;g.essenceFoodReported=actual;
    saveProfile();
   }
   return result;
@@ -165,6 +167,9 @@
  showFinished=function(){
   const g=game,wasTrial=!!g?.essenceTrial,success=g?.winner===0&&!g?.surrendered;
   oldFinished();
+  if(g?.essenceParticipated&&g.essenceFoodReported>0&&$('modal')){
+   $('modal').insertAdjacentHTML('beforeend','<p class="loot-banner">✦ Essenzwesen hat '+g.essenceFoodReported+' Essenz aus dieser Duellbelohnung aufgenommen. Die angezeigte Essenzbelohnung ist bereits netto.</p>');
+  }
   if(!wasTrial||!$('modal'))return;
   const passed=success?'✓ Prüfung bestanden':'Prüfung noch nicht bestanden';
   $('modal').insertAdjacentHTML('beforeend','<div class="essence-exam-result"><strong>'+passed+'</strong><p>'+(success?'Deine Bindung wächst durch Erfahrung. '+(E().intro===3&&!E().chosen?'Alle drei Übungen geschafft – wähle als Nächstes dein Essenzwesen.':'Die nächste Prüfung wartet im Menü.'):'Du kannst die Prüfung mit dem Leihdeck erneut versuchen. Deine eigene Sammlung bleibt unverändert.')+'</p></div>');
