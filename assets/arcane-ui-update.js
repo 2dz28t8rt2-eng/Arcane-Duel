@@ -134,8 +134,8 @@
   let node;
   while((node=walker.nextNode())){
    node.nodeValue=node.nodeValue
-    .replaceAll('ATK-betonte Karten','Karten mit höherer Angriffskraft')
-    .replaceAll('DEF-betonte Karten','Karten mit höherer Verteidigungskraft')
+    .replaceAll('ATK-betonte Karten','Karten mit hoher Angriffskraft')
+    .replaceAll('DEF-betonte Karten','Karten mit hoher Verteidigungskraft')
     .replaceAll('unverbindlicher Vorschlag','Tipp für deinen nächsten Kampf')
     .replace(/Charakterpack(s?)(?!-Booster)/g,'Charakter-Boosterpack$1');
   }
