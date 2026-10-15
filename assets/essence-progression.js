@@ -182,6 +182,18 @@
   if(!wasTrial||!$('modal'))return;
   const passed=success?'✓ Prüfung bestanden':'Prüfung noch nicht bestanden';
   $('modal').insertAdjacentHTML('beforeend','<div class="essence-exam-result"><strong>'+passed+'</strong><p>'+(success?'Deine Bindung wächst durch Erfahrung. '+(E().intro===3&&!E().chosen?'Alle drei Übungen geschafft – wähle als Nächstes dein Essenzwesen.':'Die nächste Prüfung wartet im Menü.'):'Du kannst die Prüfung mit dem Leihdeck erneut versuchen. Deine eigene Sammlung bleibt unverändert.')+'</p></div>');
+  // Explicit ceremonial reveal at the exact moment the third school lesson is won.
+  if(success&&E().intro===3&&E().chosen===null){
+   const box=document.createElement('section');box.className='arcane-essence-ceremony';
+   box.innerHTML='<div class="essence-ceremony-glyph">✧</div><h3>Alle drei Essenzschulen gemeistert!</h3>'+
+    '<p>Dein persönliches Essenzwesen wartet auf dich. Wähle es bewusst: <b>Diese Karte ist eine einmalige, unwiderrufliche Bindung.</b></p>';
+   $('modal').insertBefore(box,$('modal').querySelector('.modal-actions'));
+   const choose=document.createElement('button');choose.type='button';
+   choose.className='btn primary';choose.id='essenceCeremonyChoose';
+   choose.textContent='✦ ESSENZWESEN JETZT KENNENLERNEN';
+   choose.onclick=()=>{returnToMenu();openChoice();};
+   $('modal').querySelector('.modal-actions')?.append(choose);
+  }
  };
  function openChoice(){
   if(E().intro!==3||E().chosen!==null)return;
