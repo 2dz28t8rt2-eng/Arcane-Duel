@@ -281,7 +281,9 @@ fusedInstance=function(g,instances,levels){
   materialsUsed:instances.length,rollTrace:trace,
   rollMath:{base:{atk:round10(baseline.atk),def:round10(baseline.def)},
    winnerIndex:bestIndex,winner,bonus:{...bonus},penalty,final:{...best},
-   role,roleWeights,quality:f.factor},
+   role,roleWeights,quality:f.factor,
+    combo:{name:f.name,qualityPct:Math.round(f.qualityBonus*1000)/10,
+     rollBonus:f.rollBonus,materialCount:instances.length}},
   attacked:instances.some(c=>c.attacked)};
  if(imprint){
   result.roleOverride=imprint.role;result.roleOrigin='material';
@@ -329,7 +331,13 @@ validateDuelSnapshot=function(raw){const projected=JSON.parse(JSON.stringify(raw
    finite(m.final?.atk)&&finite(m.final?.def)&&m.final.atk===to.card?.atk&&m.final.def===to.card?.def)
    to.rollMath={winnerIndex:m.winnerIndex,winner:{...to.rollTrace[m.winnerIndex]},
     bonus:{atk:m.bonus.atk,def:m.bonus.def},penalty:m.penalty,
-    final:{atk:m.final.atk,def:m.final.def},role:to.roleOverride||CARDS[to.id].role};
+    final:{atk:m.final.atk,def:m.final.def},role:to.roleOverride||CARDS[to.id].role,
+     ...(m.combo&&typeof m.combo.name==='string'&&m.combo.name.length<=55&&
+      Number.isFinite(m.combo.qualityPct)&&m.combo.qualityPct>=0&&m.combo.qualityPct<=40&&
+      Number.isInteger(m.combo.rollBonus)&&m.combo.rollBonus>=0&&m.combo.rollBonus<=4&&
+      Number.isInteger(m.combo.materialCount)&&m.combo.materialCount>=2&&m.combo.materialCount<=5
+      ?{combo:{name:m.combo.name,qualityPct:m.combo.qualityPct,
+       rollBonus:m.combo.rollBonus,materialCount:m.combo.materialCount}}:{})};
  }
  for(let owner=0;owner<2;owner++)for(const place of ['hand','graveyard']){
   for(let i=0;i<g.players[owner][place].length;i++)
