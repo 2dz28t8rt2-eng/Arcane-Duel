@@ -110,8 +110,9 @@
   if(s.soul>0){
    const amount=Math.min(s.soul,Math.max(10,Math.ceil(s.soul*.32)));
    s.soul-=amount;
-   // Stored essence is unstable, but most of its upkeep is now lost shield,
-   // rather than equal LP self-damage that punishes a defensive playstyle.
+   // Stored essence remains unstable, but its natural LP burn now hits the
+   // opponent for only 35% of the part that decays (instead of 100%). The
+   // new immediate Soulbrand and deliberate discharge provide offensive power.
    addBurn(g,owner,Math.floor(amount*.35),dataOf(c).name+' · Seelenzerfall');
   }
   if(s.condenseLeft>0){
