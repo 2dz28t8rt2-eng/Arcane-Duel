@@ -1,0 +1,43 @@
+/* Arcane Duel: role-engraving ritual & auditable deterministic fusion rolls */
+.evo-stamp-scene{width:min(530px,96vw)!important;max-height:92vh!important;overflow-y:auto!important;scrollbar-width:thin;padding:16px 19px!important;isolation:isolate}
+.evo-stamp-scene .evo-visual-stage{height:224px}
+.evo-stamp-scene .evo-role-seal{position:absolute;z-index:9;top:46px;left:50%;width:190px;max-width:90vw;transform:translate(-50%,-50%) scale(5) rotate(-23deg);opacity:0;padding:14px 8px;border:7px double currentColor;border-radius:13px;box-shadow:inset 0 0 0 4px #141623,0 8px 16px #000c,0 0 20px currentColor;display:grid;place-items:center;text-align:center;font:bold 19px/1.12 Georgia,serif;letter-spacing:.08em;text-shadow:0 2px 1px #000;pointer-events:none;background:#131827dc}
+.evo-stamp-scene .evo-seal-predator{color:#ff9a78;background:#522323d9}
+.evo-stamp-scene .evo-seal-guardian{color:#98ddff;background:#203b5cdd}
+.evo-stamp-scene .evo-seal-soul{color:#dfa8ff;background:#42285ad9}
+.evo-stamp-scene .evo-seal-combatant,.evo-stamp-scene .evo-seal-support,.evo-stamp-scene .evo-seal-weaver{color:#f6d7a8;background:#45352bdd}
+.evo-stamp-scene.evo-stamp-impact .evo-role-seal{animation:evo-role-impact .65s cubic-bezier(.16,.9,.2,1) both}
+.evo-stamp-scene.evo-stamp-impact .evo-fusion-result{animation:evo-stamp-rattle .45s ease-out}
+.evo-stamp-scene.evo-stamp-settled .evo-role-seal{transform:translate(-50%,-50%) scale(.73) rotate(-13deg);opacity:.86}
+.evo-stamp-scene .evo-calc-heading{font-weight:900;letter-spacing:.12em;font-size:11px;color:#e8d3ff}
+.evo-stamp-scene .evo-rolls{display:flex!important;flex-direction:column;gap:3px!important;width:100%;min-height:90px!important;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+.evo-stamp-scene .evo-calc-cols,.evo-stamp-scene .evo-calc-row{width:100%;display:grid;grid-template-columns:minmax(125px,1fr) 88px 88px;align-items:center;gap:6px;padding:4px 8px;font-size:12px;letter-spacing:0;background:#121b2b91;border:1px solid #8f83b73a;border-radius:4px;color:#e5e6f4}
+.evo-stamp-scene .evo-calc-cols{background:transparent;font-size:10px;color:#b9aacd;letter-spacing:.09em}
+.evo-stamp-scene .evo-calc-row b{text-align:right;font-variant-numeric:tabular-nums;font-weight:850;font-size:13px}
+.evo-stamp-scene .evo-calc-atk{color:#ffc398}
+.evo-stamp-scene .evo-calc-def{color:#abdbff}
+.evo-stamp-scene .evo-calc-spinning b{filter:blur(.4px);animation:evo-number-rattle .1s linear infinite}
+.evo-stamp-scene .evo-calc-stamped{animation:evo-roll-impact .3s ease-out both}
+.evo-stamp-scene .evo-calc-winning{border-color:#e0c584!important;background:#443929a8!important}
+.evo-stamp-scene .evo-calc-final{border:2px solid #f6d399!important;background:#604329d1!important;font-size:14px!important;font-weight:900}
+.evo-stamp-scene .evo-calc-final b{font-size:16px}
+.evo-stamp-scene .evo-calc-divider{border-top:1px solid #a59abb;height:3px;width:100%;margin:2px 0}
+.evo-stamp-scene .evo-calc-divider.evo-double{border-top:3px double #e9c985}
+.evo-stamp-scene.evo-calc-sum .evo-calc-final{animation:evo-sum-impact .6s ease-out both}
+.evo-stamp-scene.evo-calc-absorb .evo-calc-row,.evo-stamp-scene.evo-calc-absorb .evo-calc-divider{animation:evo-numbers-into-card .5s ease-in both}
+.evo-stamp-scene .evo-card-final{position:absolute;z-index:8;bottom:28px;left:0;right:0;display:grid;justify-items:center;gap:1px;opacity:0;transform:scale(.65);pointer-events:none}
+.evo-stamp-scene .evo-card-final b{display:block;font:bold 12px/1.2 ui-monospace,monospace;color:#fff3ca;background:#141628e8;padding:1px 6px;border-radius:3px}
+.evo-stamp-scene.evo-calc-absorb .evo-card-final{animation:evo-card-stat-appear .5s ease-out both}
+.evo-stamp-scene.evo-card-land .evo-fusion-result{animation:evo-card-land .48s ease-in both}
+.evo-card-arrive .arcane-card-role,.evo-card-arrive .arcane-board-role{animation:evo-badge-afterglow 1.4s ease-out both}
+@keyframes evo-role-impact{0%{opacity:0;transform:translate(-50%,-220%) scale(5) rotate(-22deg)}44%{opacity:1;transform:translate(-50%,-47%) scale(1.18) rotate(-15deg)}55%{transform:translate(-50%,-51%) scale(.7) rotate(-13deg)}75%{transform:translate(-50%,-50%) scale(.83) rotate(-13deg)}100%{transform:translate(-50%,-50%) scale(.73) rotate(-13deg);opacity:.87}}
+@keyframes evo-stamp-rattle{0%,100%{filter:brightness(1)}38%{filter:brightness(2.1);transform:translate(-2px,4px) rotate(-2deg)}50%{filter:brightness(1.4);transform:translate(2px,-2px) rotate(2deg)}}
+@keyframes evo-roll-impact{0%{transform:scale(1.09);filter:brightness(2.2)}100%{transform:scale(1);filter:brightness(1)}}
+@keyframes evo-number-rattle{50%{transform:translateX(2px)}}
+@keyframes evo-sum-impact{0%{transform:scale(1.16);box-shadow:0 0 22px #ffe7a7}100%{transform:scale(1);box-shadow:0 0 3px #ffe7a744}}
+@keyframes evo-numbers-into-card{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-105px) scale(.1)}}
+@keyframes evo-card-stat-appear{0%{opacity:0;transform:scale(.65)}100%{opacity:1;transform:scale(1)}}
+@keyframes evo-card-land{0%{transform:scale(1);opacity:1}100%{transform:translateY(250px) scale(.17);opacity:0}}
+@keyframes evo-badge-afterglow{0%{box-shadow:0 0 18px currentColor;filter:brightness(1.9)}100%{box-shadow:none;filter:brightness(1)}}
+@media(max-width:520px){.evo-stamp-scene{padding:12px!important}.evo-stamp-scene .evo-visual-stage{height:196px}.evo-stamp-scene .evo-calc-cols,.evo-stamp-scene .evo-calc-row{grid-template-columns:minmax(96px,1fr) 64px 64px;gap:4px;font-size:10px;padding:3px 5px}.evo-stamp-scene .evo-role-seal{width:165px;font-size:15px}.evo-stamp-scene .evo-calc-row b{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.evo-stamp-scene *{animation:none!important;transition:none!important}}
