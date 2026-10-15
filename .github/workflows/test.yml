@@ -91,3 +91,14 @@ jobs:
               exit 1
             fi
           done
+
+          echo "Checking Arcane Duel 4.0 contextual deck preview and fusion-quality stamps..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=12000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-ui4-cinema.html >"/tmp/arcane-ui4-${size}.html" 2>/tmp/arcane-ui4-chrome.log
+            if ! grep -q 'data-ui4-test="pass"' "/tmp/arcane-ui4-${size}.html"; then
+              echo "UI 4.0 deck portal or combination cinematic FAILED at ${size}px" >&2
+              grep -A30 'id="qaStatus"' "/tmp/arcane-ui4-${size}.html" | head -38 || true
+              tail -25 /tmp/arcane-ui4-chrome.log || true
+              exit 1
+            fi
+          done
