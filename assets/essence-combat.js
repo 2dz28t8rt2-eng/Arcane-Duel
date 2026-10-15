@@ -131,12 +131,35 @@
   if(choice.length<20)throw Error('Zu wenige Übungsmonster.');
   return choice.flatMap(c=>[c.id,c.id]);
  }
+ function trialFusionDeck(main,school){
+   // Dedicated 15-card loan fusion deck, with early rungs and relevant late templates.
+   const levels=main.map(id=>CARDS[id].level),center=levels.reduce((a,b)=>a+b,0)/levels.length;
+   const target=Math.max(3,Math.min(10,Math.round(center*1.65)));
+   const sorted=RPG_FUSIONS.filter(c=>c.rpg&&c.fusionOnly&&!c.ace&&c.level<=10)
+    .sort((a,b)=>{
+     const score=c=>-Math.abs(c.level-target)*32+
+      (school==='fusion'?(c.role==='weaver'||c.role==='support'?85:0):school==='defense'?
+       (['guardian','soul'].includes(c.role)?65:0):(c.role==='predator'?65:0))+
+      Math.min(c.atk,c.def)*.002;
+     return score(b)-score(a)||a.id-b.id;
+    });
+   const picks=[],used=new Set();
+   for(const lv of [2,3,4,5,6,7,8,9,10]){
+    const c=sorted.find(c=>c.level===lv&&!used.has(c.id));
+    if(c&&picks.length<15){picks.push(c.id);used.add(c.id);}
+   }
+   for(const c of sorted)if(picks.length<15&&!used.has(c.id)){picks.push(c.id);used.add(c.id);}
+   if(fusionDeckError(picks))throw Error('Fusions-Prüfungsdeck ist ungültig.');
+   return picks;
+  }
  createGame=function(options={}){
   const isTrial=trial&&options.mode==='pve'&&options.context==='challenge';
   if(isTrial){
    const t=trial,main=trialDeck(t.school,Math.max(3,t.stage+2));
    const enemyDeck=trialDeck(t.school==='defense'?'predator':'defense',Math.max(2,t.stage+1));
-   options={...options,deck:main,fusionDeck:[...RPG_START_FUSIONS,...RPG_START_FUSIONS],
+    const preparedFusion=trialFusionDeck(main,t.school);
+    window.ArcaneLearning?.markSeen?.([...main,...preparedFusion,...enemyDeck]);
+   options={...options,deck:main,fusionDeck:preparedFusion,
     enemy:{deck:enemyDeck,fusionDeck:[...RPG_START_FUSIONS],enhancements:{},power:.68+t.stage*.1,flatBonus:0},
     enhancements:{},flatBonus:0};
   }
