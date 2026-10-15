@@ -16,8 +16,8 @@ iframe.addEventListener('load',async()=>{
   const deck=stats('#deckSidePreview .deck-preview-card .stat-value');
   check(deck.length===2,'Große Deckkarte hat zwei getrennte Wertekammern');
   check(deck.every(el=>fontSize(el)<=13.1),'Große Deckkarte: ATK/DEF höchstens 13px');
-  w.eval('menuTab="free";renderMenu();startDuel("pve",1,"free","easy")');
-  d.getElementById('modalGo')?.click();
+  // Isolate the visual QA from an asynchronous AI move or a random starting player.
+  w.eval('game=createGame({mode:"pve",opponentId:1,context:"free",starter:0,seed:1337});uiMode="duel";busy=false;aiRunning=false;$("menuScreen").hidden=true;$("duelScreen").hidden=false;render()');
   w.eval('game.selection={type:"hand",uid:game.players[0].hand[0].uid};render()');
   const own=stats('#duelScreen .card-preview-panel .stat-value');
   check(own.length===2&&own.every(el=>fontSize(el)<=12.1),'Große Duellkarte: ATK/DEF maximal 12px (Anzahl '+own.length+', Schrift '+own.map(fontSize).join('/')+', HTML '+d.getElementById('largeCardPreview')?.innerHTML.slice(0,180)+')');
@@ -43,17 +43,31 @@ iframe.addEventListener('load',async()=>{
   check(!!scene&&!!field,'Fusionsszene und reale Zielzone existieren');
   check(!scene?.classList.contains('evo-phase-shell')&&!scene?.classList.contains('evo-phase-reveal'),'Materialring startet ohne Fusionskarte und Fenster');
   check(field?.classList.contains('evo-fusion-awaiting')&&w.getComputedStyle(field).visibility==='hidden','Fertig berechnete Feldkarte bleibt vor Landung verborgen');
-  await wait(1600);
-  check(scene?.classList.contains('evo-phase-shell')&&!scene?.classList.contains('evo-phase-reveal'),'Erst wird das LEERE Ritualfenster geöffnet');
-  await wait(450);
-  check(scene?.classList.contains('evo-phase-reveal')&&!scene?.classList.contains('evo-stamp-impact'),'Fusionskarte wird langsam eingeblendet, bevor der Stempel trifft');
-  await wait(1180);
-  check(scene?.classList.contains('evo-stamp-impact'),'Schwerer Wächterstempel folgt erst nach Kartengenerierung');
-  await wait(700);
-  check(scene?.classList.contains('evo-phase-rolls')&&!!scene?.querySelector('.evo-rolls .evo-calc-row'),'Erst danach beginnen die echten Wertewürfe');
+  const phases=['evo-phase-orbit','evo-phase-merge','evo-phase-shell','evo-phase-reveal',
+   'evo-stamp-impact','evo-phase-rolls','evo-calc-sum','evo-calc-absorb','evo-phase-landing'];
+  const seen=['evo-phase-orbit'];
+  const state={emptyShell:false,revealedBeforeStamp:false,stampBeforeRolls:false,realRolls:false};
+  const watcher=new w.MutationObserver(()=>{
+   for(const phase of phases){
+    if(!scene?.classList.contains(phase)||seen.includes(phase))continue;
+    seen.push(phase);
+    if(phase==='evo-phase-shell')state.emptyShell=!scene.classList.contains('evo-phase-reveal')&&scene.querySelectorAll('.evo-rolls .evo-calc-row').length===0;
+    if(phase==='evo-phase-reveal')state.revealedBeforeStamp=!scene.classList.contains('evo-stamp-impact');
+    if(phase==='evo-stamp-impact')state.stampBeforeRolls=!scene.classList.contains('evo-phase-rolls')&&scene.classList.contains('evo-phase-reveal');
+    if(phase==='evo-phase-rolls')state.realRolls=scene.classList.contains('evo-stamp-impact');
+   }
+  });
+  watcher.observe(scene,{attributes:true,attributeFilter:['class']});
   const rect=scene?.getBoundingClientRect(),width=d.documentElement.clientWidth;
   check(!!rect&&rect.left>=-2&&rect.right<=width+2,'Fusionsfenster bleibt innerhalb der Bildschirmbreite');
   await w.__fusionCinemaQA;
+  watcher.disconnect();
+  check(phases.every(p=>seen.includes(p))&&phases.every((p,i)=>i===0||seen.indexOf(phases[i-1])<seen.indexOf(p)),
+   'Alle neun Fusionsphasen laufen in der korrekten Reihenfolge: '+seen.join(' > '));
+  check(state.emptyShell,'Erst wird das LEERE Ritualfenster geöffnet');
+  check(state.revealedBeforeStamp,'Fusionskarte wird langsam eingeblendet, bevor der Stempel trifft');
+  check(state.stampBeforeRolls,'Schwerer Wächterstempel folgt erst nach Kartengenerierung');
+  check(state.realRolls,'Erst nach dem Rollenstempel beginnen die echten Wertewürfe');
   check(!d.querySelector('.evo-stamp-scene'),'Ritual entfernt alle temporären Overlays');
   check(!field?.classList.contains('evo-fusion-awaiting')&&w.getComputedStyle(field).visibility!=='hidden','Fusionsmonster wird erst nach Kartenflug sichtbar');
   const role=field?.querySelector('.arcane-board-role');
@@ -61,7 +75,7 @@ iframe.addEventListener('load',async()=>{
   w.eval('game.selection={type:"field",idx:0};render()');
   const placedCard=d.querySelector('#largeCardPreview .hand-card.tc-card');
   const placedRole=placedCard?.querySelector('.arcane-card-role');
-  const longValues=[...placedCard?.querySelectorAll('.arcane-stat-long')||[]];
+  const longValues=[...(placedCard?.querySelectorAll('.arcane-stat-long')||[])];
   check(!!placedRole&&w.getComputedStyle(placedRole).display!=='none','Geerbte Rolle ist nach der Landung NUR in der großen Kartenansicht sichtbar');
   check(longValues.length===2&&longValues.every(el=>fontSize(el)<=10.1),'Auch fünfstellige Fusionswerte bleiben sauber in beiden Zahlenkästen');
  }catch(e){fails.push(String(e));checks.push('EXCEPTION: '+String(e.stack||e).slice(0,850));}
