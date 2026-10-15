@@ -59,7 +59,7 @@
  const buffTier=g=>Math.max(0,g?.essenceTier||0);
  const activeSchool=g=>g?.essenceSchool||null;
  const statLayer=c=>{
-  if(!c.essenceCombat)c.essenceCombat={soul:0,condensed:0,cooldown:0,condenseLeft:0,condenseSlice:0,guardLeft:0,doubleChoice:1,lastToggle:0,maxDef:Math.max(0,c.card?.def||0),attacksThisTurn:0,lastDischarge:0,guardGrantedTurn:0};
+  if(!c.essenceCombat)c.essenceCombat={soul:0,condensed:0,cooldown:0,condenseLeft:0,condenseSlice:0,guardLeft:0,doubleChoice:1,lastToggle:0,maxDef:Math.max(0,c.card?.def||0),attacksThisTurn:0,lastDischarge:0,guardGrantedTurn:0,drainPreference:0,lastDrainSwitch:0};
   return c.essenceCombat;
  };
  const roll=(g,n)=>randomInt(g,Math.max(1,n));
@@ -82,8 +82,7 @@
     target.card[stat]-=n;lost[stat]+=n;
    }
    for(let i=0;i<lv;i++){
-    const bias=rank>=3&&activeSchool(g)==='defense'&&owner===0?0.75:0.5;
-    let stat=roll(g,100)<bias*100?'atk':'def';
+    let stat=roll(g,100)<(store.drainPreference===1?75:store.drainPreference===2?25:50)?'atk':'def';
     if(target.card[stat]===0&&target.card[stat==='atk'?'def':'atk']>0)stat=stat==='atk'?'def':'atk';
     const n=Math.min(target.card[stat],5);target.card[stat]-=n;lost[stat]+=n;
    }
@@ -136,7 +135,7 @@
   g.essenceRules=true;g.essenceSchool=essence().school;g.essenceTier=maxTier();
   g.essenceTrial=isTrial?trial.key:null;
   g.essenceParticipated=!isTrial&&essence().chosen!==null&&profile.activeDeck.includes(essence().chosen)&&options.context!=='auto';
-  g.essenceTurns=0;g.essenceKills=0;g.essenceGuardSpent=false;g.essenceTurnAttacks=0;
+  g.essenceTurns=0;g.essenceKills=0;g.essenceGuardSpent=false;g.essenceTauntUsed=false;g.essenceTurnAttacks=0;
   for(const card of [...g.players[0].hand,...g.players[0].field.filter(Boolean)]){
    if(card.id===essence().chosen&&CARDS[card.id]?.essenceMonster&&g.essenceParticipated){
     const lev=evolvedLevel(g.essenceTier);card.card.level=lev;
@@ -170,19 +169,31 @@
  };
  const oldAttack=attack,oldEffective=effectiveAttack;
  effectiveAttack=function(g,a,d){
-  const atk=oldEffective(g,a,d);
-  if(isEssenceDuel(g)&&a?.id===essence().chosen&&CARDS[a.id]?.essenceSchool==='predator'&&a.essenceCombat?.doubleChoice===2)return Math.floor(atk*.7);
+  let atk=oldEffective(g,a,d);
+  if(!isEssenceDuel(g))return atk;
+  const role=CARDS[a?.id]?.role;
+  if(role==='predator'&&d?.mode==='def')atk=Math.floor(atk*1.12);
+  if(!a?.fusion&&g.players[g.active].field.some(c=>c&&c!==a&&CARDS[c.id]?.role==='support'&&c.mode==='def'))
+   atk+=Math.min(160,25+dataOf(a).level*8);
+  if(a?.id===essence().chosen&&CARDS[a.id]?.essenceSchool==='predator'&&a.essenceCombat?.doubleChoice===2)atk=Math.floor(atk*.7);
   return atk;
  };
  attack=function(g,ai,di){
   if(!isEssenceDuel(g))return oldAttack(g,ai,di);
-  const p=g.players[g.active],q=g.players[1-g.active],a=p.field[ai],d=di===null?null:q.field[di];
+  const p=g.players[g.active],q=g.players[1-g.active],a=p.field[ai];let d=di===null?null:q.field[di];
   if(!a||!canAttack(g,a)||di!==null&&!d||di===null&&q.field.some(Boolean))return null;
+  // Aschenhort's resonant taunt redirects the first legal enemy attack only.
+  // Attack-immunity must NOT create a mandatory, unanswerable target loop.
+  let guardedFirst=false;
+  if(g.active===1&&q.id===0&&g.essenceSchool==='defense'&&!g.essenceTauntUsed){
+   const guardianIndex=q.field.findIndex(x=>x?.id===essence().chosen&&CARDS[x.id]?.essenceSchool==='defense'&&x.mode==='def'&&!(x.essenceCombat?.guardLeft>0));
+   if(guardianIndex>=0){di=guardianIndex;d=q.field[di];g.essenceTauntUsed=true;guardedFirst=true;}
+  }
   const attackerIsCompanion=g.active===0&&isOwn(a);
   const beforeEnemyLP=g.players[1].lp;
   let result;
   if(d?.mode==='def'){
-   const s=statLayer(d),strength=effectiveAttack(g,a,d);
+   const s=statLayer(d),strength=guardedFirst?Math.floor(effectiveAttack(g,a,d)*.5):effectiveAttack(g,a,d);
    let remaining=s.guardLeft>0?0:strength;
    const condemned=s.condensed?Math.min(s.condensed,remaining):0;
    s.condensed-=condemned;remaining-=condemned;
@@ -248,12 +259,25 @@
    // Immunity is counted in completed opponent turns, not own turns.
   }
   // Enemy just ended their turn; new current player can now use energy.
-  if(g.winner===null)for(const c of g.players[g.active].field.filter(Boolean)){
-   if(c.mode==='def'&&isSoul(c))absorb(g,c,g.active);
-   if(g.winner!==null)break;
+  if(g.winner===null){
+   if(g.active===1)g.essenceTauntUsed=false;
+   const owner=g.active,team=g.players[owner].field.filter(Boolean);
+   // Guardian healing restores base creature HP only; no bonus-layer duplication.
+   const allies=team.filter(c=>isDefender(c)&&c.mode==='def');
+   for(const guardian of team.filter(c=>CARDS[c.id]?.role==='guardian'&&c.mode==='def')){
+    for(const ally of allies){
+     if(ally===guardian||!ally.card)continue;
+     const layer=statLayer(ally),amount=Math.min(150,25+dataOf(guardian).level*12);
+     ally.card.def=Math.min(layer.maxDef,ally.card.def+amount);
+    }
+   }
+   for(const creature of team){
+    if(creature.mode==='def'&&isSoul(creature))absorb(g,creature,owner);
+    if(g.winner!==null)break;
+   }
   }
   for(const c of g.players[g.active].field.filter(Boolean)){
-   const e=statLayer(c);e.attacksThisTurn=0;e.lastToggle=0;
+   const e=statLayer(c);e.attacksThisTurn=0;e.lastToggle=0;e.lastDrainSwitch=0;
    if(ending===1&&g.active===0&&e.guardLeft>0&&e.guardGrantedTurn<g.turn-1)e.guardLeft--;
   }
   return ok;
@@ -298,10 +322,16 @@
   try{startDuel('pve',1,'challenge','easy');}finally{trial=null;}
   return true;
  }
+ function chooseDrain(idx,stat){
+  if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0)return false;
+  const c=game.players[0].field[idx],s=c&&statLayer(c);
+  if(!c||!isSoul(c)||!s||c.mode!=='def'||(CARDS[c.id]?.soulRank||0)<3||s.lastDrainSwitch===game.turn||!['atk','def'].includes(stat))return false;
+  s.drainPreference=stat==='atk'?1:2;s.lastDrainSwitch=game.turn;render();return true;
+ }
  function fusionRollBonus(g){
   if(!isEssenceDuel(g)||g.active!==0)return 0;
   const c=g.players[0].field.find(c=>c?.id===essence().chosen&&CARDS[c.id]?.essenceSchool==='fusion');
   return c?1+(activeSchool(g)==='fusion'&&perkRank(buffTier(g))>=3?1:0):0;
  }
- window.ArcaneEssenceCombat={condense,discharge,predatorMode,fusionRollBonus,beginTrial,statLayer,perkRank,evolvedLevel,rankCap,nextCost,essence,schools,schoolName,monsterIds};
+ window.ArcaneEssenceCombat={condense,discharge,predatorMode,fusionRollBonus,beginTrial,chooseDrain,statLayer,perkRank,evolvedLevel,rankCap,nextCost,essence,schools,schoolName,monsterIds};
 })();
