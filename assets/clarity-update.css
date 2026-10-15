@@ -175,3 +175,54 @@
   animation:none!important;
  }
 }
+
+/* Make the existing monster transmutation mechanics visible and pleasant to use. */
+#menuScreen.fm-screen .fm-forge-shortcut{
+ border:1px solid #c9ac78!important;border-radius:8px!important;
+ background:linear-gradient(110deg,#463c34,#262f43)!important;
+ color:#ffecba!important;font-size:12px!important;font-weight:850!important;
+ padding:12px!important;line-height:1.5!important;
+}
+#menuScreen.fm-screen .fm-forge-shortcut:hover,
+#menuScreen.fm-screen .fm-forge-shortcut:focus-visible{
+ outline:2px solid #f5d49e;outline-offset:2px;
+ background:linear-gradient(110deg,#594630,#30364d)!important;
+}
+#menuScreen .arcane-forge{scroll-margin-top:24px}
+#menuScreen .arcane-forge-family{
+ display:flex;gap:15px;align-items:center;margin:12px 0 18px;
+ background:linear-gradient(110deg,#21283d,#162838);
+ border:1px solid #cfb88891;padding:10px 13px;border-radius:12px;
+}
+#menuScreen .arcane-forge-family img{
+ width:88px;height:102px;object-fit:cover;flex-shrink:0;border-radius:8px;
+ border:2px double #e0c38f;box-shadow:0 6px 14px #0006;
+}
+#menuScreen .arcane-forge-family div{display:grid;gap:6px;min-width:0}
+#menuScreen .arcane-forge-family strong{font:700 19px/1.25 Georgia,serif;color:#f8e8c3}
+#menuScreen .arcane-forge-family span{font-size:13px;line-height:1.6;color:#dee6f1}
+#menuScreen .arcane-forge-family small{font-size:12px;line-height:1.5;color:#baccdf}
+#menuScreen .arcane-forge-grid p,#menuScreen .arcane-forge-limit{
+ font-size:13px!important;line-height:1.65!important
+}
+#menuScreen .arcane-forge-inventory{font-size:14px!important}
+#menuScreen .arcane-forge-grid label{font-size:13px!important}
+#menuScreen .arcane-forge-presets{display:flex;gap:8px;flex-wrap:wrap}
+#menuScreen .arcane-forge-presets button{
+ width:auto;flex:1 1 130px;font-size:12px;min-height:40px;
+ border-color:#b8a2d8;color:#f0e4fb;
+}
+#menuScreen .arcane-forge-proposal{
+ color:#f6e4bd!important;background:#27354a;border:1px solid #b69b6c;
+ border-radius:8px;padding:8px 10px;margin:10px 0;
+}
+.arcane-forge-confirm{margin:15px 0;padding:17px;text-align:center;border:1px solid #e0c285;
+ border-radius:12px;background:radial-gradient(ellipse at center,#4c3a59,#171d2d)}
+.arcane-forge-confirm strong{display:block;font:700 19px Georgia,serif;color:#ffe2aa}
+.arcane-forge-confirm p{margin:13px 0!important;font:850 19px/1.5 system-ui,sans-serif;color:#e4d7ff}
+.arcane-forge-confirm small{font-size:13px;color:#d6e4dc}
+@media(max-width:480px){
+ #menuScreen .arcane-forge-family img{width:68px;height:85px}
+ #menuScreen .arcane-forge-family strong{font-size:16px}
+ #menuScreen .arcane-forge-family span{font-size:12px}
+}
