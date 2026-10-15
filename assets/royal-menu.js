@@ -146,7 +146,7 @@ const delegate=e=>{
  if(categories.some(group=>group.tabs.includes(action))){go(action);return;}
 };
 $('menuScreen')?.addEventListener('click',delegate);
- $('menuNav')?.addEventListener('click',e=>{const btn=e.target.closest('[data-fm-group]');if(!btn)return;const group=categories.find(g=>g.id===btn.dataset.fmGroup);if(group)go(group.tabs.includes(menuTab)?menuTab:group.tabs[0]);});
+ $('menuNav')?.addEventListener('click',e=>{const btn=e.target.closest('[data-fm-group]');if(!btn)return;const group=categories.find(g=>g.id===btn.dataset.fmGroup);if(!group)return;const submenu=btn.closest('.fm-menu-group')?.querySelector('.fm-submenu');if(group.tabs.includes(menuTab)&&submenu){submenu.hidden=!submenu.hidden;btn.setAttribute('aria-expanded',String(!submenu.hidden));const arrow=btn.querySelector('.fm-arrow');if(arrow)arrow.textContent=submenu.hidden?'›':'⌄';return;}go(group.tabs[0]);});
 function makeText(node,cls,label){const p=document.createElement(node);p.className=cls;p.textContent=label;return p;}
 function decorateRules(){
  oldRules();
