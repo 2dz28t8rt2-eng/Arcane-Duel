@@ -373,33 +373,5 @@
   const c=g.players[0].field.find(c=>c?.id===essence().chosen&&CARDS[c.id]?.essenceSchool==='fusion');
   return c?1+(activeSchool(g)==='fusion'&&perkRank(buffTier(g))>=3?1:0):0;
  }
- // Instance-only fusion role inheritance. Catalogue templates remain unchanged.
- const originalRoleFusion=fusedInstance;
- const combatRole=c=>c?.fusionRole==='predator'?'predator':c?.fusionRole==='defense'?'guardian':c?.fusionRole==='soul'?'soul':CARDS[c?.id]?.role;
- fusedInstance=function(g,instances,levels){
-  const result=originalRoleFusion(g,instances,levels);
-  if(!result||!isEssenceDuel(g)||!Array.isArray(instances)||instances.length<3)return result;
-  let defense=0,predator=0,levelWeight=0;
-  for(const m of instances){
-   const role=combatRole(m);
-   if(role==='guardian'||role==='soul')defense++;
-   if(role==='predator')predator++;
-   levelWeight+=Math.max(1,Number(dataOf(m).level)||1);
-  }
-  const delta=defense-predator;
-  if(Math.abs(delta)<3)return result;
-  const specialized=delta>0?'defense':'predator';
-  result.fusionRole=specialized;
-  const scale=specialized==='defense'?{atk:.78,def:1.24}:{atk:1.20,def:.78};
-  result.card.atk=Math.max(1,round10(result.card.atk*scale.atk));
-  result.card.def=Math.max(1,round10(result.card.def*scale.def));
-  if(specialized==='defense'){
-   const chance=Math.min(75,20+instances.length*5+Math.floor(levelWeight/3));
-   result.soulChance=chance;
-   if(randomInt(g,100)<chance){result.fusionRole='soul';result.soulRank=Math.min(5,Math.max(1,Math.ceil(result.card.level/2)));}
-  }
-  logEvent(g,dataOf(result).name+' erbt '+(specialized==='defense'?'die Verteidigerrolle':'die Predatorrolle')+(result.fusionRole==='soul'?' und wird zum Seelenzehrer':'')+'.');
-  return result;
- };
  window.ArcaneEssenceCombat={condense,discharge,predatorMode,fusionRollBonus,beginTrial,chooseDrain,statLayer,perkRank,evolvedLevel,rankCap,nextCost,essence,schools,schoolName,monsterIds};
 })();
