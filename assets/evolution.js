@@ -149,7 +149,7 @@ function tunedFusionQuality(g,levels,elements=[]){
   f.factor=Math.min(1.48,f.factor+.015*(profile?.upgrades?.fusionPrecision||0));
  return f;
 }
-fusionBudget=function(levels,g){if(!levels.length||levels.length>5)return 0;if(g?.mode!=='pve')return previous.fusionBudget(levels,g);const f=fusionQuality(levels);return Math.min(12,Math.max(1,Math.min(levels.reduce((a,b)=>a+b,0),Math.floor(f.average+2+(levels.length-2)*.70+f.levelBonus-.45*f.spread))));};
+fusionBudget=function(levels,g){if(!levels.length||levels.length>5)return 0;if(g?.mode!=='pve')return previous.fusionBudget(levels,g);const f=fusionQuality(levels);return Math.min(12,Math.max(1,Math.min(levels.reduce((a,b)=>a+b,0),Math.floor(f.average+2+(levels.length-2)*.70+(g?.active===1?0:f.levelBonus)-.45*f.spread))));};
 baseStat=function(c,stat,p){const result=previous.baseStat(c,stat,p);if(!p||p.id!==0||game?.mode==='pvp'||!profile?.evolution)return result;const bonuses=profile.evolution.bonuses;return result*(c.fusionOnly?bonuses.includes('fusion')?1.015:1:bonuses.includes(stat==='atk'?'burst':'defense')?1.03:1);};
 fusedInstance=function(g,instances,levels){if(instances.length>5||instances.length<2)return null;if(g.mode!=='pve')return previous.fusedInstance(g,instances,levels);const p=g.players[g.active],pool=fusionOptions(g,levels),template=g.fusionChoice!==undefined?pool.find(c=>c.id===g.fusionChoice):[...pool].sort((a,b)=>b.level-a.level||b.atk-a.atk)[0];if(!template)return null;
  const f=tunedFusionQuality(g,levels,instances.map(c=>dataOf(c).element));const rolls=Math.min(7,qualityRolls(levels)+f.rollBonus+(window.ArcaneEssenceCombat?.fusionRollBonus?.(g)||0)+instances.filter(c=>dataOf(c).ability==='guide').length+(g.active===0&&!g.totalFusions[0]?(profile.upgrades.fusionLore||0):0));
