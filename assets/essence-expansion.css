@@ -48,3 +48,25 @@
  .essence-training-stages>div{min-height:auto}
 }
 @media(max-width:420px){.essence-card-choices{grid-template-columns:1fr}}
+
+/* Role identity: overlays retain the card name, level and artwork dimensions. */
+.hand-card.tc-card{position:relative}
+.essence-role-chip{
+ position:absolute;left:5px;bottom:45px;z-index:6;
+ display:inline-block;max-width:calc(100% - 10px);padding:2px 5px;
+ border:1px solid #d2b783;border-radius:4px;
+ background:#171d31ea;color:#f3debb;font:800 8px/1.2 system-ui,sans-serif;
+ letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ text-shadow:0 1px #0008;pointer-events:none
+}
+.essence-role-soul{color:#e5c7ff;border-color:#b99de4}
+.essence-role-guardian{color:#b7f0ce;border-color:#92c9a5}
+.essence-role-predator{color:#ffd0ab;border-color:#e5a37a}
+.essence-role-support{color:#b7d6ff;border-color:#8eb6dd}
+.essence-role-weaver{color:#f5ceff;border-color:#d6a2eb}
+.essence-role-description{border-left:3px solid #bba2e0;padding:9px 12px;
+ background:#222c3ed9;color:#e2ddf3;line-height:1.6;font-size:12px}
+.essence-target{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.essence-target>small{grid-column:1/-1}
+.essence-target .btn{font-size:11px;min-width:0;white-space:normal}
+@media(max-width:420px){.essence-role-chip{font-size:7px;bottom:42px}}
