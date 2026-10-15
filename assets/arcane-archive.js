@@ -55,6 +55,7 @@
     '<i></i><i></i><i></i><i></i><i></i><i></i><b>ϟ</b></span>':'')+'</div>').join('');
  }
  function rotateShowcase(){
+  document.documentElement.classList.toggle('ad-motion-disabled',animationSpeed==='instant'||reduceMotion());
   if(transitioning||uiMode!=='menu'||document.hidden||!document.getElementById('menuHero'))return;
   const rack=document.querySelector('#menuHero .atlas-showcase-cards');
   if(!rack)return;
