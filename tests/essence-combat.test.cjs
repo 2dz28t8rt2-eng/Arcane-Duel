@@ -19,7 +19,7 @@ function start(){
   setTimeout(){return 0},setInterval(){return 0},clearTimeout(){},clearInterval(){},
   console,Date,Math,JSON,Set,Map,Array,Number,Object,String,RegExp,Error,TypeError,Uint32Array,Boolean,Infinity,NaN});
  const source=files.map(x=>fs.readFileSync(path.join(__dirname,'../assets',x),'utf8')).join('\n;\n');
- vm.runInContext(source+'\n;globalThis.__essenceTest={createGame,simulateGame,profile,CARDS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,ESSENCE_MONSTER_IDS,advanceTurn,attack,newInstance,damagePlayer,randomInt,statLayer:window.ArcaneEssenceCombat.statLayer,runTrial:(key,school,stage,seed)=>{let created=null;const old=startDuel;startDuel=function(mode,id,context,difficulty){created=createGame({mode,opponentId:id,context,difficulty,seed});};try{if(!window.ArcaneEssenceCombat.beginTrial(key,school,stage)||!created)throw Error(\"Could not start Essence trial\");return simulateGame(created,school===\"defense\"?\"guardian\":\"balanced\",\"balanced\");}finally{startDuel=old;}}};',context,{timeout:10000});
+ vm.runInContext(source+'\n;globalThis.__essenceTest={createGame,simulateGame,profile,CARDS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,ESSENCE_MONSTER_IDS,advanceTurn,attack,newInstance,damagePlayer,randomInt,validateDuelSnapshot,statLayer:window.ArcaneEssenceCombat.statLayer,runTrial:(key,school,stage,seed)=>{let created=null;const old=startDuel;startDuel=function(mode,id,context,difficulty){created=createGame({mode,opponentId:id,context,difficulty,seed});};try{if(!window.ArcaneEssenceCombat.beginTrial(key,school,stage)||!created)throw Error(\"Could not start Essence trial\");return simulateGame(created,school===\"defense\"?\"guardian\":\"balanced\",\"balanced\");}finally{startDuel=old;}}};',context,{timeout:10000});
  return {g:context.__essenceTest,w:window};
 }
 test('Old save defaults do not grant an exclusive monster or perk',()=>{
@@ -120,4 +120,23 @@ test('All specialization lessons and five-stage retraining paths run on loan dec
    }
   }
  }
+});
+
+test('Snapshot serializes all three DEF layers and active defensive cooldowns',()=>{
+ const {g}=start();
+ const duel=g.createGame({mode:'pve',context:'free',opponentId:1,seed:10011,
+  deck:g.RPG_DEFAULT_DECK,fusionDeck:g.RPG_START_FUSIONS});
+ const c=g.newInstance(duel,g.CARDS.find(x=>x.role==='soul'&&!x.fusionOnly).id,0);
+ c.mode='def';duel.players[0].field[0]=c;
+ Object.assign(g.statLayer(c),{soul:200,condensed:90,cooldown:3,condenseLeft:3,
+  condenseSlice:30,guardLeft:2,guardGrantedTurn:0});
+ const before=JSON.stringify(g.statLayer(c));
+ const resumed=g.validateDuelSnapshot(JSON.parse(JSON.stringify(duel)));
+ assert.equal(JSON.stringify(resumed.players[0].field[0].essenceCombat),before);
+ assert.equal(resumed.essenceRules,true);
+});
+test('PvP still creates legacy-rules matches without Essence powers',()=>{
+ const {g}=start();
+ const duel=g.createGame({mode:'pvp',seed:10013});
+ assert.ok(duel.essenceRules!==true);
 });
