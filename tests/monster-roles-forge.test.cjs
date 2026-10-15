@@ -274,7 +274,7 @@ test('Fusion no longer inherits a guaranteed 95% of an overpowered material',()=
 test('Ordinary 2-material fusion may roll below the normal level reference',()=>{
  let weaker=false,stronger=false;
  for(let seed=100;seed<160;seed++){
-  const {g,evolution}=setup(),duel=g.createGame({mode:'pve',context:'free',opponentId:1,seed,
+  const {g,evolution}=setup(),duel=g.createGame({mode:'pve',context:'free',opponentId:1,seed,starter:0,
    deck:g.RPG_DEFAULT_DECK,fusionDeck:g.RPG_START_FUSIONS});
   const cards=[0,1].map(id=>g.newInstance(duel,id,0));
   const fused=g.fusedInstance(duel,cards,cards.map(c=>c.card.level));
