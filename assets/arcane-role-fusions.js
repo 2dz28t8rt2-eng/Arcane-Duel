@@ -92,8 +92,14 @@
   const q=candidates(),m=picked();if(!q||!m.length||m.length>4){toast('Wähle ein bis vier eigene Monster auf dem Feld als Fusionsmaterial.');return;}
   const materials=[q.hand,...m.map(x=>x.c)],levels=materials.map(c=>dataOf(c).level);
   const options=fusionOptions(game,levels);if(!options.length){toast('Mit diesen Monsterstufen ist derzeit keine passende Fusionskarte verfügbar.');return;}
-  chooseFusionModal(levels,materials,id=>{if(!commitFusion(id))toast('Die Feldfusion konnte nicht abgeschlossen werden.');},
-   'Feldmonster werden tatsächlich verbraucht.');
+  const visualMaterials=materials.map(c=>({art:dataOf(c).art,name:dataOf(c).name,level:dataOf(c).level}));
+  chooseFusionModal(levels,materials,async id=>{
+   if(!commitFusion(id)){toast('Die Feldfusion konnte nicht abgeschlossen werden.');return;}
+   const result=game.lastSummoned;if(!result)return;
+   busy=true;
+   try{await fusionAnimation(dataOf(result).level,visualMaterials);}
+   finally{busy=false;render();}
+  },'Feldmonster werden tatsächlich verbraucht.');
  }
  $('ownRow')?.addEventListener('click',ev=>{
   if(!fieldPick||!candidates())return;
