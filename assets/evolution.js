@@ -439,6 +439,16 @@ fusionAnimation=async function(level,visuals=null){
  const summoned=game?.lastSummoned;
  const placed=typeof summoned==='object'?summoned:game?.players?.[game?.active]?.field?.find(x=>x?.uid===summoned);
  const c=fusionVisualResult||placed||game?.pending?.card;
+ // New fully-scoped cinema consumes ONLY the already committed real roll trace and card.
+ // Legacy scene remains a fallback for browsers that cannot load the optional module.
+ if(c?.fusion&&window.ArcaneFusionCinema?.play){
+  const snapshot=visuals||fusionVisualMaterials||[];
+  fusionVisualMaterials=null;
+  try{await window.ArcaneFusionCinema.play({instance:c,materials:snapshot,battle:game,
+   card:dataOf(c),level,wait:animationWait,playSound:sound});}
+  finally{fusionVisualResult=null;}
+  return;
+ }
  // The engine has already committed the summon; reveal it only once the card lands.
  const owner=game?.players?.findIndex(p=>p.field?.some(x=>x&&c&&x.uid===c.uid))??-1;
  const zone=owner>=0?game.players[owner].field.findIndex(x=>x&&c&&x.uid===c.uid):-1;
