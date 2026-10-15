@@ -33,7 +33,7 @@
 
 ## 3. Unverändertes Startdeck
 
-| Gegner | Siege mit Startdeck (120 Seeds) | Durchschnittliche Spielerzüge |
+| Gegner | Siege mit Startdeck (120 Seeds) | Durchschnittliche Halbzüge beider Seiten |
 |---|---:|---:|
 | Training | 111 / 120 (92,5 %) | 11,8 |
 | Turnier I | 117 / 120 (97,5 %) | 12,4 |
