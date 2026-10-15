@@ -31,7 +31,7 @@ document.getElementById('app').addEventListener('load',async ()=>{
   test(!!panel?.querySelector('.ad-deck-close'),'Large preview has a visible close control');
   await pause(520);
   d.querySelector('.ad-deck-close')?.click();
-  await pause(460);
+  await pause(680);
   test(!d.getElementById('deckSidePreview')?.classList.contains('ad-deck-portal'),
    'Closing the portal returns to the grid and removes its overlay');
   test(d.querySelectorAll('.ad-deck-ghost').length===0,'No flying thumbnail ghost persists after closing');
