@@ -8,7 +8,7 @@
  const roots=[...new Set([...ARCANE_STAGE_IDS.keys()].map(k=>Number(k.split(':')[0])))];
  const stage=(root,lv)=>ARCANE_STAGE_IDS.get(root+':'+lv);
  const levelCap=()=>highestCleared()>=7?10:highestCleared()>=5?8:highestCleared()>=3?6:4;
- let chosenRoot=roots[0],combineLevel=2,splitLevel=2,combineText='',splitText='';
+ let chosenRoot=null,combineLevel=2,splitLevel=2,combineText='',splitText='';
  const usedCopies=id=>Math.max(0,...profile.slots.map(s=>s.main.filter(x=>x===id).length),
   profile.activeDeck.filter(x=>x===id).length);
  const free=id=>Math.max(0,(profile.inventory[id]||0)-usedCopies(id));
@@ -37,11 +37,11 @@
   const id=stage(root,level);if(id===undefined)return null;
   if(action==='split'){
    if(free(id)<1)return null;
-   const parts=parseRecipe(value);if(!parts||parts.length<2||parts.reduce((a,b)=>a+b,0)!==level||parts.some(n=>n>=level||n>levelCap()))return null;
+   const parts=String(value||'').trim()?parseRecipe(value):[Math.floor(level/2),Math.ceil(level/2)];if(!parts||parts.length<2||parts.reduce((a,b)=>a+b,0)!==level||parts.some(n=>n>=level||n>levelCap()))return null;
    return {input:[level],output:parts};
   }
   if(level>levelCap())return null;
-  const parts=value.trim()?parseRecipe(value):findComposition(root,level);
+  const parts=String(value||'').trim()?parseRecipe(value):findComposition(root,level);
   if(!parts||parts.length<2||parts.reduce((a,b)=>a+b,0)!==level||parts.some(n=>n>=level))return null;
   return {input:parts,output:[level]};
  }
@@ -79,26 +79,38 @@
   if(uiMode!=='menu'||menuTab!=='collection')return;
   const target=$('menuContent');if(!target)return;
   let root=chosenRoot;
-  if(!roots.includes(root))root=roots[0];
+  if(!roots.includes(root))root=roots.find(r=>available(r).some(lv=>free(stage(r,lv))>0))||roots[0];
+  chosenRoot=root;
   const cap=levelCap();
   const stages=available(root),owned=stages.filter(lv=>free(stage(root,lv))>0);
-  const rootCards=roots.map(id=>CARDS[id]);
+  const rootCards=roots.map(id=>({card:CARDS[id],available:available(id).reduce((n,lv)=>n+free(stage(id,lv)),0)}))
+   .sort((a,b)=>b.available-a.available||a.card.name.localeCompare(b.card.name,'de'));
+  if(!free(stage(root,splitLevel)))splitLevel=owned.find(lv=>lv>=2)||2;
   const plan=findComposition(root,Math.max(2,Math.min(cap,combineLevel)));
   const area=document.createElement('section');area.className='menu-panel arcane-forge';area.id='arcaneMonsterForge';
   area.innerHTML='<div class="arcane-forge-header"><span>✦ MONSTERWERKSTATT</span><h2>Verbinden & Zerlegen</h2>'+
    '<p>Verwandle normale Monster <b>derselben Familie</b> in andere Stufen. Die Summe der Levelpunkte bleibt gleich; Karten in Deckplätzen werden niemals heimlich verbraucht.</p></div>'+
-   '<label>Monsterfamilie <select id="arcaneForgeRoot">'+rootCards.map(c=>'<option value="'+c.id+'" '+(c.id===root?'selected':'')+'>'+esc(c.name)+'</option>').join('')+'</select></label>'+
+   '<div class="arcane-forge-family"><img src="'+esc(CARDS[root].art)+'" alt="" loading="lazy">'+
+   '<div><strong>'+esc(CARDS[root].name)+'</strong><span>32 Monsterfamilien · Verbinden und Zerlegen ohne Levelverlust</span>'+
+   '<small>Nur freie Exemplare; Karten in Decks und geschützte Favoriten bleiben erhalten.</small></div></div>'+
+   '<label>Monsterfamilie <select id="arcaneForgeRoot">'+rootCards.map(entry=>'<option value="'+entry.card.id+'" '+
+   (entry.card.id===root?'selected':'')+'>'+esc(entry.card.name)+' · '+entry.available+' freie Karten</option>').join('')+'</select></label>'+
    '<div class="arcane-forge-inventory"><strong>Deine freien Monster dieser Familie:</strong> '+
    (owned.map(lv=>'LV '+lv+' × '+free(stage(root,lv))).join(' · ')||'Noch keine freien Exemplare')+'</div>'+
    '<div class="arcane-forge-grid"><div><h3>✧ Verbinden</h3><label>Zielstufe (max. LV '+cap+')'+
    '<select id="arcaneForgeCombineLevel">'+Array.from({length:cap-1},(_,i)=>i+2).map(lv=>'<option value="'+lv+'" '+(lv===combineLevel?'selected':'')+'>LV '+lv+'</option>').join('')+'</select></label>'+
    '<label>Eigene Levelaufteilung (optional)<input type="text" id="arcaneForgeCombineRecipe" value="'+esc(combineText)+'" placeholder="'+(plan?plan.join(' + '):'z. B. 1+1+2')+'"></label>'+
-   '<p>Ohne eigene Angabe nutzt die Werkstatt automatisch deine freien Karten. Beispiel: 7 × LV 1 → LV 7.</p>'+btn('combine','Monster verbinden')+'</div>'+
+   '<p>Ohne Eingabe sucht die Werkstatt automatisch passende freie Exemplare. Beispiel: 7 × LV 1 → LV 7.</p>'+
+   (plan?'<p class="arcane-forge-proposal">Automatisch vorgeschlagen: <b>'+plan.join(' + ')+' → LV '+combineLevel+'</b></p>':
+   '<p class="arcane-forge-proposal">Noch kein passendes freies Material für diese Zielstufe gefunden.</p>')+
+   btn('combine','Monster verbinden',!plan&&!combineText.trim())+'</div>'+
    '<div><h3>↯ Zerlegen</h3><label>Zu zerlegende Karte<select id="arcaneForgeSplitLevel">'+
    stages.filter(lv=>lv>=2).map(lv=>'<option value="'+lv+'" '+(lv===splitLevel?'selected':'')+' '+(!free(stage(root,lv))?'disabled':'')+'>LV '+lv+' · '+free(stage(root,lv))+' frei</option>').join('')+'</select></label>'+
-   '<label>Gewünschte niedrigere Stufen<input type="text" id="arcaneForgeSplitRecipe" value="'+esc(splitText)+'" placeholder="z. B. 3+3+1"></label>'+
-   '<p>Beispiele für eine LV-7-Karte: 3+3+1, 2+2+2+1 oder siebenmal 1. Alle Summen müssen exakt aufgehen.</p>'+
-   btn('split','Monster zerlegen')+'</div></div>'+
+   '<label>Gewünschte niedrigere Stufen (optional)<input type="text" id="arcaneForgeSplitRecipe" value="'+esc(splitText)+'" placeholder="Leer lassen = in zwei ungefähr gleiche Stufen teilen"></label>'+
+   '<div class="arcane-forge-presets"><button class="btn" type="button" data-forge-preset="halves">In 2 Monster teilen</button>'+
+   '<button class="btn" type="button" data-forge-preset="ones">Alles in LV 1 zerlegen</button></div>'+
+   '<p>Ohne Eingabe zerlegt die Werkstatt automatisch möglichst gleichmäßig, z. B. LV 7 → LV 3 + LV 4. Du kannst auch 3+3+1 oder 1+1+1+1+1+1+1 eingeben. Die Summe muss exakt stimmen.</p>'+
+   btn('split','Monster zerlegen',!owned.some(lv=>lv>=2))+'</div></div>'+
    '<p class="arcane-forge-limit">Stufenbegrenzung durch den Turnierfortschritt. Level 10 ist die maximale Monsterstufe im regulären Turnier. Level 11 und 12 erscheinen erst in einer späteren Erweiterung. Essenzmonster, ACE- und Fusionskarten sind ausgeschlossen.</p>';
   target.prepend(area);
  }
@@ -112,6 +124,15 @@
   if(t.id==='arcaneForgeSplitRecipe')splitText=t.value;
  });
  $('menuScreen')?.addEventListener('click',event=>{
+  const preset=event.target.closest('[data-forge-preset]');
+  if(preset){
+   const area=$('arcaneMonsterForge');if(!area)return;
+   const level=Number(area.querySelector('#arcaneForgeSplitLevel')?.value)||2;
+   const parts=preset.dataset.forgePreset==='ones'?Array(level).fill(1):
+    [Math.floor(level/2),Math.ceil(level/2)];
+   const input=area.querySelector('#arcaneForgeSplitRecipe');
+   input.value=parts.join('+');splitText=input.value;input.focus();return;
+  }
   const b=event.target.closest('[data-forge-action]');if(!b)return;
   const area=$('arcaneMonsterForge');if(!area)return;
   combineLevel=Number(area.querySelector('#arcaneForgeCombineLevel').value);
@@ -119,10 +140,23 @@
   combineText=area.querySelector('#arcaneForgeCombineRecipe').value;
   splitText=area.querySelector('#arcaneForgeSplitRecipe').value;
   const action=b.dataset.forgeAction,level=action==='combine'?combineLevel:splitLevel;
-  const result=transact(action,chosenRoot,level,action==='combine'?combineText:splitText);
-  toast(result.message);
-  if(result.ok){combineText='';splitText='';renderMenu();}
+  const recipe=action==='combine'?combineText:splitText,plan=recipeParts(chosenRoot,action,level,recipe);
+  if(!plan){toast('Ungültige Levelaufteilung. Prüfe die Summe und deine freien Karten.');return;}
+  const verb=action==='combine'?'Verbinden':'Zerlegen';
+  openModal(modalHtml('✦ MONSTERWERKSTATT',verb+' bestätigen','✧',
+   'Dieser Vorgang verändert dauerhaft deine freien Karten, ohne ihre gesamte Levelsumme zu verändern.',
+   '<div class="arcane-forge-confirm"><strong>'+esc(CARDS[chosenRoot].name)+'</strong>'+
+   '<p>LV '+plan.input.join(' + LV ')+' → LV '+plan.output.join(' + LV ')+'</p>'+
+   '<small>Deine ausgerüsteten Decks und Favoriten bleiben unverändert.</small></div>',
+   '<button class="btn" id="arcaneForgeCancel">ABBRECHEN</button>'+
+   '<button class="btn primary" id="arcaneForgeConfirm">JA · '+verb.toUpperCase()+'</button>'));
+  $('arcaneForgeCancel').onclick=hideModal;
+  $('arcaneForgeConfirm').onclick=()=>{
+   const confirmed=transact(action,chosenRoot,level,recipe);
+   hideModal();toast(confirmed.message);
+   if(confirmed.ok){combineText='';splitText='';renderMenu();}
+  };
  });
- window.ArcaneMonsterForge=Object.freeze({version:'1.0.0',levelCap,parseRecipe,findComposition,transact,stage});
+ window.ArcaneMonsterForge=Object.freeze({version:'1.1.0',levelCap,parseRecipe,findComposition,transact,stage});
  if(uiMode==='menu')show();
 })();
