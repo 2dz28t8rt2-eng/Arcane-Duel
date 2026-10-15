@@ -1,0 +1,26 @@
+
+/* Schicksalszug: golden foil and full-screen cinematic. */
+.tc-fate{position:relative!important;border:3px solid #ffe69b!important;box-shadow:0 0 12px #e9b94b,0 0 26px #b57bff88,inset 0 0 13px #f8d77b55!important;background:linear-gradient(135deg,#21133e,#543b24,#15112c)!important;overflow:hidden}
+.tc-fate:before{content:"";position:absolute;inset:-50%;z-index:2;pointer-events:none;background:linear-gradient(105deg,transparent 35%,#fff8 46%,#fff2 50%,#fff8 54%,transparent 65%);animation:fateFoil 3.6s linear infinite}
+.tc-fate:after{content:"✦";position:absolute;right:5px;top:29px;color:#ffe8a0;text-shadow:0 0 9px #fff;z-index:4;pointer-events:none;animation:fateTwinkle 1.7s ease-in-out infinite}
+.fate-sparkle{animation:fateCardGlow 2.6s ease-in-out infinite}
+@keyframes fateFoil{0%{transform:translateX(-65%) rotate(10deg)}100%{transform:translateX(65%) rotate(10deg)}}
+@keyframes fateTwinkle{50%{opacity:.35;transform:scale(.7)}}
+@keyframes fateCardGlow{50%{filter:drop-shadow(0 0 12px #ffdc6d)}}
+.fate-cinema{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;overflow:hidden;text-align:center;background:radial-gradient(ellipse at center,#422456ee,#09091af7 70%);color:#fff3c3;animation:fateAppear .35s ease-out both}
+.fate-cinema-aura{position:absolute;width:80vmin;height:80vmin;border:2px solid #f9dc7755;border-radius:50%;box-shadow:0 0 100px 35px #f7d36540,inset 0 0 90px #bc88ff40;animation:fateSpin 9s linear infinite;pointer-events:none}
+.fate-cinema-aura:before,.fate-cinema-aura:after{content:"✦ ✧ ✦ ✧ ✦ ✧ ✦ ✧";position:absolute;inset:8%;border:2px dashed #fff5ad77;border-radius:50%;display:grid;place-items:center;font-size:24px;letter-spacing:10px}
+.fate-cinema-title{position:relative;font-size:clamp(25px,5vw,58px);font-weight:950;letter-spacing:.07em;color:#fff3ba;text-shadow:0 0 18px #f6c75f,0 0 50px #ad67ff;animation:fateTitle 1s ease-out both}
+.fate-cinema-sub,.fate-cinema-foot{position:relative;font-size:clamp(13px,2vw,19px);letter-spacing:.12em}
+.fate-cinema-cards{position:relative;display:flex;align-items:center;justify-content:center;gap:clamp(4px,1.2vw,18px);width:min(95vw,980px);perspective:1000px}
+.fate-reveal{width:18%;aspect-ratio:2/3;max-width:155px;animation:fateFly .6s cubic-bezier(.2,1.4,.3,1) both;animation-delay:calc(var(--fate-i)*.18s)}
+.fate-reveal-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;animation:fateFlip .7s ease-in-out both;animation-delay:calc(.65s + var(--fate-i)*.18s)}
+.fate-reveal-back,.fate-reveal-front{position:absolute;inset:0;backface-visibility:hidden;border:3px solid #ffe5a0;border-radius:12px;box-shadow:0 0 20px #f6d470bb,inset 0 0 20px #fff7b366;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(140deg,#25134c,#87672c,#2b1549);overflow:hidden}
+.fate-reveal-back{font-size:clamp(25px,5vw,60px);text-shadow:0 0 18px #fff}
+.fate-reveal-front{transform:rotateY(180deg);padding:6px;gap:5px}
+.fate-reveal-front img{width:100%;height:72%;object-fit:cover;border:1px solid #ffe6a2}
+.fate-reveal-front b{font-size:clamp(8px,1.2vw,13px);line-height:1.2}
+.fate-reveal-front span{font-size:clamp(7px,1vw,10px);color:#ffe8a5}
+@keyframes fateAppear{from{opacity:0}to{opacity:1}}@keyframes fateSpin{to{transform:rotate(360deg)}}@keyframes fateTitle{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}@keyframes fateFly{from{opacity:0;transform:translateY(90px) scale(.5)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes fateFlip{from{transform:rotateY(0)}to{transform:rotateY(180deg)}}
+@media(max-width:560px){.fate-cinema{gap:9px}.fate-cinema-title{font-size:clamp(21px,6vw,30px)}.fate-reveal-front{padding:3px;border-width:2px;border-radius:6px}.fate-reveal-front img{height:65%}}
+@media(prefers-reduced-motion:reduce){.fate-cinema *, .tc-fate:before,.tc-fate:after{animation-duration:.01ms!important;animation-delay:0ms!important}.fate-reveal-inner{transform:rotateY(180deg)}}
