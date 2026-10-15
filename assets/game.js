@@ -259,13 +259,13 @@ function enemyFusionDeck(ids){const chosen=bestFusionDeck(ids),levels=chosen.map
 
 // Card IDs 0–86 remain stable for existing saves.
 for(const o of RPG_OPPONENTS){
- const entry=CARDS[o.loot[0]],key=CARDS[o.loot[1]];entry.ability='guide';entry.desc='Fusionshilfe: als Material ein zusätzlicher Wertewurf (max. 4).';key.ability='guard';key.desc='Hüter: beim Beschwören 120 LP-Schild; als angegriffenes ATK-Monster 25 % weniger LP-Schaden.';
+ const entry=CARDS[o.loot[0]],key=CARDS[o.loot[1]];entry.ability=undefined;entry.desc='Gewöhnliche Kreatur ohne einzigartigen Fusionswurfbonus.';key.ability=undefined;key.desc='Gewöhnliche Kreatur ohne individuellen Matchupbonus.';
  const ability=['aegis','pierce','hunt'][o.id%3];
- const signature=addRpgCard({name:o.theme+'souverän',kind:o.kind,element:o.element,color:o.color,source:o.id,level:o.level,atk:round10(FUSION_POWER[o.level]*1.13),def:round10(FUSION_POWER[o.level]*.8),fusionOnly:true,rarity:'rare',ability,desc:ability==='aegis'?'Signatur: beim Beschwören 240 LP-Schild (Gesamtschild max. 600).':ability==='hunt'?'Signatur: +15 % Angriffsleistung beim Angriff auf ein Fusionsmonster.':'Signatur: 25 % Durchbruchschaden gegen Verteidigung.'});
+ const signature=addRpgCard({name:o.theme+'souverän',kind:o.kind,element:o.element,color:o.color,source:o.id,level:o.level,atk:round10(FUSION_POWER[o.level]*1.13),def:round10(FUSION_POWER[o.level]*.8),fusionOnly:true,rarity:'rare',ability,desc:ability==='aegis'?'Signatur: beim Beschwören 240 LP-Schild (Gesamtschild max. 600).':ability==='hunt'?'Signaturkarte ohne Sonderbonus gegen andere Monster.':'Signaturkarte ohne zusätzlichen Durchbruchschaden.'});
  o.signature=signature;o.loot.push(signature);o.hardLoot=[];
  const l=Math.min(TOURNAMENT_LEVEL_CAP,o.level+2),base=FUSION_POWER[l]*1.10;
  o.hardLoot.push(addRpgCard({name:o.theme+'vorreiter',kind:o.kind,element:o.element,color:o.color,source:o.id,hard:true,level:4,atk:round10((550+o.id*115)*1.2),def:round10((550+o.id*115)*.8),fusionOnly:false,ability:undefined,desc:'Hardmode · Normale Kreatur ohne individuellen Fusions-Wurfbonus.'}));
- o.hardLoot.push(addRpgCard({name:o.theme+'erzbrecher',kind:o.kind,element:o.element,color:o.color,source:o.id,hard:true,level:l,atk:round10(base*1.12),def:round10(base*.7),fusionOnly:true,rarity:'rare',ability:'pierce',desc:'Hardmode · 25 % Durchbruchschaden gegen Verteidigung.'}));
+ o.hardLoot.push(addRpgCard({name:o.theme+'erzbrecher',kind:o.kind,element:o.element,color:o.color,source:o.id,hard:true,level:l,atk:round10(base*1.12),def:round10(base*.7),fusionOnly:true,rarity:'rare',ability:undefined,desc:'Hardmode · Hochstufige Fusionsvorlage ohne eigenen Durchbruchbonus.'}));
  o.hardLoot.push(addRpgCard({name:o.theme+'erzregent',kind:o.kind,element:o.element,color:o.color,source:o.id,hard:true,level:l,atk:round10(base),def:round10(base*.95),fusionOnly:true,rarity:'rare',ability:undefined,desc:'Hardmode · Fusionsvorlage ohne individuellen Schadensbonus gegen andere Kreaturen.'}));
  o.themeText=['Aufbau und Schutz','Durchbruch und Druck','Jagd auf Fusionen'][o.id%3];
 }
