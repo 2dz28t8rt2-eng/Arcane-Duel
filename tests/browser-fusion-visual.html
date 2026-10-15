@@ -78,6 +78,19 @@ iframe.addEventListener('load',async()=>{
   const longValues=[...(placedCard?.querySelectorAll('.arcane-stat-long')||[])];
   check(!!placedRole&&w.getComputedStyle(placedRole).display!=='none','Geerbte Rolle ist nach der Landung NUR in der großen Kartenansicht sichtbar');
   check(longValues.length===2&&longValues.every(el=>fontSize(el)<=12.5),'Auch fünfstellige Fusionswerte bleiben sauber in beiden Zahlenkästen');
+  // The accelerated second (on-card) ritual uses denser light effects and shared committed rolls.
+  w.eval('game.lastSummoned=game.players[0].field[0].uid;window.__fastFieldQA=fusionAnimation(4,[{art:CARDS[0].art,level:1},{art:CARDS[1].art,level:1}],"field")');
+  const quick=d.querySelector('.ritual-overlay');
+  check(quick?.dataset.variant==='field'&&quick.querySelectorAll('.ritual-spark').length>=38,
+   'Second field-fusion ritual is accelerated and uses more particles');
+  await w.__fastFieldQA;
+  check(!d.querySelector('.ritual-overlay'),'Accelerated second ritual cleans its effects');
+
+  // Marked small card stats may NEVER escape their card border.
+  w.eval('game=createGame({mode:"pve",opponentId:1,context:"free",starter:0,seed:93713});uiMode="duel";busy=false;aiRunning=false;animationSpeed="fast";game.active=0;game.materials=game.players[0].hand.slice(0,2).map(c=>c.uid);render()');
+  const marked=[...d.querySelectorAll('#hand .hand-card.fusion-mark')];
+  check(marked.length===2&&marked.every(card=>{const bounds=card.getBoundingClientRect();return [...card.querySelectorAll('.stat-value')].every(stat=>{const r=stat.getBoundingClientRect();return r.bottom<=bounds.bottom+1&&r.left>=bounds.left-1&&r.right<=bounds.right+1;});}),
+   'Selected fusion materials keep all ATK/DEF numbers inside miniature borders');
   // Real two-step interaction: first hand fusion reveal, then choose empty zone.
   w.eval('game=createGame({mode:"pve",opponentId:1,context:"free",starter:0,seed:93713});uiMode="duel";busy=false;aiRunning=false;animationSpeed="fast";game.active=0;render()');
   const started=w.eval('(()=>{const p=game.players[0],materials=p.hand.slice(0,2),levels=materials.map(c=>dataOf(c).level),choice=fusionOptions(game,levels)[0];if(!choice)return false;game.materials=materials.map(c=>c.uid);window.__earlyFuse=prepareFusion(choice.id);return true;})()');
