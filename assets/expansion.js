@@ -229,15 +229,61 @@ menuAction=function(d){
 };
 let introShowing=false;
 const pages=[
- {title:'Willkommen in der Arena',sub:'Dein erstes Abenteuer beginnt hier.',left:'<h3>Das Ziel</h3><p>Besiege die Duellanten der Arena, sammle Monsterkarten und erweitere dein Deck. Jeder Gegner spielt etwas anders.</p><div class="guide-symbol">⚔</div>',right:'<h3>Dein Weg</h3><p>Trainieren → Turnierkämpfe gewinnen → Karten sammeln → stärkere Fusionen finden.</p><div class="guide-pill">✦ Besiege 10 Turnierduellanten</div>'},
- {title:'Deine Monsterkarten',sub:'Eine Karte, drei wichtige Informationen.',left:'<h3>Angriff und Verteidigung</h3><div class="guide-figure"><b>✦✦✦✦</b><div class="guide-icon">♞</div><span>ATK 980 &nbsp; DEF 760</span></div>',right:'<h3>Was bedeuten die Zahlen?</h3><p><b>ATK</b> bestimmt die Stärke beim Angreifen. <b>DEF</b> schützt ein verteidigendes Monster.</p><p>Silbergraue Rahmen markieren Startkarten. Fusionen leuchten violett; andere Rahmenfarben zeigen das Level.</p>'},
- {title:'So funktioniert ein Duell',sub:'Jeder Zug ist eine kleine Entscheidung.',left:'<h3>Dein eigener Zug</h3><p>Du ziehst auf fünf Handkarten auf und darfst eine Karte beschwören oder fusionieren. Anschließend kannst du mit deinen Monstern angreifen.</p><div class="guide-pill">1 Beschwörung je Zug</div>',right:'<h3>Ein Angriff</h3><div class="guide-numbers"><b>980 ATK</b><span>⚔</span><b>760 ATK</b></div><p>Der stärkere Angreifer gewinnt. Unterschied: <b>220 LP Schaden</b>. Gegen Verteidigung gelten andere Regeln.</p>'},
- {title:'Fusionen',sub:'Mehrere Monster ergeben eine neue Karte.',left:'<h3>Materialien markieren</h3><p>Markiere mindestens zwei Handkarten per Rechtsklick oder Touch-Fusion. Wähle eine passende Fusionskarte und ein freies Feld.</p><div class="guide-numbers"><b>Lv 2</b><span>＋</span><b>Lv 3</b><span>→</span><b>Fusion</b></div>',right:'<h3>Wertewurf verstehen</h3><p>Die neue Karte würfelt Werte zwischen 94 % und 106 % ihrer verstärkten Basiswerte. Bei zwei Würfen gewinnt das ATK/DEF-Paar mit der höheren Summe.</p><p>Deine Materialien können zusätzliche Punkte als <b>Materialbonus</b> liefern. Die Vorschau zeigt die möglichen Bereiche.</p>'},
- {title:'Kreaturenzerfall',sub:'Starke Monster bleiben nicht für immer stark.',left:'<h3>Automatischer Zerfall</h3><p>Ein Monster verliert in späteren eigenen Zügen Angriff und Verteidigung. Wer lange überlebt, verliert pro Zug nach und nach weniger. Bei Startkarten endet der Rückgang bei −10, bei normalen Monstern und Fusionen bei −20.</p><div class="guide-pill">Fusion: −50 → −45 → −40 … mindestens −20</div>',right:'<h3>Angriffe kosten Kraft</h3><p>Nach jedem Angriff verliert das überlebende Monster zusätzlich <b>30 ATK</b>. So können selbst sehr starke Gegner mit der Zeit geschwächt werden.</p>'},
- {title:'Beute und Dropladungen',sub:'Siege bringen Fortschritt.',left:'<h3>Nach dem Kampf</h3><p>Du erhältst Essenz, Erfahrungspunkte, Splitter und manchmal neue Karten. Besiegte Turniergegner schalten Freie Duelle frei. Dein erster Turniersieg gegen einen Gegner füllt alle Dropladungen auf und vergibt eine Fusion samt Gestalt.</p>',right:'<h3>Dropladungen</h3><p>Aktivierte Ladungen verbessern automatische Kämpfe. Eine wird pro Kampf verbraucht. Der erste Sieg über einen neuen Turniergegner füllt deinen Vorrat vollständig auf. Nach einer Turnierniederlage erhältst du eine Acemonster-Schätzung und kannst zusätzliche Hinweise für Essenz kaufen.</p>'},
- {title:'Deckbau und Skills',sub:'Stelle dir deinen Spielstil zusammen.',left:'<h3>Dein Deck</h3><p>Im Hauptdeck verwendest du genau 40 Karten. Im Fusionsdeck liegen deine Fusionskarten, die im Duell begrenzt einsetzbar sind.</p>',right:'<h3>Skills & Perks</h3><p>Investiere Essenz in Werteverbesserungen, Belohnungen und die Trainingsroutine. Unter „Freie Duelle“ sammelst du Charakterpacks. Besiegte Turniergegner schalten im Shop einmalig kaufbare ACE-Karten frei; erst danach sind sie extrem selten in Boostern.</p>'},
- {title:'Bereit zum Spielen?',sub:'Du kannst jederzeit zurückblättern.',left:'<h3>Starte dein erstes Training</h3><p>Du musst nicht alle Details sofort beherrschen. Beginne mit ein paar einfachen Duellen und lerne die Fusionen Schritt für Schritt.</p><div class="guide-symbol">✧</div>',right:'<h3>Dieses Buch bleibt erhalten</h3><p>Im Menü findest du das <b>Duellantenhandbuch</b> jederzeit im <b>Lexikon</b>. Du kannst es auch jetzt schließen und später weiterblättern.</p>'}
-];
+ {
+  "title": "Willkommen in Arcane Duel",
+  "sub": "Dein Einstieg in eine Arena voller Kreaturen, Fusionen und Schicksal.",
+  "left": "<h3>Dein Ziel</h3><p>Reduziere die <b>Lebenspunkte (LP)</b> des Gegners auf null. Besiege zuerst die drei Trainingsgegner und arbeite dich anschließend durch <b>zehn Turnierprüfungen</b>.</p><div class=\"royal-guide-flow\"><div><strong>⚔</strong><span>Duell gewinnen</span></div><div><strong>✦</strong><span>Karten sammeln</span></div><div><strong>◆</strong><span>Deck verbessern</span></div></div>",
+  "right": "<h3>Du musst nicht alles sofort wissen</h3><p>Beginne mit <b>Beschwören</b> und <b>Angreifen</b>. Fusionen, Spezialkombinationen, Zerfall und seltene Ereignisse folgen später.</p><p class=\"royal-guide-note\">📖 Dieses Startbuch ist jederzeit im Hauptmenü unter <b>Regel-Lexikon → Startanleitung</b> zu finden.</p>"
+ },
+ {
+  "title": "Deine Monsterkarte",
+  "sub": "Drei Dinge reichen am Anfang: Stufe, Angriff und Verteidigung.",
+  "left": "<h3>So liest du die Karte</h3><div class=\"royal-guide-flow\"><div><strong>LV</strong><span>Stufe oben</span></div><div><strong>980</strong><span>ATK · linke Zahl</span></div><div><strong>760</strong><span>DEF · rechte Zahl</span></div></div><p>Die beiden Werte stehen auf der Karte <b>ohne ausgeschriebenes ATK/DEF</b>, damit das Artwork mehr Platz bekommt.</p>",
+  "right": "<h3>Rahmen und Elemente</h3><p><b>Normale Karten</b> haben stufenabhängige Metallrahmen, <b>Fusionen</b> magisch-violette Rahmen. <b>ACE</b>-Karten tragen eigene Verzierungen, und <b>Schicksalsmonster</b> zeigen einzigartige prunkvolle Rahmen.</p><div class=\"royal-guide-note\">Ein Kartenbild zeigt eine Kreatur. Ihre <b>Stufe</b> ist nicht dasselbe wie die Spielerstufe!</div>"
+ },
+ {
+  "title": "Dein erster Zug",
+  "sub": "Auf fünf Karten ziehen, ein Monster beschwören, dann Aktionen wählen.",
+  "left": "<h3>Ein Zug in drei Schritten</h3><div class=\"royal-guide-flow\"><div><strong>①</strong><span>Hand auf fünf ziehen</span></div><div><strong>②</strong><span>Ein Monster setzen</span></div><div><strong>③</strong><span>Angreifen und beenden</span></div></div><p>Du hast <b>fünf Monsterzonen</b> und normalerweise <b>eine Beschwörung pro Zug</b>.</p>",
+  "right": "<h3>So spielst du eine Karte</h3><p>Wähle eine Handkarte aus, tippe auf <b>Beschwören</b> und bestimme eine eigene Feldzone. Angriffe beginnen durch Auswahl eines eigenen Monsters und eines gegnerischen Ziels.</p><p class=\"royal-guide-note\">Im <b>ersten Zug des gesamten Duells</b> darf noch niemand angreifen. Ein direktes Ziel ist möglich, wenn beim Gegner keine Monster mehr stehen.</p>"
+ },
+ {
+  "title": "Angriff und Verteidigung",
+  "sub": "Mehr Angriff bedeutet nicht in jeder Situation denselben Schaden.",
+  "left": "<h3>Angriff gegen Angriff</h3><div class=\"royal-guide-flow\"><div><strong>980</strong><span>Dein Angriff</span></div><div><strong>→</strong><span>gegen</span></div><div><strong>760</strong><span>Feindlicher Angriff</span></div></div><p>Der stärkere Angreifer zerstört das schwächere Monster; die Differenz kann dem Verteidiger <b>220 LP</b> kosten.</p>",
+  "right": "<h3>Angriff gegen Verteidigung</h3><p>Steht das Ziel in Verteidigungsposition, vergleicht das Spiel deinen <b>ATK</b>-Wert mit dessen <b>DEF</b>. Beim Sieg wird das Monster normalerweise zerstört, ohne den Gegner direkt zu verletzen. Bei zu wenig ATK bekommst du Rückstoßschaden.</p><p class=\"royal-guide-note\">Nach einem Angriff verliert ein überlebendes Monster vorübergehend Kraft. Plane die Reihenfolge deiner Angriffe.</p>"
+ },
+ {
+  "title": "Fusionen erschaffen",
+  "sub": "Zwei bis fünf Materialien – eine gemeinsame stärkere Gestalt.",
+  "left": "<h3>Eine Fusion durchführen</h3><div class=\"royal-guide-flow\"><div><strong>LV 2</strong><span>Material</span></div><div><strong>＋ LV 3</strong><span>Material</span></div><div><strong>✧</strong><span>Fusionsvorlage</span></div></div><p>Aktiviere <b>Touch-Fusion</b> oder markiere die Handkarten per Rechtsklick, wähle eine verfügbare Vorlage und danach das Feld.</p>",
+  "right": "<h3>Wichtige Einschränkungen</h3><p>Du brauchst die Vorlage im <b>Fusionsdeck</b>. Ihre Kopie kann pro Duell nur einmal verbraucht werden. Bei der Fusion zählen alle ausgewählten Materialien. Die Kombination ihrer <b>Stufen</b> beeinflusst mögliche Qualitätsboni und Zusatzwürfe.</p><div class=\"royal-guide-note\">Fusionen sind stark – aber du musst nicht sofort jede Gelegenheit nutzen. Manchmal sind mehrere Monster auf dem Feld besser.</div>"
+ },
+ {
+  "title": "Die Macht kleiner Monster",
+  "sub": "Spezialkombinationen erinnern an Poker – aber zählen Monsterstufen.",
+  "left": "<h3>Beispiele für starke Muster</h3><div class=\"royal-guide-flow\"><div><strong>1 + 1</strong><span>Niedriges Paar</span></div><div><strong>2 + 2 + 2</strong><span>Drilling</span></div><div><strong>1 + 2 + 3</strong><span>Kleine Straße</span></div></div><p>Auch <b>zwei Paare</b>, <b>Full House</b>, <b>Vierling</b> und <b>Fünfling</b> können Fusionen verbessern.</p>",
+  "right": "<h3>Hier kannst du es üben</h3><p>Unter <b>Challenges → Lernherausforderungen</b> wartet für jede Spezialkombination ein passendes <b>40-Karten-Leihdeck</b>. Dein eigenes Deck wird dabei nicht verändert.</p><p class=\"royal-guide-note\">Schaffst du die Zielkombination und gewinnst das Duell, wartet beim <b>ersten Erfolg</b> ein kleines Charakterpack.</p>"
+ },
+ {
+  "title": "Zerfall und das Schicksal",
+  "sub": "Kein Monster bleibt ewig unangreifbar.",
+  "left": "<h3>Kreaturenzerfall</h3><p>Nach einer anfänglichen Schonfrist verlieren Monster in späteren Zügen ATK und DEF: <b>Startmonster zuerst 20</b>, normale Karten <b>30</b> und Fusionen <b>50</b> Werte. Der Verlust pro Zug nimmt mit dem Alter ab.</p><p>Ab <b>Runde 10</b> zwingt zusätzlich Arena-Schaden zum Handeln.</p>",
+  "right": "<h3>Wenn das Schicksal eingreift …</h3><p>In großer Bedrängnis kann sich in einem Einzelspielerduell selten eine unerwartete Chance eröffnen. Solche <b>Schicksalsmonster</b> sind mächtig, vorübergehend und können nicht fusioniert werden.</p><div class=\"royal-guide-note\">Die genauen Regeln des Schicksalszugs enthüllt das ausführliche Regel-Lexikon nach deiner ersten Begegnung mit dem Ereignis.</div>"
+ },
+ {
+  "title": "Karten sammeln und verbessern",
+  "sub": "Dein Deck wächst mit jedem weiteren Gegner.",
+  "left": "<h3>Belohnungen verstehen</h3><p>Manuelle Duelle bringen <b>Essenz, XP und Splitter</b> sowie Chancen auf Karten. Der Booster-Shop, Charakterpacks und die Werkstatt erweitern deine Möglichkeiten.</p><p>Wiederholtes Farmen leichter Gegner wird bei hohem Level weniger ergiebig. Neue Prüfungen lohnen sich.</p>",
+  "right": "<h3>Dein Deck</h3><p>Das Hauptdeck umfasst <b>genau 40 Karten</b>, grundsätzlich bis zu drei Kopien pro Art. Das Fusionsdeck enthält <b>2 bis 15 Vorlagenkopien</b>. Du kannst mehrere Deckplätze nutzen.</p><p class=\"royal-guide-note\">Im <b>Monsterlexikon</b> sehen unbekannte Monster zunächst geheimnisvoll aus. „Entdeckt“ bedeutet nicht automatisch „im Besitz“.</p>"
+ },
+ {
+  "title": "Bereit für die Arena!",
+  "sub": "Der Rest kommt mit jedem Duell ganz von selbst.",
+  "left": "<h3>Dein erster Lernpfad</h3><div class=\"royal-guide-flow\"><div><strong>1</strong><span>Training</span></div><div><strong>2</strong><span>Turnier</span></div><div><strong>3</strong><span>Lern-Challenges</span></div></div><p>Übe zuerst den Grundzug. Danach erkennst du, wie wertvoll ein vorbereitetes Fusionsmuster sein kann.</p>",
+  "right": "<h3>Du findest alles wieder</h3><p>Im <b>Hauptmenü</b> sind Startanleitung und <b>Regel-Lexikon</b> direkt sichtbar. Im Regelbuch kannst du nach Begriffen suchen oder Kapitel gezielt öffnen.</p><div class=\"royal-guide-note\">Viel Erfolg, Duellant. ✦</div>"
+ }
+]
 function showGuide(page=0){
  const index=Math.max(0,Math.min(pages.length-1,page)),p=pages[index];
  introShowing=true;
@@ -257,7 +303,7 @@ function finishGuide(){
  if(uiMode==='menu')renderMenu();
  // One-time in-game orientation, not a transient toast.
  if(!$('overlay').classList.contains('hidden'))return;
- popupHelp('Duellantenhandbuch gespeichert','Du kannst das vollständige Handbuch jederzeit unter <b>Lexikon → Duellantenhandbuch</b> erneut öffnen.');
+ popupHelp('Duellantenhandbuch gespeichert','Startanleitung und durchsuchbares Regel-Lexikon findest du direkt im Hauptmenü.');
 }
 const previousHideModal=hideModal;
 hideModal=function(){
