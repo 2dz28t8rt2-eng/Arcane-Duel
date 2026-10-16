@@ -38,8 +38,11 @@ document.getElementById('runtime').addEventListener('load',async()=>{
    const holder=doc.createElement('div');holder.style.width='180px';
    holder.innerHTML=win.eval('fullCardHtml(CARDS['+row.id+'])');fixture.append(holder);
    const element=holder.querySelector('.hand-card'),img=element.querySelector('.hand-art img');
-   await img.decode();
-   check(img.naturalWidth===1024&&img.naturalHeight===1024,'1024px image decoded '+row.id);
+   if(!img.complete)await new Promise((resolve,reject)=>{
+    img.addEventListener('load',resolve,{once:true});
+    img.addEventListener('error',()=>reject(Error('Artwork failed to load: '+row.art)),{once:true});
+   });
+   check(img.naturalWidth===1024&&img.naturalHeight===1024,'1024px image loaded '+row.id);
    check(element.querySelector('.card-name').textContent===row.cardName&&img.alt===row.cardName,'Card title and alternative text '+row.id);
    check(element.dataset.element===stats[4]&&element.querySelector('.ad-level-medallion')?.textContent===String(stats[0]),'Element and level seal '+row.id);
    byId.set(row.id,element);
