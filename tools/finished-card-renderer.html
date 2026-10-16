@@ -117,7 +117,9 @@ root.addEventListener('load',async()=>{
   if(cards.length!==expected||new Set(cards.map(x=>x.card.id)).size!==expected)throw new Error('Unerwartete Kartenzuordnung');
   if(wave==='02'){
    if(cards.some(x=>x.card.level>10||x.card.level<1))throw new Error('Level 11/12 dürfen nicht exportiert werden');
-   if(new Set(cards.map(x=>x.card.art)).size!==20||cards.some(x=>!x.card.art?.startsWith('assets/custom-art/')))throw new Error('Doppelte/fehlende Originalillustrationen');
+   const bad=cards.filter(x=>!x.card.art?.startsWith('assets/custom-art/'));
+   const duplicate=cards.filter((x,i)=>cards.findIndex(y=>y.card.art===x.card.art)!==i);
+   if(bad.length||duplicate.length)throw new Error('Illustrationsprüfung fehlgeschlagen: bad='+JSON.stringify(bad.map(x=>({id:x.card.id,art:x.card.art})))+' dup='+JSON.stringify(duplicate.map(x=>({id:x.card.id,art:x.card.art}))));
   }
   const built=[];
   for(const model of cards){
