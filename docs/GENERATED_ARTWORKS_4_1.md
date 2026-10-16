@@ -41,3 +41,5 @@ Argentum-Koloss (314) und Nox-Albtraum (319) sind weiterhin vorgemerkte Kandidat
 Der Animationsschalter setzt `ad-motion-disabled` jetzt sofort am `body`, wie es die Element- und Rahmeneffekte erwarten. Bisher wurde die Klasse erst verzögert am `html`-Element gesetzt; dadurch konnten die neuen Effekte trotz ausgeschalteter Animationen weiterlaufen. Die CSS-Medienabfrage für reduzierte Bewegung bleibt zusätzlich wirksam.
 
 Die Großansichten verwenden außerdem keine gesonderte Animationsregel mehr, die durch ihre höhere CSS-Spezifität die Abschaltung oder reduzierte Bewegung übersteuern konnte. Deckportal, eigene und gegnerische Vorschau folgen derselben zentralen Elementanimation.
+
+Die Elementfarben setzen sich nun auch in den normalen Kartenvorlagen gegen die ältere einheitliche Schrift- und Hintergrundfarbe der Levelrahmen durch. Der Browsertest prüft alle sechs Paletten und die drei Großansichten.

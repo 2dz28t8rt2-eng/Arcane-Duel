@@ -37,7 +37,7 @@ html body .hand-card.tc-card[data-element="LICHT"] {--e-bright:#fff6ce;--e-borde
 html body .hand-card.tc-card[data-element="DUNKEL"] {--e-bright:#efdbff;--e-border:#af7adb;--e-bg1:#523266;--e-bg2:#241730;--e-particles:201 151 251;--e-halo:#ab6bd7a8;--e-cycle:10s;--e-mote-cycle:16s;}
 
 /* Only the inner card stripe breathes. No effects on the collection readout. */
-html body .hand-card.tc-card[data-element] .hand-type:not(.ad-card-traits) {
+html body .hand-card.tc-card[data-element][data-level] .hand-type:not(.ad-card-traits) {
  position:relative!important;isolation:isolate!important;display:flex!important;
  align-items:center!important;justify-content:center!important;min-width:0!important;
  box-sizing:border-box!important;overflow:hidden!important;padding:2px 5px!important;
@@ -48,7 +48,7 @@ html body .hand-card.tc-card[data-element] .hand-type:not(.ad-card-traits) {
  box-shadow:0 0 0 1px #050916,inset 0 0 3px var(--e-halo)!important;
  animation:ad405-element-breath var(--e-cycle,7.2s) ease-in-out infinite!important;
 }
-html body .hand-card.tc-card[data-element] .hand-type:not(.ad-card-traits)::after {
+html body .hand-card.tc-card[data-element][data-level] .hand-type:not(.ad-card-traits)::after {
  content:""!important;display:block!important;position:absolute!important;inset:0!important;
  pointer-events:none!important;z-index:0!important;opacity:.26;
  background-image:
@@ -61,7 +61,7 @@ html body .hand-card.tc-card[data-element] .hand-type:not(.ad-card-traits)::afte
  animation:ad405-element-motes var(--e-mote-cycle,11.5s) ease-in-out infinite alternate!important;
 }
 /* In split role/element rows, breathe the element chip, NOT the role chip. */
-html body .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element {
+html body .hand-card.tc-card[data-element][data-level] .hand-type.ad-card-traits .ad-card-element {
  position:relative!important;isolation:isolate!important;overflow:hidden!important;
  border:1px solid var(--e-border)!important;border-radius:4px!important;
  background:linear-gradient(100deg,var(--e-bg2),var(--e-bg1),var(--e-bg2))!important;
@@ -70,7 +70,7 @@ html body .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-el
  box-shadow:inset 0 0 3px var(--e-halo)!important;
  animation:ad405-element-breath var(--e-cycle,7.2s) ease-in-out infinite!important;
 }
-html body .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element::after {
+html body .hand-card.tc-card[data-element][data-level] .hand-type.ad-card-traits .ad-card-element::after {
  content:"";position:absolute;inset:0;pointer-events:none;opacity:.20;
  background:radial-gradient(circle,rgb(var(--e-particles) / .8) 0 1px,transparent 2px) 7px 2px / 37px 19px repeat;
  animation:ad405-element-motes var(--e-mote-cycle,12s) ease-in-out infinite alternate;
@@ -85,13 +85,13 @@ html body .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-el
  100%{opacity:.18;transform:translate3d(6px,-2px,0)}
 }
 /* The old duel-specific 52% left padding is inappropriate for the centered element stripe. */
-html body #duelScreen .hand-card.tc-card[data-element] .hand-type:not(.ad-card-traits) {
+html body #duelScreen .hand-card.tc-card[data-element][data-level] .hand-type:not(.ad-card-traits) {
  padding-left:5px!important;padding-right:5px!important;text-align:center!important;justify-content:center!important;
 }
 /* In large previews preserve contrast against old brown affinity text styling. */
-html body #duelScreen .card-preview-panel .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element,
-html body #deckSidePreview.ad-deck-portal .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element,
-html body .arcane-enemy-large .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element {
+html body #duelScreen .card-preview-panel .hand-card.tc-card[data-element][data-level] .hand-type.ad-card-traits .ad-card-element,
+html body #deckSidePreview.ad-deck-portal .hand-card.tc-card[data-element][data-level] .hand-type.ad-card-traits .ad-card-element,
+html body .arcane-enemy-large .hand-card.tc-card[data-element][data-level] .hand-type.ad-card-traits .ad-card-element {
  color:var(--e-bright)!important;border-color:var(--e-border)!important;
  background:linear-gradient(100deg,var(--e-bg2),var(--e-bg1),var(--e-bg2))!important;
  text-shadow:0 1px 2px #000,0 0 3px var(--e-border)!important;
@@ -158,16 +158,16 @@ html body #menuScreen .deck-preview-meta .arcane-role-readout::after {
 }
 /* Accessibility & user setting: animations fully disabled when requested. */
 @media(prefers-reduced-motion:reduce) {
- html body .hand-card.tc-card[data-element] .hand-type:not(.ad-card-traits),
- html body .hand-card.tc-card[data-element] .hand-type:not(.ad-card-traits)::after,
- html body .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element,
- html body .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element::after {
+ html body .hand-card.tc-card[data-element][data-level] .hand-type:not(.ad-card-traits),
+ html body .hand-card.tc-card[data-element][data-level] .hand-type:not(.ad-card-traits)::after,
+ html body .hand-card.tc-card[data-element][data-level] .hand-type.ad-card-traits .ad-card-element,
+ html body .hand-card.tc-card[data-element][data-level] .hand-type.ad-card-traits .ad-card-element::after {
   animation:none!important;filter:none!important;
  }
 }
-body.ad-motion-disabled .hand-card.tc-card[data-element] .hand-type:not(.ad-card-traits),
-body.ad-motion-disabled .hand-card.tc-card[data-element] .hand-type:not(.ad-card-traits)::after,
-body.ad-motion-disabled .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element,
-body.ad-motion-disabled .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element::after {
+body.ad-motion-disabled .hand-card.tc-card[data-element][data-level] .hand-type:not(.ad-card-traits),
+body.ad-motion-disabled .hand-card.tc-card[data-element][data-level] .hand-type:not(.ad-card-traits)::after,
+body.ad-motion-disabled .hand-card.tc-card[data-element][data-level] .hand-type.ad-card-traits .ad-card-element,
+body.ad-motion-disabled .hand-card.tc-card[data-element][data-level] .hand-type.ad-card-traits .ad-card-element::after {
  animation:none!important;filter:none!important;
 }
