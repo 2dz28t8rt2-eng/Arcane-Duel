@@ -54,3 +54,17 @@ test('Wave 02 illustrations are bound into the real runtime without changing sta
   assert.ok(fs.existsSync(path.join(root,art)));
  }
 });
+
+test('Published Wave 02 manifest contains all 20 finished cards with correct real stats',()=>{
+ const m=JSON.parse(read('assets/finished-cards/wave02/manifest.json'));
+ assert.equal(m.count,20);assert.equal(m.cards.length,20);
+ assert.equal(new Set(m.cards.map(c=>c.id)).size,20);
+ for(const c of m.cards){
+  assert.ok(c.atk>0&&c.def>0&&c.level<=10);
+  assert.ok(c.artwork.startsWith('assets/custom-art/'));
+  assert.ok(c.frame.startsWith('assets/card-templates/'));
+  assert.ok(fs.statSync(path.join(root,'assets/finished-cards/wave02',c.filename)).size>50000);
+ }
+ assert.match(read('index.html'),/artwork-revamp-v4.js\?v=wave02-live-20261016-1/);
+ assert.match(workflow,/'count':len\(meta\)/);
+});
