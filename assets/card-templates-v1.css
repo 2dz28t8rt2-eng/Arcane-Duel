@@ -1,0 +1,69 @@
+/* ARCANE DUEL – 4 families × 5 tiers = 20 reusable frame layouts.
+ * Dynamic content: image, name, role, element, level, ATK/DEF and lore stay DOM-driven.
+ * Swap any SVG for your own transparent PNG by editing --ad-tpl-frame only. */
+.hand-card.tc-card.ad-template,.board-creature.tc-card.ad-template{
+ --ad-rim:var(--ad-tpl-rim);--ad-flash:var(--ad-tpl-light);--ad-card-metal:var(--ad-tpl-rim);
+ --ad-frame-png:var(--ad-tpl-frame);--ad-overlay-png:var(--ad-tpl-frame);
+ border-color:var(--ad-tpl-rim)!important;
+ background-image:var(--ad-tpl-frame),
+ radial-gradient(ellipse at 50% 0%,color-mix(in srgb,var(--ad-tpl-light) 32%,transparent),transparent 48%),
+ linear-gradient(136deg,var(--ad-tpl-light) 0%,var(--ad-tpl-rim) 4%,var(--ad-tpl-night) 13%,#101424 62%,var(--ad-tpl-night) 86%,var(--ad-tpl-rim) 96%,var(--ad-tpl-light) 100%)!important;
+ background-size:100% 100%,cover,cover!important;
+ background-position:center!important;background-repeat:no-repeat!important;
+ box-shadow:0 0 0 1px #000c,inset 0 0 0 1px var(--ad-tpl-light),
+ 0 0 var(--ad-tpl-halo) color-mix(in srgb,var(--ad-tpl-rim) 34%,transparent),0 9px 24px #000a!important;
+}
+.hand-card.tc-card.ad-template .hand-title{
+ border-color:var(--ad-tpl-light)!important;
+ background:linear-gradient(180deg,var(--ad-tpl-jewel),var(--ad-tpl-night) 54%,#0a1020)!important;
+}
+.hand-card.tc-card.ad-template .hand-art{
+ border-color:var(--ad-tpl-rim)!important;
+ box-shadow:inset 0 0 9px #0008,0 0 0 1px var(--ad-tpl-jewel),
+ 0 0 var(--ad-tpl-halo) color-mix(in srgb,var(--ad-tpl-light) 35%,transparent)!important;
+}
+.hand-card.tc-card.ad-template .hand-stats{
+ border-color:var(--ad-tpl-rim)!important;
+ background:linear-gradient(180deg,var(--ad-tpl-light),var(--ad-tpl-rim) 48%,var(--ad-tpl-night))!important;
+}
+.hand-card.tc-card.ad-template .hand-type{
+ border-color:var(--ad-tpl-rim)!important;
+ background:linear-gradient(180deg,#fcf0d1,var(--ad-tpl-light) 66%,var(--ad-tpl-rim))!important;
+ color:#28202b!important;
+}
+.hand-card.tc-card.ad-template::before{
+ border-color:color-mix(in srgb,var(--ad-tpl-light) 65%,transparent)!important;
+ background-image:radial-gradient(circle at 7% 6%,var(--ad-tpl-light) 0 1px,transparent 2px),
+ radial-gradient(circle at 93% 6%,var(--ad-tpl-light) 0 1px,transparent 2px),
+ radial-gradient(circle at 7% 94%,var(--ad-tpl-light) 0 1px,transparent 2px),
+ radial-gradient(circle at 93% 94%,var(--ad-tpl-light) 0 1px,transparent 2px)!important;
+}
+.hand-card.tc-card.ad-template.ad-template-family-ace,
+.hand-card.tc-card.ad-template.ad-template-family-essence{border-style:double!important;border-width:4px!important;}
+.board-creature.tc-card.ad-template .board-name{border-color:var(--ad-tpl-light)!important;}
+.board-creature.tc-card.ad-template .board-stats{border-color:var(--ad-tpl-rim)!important;}
+@keyframes ad-tpl-shimmer{0%,100%{filter:brightness(1)}50%{filter:brightness(1.17) drop-shadow(0 0 5px var(--ad-tpl-light))}}
+@media(prefers-reduced-motion:no-preference){
+ body:not(.ad-motion-disabled) .hand-card.tc-card.ad-template-tier-5:not(.exhausted)::before{animation:ad-tpl-shimmer 5.8s ease-in-out infinite!important;}
+}
+body.ad-motion-disabled .hand-card.tc-card.ad-template::before{animation:none!important;}
+.ad-template-normal-01{--ad-tpl-frame:url("card-templates/normal-01.svg");--ad-tpl-rim:#b88b57;--ad-tpl-light:#fde6bc;--ad-tpl-jewel:#55422c;--ad-tpl-night:#1a2530;--ad-tpl-halo:8px;}
+.ad-template-normal-02{--ad-tpl-frame:url("card-templates/normal-02.svg");--ad-tpl-rim:#bac2c9;--ad-tpl-light:#fff4dd;--ad-tpl-jewel:#708596;--ad-tpl-night:#202533;--ad-tpl-halo:10px;}
+.ad-template-normal-03{--ad-tpl-frame:url("card-templates/normal-03.svg");--ad-tpl-rim:#d5b77b;--ad-tpl-light:#fff1c4;--ad-tpl-jewel:#9f8551;--ad-tpl-night:#202336;--ad-tpl-halo:12px;}
+.ad-template-normal-04{--ad-tpl-frame:url("card-templates/normal-04.svg");--ad-tpl-rim:#e1c17f;--ad-tpl-light:#fff6cd;--ad-tpl-jewel:#c09254;--ad-tpl-night:#22203a;--ad-tpl-halo:14px;}
+.ad-template-normal-05{--ad-tpl-frame:url("card-templates/normal-05.svg");--ad-tpl-rim:#f5dba3;--ad-tpl-light:#fffde6;--ad-tpl-jewel:#e2b271;--ad-tpl-night:#1c2840;--ad-tpl-halo:16px;}
+.ad-template-fusion-01{--ad-tpl-frame:url("card-templates/fusion-01.svg");--ad-tpl-rim:#9476bb;--ad-tpl-light:#e8d0ff;--ad-tpl-jewel:#68519c;--ad-tpl-night:#211932;--ad-tpl-halo:8px;}
+.ad-template-fusion-02{--ad-tpl-frame:url("card-templates/fusion-02.svg");--ad-tpl-rim:#a789d0;--ad-tpl-light:#f5e0ff;--ad-tpl-jewel:#7c5cb5;--ad-tpl-night:#201835;--ad-tpl-halo:10px;}
+.ad-template-fusion-03{--ad-tpl-frame:url("card-templates/fusion-03.svg");--ad-tpl-rim:#b29beb;--ad-tpl-light:#fff1ff;--ad-tpl-jewel:#8e6ecd;--ad-tpl-night:#1b1634;--ad-tpl-halo:12px;}
+.ad-template-fusion-04{--ad-tpl-frame:url("card-templates/fusion-04.svg");--ad-tpl-rim:#d1b1f5;--ad-tpl-light:#fff5ff;--ad-tpl-jewel:#b58fe2;--ad-tpl-night:#201433;--ad-tpl-halo:14px;}
+.ad-template-fusion-05{--ad-tpl-frame:url("card-templates/fusion-05.svg");--ad-tpl-rim:#e9d3ff;--ad-tpl-light:#fffaff;--ad-tpl-jewel:#bca1ff;--ad-tpl-night:#17113b;--ad-tpl-halo:16px;}
+.ad-template-ace-01{--ad-tpl-frame:url("card-templates/ace-01.svg");--ad-tpl-rim:#cba369;--ad-tpl-light:#fff0c2;--ad-tpl-jewel:#a07a47;--ad-tpl-night:#1a2434;--ad-tpl-halo:8px;}
+.ad-template-ace-02{--ad-tpl-frame:url("card-templates/ace-02.svg");--ad-tpl-rim:#d7b675;--ad-tpl-light:#fff5d6;--ad-tpl-jewel:#bc9158;--ad-tpl-night:#191d34;--ad-tpl-halo:10px;}
+.ad-template-ace-03{--ad-tpl-frame:url("card-templates/ace-03.svg");--ad-tpl-rim:#e7c888;--ad-tpl-light:#fff8db;--ad-tpl-jewel:#d0a45c;--ad-tpl-night:#192139;--ad-tpl-halo:12px;}
+.ad-template-ace-04{--ad-tpl-frame:url("card-templates/ace-04.svg");--ad-tpl-rim:#f5dc98;--ad-tpl-light:#fffdeb;--ad-tpl-jewel:#dbb36a;--ad-tpl-night:#141e33;--ad-tpl-halo:14px;}
+.ad-template-ace-05{--ad-tpl-frame:url("card-templates/ace-05.svg");--ad-tpl-rim:#fff0b7;--ad-tpl-light:#ffffff;--ad-tpl-jewel:#f5c378;--ad-tpl-night:#17223c;--ad-tpl-halo:16px;}
+.ad-template-essence-01{--ad-tpl-frame:url("card-templates/essence-01.svg");--ad-tpl-rim:#6aaeb9;--ad-tpl-light:#e0ffff;--ad-tpl-jewel:#417f92;--ad-tpl-night:#19303b;--ad-tpl-halo:8px;}
+.ad-template-essence-02{--ad-tpl-frame:url("card-templates/essence-02.svg");--ad-tpl-rim:#81b8e7;--ad-tpl-light:#f0ffff;--ad-tpl-jewel:#517ec9;--ad-tpl-night:#182e40;--ad-tpl-halo:10px;}
+.ad-template-essence-03{--ad-tpl-frame:url("card-templates/essence-03.svg");--ad-tpl-rim:#999be9;--ad-tpl-light:#f1eaff;--ad-tpl-jewel:#7366ca;--ad-tpl-night:#241b41;--ad-tpl-halo:12px;}
+.ad-template-essence-04{--ad-tpl-frame:url("card-templates/essence-04.svg");--ad-tpl-rim:#b6a0f0;--ad-tpl-light:#fff1ff;--ad-tpl-jewel:#956ada;--ad-tpl-night:#231c43;--ad-tpl-halo:14px;}
+.ad-template-essence-05{--ad-tpl-frame:url("card-templates/essence-05.svg");--ad-tpl-rim:#d4baff;--ad-tpl-light:#ffffff;--ad-tpl-jewel:#a384ff;--ad-tpl-night:#201640;--ad-tpl-halo:16px;}

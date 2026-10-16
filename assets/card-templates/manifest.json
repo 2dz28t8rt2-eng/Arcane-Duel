@@ -1,0 +1,273 @@
+{
+  "schema": "arcane-duel-20-card-layouts-v1",
+  "description": "Modular frame overlays, dynamic artwork/name/ATK/DEF/role/element. Fate cards excluded",
+  "tiers": [
+    "Initiat",
+    "Adept",
+    "Elite",
+    "Mythisch",
+    "Souverän"
+  ],
+  "definitions": [
+    {
+      "id": "normal-01",
+      "family": "normal",
+      "tier": 1,
+      "label": "Standard · Initiat",
+      "frame": "assets/card-templates/normal-01.svg",
+      "palette": [
+        "#b88b57",
+        "#fde6bc",
+        "#55422c",
+        "#1a2530"
+      ]
+    },
+    {
+      "id": "normal-02",
+      "family": "normal",
+      "tier": 2,
+      "label": "Standard · Adept",
+      "frame": "assets/card-templates/normal-02.svg",
+      "palette": [
+        "#bac2c9",
+        "#fff4dd",
+        "#708596",
+        "#202533"
+      ]
+    },
+    {
+      "id": "normal-03",
+      "family": "normal",
+      "tier": 3,
+      "label": "Standard · Elite",
+      "frame": "assets/card-templates/normal-03.svg",
+      "palette": [
+        "#d5b77b",
+        "#fff1c4",
+        "#9f8551",
+        "#202336"
+      ]
+    },
+    {
+      "id": "normal-04",
+      "family": "normal",
+      "tier": 4,
+      "label": "Standard · Mythisch",
+      "frame": "assets/card-templates/normal-04.svg",
+      "palette": [
+        "#e1c17f",
+        "#fff6cd",
+        "#c09254",
+        "#22203a"
+      ]
+    },
+    {
+      "id": "normal-05",
+      "family": "normal",
+      "tier": 5,
+      "label": "Standard · Souverän",
+      "frame": "assets/card-templates/normal-05.svg",
+      "palette": [
+        "#f5dba3",
+        "#fffde6",
+        "#e2b271",
+        "#1c2840"
+      ]
+    },
+    {
+      "id": "fusion-01",
+      "family": "fusion",
+      "tier": 1,
+      "label": "Fusion · Initiat",
+      "frame": "assets/card-templates/fusion-01.svg",
+      "palette": [
+        "#9476bb",
+        "#e8d0ff",
+        "#68519c",
+        "#211932"
+      ]
+    },
+    {
+      "id": "fusion-02",
+      "family": "fusion",
+      "tier": 2,
+      "label": "Fusion · Adept",
+      "frame": "assets/card-templates/fusion-02.svg",
+      "palette": [
+        "#a789d0",
+        "#f5e0ff",
+        "#7c5cb5",
+        "#201835"
+      ]
+    },
+    {
+      "id": "fusion-03",
+      "family": "fusion",
+      "tier": 3,
+      "label": "Fusion · Elite",
+      "frame": "assets/card-templates/fusion-03.svg",
+      "palette": [
+        "#b29beb",
+        "#fff1ff",
+        "#8e6ecd",
+        "#1b1634"
+      ]
+    },
+    {
+      "id": "fusion-04",
+      "family": "fusion",
+      "tier": 4,
+      "label": "Fusion · Mythisch",
+      "frame": "assets/card-templates/fusion-04.svg",
+      "palette": [
+        "#d1b1f5",
+        "#fff5ff",
+        "#b58fe2",
+        "#201433"
+      ]
+    },
+    {
+      "id": "fusion-05",
+      "family": "fusion",
+      "tier": 5,
+      "label": "Fusion · Souverän",
+      "frame": "assets/card-templates/fusion-05.svg",
+      "palette": [
+        "#e9d3ff",
+        "#fffaff",
+        "#bca1ff",
+        "#17113b"
+      ]
+    },
+    {
+      "id": "ace-01",
+      "family": "ace",
+      "tier": 1,
+      "label": "ACE · Initiat",
+      "frame": "assets/card-templates/ace-01.svg",
+      "palette": [
+        "#cba369",
+        "#fff0c2",
+        "#a07a47",
+        "#1a2434"
+      ]
+    },
+    {
+      "id": "ace-02",
+      "family": "ace",
+      "tier": 2,
+      "label": "ACE · Adept",
+      "frame": "assets/card-templates/ace-02.svg",
+      "palette": [
+        "#d7b675",
+        "#fff5d6",
+        "#bc9158",
+        "#191d34"
+      ]
+    },
+    {
+      "id": "ace-03",
+      "family": "ace",
+      "tier": 3,
+      "label": "ACE · Elite",
+      "frame": "assets/card-templates/ace-03.svg",
+      "palette": [
+        "#e7c888",
+        "#fff8db",
+        "#d0a45c",
+        "#192139"
+      ]
+    },
+    {
+      "id": "ace-04",
+      "family": "ace",
+      "tier": 4,
+      "label": "ACE · Mythisch",
+      "frame": "assets/card-templates/ace-04.svg",
+      "palette": [
+        "#f5dc98",
+        "#fffdeb",
+        "#dbb36a",
+        "#141e33"
+      ]
+    },
+    {
+      "id": "ace-05",
+      "family": "ace",
+      "tier": 5,
+      "label": "ACE · Souverän",
+      "frame": "assets/card-templates/ace-05.svg",
+      "palette": [
+        "#fff0b7",
+        "#ffffff",
+        "#f5c378",
+        "#17223c"
+      ]
+    },
+    {
+      "id": "essence-01",
+      "family": "essence",
+      "tier": 1,
+      "label": "Essenz · Initiat",
+      "frame": "assets/card-templates/essence-01.svg",
+      "palette": [
+        "#6aaeb9",
+        "#e0ffff",
+        "#417f92",
+        "#19303b"
+      ]
+    },
+    {
+      "id": "essence-02",
+      "family": "essence",
+      "tier": 2,
+      "label": "Essenz · Adept",
+      "frame": "assets/card-templates/essence-02.svg",
+      "palette": [
+        "#81b8e7",
+        "#f0ffff",
+        "#517ec9",
+        "#182e40"
+      ]
+    },
+    {
+      "id": "essence-03",
+      "family": "essence",
+      "tier": 3,
+      "label": "Essenz · Elite",
+      "frame": "assets/card-templates/essence-03.svg",
+      "palette": [
+        "#999be9",
+        "#f1eaff",
+        "#7366ca",
+        "#241b41"
+      ]
+    },
+    {
+      "id": "essence-04",
+      "family": "essence",
+      "tier": 4,
+      "label": "Essenz · Mythisch",
+      "frame": "assets/card-templates/essence-04.svg",
+      "palette": [
+        "#b6a0f0",
+        "#fff1ff",
+        "#956ada",
+        "#231c43"
+      ]
+    },
+    {
+      "id": "essence-05",
+      "family": "essence",
+      "tier": 5,
+      "label": "Essenz · Souverän",
+      "frame": "assets/card-templates/essence-05.svg",
+      "palette": [
+        "#d4baff",
+        "#ffffff",
+        "#a384ff",
+        "#201640"
+      ]
+    }
+  ]
+}
