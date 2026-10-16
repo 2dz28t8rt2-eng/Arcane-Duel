@@ -1,0 +1,125 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Arcane Duel – 10 fertige Monsterkarten</title>
+<style>
+body{background:radial-gradient(ellipse at 50% -20%,#34304f,#0b1325 65%);color:#f8e9c7;font:14px system-ui;margin:0;padding:26px}
+h1{font:700 34px Georgia,serif;margin:0 0 9px}p{color:#d9d4db;max-width:80ch}
+#gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:18px;max-width:1260px;margin:25px auto}
+.card{padding:10px;border:1px solid #b8a17875;background:#151b30;border-radius:12px;box-shadow:0 12px 30px #0008;text-align:center}
+.card canvas{width:100%;height:auto;display:block;aspect-ratio:256/408}.card strong{display:block;margin:9px;font:700 13px Georgia,serif}
+iframe{display:none}
+</style></head><body><h1>✧ Monsterkarten · Welle 01</h1>
+<p>10 vollständige Karten auf Basis der 20 Originalrahmen. Alle Namen, Elemente, Rollen und Grundwerte kommen aus dem laufenden Bestiarium. Fusionswerte sind im Duell weiterhin würfelabhängig.</p>
+<main id="gallery"></main><div id="message">Kartendaten werden geladen …</div>
+<script type="application/json" id="pngExport"></script>
+<iframe title="Arcane Game Runtime" id="runtime" src="../index.html"></iframe>
+<script>
+const root=document.getElementById('runtime'),gallery=document.getElementById('gallery');
+const clean=v=>String(v??'');
+const roles={guardian:'WÄCHTER',predator:'PREDATOR',soul:'SEELENZEHRER',weaver:'RUNENWEBER',support:'UNTERSTÜTZER'};
+const rolePalette={guardian:['#143a40','#a5eadb'],predator:['#41231e','#ffc49c'],soul:['#3f214d','#e4bafa'],weaver:['#2a3d65','#c2e1fa'],support:['#31434b','#cbe8de']};
+const fallBacks={normal:['#c9a56c','#ffe4af'],fusion:['#b79aef','#eed8ff'],ace:['#efcb84','#fff9db'],essence:['#8bbfe7','#e0fbff']};
+function loadImage(url){return new Promise((resolve,reject)=>{
+ const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Bild lädt nicht: '+url));img.src=url;
+});}
+function path(source){return new URL('../'+source,location.href).href;}
+function rounded(ctx,x,y,w,h,r,fill,stroke,sw=1){
+ ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.lineWidth=sw;ctx.strokeStyle=stroke;ctx.stroke();}
+}
+function fit(ctx,text,x,y,maxWidth,font,min=8){
+ let size=font;do{ctx.font='bold '+size+'px Georgia,serif';if(ctx.measureText(text).width<=maxWidth)break;size-=.4;}while(size>min);
+ ctx.fillText(text,x,y,maxWidth);
+}
+function wrap(ctx,text,maxWidth,maxLines,px){
+ let out=[],line='';ctx.font=px+'px Arial';
+ for(const word of text.split(/\s+/)){
+  const trial=line?line+' '+word:word;
+  if(ctx.measureText(trial).width>maxWidth&&line){out.push(line);line=word;}else line=trial;
+ }
+ if(line)out.push(line);if(out.length>maxLines)throw new Error('Beschreibung zu lang: '+text);
+ return out;
+}
+function cover(ctx,img,x,y,w,h){
+ const factor=Math.max(w/img.width,h/img.height),cw=w/factor,ch=h/factor;
+ ctx.drawImage(img,(img.width-cw)/2,(img.height-ch)/2,cw,ch,x,y,w,h);
+}
+async function cardDraw(model){
+ const c=model.card;
+ const [rim,light]=fallBacks[model.family]||fallBacks.normal;
+ const [roleBg,roleText]=rolePalette[c.role]||rolePalette.guardian;
+ const [art,frame]=await Promise.all([loadImage(path(c.art)),loadImage(path(model.frame))]);
+ const canvas=document.createElement('canvas');canvas.width=768;canvas.height=1224;
+ const ctx=canvas.getContext('2d',{alpha:false});ctx.scale(3,3);
+ const bg=ctx.createLinearGradient(15,10,246,397);bg.addColorStop(0,'#19213a');bg.addColorStop(.5,'#080f20');bg.addColorStop(1,'#171a35');
+ rounded(ctx,1,1,254,406,15,bg,rim,2);
+ rounded(ctx,23,42,211,342,8,'#080f20',rim,1.4);
+ const plaque=ctx.createLinearGradient(24,43,24,85);plaque.addColorStop(0,'#30324a');plaque.addColorStop(.52,'#0a1226');plaque.addColorStop(1,'#171224');
+ rounded(ctx,26,42,204,43,6,plaque,light,1.1);
+ ctx.fillStyle='#fff4d8';ctx.textBaseline='alphabetic';
+ const title=c.name;
+ if(title.length>24){
+  const parts=title.split(/\s+/),a=[],b=[];let line='';
+  for(const p of parts){if((line+' '+p).trim().length<=18)line=(line+' '+p).trim();else{a.push(line);line=p;}}
+  if(line)a.push(line);
+  if(a.length>2)throw Error('Name passt nicht: '+title);
+  ctx.fillStyle='#fff4d8';a.forEach((text,i)=>fit(ctx,text,34,58+i*12.4,148,11.1,9));
+ }else fit(ctx,title,34,67,149,12.5,8.2);
+ rounded(ctx,185,53,42,24,5,'#241b2c',rim,1.2);
+ ctx.fillStyle=light;ctx.font='bold 11.5px Georgia,serif';ctx.textAlign='center';ctx.fillText('LV '+c.level,206,69,36);
+ ctx.textAlign='left';
+ rounded(ctx,27,86,202,195,4,'#030914',light,1.7);
+ ctx.save();ctx.beginPath();ctx.rect(31,90,194,187);ctx.clip();cover(ctx,art,31,90,194,187);ctx.restore();
+ const grad=ctx.createLinearGradient(0,90,0,277);grad.addColorStop(0,'rgba(250,241,220,.10)');grad.addColorStop(.77,'rgba(0,0,0,0)');grad.addColorStop(1,'rgba(0,0,0,.39)');
+ ctx.fillStyle=grad;ctx.fillRect(31,90,194,187);
+ rounded(ctx,30,89,196,190,2,null,'rgba(252,227,172,.65)',1);
+ rounded(ctx,30,282,196,23,4,rim,light,.6);
+ let chipW= c.role==='soul'?96:c.role==='weaver'?81:69;
+ rounded(ctx,32,284,chipW,19,4,roleBg,roleText,.8);
+ ctx.textAlign='center';ctx.fillStyle=roleText;ctx.font='bold '+(c.role==='soul'?'8.6':'9.2')+'px Arial';
+ ctx.fillText(roles[c.role]||c.role.toUpperCase(),32+chipW/2,297.5,chipW-5);
+ ctx.textAlign='right';ctx.fillStyle='#2a1a25';ctx.font='bold 10.6px Georgia,serif';ctx.fillText(c.element,220,298,100);
+ rounded(ctx,30,308,196,36,4,'#211824',rim,1);
+ rounded(ctx,32,311,94,30,4,'#11172a',rim,.8);rounded(ctx,130,311,94,30,4,'#0f2e40',rim,.8);
+ ctx.textAlign='left';ctx.font='bold 7.1px Arial';ctx.fillStyle='#f4c991';ctx.fillText('ATK',39,320);ctx.fillStyle='#9ee9f8';ctx.fillText('DEF',137,320);
+ ctx.textAlign='center';ctx.font='bold 17.5px Georgia,serif';ctx.fillStyle='#fff0d5';ctx.fillText(c.atk,79,336.8);
+ ctx.fillStyle='#d8f4ff';ctx.fillText(c.def,177,336.8);
+ rounded(ctx,30,347,196,38,4,'#0a101e',rim,.85);
+ ctx.textAlign='left';ctx.fillStyle='#e9e6e8';
+ const lore=wrap(ctx,c.desc,180,3,8.6);ctx.font='8.6px Arial';lore.forEach((line,i)=>ctx.fillText(line,37,358+i*10.1));
+ if(c.fusionOnly){ctx.textAlign='right';ctx.font='5.4px Arial';ctx.fillStyle=light;ctx.fillText('GRUNDWERTE',220,390);}
+ // The repository's ORIGINAL transparent template is the topmost ornament.
+ ctx.drawImage(frame,0,0,256,408);
+ return canvas;
+}
+root.addEventListener('load',async()=>{
+ const msg=document.getElementById('message');
+ try{
+  const w=root.contentWindow;
+  const cards=w.eval("ArcaneArtCatalog.installed.cards.map(x=>{const c=CARDS[x.id],t=ArcaneCardTemplates.choose(c);return {card:{id:c.id,name:c.name,level:c.level,atk:c.atk,def:c.def,role:c.role,element:c.element,desc:c.desc,art:c.art,fusionOnly:!!c.fusionOnly,ace:!!c.ace,essenceMonster:!!c.essenceMonster},family:t.family,frame:t.frame,template:t.id}})");
+  if(cards.length!==10||new Set(cards.map(x=>x.card.id)).size!==10)throw new Error('Unerwartete Kartenzuordnung');
+  const built=[];
+  for(const model of cards){
+   const canvas=await cardDraw(model);
+   const label=document.createElement('div');label.className='card';
+   const img=canvas.cloneNode();img.getContext('2d').drawImage(canvas,0,0);
+   label.append(img);
+   const name=document.createElement('strong');name.textContent=model.card.name;
+   label.append(name);gallery.append(label);
+   built.push({id:model.card.id,filename:model.card.art.split('/').pop().replace('.webp','.png'),base64:canvas.toDataURL('image/png').split(',')[1],metadata:model});
+  }
+  // Contact sheet, suitable for thumbnail review and release notes.
+  const sheet=document.createElement('canvas');sheet.width=1300;sheet.height=1140;
+  const c=sheet.getContext('2d');c.fillStyle='#0b1323';c.fillRect(0,0,1300,1140);
+  c.fillStyle='#f8e5b5';c.font='bold 44px Georgia';c.fillText('ARCANE DUEL · BESTIARIUM',34,58);
+  c.font='20px Arial';c.fillStyle='#bdc9d8';c.fillText('Monsterkarten · Produktionswelle 01 · 10 Designs',38,92);
+  [...gallery.querySelectorAll('canvas')].forEach((canvas,i)=>{
+   const x=22+i%5*258,y=114+Math.floor(i/5)*507;
+   c.drawImage(canvas,x,y,245,390);
+  });
+  document.getElementById('pngExport').textContent=JSON.stringify({status:'ok',cards:built,sheet:sheet.toDataURL('image/png').split(',')[1]});
+  document.documentElement.dataset.cardExport='pass';
+  msg.textContent='10 fertige Monsterkarten in Originalrahmen gerendert.';
+ }catch(e){
+  document.documentElement.dataset.cardExport='fail';
+  msg.textContent='FEHLER: '+(e?.stack||e);
+ }
+});
+</script></body></html>
