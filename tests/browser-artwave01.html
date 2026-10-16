@@ -1,0 +1,49 @@
+<!doctype html><html lang="de"><meta charset="utf-8"><title>Arcane Duel · Art Wave 01 audit</title>
+<style>body{margin:0;background:#101520;color:white;font:13px system-ui}#app{width:100%;height:860px;border:0}pre{white-space:pre-wrap}</style>
+<pre id="artResults">Art Wave 01 loading...</pre><iframe id="app" title="Arcane Duel art integration" src="../index.html"></iframe>
+<script>
+const output=document.getElementById('artResults');
+document.getElementById('app').addEventListener('load',async()=>{
+ const w=document.getElementById('app').contentWindow,d=w.document,notes=[];let ok=true;
+ function check(pass,text){notes.push((pass?'OK: ':'FAIL: ')+text);if(!pass)ok=false;}
+ try{
+  const catalog=w.ArcaneArtCatalog,items=catalog?.installed?.cards||[];
+  check(catalog?.version==='4.1.0','Artwork registry 4.1 active');
+  check(items.length===10,'Ten artworks assigned to live playable monster IDs (got '+items.length+')');
+  check(new Set(items.map(c=>c.id)).size===10,'All target card IDs are unique');
+  const names=['Ascheling','Schattenwolf','Kristallgolem','Nebelwisp','Dornenschlund',
+   'Seelenspalter','Runenbrut-Koloss','Blutkrone der Verdammnis',
+   'Ätherwyrm der Kronen','Essenz der Unendlichkeit'];
+  for(const name of names)check(items.some(c=>c.name===name),'Monster integrated: '+name);
+  check(items[0]?.id===0&&items[0]?.level===1,'First starter remains original Level 1 ID 0');
+  const ace=items.find(x=>x.name==='Ätherwyrm der Kronen');
+  const essence=items.find(x=>x.name==='Essenz der Unendlichkeit');
+  check(!!ace&&ace.category==='ace','Legendary dragon is bound to existing ACE ID');
+  check(!!essence&&essence.category==='essence','Cosmic creature is bound to existing Essence ID');
+  const sourceData=w.eval('CARDS.map(c=>({id:c.id,level:c.level,atk:c.atk,def:c.def,role:c.role,element:c.element,art:c.art,name:c.name,essenceMonster:c.essenceMonster,ace:c.ace}))');
+  for(const item of items){
+   const template=sourceData.find(c=>c.id===item.id);
+   check(!!template&&template.art===item.art&&template.name===item.name,
+    'Live game reads the new visual for '+item.name);
+   check(Number.isFinite(template?.atk)&&Number.isFinite(template?.def)&&template.level===item.level,
+    'Stats and original game level retained for '+item.name);
+   const probe=d.createElement('div');
+   probe.innerHTML=w.eval('fullCardHtml({id:'+item.id+'})');
+   check(probe.querySelector('.hand-art img')?.getAttribute('src')===item.art,
+    'Deck/duel card renderer uses new artwork for '+item.name);
+  }
+  const imageChecks=await Promise.all(items.map(item=>new Promise(resolve=>{
+   const image=new w.Image();
+   image.onload=()=>resolve({id:item.id,loaded:image.naturalWidth>=400&&image.naturalHeight>=400});
+   image.onerror=()=>resolve({id:item.id,loaded:false});
+   image.src='../'+item.art;
+  })));
+  check(imageChecks.length===10&&imageChecks.every(v=>v.loaded),
+   'All ten real 420px WebP source files load without broken links');
+  check(d.querySelectorAll('script[src*="artwork-revamp-v4"]').length===1,
+   'Art catalog loads exactly once');
+ }catch(e){ok=false;notes.push('EXCEPTION: '+(e.stack||e));}
+ output.textContent=notes.join('\n');
+ output.dataset.artwave=ok?'pass':'fail';
+});
+</script></html>
