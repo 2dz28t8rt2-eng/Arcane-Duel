@@ -1,0 +1,182 @@
+{
+  "schema": "arcane-duel-artwave-v1",
+  "releaseTarget": "4.0-art-pass",
+  "state": "concept-review",
+  "preserves": [
+    "card-id",
+    "original-atk",
+    "original-def",
+    "ability",
+    "existing-ownership",
+    "fusion-logic"
+  ],
+  "artStyle": "dark high-fantasy painted monsters; coherent gold-violet-cyan metalwork; subtle magical effects; monster scales grow with level",
+  "entries": [
+    {
+      "key": "base/0000",
+      "resolve": {
+        "type": "id",
+        "value": 0
+      },
+      "oldName": "Untoter Goblin vor dem Vollmond",
+      "newName": "Glutgruft-Kobold",
+      "category": "base",
+      "level": 1,
+      "element": "FEUER",
+      "visual": "kleiner ausgezehrter Kobold mit glühenden Augen, verschmutztem Ledergurt und einer einzelnen glimmenden Grablaterne; bescheidene Silhouette",
+      "frame": "bronze",
+      "lore": "Im Aschestaub alter Gräber findet er Schätze, die längst niemand mehr vermisst.",
+      "artStatus": "concept"
+    },
+    {
+      "key": "base/0009",
+      "resolve": {
+        "type": "id",
+        "value": 9
+      },
+      "oldName": "Schattenwolf im Mondlicht der Ruinen",
+      "newName": "Nebelpfoten-Wolf",
+      "category": "base",
+      "level": 2,
+      "element": "WIND",
+      "visual": "schlanker dunkler Wolf im kühlen Ruinennebel, nur dezente magische Windfäden; schnelle, bodenständige Silhouette",
+      "frame": "bronze",
+      "lore": "Wo sein Atem den Nebel teilt, bleibt von seiner Beute kein Laut zurück.",
+      "artStatus": "concept"
+    },
+    {
+      "key": "base/0017",
+      "resolve": {
+        "type": "id",
+        "value": 17
+      },
+      "oldName": "Kristallschakal im Mondlicht",
+      "newName": "Splitterwind-Schakal",
+      "category": "base",
+      "level": 3,
+      "element": "WIND",
+      "visual": "beweglicher Schakal mit wenigen kantigen hellblauen Kristallen im Fell; Sturmwirbel und Mondlicht",
+      "frame": "bronze+",
+      "lore": "Die Splitter in seinem Fell singen, bevor der Sturm losbricht.",
+      "artStatus": "concept"
+    },
+    {
+      "key": "fusion/0020",
+      "resolve": {
+        "type": "id",
+        "value": 20
+      },
+      "oldName": "Mondfluch-Hexe im Mondlicht",
+      "newName": "Mondrunen-Seherin",
+      "category": "fusion",
+      "level": 4,
+      "element": "LICHT",
+      "visual": "geheimnisvolle Mondmagierin, asymmetrischer Mantel, gebrochener arkaner Ring, Lichtglyphen; violett-goldene Schimmer",
+      "frame": "amethyst",
+      "lore": "Sie entziffert den Himmel wie andere eine vergessene Schrift.",
+      "artStatus": "concept"
+    },
+    {
+      "key": "fusion/0026",
+      "resolve": {
+        "type": "id",
+        "value": 26
+      },
+      "oldName": "Drache im Mondlicht über Ruinen",
+      "newName": "Nachtpforten-Wyrm",
+      "category": "fusion",
+      "level": 6,
+      "element": "DUNKEL",
+      "visual": "hoch aufragender Schattenwyrm vor einem zerrissenen Steintor; violetter Mond und flackernde arkanblaue Risse",
+      "frame": "amethyst+",
+      "lore": "Wenn sich die uralten Tore öffnen, ist sein Schrei das erste und letzte Zeichen.",
+      "artStatus": "concept"
+    },
+    {
+      "key": "fusion/0030",
+      "resolve": {
+        "type": "id",
+        "value": 30
+      },
+      "oldName": "Kristallramme im Mondlicht",
+      "newName": "Hochkamm-Ramme",
+      "category": "fusion",
+      "level": 7,
+      "element": "ERDE",
+      "visual": "kolossaler Bergwidder mit geschichteten Felsplatten und prunkvollen Kristallhörnern; Erdbebenstaub",
+      "frame": "amethyst++",
+      "lore": "Ihr Aufprall genügt, um Bergpfade auf Jahrhunderte zu verändern.",
+      "artStatus": "concept"
+    },
+    {
+      "key": "ace/thorn-3",
+      "resolve": {
+        "type": "ace-opponent",
+        "value": 3
+      },
+      "oldName": "Signatur-ACE des Dornenturniers",
+      "newName": "Dornenthron-Hirsch",
+      "category": "ace",
+      "level": 6,
+      "element": "ERDE",
+      "visual": "majestätischer Waldkönig mit dornenumflochtenem kristallinem Geweih und antiker goldener Waldkrone, monumentale Pose",
+      "frame": "ace-regalia",
+      "lore": "Auf seinen Geweihspitzen ruhen die letzten Eide des vergessenen Hains.",
+      "artStatus": "concept"
+    },
+    {
+      "key": "ace/astral-10",
+      "resolve": {
+        "type": "ace-opponent",
+        "value": 10
+      },
+      "oldName": "Signatur-ACE des Astralfinales",
+      "newName": "Ätherdrache der Kronen",
+      "category": "ace",
+      "level": 10,
+      "element": "LICHT",
+      "visual": "origineller königlicher Sternendrache mit weißblau-goldenem Schuppenpanzer, drei schlanken Kronenhörnern, gebrochenen Himmelsringen; NICHT Blue-Eyes-Design imitieren",
+      "frame": "ace-regalia++",
+      "lore": "Ein königlicher Sternendrache, der über zerfallene Himmelspforten kreist und seine Beute im ersten Licht erspäht.",
+      "artStatus": "concept"
+    },
+    {
+      "key": "essence/predator",
+      "resolve": {
+        "type": "essence-school",
+        "value": "predator"
+      },
+      "oldName": "Essenzbestie · Reißzahn",
+      "newName": "Nachtzahn, der Seelenfänger",
+      "category": "essence",
+      "level": 3,
+      "element": "DUNKEL",
+      "visual": "langgestrecktes Raubwesen mit schwarzem Fell und inneren violett-silbernen Seelenadern, eleganter und rastloser als normale Bestien",
+      "frame": "essence-aegis",
+      "lore": "Es jagt nicht Fleisch, sondern die Stärke, die nach einem Kampf zurückbleibt.",
+      "artStatus": "concept"
+    },
+    {
+      "key": "essence/defense",
+      "resolve": {
+        "type": "essence-school",
+        "value": "defense"
+      },
+      "oldName": "Essenzbestie · Aschenhort",
+      "newName": "Aschenhort, der Eidwächter",
+      "category": "essence",
+      "level": 3,
+      "element": "ERDE",
+      "visual": "uralter Basaltwächter mit ruhigem türkisfarbenen Lichtkern, schwebenden Schutzrunen und wenigen schützenden Steinplatten; ehrwürdig, nicht kriegerisch",
+      "frame": "essence-aegis",
+      "lore": "Jeder Stein seines Körpers trägt den Schwur eines Gefallenen.",
+      "artStatus": "concept"
+    }
+  ],
+  "notes": [
+    "Concept names and descriptions only; do NOT patch CARDS or swap artwork before visual review.",
+    "Named existing IDs are stable. ACE and Essence map to runtime stable ID tables: ACE_CARD_IDS and ESSENCE_MONSTER_IDS.",
+    "Frames are layered via CSS background-image; artwork is separate WebP/PNG.",
+    "Artworks must maintain cohesive painted dark-fantasy style without stealing copyrighted franchise silhouettes."
+  ]
+}
