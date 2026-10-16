@@ -113,3 +113,14 @@ jobs:
               exit 1
             fi
           done
+
+          echo "Checking all 20 modular card templates in Chrome at desktop and mobile sizes..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=15000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-card-templates.html >"/tmp/arcane-card-templates-${size}.html" 2>/tmp/arcane-card-template-chrome.log
+            if ! grep -q 'data-card-template-test="pass"' "/tmp/arcane-card-templates-${size}.html"; then
+              echo "20 card layout audit FAILED at ${size}px" >&2
+              grep -E -A42 'id="cardTemplateAudit"' "/tmp/arcane-card-templates-${size}.html" | head -46 || true
+              tail -20 /tmp/arcane-card-template-chrome.log || true
+              exit 1
+            fi
+          done
