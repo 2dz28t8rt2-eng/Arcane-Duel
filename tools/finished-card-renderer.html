@@ -13,8 +13,9 @@ iframe{display:none}
 <iframe title="Arcane Game Runtime" id="runtime" src="../index.html"></iframe>
 <script>
 const root=document.getElementById('runtime'),gallery=document.getElementById('gallery');
-const wave=new URLSearchParams(location.search).get('wave')==='02'?'02':'01';
+const wave=String(new URLSearchParams(location.search).get('wave')||'01').padStart(2,'0');
 const wave02Ids=[1,2,4,5,6,8,10,13,16,19,20,22,42,66,69,73,90,102,105,317];
+const waveV4Ids={"03":[3,7,9,11,12,324,327,330,333,336,339,342,14,15,17,18,325,328,331,334],"04":[337,340,343,345,348,351,354,357,360,363,326,329,332,335,338,341,344,346,349,352],"05":[355,358,361,364,366,369,372,375,378,381,347,350,353,356,359,362,365,367,370,373],"06":[376,379,382,384,387,368,371,374,377,380,383,385,388,386,389],"07":[41,314,45,46,49],"08":[50,54,58],"09":[315,53,181,316,62,318,70,260,319,74,320]};
 document.getElementById('waveTitle').textContent='✧ Monsterkarten · Welle '+wave;
 const clean=v=>String(v??'');
 const roles={guardian:'WÄCHTER',predator:'PREDATOR',soul:'SEELENZEHRER',weaver:'RUNENWEBER',support:'UNTERSTÜTZER'};
@@ -111,15 +112,20 @@ root.addEventListener('load',async()=>{
  const msg=document.getElementById('message');
  try{
   const w=root.contentWindow;
-  const ids=wave==='01'?'ArcaneArtCatalog.installed.cards.map(x=>x.id)':JSON.stringify(wave02Ids);
+  const ids=wave==='01'?'ArcaneArtCatalog.installed.cards.map(x=>x.id)':JSON.stringify(wave==='02'?wave02Ids:(waveV4Ids[wave]||[]));
   const cards=w.eval(ids+".map(id=>{const c=CARDS[id];if(!c)throw Error('Karte fehlt: '+id);const t=ArcaneCardTemplates.choose(c);if(!t)throw Error('Kein Template: '+id);return {card:{id:c.id,name:c.name,level:c.level,atk:c.atk,def:c.def,role:c.role,element:c.element,desc:c.desc,art:c.art,fusionOnly:!!c.fusionOnly,ace:!!c.ace,essenceMonster:!!c.essenceMonster},family:t.family,frame:t.frame,template:t.id}})");
-  const expected=wave==='02'?20:10;
+  const expected=({'01':10,'02':20,'03':20,'04':20,'05':20,'06':15,'07':5,'08':3,'09':11})[wave];
   if(cards.length!==expected||new Set(cards.map(x=>x.card.id)).size!==expected)throw new Error('Unerwartete Kartenzuordnung');
   if(wave==='02'){
    if(cards.some(x=>x.card.level>10||x.card.level<1))throw new Error('Level 11/12 dürfen nicht exportiert werden');
    const bad=cards.filter(x=>!x.card.art?.startsWith('assets/custom-art/'));
    const duplicate=cards.filter((x,i)=>cards.findIndex(y=>y.card.art===x.card.art)!==i);
    if(bad.length||duplicate.length)throw new Error('Illustrationsprüfung fehlgeschlagen: bad='+JSON.stringify(bad.map(x=>({id:x.card.id,art:x.card.art})))+' dup='+JSON.stringify(duplicate.map(x=>({id:x.card.id,art:x.card.art}))));
+  }
+  if(wave>='03'){
+   const planned=w.ArcaneArt4?.waves?.[wave];
+   if(!planned||cards.some((c,i)=>c.card.id!==planned[i]?.id||c.card.level!==planned[i].level||c.card.art!==planned[i].art||c.template!==planned[i].template))throw Error('Arcane 4.0 catalog/frame/art mismatch for Wave '+wave);
+   if(cards.some(c=>c.card.level<1||c.card.level>10))throw Error('Reserved level in Wave '+wave);
   }
   const built=[];
   for(const model of cards){
@@ -129,7 +135,7 @@ root.addEventListener('load',async()=>{
    label.append(img);
    const name=document.createElement('strong');name.textContent=model.card.name;
    label.append(name);gallery.append(label);
-   built.push({id:model.card.id,filename:wave==='02'?'monster-'+String(model.card.id).padStart(4,'0')+'.png':model.card.art.split('/').pop().replace('.webp','.png'),base64:canvas.toDataURL('image/png').split(',')[1],metadata:model});
+   built.push({id:model.card.id,filename:wave!=='01'?'monster-'+String(model.card.id).padStart(4,'0')+'.png':model.card.art.split('/').pop().replace('.webp','.png'),base64:canvas.toDataURL('image/png').split(',')[1],metadata:model});
   }
   // Contact sheet, suitable for thumbnail review and release notes.
   const sheet=document.createElement('canvas');sheet.width=1300;sheet.height=114+Math.ceil(cards.length/5)*507+12;

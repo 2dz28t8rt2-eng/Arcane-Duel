@@ -1,0 +1,10 @@
+/* Licensed illustrations: discreet attribution BELOW the big card preview. */
+#largeCardPreview > .arcane-artist-credit,
+#deckSidePreview > .arcane-artist-credit,
+.arcane-enemy-large > .arcane-artist-credit {
+ display:block;margin:9px auto 3px;padding:7px 8px 2px;max-width:98%;width:fit-content;
+ border-top:1px solid rgba(214,183,130,.2);font:400 10px/1.4 system-ui,sans-serif;
+ letter-spacing:.012em;text-align:center;color:#b9b3a7;opacity:.85;
+}
+.arcane-artist-credit a{color:#dac99e;text-decoration:none;border-bottom:1px dotted #bba57688}
+.arcane-artist-credit a:hover,.arcane-artist-credit a:focus-visible{color:#ffdeaf;border-bottom-color:currentColor}

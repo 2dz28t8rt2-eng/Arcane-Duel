@@ -1,0 +1,749 @@
+{
+  "schema": "arcane-duel-4-production",
+  "version": "4.0",
+  "branch": "development",
+  "waves": {
+    "03": [
+      {
+        "id": 3,
+        "level": 1,
+        "art": "assets/custom-art/base-003.webp",
+        "template": "normal-01"
+      },
+      {
+        "id": 7,
+        "level": 2,
+        "art": "assets/custom-art/base-007.webp",
+        "template": "normal-01"
+      },
+      {
+        "id": 9,
+        "level": 2,
+        "art": "assets/custom-art/base-009.webp",
+        "template": "normal-01"
+      },
+      {
+        "id": 11,
+        "level": 2,
+        "art": "assets/custom-art/base-011.webp",
+        "template": "normal-01"
+      },
+      {
+        "id": 12,
+        "level": 2,
+        "art": "assets/custom-art/base-012.webp",
+        "template": "normal-01"
+      },
+      {
+        "id": 324,
+        "level": 2,
+        "art": "assets/custom-art/normal-pack-01-01.webp",
+        "template": "normal-01"
+      },
+      {
+        "id": 327,
+        "level": 2,
+        "art": "assets/custom-art/normal-pack-01-05.webp",
+        "template": "normal-01"
+      },
+      {
+        "id": 330,
+        "level": 2,
+        "art": "assets/custom-art/base-002.webp",
+        "template": "normal-01"
+      },
+      {
+        "id": 333,
+        "level": 2,
+        "art": "assets/custom-art/base-003.webp",
+        "template": "normal-01"
+      },
+      {
+        "id": 336,
+        "level": 2,
+        "art": "assets/custom-art/normal-pack-01-06.webp",
+        "template": "normal-01"
+      },
+      {
+        "id": 339,
+        "level": 2,
+        "art": "assets/custom-art/normal-pack-01-04.webp",
+        "template": "normal-01"
+      },
+      {
+        "id": 342,
+        "level": 2,
+        "art": "assets/custom-art/base-006.webp",
+        "template": "normal-01"
+      },
+      {
+        "id": 14,
+        "level": 3,
+        "art": "assets/custom-art/base-014.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 15,
+        "level": 3,
+        "art": "assets/custom-art/base-015.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 17,
+        "level": 3,
+        "art": "assets/custom-art/base-017.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 18,
+        "level": 3,
+        "art": "assets/custom-art/normal-pack-01-09.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 325,
+        "level": 3,
+        "art": "assets/custom-art/normal-pack-01-01.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 328,
+        "level": 3,
+        "art": "assets/custom-art/normal-pack-01-05.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 331,
+        "level": 3,
+        "art": "assets/custom-art/base-002.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 334,
+        "level": 3,
+        "art": "assets/custom-art/base-003.webp",
+        "template": "normal-02"
+      }
+    ],
+    "04": [
+      {
+        "id": 337,
+        "level": 3,
+        "art": "assets/custom-art/normal-pack-01-06.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 340,
+        "level": 3,
+        "art": "assets/custom-art/normal-pack-01-04.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 343,
+        "level": 3,
+        "art": "assets/custom-art/base-006.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 345,
+        "level": 3,
+        "art": "assets/custom-art/base-007.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 348,
+        "level": 3,
+        "art": "assets/custom-art/normal-pack-01-02.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 351,
+        "level": 3,
+        "art": "assets/custom-art/base-009.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 354,
+        "level": 3,
+        "art": "assets/custom-art/normal-pack-01-03.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 357,
+        "level": 3,
+        "art": "assets/custom-art/base-011.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 360,
+        "level": 3,
+        "art": "assets/custom-art/base-012.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 363,
+        "level": 3,
+        "art": "assets/custom-art/normal-pack-01-08.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 326,
+        "level": 4,
+        "art": "assets/custom-art/normal-pack-01-01.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 329,
+        "level": 4,
+        "art": "assets/custom-art/normal-pack-01-05.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 332,
+        "level": 4,
+        "art": "assets/custom-art/base-002.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 335,
+        "level": 4,
+        "art": "assets/custom-art/base-003.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 338,
+        "level": 4,
+        "art": "assets/custom-art/normal-pack-01-06.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 341,
+        "level": 4,
+        "art": "assets/custom-art/normal-pack-01-04.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 344,
+        "level": 4,
+        "art": "assets/custom-art/base-006.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 346,
+        "level": 4,
+        "art": "assets/custom-art/base-007.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 349,
+        "level": 4,
+        "art": "assets/custom-art/normal-pack-01-02.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 352,
+        "level": 4,
+        "art": "assets/custom-art/base-009.webp",
+        "template": "normal-02"
+      }
+    ],
+    "05": [
+      {
+        "id": 355,
+        "level": 4,
+        "art": "assets/custom-art/normal-pack-01-03.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 358,
+        "level": 4,
+        "art": "assets/custom-art/base-011.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 361,
+        "level": 4,
+        "art": "assets/custom-art/base-012.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 364,
+        "level": 4,
+        "art": "assets/custom-art/normal-pack-01-08.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 366,
+        "level": 4,
+        "art": "assets/custom-art/base-014.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 369,
+        "level": 4,
+        "art": "assets/custom-art/base-015.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 372,
+        "level": 4,
+        "art": "assets/custom-art/normal-pack-01-07.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 375,
+        "level": 4,
+        "art": "assets/custom-art/base-017.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 378,
+        "level": 4,
+        "art": "assets/custom-art/normal-pack-01-09.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 381,
+        "level": 4,
+        "art": "assets/custom-art/normal-pack-01-10.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 347,
+        "level": 5,
+        "art": "assets/custom-art/base-007.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 350,
+        "level": 5,
+        "art": "assets/custom-art/normal-pack-01-02.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 353,
+        "level": 5,
+        "art": "assets/custom-art/base-009.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 356,
+        "level": 5,
+        "art": "assets/custom-art/normal-pack-01-03.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 359,
+        "level": 5,
+        "art": "assets/custom-art/base-011.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 362,
+        "level": 5,
+        "art": "assets/custom-art/base-012.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 365,
+        "level": 5,
+        "art": "assets/custom-art/normal-pack-01-08.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 367,
+        "level": 5,
+        "art": "assets/custom-art/base-014.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 370,
+        "level": 5,
+        "art": "assets/custom-art/base-015.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 373,
+        "level": 5,
+        "art": "assets/custom-art/normal-pack-01-07.webp",
+        "template": "normal-03"
+      }
+    ],
+    "06": [
+      {
+        "id": 376,
+        "level": 5,
+        "art": "assets/custom-art/base-017.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 379,
+        "level": 5,
+        "art": "assets/custom-art/normal-pack-01-09.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 382,
+        "level": 5,
+        "art": "assets/custom-art/normal-pack-01-10.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 384,
+        "level": 5,
+        "art": "assets/custom-art/base-020.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 387,
+        "level": 5,
+        "art": "assets/custom-art/base-022.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 368,
+        "level": 6,
+        "art": "assets/custom-art/base-014.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 371,
+        "level": 6,
+        "art": "assets/custom-art/base-015.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 374,
+        "level": 6,
+        "art": "assets/custom-art/normal-pack-01-07.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 377,
+        "level": 6,
+        "art": "assets/custom-art/base-017.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 380,
+        "level": 6,
+        "art": "assets/custom-art/normal-pack-01-09.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 383,
+        "level": 6,
+        "art": "assets/custom-art/normal-pack-01-10.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 385,
+        "level": 6,
+        "art": "assets/custom-art/base-020.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 388,
+        "level": 6,
+        "art": "assets/custom-art/base-022.webp",
+        "template": "normal-03"
+      },
+      {
+        "id": 386,
+        "level": 7,
+        "art": "assets/custom-art/base-020.webp",
+        "template": "normal-04"
+      },
+      {
+        "id": 389,
+        "level": 7,
+        "art": "assets/custom-art/base-022.webp",
+        "template": "normal-04"
+      }
+    ],
+    "07": [
+      {
+        "id": 41,
+        "level": 2,
+        "art": "assets/curated-openart-v1/og-0041-funkenwyrm.webp",
+        "template": "fusion-01"
+      },
+      {
+        "id": 314,
+        "level": 3,
+        "art": "assets/curated-openart-v1/og-0314-argentum-koloss.webp",
+        "template": "normal-02"
+      },
+      {
+        "id": 45,
+        "level": 4,
+        "art": "assets/curated-openart-v1/og-0045-waldschlund.webp",
+        "template": "fusion-02"
+      },
+      {
+        "id": 46,
+        "level": 4,
+        "art": "assets/curated-openart-v1/og-0046-eibenwaechter.webp",
+        "template": "fusion-02"
+      },
+      {
+        "id": 49,
+        "level": 4,
+        "art": "assets/curated-openart-v1/og-0049-eisenzahn.webp",
+        "template": "fusion-02"
+      }
+    ],
+    "08": [
+      {
+        "id": 50,
+        "level": 4,
+        "art": "assets/curated-openart-v2/og-0050-bastion-ferrus.webp",
+        "template": "fusion-02"
+      },
+      {
+        "id": 54,
+        "level": 5,
+        "art": "assets/curated-openart-v2/og-0054-rubin-seraph.webp",
+        "template": "fusion-03"
+      },
+      {
+        "id": 58,
+        "level": 6,
+        "art": "assets/curated-openart-v2/og-0058-waldgeist-veyra.webp",
+        "template": "fusion-03"
+      }
+    ],
+    "09": [
+      {
+        "id": 315,
+        "level": 4,
+        "art": "assets/curated-openart-v3/og-0315-phoenix-myrra.webp",
+        "template": "ace-02"
+      },
+      {
+        "id": 53,
+        "level": 5,
+        "art": "assets/curated-openart-v3/og-0053-aschenwolf.webp",
+        "template": "fusion-03"
+      },
+      {
+        "id": 181,
+        "level": 5,
+        "art": "assets/curated-openart-v3/og-0181-morgenfluegel.webp",
+        "template": "fusion-03"
+      },
+      {
+        "id": 316,
+        "level": 6,
+        "art": "assets/curated-openart-v3/og-0316-thronhirsch-sylvan.webp",
+        "template": "ace-03"
+      },
+      {
+        "id": 62,
+        "level": 7,
+        "art": "assets/curated-openart-v3/og-0062-korallenfuerstin.webp",
+        "template": "fusion-04"
+      },
+      {
+        "id": 318,
+        "level": 8,
+        "art": "assets/curated-openart-v3/og-0318-aschewyrm-rakh.webp",
+        "template": "ace-04"
+      },
+      {
+        "id": 70,
+        "level": 9,
+        "art": "assets/curated-openart-v3/og-0070-schattenwolf-lyra.webp",
+        "template": "fusion-05"
+      },
+      {
+        "id": 260,
+        "level": 9,
+        "art": "assets/custom-art/wave4-05.webp",
+        "template": "fusion-05"
+      },
+      {
+        "id": 319,
+        "level": 9,
+        "art": "assets/curated-openart-v3/og-0319-nox-albtraum.webp",
+        "template": "ace-05"
+      },
+      {
+        "id": 74,
+        "level": 10,
+        "art": "assets/curated-openart-v3/og-0074-windgeist-areon.webp",
+        "template": "fusion-05"
+      },
+      {
+        "id": 320,
+        "level": 10,
+        "art": "assets/curated-openart-v3/og-0320-himmelskrone.webp",
+        "template": "ace-05"
+      }
+    ]
+  },
+  "externalArt": [
+    {
+      "id": 41,
+      "artwork": "assets/curated-openart-v1/og-0041-funkenwyrm.webp",
+      "author": "m7600",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourcePage": "https://opengameart.org/content/red-dragon-0",
+      "sourceFile": "https://opengameart.org/sites/default/files/dragon_red_0.png"
+    },
+    {
+      "id": 314,
+      "artwork": "assets/curated-openart-v1/og-0314-argentum-koloss.webp",
+      "author": "Gman2099 / Garry Donzelli Gray",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourcePage": "https://opengameart.org/content/big-tusked-brut",
+      "sourceFile": "https://opengameart.org/sites/default/files/big_tusk_monster_concept_art.png"
+    },
+    {
+      "id": 45,
+      "artwork": "assets/curated-openart-v1/og-0045-waldschlund.webp",
+      "author": "Gman2099 / Garry Donzelli Gray",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourcePage": "https://opengameart.org/content/creature-with-many-heads",
+      "sourceFile": "https://opengameart.org/sites/default/files/creature_with_many_heads_open_game_art_jfvnjfkvjnvjkgf.png"
+    },
+    {
+      "id": 46,
+      "artwork": "assets/curated-openart-v1/og-0046-eibenwaechter.webp",
+      "author": "Benalene",
+      "license": "CC-BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "sourcePage": "https://opengameart.org/content/tree-spirit",
+      "sourceFile": "https://opengameart.org/sites/default/files/treespirit02_0.png"
+    },
+    {
+      "id": 49,
+      "artwork": "assets/curated-openart-v1/og-0049-eisenzahn.webp",
+      "author": "Gman2099 / Garry Donzelli Gray",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourcePage": "https://opengameart.org/content/creature-painting-spine",
+      "sourceFile": "https://opengameart.org/sites/default/files/creature_design_paintoverfinal.png"
+    },
+    {
+      "id": 50,
+      "artwork": "assets/curated-openart-v2/og-0050-bastion-ferrus.webp",
+      "author": "Xacur",
+      "license": "CC-BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "sourcePage": "https://opengameart.org/content/one-eye-armored-monster",
+      "sourceFile": "https://opengameart.org/sites/default/files/021_one_eye_monster_color.png"
+    },
+    {
+      "id": 54,
+      "artwork": "assets/curated-openart-v2/og-0054-rubin-seraph.webp",
+      "author": "Xacur",
+      "license": "CC-BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourcePage": "https://opengameart.org/content/angel-in-armor",
+      "sourceFile": "https://opengameart.org/sites/default/files/angel_02_002_color_001.jpg"
+    },
+    {
+      "id": 58,
+      "artwork": "assets/curated-openart-v2/og-0058-waldgeist-veyra.webp",
+      "author": "5hiroi",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourcePage": "https://opengameart.org/content/swamp-dryad",
+      "sourceFile": "https://opengameart.org/sites/default/files/Swamp_Dryad_by_shiroikuro.jpg"
+    },
+    {
+      "id": 315,
+      "artwork": "assets/curated-openart-v3/og-0315-phoenix-myrra.webp",
+      "author": "5hiroi",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourcePage": "https://opengameart.org/content/dance-of-rebirth",
+      "sourceFile": "https://opengameart.org/sites/default/files/Dance_of_Rebirth_by_shiroikuro.jpg"
+    },
+    {
+      "id": 53,
+      "artwork": "assets/curated-openart-v3/og-0053-aschenwolf.webp",
+      "author": "RosannexZiggy",
+      "license": "CC-BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "sourcePage": "https://opengameart.org/content/soul-pelt-wolf-concept",
+      "sourceFile": "https://opengameart.org/sites/default/files/Soul%20Pelt.png"
+    },
+    {
+      "id": 181,
+      "artwork": "assets/curated-openart-v3/og-0181-morgenfluegel.webp",
+      "author": "5hiroi",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourcePage": "https://opengameart.org/content/wyvern-and-girl",
+      "sourceFile": "https://opengameart.org/sites/default/files/A_Girl_and_her_Wyvern.jpg"
+    },
+    {
+      "id": 316,
+      "artwork": "assets/curated-openart-v3/og-0316-thronhirsch-sylvan.webp",
+      "author": "Charles Livingston Bull",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourcePage": "https://opengameart.org/content/wolf-deer-and-elk-story-illustrations",
+      "sourceFile": "https://opengameart.org/sites/default/files/page_167.jpg"
+    },
+    {
+      "id": 62,
+      "artwork": "assets/curated-openart-v3/og-0062-korallenfuerstin.webp",
+      "author": "5hiroi",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourcePage": "https://opengameart.org/content/water-serpents",
+      "sourceFile": "https://opengameart.org/sites/default/files/welcome_to_air_OMGWTF_by_shiroikuro.jpg"
+    },
+    {
+      "id": 318,
+      "artwork": "assets/curated-openart-v3/og-0318-aschewyrm-rakh.webp",
+      "author": "Xacur",
+      "license": "CC-BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourcePage": "https://opengameart.org/content/fiend-dragon",
+      "sourceFile": "https://opengameart.org/sites/default/files/035_fiend_dragon_001.jpg"
+    },
+    {
+      "id": 70,
+      "artwork": "assets/curated-openart-v3/og-0070-schattenwolf-lyra.webp",
+      "author": "Buch",
+      "license": "CC-BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "sourcePage": "https://opengameart.org/content/gray-wolf",
+      "sourceFile": "https://opengameart.org/sites/default/files/wolf_armored_small_0.png"
+    },
+    {
+      "id": 319,
+      "artwork": "assets/curated-openart-v3/og-0319-nox-albtraum.webp",
+      "author": "jeremygooch",
+      "license": "CC-BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "sourcePage": "https://opengameart.org/content/demon-concept",
+      "sourceFile": "https://opengameart.org/sites/default/files/creature001_alpha.png"
+    },
+    {
+      "id": 74,
+      "artwork": "assets/curated-openart-v3/og-0074-windgeist-areon.webp",
+      "author": "zonked",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourcePage": "https://opengameart.org/content/breeze-witch",
+      "sourceFile": "https://opengameart.org/sites/default/files/breeze-witch-cc0-characters.png"
+    },
+    {
+      "id": 320,
+      "artwork": "assets/curated-openart-v3/og-0320-himmelskrone.webp",
+      "author": "Akri",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourcePage": "https://opengameart.org/content/trading-card-art",
+      "sourceFile": "https://opengameart.org/sites/default/files/xuni.jpg"
+    }
+  ]
+}

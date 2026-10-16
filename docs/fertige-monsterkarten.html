@@ -1,5 +1,5 @@
 <!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Arcane Duel – 30 fertige Monsterkarten</title>
+<title>Arcane Duel 4.0 – Das Bestiarium</title>
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}
@@ -35,16 +35,23 @@ dialog button{float:right;background:#283752;border:1px solid #e3c793;color:#ffe
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body><main>
 <header><div class="kicker">Das Vergoldete Archiv · Produktionsgrafiken</div>
-<h1>30 fertige Monsterkarten<br>aus zwei Produktionswellen.</h1>
-<p>30 fertig gerenderte Karten mit Originalillustration, passendem Stufenrahmen, Name, echter Rolle und Element sowie den Grundwerten und Beschreibungen aus dem Spielkatalog. Jede PNG misst 768 × 1224 Pixel.</p>
+<h1>ARCANE DUEL 4.0<br>Das vollständige Bestiarium.</h1>
+<p>124 Karten aus neun Produktionswellen sind eingeplant. Die Galerie zeigt nur tatsächlich veröffentlichte Exportdateien mit Originalillustration, passendem Stufenrahmen, Name, echter Rolle und Element sowie den Grundwerten und Beschreibungen aus dem Spielkatalog. Jede PNG misst 768 × 1224 Pixel.</p>
 <div class="meta">
 <a class="action" href="../assets/finished-cards/wave01/kontaktbogen.png" download="Arcane-Duel-Kontaktbogen.png">✦ Kontaktbogen Welle 01</a>
 <a class="action" href="../assets/finished-cards/wave02/kontaktbogen.png" download="Arcane-Duel-Kontaktbogen-Welle02.png">✦ Kontaktbogen Welle 02</a>
+<a class="action secondary" href="../assets/finished-cards/wave03/kontaktbogen.png" title="Welle 03 – nach Export verfügbar">✦ Kontaktbogen 03</a>
+<a class="action secondary" href="../assets/finished-cards/wave04/kontaktbogen.png" title="Welle 04 – nach Export verfügbar">✦ Kontaktbogen 04</a>
+<a class="action secondary" href="../assets/finished-cards/wave05/kontaktbogen.png" title="Welle 05 – nach Export verfügbar">✦ Kontaktbogen 05</a>
+<a class="action secondary" href="../assets/finished-cards/wave06/kontaktbogen.png" title="Welle 06 – nach Export verfügbar">✦ Kontaktbogen 06</a>
+<a class="action secondary" href="../assets/finished-cards/wave07/kontaktbogen.png" title="Welle 07 – nach Export verfügbar">✦ Kontaktbogen 07</a>
+<a class="action secondary" href="../assets/finished-cards/wave08/kontaktbogen.png" title="Welle 08 – nach Export verfügbar">✦ Kontaktbogen 08</a>
+<a class="action secondary" href="../assets/finished-cards/wave09/kontaktbogen.png" title="Welle 09 – nach Export verfügbar">✦ Kontaktbogen 09</a>
 <a class="action secondary" href="https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/workflows/render-finished-cards.yml">⇩ ZIP-Archiv bei GitHub Actions</a>
 <a class="action secondary" href="../index.html">↶ Zur Entwicklungsversion</a>
 </div><p style="font-size:12px;color:#aebcd2">Hinweis: Fusionen haben im Duell variable Endwerte. Diese fertigen Grafikexports zeigen die unveränderten Grundwerte; die spielbaren Karten verwenden weiterhin die dynamische Berechnung.</p></header>
 <nav class="controls" aria-label="Karten filtern">
-<button class="filter" data-filter="all" aria-pressed="true">Alle 30</button>
+<button class="filter" data-filter="all" aria-pressed="true" id="totalReady">Veröffentlichte Karten</button>
 <button class="filter" data-filter="normal" aria-pressed="false">Standard</button>
 <button class="filter" data-filter="fusion" aria-pressed="false">Fusion</button>
 <button class="filter" data-filter="ace" aria-pressed="false">ACE</button>
@@ -55,7 +62,7 @@ dialog button{float:right;background:#283752;border:1px solid #e3c793;color:#ffe
 </main>
 <dialog id="lightbox" aria-label="Große Kartenansicht"><button type="button" id="close" aria-label="Schließen">×</button><img id="largeCard" alt=""></dialog>
 <script>
-const waves=['01','02'],family=c=>c.template.startsWith('ace')?'ace':c.template.startsWith('essence')?'essence':c.template.startsWith('fusion')?'fusion':'normal';
+const waves=['01','02','03','04','05','06','07','08','09'],family=c=>c.template.startsWith('ace')?'ace':c.template.startsWith('essence')?'essence':c.template.startsWith('fusion')?'fusion':'normal';
 const labels={normal:'Standard',fusion:'Fusion',ace:'ACE',essence:'Essenz'};
 const dialog=document.getElementById('lightbox');document.getElementById('close').onclick=()=>dialog.close();
 dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close();});
@@ -64,8 +71,9 @@ function filter(value){
  document.querySelectorAll('.card').forEach(x=>x.hidden=value!=='all'&&x.dataset.family!==value);
 }
 document.querySelectorAll('.filter').forEach(x=>x.addEventListener('click',()=>filter(x.dataset.filter)));
-Promise.all(waves.map(wave=>fetch('../assets/finished-cards/wave'+wave+'/manifest.json').then(r=>{if(!r.ok)throw Error('Manifest Welle '+wave+' konnte nicht geladen werden');return r.json();}).then(data=>data.cards.map(c=>({...c,wave}))))).then(groups=>{
- const cards=groups.flat();if(cards.length!==30||new Set(cards.map(c=>c.id)).size!==30)throw Error('Fertige Karten fehlen oder IDs sind doppelt');
+Promise.all(waves.map(wave=>fetch('../assets/finished-cards/wave'+wave+'/manifest.json').then(r=>{if(!r.ok)return {cards:[]};return r.json();}).then(data=>data.cards.map(c=>({...c,wave}))))).then(groups=>{
+ const cards=groups.flat();if(new Set(cards.map(c=>c.id)).size!==cards.length)throw Error('Doppelte Kartennummern in den Manifests');
+ document.getElementById('totalReady').textContent='Alle '+cards.length+' veröffentlichten Karten';
  const holder=document.getElementById('cards');
  holder.innerHTML='';
  for(const c of cards){
