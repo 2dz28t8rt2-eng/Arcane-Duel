@@ -1,7 +1,7 @@
 <!doctype html><html lang="de"><head><meta charset="utf-8">
 <title>Arcane 4.0.4 – Isolated live shell/medallion browser QA</title>
 <style>body{font:12px monospace;background:#0b1220;color:#e3e9ee}#result{white-space:pre-wrap}</style></head><body>
-<pre id="result">Loading...</pre><iframe id="game" src="../index.html" style="display:none"></iframe>
+<pre id="result">Loading...</pre><iframe id="game" src="../index.html" style="position:absolute;left:-6000px;top:0;width:1400px;height:1000px;border:0"></iframe>
 <script>
 document.getElementById('game').addEventListener('load',async()=>{
  const output=document.getElementById('result'),win=document.getElementById('game').contentWindow,doc=win.document;
