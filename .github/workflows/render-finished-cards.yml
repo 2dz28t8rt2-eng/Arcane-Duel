@@ -4,6 +4,8 @@ on:
     branches: [development]
     paths:
       - tools/finished-card-renderer.html
+      - assets/artwork-revamp-v4.js
+      - assets/collection-v3-data.js
       - .github/workflows/render-finished-cards.yml
   workflow_dispatch:
 permissions:
