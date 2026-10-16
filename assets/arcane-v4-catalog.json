@@ -471,8 +471,10 @@
       {
         "id": 314,
         "level": 3,
-        "art": "assets/curated-openart-v1/og-0314-argentum-koloss.webp",
-        "template": "ace-02"
+        "art": "assets/custom-art/generated-4-1/monster-0314.webp",
+        "template": "ace-02",
+        "name": "Argentum-Koloss",
+        "desc": "Silberne Panzerplatten umschließen einen Leib aus Fels. Sein Faustschlag lässt den Boden bersten. Kael Ardents normales ACE."
       },
       {
         "id": 45,
@@ -581,8 +583,10 @@
       {
         "id": 319,
         "level": 9,
-        "art": "assets/curated-openart-v3/og-0319-nox-albtraum.webp",
-        "template": "ace-05"
+        "art": "assets/custom-art/generated-4-1/monster-0319.webp",
+        "template": "ace-05",
+        "name": "Nox-Albtraum",
+        "desc": "Ein gehörnter Nachtmahr mit Klauen aus Obsidian. Violetter Nebel folgt seiner Jagd durch die Mondruinen. Noa Kuronagis Fusions-ACE."
       },
       {
         "id": 74,

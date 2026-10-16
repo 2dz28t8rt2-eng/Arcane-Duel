@@ -1,7 +1,7 @@
 # Artwork-Neugestaltung – separate spätere Produktionsphase
 
-**Status am 16.10.2026:** Zehn freigegebene Bildersetzungen sind auf `development` integriert; siehe [GENERATED_ARTWORKS_4_1.md](GENERATED_ARTWORKS_4_1.md).
-**Weitere Produktion:** Die noch offenen Kandidaten benötigen eigene neue Illustrationen und eine anschließende Zuordnung. Die folgende Tabelle dokumentiert die ursprüngliche Sichtung; die IDs 315, 316, 318, 320, 181, 62 und 260 wurden inzwischen ersetzt. Zusätzlich wurden Aschenwolf (53), Schattenwolf Lyra (70) und Windgeist Areon (74) erneuert. Argentum-Koloss (314) und Nox-Albtraum (319) bleiben offen.
+**Status am 16.10.2026:** Alle zwölf beauftragten Bildersetzungen sind auf `development` integriert; siehe [GENERATED_ARTWORKS_4_1.md](GENERATED_ARTWORKS_4_1.md).
+**Abschluss:** Die folgende Tabelle dokumentiert die ursprüngliche Sichtung. Alle dort aufgeführten Karten wurden inzwischen ersetzt, einschließlich Argentum-Koloss (314) und Nox-Albtraum (319). Zusätzlich wurden Aschenwolf (53), Schattenwolf Lyra (70) und Windgeist Areon (74) erneuert. Die unten separat genannten Prüfkandidaten betreffen mögliche spätere Sichtungen.
 
 ## Priorisierte Kandidaten aus den Screenshots und der bisherigen Besprechung
 

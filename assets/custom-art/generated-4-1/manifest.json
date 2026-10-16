@@ -105,6 +105,34 @@
       "sha256": "08a0e94ff61367f1e2b6a2b6fb34ab8ea239ed814fa8a2e6da758e2cafe84880",
       "bytes": 406398,
       "description": "Im violetten Mondlicht nimmt Lyra Gestalt an. Lautlos bewacht der Spektralwolf die Pfade zur Schattenwelt."
+    },
+    {
+      "id": 314,
+      "cardName": "Argentum-Koloss",
+      "artworkTitle": "Silberner Erdkoloss in den Ruinen",
+      "description": "Silberne Panzerplatten umschließen einen Leib aus Fels. Sein Faustschlag lässt den Boden bersten. Kael Ardents normales ACE.",
+      "art": "assets/custom-art/generated-4-1/monster-0314.webp",
+      "sha256": "63f5f96d1c94a2c90ab043f2180043c12c5f0c4e2bee8032f3a96542d3ef6115",
+      "bytes": 562782,
+      "generationTool": "OpenAI image_gen (built-in)",
+      "originalSize": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "id": 319,
+      "cardName": "Nox-Albtraum",
+      "artworkTitle": "Gehörnter Nachtmahr der Mondruinen",
+      "description": "Ein gehörnter Nachtmahr mit Klauen aus Obsidian. Violetter Nebel folgt seiner Jagd durch die Mondruinen. Noa Kuronagis Fusions-ACE.",
+      "art": "assets/custom-art/generated-4-1/monster-0319.webp",
+      "sha256": "50a4bcdc936856d66c38ddf517027b8898d5b5c74ba56cd63fcce2b5ae9ee345",
+      "bytes": 504590,
+      "generationTool": "OpenAI image_gen (built-in)",
+      "originalSize": [
+        1254,
+        1254
+      ]
     }
   ]
 }

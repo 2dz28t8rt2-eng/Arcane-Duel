@@ -15,6 +15,6 @@ Drei Kreaturen erhalten passendere Namen:
 
 Die übrigen sieben Namen (Aschenwolf, Korallenfürstin, Schattenwolf Lyra, Morgenflügel, Phönix Myrra, Aschewyrm Rakh und Himmelskrone) bleiben erhalten, da sie bereits zu den neuen Motiven passen. IDs, Level, Rollen, Elemente, Kampfwerte, Regeln und Speicherstände bleiben unverändert.
 
-**Noch nicht neu gestaltet:** Argentum-Koloss (314) und Nox-Albtraum (319).
+**Inzwischen ebenfalls neu gestaltet:** Argentum-Koloss (314) und Nox-Albtraum (319), als direkte Ergänzung des 4.1-Updates. Siehe [Artwork-Ergänzung](ARGENTUM_NOX_ARTWORKS_4_1.md).
 
 Nur development wird aktualisiert. main bleibt unverändert bis zur späteren Freigabe.

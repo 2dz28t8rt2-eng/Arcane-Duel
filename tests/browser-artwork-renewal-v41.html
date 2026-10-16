@@ -11,6 +11,7 @@ document.getElementById('runtime').addEventListener('load',async()=>{
  const check=(value,label)=>{checks.push((value?'OK ':'FAIL ')+label);output.textContent=checks.join('\n');if(!value)passed=false;};
  const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
  const expected={
+  314:[3,730,520,'predator','ERDE'],319:[9,2490,1760,'predator','DUNKEL'],
   53:[5,1290,840,'predator','FEUER'],62:[7,1490,1720,'soul','WASSER'],
   70:[9,2040,2360,'guardian','DUNKEL'],74:[10,2350,2720,'soul','WIND'],
   181:[5,1110,810,'predator','LICHT'],260:[9,2290,1540,'soul','DUNKEL'],
@@ -23,7 +24,7 @@ document.getElementById('runtime').addEventListener('load',async()=>{
   const response=await fetch('../assets/custom-art/generated-4-1/manifest.json');
   if(!response.ok)throw Error('Artwork manifest HTTP '+response.status);
   const manifest=await response.json(),rows=manifest.replacements;
-  check(rows.length===10&&new Set(rows.map(x=>x.id)).size===10,'Ten distinct replacement cards');
+  check(rows.length===12&&new Set(rows.map(x=>x.id)).size===12,'Twelve distinct replacement cards');
   win.eval("hideModal();if(animationSpeed!=='fast')toggleSpeed();");
   const reduced=win.matchMedia('(prefers-reduced-motion: reduce)').matches;
   fixture=doc.createElement('section');fixture.id='artwork-renewal-qa';
