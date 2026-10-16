@@ -26,7 +26,7 @@
   if(!card||!Number.isInteger(card.id))return null;
   const value=overlay[card.id];if(!value)return null;
   return {id:card.id,art:value.art,name:value.name,family:family(card),
-   tier:tier(Number(card.level)||1),wave:'01'};
+   tier:tier(Number(card.level)||1),wave:card.artWave||'01'};
  }
  function audit(catalog){
   const rows=catalog.filter(card=>card&&Number.isInteger(card.id));
@@ -87,8 +87,23 @@
   return {count:installed.length,cards:installed,issues};
  }
  const result=apply();
+ // Wave 02: connect existing curated WebP artworks to their real playable card IDs.
+ // The base game may regenerate SVG placeholders at boot; restore the originals
+ // after the main catalog initializes, without changing game rules or card text.
+ const wave02Art=Object.freeze([[1,"assets/custom-art/normal-pack-01-05.webp"],[2,"assets/custom-art/base-002.webp"],[4,"assets/custom-art/normal-pack-01-06.webp"],[5,"assets/custom-art/normal-pack-01-04.webp"],[6,"assets/custom-art/base-006.webp"],[8,"assets/custom-art/normal-pack-01-02.webp"],[10,"assets/custom-art/normal-pack-01-03.webp"],[13,"assets/custom-art/normal-pack-01-08.webp"],[16,"assets/custom-art/normal-pack-01-07.webp"],[19,"assets/custom-art/normal-pack-01-10.webp"],[20,"assets/custom-art/base-020.webp"],[22,"assets/custom-art/base-022.webp"],[42,"assets/custom-art/wave3-04.webp"],[66,"assets/custom-art/wave3-08.webp"],[69,"assets/custom-art/wave6-07.webp"],[73,"assets/custom-art/wave5-05.webp"],[90,"assets/custom-art/wave4-02.webp"],[102,"assets/custom-art/wave5-04.webp"],[105,"assets/custom-art/wave5-03.webp"],[317,"assets/custom-art/wave6-03.webp"]]);
+ const wave02Installed=[];
+ if(typeof CARDS!=='undefined'&&Array.isArray(CARDS)){
+  for(const [id,art] of wave02Art){
+   const card=CARDS[id];
+   if(!card||card.id!==id||card.level>10||card.level<1)throw new Error('Wave 02 card missing/reserved: '+id);
+   card.art=art;card.customArt=art;card.artWave='02';
+   overlay[id]={art,name:card.name};
+   wave02Installed.push({id,name:card.name,level:card.level,art,role:card.role,element:card.element});
+  }
+ }
+ const wave02Result=Object.freeze({count:wave02Installed.length,cards:wave02Installed});
  window.ArcaneArtCatalog=Object.freeze({version:'4.1.0',key,tier,family,resolve,audit,
-  wave:wave.map(x=>({key:x.key,name:x.name,designElement:x.element})),installed:result});
+  wave:wave.map(x=>({key:x.key,name:x.name,designElement:x.element})),installed:result,installedWave02:wave02Result});
  if(result.count!==wave.length&&typeof console!=='undefined')console.warn('Arcane Art Wave 01:',result.issues);
  // Initial menu was drawn by game.js before this late presentation layer.
  if(result.count>0&&typeof document!=='undefined'){

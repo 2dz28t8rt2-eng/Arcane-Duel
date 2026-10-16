@@ -39,3 +39,18 @@ test('Gallery displays both series and full PNG downloads',()=>{
  assert.match(gallery,/c.wave/);
  assert.match(gallery,/download=c.filename/);
 });
+
+test('Wave 02 illustrations are bound into the real runtime without changing stats or names',()=>{
+ const source=read('assets/artwork-revamp-v4.js');
+ assert.match(source,/const wave02Art=Object.freeze/);
+ assert.match(source,/card.art=art;card.customArt=art;card.artWave='02'/);
+ assert.match(source,/installedWave02:wave02Result/);
+ const map=JSON.parse(source.match(/const wave02Art=Object.freeze\((\[[^;]+\])\);/)[1]);
+ assert.equal(map.length,20);
+ assert.equal(new Set(map.map(x=>x[0])).size,20);
+ for(const [id,art] of map){
+  const found=catalog.find(c=>c.id===id);
+  assert.equal(art,found.art);
+  assert.ok(fs.existsSync(path.join(root,art)));
+ }
+});
