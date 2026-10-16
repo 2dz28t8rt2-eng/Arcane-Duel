@@ -1,0 +1,33 @@
+/* Arcane Duel 4.0.2: make the 4.0.1 level engravings visible IN the live game.
+   The existing 20 tier/family SVGs remain the base, Fate frames are unaffected.
+   The transparent SVG overlays sit above image/header panels, not behind them. */
+.hand-card.tc-card.ad-template.ad-level-frame::before,
+.board-creature.tc-card.ad-template.ad-level-frame::before{
+  content:""!important;
+  position:absolute!important;
+  inset:1px!important;
+  display:block!important;
+  z-index:7!important;
+  pointer-events:none!important;
+  background-image:var(--ad-level-trim)!important;
+  background-size:100% 100%!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  border:1px solid color-mix(in srgb,var(--ad-tpl-light) 68%,transparent)!important;
+  border-radius:inherit!important;
+  opacity:.94!important;
+  box-sizing:border-box!important;
+}
+.hand-card.tc-card.ad-template.ad-level-frame,
+.board-creature.tc-card.ad-template.ad-level-frame{
+  --ad-card-metal:var(--ad-tpl-rim);
+  border-color:var(--ad-tpl-rim)!important;
+}
+/* The level trim must never intercept a click or obscure a highlighted state. */
+.hand-card.tc-card.ad-template.ad-level-frame:is(:focus-visible,.selected){
+  outline-offset:3px;
+}
+@media(prefers-reduced-motion:reduce){
+ .hand-card.tc-card.ad-template.ad-level-frame::before,
+ .board-creature.tc-card.ad-template.ad-level-frame::before{animation:none!important}
+}
