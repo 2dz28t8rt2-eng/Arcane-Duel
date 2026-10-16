@@ -72,6 +72,9 @@ jobs:
           assert sheet[:8]==b'\x89PNG\r\n\x1a\n'
           assert struct.unpack('>II',sheet[16:24])==(1300,1140)
           (dest/'kontaktbogen.png').write_bytes(sheet)
+          preview=base64.b64decode(payload['preview'])
+          assert preview[:4]==b'RIFF' and preview[8:12]==b'WEBP'
+          (dest/'kontaktbogen-preview.webp').write_bytes(preview)
           (dest/'manifest.json').write_text(json.dumps({'schema':'arcane-finished-cards-wave01','count':10,'cards':meta},
                                                        ensure_ascii=False,indent=2)+'\n',encoding='utf8')
           with zipfile.ZipFile('/tmp/Arcane-Duel-Fertige-Monsterkarten-Welle01.zip','w',zipfile.ZIP_DEFLATED,compresslevel=8) as z:
