@@ -102,3 +102,14 @@ jobs:
               exit 1
             fi
           done
+
+          echo "Verifying ten production monster art assets, stable card IDs and all original combat stats..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=12500 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-artwave01.html >"/tmp/arcane-artwave01-${size}.html" 2>/tmp/arcane-artwave01.log
+            if ! grep -q 'data-artwave="pass"' "/tmp/arcane-artwave01-${size}.html"; then
+              echo "Monster art integration FAILED at ${size}px" >&2
+              grep -A48 'id="artResults"' "/tmp/arcane-artwave01-${size}.html" | head -52 || true
+              tail -20 /tmp/arcane-artwave01.log || true
+              exit 1
+            fi
+          done
