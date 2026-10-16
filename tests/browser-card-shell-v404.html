@@ -1,0 +1,62 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8">
+<title>Arcane 4.0.4 – Isolated live shell/medallion browser QA</title>
+<style>body{font:12px monospace;background:#0b1220;color:#e3e9ee}#result{white-space:pre-wrap}</style></head><body>
+<pre id="result">Loading...</pre><iframe id="game" src="../index.html" style="display:none"></iframe>
+<script>
+document.getElementById('game').addEventListener('load',async()=>{
+ const output=document.getElementById('result'),win=document.getElementById('game').contentWindow,doc=win.document;
+ const tests=[];let ok=true;
+ function check(value,label){tests.push((value?'OK ':'FAIL ')+label);if(!value)ok=false;}
+ const fixture=doc.createElement('div');
+ fixture.id='v404-qa-fixture';fixture.style.cssText='position:absolute;left:-3000px;top:300px;display:flex;gap:8px;z-index:-1;';
+ const make=expression=>{
+  const card=doc.createElement('div');card.innerHTML=win.eval(expression);
+  const element=card.firstElementChild;fixture.append(element);return element;
+ };
+ try{
+  doc.body.append(fixture);
+  const normal=make('fullCardHtml(CARDS[0])');
+  const fusion=make('fullCardHtml(RPG_FUSIONS.find(c=>c.level>=4))');
+  const ace=make('fullCardHtml(CARDS[ACE_CARD_IDS[10]])');
+  const essence=make('fullCardHtml(CARDS[ESSENCE_MONSTER_IDS.fusion])');
+  await new Promise(r=>win.requestAnimationFrame(()=>win.requestAnimationFrame(r)));
+  for(const [family,card] of [['normal',normal],['fusion',fusion],['ace',ace],['essence',essence]]){
+   const style=win.getComputedStyle(card);
+   const title=win.getComputedStyle(card.querySelector('.hand-title'));
+   const art=win.getComputedStyle(card.querySelector('.hand-art'));
+   const stat=card.querySelector('.hand-stats'),grid=win.getComputedStyle(stat);
+   const med=card.querySelector('.ad-level-medallion');
+   check(card.classList.contains('ad-template-family-'+family),'Live card family '+family);
+   check(card.classList.contains('ad-level-frame'),'Modern level frame '+family);
+   check(style.backgroundImage.includes(family+'-0'),'Official SVG base from correct family '+family);
+   check(style.borderTopWidth==='1px' && parseFloat(style.borderTopLeftRadius)<=8,
+     'Old bronze body and thick corner geometry removed '+family);
+   check(parseFloat(title.borderTopLeftRadius)<=4 && title.boxShadow==='none',
+     'Old raised rounded title plaque replaced '+family);
+   check(parseFloat(art.borderTopLeftRadius)<=3 && art.boxShadow==='none',
+     'Old raised art panel replaced '+family);
+   check(med && med.textContent===card.dataset.level,'Real level number present '+family);
+   check(grid.gridTemplateColumns.split(' ').length===3,'Three distinct stat columns '+family);
+   if(med){
+     const a=stat.querySelector('.stat.atk').getBoundingClientRect();
+     const b=stat.querySelector('.stat.def').getBoundingClientRect();
+     const r=med.getBoundingClientRect();
+     check(a.right<=r.left+1&&r.right<=b.left+1,'Medallion separates ATK and DEF without overlap '+family);
+     check(r.width>=21&&r.height>=21&&r.width<=40,'Medallion readable and bounded '+family);
+     check(win.getComputedStyle(med).borderTopStyle==='solid'&&
+       win.getComputedStyle(med).borderTopWidth!=='0px','Complementary-color enamel circle '+family);
+   }
+  }
+  // A fully explicit gameplay card still keeps the same underlying statistics.
+  const first=win.eval('CARDS[0]');
+  check(normal.querySelector('.stat.atk .stat-value').textContent===String(first.atk),'ATK unchanged');
+  check(normal.querySelector('.stat.def .stat-value').textContent===String(first.def),'DEF unchanged');
+  check(normal.querySelector('.card-level-badge').textContent.trim()==='LV '+first.level,
+    'Original small top-level badge preserved');
+  const fate=make('fullCardHtml(CARDS[FATE_CARD_IDS[0]])');
+  check(!fate.classList.contains('ad-level-frame')&&!fate.querySelector('.ad-level-medallion'),
+    'Special Fate card does not inherit modern frame or duplicate medallion');
+ }catch(error){ok=false;tests.push('EXCEPTION '+(error?.stack||error));}
+ fixture.remove();output.textContent=tests.join('\n');output.dataset.cardShellTest=ok?'pass':'fail';
+});
+</script></body></html>

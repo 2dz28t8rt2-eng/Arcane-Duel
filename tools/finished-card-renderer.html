@@ -59,7 +59,7 @@ async function cardDraw(model){
  // Frame ornaments sit BEHIND content so title and lore stay readable.
  ctx.drawImage(frame,0,0,256,408);
  const plaque=ctx.createLinearGradient(24,43,24,85);plaque.addColorStop(0,'#30324a');plaque.addColorStop(.52,'#0a1226');plaque.addColorStop(1,'#171224');
- rounded(ctx,26,42,204,43,6,plaque,light,1.1);
+ rounded(ctx,26,42,204,43,3,plaque,light,.85);
  ctx.fillStyle='#fff4d8';ctx.textBaseline='alphabetic';
  const title=String(c.name||'Unbekanntes Wesen').trim(),words=title.split(/\s+/);
  let titleLines=null,titleSize=12.5;
@@ -92,11 +92,28 @@ async function cardDraw(model){
  ctx.textAlign='center';ctx.fillStyle=roleText;ctx.font='bold '+(c.role==='soul'?'8.6':'9.2')+'px Arial';
  ctx.fillText(roles[c.role]||c.role.toUpperCase(),32+chipW/2,297.5,chipW-5);
  ctx.textAlign='right';ctx.fillStyle='#2a1a25';ctx.font='bold 10.6px Georgia,serif';ctx.fillText(c.element,220,298,100);
- rounded(ctx,30,308,196,36,4,'#211824',rim,1);
- rounded(ctx,32,311,94,30,4,'#11172a',rim,.8);rounded(ctx,130,311,94,30,4,'#0f2e40',rim,.8);
- ctx.textAlign='left';ctx.font='bold 7.1px Arial';ctx.fillStyle='#f4c991';ctx.fillText('ATK',39,320);ctx.fillStyle='#9ee9f8';ctx.fillText('DEF',137,320);
- ctx.textAlign='center';ctx.font='bold 17.5px Georgia,serif';ctx.fillStyle='#fff0d5';ctx.fillText(c.atk,79,336.8);
- ctx.fillStyle='#d8f4ff';ctx.fillText(c.def,177,336.8);
+ // A true three-column stat bar: ATK · complementary level seal · DEF.
+ // Text stays in its own columns; the seal never obscures a four-digit stat.
+ rounded(ctx,30,308,196,36,3,'#101a2d',rim,.7);
+ rounded(ctx,32,311,81,30,2,'#182c45',rim,.5);
+ rounded(ctx,143,311,81,30,2,'#173748',rim,.5);
+ ctx.textAlign='left';ctx.font='bold 7.1px Arial';
+ ctx.fillStyle='#f4c991';ctx.fillText('ATK',39,320);
+ ctx.fillStyle='#9ee9f8';ctx.fillText('DEF',150,320);
+ ctx.textAlign='center';ctx.font='bold 17px Georgia,serif';
+ ctx.fillStyle='#fff0d5';ctx.fillText(c.atk,72.5,336.8,75);
+ ctx.fillStyle='#d8f4ff';ctx.fillText(c.def,183.5,336.8,75);
+ if(c.level>=1&&c.level<=10){
+  const seal=({normal:['#84e3f2','#0d3245'],fusion:['#ccef95','#243b2a'],
+    ace:['#95c8ff','#182b53'],essence:['#ffc09a','#58352d']})[model.family]||['#84e3f2','#0d3245'];
+  ctx.save();ctx.beginPath();ctx.arc(128,326,15.5,0,Math.PI*2);
+  ctx.fillStyle='#070d1c';ctx.fill();
+  ctx.lineWidth=2.4;ctx.strokeStyle=seal[0];ctx.stroke();
+  ctx.beginPath();ctx.arc(128,326,12.1,0,Math.PI*2);ctx.fillStyle=seal[1];ctx.fill();
+  ctx.font='900 '+(c.level===10?12:13)+'px Georgia,serif';
+  ctx.textAlign='center';ctx.fillStyle='#fffef5';ctx.textBaseline='middle';
+  ctx.fillText(String(c.level),128,326.7);ctx.restore();
+ }
  rounded(ctx,30,347,196,38,4,'#0a101e',rim,.85);
  ctx.textAlign='left';ctx.fillStyle='#e9e6e8';
  let lore=null,loreSize=8.6;

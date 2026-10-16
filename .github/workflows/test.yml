@@ -114,6 +114,17 @@ jobs:
             fi
           done
 
+          echo "Checking new canonical card shells and between-stat level medallions in Chrome..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=16000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-card-shell-v404.html >"/tmp/arcane-shell-${size}.html" 2>/tmp/arcane-shell-chrome.log
+            if ! grep -q 'data-card-shell-test="pass"' "/tmp/arcane-shell-${size}.html"; then
+              echo "Canonical card shell and medallion QA failed at ${size}px" >&2
+              grep -E -A60 'id="result"' "/tmp/arcane-shell-${size}.html" | head -70 || true
+              tail -25 /tmp/arcane-shell-chrome.log || true
+              exit 1
+            fi
+          done
+
           echo "Checking all 20 modular card templates in Chrome at desktop and mobile sizes..."
           for size in 1200 410; do
             "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=15000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-card-templates.html >"/tmp/arcane-card-templates-${size}.html" 2>/tmp/arcane-card-template-chrome.log
