@@ -1,0 +1,48 @@
+{
+  "schema": "arcane-finished-cards-wave08",
+  "count": 3,
+  "cards": [
+    {
+      "filename": "monster-0050.png",
+      "id": 50,
+      "name": "Bastion Ferrus",
+      "level": 4,
+      "atk": 830,
+      "role": "soul",
+      "element": "ERDE",
+      "description": "Verteidigungsorientierte Fusionsvorlage. Ihre Werte bestimmen den Schutz im Kampf.",
+      "artwork": "assets/curated-openart-v2/og-0050-bastion-ferrus.webp",
+      "frame": "assets/card-templates/fusion-02.svg",
+      "template": "fusion-02",
+      "def": 960
+    },
+    {
+      "filename": "monster-0054.png",
+      "id": 54,
+      "name": "Rubin-Seraph",
+      "level": 5,
+      "atk": 1030,
+      "role": "guardian",
+      "element": "FEUER",
+      "description": "Verteidigungsorientierte Fusionsvorlage. Ihre Werte bestimmen den Schutz im Kampf.",
+      "artwork": "assets/curated-openart-v2/og-0054-rubin-seraph.webp",
+      "frame": "assets/card-templates/fusion-03.svg",
+      "template": "fusion-03",
+      "def": 1190
+    },
+    {
+      "filename": "monster-0058.png",
+      "id": 58,
+      "name": "Waldgeist Veyra",
+      "level": 6,
+      "atk": 1250,
+      "role": "guardian",
+      "element": "ERDE",
+      "description": "Verteidigungsorientierte Fusionsvorlage. Ihre Werte bestimmen den Schutz im Kampf.",
+      "artwork": "assets/curated-openart-v2/og-0058-waldgeist-veyra.webp",
+      "frame": "assets/card-templates/fusion-03.svg",
+      "template": "fusion-03",
+      "def": 1450
+    }
+  ]
+}
