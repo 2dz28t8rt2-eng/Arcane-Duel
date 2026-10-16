@@ -503,8 +503,8 @@ body:has(#menuScreen.atlas-screen:not([hidden])) .modal :is(button,summary,input
 #menuScreen .deck-preview-head h3{font-size:clamp(19px,1.7vw,26px)!important;line-height:1.25!important}
 #menuScreen .deck-preview-desc,#menuScreen .deck-preview-meta p,#menuScreen .deck-family small{font-size:13px!important;line-height:1.6!important}
 #menuScreen .deck-side-preview{scroll-margin-top:20px}
-#menuScreen .deck-preview-card .card-name,#duelScreen #largeCardPreview .card-name{font-size:clamp(18px,1.7vw,24px)!important;line-height:1.15!important}
-#menuScreen .deck-preview-card .stat-value,#duelScreen #largeCardPreview .stat-value{font-size:clamp(20px,2vw,29px)!important}
+#menuScreen .deck-preview-card .card-name{font-size:clamp(18px,1.7vw,24px)!important;line-height:1.15!important}
+/* Large card typography is controlled by fusion-stamp.css; no competing 20–29px global override. */
 #menuScreen .deck-preview-pills,#menuScreen .deck-family-levels{font-size:13px!important}
 #menuScreen .menu-panel button[data-action="loot"],#menuScreen .menu-panel button[data-action="dropchance"]{font-size:13px!important;padding:9px 12px!important}
 #duelScreen .stage-card{cursor:pointer}

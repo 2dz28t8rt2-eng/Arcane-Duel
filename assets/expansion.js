@@ -170,7 +170,7 @@ renderHud=function(){
   b.onclick=()=>{oldClick?.();if(uiMode==='menu')renderMenu();};
  }
  if($('hudShardsHelp'))$('hudShardsHelp').onclick=()=>popupHelp('Splitter sammeln und einsetzen',
-  'Splitter sind an den jeweiligen Gegner gebunden. Du erhältst sie durch Duelle und kannst im Deckbau damit Karten herstellen. Für eine Herstellung benötigst du normalerweise 20 passende Splitter plus Essenz.');
+  'Alle erhaltenen Splitter gehören zu einem einzigen gemeinsamen Vorrat. Für die Herstellung einer Karte benötigst du 30 Splitter und die angezeigte Essenzmenge.');
 };
 /* Free duel cards show real auto-loot, highlighted when boost active.
    Quick-open pack button follows original profile.packs indices. */
@@ -251,7 +251,7 @@ const pages=[
     "title": "Angriff und Verteidigung",
     "sub": "Mehr Angriff bedeutet nicht in jeder Situation denselben Schaden.",
     "left": "<h3>Angriff gegen Angriff</h3><div class=\"royal-guide-flow\"><div><strong>980</strong><span>Dein Angriff</span></div><div><strong>→</strong><span>gegen</span></div><div><strong>760</strong><span>Feindlicher Angriff</span></div></div><p>Der stärkere Angreifer zerstört das schwächere Monster; in diesem Beispiel erhält der Gegner <b>220 Schaden</b>.</p>",
-    "right": "<h3>Angriff gegen Verteidigung</h3><p>Steht ein Monster in Verteidigungsposition, wirkt sein <b>DEF-Wert als Monster-HP</b>. Jeder Treffer verringert diese DEF um die Angriffskraft. Auch mehrere schwächere Angriffe können einen starken Blocker zerstören. Sinkt seine gesamte verbleibende DEF auf null, wird er zerstört.</p><p>Monster mit <b>Gegenschlag</b> verursachen beim Angreifer direkten LP-Schaden in Höhe der Hälfte ihrer Grund-ATK. Gespeicherte Seelenessenz und verdichtete DEF bilden zusätzliche Schutzschichten.</p><p class=\"royal-guide-note\">Im lokalen PvP gelten derzeit noch die klassischen Verteidigungsregeln.</p>"
+    "right": "<h3>Angriff gegen Verteidigung</h3><p>Steht ein Monster in Verteidigungsposition, wirkt sein <b>DEF-Wert als Monster-HP</b>. Jeder Treffer verringert diese DEF um die Angriffskraft. Auch mehrere schwächere Angriffe können einen starken Blocker zerstören. Sinkt seine gesamte verbleibende DEF auf null, wird er zerstört.</p><p>Monster mit <b>Gegenschlag</b> verursachen beim Angreifer direkten LP-Schaden in Höhe der Hälfte ihrer aktuell verbleibenden ATK (einschließlich Spezialisierungen und Werteverlust). Gespeicherte Seelenessenz und verdichtete DEF bilden zusätzliche Schutzschichten.</p><p class=\"royal-guide-note\">Im lokalen PvP gelten derzeit noch die klassischen Verteidigungsregeln.</p>"
   },
   {
     "title": "Fusionen erschaffen",
@@ -372,7 +372,7 @@ renderMenu=function(){
   const grid=el.querySelector('.collection-grid');
   if(grid){
    const section=document.createElement('section');section.className='menu-panel collection-filters';
-   section.innerHTML='<h3>Karten filtern</h3><div class="filter-controls"><label>Suche <input id="cardSearch" type="search" placeholder="Name"></label><label>Element <select id="cardElement"><option value="">Alle</option>'+[...new Set(sourceCards(menuTab==='fusions').map(c=>c.element))].map(v=>'<option>'+escapeHtml(v)+'</option>').join('')+'</select></label><label>Stufe <select id="cardLevel"><option value="">Alle</option>'+Array.from({length:12},(_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'</option>').join('')+'</select></label><label>Status <select id="cardStatus"><option value="">Alle</option><option value="owned">Besitz</option><option value="deck">Im Deck</option><option value="new">Neu</option><option value="enhance">Verstärkbar</option></select></label><label>Sortierung <select id="cardSort"><option value="default">Standard</option><option value="atk">ATK</option><option value="def">DEF</option><option value="name">Name</option></select></label></div><small id="filterCount"></small>';
+   section.innerHTML='<h3>Karten filtern</h3><div class="filter-controls"><label>Suche <input id="cardSearch" type="search" placeholder="Name"></label><label>Element <select id="cardElement"><option value="">Alle</option>'+[...new Set(sourceCards(menuTab==='fusions').map(c=>c.element))].map(v=>'<option>'+escapeHtml(v)+'</option>').join('')+'</select></label><label>Stufe <select id="cardLevel"><option value="">Alle</option>'+Array.from({length:10},(_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'</option>').join('')+'</select></label><label>Status <select id="cardStatus"><option value="">Alle</option><option value="owned">Besitz</option><option value="deck">Im Deck</option><option value="new">Neu</option><option value="enhance">Verstärkbar</option></select></label><label>Sortierung <select id="cardSort"><option value="default">Standard</option><option value="atk">ATK</option><option value="def">DEF</option><option value="name">Name</option></select></label></div><small id="filterCount"></small>';
    grid.parentNode.insertBefore(section,grid);
   }
  }
@@ -380,7 +380,7 @@ renderMenu=function(){
   el.insertAdjacentHTML('beforeend','<section class="menu-panel reset-panel" aria-label="Spielstand zurücksetzen">'+
    '<h2>Spielstand zurücksetzen</h2>'+
    '<p>Hier kannst du den aktuellen <b>'+resetProfileKind()+'</b> vollständig neu beginnen. <b>Alle Fortschritte dieses Spielstands werden überschrieben.</b></p>'+
-   '<p>Du musst den Vorgang zweimal ausdrücklich bestätigen. Ein vorheriger JSON-Export wird empfohlen.</p>'+
+   '<p>Du musst den Vorgang zweimal ausdrücklich bestätigen. Bitte Spielstand vorher sichern.</p>'+
    menuButton('Spielstand zurücksetzen …','reset-profile')+'</section>');
  }
  const intro=el.querySelector('.menu-panel > p');if(intro)intro.classList.add('tab-intro');

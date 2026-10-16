@@ -55,7 +55,7 @@ jobs:
           done
 
           echo "Checking interactive Alpha 2.0 UI flows in headless Chrome..."
-          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=8000 --window-size="1200,980" --dump-dom http://127.0.0.1:8757/tests/browser-ui.html > /tmp/arcane-interaction.html 2>/tmp/arcane-interaction-chrome.log
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=22000 --window-size="1200,980" --dump-dom http://127.0.0.1:8757/tests/browser-ui.html > /tmp/arcane-interaction.html 2>/tmp/arcane-interaction-chrome.log
           if ! grep -q 'data-ui-test="pass"' /tmp/arcane-interaction.html; then
             echo "Interactive UI smoke test failed." >&2
             grep -E -A20 'id="result"' /tmp/arcane-interaction.html | head -26 || true
@@ -80,3 +80,58 @@ jobs:
             tail -30 /tmp/arcane-fusion-chrome.log || true
             exit 1
           fi
+
+          echo "Checking REAL fusion cinema phase ordering and scaled stats at 1200px and 410px..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=43000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-fusion-visual.html >"/tmp/arcane-fusion-visual-${size}.html" 2>/tmp/arcane-visual-chrome.log
+            if ! grep -q 'data-fusion-cinema-ui="pass"' "/tmp/arcane-fusion-visual-${size}.html"; then
+              echo "Fusion visual phase/stat audit FAILED at ${size}px" >&2
+              grep -E -A24 'id="result"' "/tmp/arcane-fusion-visual-${size}.html" | head -35 || true
+              tail -25 /tmp/arcane-visual-chrome.log || true
+              exit 1
+            fi
+          done
+
+          echo "Checking Arcane Duel 4.0 contextual deck preview and fusion-quality stamps..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=12000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-ui4-cinema.html >"/tmp/arcane-ui4-${size}.html" 2>/tmp/arcane-ui4-chrome.log
+            if ! grep -q 'data-ui4-test="pass"' "/tmp/arcane-ui4-${size}.html"; then
+              echo "UI 4.0 deck portal or combination cinematic FAILED at ${size}px" >&2
+              grep -A30 'id="qaStatus"' "/tmp/arcane-ui4-${size}.html" | head -38 || true
+              tail -25 /tmp/arcane-ui4-chrome.log || true
+              exit 1
+            fi
+          done
+
+          echo "Verifying ten production monster art assets, stable card IDs and all original combat stats..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=12500 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-artwave01.html >"/tmp/arcane-artwave01-${size}.html" 2>/tmp/arcane-artwave01.log
+            if ! grep -q 'data-artwave="pass"' "/tmp/arcane-artwave01-${size}.html"; then
+              echo "Monster art integration FAILED at ${size}px" >&2
+              grep -A48 'id="artResults"' "/tmp/arcane-artwave01-${size}.html" | head -52 || true
+              tail -20 /tmp/arcane-artwave01.log || true
+              exit 1
+            fi
+          done
+
+          echo "Checking new canonical card shells and between-stat level medallions in Chrome..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=25000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-card-shell-v404.html >"/tmp/arcane-shell-${size}.html" 2>/tmp/arcane-shell-chrome.log
+            if ! grep -q 'data-card-shell-test="pass"' "/tmp/arcane-shell-${size}.html"; then
+              echo "Canonical card shell and medallion QA failed at ${size}px" >&2
+              grep -E -A60 'id="result"' "/tmp/arcane-shell-${size}.html" | head -70 || true
+              tail -25 /tmp/arcane-shell-chrome.log || true
+              exit 1
+            fi
+          done
+
+          echo "Checking all 20 modular card templates in Chrome at desktop and mobile sizes..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=35000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-card-templates.html >"/tmp/arcane-card-templates-${size}.html" 2>/tmp/arcane-card-template-chrome.log
+            if ! grep -q 'data-card-template-test="pass"' "/tmp/arcane-card-templates-${size}.html"; then
+              echo "20 card layout audit FAILED at ${size}px" >&2
+              grep -E -A42 'id="cardTemplateAudit"' "/tmp/arcane-card-templates-${size}.html" | head -46 || true
+              tail -20 /tmp/arcane-card-template-chrome.log || true
+              exit 1
+            fi
+          done

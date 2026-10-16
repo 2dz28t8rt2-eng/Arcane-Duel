@@ -1,0 +1,227 @@
+/* Arcane Duel 4.0.4 – canonical, isolated template card shell.
+ * This file is deliberately loaded LAST. It replaces the OLD card body only
+ * when the real template + level classes are present. It does not remove any
+ * legacy CSS globally, so non-template and Fate cards keep their styles.
+ * Frame image: official family/tier SVG, engraved level: one ::before SVG.
+ */
+html body .hand-card.tc-card.ad-template.ad-level-frame:not(.tc-fate),
+html body .board-creature.tc-card.ad-template.ad-level-frame:not(.tc-fate){
+  --ad-seal-accent:#83d8ed;
+  --ad-seal-glow:#5fb3dd66;
+  --ad-seal-core:#102c42;
+  --ad-seal-size:27px;
+  box-sizing:border-box!important;
+  isolation:isolate;
+  padding:6px!important;
+  border:1px solid var(--ad-tpl-rim)!important;
+  border-radius:7px!important;
+  outline:none!important;
+  color:#f9edda!important;
+  background-image:
+    var(--ad-tpl-frame),
+    linear-gradient(180deg,#1c2537 0%,#0d1627 26%,#0a1120 74%,#1a2439 100%)!important;
+  background-size:100% 100%,cover!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  box-shadow:0 0 0 1px #0a1020,0 5px 13px #000a!important;
+}
+/* The original SVG remains the only outline ornament; the earlier
+ * multiple pill-like metallic inner plates are replaced by flat glass. */
+html body .hand-card.tc-card.ad-template.ad-level-frame:not(.tc-fate) .hand-title{
+  margin:0!important;
+  padding:2px 5px!important;
+  border:1px solid color-mix(in srgb,var(--ad-tpl-rim) 52%,transparent)!important;
+  border-radius:3px!important;
+  background:linear-gradient(90deg,#111b2e,#202b43 50%,#111b2e)!important;
+  box-shadow:none!important;
+  color:#fff2dd!important;
+}
+html body .hand-card.tc-card.ad-template.ad-level-frame:not(.tc-fate) .hand-stars{
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:var(--ad-tpl-light)!important;
+}
+html body .hand-card.tc-card.ad-template.ad-level-frame:not(.tc-fate) .hand-art{
+  margin:2px 0 0!important;
+  padding:0!important;
+  min-width:0;
+  border:1px solid color-mix(in srgb,var(--ad-tpl-rim) 68%,#0e1626)!important;
+  border-radius:2px!important;
+  background:#0a1424!important;
+  box-shadow:none!important;
+}
+html body .hand-card.tc-card.ad-template.ad-level-frame:not(.tc-fate) .hand-art::before{
+  content:none!important;
+  display:none!important;
+  background:none!important;
+  box-shadow:none!important;
+}
+html body .hand-card.tc-card.ad-template.ad-level-frame:not(.tc-fate) .hand-type{
+  margin:1px 0 0!important;
+  border-radius:2px!important;
+  box-shadow:none!important;
+}
+html body .hand-card.tc-card.ad-template.ad-level-frame:not(.tc-fate) .hand-description{
+  margin:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+/* ATK / LEVEL / DEF is one responsive three-column component, not two large
+ * embossed bronze stat blocks hidden behind a floating badge. */
+html body .hand-card.tc-card.ad-template.ad-level-frame:not(.tc-fate) .hand-stats{
+  --ad-seal-size:27px;
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) var(--ad-seal-size) minmax(0,1fr)!important;
+  align-items:center!important;
+  column-gap:2px!important;
+  margin:2px 0 0!important;
+  padding:1px 2px!important;
+  min-width:0!important;
+  width:100%!important;
+  border:1px solid color-mix(in srgb,var(--ad-tpl-rim) 45%,transparent)!important;
+  border-radius:3px!important;
+  background:#101a2d!important;
+  box-shadow:none!important;
+}
+html body .hand-card.tc-card.ad-template.ad-level-frame:not(.tc-fate) .hand-stats .stat{
+  min-width:0!important;
+  padding:1px!important;
+  border:0!important;
+  border-radius:3px!important;
+  background:linear-gradient(180deg,#1b3049,#101b30)!important;
+  box-shadow:none!important;
+  text-align:center!important;
+}
+html body .hand-card.tc-card.ad-template.ad-level-frame:not(.tc-fate) .hand-stats .stat.def{
+  border-left:0!important;
+  background:linear-gradient(180deg,#163e50,#101e30)!important;
+}
+html body .hand-card.tc-card.ad-template.ad-level-frame:not(.tc-fate) .hand-stats .stat-value{
+  max-width:100%!important;
+  color:#fff0d5!important;
+  text-shadow:0 1px 2px #000!important;
+  font-variant-numeric:tabular-nums!important;
+}
+html body .hand-card.tc-card.ad-template.ad-level-frame:not(.tc-fate) .hand-stats .stat.def .stat-value{
+  color:#d5f5ff!important;
+}
+/* Disc uses a complementary hue: bronze -> teal, amethyst -> lime,
+ * royal gold -> blue, and cyan/essence -> warm coral. */
+html body .hand-card.tc-card.ad-template.ad-level-frame.ad-template-family-normal:not(.tc-fate),
+html body .board-creature.tc-card.ad-template.ad-level-frame.ad-template-family-normal:not(.tc-fate){
+  --ad-seal-accent:#84e3f2;--ad-seal-glow:#36d4f980;--ad-seal-core:#0d3245;
+}
+html body .hand-card.tc-card.ad-template.ad-level-frame.ad-template-family-fusion:not(.tc-fate),
+html body .board-creature.tc-card.ad-template.ad-level-frame.ad-template-family-fusion:not(.tc-fate){
+  --ad-seal-accent:#ccef95;--ad-seal-glow:#9bd95777;--ad-seal-core:#243b2a;
+}
+html body .hand-card.tc-card.ad-template.ad-level-frame.ad-template-family-ace:not(.tc-fate),
+html body .board-creature.tc-card.ad-template.ad-level-frame.ad-template-family-ace:not(.tc-fate){
+  --ad-seal-accent:#95c8ff;--ad-seal-glow:#6ba5ee88;--ad-seal-core:#182b53;
+}
+html body .hand-card.tc-card.ad-template.ad-level-frame.ad-template-family-essence:not(.tc-fate),
+html body .board-creature.tc-card.ad-template.ad-level-frame.ad-template-family-essence:not(.tc-fate){
+  --ad-seal-accent:#ffc09a;--ad-seal-glow:#f59e7a77;--ad-seal-core:#58352d;
+}
+html body .hand-card.tc-card.ad-template.ad-level-frame:not(.tc-fate) .ad-level-medallion,
+html body .board-creature.tc-card.ad-template.ad-level-frame:not(.tc-fate) .ad-level-medallion{
+  display:grid!important;
+  place-items:center!important;
+  flex:none!important;
+  position:relative!important;
+  inset:auto!important;
+  transform:none!important;
+  z-index:8!important;
+  align-self:center!important;
+  justify-self:center!important;
+  width:var(--ad-seal-size)!important;
+  height:var(--ad-seal-size)!important;
+  max-width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0!important;
+  border:2px solid var(--ad-seal-accent)!important;
+  border-radius:50%!important;
+  box-sizing:border-box!important;
+  background:radial-gradient(circle at 30% 20%,#fff9d72a,var(--ad-seal-core) 60%,#0b1525)!important;
+  box-shadow:0 0 0 1px #0b1020,0 0 8px var(--ad-seal-glow),
+     inset 0 1px 3px #ffffff20!important;
+  color:#fffef5!important;
+  font:900 12px/1 ui-monospace,Consolas,monospace!important;
+  letter-spacing:-.25px!important;
+  text-shadow:0 1px 2px #000!important;
+  pointer-events:none!important;
+  white-space:nowrap!important;
+  animation:none!important;
+}
+/* The larger inspector and side preview have room for a larger enamel disc. */
+body #duelScreen .card-preview-panel .hand-card.tc-card.ad-template.ad-level-frame .hand-stats,
+body #duelScreen #largeCardPreview .hand-card.tc-card.ad-template.ad-level-frame .hand-stats,
+body #menuScreen .deck-preview-card .hand-card.tc-card.ad-template.ad-level-frame .hand-stats,
+body > #deckSidePreview .hand-card.tc-card.ad-template.ad-level-frame .hand-stats,
+body .arcane-enemy-large .hand-card.tc-card.ad-template.ad-level-frame .hand-stats{
+  --ad-seal-size:35px;
+  grid-template-columns:minmax(0,1fr) var(--ad-seal-size) minmax(0,1fr)!important;
+  gap:4px!important;
+}
+body #duelScreen .card-preview-panel .hand-card.tc-card.ad-template.ad-level-frame .ad-level-medallion,
+body #menuScreen .deck-preview-card .hand-card.tc-card.ad-template.ad-level-frame .ad-level-medallion,
+body > #deckSidePreview .hand-card.tc-card.ad-template.ad-level-frame .ad-level-medallion{
+  font-size:15px!important;
+}
+/* Very narrow duel hand and fusion materials use a small non-overlapping disc. */
+body #duelScreen #hand .hand-card.tc-card.ad-template.ad-level-frame .hand-stats,
+body .fusion-choice-grid .hand-card.tc-card.ad-template.ad-level-frame .hand-stats{
+  --ad-seal-size:22px;
+  grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr)!important;
+  column-gap:1px!important;
+}
+body #duelScreen #hand .hand-card.tc-card.ad-template.ad-level-frame .ad-level-medallion,
+body .fusion-choice-grid .hand-card.tc-card.ad-template.ad-level-frame .ad-level-medallion{
+  font-size:10px!important;border-width:1px!important;
+}
+/* Board miniatures also receive the level disc between actual ATK and DEF. */
+html body .board-creature.tc-card.ad-template.ad-level-frame:not(.tc-fate){
+  --ad-seal-size:20px;
+  padding:3px!important;
+}
+html body .board-creature.tc-card.ad-template.ad-level-frame:not(.tc-fate) .board-stats{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) var(--ad-seal-size) minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:1px!important;
+  padding:1px!important;
+  border:1px solid color-mix(in srgb,var(--ad-tpl-rim) 44%,transparent)!important;
+  border-radius:2px!important;
+  background:#101b2e!important;
+  box-shadow:none!important;
+  min-width:0!important;
+}
+html body .board-creature.tc-card.ad-template.ad-level-frame:not(.tc-fate) .board-stats b{
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:clamp(8px,1.0vw,11px)!important;
+  text-align:center!important;
+}
+html body .board-creature.tc-card.ad-template.ad-level-frame:not(.tc-fate) .ad-level-medallion{
+  font-size:9px!important;
+  border-width:1px!important;
+}
+/* Preserve gameplay feedback without resurrecting a second frame. */
+html body .hand-card.tc-card.ad-template.ad-level-frame.selected,
+html body .hand-card.tc-card.ad-template.ad-level-frame:focus-visible{
+  outline:2px solid #b5f7ec!important;
+  outline-offset:2px!important;
+}
+@media(prefers-reduced-motion:reduce){
+  html body .hand-card.tc-card.ad-template.ad-level-frame .ad-level-medallion{
+    animation:none!important;
+  }
+}

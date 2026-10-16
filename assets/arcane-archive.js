@@ -18,17 +18,68 @@
  '<path d="M150 25 162 56 150 72 138 56Z M150 228 162 244 150 275 138 244Z M25 150 56 138 72 150 56 162Z M228 150 244 138 275 150 244 162Z" fill="none" stroke="currentColor" stroke-width="1.5"/>'+
  '<path d="M150 88 165 135 212 150 165 165 150 212 135 165 88 150 135 135Z M150 109 191 150 150 191 109 150Z M150 65V103 M150 197V235 M65 150H103 M197 150H235" fill="none" stroke="currentColor" stroke-width="1.3"/>'+
  '<circle cx="150" cy="150" r="12" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="150" cy="150" r="3.5" fill="currentColor"/></svg></div>';
+ // Animated showcase. Draw from every active RPG monster, including level-10 cards.
+ // Visual previews never create, unlock or award an actual card.
+ let showcaseLastArt=[],showcaseCycle=0,transitioning=false,rotationTimer=null;
+ const reduceMotion=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
+ const allArt=()=>CARDS.filter(c=>c?.rpg&&c.level>=1&&c.level<=10&&!c.retired&&
+   typeof c.art==='string'&&/^(assets\/|data:image\/svg\+xml)/.test(c.art));
+ function shuffled(values){
+  const arr=[...values];
+  for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+  return arr;
+ }
  function featureArt(){
-  const ids=Array.isArray(profile?.activeDeck)?profile.activeDeck:[];
-  // Show the player's most distinctive owned deck cards, not arbitrary first slots.
-  const seen=new Set(),cards=[];
-  const ordered=[...new Set(ids)].map(id=>CARDS[id]).filter(Boolean)
-   .sort((a,b)=>(Number(b.level)||0)-(Number(a.level)||0)||Number(Boolean(b.ace))-Number(Boolean(a.ace)));
-  for(const c of ordered){
-   if(!c||typeof c.art!=='string'||!/^(assets\/|data:image\/svg\+xml)/.test(c.art)||seen.has(c.art))continue;
-   seen.add(c.art);cards.push(c);if(cards.length===3)break;
+  const pool=allArt(),results=[],seen=new Set();
+  showcaseCycle++;
+  // Every third rotation includes a late-game LV10 card if possible.
+  const previous=new Set(showcaseLastArt);
+  const high=shuffled(pool.filter(c=>c.level===10&&!previous.has(c.art)));
+  if(showcaseCycle%3===0&&high.length){results.push(high[0]);seen.add(high[0].art);}
+  const options=shuffled(pool.filter(c=>!previous.has(c.art)));
+  for(const c of [...options,...shuffled(pool)]){
+   if(results.length===3)break;
+   if(seen.has(c.art))continue;
+   seen.add(c.art);results.push(c);
   }
-  return cards;
+  // Highlight a Level-10 showcase card at the FRONT/CENTER, never hidden
+  // under the other two decorative cards during its special reveal.
+  const top=results.findIndex(c=>c.level>=10);
+  if(top>=0&&results.length===3){
+   const [legend]=results.splice(top,1);
+   results.splice(1,0,legend);
+  }
+  showcaseLastArt=results.map(c=>c.art);
+  return results;
+ }
+ function showcaseMarkup(cards){
+  return cards.map((c,i)=>'<div class="atlas-preview-card atlas-preview-'+i+
+   (c.level>=10?' atlas-lv10':c.level===9?' atlas-lv9':c.level===8?' atlas-lv8':'')+'" data-card-level="'+c.level+'">'+
+   '<span class="atlas-preview-corner">✦</span>'+
+   '<img src="'+escape(c.art)+'" alt="" loading="lazy" decoding="async">'+
+   '<span class="atlas-preview-footer">LV '+c.level+'</span>'+
+   (c.level>=10?'<span class="atlas-legend-energy" aria-hidden="true">'+
+    '<i></i><i></i><i></i><i></i><i></i><i></i><b>ϟ</b></span>':'')+'</div>').join('');
+ }
+ function rotateShowcase(){
+  document.documentElement.classList.toggle('ad-motion-disabled',animationSpeed==='instant'||reduceMotion());
+  if(transitioning||uiMode!=='menu'||document.hidden||!document.getElementById('menuHero'))return;
+  const rack=document.querySelector('#menuHero .atlas-showcase-cards');
+  if(!rack)return;
+  if(reduceMotion()||animationSpeed==='instant'){
+   return;
+  }
+  transitioning=true;
+  rack.classList.remove('atlas-arrive');
+  rack.classList.add('atlas-depart');
+  rotationTimer=setTimeout(()=>{
+   // The menu may have been rerendered during the transition.
+   if(!rack.isConnected||uiMode!=='menu'){transitioning=false;return;}
+   rack.innerHTML=showcaseMarkup(featureArt());
+   rack.classList.remove('atlas-depart');
+   rack.classList.add('atlas-arrive');
+   rotationTimer=setTimeout(()=>{rack.classList.remove('atlas-arrive');transitioning=false;},1550);
+  },1250);
  }
  function enhanceHero(hero){
   const content=hero.querySelector('.fm-hero-content'),tools=hero.querySelector('.fm-hero-utility');
@@ -36,13 +87,13 @@
   if(tools)hero.insertBefore(tools,hero.querySelector('.fm-resume-bar')||content.nextSibling);
   const list=featureArt(),visual=document.createElement('div');
   visual.className='atlas-showcase';visual.setAttribute('aria-hidden','true');
-  visual.innerHTML=crest+'<div class="atlas-showcase-cards">'+list.map((c,i)=>
-   '<div class="atlas-preview-card atlas-preview-'+i+'"><span class="atlas-preview-corner">✦</span>'+
-   '<img src="'+escape(c.art)+'" alt="" loading="lazy" decoding="async">'+
-   '<span class="atlas-preview-footer">LV '+(Number(c.level)||1)+'</span></div>').join('')+'</div>'+
+  visual.innerHTML=crest+'<div class="atlas-showcase-cards">'+showcaseMarkup(list)+'</div>'+
    '<span class="atlas-showcase-dust atlas-dust-one"></span><span class="atlas-showcase-dust atlas-dust-two"></span>';
   content.append(visual);
   hero.classList.toggle('atlas-has-art',list.length>0);
+  // Dispose delayed state when the menu redraws (the global timer is unique).
+  if(rotationTimer!==null){clearTimeout(rotationTimer);rotationTimer=null;}
+  transitioning=false;
  }
  function enhanceNav(nav,section){
   const brand=nav.querySelector('.fm-nav-brand');
@@ -84,5 +135,7 @@
  }
  renderMenu=function(){previous();decorate();};
  if(uiMode==='menu')renderMenu();
- window.ArcaneArchiveTheme={version:'1.0.0',name:'Gilded Archive'};
+ window.ArcaneArchiveTheme={version:'1.2.0',name:'Gilded Archive',rotateShowcase};
+ // One timer per page instance, no whole-menu rerender and no gameplay changes.
+ setInterval(rotateShowcase,7600);
 })();

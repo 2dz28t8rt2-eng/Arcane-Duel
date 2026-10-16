@@ -1,0 +1,48 @@
+/* Battle cinematics – visual only. Accessible, low cost and disable-able. */
+.ad-battle-intro{position:fixed;inset:0;z-index:35000;display:grid;place-items:center;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,#4b3a5aaf,#101521f5 75%);animation:ad-battle-fade 1.65s ease forwards;overflow:hidden}
+.ad-battle-inner{text-align:center;display:grid;gap:12px;justify-items:center;color:#fff4da;filter:drop-shadow(0 10px 35px #000);animation:ad-battle-present 1.4s ease both}
+.ad-battle-inner small{font:900 clamp(10px,1.4vw,15px)/1.5 system-ui,sans-serif;letter-spacing:.35em;color:#f9dba7}
+.ad-battle-inner strong{font:900 clamp(34px,8vw,100px)/1.1 Georgia,serif;letter-spacing:.085em;color:#ffebb5;text-shadow:0 0 13px #f9c47c77,0 4px 2px #2c1627,0 0 50px #a97cfe90}
+.ad-battle-inner span{font:800 clamp(12px,2vw,19px)/1.4 system-ui,sans-serif;letter-spacing:.16em;color:#b4edff}
+.ad-battle-inner i{width:230px;height:3px;background:linear-gradient(90deg,transparent,#f4d794,transparent);box-shadow:0 0 22px #fff4b5}
+@keyframes ad-battle-fade{0%,70%{opacity:1}100%{opacity:0}}
+@keyframes ad-battle-present{from{opacity:0;transform:translateY(40px) scale(.81)}55%{opacity:1;transform:translateY(-8px) scale(1.08)}to{opacity:1;transform:none}}
+.ad-outcome{position:relative;border:2px solid #d6b581!important;overflow:visible;background-image:radial-gradient(ellipse at 50% -10%,#e7bc6842,transparent 68%),linear-gradient(160deg,#292137,#101927 70%)!important;box-shadow:0 22px 95px #000b,0 0 33px #f9cd8b33,inset 0 0 18px #edca9440!important}
+.ad-outcome.ad-outcome-loss{border-color:#9a7dab!important;background-image:radial-gradient(ellipse at 50% -10%,#6738658f,transparent 68%),linear-gradient(160deg,#29213c,#13111d 70%)!important;box-shadow:0 22px 95px #000b,0 0 25px #b97dd239!important}
+.ad-outcome-banner{position:relative;text-align:center;min-height:110px;display:grid;place-items:center;overflow:hidden;isolation:isolate}
+.ad-outcome-banner::before{content:"";position:absolute;inset:-70px;background:repeating-conic-gradient(from 0deg,#fff4c70b 0 8deg,transparent 8deg 20deg);animation:ad-outcome-spin 20s linear infinite;z-index:-1}
+.ad-outcome-banner>span{color:#f6d99e;text-transform:uppercase;font:900 13px system-ui,sans-serif;letter-spacing:.32em;text-shadow:0 0 15px #f5d494;z-index:2}
+.ad-outcome-sigil{position:absolute;inset:0;display:grid;place-items:center;font:130px Georgia,serif;color:#d3a87125;text-shadow:0 0 35px #ffc67475;z-index:1;pointer-events:none}
+.ad-outcome-loss .ad-outcome-banner>span{color:#ebcae5}.ad-outcome-loss .ad-outcome-sigil{color:#c29ace2a}
+@keyframes ad-outcome-spin{to{transform:rotate(360deg)}}
+.ad-burst{position:fixed;width:0;height:0;z-index:32000;pointer-events:none;transform:translateZ(0)}
+.ad-burst i{position:absolute;left:0;top:0;width:6px;height:6px;border-radius:50%;background:radial-gradient(circle,#fff5c6 0%,#ff9b28 58%,#b43314 100%);box-shadow:0 0 9px #ff9038;animation:ad-ember .7s cubic-bezier(.05,.5,.3,1) var(--delay) forwards;opacity:0;transform-origin:center;scale:var(--scale)}
+.ad-sparks-dust i{width:11px;height:7px;background:radial-gradient(ellipse,#d1bcad,#786c6b 55%,transparent);box-shadow:0 0 6px #bbb09a;animation-duration:.9s}
+.ad-sparks-victory i{background:radial-gradient(circle,#fffde5,#e6bc69 70%,#a67aab);box-shadow:0 0 15px #ffd47c;animation-duration:.9s}
+@keyframes ad-ember{0%{opacity:0;transform:translate(0,0) scale(.4)}14%{opacity:1}70%{opacity:.85}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.16)}}
+.ad-monster-dissolve{position:fixed;width:86px;height:105px;margin-left:-43px;margin-top:-53px;z-index:31999;pointer-events:none;border:2px solid #e5ac4ca0;border-radius:8px;overflow:hidden;box-shadow:0 0 30px #f6a33f;animation:ad-dissolve .66s ease forwards}
+.ad-monster-dissolve img{display:block;width:100%;height:100%;object-fit:cover;filter:brightness(1.3) sepia(.3)}
+@keyframes ad-dissolve{0%{opacity:1;transform:scale(1);filter:brightness(1)}45%{opacity:.9;transform:scale(1.24);filter:brightness(2.5) sepia(1)}100%{opacity:0;transform:scale(.05) rotate(20deg);filter:brightness(4)}}
+.ad-titan-impact{transform-origin:50% 100%;animation:ad-titan-slam .81s cubic-bezier(.23,.77,.13,1) both!important;z-index:6}
+@keyframes ad-titan-slam{0%{transform:translateY(-115px) scale(1.29);opacity:.48;filter:brightness(1.9)}43%{transform:translateY(-60px) scale(1.13);opacity:1}58%{transform:translateY(8px) scale(1.08,.88);filter:brightness(2)}75%{transform:translateY(-7px) scale(.97,1.02)}100%{transform:none;filter:none}}
+.ad-impact-shake{animation:ad-titan-quake .38s ease-in-out!important;transform-origin:50% 60%}
+@keyframes ad-titan-quake{0%,100%{transform:none}15%{transform:translate(3px,-2px) rotate(.18deg)}30%{transform:translate(-3px,3px) rotate(-.18deg)}55%{transform:translate(2px,0)}80%{transform:translate(-1px,1px)}}
+/* Fix hero showcase: a Level 10 card belongs in the center and shines ON ITS FRAME. */
+#menuScreen .atlas-preview-card.atlas-lv10{isolation:isolate;border:5px double #fff1be!important;border-radius:13px;box-shadow:0 0 0 1px #fff5d9,0 0 17px #ffca69bb,0 0 30px #bda0f4a8,0 17px 30px #000e!important}
+#menuScreen .atlas-preview-card.atlas-lv10::after{inset:0!important;border-radius:8px;background:linear-gradient(114deg,transparent 34%,#fff5c500 41%,#fff9dcbf 50%,#fff5c500 58%,transparent 68%);animation:ad-legend-sheen 6.2s cubic-bezier(.25,.7,.3,1) infinite!important;opacity:.86}
+#menuScreen .atlas-preview-card.atlas-lv10 .atlas-legend-energy{pointer-events:none}
+@keyframes ad-legend-sheen{0%,24%{transform:translateX(-155%) skew(-13deg)}55%,100%{transform:translateX(160%) skew(-13deg)}}
+#menuScreen .atlas-showcase{overflow:visible!important}
+#menuScreen .atlas-preview-card img{display:block;position:relative;z-index:1}
+/* Fate ceremony: velvet background, heavier reveal and higher-end light. */
+.fate-royal-scene{background:radial-gradient(ellipse at 52% 48%,#68418a77,#090915 74%)!important}
+.fate-royal-card{filter:drop-shadow(0 0 15px #dfc18d65)}
+.fate-royal-card-front{box-shadow:inset 0 0 0 2px #fff0d65e,inset 0 0 20px #b7a4f45e}
+.fate-royal-sigil{box-shadow:0 0 40px #e8d6ff50,0 0 80px #f2d2a52e,inset 0 0 55px #fff6bd25}
+.fate-royal-ceremony h2{text-shadow:0 4px 5px #000,0 0 21px #ffe0a2a6,0 0 60px #9f7bc6ae!important}
+@media(prefers-reduced-motion:reduce){
+.ad-battle-intro,.ad-battle-inner,.ad-outcome-banner::before,.ad-burst i,.ad-monster-dissolve,.ad-titan-impact,.ad-impact-shake,#menuScreen .atlas-preview-card.atlas-lv10::after{animation:none!important}
+}
+body.instant .ad-battle-intro,body.instant .ad-burst,body.instant .ad-monster-dissolve{display:none!important}
+body.instant #menuScreen .atlas-preview-card.atlas-lv10::after{animation:none!important;opacity:.15!important}
+@media(max-width:600px){.ad-battle-inner strong{font-size:clamp(29px,10vw,58px)}.ad-outcome-banner{min-height:72px}.ad-outcome-sigil{font-size:95px}}

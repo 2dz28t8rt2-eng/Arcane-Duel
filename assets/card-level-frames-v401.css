@@ -1,0 +1,122 @@
+/* Arcane Duel 4.0.1: additional per-level metalwork on top of real SVG frames.
+ * CSS loaded AFTER existing template and visual CSS to resolve old collisions.
+ */
+/* ONLY the official family/tier SVG belongs to the card background.
+ * The ONE transparent level trim is drawn by ::before in v402.
+ * Do not insert the same SVG into two separate painting layers. */
+.hand-card.tc-card.ad-template.ad-level-frame,
+.board-creature.tc-card.ad-template.ad-level-frame{
+  background-image:var(--ad-tpl-frame),
+    radial-gradient(ellipse at 50% 0%,color-mix(in srgb,var(--ad-tpl-light) 28%,transparent),transparent 47%),
+    linear-gradient(136deg,var(--ad-tpl-light) 0%,var(--ad-tpl-rim) 4%,var(--ad-tpl-night) 13%,#101424 62%,var(--ad-tpl-night) 86%,var(--ad-tpl-rim) 96%,var(--ad-tpl-light) 100%)!important;
+  background-size:100% 100%,cover,cover!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  border-color:var(--ad-tpl-rim)!important;
+}
+/* Strong, legible elemental typography in cards, collection, hand and packs. */
+.hand-card.tc-card.ad-template.ad-level-frame{
+  --ad-ele-bg:#202b43;--ad-ele-edge:#bfc9de;
+}
+.hand-card.tc-card.ad-level-frame[data-element="FEUER"]{--ad-ele-bg:#5d221d;--ad-ele-edge:#ffc3a3}
+.hand-card.tc-card.ad-level-frame[data-element="WASSER"]{--ad-ele-bg:#123f64;--ad-ele-edge:#9fe2ff}
+.hand-card.tc-card.ad-level-frame[data-element="ERDE"]{--ad-ele-bg:#263f2d;--ad-ele-edge:#c3e6a1}
+.hand-card.tc-card.ad-level-frame[data-element="WIND"]{--ad-ele-bg:#194752;--ad-ele-edge:#b6f2e9}
+.hand-card.tc-card.ad-level-frame[data-element="LICHT"]{--ad-ele-bg:#624718;--ad-ele-edge:#fff0b3}
+.hand-card.tc-card.ad-level-frame[data-element="DUNKEL"]{--ad-ele-bg:#39264c;--ad-ele-edge:#e2c8ff}
+.hand-card.tc-card.ad-template.ad-level-frame .hand-type:not(.ad-card-traits){
+  background:linear-gradient(180deg,var(--ad-ele-bg),#121a2c)!important;
+  color:#fff7e6!important;
+  border:1px solid var(--ad-ele-edge)!important;
+  font:900 10px/1.2 Georgia,serif!important;
+  letter-spacing:.025em!important;
+  text-shadow:0 1px 2px #000,0 0 2px #000!important;
+  padding:1px 4px!important;
+  white-space:nowrap!important;
+  text-overflow:ellipsis!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+}
+/* Large previews: leave the role on the left and reserve a readable chip on the right.
+ * Overrides the old light parchment rule (which washed out FIRE/WATER/etc.). */
+body > #deckSidePreview.ad-deck-portal .hand-card.tc-card.ad-template.ad-level-frame .hand-type.ad-card-traits,
+#duelScreen .card-preview-panel .hand-card.tc-card.ad-template.ad-level-frame .hand-type.ad-card-traits,
+.arcane-enemy-large .hand-card.tc-card.ad-template.ad-level-frame .hand-type.ad-card-traits{
+  background:linear-gradient(180deg,#233149,#101727)!important;
+  border:1px solid var(--ad-tpl-rim)!important;
+  gap:3px!important;
+  padding:2px 4px!important;
+  color:#fff3dd!important;
+}
+body > #deckSidePreview.ad-deck-portal .hand-card.tc-card.ad-template.ad-level-frame .hand-type .ad-card-element,
+#duelScreen .card-preview-panel .hand-card.tc-card.ad-template.ad-level-frame .hand-type .ad-card-element,
+.arcane-enemy-large .hand-card.tc-card.ad-template.ad-level-frame .hand-type .ad-card-element{
+  display:inline-block!important;
+  flex:0 1 auto!important;
+  min-width:0!important;
+  max-width:55%!important;
+  box-sizing:border-box!important;
+  border:1px solid var(--ad-ele-edge)!important;
+  border-radius:4px!important;
+  background:var(--ad-ele-bg)!important;
+  color:#fff8eb!important;
+  padding:3px 6px!important;
+  font:900 10px/1.2 system-ui,sans-serif!important;
+  letter-spacing:0!important;
+  text-shadow:0 1px 2px #000!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  box-shadow:0 1px 3px #0007!important;
+}
+/* Compact preview areas must not be forced wider by labels. */
+@media(max-width:420px){
+ #duelScreen .card-preview-panel .hand-card.tc-card.ad-level-frame .hand-type .ad-card-element{
+   font-size:9px!important;padding:3px 4px!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .hand-card.tc-card.ad-level-frame::before,.board-creature.tc-card.ad-level-frame::before{animation:none!important}
+}
+
+/* Overlay asset selection, separate from the 20 underlying templates. */
+.ad-level-normal-01{--ad-level-trim:url("card-templates/levels/normal-lv01.svg");}
+.ad-level-normal-02{--ad-level-trim:url("card-templates/levels/normal-lv02.svg");}
+.ad-level-normal-03{--ad-level-trim:url("card-templates/levels/normal-lv03.svg");}
+.ad-level-normal-04{--ad-level-trim:url("card-templates/levels/normal-lv04.svg");}
+.ad-level-normal-05{--ad-level-trim:url("card-templates/levels/normal-lv05.svg");}
+.ad-level-normal-06{--ad-level-trim:url("card-templates/levels/normal-lv06.svg");}
+.ad-level-normal-07{--ad-level-trim:url("card-templates/levels/normal-lv07.svg");}
+.ad-level-normal-08{--ad-level-trim:url("card-templates/levels/normal-lv08.svg");}
+.ad-level-normal-09{--ad-level-trim:url("card-templates/levels/normal-lv09.svg");}
+.ad-level-normal-10{--ad-level-trim:url("card-templates/levels/normal-lv10.svg");}
+.ad-level-fusion-01{--ad-level-trim:url("card-templates/levels/fusion-lv01.svg");}
+.ad-level-fusion-02{--ad-level-trim:url("card-templates/levels/fusion-lv02.svg");}
+.ad-level-fusion-03{--ad-level-trim:url("card-templates/levels/fusion-lv03.svg");}
+.ad-level-fusion-04{--ad-level-trim:url("card-templates/levels/fusion-lv04.svg");}
+.ad-level-fusion-05{--ad-level-trim:url("card-templates/levels/fusion-lv05.svg");}
+.ad-level-fusion-06{--ad-level-trim:url("card-templates/levels/fusion-lv06.svg");}
+.ad-level-fusion-07{--ad-level-trim:url("card-templates/levels/fusion-lv07.svg");}
+.ad-level-fusion-08{--ad-level-trim:url("card-templates/levels/fusion-lv08.svg");}
+.ad-level-fusion-09{--ad-level-trim:url("card-templates/levels/fusion-lv09.svg");}
+.ad-level-fusion-10{--ad-level-trim:url("card-templates/levels/fusion-lv10.svg");}
+.ad-level-ace-01{--ad-level-trim:url("card-templates/levels/ace-lv01.svg");}
+.ad-level-ace-02{--ad-level-trim:url("card-templates/levels/ace-lv02.svg");}
+.ad-level-ace-03{--ad-level-trim:url("card-templates/levels/ace-lv03.svg");}
+.ad-level-ace-04{--ad-level-trim:url("card-templates/levels/ace-lv04.svg");}
+.ad-level-ace-05{--ad-level-trim:url("card-templates/levels/ace-lv05.svg");}
+.ad-level-ace-06{--ad-level-trim:url("card-templates/levels/ace-lv06.svg");}
+.ad-level-ace-07{--ad-level-trim:url("card-templates/levels/ace-lv07.svg");}
+.ad-level-ace-08{--ad-level-trim:url("card-templates/levels/ace-lv08.svg");}
+.ad-level-ace-09{--ad-level-trim:url("card-templates/levels/ace-lv09.svg");}
+.ad-level-ace-10{--ad-level-trim:url("card-templates/levels/ace-lv10.svg");}
+.ad-level-essence-01{--ad-level-trim:url("card-templates/levels/essence-lv01.svg");}
+.ad-level-essence-02{--ad-level-trim:url("card-templates/levels/essence-lv02.svg");}
+.ad-level-essence-03{--ad-level-trim:url("card-templates/levels/essence-lv03.svg");}
+.ad-level-essence-04{--ad-level-trim:url("card-templates/levels/essence-lv04.svg");}
+.ad-level-essence-05{--ad-level-trim:url("card-templates/levels/essence-lv05.svg");}
+.ad-level-essence-06{--ad-level-trim:url("card-templates/levels/essence-lv06.svg");}
+.ad-level-essence-07{--ad-level-trim:url("card-templates/levels/essence-lv07.svg");}
+.ad-level-essence-08{--ad-level-trim:url("card-templates/levels/essence-lv08.svg");}
+.ad-level-essence-09{--ad-level-trim:url("card-templates/levels/essence-lv09.svg");}
+.ad-level-essence-10{--ad-level-trim:url("card-templates/levels/essence-lv10.svg");}

@@ -10,13 +10,13 @@ function boot(){
  vm.runInContext(game,ctx,{timeout:9000});
  return code=>JSON.parse(vm.runInContext('JSON.stringify('+code+')',ctx,{timeout:12000}));
 }
-test('Fusion zerfällt 50, dann 45, dann 40 ATK/DEF je überlebtem eigenen Zug',()=>{
+test('Angeglichene Fusion zerfällt zunächst 25, dann 20, dann 15 ATK/DEF je überlebtem eigenen Zug',()=>{
  const run=boot(),x=run('(()=>{const g=createGame({mode:"pve",starter:0,seed:432}),p=g.players[0],c=newInstance(g,RPG_START_FUSIONS[1],0);c.fusion=true;c.decayClass="fusion";c.summonedTurn=g.turn;p.field[0]=c;const base=dataOf(c).atk;advanceTurn(g);const first=dataOf(c).atk;advanceTurn(g);advanceTurn(g);const a=dataOf(c).atk;advanceTurn(g);advanceTurn(g);const b=dataOf(c).atk;advanceTurn(g);advanceTurn(g);const d=dataOf(c).atk;return {base,first,a,b,d,age:c.decayAge,total:c.decayTotal}})()');
  assert.equal(x.first,x.base);
- assert.equal(x.a,x.base-50);
- assert.equal(x.b,x.base-95);
- assert.equal(x.d,x.base-135);
- assert.equal(x.age,3);assert.equal(x.total,135);
+ assert.equal(x.a,x.base-25);
+ assert.equal(x.b,x.base-45);
+ assert.equal(x.d,x.base-60);
+ assert.equal(x.age,3);assert.equal(x.total,60);
 });
 test('Ein überlebender Angreifer verliert sofort 30 ATK und greift nur einmal an',()=>{
  const run=boot(),x=run('(()=>{const g=createGame({mode:"pve",starter:0,seed:212}),p=g.players[0],c=newInstance(g,p.originalDeck[0],0);p.field[0]=c;advanceTurn(g);advanceTurn(g);const before=dataOf(c).atk,hit=attack(g,0,null),after=dataOf(c).atk,again=attack(g,0,null);return {before,after,hit:!!hit,again,used:c.attacked,fatigue:c.attackFatigue}})()');

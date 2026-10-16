@@ -1,0 +1,102 @@
+/* Arcane Duel v4 Deck Portal: no first-row sidebar or off-screen positioning */
+#menuScreen .deck-editor-layout{
+ grid-template-columns:minmax(0,1fr)!important;
+ grid-template-areas:"filters" "cards"!important;
+ column-gap:0!important;
+}
+#menuScreen .deck-editor-layout > .deck-side-preview:not(.ad-deck-portal){display:none!important}
+#deckSidePreview.ad-deck-portal{
+ display:block!important;position:fixed!important;z-index:12000!important;
+ visibility:visible!important;
+ top:var(--ad-portal-top,12px)!important;
+ left:var(--ad-portal-left,12px)!important;
+ right:auto!important;bottom:auto!important;
+ width:var(--ad-portal-width,354px)!important;
+ max-width:calc(100vw - 20px)!important;
+ height:auto!important;max-height:var(--ad-portal-height,calc(100dvh - 24px))!important;
+ margin:0!important;padding:8px 12px 14px!important;
+ overflow-y:auto!important;overflow-x:hidden!important;
+ box-sizing:border-box!important;
+ border:2px solid #dfbc7e!important;border-radius:17px!important;
+ background:linear-gradient(148deg,#28334ced,#101b31f6 78%,#30233df4)!important;
+ box-shadow:0 28px 75px #000d,0 0 0 2px #b88e6075,0 0 31px #b4a0e253!important;
+ backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+ scrollbar-width:thin;scrollbar-color:#e2c28b #172437;
+ isolation:isolate;
+}
+#deckSidePreview.ad-deck-portal .deck-side-sticky{position:static!important}
+#deckSidePreview.ad-deck-portal .deck-preview-card{
+ margin:8px 4px 10px!important;
+}
+#deckSidePreview.ad-deck-portal .deck-preview-card .hand-card{
+ max-width:100%!important;
+}
+#deckSidePreview.ad-deck-portal .deck-preview-meta{
+ margin-top:8px;max-width:100%;
+}
+#deckSidePreview .ad-deck-close{
+ position:sticky;top:2px;right:0;margin:0 0 -32px auto;
+ display:grid;place-items:center;z-index:20;
+ width:34px;height:34px;min-height:34px;padding:0;
+ border:1px solid #e7c68b;border-radius:100px;
+ background:#202c42;color:#ffe7b5;
+ box-shadow:0 3px 12px #0007;
+ font:900 24px/1 system-ui,sans-serif;cursor:pointer;
+}
+#deckSidePreview .ad-deck-close:hover,#deckSidePreview .ad-deck-close:focus-visible{
+ color:#fff;background:#684f52;border-color:#ffe9bb;outline-offset:2px;
+}
+.ad-deck-ghost{
+ position:fixed!important;display:block!important;
+ box-sizing:border-box!important;z-index:12003!important;
+ margin:0!important;padding:0!important;
+ pointer-events:none!important;
+ transform-origin:top left!important;will-change:transform,opacity;
+ overflow:hidden!important;
+}
+.ad-deck-ghost *, .ad-deck-ghost::before,.ad-deck-ghost::after{
+ pointer-events:none!important;animation:none!important;transition:none!important;
+}
+/* Cards remain usable even while their full detail is open. */
+#menuScreen .deck-editor-grid [data-preview-card]:focus-visible{
+ outline:2px solid #f9df99!important;outline-offset:4px;
+}
+@media(max-width:650px){
+ #deckSidePreview.ad-deck-portal{
+  border-width:1px!important;padding:5px 9px 11px!important;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+ }
+ #deckSidePreview.ad-deck-portal .deck-preview-card .hand-card{
+  height:min(375px,49dvh)!important;
+  min-height:min(340px,46dvh)!important;
+  max-height:min(375px,49dvh)!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .ad-deck-ghost{display:none!important}
+ #deckSidePreview.ad-deck-portal{transition:none!important}
+}
+
+/* A fixed card portal is moved directly under body to break transform containment.
+   It must NOT require #menuScreen as an ancestor for color/size rules. */
+body > #deckSidePreview.ad-deck-portal .deck-preview-card .hand-card.tc-card{
+ width:100%!important;max-width:100%!important;box-sizing:border-box!important;
+ height:min(405px,56dvh)!important;min-height:min(375px,50dvh)!important;
+}
+body > #deckSidePreview.ad-deck-portal .deck-preview-card .hand-card.tc-card .card-name{
+ font:800 16px/19px Georgia,serif!important;
+ white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+}
+body > #deckSidePreview.ad-deck-portal .deck-preview-card .hand-card.tc-card .hand-stats .stat-value{
+ font:850 16px/18px ui-monospace,Consolas,monospace!important;
+ max-width:100%!important;white-space:nowrap!important;overflow:hidden!important;
+}
+body > #deckSidePreview.ad-deck-portal .deck-preview-card .hand-card.tc-card .hand-art{
+ flex:1 1 auto!important;min-height:0!important;
+}
+body > #deckSidePreview.ad-deck-portal .deck-preview-meta{
+ color:#f2e9d4!important;line-height:1.55;
+}
+body > #deckSidePreview.ad-deck-portal .deck-preview-head h3{color:#f7dca5;font-size:21px!important}
+body > #deckSidePreview.ad-deck-portal .deck-preview-meta small,
+body > #deckSidePreview.ad-deck-portal .deck-preview-desc{color:#dfe4f0!important}

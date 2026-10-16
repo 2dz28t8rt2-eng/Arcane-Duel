@@ -20,7 +20,7 @@ function start(){
   console,Date,Math,JSON,Set,Map,Array,Number,Object,String,RegExp,Error,TypeError,Uint32Array,Boolean,Infinity,NaN});
  const source=files.map(x=>fs.readFileSync(path.join(__dirname,'../assets',x),'utf8')).join('\n;\n');
  vm.runInContext(source+'\n;globalThis.__essenceTest={createGame,simulateGame,profile,CARDS,RPG_DEFAULT_DECK,RPG_START_FUSIONS,ESSENCE_MONSTER_IDS,advanceTurn,attack,newInstance,damagePlayer,randomInt,validateProfile,validateDuelSnapshot,statLayer:window.ArcaneEssenceCombat.statLayer,runTrial:(key,school,stage,seed)=>{let created=null;const old=startDuel;startDuel=function(mode,id,context,difficulty){created=createGame({mode,opponentId:id,context,difficulty,seed});};try{if(!window.ArcaneEssenceCombat.beginTrial(key,school,stage)||!created)throw Error(\"Could not start Essence trial\");return simulateGame(created,school===\"defense\"?\"guardian\":\"balanced\",\"balanced\");}finally{startDuel=old;}}};',context,{timeout:10000});
- return {g:context.__essenceTest,w:window};
+ return {g:context.__essenceTest,w:window,ctx:context};
 }
 test('Old save defaults do not grant an exclusive monster or perk',()=>{
  const {g}=start();
@@ -103,8 +103,8 @@ test('Seelenenergie must not permanently inflate base DEF during end-turn decay'
  g.advanceTurn(duel);
  assert.ok(soul.card.def<baseBefore,'Base DEF must decay, never increase from stored bonus DEF');
  assert.equal(energy.condensed,60);
- assert.equal(energy.soul,110);
- assert.equal(lpBefore-duel.players[1].lp,90,'Only unstable soul decay creates burn');
+ assert.equal(energy.soul,136);
+ assert.equal(lpBefore-duel.players[1].lp,22,'Unstable energy loses 32%, but only 35% of that causes opponent LP burn');
 });
 
 test('All specialization lessons and five-stage retraining paths run on loan decks',()=>{
@@ -152,4 +152,82 @@ test('Reject any saved profile with two different exclusive Essence cards',()=>{
  const other=g.ESSENCE_MONSTER_IDS.fusion;
  raw.unlocked.push(other);raw.inventory[other]=1;
  assert.throws(()=>g.validateProfile(raw),/Es darf nur ein Essenzmonster geben/);
+});
+
+test('Seelenbrand applies bounded direct LP pressure with five unopposed soul eaters',()=>{
+ const {g}=start();
+ const duel=g.createGame({mode:'pve',context:'free',opponentId:7,seed:944411,
+  deck:g.RPG_DEFAULT_DECK,fusionDeck:g.RPG_START_FUSIONS});
+ duel.players[0].field.fill(null);duel.players[1].field.fill(null);
+ const soul=g.CARDS.find(c=>c.role==='soul'&&!c.fusionOnly&&c.level===6);
+ const prey=g.CARDS.find(c=>c.role==='predator'&&!c.fusionOnly&&c.level===6);
+ assert.ok(soul&&prey);
+ for(let i=0;i<5;i++){
+  const eater=g.newInstance(duel,soul.id,0);eater.mode='def';eater.summonedTurn=0;
+  duel.players[0].field[i]=eater;
+  duel.players[1].field[i]=g.newInstance(duel,prey.id,1);
+ }
+ duel.players[1].shield=0;duel.turn=2;duel.active=1;
+ const before=duel.players[1].lp,ownBefore=duel.players[0].lp;
+ g.advanceTurn(duel);
+ const damage=before-duel.players[1].lp;
+ assert.ok(damage>0,'Soul Eaters can burn LP even without enemy attacks');
+ assert.ok(damage<=5*(60+6*60),'LP burn remains bounded per soul and its level');
+ assert.equal(duel.players[0].lp,ownBefore,'passive soul harvest must not drain own LP');
+ assert.ok(duel.players[0].field.every(c=>c?.essenceCombat?.soul>=0));
+});
+
+test('Low-rank Soul Eater can deliberately discharge stored energy once per turn',()=>{
+ const {g,ctx}=start();
+ const duel=g.createGame({mode:'pve',context:'free',opponentId:4,seed:930277,
+  deck:g.RPG_DEFAULT_DECK,fusionDeck:g.RPG_START_FUSIONS});
+ duel.players[0].field.fill(null);duel.players[1].field.fill(null);
+ const c=g.CARDS.find(x=>x.role==='soul'&&!x.fusionOnly&&x.level<=3);
+ const eater=g.newInstance(duel,c.id,0);eater.mode='def';duel.players[0].field[0]=eater;
+ g.statLayer(eater).soul=200;duel.active=0;duel.turn=4;duel.players[1].shield=0;
+ const before=duel.players[1].lp;
+ ctx.__testSoulDuel=duel;
+ // This UI-action test needs an open duel overlay state; the generic VM
+ // element stub defaults all classList.contains calls to false.
+ ctx.document.getElementById('overlay').classList.contains=key=>key==='hidden';
+ const first=vm.runInContext('game=__testSoulDuel;uiMode="duel";window.ArcaneEssenceCombat.discharge(0)',ctx);
+ assert.equal(first,true);
+ assert.equal(before-duel.players[1].lp,260);
+ assert.equal(g.statLayer(eater).soul,0);
+ assert.equal(vm.runInContext('window.ArcaneEssenceCombat.discharge(0)',ctx),false,'one per turn');
+});
+
+
+test('Guardians absorb 35 percent of PvE DEF-HP damage but do not become invulnerable',()=>{
+ const {g}=start();
+ const duel=g.createGame({id:'guardian-mitigation',mode:'pve',context:'free',opponentId:1,
+  seed:98013,deck:g.RPG_DEFAULT_DECK,fusionDeck:g.RPG_START_FUSIONS});
+ duel.players[0].field.fill(null);duel.players[1].field.fill(null);
+ const id=g.CARDS.find(c=>c.role==='guardian'&&!c.fusionOnly).id;
+ const attackerId=g.CARDS.find(c=>c.role==='predator'&&!c.fusionOnly).id;
+ const guard=g.newInstance(duel,id,0),pred=g.newInstance(duel,attackerId,1);
+ guard.mode='def';guard.card.def=1000;guard.card.atk=120;
+ pred.mode='atk';pred.card.atk=800;
+ duel.players[0].field[0]=guard;duel.players[1].field[0]=pred;duel.active=1;duel.turn=4;
+ const out=g.attack(duel,0,0);
+ assert.ok(out);
+ assert.equal(guard.card.def,480,'800 incoming ATK must become 520 DEF damage');
+ assert.equal(duel.players[0].field[0],guard,'Guardian survives first predator attack');
+ assert.ok(duel.players[1].shield<200||duel.players[1].lp<duel.maxLP,'Counterattack still deals 60 damage to shield or LP');
+});
+test('Rune Fusion trial loans diverse fusion levels without unlocking inventory',()=>{
+ const {g}=start();
+ const before=JSON.stringify(g.profile.inventory);
+ const duel=g.runTrial('switch-fusion-0','fusion',0,145291);
+ const deck=duel.players[0].fusionDeck;
+ assert.equal(deck.length,15);
+ assert.ok(new Set(deck.map(id=>g.CARDS[id].level)).size>=5,'Distinct fusion rungs available');
+ assert.ok(deck.some(id=>g.CARDS[id].level>=6),'Advanced fusion at hand');
+ assert.equal(JSON.stringify(g.profile.inventory),before,'Loan cards do not become owned');
+});
+test('First essence school trials explicitly award a character pack, not on repeat',()=>{
+ const text=fs.readFileSync(path.join(__dirname,'../assets/essence-progression.js'),'utf8');
+ assert.match(text,/g\.essenceTrial\.startsWith\('intro-'\)/);
+ assert.match(text,/result\.essenceTrialPack=true/);
+ assert.match(text,/completedStage>=0/);
 });

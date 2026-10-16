@@ -9,66 +9,51 @@
  const roleName={predator:'Predator',guardian:'Verteidiger',soul:'Seelenzehrer'};
  const r10=n=>Math.max(10,Math.round(n/10)*10);
  function inheritance(materials){
-  let defense=0,predator=0;
-  for(const item of materials){
-   const role=roleOf(item);
-   if(role==='guardian'||role==='soul')defense++;
-   if(role==='predator')predator++;
-  }
-  return defense-predator>=3?'guardian':predator-defense>=3?'predator':null;
+  // Equal roles (including two soul eaters) must win over an unrelated template tag.
+  if(!Array.isArray(materials)||materials.length<2)return null;
+  const roles=materials.map(roleOf);
+  if(roles.every(r=>r==='soul'))return 'soul';
+  const defense=roles.filter(r=>r==='guardian'||r==='soul').length;
+  const predators=roles.filter(r=>r==='predator').length;
+  const majority=Math.floor(roles.length/2)+1;
+  if(defense>=majority&&defense>predators)return 'guardian';
+  if(predators>=majority&&predators>defense)return 'predator';
+  return null;
  }
  function soulOdds(materials){
   return Math.min(.75,.20+materials.reduce((n,c)=>n+.035+.007*Math.min(12,Math.max(1,dataOf(c).level)),0));
  }
+ function imprint(g,materials){
+  if(g?.mode!=='pve'||materials.length<2)return null;
+  const inherited=inheritance(materials);
+  if(!inherited)return null;
+  if(inherited==='predator'||inherited==='soul')return {role:inherited,source:'material',materials:materials.length};
+  // Only 3+ guardian materials can roll for a Seelenzehrer awakening.
+  if(materials.length===2)return {role:'guardian',source:'material',materials:2,soulOdds:0,soulAwakened:false};
+  const field=Array.isArray(g.arcaneFieldInputs)?g.arcaneFieldInputs:[];
+  const sameField=field.length>=3&&field.every(x=>['guardian','soul'].includes(roleOf(x)));
+  const odds=soulOdds(materials);
+  const awakened=sameField||randomInt(g,10000)<Math.floor(odds*10000);
+  return {role:awakened?'soul':'guardian',source:'material',materials:materials.length,
+   soulOdds:odds,soulAwakened:awakened};
+ }
+ // Evolution calculates the role *before* the 88–112% stat rolls.
+ // This wrapper deliberately no longer multiplies the final card a second time.
  const oldFuse=fusedInstance;
- fusedInstance=function(g,materials,levels){
-  const result=oldFuse(g,materials,levels);
-  if(!result||g.mode!=='pve'||!result.card||materials.length<3)return result;
-  const role=inheritance(materials);
-  if(!role)return result;
-  if(role==='predator'){
-   result.card.atk=r10(result.card.atk*1.20);
-   result.card.def=r10(result.card.def*.75);
-   result.roleOverride='predator';
-  }else{
-   result.card.atk=r10(result.card.atk*.75);
-   result.card.def=r10(result.card.def*1.25);
-   const fieldCount=Array.isArray(g.arcaneFieldInputs)?g.arcaneFieldInputs.length:0;
-   // A deliberately constructed fusion with three field defenders earns the
-   // class awakening reliably. Hand-only builds retain a seeded 20–75% chance.
-   const sameField=fieldCount>=3&&g.arcaneFieldInputs.every(x=>['guardian','soul'].includes(roleOf(x)));
-   const odds=soulOdds(materials);
-   const awakening=sameField||randomInt(g,10000)<Math.floor(odds*10000);
-   result.roleOverride=awakening?'soul':'guardian';
-   result.soulOdds=odds;
-   result.soulAwakened=awakening;
-  }
-  result.roleOrigin='material';
-  result.roleMaterials=materials.length;
-  logEvent(g,dataOf(result).name+' erbt '+(roleName[result.roleOverride]||result.roleOverride)+
-   ' aus '+materials.length+' Materialien; ATK '+result.card.atk+' / DEF '+result.card.def+'.');
-  return result;
- };
- // Vorstoß: charge visibly at the end of the summoning turn, ready on the
- // following own turn. Remove its temporary +80 when that following turn ends.
+ fusedInstance=function(g,materials,levels){return oldFuse(g,materials,levels);};
+
+ // Legacy saves may include the removed one-off Rush bonus.
+ // Clean it once when a resumed PvE duel advances; never grant a new bonus.
  const oldAdvanceTurn=advanceTurn;
  advanceTurn=function(g){
-  if(g?.mode!=='pve')return oldAdvanceTurn(g);
-  const ending=g.active,turn=g.turn;
-  const cards=g.players[ending].field.filter(Boolean);
-  const toArm=cards.filter(c=>c.surgeTurn===turn+2&&!c.rushBoostActive);
-  const toExpire=cards.filter(c=>c.rushBoostActive&&c.rushUntil===turn);
-  const result=oldAdvanceTurn(g);
-  for(const c of toExpire)if(g.players[ending].field.includes(c)){
-   c.card.atk=Math.max(0,c.card.atk-c.rushBoostActive);
-   delete c.rushBoostActive;delete c.rushUntil;
+  if(g?.mode==='pve')for(const p of g.players)for(const c of p.field.filter(Boolean)){
+   if(c.rushBoostActive){
+    c.card.atk=Math.max(0,c.card.atk-c.rushBoostActive);
+    delete c.rushBoostActive;delete c.rushUntil;
+   }
+   delete c.surgeTurn;
   }
-  for(const c of toArm)if(g.players[ending].field.includes(c)){
-   c.card.atk=Math.min(10000,c.card.atk+80);
-   c.rushBoostActive=80;c.rushUntil=turn+2;c.surgeTurn=0;
-   logEvent(g,dataOf(c).name+': Vorstoß ist aufgeladen (+80 ATK bis zum Ende des nächsten eigenen Zugs).');
-  }
-  return result;
+  return oldAdvanceTurn(g);
  };
  const oldShowHud=render;
  let fieldPick=false,zones=[];
@@ -105,15 +90,21 @@
   game.totalFusions[0]++;
   game.summoned=true;game.pending=null;game.selection=null;game.materials=[];game.lastSummoned=result;
   logEvent(game,'Gezielte Feldfusion: 1 Handkarte + '+m.length+' Feldmonster → '+dataOf(result).name+'.');
-  reset();render();saveDuelSnapshot();
+  game.cinemaActive=true;reset();render();saveDuelSnapshot();
   return true;
  }
  function launch(){
   const q=candidates(),m=picked();if(!q||!m.length||m.length>4){toast('Wähle ein bis vier eigene Monster auf dem Feld als Fusionsmaterial.');return;}
   const materials=[q.hand,...m.map(x=>x.c)],levels=materials.map(c=>dataOf(c).level);
   const options=fusionOptions(game,levels);if(!options.length){toast('Mit diesen Monsterstufen ist derzeit keine passende Fusionskarte verfügbar.');return;}
-  chooseFusionModal(levels,materials,id=>{if(!commitFusion(id))toast('Die Feldfusion konnte nicht abgeschlossen werden.');},
-   'Feldmonster werden tatsächlich verbraucht.');
+  const visualMaterials=materials.map(c=>({art:dataOf(c).art,name:dataOf(c).name,level:dataOf(c).level}));
+  chooseFusionModal(levels,materials,async id=>{
+   if(!commitFusion(id)){toast('Die Feldfusion konnte nicht abgeschlossen werden.');return;}
+   const result=game.lastSummoned;if(!result)return;
+   busy=true;
+   try{await fusionAnimation(dataOf(result).level,visualMaterials,'field');}
+   finally{busy=false;game.cinemaActive=false;render();}
+  },'Feldmonster werden tatsächlich verbraucht.');
  }
  $('ownRow')?.addEventListener('click',ev=>{
   if(!fieldPick||!candidates())return;
@@ -147,7 +138,7 @@
   const stage=$('summonStage');if(!stage)return;
   const count=picked().length;
   stage.insertAdjacentHTML('beforeend','<section class="arcane-field-synthesis">'+
-   '<strong>✧ Freie Feldfusion</strong><p>Die Handkarte eröffnet die Fusion. Wähle danach bis zu vier deiner Feldmonster. Drei Karten mehr derselben Rolle als aus der Gegenrolle erzeugen eine spezialisierte Fusion.</p>'+
+   '<strong>✧ Freie Feldfusion</strong><p>Die Handkarte eröffnet die Fusion. Wähle danach bis zu vier deiner Feldmonster. Zwei gleichartige Materialien vererben ihre Rolle. Bei gemischten Gruppen entscheidet die Mehrheit. Zwei Seelenzehrer bleiben Seelenzehrer.</p>'+
    '<button type="button" class="btn" data-field-synthesis="toggle">'+(fieldPick?'Feldmaterialwahl beenden':'Feldmonster auswählen')+'</button>'+
    (fieldPick?'<span class="arcane-synth-status">'+count+' Feldmonster gewählt</span>'+
    '<button type="button" class="btn primary" data-field-synthesis="commit" '+(!count?'disabled':'')+'>Feldfusion mit '+(count+1)+' Materialien</button>':'')+'</section>');
@@ -157,5 +148,5 @@
    if(q.p.field[idx])b.classList.add('arcane-synth-available');
   });
  };
- window.ArcaneRoleFusion=Object.freeze({version:'1.0.0',inheritance,soulOdds,reset});
+ window.ArcaneRoleFusion=Object.freeze({version:'1.2.0',inheritance,soulOdds,imprint,reset});
 })();

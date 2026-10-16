@@ -134,9 +134,10 @@
   if(!book.querySelector('#essenceCombatRules'))book.insertAdjacentHTML('beforeend',
    '<details class="arcane-rule-chapter" id="essenceCombatRules"><summary>14 · Monsterrollen, DEF-HP &amp; Seelenessenz</summary>'+
    '<div class="arcane-rule-body"><p>In neuen Einzelspielerduellen verteidigt jedes Monster in DEF-Position mit seinen verbliebenen DEF-Punkten wie mit Monster-HP. Mehrere schwächere Angriffe können einen starken Blocker besiegen. Im lokalen PvP bleiben die klassischen Regeln unverändert.</p>'+
-   '<p><b>Predatoren</b> sind gegen Verteidigungsstellungen gefährlicher. <b>Wächter</b> regenerieren Grund-DEF verbündeter Blocker; <b>Unterstützer</b> stärken normale Angreifer. Nur ausgewählte <b>Seelenzehrer</b> schwächen in DEF-Position sämtliche gegnerischen Monster um 10 ATK und 10 DEF plus pro Stufe einen 5-Punkte-Wurf auf ATK oder DEF.</p>'+
-   '<p>Diese Energie erscheint als <b>instabile Seelenessenz</b>, die zusätzliche DEF verleiht. Verfällt Seelenessenz natürlich, verursacht sie gleich viel LP-Burn; wird sie durch einen Angriff zerstört, verursacht sie halb so viel Burn. <b>Verdichten</b> wandelt einen Teil davon für drei eigene Zugenden in stabile DEF um, mit drei Zügen Cooldown. Verdichtete DEF zerfällt ohne Burn, während neue Seelenessenz weiterhin gesammelt wird.</p>'+
-   '<p><b>Gegenschlag</b>: Ein angegriffener Verteidiger verursacht 50 % seiner Grund-ATK als direkten LP-Schaden. Dies ersetzt in der neuen DEF-HP-Regel den alten Rückstoß. <b>Bollwerk</b> verringert nur den normalen Grundwertzerfall der Verteidiger (Rang 1: 15 %, Rang 3: 25 %); höhere Ränge verbessern die Seelenaufnahme. Rang 5 ermöglicht einmal pro Duell das <b>Letzte Bollwerk</b>: ein tödlich getroffener Verteidiger überlebt mit 1 Grund-DEF und erhält Schutz vor Angriffen für zwei weitere gegnerische Züge.</p>'+
+   '<p><b>Predatoren</b> sind gegen Verteidigungsstellungen gefährlicher. <b>Wächter</b> regenerieren Grund-DEF verbündeter Blocker; <b>Unterstützer</b> stärken normale Angreifer. <b>Seelenzehrer</b> schwächen in DEF-Position gegnerische Monster um 10 ATK und 10 DEF plus pro Stufe einen 5-Punkte-Wurf. Dabei verursacht Seelenbrand zusätzlich direkten LP-Schaden bis zu 45 + 42 pro Stufe (maximal 135 % der entzogenen Werte).</p>'+
+   '<p>Diese Energie erscheint als <b>instabile Seelenessenz</b>, die zusätzliche DEF verleiht. Verfällt instabile Seelenessenz natürlich, verursacht sie nur noch 35 % des verfallenden Anteils als LP-Burn; wird sie durch einen Angriff zerstört, verursacht sie halb so viel Burn. Jeder Seelenzehrer kann gesammelte Energie zudem einmal pro eigenem Zug mit 110 % Stärke offensiv entladen. <b>Verdichten</b> wandelt einen Teil davon für drei eigene Zugenden in stabile DEF um, mit drei Zügen Cooldown. Verdichtete DEF zerfällt ohne Burn, während neue Seelenessenz weiterhin gesammelt wird.</p>'+
+   '<p><b>Wertebonus</b>: Normale Wächter und Seelenzehrer erhalten +9 % ihres Stufenbudgets als DEF. Ab Level 6 erhalten alle normalen Kreaturen pro höherer Stufe zusätzlich je 20 ATK und DEF. Die Ausbauten Jagdinstinkt und Schildwall unter Fortschritt spezialisieren normale Predatoren beziehungsweise Wächter/Seelenzehrer; dieser Bonus erhöht die Fusionsreferenz nicht.</p>'+ 
+   '<p><b>Gegenschlag</b>: Ein angegriffener Verteidiger verursacht 50 % seiner aktuellen ATK als direkten LP-Schaden. Dies ersetzt in der neuen DEF-HP-Regel den alten Rückstoß. <b>Bollwerk</b> verringert nur den normalen Grundwertzerfall der Verteidiger (Rang 1: 15 %, Rang 3: 25 %); höhere Ränge verbessern die Seelenaufnahme. Rang 5 ermöglicht einmal pro Duell das <b>Letzte Bollwerk</b>: ein tödlich getroffener Verteidiger überlebt mit 1 Grund-DEF und erhält Schutz vor Angriffen für zwei weitere gegnerische Züge.</p>'+
    '<p><b>LP-Kurve</b>: Turnier I–III 4.000, IV–VI 6.000, VII–VIII 7.000, IX–X 10.000. Lokales PvP 8.000.</p>'+
    '</div></details>');
   if(E().school&&!book.querySelector('.essence-lore'))book.insertAdjacentHTML('beforeend',loreMarkup());
@@ -159,6 +160,12 @@
     const reward=examReward(completedStage);
     profile.coins=Math.min(1e9,profile.coins+reward);
     result.essenceExamReward=reward;
+    // Each introductory school trial yields one pack on its FIRST win.
+    if(g.essenceTrial.startsWith('intro-')){
+     const key=packKey(1,'easy');
+     profile.packs[key]=Math.min(999999,(profile.packs[key]||0)+1);
+     result.essenceTrialPack=true;
+    }
     saveProfile();
    }
   }
@@ -180,8 +187,24 @@
    $('modal').insertAdjacentHTML('beforeend','<p class="loot-banner">✦ Essenzwesen hat '+g.essenceFoodReported+' Essenz aus dieser Duellbelohnung aufgenommen. Die angezeigte Essenzbelohnung ist bereits netto.</p>');
   }
   if(!wasTrial||!$('modal'))return;
+  if(success&&g.essenceTrial?.startsWith('intro-')){
+   $('modal').insertAdjacentHTML('beforeend',
+    '<p class="loot-banner">✦ Charakter-Boosterpack von Gegner I verdient! Öffne es unter Fortschritt → Charakter-Boosterpacks. Vorrat: '+(profile.packs[packKey(1,'easy')]||0)+'</p>');
+  }
   const passed=success?'✓ Prüfung bestanden':'Prüfung noch nicht bestanden';
   $('modal').insertAdjacentHTML('beforeend','<div class="essence-exam-result"><strong>'+passed+'</strong><p>'+(success?'Deine Bindung wächst durch Erfahrung. '+(E().intro===3&&!E().chosen?'Alle drei Übungen geschafft – wähle als Nächstes dein Essenzwesen.':'Die nächste Prüfung wartet im Menü.'):'Du kannst die Prüfung mit dem Leihdeck erneut versuchen. Deine eigene Sammlung bleibt unverändert.')+'</p></div>');
+  // Explicit ceremonial reveal at the exact moment the third school lesson is won.
+  if(success&&E().intro===3&&E().chosen===null){
+   const box=document.createElement('section');box.className='arcane-essence-ceremony';
+   box.innerHTML='<div class="essence-ceremony-glyph">✧</div><h3>Alle drei Essenzschulen gemeistert!</h3>'+
+    '<p>Dein persönliches Essenzwesen wartet auf dich. Wähle es bewusst: <b>Diese Karte ist eine einmalige, unwiderrufliche Bindung.</b></p>';
+   $('modal').insertBefore(box,$('modal').querySelector('.modal-actions'));
+   const choose=document.createElement('button');choose.type='button';
+   choose.className='btn primary';choose.id='essenceCeremonyChoose';
+   choose.textContent='✦ ESSENZWESEN JETZT KENNENLERNEN';
+   choose.onclick=()=>{returnToMenu();openChoice();};
+   $('modal').querySelector('.modal-actions')?.append(choose);
+  }
  };
  function openChoice(){
   if(E().intro!==3||E().chosen!==null)return;
@@ -291,8 +314,7 @@
     '<button type="button" class="btn ghost" data-essence-drain="atk" '+(e.lastDrainSwitch===g.turn?'disabled':'')+'>ATK priorisieren</button>'+
     '<button type="button" class="btn ghost" data-essence-drain="def" '+(e.lastDrainSwitch===g.turn?'disabled':'')+'>DEF priorisieren</button></div>';
 
-   const hasBuffer=g.players[0].field.some(x=>x&&x!==sel&&CARDS[x.id].role==='guardian'&&dataOf(x).level>=5);
-   if((CARDS[sel.id].soulRank||0)>=5||hasBuffer)html+='<button class="btn" data-essence-combat="discharge" '+(e.soul<40||e.lastDischarge===g.turn?'disabled':'')+'>✦ Aktiv entladen</button>';
+   html+='<button class="btn" data-essence-combat="discharge" '+(e.soul<40||e.lastDischarge===g.turn?'disabled':'')+'>✦ Seelenstoß · Entladen (110 %)</button>';
   }
   if(sel.id===E().chosen&&CARDS[sel.id].essenceSchool==='predator'&&g.essenceSchool==='predator'){
    html+='<button class="btn" data-essence-combat="predator" '+(e.attacksThisTurn||e.lastToggle===g.turn?'disabled':'')+'>'+

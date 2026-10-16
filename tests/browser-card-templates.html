@@ -1,0 +1,108 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>20 Card Template Browser Audit</title>
+<style>body{background:#152033;color:#fff;font:13px monospace}iframe{height:750px;width:100%;border:none}pre{white-space:pre-wrap}</style></head>
+<body><pre id="cardTemplateAudit">Loading both gallery and game...</pre>
+<iframe id="gallery" title="Layout Galerie" src="../docs/kartenlayout-galerie.html"></iframe>
+<iframe id="game" title="Arcane Duel" src="../index.html"></iframe>
+<script>
+let loaded=0;
+function complete(){if(++loaded===2)start();}
+document.getElementById('gallery').addEventListener('load',complete);
+document.getElementById('game').addEventListener('load',complete);
+async function start(){
+ const out=document.getElementById('cardTemplateAudit'),checks=[];
+ let pass=true;
+ const check=(value,label)=>{checks.push((value?'OK: ':'FAIL: ')+label);if(!value)pass=false;};
+ try{
+  const gg=document.getElementById('gallery').contentWindow,gd=gg.document;
+  const gw=document.getElementById('game').contentWindow,doc=gw.document;
+  const cards=[...gd.querySelectorAll('.demo-cell')];
+  check(cards.length===20,'Exactly 20 visually rendered layouts in the gallery');
+  check(new Set(cards.map(x=>x.id)).size===20,'Every layout uses a unique template ID');
+  for(const family of ['normal','fusion','ace','essence'])
+   check(cards.filter(x=>x.dataset.family===family).length===5,'Five '+family+' layouts');
+  check(cards.every(x=>{const box=x.querySelector('.hand-card');const r=box.getBoundingClientRect(),b=x.getBoundingClientRect();return r.left>=b.left-2&&r.right<=b.right+2;}),'All demo cards fit their panels at this width');
+  check(gd.documentElement.scrollWidth<=gg.innerWidth+2,'No horizontal gallery overflow');
+  check(cards.every(x=>x.querySelector('.hand-art img')?.complete&&x.querySelector('.hand-art img')?.naturalWidth>0),'All sample artworks render');
+  check(cards.every(x=>gg.getComputedStyle(x.querySelector('.hand-card')).backgroundImage.includes(x.id+'.svg')),'Each preview uses its own real frame graphic');
+  const buttons=[...gd.querySelectorAll('[data-filter]')];
+  buttons.find(x=>x.dataset.filter==='ace')?.click();
+  check([...gd.querySelectorAll('.family')].filter(x=>!x.hidden).length===1,'Gallery filters families interactively');
+  buttons.find(x=>x.dataset.filter==='all')?.click();
+  const templates=gw.ArcaneCardTemplates;
+  check(templates?.definitions?.length===20,'Runtime template catalog is initialized');
+  const base=gw.eval('frameClassForCard(CARDS[0])');
+  check(base.includes('ad-template-normal-01'),'Existing level-1 card gets standard template automatically');
+  const fusion=gw.eval('frameClassForCard(RPG_FUSIONS.find(x=>x.level>=4))');
+  check(fusion.includes('ad-template-fusion-'),'Fusion card receives fusion family');
+  const ace=gw.eval('frameClassForCard(CARDS[ACE_CARD_IDS[10]])');
+  check(ace.includes('ad-template-ace-05'),'Level-10 ACE receives sovereign layout');
+  const essence=gw.eval('frameClassForCard(CARDS[ESSENCE_MONSTER_IDS.fusion])');
+  check(essence.includes('ad-template-essence-'),'Essence card receives essence family');
+  const real=gw.eval('CARDS[0].atk'),card=gw.eval('fullCardHtml(CARDS[0])');
+  check(card.includes('ad-template-normal-01')&&card.includes('>'+real+'</strong>'),'Real card DOM uses selected template but preserves actual ATK');
+  const p=doc.createElement('div');p.className='hand-card tc-card ad-template ad-template-ace-05';doc.body.append(p);
+  check(gw.getComputedStyle(p).backgroundImage.includes('ace-05.svg'),'Game CSS loads Sovereign ACE frame image');p.remove();
+  // 4.0.2 live-runtime regression: cards created before/after the template
+  // scripts must use the actual family-tier frames AND their level ornament.
+  const runtime=gw.ArcaneFrameRuntime;
+  check(runtime?.version==='4.0.2','Live frame synchronization module initialized');
+  const late=doc.createElement('div');
+  late.className='hand-card tc-card tc-ace';late.dataset.level='10';
+  const field=doc.createElement('div');
+  field.className='board-creature tc-card tc-fusion';
+  const label=doc.createElement('span');label.className='board-level';label.textContent='Lv 7';field.append(label);
+  const fate=doc.createElement('div');
+  fate.className='hand-card tc-card tc-fate';fate.dataset.level='3';
+  doc.body.append(late,field,fate);
+  await new Promise(resolve=>gw.requestAnimationFrame(()=>gw.requestAnimationFrame(resolve)));
+  check(late.classList.contains('ad-template-ace-05')&&late.classList.contains('ad-level-ace-10'),
+    'ACE Level 10 receives live sovereign base and individual level decoration');
+  check(field.classList.contains('ad-template-fusion-04')&&field.classList.contains('ad-level-fusion-07'),
+    'Battlefield Fusion Level 7 receives live mythic base and individual level decoration');
+  check(!fate.classList.contains('ad-level-frame'),'Special Fate frame remains untouched');
+  check(gw.getComputedStyle(late).backgroundImage.includes('ace-05.svg'),
+    'Real game DOM uses the original metallic ACE-05 SVG');
+  check(gw.getComputedStyle(late,'::before').backgroundImage.includes('ace-lv10.svg'),
+    'Individual Level 10 ornament is visibly layered over the game card');
+  // Frame cleanup regression: exactly one of each visual layer, no legacy ACE,
+  // Old Bronze overlay or decorative pseudo-element may survive.
+  const aceStyle=gw.getComputedStyle(late);
+  const aceBefore=gw.getComputedStyle(late,'::before');
+  const aceAfter=gw.getComputedStyle(late,'::after');
+  check((aceStyle.backgroundImage.match(/ace-05\.svg/g)||[]).length===1,
+    'ACE has exactly one official base SVG in its background');
+  check(!aceStyle.backgroundImage.includes('ace-lv10.svg') &&
+        !aceStyle.backgroundImage.includes('ace-regalia'),
+    'ACE base contains no duplicate level engraving or legacy regalia');
+  check((aceBefore.backgroundImage.match(/ace-lv10\.svg/g)||[]).length===1,
+    'ACE has exactly one level overlay drawn on ::before');
+  check(aceBefore.borderTopWidth==='0px' && aceBefore.animationName==='none',
+    'ACE ornament has no competing border stroke or legacy animation');
+  check(aceAfter.display==='none' && aceAfter.content==='none',
+    'Legacy ACE embossed glyph/sheen is completely disabled');
+  check(aceStyle.borderTopStyle==='solid' && aceStyle.borderTopWidth==='1px',
+    'ACE receives exactly one solid official family-colored outer border');
+  check(!aceStyle.outlineStyle || aceStyle.outlineStyle==='none',
+    'Legacy ACE/special double outline removed');
+  const boardStyle=gw.getComputedStyle(field),boardBefore=gw.getComputedStyle(field,'::before');
+  check((boardStyle.backgroundImage.match(/fusion-04\.svg/g)||[]).length===1,
+    'Battlefield Fusion draws its official base SVG only once');
+  check(boardBefore.backgroundImage.includes('fusion-lv07.svg') &&
+        boardBefore.borderTopWidth==='0px',
+    'Battlefield Fusion draws only its one transparent level inscription');
+  const focus=doc.createElement('div');
+  focus.className='hand-card tc-card ad-template ad-template-normal-01 ad-level-frame ad-level-normal-01 selected';
+  doc.body.append(focus);
+  check(gw.getComputedStyle(focus).outlineStyle==='solid',
+    'Gameplay selection highlight survives removal of legacy frame outlines');
+  focus.remove();
+  late.remove();field.remove();fate.remove();
+  for(const family of ['normal','fusion','ace','essence']){
+   const response=await fetch('../assets/card-templates/'+family+'-05.svg');
+   check(response.ok&&response.headers.get('content-type')?.includes('svg'),'Top-tier '+family+' SVG asset reachable');
+  }
+ }catch(e){pass=false;checks.push('EXCEPTION: '+(e?.stack||e));}
+ out.textContent=checks.join('\n');
+ out.dataset.cardTemplateTest=pass?'pass':'fail';
+}
+</script></body></html>

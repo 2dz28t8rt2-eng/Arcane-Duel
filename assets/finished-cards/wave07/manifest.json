@@ -1,0 +1,76 @@
+{
+  "schema": "arcane-finished-cards-wave07",
+  "count": 5,
+  "cards": [
+    {
+      "filename": "monster-0041.png",
+      "id": 41,
+      "name": "Funkenwyrm",
+      "level": 2,
+      "atk": 460,
+      "role": "predator",
+      "element": "FEUER",
+      "description": "Startfusion · Brücke zu höheren Stufen.",
+      "artwork": "assets/curated-openart-v1/og-0041-funkenwyrm.webp",
+      "frame": "assets/card-templates/fusion-01.svg",
+      "template": "fusion-01",
+      "def": 350
+    },
+    {
+      "filename": "monster-0314.png",
+      "id": 314,
+      "name": "Argentum-Koloss",
+      "level": 3,
+      "atk": 730,
+      "role": "predator",
+      "element": "ERDE",
+      "description": "Das echte normale ACE von Kael Ardent.",
+      "artwork": "assets/curated-openart-v1/og-0314-argentum-koloss.webp",
+      "frame": "assets/card-templates/ace-02.svg",
+      "template": "ace-02",
+      "def": 520
+    },
+    {
+      "filename": "monster-0045.png",
+      "id": 45,
+      "name": "Waldschlund",
+      "level": 4,
+      "atk": 990,
+      "role": "predator",
+      "element": "ERDE",
+      "description": "Angriffsorientierte Fusionsvorlage. Keine individuellen Klassen-Matchupboni.",
+      "artwork": "assets/curated-openart-v1/og-0045-waldschlund.webp",
+      "frame": "assets/card-templates/fusion-02.svg",
+      "template": "fusion-02",
+      "def": 640
+    },
+    {
+      "filename": "monster-0046.png",
+      "id": 46,
+      "name": "Eibenwächter",
+      "level": 4,
+      "atk": 780,
+      "role": "soul",
+      "element": "ERDE",
+      "description": "Verteidigungsorientierte Fusionsvorlage. Ihre Werte bestimmen den Schutz im Kampf.",
+      "artwork": "assets/curated-openart-v1/og-0046-eibenwaechter.webp",
+      "frame": "assets/card-templates/fusion-02.svg",
+      "template": "fusion-02",
+      "def": 910
+    },
+    {
+      "filename": "monster-0049.png",
+      "id": 49,
+      "name": "Eisenzahn",
+      "level": 4,
+      "atk": 1050,
+      "role": "predator",
+      "element": "ERDE",
+      "description": "Angriffsorientierte Fusionsvorlage. Keine individuellen Klassen-Matchupboni.",
+      "artwork": "assets/curated-openart-v1/og-0049-eisenzahn.webp",
+      "frame": "assets/card-templates/fusion-02.svg",
+      "template": "fusion-02",
+      "def": 680
+    }
+  ]
+}

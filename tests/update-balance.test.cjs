@@ -13,7 +13,7 @@ function boot(){
 }
 test('Training has decreasing cumulative bonus and existing save can migrate perks',()=>{
  const run=boot(),x=run('({bonuses:Array.from({length:11},(_,i)=>monsterTrainingBonus(i)),saveValid:validateProfile(JSON.parse(window.localStorage.getItem(SAVE_KEY))).upgrades.fusionLore})');
- assert.deepEqual(x.bonuses,[0,50,90,120,140,155,165,170,175,180,185]);
+ assert.deepEqual(x.bonuses,[0,35,60,75,85,93,99,103,106,108,110]);
  assert.equal(x.saveValid,0);
 });
 test('Fusion choices sorted by descending level and distinct manifest frame',()=>{

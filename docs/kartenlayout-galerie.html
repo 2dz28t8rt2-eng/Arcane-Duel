@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcane Duel · 20 Kartenvorlagen</title>
+<link rel="stylesheet" href="../assets/styles.css?v=frames">
+<link rel="stylesheet" href="../assets/card-look-v3.css?v=frames">
+<link rel="stylesheet" href="../assets/arcane-luxe-ui.css?v=frames">
+<link rel="stylesheet" href="../assets/card-templates-v1.css?v=frames1">
+<style>
+:root{color-scheme:dark}
+body{margin:0;min-height:100vh;font-family:system-ui,Arial,sans-serif;color:#f5e7d6;background:radial-gradient(ellipse at 50% -15%,#454065 0%,#18243a 38%,#0c1322 76%);overflow-x:hidden}
+.wrap{max-width:1440px;margin:auto;padding:22px 18px 75px}
+.hero{padding:40px clamp(16px,5vw,65px);border-radius:20px;border:1px solid #dbba8369;background:linear-gradient(145deg,#33374cbd,#121a30cb);box-shadow:0 18px 50px #0008}
+.eyebrow{color:#ffdb94;letter-spacing:.2em;text-transform:uppercase;font-size:11px;font-weight:850}
+h1{font:900 clamp(28px,5vw,62px)/1.03 Georgia,serif;letter-spacing:.01em;margin:14px 0;color:#ffe1aa;text-shadow:0 2px 14px #f1be7e39}
+.lead{max-width:75ch;font-size:15px;line-height:1.8;color:#f0e8e3}
+.note{border-left:3px solid #eac38a;padding:9px 14px;background:#161b2dba;color:#d6e5f4;line-height:1.5;max-width:85ch;margin-top:20px}
+.filters{position:sticky;top:0;z-index:100;display:flex;gap:8px;flex-wrap:wrap;padding:15px 5px;background:#10192aee;backdrop-filter:blur(15px);border-bottom:1px solid #9f877071;margin:14px 0 30px}
+.filters button{padding:10px 14px;cursor:pointer;color:#ffe4ba;font:700 12px system-ui;border:1px solid #977e65;border-radius:9px;background:#25293f}
+.filters button[aria-pressed="true"],.filters button:hover{background:#775733;color:#fff5da;border-color:#ffe8b1}
+.family{margin:40px 0 60px}.family[hidden]{display:none!important}
+.family-heading{display:flex;align-items:center;gap:14px;margin-bottom:17px;border-bottom:1px solid #d7bd9b56;padding:12px 5px}
+.family-mark{color:var(--tone);font-size:36px;filter:drop-shadow(0 0 14px var(--tone));line-height:1}
+h2{font:800 27px/1.1 Georgia,serif;margin:0;color:#f7e4c6}
+.family-heading p{font:12px/1.5 system-ui;color:#cbd8e3;margin:5px 0 0}
+.card-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}
+.demo-cell{min-width:0;display:flex;flex-direction:column;align-items:center;padding:14px 8px 18px;background:#10192cc9;border:1px solid #ad91705d;border-radius:14px;box-shadow:0 9px 20px #0005}
+.demo-label{display:flex;align-self:stretch;justify-content:space-between;gap:5px;align-items:center;margin-bottom:14px;padding:0 6px;font-size:11px;color:#c8d6e6}
+.demo-label b{color:#fce7be;text-align:right}
+.demo-cell .hand-card.tc-card{width:min(210px,100%)!important;min-width:0!important;max-width:210px!important;height:345px!important;min-height:345px!important;flex:none!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;box-sizing:border-box!important;transition:transform .2s}
+.demo-cell .hand-card.tc-card .hand-title{height:35px!important;min-height:35px!important;flex:0 0 35px!important}
+.demo-cell .hand-card.tc-card .hand-title .card-name{font:800 12px/15px Georgia,serif!important;overflow:hidden!important;text-overflow:ellipsis;white-space:nowrap}
+.demo-cell .hand-card.tc-card .hand-art{flex:1 1 auto!important;min-height:0!important;max-height:none!important}
+.demo-cell .hand-card.tc-card .hand-art img{width:100%;height:100%;object-fit:cover}
+.demo-cell .hand-card.tc-card .hand-stats{height:38px!important;min-height:38px!important;flex:0 0 38px!important}
+.demo-cell .hand-card.tc-card .hand-stats .stat-value{font-size:15px!important;line-height:17px!important}
+.demo-cell .hand-card.tc-card .hand-type.ad-card-traits{display:flex!important;align-items:center!important;justify-content:space-between!important;flex:0 0 23px!important;height:23px!important;min-height:23px!important;max-height:23px!important;padding:2px 5px!important;gap:5px!important;letter-spacing:0}
+.demo-cell .arcane-card-role{position:static!important;display:inline-block!important;inset:auto!important;max-width:70%;font:850 8px system-ui!important;color:#e9fff8;background:#142f36;border:1px solid #56b6ae;border-radius:4px;padding:2px 4px;white-space:nowrap;overflow:hidden}
+.demo-cell .ad-card-element{font:850 9px Georgia,serif;color:#3f2917;white-space:nowrap}
+.demo-footer{width:100%;display:flex;align-items:center;justify-content:space-between;gap:5px;margin-top:16px;font-size:11px}
+.demo-footer small{color:#bdc9d8;font:600 10px monospace}
+.demo-footer a{color:#ffe0ad;text-decoration:none;font-weight:750;font-size:10px;border-bottom:1px dashed #dbc58d}
+.demo-footer a:hover{color:#fff8d8}
+footer{color:#b5c1d2;text-align:center;padding:20px;border-top:1px solid #e2ca9151;font-size:12px;line-height:1.7}
+@media(max-width:1150px){.card-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:710px){.card-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.demo-cell{padding:12px 5px}.demo-cell .hand-card.tc-card{width:min(185px,100%)!important;height:320px!important;min-height:320px!important}.hero{padding:28px 16px}}
+@media(max-width:390px){.card-grid{grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style></head>
+<body><main class="wrap">
+<header class="hero"><span class="eyebrow">Das Vergoldete Archiv · Designsystem 4.0</span>
+<h1>20 Kartenlayouts.<br>Ein Bestiarium.</h1>
+<p class="lead">Vier visuelle Familien mit jeweils fünf Ausbaustufen. Die gezeigten Namen, Monsterbilder, Level sowie ATK/DEF dienen ausschließlich der Vorschau. Im Spiel kommen diese Angaben weiterhin dynamisch aus den echten Kartendaten.</p>
+<div class="note">Alle 20 Rahmen sind separat als transparente SVG-Dateien vorhanden. Ein späterer Austausch gegen transparente PNG-Rahmen ist ohne Änderungen an Monstern, Fähigkeiten oder Spielständen möglich.</div></header>
+<nav class="filters" aria-label="Kartenfamilie filtern"><button data-filter="all" aria-pressed="true">Alle 20</button>
+<button data-filter="normal" aria-pressed="false">Standard · 5</button>
+<button data-filter="fusion" aria-pressed="false">Fusion · 5</button>
+<button data-filter="ace" aria-pressed="false">ACE · 5</button>
+<button data-filter="essence" aria-pressed="false">Essenz · 5</button></nav>
+<section class="family" data-section="normal"><div class="family-heading"><span class="family-mark" style="--tone:#eacb8e">✦</span><div><h2>Standardmonster</h2><p>Fünf Layoutstufen – von zurückhaltender Ornamentik bis zum höchsten Prestige</p></div></div><div class="card-grid"><article class="demo-cell" data-family="normal" id="normal-01">
+<div class="demo-label"><span>Standardmonster</span><b>Initiat</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-normal ad-template-tier-1 ad-template-normal-01" data-element="FEUER" data-level="2">
+ <div class="hand-title"><span class="card-name">Ascheling</span><span class="card-level-badge">LV 2</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/ascheling.webp" loading="lazy" alt="Beispielillustration: Ascheling"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">WÄCHTER</span><span class="ad-card-element">FEUER</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">150</strong></span><span class="stat def"><strong class="stat-value">210</strong></span></div>
+</div>
+<div class="demo-footer"><small>normal-01</small><a href="../assets/card-templates/normal-01.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article><article class="demo-cell" data-family="normal" id="normal-02">
+<div class="demo-label"><span>Standardmonster</span><b>Adept</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-normal ad-template-tier-2 ad-template-normal-02" data-element="FEUER" data-level="4">
+ <div class="hand-title"><span class="card-name">Schattenwolf</span><span class="card-level-badge">LV 4</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/schattenwolf.webp" loading="lazy" alt="Beispielillustration: Schattenwolf"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">WÄCHTER</span><span class="ad-card-element">FEUER</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">480</strong></span><span class="stat def"><strong class="stat-value">560</strong></span></div>
+</div>
+<div class="demo-footer"><small>normal-02</small><a href="../assets/card-templates/normal-02.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article><article class="demo-cell" data-family="normal" id="normal-03">
+<div class="demo-label"><span>Standardmonster</span><b>Elite</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-normal ad-template-tier-3 ad-template-normal-03" data-element="FEUER" data-level="6">
+ <div class="hand-title"><span class="card-name">Kristallgolem</span><span class="card-level-badge">LV 6</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/kristallgolem.webp" loading="lazy" alt="Beispielillustration: Kristallgolem"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">WÄCHTER</span><span class="ad-card-element">FEUER</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">980</strong></span><span class="stat def"><strong class="stat-value">1150</strong></span></div>
+</div>
+<div class="demo-footer"><small>normal-03</small><a href="../assets/card-templates/normal-03.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article><article class="demo-cell" data-family="normal" id="normal-04">
+<div class="demo-label"><span>Standardmonster</span><b>Mythisch</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-normal ad-template-tier-4 ad-template-normal-04" data-element="FEUER" data-level="8">
+ <div class="hand-title"><span class="card-name">Runenwolf</span><span class="card-level-badge">LV 8</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/runenbrut-koloss.webp" loading="lazy" alt="Beispielillustration: Runenwolf"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">WÄCHTER</span><span class="ad-card-element">FEUER</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">1950</strong></span><span class="stat def"><strong class="stat-value">2300</strong></span></div>
+</div>
+<div class="demo-footer"><small>normal-04</small><a href="../assets/card-templates/normal-04.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article><article class="demo-cell" data-family="normal" id="normal-05">
+<div class="demo-label"><span>Standardmonster</span><b>Souverän</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-normal ad-template-tier-5 ad-template-normal-05" data-element="FEUER" data-level="10">
+ <div class="hand-title"><span class="card-name">Thronwächter</span><span class="card-level-badge">LV 10</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/blutkrone.webp" loading="lazy" alt="Beispielillustration: Thronwächter"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">WÄCHTER</span><span class="ad-card-element">FEUER</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">3700</strong></span><span class="stat def"><strong class="stat-value">4200</strong></span></div>
+</div>
+<div class="demo-footer"><small>normal-05</small><a href="../assets/card-templates/normal-05.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article></div></section>
+<section class="family" data-section="fusion"><div class="family-heading"><span class="family-mark" style="--tone:#d6b3ff">✦</span><div><h2>Fusionsmonster</h2><p>Fünf Layoutstufen – von zurückhaltender Ornamentik bis zum höchsten Prestige</p></div></div><div class="card-grid"><article class="demo-cell" data-family="fusion" id="fusion-01">
+<div class="demo-label"><span>Fusionsmonster</span><b>Initiat</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-fusion ad-template-tier-1 ad-template-fusion-01" data-element="DUNKEL" data-level="2">
+ <div class="hand-title"><span class="card-name">Nebelwisp</span><span class="card-level-badge">LV 2</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/nebelwisp.webp" loading="lazy" alt="Beispielillustration: Nebelwisp"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">PREDATOR</span><span class="ad-card-element">DUNKEL</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">150</strong></span><span class="stat def"><strong class="stat-value">210</strong></span></div>
+</div>
+<div class="demo-footer"><small>fusion-01</small><a href="../assets/card-templates/fusion-01.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article><article class="demo-cell" data-family="fusion" id="fusion-02">
+<div class="demo-label"><span>Fusionsmonster</span><b>Adept</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-fusion ad-template-tier-2 ad-template-fusion-02" data-element="DUNKEL" data-level="4">
+ <div class="hand-title"><span class="card-name">Dornenschlund</span><span class="card-level-badge">LV 4</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/dornenschlund.webp" loading="lazy" alt="Beispielillustration: Dornenschlund"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">PREDATOR</span><span class="ad-card-element">DUNKEL</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">480</strong></span><span class="stat def"><strong class="stat-value">560</strong></span></div>
+</div>
+<div class="demo-footer"><small>fusion-02</small><a href="../assets/card-templates/fusion-02.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article><article class="demo-cell" data-family="fusion" id="fusion-03">
+<div class="demo-label"><span>Fusionsmonster</span><b>Elite</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-fusion ad-template-tier-3 ad-template-fusion-03" data-element="DUNKEL" data-level="6">
+ <div class="hand-title"><span class="card-name">Seelenspalter</span><span class="card-level-badge">LV 6</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/seelenspalter.webp" loading="lazy" alt="Beispielillustration: Seelenspalter"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">PREDATOR</span><span class="ad-card-element">DUNKEL</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">980</strong></span><span class="stat def"><strong class="stat-value">1150</strong></span></div>
+</div>
+<div class="demo-footer"><small>fusion-03</small><a href="../assets/card-templates/fusion-03.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article><article class="demo-cell" data-family="fusion" id="fusion-04">
+<div class="demo-label"><span>Fusionsmonster</span><b>Mythisch</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-fusion ad-template-tier-4 ad-template-fusion-04" data-element="DUNKEL" data-level="8">
+ <div class="hand-title"><span class="card-name">Runenbrut-Koloss</span><span class="card-level-badge">LV 8</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/runenbrut-koloss.webp" loading="lazy" alt="Beispielillustration: Runenbrut-Koloss"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">PREDATOR</span><span class="ad-card-element">DUNKEL</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">1950</strong></span><span class="stat def"><strong class="stat-value">2300</strong></span></div>
+</div>
+<div class="demo-footer"><small>fusion-04</small><a href="../assets/card-templates/fusion-04.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article><article class="demo-cell" data-family="fusion" id="fusion-05">
+<div class="demo-label"><span>Fusionsmonster</span><b>Souverän</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-fusion ad-template-tier-5 ad-template-fusion-05" data-element="DUNKEL" data-level="10">
+ <div class="hand-title"><span class="card-name">Blutkrone der Verdammnis</span><span class="card-level-badge">LV 10</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/blutkrone.webp" loading="lazy" alt="Beispielillustration: Blutkrone der Verdammnis"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">PREDATOR</span><span class="ad-card-element">DUNKEL</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">3700</strong></span><span class="stat def"><strong class="stat-value">4200</strong></span></div>
+</div>
+<div class="demo-footer"><small>fusion-05</small><a href="../assets/card-templates/fusion-05.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article></div></section>
+<section class="family" data-section="ace"><div class="family-heading"><span class="family-mark" style="--tone:#fff0b5">✦</span><div><h2>ACE-Monster</h2><p>Fünf Layoutstufen – von zurückhaltender Ornamentik bis zum höchsten Prestige</p></div></div><div class="card-grid"><article class="demo-cell" data-family="ace" id="ace-01">
+<div class="demo-label"><span>ACE-Monster</span><b>Initiat</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-ace ad-template-tier-1 ad-template-ace-01" data-element="LICHT" data-level="2">
+ <div class="hand-title"><span class="card-name">Funkenträger</span><span class="card-level-badge">LV 2</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/ascheling.webp" loading="lazy" alt="Beispielillustration: Funkenträger"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">ACE</span><span class="ad-card-element">LICHT</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">150</strong></span><span class="stat def"><strong class="stat-value">210</strong></span></div>
+</div>
+<div class="demo-footer"><small>ace-01</small><a href="../assets/card-templates/ace-01.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article><article class="demo-cell" data-family="ace" id="ace-02">
+<div class="demo-label"><span>ACE-Monster</span><b>Adept</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-ace ad-template-tier-2 ad-template-ace-02" data-element="LICHT" data-level="4">
+ <div class="hand-title"><span class="card-name">Sonnenreiter</span><span class="card-level-badge">LV 4</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/schattenwolf.webp" loading="lazy" alt="Beispielillustration: Sonnenreiter"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">ACE</span><span class="ad-card-element">LICHT</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">480</strong></span><span class="stat def"><strong class="stat-value">560</strong></span></div>
+</div>
+<div class="demo-footer"><small>ace-02</small><a href="../assets/card-templates/ace-02.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article><article class="demo-cell" data-family="ace" id="ace-03">
+<div class="demo-label"><span>ACE-Monster</span><b>Elite</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-ace ad-template-tier-3 ad-template-ace-03" data-element="LICHT" data-level="6">
+ <div class="hand-title"><span class="card-name">Kronenhüter</span><span class="card-level-badge">LV 6</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/runenbrut-koloss.webp" loading="lazy" alt="Beispielillustration: Kronenhüter"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">ACE</span><span class="ad-card-element">LICHT</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">980</strong></span><span class="stat def"><strong class="stat-value">1150</strong></span></div>
+</div>
+<div class="demo-footer"><small>ace-03</small><a href="../assets/card-templates/ace-03.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article><article class="demo-cell" data-family="ace" id="ace-04">
+<div class="demo-label"><span>ACE-Monster</span><b>Mythisch</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-ace ad-template-tier-4 ad-template-ace-04" data-element="LICHT" data-level="8">
+ <div class="hand-title"><span class="card-name">Dämmerfürst</span><span class="card-level-badge">LV 8</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/blutkrone.webp" loading="lazy" alt="Beispielillustration: Dämmerfürst"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">ACE</span><span class="ad-card-element">LICHT</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">1950</strong></span><span class="stat def"><strong class="stat-value">2300</strong></span></div>
+</div>
+<div class="demo-footer"><small>ace-04</small><a href="../assets/card-templates/ace-04.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article><article class="demo-cell" data-family="ace" id="ace-05">
+<div class="demo-label"><span>ACE-Monster</span><b>Souverän</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-ace ad-template-tier-5 ad-template-ace-05" data-element="LICHT" data-level="10">
+ <div class="hand-title"><span class="card-name">Ätherwyrm der Kronen</span><span class="card-level-badge">LV 10</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/aetherwyrm.webp" loading="lazy" alt="Beispielillustration: Ätherwyrm der Kronen"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">ACE</span><span class="ad-card-element">LICHT</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">3700</strong></span><span class="stat def"><strong class="stat-value">4200</strong></span></div>
+</div>
+<div class="demo-footer"><small>ace-05</small><a href="../assets/card-templates/ace-05.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article></div></section>
+<section class="family" data-section="essence"><div class="family-heading"><span class="family-mark" style="--tone:#9fdfff">✦</span><div><h2>Essenzmonster</h2><p>Fünf Layoutstufen – von zurückhaltender Ornamentik bis zum höchsten Prestige</p></div></div><div class="card-grid"><article class="demo-cell" data-family="essence" id="essence-01">
+<div class="demo-label"><span>Essenzmonster</span><b>Initiat</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-essence ad-template-tier-1 ad-template-essence-01" data-element="WASSER" data-level="2">
+ <div class="hand-title"><span class="card-name">Essenz des Hains</span><span class="card-level-badge">LV 2</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/nebelwisp.webp" loading="lazy" alt="Beispielillustration: Essenz des Hains"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">SEELENZEHRER</span><span class="ad-card-element">WASSER</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">150</strong></span><span class="stat def"><strong class="stat-value">210</strong></span></div>
+</div>
+<div class="demo-footer"><small>essence-01</small><a href="../assets/card-templates/essence-01.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article><article class="demo-cell" data-family="essence" id="essence-02">
+<div class="demo-label"><span>Essenzmonster</span><b>Adept</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-essence ad-template-tier-2 ad-template-essence-02" data-element="WASSER" data-level="4">
+ <div class="hand-title"><span class="card-name">Wächtergeist</span><span class="card-level-badge">LV 4</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/essenz-unendlichkeit.webp" loading="lazy" alt="Beispielillustration: Wächtergeist"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">SEELENZEHRER</span><span class="ad-card-element">WASSER</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">480</strong></span><span class="stat def"><strong class="stat-value">560</strong></span></div>
+</div>
+<div class="demo-footer"><small>essence-02</small><a href="../assets/card-templates/essence-02.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article><article class="demo-cell" data-family="essence" id="essence-03">
+<div class="demo-label"><span>Essenzmonster</span><b>Elite</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-essence ad-template-tier-3 ad-template-essence-03" data-element="WASSER" data-level="6">
+ <div class="hand-title"><span class="card-name">Seelenfalter</span><span class="card-level-badge">LV 6</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/seelenspalter.webp" loading="lazy" alt="Beispielillustration: Seelenfalter"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">SEELENZEHRER</span><span class="ad-card-element">WASSER</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">980</strong></span><span class="stat def"><strong class="stat-value">1150</strong></span></div>
+</div>
+<div class="demo-footer"><small>essence-03</small><a href="../assets/card-templates/essence-03.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article><article class="demo-cell" data-family="essence" id="essence-04">
+<div class="demo-label"><span>Essenzmonster</span><b>Mythisch</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-essence ad-template-tier-4 ad-template-essence-04" data-element="WASSER" data-level="8">
+ <div class="hand-title"><span class="card-name">Ätherhüter</span><span class="card-level-badge">LV 8</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/runenbrut-koloss.webp" loading="lazy" alt="Beispielillustration: Ätherhüter"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">SEELENZEHRER</span><span class="ad-card-element">WASSER</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">1950</strong></span><span class="stat def"><strong class="stat-value">2300</strong></span></div>
+</div>
+<div class="demo-footer"><small>essence-04</small><a href="../assets/card-templates/essence-04.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article><article class="demo-cell" data-family="essence" id="essence-05">
+<div class="demo-label"><span>Essenzmonster</span><b>Souverän</b></div>
+<div class="hand-card tc-card ad-template ad-template-family-essence ad-template-tier-5 ad-template-essence-05" data-element="WASSER" data-level="10">
+ <div class="hand-title"><span class="card-name">Essenz der Unendlichkeit</span><span class="card-level-badge">LV 10</span></div>
+ <div class="hand-art"><img src="../assets/artworks/wave01/essenz-unendlichkeit.webp" loading="lazy" alt="Beispielillustration: Essenz der Unendlichkeit"></div>
+ <div class="hand-type ad-card-traits"><span class="arcane-card-role">SEELENZEHRER</span><span class="ad-card-element">WASSER</span></div>
+ <div class="hand-stats"><span class="stat atk"><strong class="stat-value">3700</strong></span><span class="stat def"><strong class="stat-value">4200</strong></span></div>
+</div>
+<div class="demo-footer"><small>essence-05</small><a href="../assets/card-templates/essence-05.svg" target="_blank" rel="noopener">Rahmen ansehen <span aria-hidden="true">↗</span></a></div>
+</article></div></section>
+<footer>Arcane Duel · Modulares Kartenlayout-System · Designvorschau mit Platzhalterwerten · <a href="../assets/card-templates/manifest.json" style="color:#ffe6ae">Vorlagenmanifest</a></footer>
+</main>
+<script>
+document.querySelectorAll('[data-filter]').forEach(button=>{
+ button.addEventListener('click',()=>{
+  document.querySelectorAll('[data-filter]').forEach(x=>x.setAttribute('aria-pressed',String(x===button)));
+  document.querySelectorAll('.family').forEach(group=>group.hidden=button.dataset.filter!=='all'&&group.dataset.section!==button.dataset.filter);
+ });
+});
+</script></body></html>

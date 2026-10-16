@@ -1,0 +1,104 @@
+name: Build finished Arcane monster cards
+on:
+  push:
+    branches: [development]
+    paths:
+      - tools/finished-card-renderer.html
+      - assets/artwork-revamp-v4.js
+      - assets/collection-v3-data.js
+      - .github/workflows/render-finished-cards.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Render Wave 02 cards in Chrome using live monster stats
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
+          python3 -m http.server 8757 --bind 127.0.0.1 >/tmp/arcane-card-server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            curl -fsS http://127.0.0.1:8757/tools/finished-card-renderer.html >/dev/null && break
+            sleep .5
+          done
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=90000 --window-size="1500,980" --dump-dom http://127.0.0.1:8757/tools/finished-card-renderer.html?wave=02 >/tmp/finished-monster-cards.html 2>/tmp/card-render-chrome.log
+          if ! grep -q 'data-card-export="pass"' /tmp/finished-monster-cards.html; then
+            echo "Monster graphic renderer did not finish" >&2
+            grep -A4 'id="message"' /tmp/finished-monster-cards.html | head -10 || true
+            tail -35 /tmp/card-render-chrome.log || true
+            exit 1
+          fi
+      - name: Export and validate 20 new full-resolution PNG files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          import json,base64,struct,zipfile
+          class Export(HTMLParser):
+              active=False
+              text=''
+              def handle_starttag(self,tag,attrs):
+                  if tag=='script' and ('id','pngExport') in attrs:self.active=True
+              def handle_endtag(self,tag):
+                  if tag=='script':self.active=False
+              def handle_data(self,data):
+                  if self.active:self.text+=data
+          export=Export();export.feed(Path('/tmp/finished-monster-cards.html').read_text(encoding='utf8'))
+          payload=json.loads(export.text)
+          assert payload['status']=='ok',payload.get('error')
+          assert payload['wave']=='02'
+          assert len(payload['cards'])==20
+          dest=Path('assets/finished-cards/wave02');dest.mkdir(parents=True,exist_ok=True)
+          seen=set();meta=[]
+          for entry in payload['cards']:
+              assert entry['filename'] not in seen
+              seen.add(entry['filename'])
+              data=base64.b64decode(entry['base64'])
+              assert data[:8]==b'\x89PNG\r\n\x1a\n'
+              assert struct.unpack('>II',data[16:24])==(768,1224)
+              (dest/entry['filename']).write_bytes(data)
+              m=entry['metadata']
+              meta.append({'filename':entry['filename'],'id':entry['id'],'name':m['card']['name'],'level':m['card']['level'],
+                           'atk':m['card']['atk'],'def':m['card']['def'],'role':m['card']['role'],
+                           'element':m['card']['element'],'description':m['card']['desc'],'artwork':m['card']['art'],
+                           'frame':m['frame'],'template':m['template'],
+                           'kind':'Static base-values export; the live game keeps authoritative rolled values'})
+          sheet=base64.b64decode(payload['sheet'])
+          assert sheet[:8]==b'\x89PNG\r\n\x1a\n'
+          assert struct.unpack('>II',sheet[16:24])==(1300,2154)
+          (dest/'kontaktbogen.png').write_bytes(sheet)
+          preview=base64.b64decode(payload['preview'])
+          assert preview[:4]==b'RIFF' and preview[8:12]==b'WEBP'
+          (dest/'kontaktbogen-preview.webp').write_bytes(preview)
+          (dest/'manifest.json').write_text(json.dumps({'schema':'arcane-finished-cards-wave02','count':len(meta),'cards':meta},
+                                                       ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+          with zipfile.ZipFile('/tmp/Arcane-Duel-Fertige-Monsterkarten-Welle02.zip','w',zipfile.ZIP_DEFLATED,compresslevel=8) as z:
+              for file in sorted(dest.iterdir()):z.write(file,file.name)
+          print('Success: 20 complete PNG cards, one contact sheet, manifest, ZIP archive.')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Arcane-Duel-Fertige-Monsterkarten-Welle02
+          path: /tmp/Arcane-Duel-Fertige-Monsterkarten-Welle02.zip
+          retention-days: 30
+      - name: Save completed card assets on development
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/finished-cards/wave02
+          if git diff --cached --quiet; then
+            echo "Cards already match existing files."
+          else
+            git commit -m "art(cards): publish 20 Wave 02 production-ready PNG monster cards and contact sheet"
+            git push origin HEAD:development
+          fi

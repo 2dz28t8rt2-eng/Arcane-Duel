@@ -93,6 +93,12 @@
   const intake=tier>=4?1.22:tier>=2?1.08:1;
   const gain=Math.min(Math.max(0,250+lv*125-store.soul),Math.floor(earned*intake));
   store.soul+=gain;
+  // Offensive identity of defensive decks: essence is a steady pressure source,
+  // even when attackers wisely refuse to hit the blockade.
+  // Cap applies per eater and round to keep five defenders from bursting
+  // 10,000 LP in one turn. Full defensive stat absorption still has a price.
+  const soulBrand=Math.min(60+lv*60,Math.floor(earned*1.75));
+  if(soulBrand>0)addBurn(g,owner,soulBrand,dataOf(creature).name+' · Seelenbrand');
   if(rank>=3&&store.drainPreference===2&&drainedDef){
    // Heal only actual DEF drained, at 30%; no overheal.
    g.players[owner].lp=Math.min(g.maxLP,g.players[owner].lp+Math.floor(drainedDef*.3));
@@ -102,8 +108,12 @@
  function soulDecay(g,c,owner){
   const s=statLayer(c);
   if(s.soul>0){
-   const amount=Math.min(s.soul,Math.max(10,Math.ceil(s.soul*.45)));
-   s.soul-=amount;addBurn(g,owner,amount,dataOf(c).name+' · Seelenzerfall');
+   const amount=Math.min(s.soul,Math.max(10,Math.ceil(s.soul*.32)));
+   s.soul-=amount;
+   // Stored essence remains unstable, but its natural LP burn now hits the
+   // opponent for only 35% of the part that decays (instead of 100%). The
+   // new immediate Soulbrand and deliberate discharge provide offensive power.
+   addBurn(g,owner,Math.floor(amount*.35),dataOf(c).name+' · Seelenzerfall');
   }
   if(s.condenseLeft>0){
    s.condensed=Math.max(0,s.condensed-Math.min(s.condensed,s.condenseSlice));
@@ -121,12 +131,35 @@
   if(choice.length<20)throw Error('Zu wenige Übungsmonster.');
   return choice.flatMap(c=>[c.id,c.id]);
  }
+ function trialFusionDeck(main,school){
+   // Dedicated 15-card loan fusion deck, with early rungs and relevant late templates.
+   const levels=main.map(id=>CARDS[id].level),center=levels.reduce((a,b)=>a+b,0)/levels.length;
+   const target=Math.max(3,Math.min(10,Math.round(center*1.65)));
+   const sorted=RPG_FUSIONS.filter(c=>c.rpg&&c.fusionOnly&&!c.ace&&c.level<=10)
+    .sort((a,b)=>{
+     const score=c=>-Math.abs(c.level-target)*32+
+      (school==='fusion'?(c.role==='weaver'||c.role==='support'?85:0):school==='defense'?
+       (['guardian','soul'].includes(c.role)?65:0):(c.role==='predator'?65:0))+
+      Math.min(c.atk,c.def)*.002;
+     return score(b)-score(a)||a.id-b.id;
+    });
+   const picks=[],used=new Set();
+   for(const lv of [2,3,4,5,6,7,8,9,10]){
+    const c=sorted.find(c=>c.level===lv&&!used.has(c.id));
+    if(c&&picks.length<15){picks.push(c.id);used.add(c.id);}
+   }
+   for(const c of sorted)if(picks.length<15&&!used.has(c.id)){picks.push(c.id);used.add(c.id);}
+   if(fusionDeckError(picks))throw Error('Fusions-Prüfungsdeck ist ungültig.');
+   return picks;
+  }
  createGame=function(options={}){
   const isTrial=trial&&options.mode==='pve'&&options.context==='challenge';
   if(isTrial){
    const t=trial,main=trialDeck(t.school,Math.max(3,t.stage+2));
    const enemyDeck=trialDeck(t.school==='defense'?'predator':'defense',Math.max(2,t.stage+1));
-   options={...options,deck:main,fusionDeck:[...RPG_START_FUSIONS,...RPG_START_FUSIONS],
+    const preparedFusion=trialFusionDeck(main,t.school);
+    window.ArcaneLearning?.markSeen?.([...main,...preparedFusion,...enemyDeck]);
+   options={...options,deck:main,fusionDeck:preparedFusion,
     enemy:{deck:enemyDeck,fusionDeck:[...RPG_START_FUSIONS],enhancements:{},power:.68+t.stage*.1,flatBonus:0},
     enhancements:{},flatBonus:0};
   }
@@ -187,7 +220,7 @@
   let best=null;
   for(const a of attackers)for(const d of defenders){
    const atk=effectiveAttack(g,a.c,d.c),hp=dataOf(d.c).def,role=CARDS[d.c.id]?.role;
-   const counter=isDefender(d.c)?Math.floor((CARDS[d.c.id].atk||0)*.5):0;
+   const counter=isDefender(d.c)?Math.floor(Math.max(0,dataOf(d.c).atk)*.5):0;
    // Favor damage that can be completed by the team; avoid avoidable self-lethality.
    const score=Math.min(hp,atk)*1.3+(role==='soul'?200:role==='guardian'?120:0)
     -(hp>atk?Math.max(0,hp-atk)*.14:0)-counter*.6;
@@ -221,7 +254,13 @@
   const beforeEnemyLP=g.players[1].lp;
   let result;
   if(d?.mode==='def'){
-   const s=statLayer(d),strength=guardedFirst?Math.floor(effectiveAttack(g,a,d)*.5):effectiveAttack(g,a,d);
+   const s=statLayer(d),rawStrength=guardedFirst?Math.floor(effectiveAttack(g,a,d)*.5):effectiveAttack(g,a,d);
+    // PvE only: guardian and soul roles dampen incoming HP damage.
+    // Attackers still win via focused fire; no immunity and no free ATK counter buff.
+    const mitigation=isDefender(d)?.35:0;
+    const strength=Math.max(0,Math.floor(rawStrength*(1-mitigation)));
+    if(mitigation&&strength<rawStrength)logEvent(g,dataOf(d).name+
+      ' · Verteidiger-Rüstung: '+(rawStrength-strength)+' Schaden abgewehrt (35 %).');
    const immuneBefore=s.guardLeft>0;
    let remaining=immuneBefore?0:strength;
    const condemned=s.condensed?Math.min(s.condensed,remaining):0;
@@ -238,7 +277,7 @@
    }
    if(endDefense){q.graveyard.push(d);q.field[di]=null;destroyed.push(q.id+':'+di);}
    if(isDefender(d)&&!immuneBefore){
-    const counter= Math.floor((CARDS[d.id].atk||0)*.5);
+    const counter= Math.floor(Math.max(0,dataOf(d).atk)*.5);
     if(counter>0){const actual=damagePlayer(g,p.id,counter);g.damageDealt[q.id]+=actual;logEvent(g,dataOf(d).name+' · Gegenschlag: '+actual+' LP.');}
    }
    if(p.field[ai]===a){
@@ -339,12 +378,12 @@
  function discharge(idx){
   if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0)return false;
   const c=game.players[0].field[idx];if(!c||!isSoul(c)||c.mode!=='def')return false;
-  const elite=(CARDS[c.id].soulRank||0)>=5;
-  const buffer=game.players[0].field.some(x=>x&&x!==c&&CARDS[x.id].role==='guardian'&&dataOf(x).level>=5);
   const e=statLayer(c);
-  if(!elite&&!buffer||e.lastDischarge===game.turn||e.soul<40)return false;
+  // All Soul Eaters have an offensive release. Higher rank gains its edge
+  // naturally by harvesting more essence; the one-use-per-turn gate remains.
+  if(e.lastDischarge===game.turn||e.soul<40)return false;
   const amount=e.soul;e.soul=0;e.lastDischarge=game.turn;
-  addBurn(game,0,Math.floor(amount*.85),dataOf(c).name+' · aktive Entladung');
+  addBurn(game,0,Math.floor(amount*1.30),dataOf(c).name+' · aktive Entladung');
   render();if(game.winner!==null)showFinished();return true;
  }
  function predatorMode(idx){

@@ -1,0 +1,141 @@
+/* Arcane Duel 4.1 – fitted card inspector and shared role / element ribbons.
+ * Applied only to LARGE cards. Miniatures remain clean and action-friendly.
+ */
+body > #deckSidePreview.ad-deck-portal{
+ width:var(--ad-portal-width,354px)!important;
+ max-width:calc(100vw - 20px)!important;
+ padding:10px 15px 18px!important;
+ scrollbar-gutter:stable;
+ overflow-y:auto!important;overflow-x:hidden!important;
+}
+body > #deckSidePreview.ad-deck-portal .deck-side-sticky{
+ min-width:0!important;width:100%!important;
+}
+body > #deckSidePreview.ad-deck-portal .ad-deck-close{
+ position:sticky!important;
+ top:3px!important;right:auto!important;
+ display:grid!important;place-items:center!important;
+ width:39px!important;height:39px!important;min-height:39px!important;
+ padding:0!important;margin:0 1px 14px auto!important;
+ transform:none!important;float:none!important;
+ border:2px solid #ecd29b!important;border-radius:50%!important;
+ background:linear-gradient(160deg,#385071,#15243a)!important;color:#fff4d4!important;
+ box-shadow:0 4px 14px #000c,inset 0 1px #fff7de3d!important;
+ text-align:center;font:700 26px/1 system-ui,sans-serif!important;z-index:40!important;
+}
+body > #deckSidePreview.ad-deck-portal .ad-deck-close:hover,
+body > #deckSidePreview.ad-deck-portal .ad-deck-close:focus-visible{
+ background:linear-gradient(145deg,#5d4160,#253850)!important;color:#fff!important;
+ border-color:#fff0c9!important;transform:scale(1.05)!important;
+}
+body > #deckSidePreview.ad-deck-portal .deck-preview-card{
+ display:flex!important;justify-content:center!important;align-items:flex-start!important;
+ width:100%!important;min-width:0!important;max-width:100%!important;
+ margin:0 auto 15px!important;padding:0!important;
+ overflow:visible!important;
+}
+/* The frame cannot expand into the outer panel or beneath the X. */
+body > #deckSidePreview.ad-deck-portal .deck-preview-card .hand-card.tc-card{
+ display:flex!important;flex-direction:column!important;
+ width:min(286px,100%)!important;max-width:min(286px,100%)!important;
+ min-width:0!important;flex:0 1 286px!important;
+ height:408px!important;min-height:408px!important;max-height:408px!important;
+ margin:0 auto!important;box-sizing:border-box!important;
+ overflow:hidden!important;
+}
+body > #deckSidePreview.ad-deck-portal .deck-preview-card .hand-card.tc-card .hand-art{
+ min-height:0!important;flex:1 1 auto!important;max-width:100%!important;
+}
+body > #deckSidePreview.ad-deck-portal .deck-preview-card .hand-card.tc-card .card-name{
+ font:800 15px/19px Georgia,serif!important;
+ white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+}
+/* Preserve the existing ATK/DEF dual chambers, without exceeding the card width. */
+body > #deckSidePreview.ad-deck-portal .deck-preview-card .hand-card.tc-card .hand-stats{
+ flex:0 0 44px!important;height:44px!important;min-height:44px!important;max-height:44px!important;
+ box-sizing:border-box!important;width:calc(100% - 2px)!important;
+}
+body > #deckSidePreview.ad-deck-portal .deck-preview-card .hand-card.tc-card .hand-stats .stat{
+ min-width:0!important;max-width:100%!important;overflow:hidden!important;
+}
+body > #deckSidePreview.ad-deck-portal .deck-preview-card .hand-card.tc-card .hand-stats .stat-value{
+ font-size:16px!important;line-height:19px!important;
+}
+body > #deckSidePreview.ad-deck-portal .deck-preview-card .hand-card.tc-card .hand-stats .arcane-stat-long{
+ font-size:12px!important;line-height:16px!important;letter-spacing:-.4px!important;
+}
+body > #deckSidePreview.ad-deck-portal .deck-preview-meta{
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ padding:0 4px!important;box-sizing:border-box!important;overflow-wrap:anywhere!important;
+}
+/* One graceful parchment row: inherited role left, elemental affinity right. */
+body > #deckSidePreview.ad-deck-portal .hand-card.tc-card .hand-type.ad-card-traits,
+#duelScreen .card-preview-panel .hand-card.tc-card .hand-type.ad-card-traits,
+.arcane-enemy-large .hand-card.tc-card .hand-type.ad-card-traits{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ flex:0 0 25px!important;height:25px!important;min-height:25px!important;max-height:25px!important;
+ padding:2px 5px!important;margin:0 2px!important;gap:4px!important;box-sizing:border-box!important;
+ background:linear-gradient(180deg,#ead6a7,#bd9d65 96%)!important;
+ border:1px solid #85653e!important;border-top:0!important;
+ text-align:left!important;letter-spacing:0!important;
+}
+body > #deckSidePreview.ad-deck-portal .hand-type.ad-card-traits::before,
+#duelScreen .card-preview-panel .hand-type.ad-card-traits::before,
+.arcane-enemy-large .hand-type.ad-card-traits::before{
+ content:none!important;display:none!important;
+}
+body > #deckSidePreview.ad-deck-portal .hand-type.ad-card-traits .arcane-card-role,
+#duelScreen .card-preview-panel .hand-type.ad-card-traits .arcane-card-role,
+.arcane-enemy-large .hand-type.ad-card-traits .arcane-card-role{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ position:static!important;inset:auto!important;flex:0 1 auto!important;
+ width:auto!important;max-width:70%!important;min-width:0!important;
+ font:900 9px/1.2 system-ui,sans-serif!important;
+ letter-spacing:.01em!important;
+ padding:2px 6px!important;margin:0!important;border-radius:5px!important;
+ text-transform:uppercase!important;white-space:nowrap!important;
+ overflow:hidden!important;text-overflow:ellipsis!important;
+ box-shadow:0 1px 2px #0008!important;
+}
+body > #deckSidePreview.ad-deck-portal .hand-type .ad-card-element,
+#duelScreen .card-preview-panel .hand-type .ad-card-element,
+.arcane-enemy-large .hand-type .ad-card-element{
+ display:inline-block!important;flex:0 0 auto!important;min-width:0!important;
+ color:#3d2b1e!important;letter-spacing:.04em!important;
+ text-align:right!important;font:900 10px/1.1 Georgia,serif!important;
+ text-shadow:0 1px #fff4cc82!important;
+ white-space:nowrap!important;
+}
+#duelScreen .card-preview-panel .hand-card.tc-card .hand-type.ad-card-traits{
+ padding-left:4px!important;padding-right:4px!important;
+}
+#duelScreen .card-preview-panel .hand-type .arcane-card-role{
+ font-size:8px!important;max-width:68%!important;padding:2px 4px!important;
+}
+/* Reused fly-to-inspection animation is cosmetic: never intercept battle inputs. */
+.ad-deck-ghost.ad-duel-preview-ghost{
+ pointer-events:none!important;z-index:16000!important;
+ transform-origin:top left!important;
+}
+#duelScreen .card-preview-panel .ad-preview-card-arrive,
+.arcane-enemy-large .ad-preview-card-arrive{
+ will-change:opacity,filter;
+}
+@media(max-width:650px){
+ body > #deckSidePreview.ad-deck-portal{
+  padding:8px 10px 15px!important;
+  scrollbar-gutter:auto;
+ }
+ body > #deckSidePreview.ad-deck-portal .deck-preview-card .hand-card.tc-card{
+  width:min(265px,100%)!important;max-width:min(265px,100%)!important;
+  flex:0 1 265px!important;
+  height:min(385px,53dvh)!important;min-height:min(305px,45dvh)!important;
+  max-height:min(385px,53dvh)!important;
+ }
+ body > #deckSidePreview.ad-deck-portal .ad-deck-close{
+  margin-bottom:12px!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .ad-deck-ghost.ad-duel-preview-ghost{display:none!important}
+}

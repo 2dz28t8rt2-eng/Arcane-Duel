@@ -15,8 +15,7 @@
 .arcane-role-weaver{color:#e1d8ff}
 .deck-preview-card .hand-card.tc-card .card-name,
 .arcane-enemy-large .hand-card.tc-card .card-name{font-size:17px!important;line-height:1.25!important}
-.deck-preview-card .hand-card.tc-card .stat-value,
-.arcane-enemy-large .hand-card.tc-card .stat-value{font-size:23px!important;line-height:1.2!important}
+/* Large-card ATK/DEF sizing is defined once, in fusion-stamp.css (deck / own / opponent). */
 .deck-preview-card .hand-card.tc-card .hand-stats,
 .arcane-enemy-large .hand-card.tc-card .hand-stats{min-height:35px!important;flex-basis:35px!important;max-height:40px!important}
 .deck-preview-card .arcane-card-role,.arcane-enemy-large .arcane-card-role{bottom:47px;font-size:10px;padding:4px 7px}

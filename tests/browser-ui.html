@@ -4,12 +4,33 @@
 <iframe id="app" src="../index.html" title="Alpha 1.9"></iframe>
 <script>
 const iframe=document.getElementById('app'),r=document.getElementById('result');
-iframe.addEventListener('load',()=>{
+iframe.addEventListener('load',async()=>{
  let steps=[],pass=true;
  function expect(check,label){steps.push((check?'OK: ':'FEHLER: ')+label);if(!check)pass=false;}
  try{
   const w=iframe.contentWindow,d=w.document;
   expect(!!w.ArcaneExpansion,'Alpha 2.2 extension available');
+  const showcase=()=>[...d.querySelectorAll('#menuHero .atlas-preview-card img')].map(img=>img.getAttribute('src'));
+  const previousShowcase=showcase();
+  expect(previousShowcase.length===3,'Main menu shows three monsters instead of a static gallery');
+  expect(!!w.ArcaneBattleFX,'Battle intro, outcome and death particle module loaded');
+  expect(!!d.querySelector('link[href*="arcane-battle-fx.css"]'),'Battle particle CSS loaded');
+  const aceProbe=d.createElement('div');aceProbe.className='hand-card tc-card tc-ace evo-ace-tier-10';
+  const essenceProbe=d.createElement('div');essenceProbe.className='hand-card tc-card tc-essence tc-essence-fusion';
+  d.body.append(aceProbe,essenceProbe);
+  expect(w.getComputedStyle(aceProbe).getPropertyValue('--ad-frame-png').includes('ace-regalia.png'),
+   'Actual transparent PNG gold ACE frame is active, not just a placeholder');
+  expect(w.getComputedStyle(essenceProbe).getPropertyValue('--ad-frame-png').includes('essence-aegis.png'),
+   'Actual transparent PNG Essence frame is active');
+  aceProbe.remove();essenceProbe.remove();
+
+  w.ArcaneArchiveTheme.rotateShowcase();
+  expect(!!d.querySelector('.atlas-showcase-cards.atlas-depart'),'Showcase starts an animated disappearance');
+  await new Promise(resolve=>setTimeout(resolve,1350));
+  expect(showcase().length===3&&!showcase().every((src,i)=>src===previousShowcase[i]),
+   'Showcase rotates to three different artworks after the disappearing transition');
+  expect(!!d.querySelector('.atlas-showcase-cards.atlas-arrive'),'Showcase animated reappearance runs');
+
   expect(d.querySelector('.guide-spread')!==null,'First-run guide has double page');
   d.getElementById('guideNext')?.click();
   expect(d.querySelector('.guide-header')?.textContent.includes('Deine Monsterkarte'),'Guide navigates to next chapter');
@@ -46,11 +67,29 @@ iframe.addEventListener('load',()=>{
   d.getElementById('helpDismiss')?.click();
   w.eval('menuTab="collection";renderMenu()');
   expect(d.querySelector('#cardSearch')!==null&&d.querySelectorAll('.collection-item').length>0,'Main deck has usable filter toolbar');
+  expect(!!d.getElementById('arcaneMonsterForge'),'Monster workshop is visible inside deck collection');
+  expect(!!d.querySelector('#menuNav [data-royal="forge"]'),'Monster workshop has its own left-navigation entry');
+  expect(!!d.querySelector('#arcaneMonsterForge [data-forge-preset="ones"]'),'Workshop offers one-click split presets');
+  expect(!!d.querySelector('#arcaneMonsterForge [data-forge-preset="halves"]'),'Workshop offers a balanced split preset');
+
   const search=d.querySelector('#cardSearch');
   if(search){search.value='kein-monster-mit-diesem-namen';search.dispatchEvent(new w.Event('input',{bubbles:true}));}
   expect([...d.querySelectorAll('.collection-item')].every(x=>x.hidden),'Card search hides nonmatching cards');
   w.eval('menuTab="fusions";renderMenu()');
   expect(d.querySelector('#cardLevel')!==null,'Fusion deck has level filter');
+  expect(!!d.querySelector('.collection-item .arcane-role-readout'),'Monster roles appear below card art rather than obscuring the card element');
+  const shownCards=[...d.querySelectorAll('.collection-item [data-preview-card]')];
+  expect(shownCards.length>=2&&shownCards.every(b=>w.eval('Number(profile.inventory['+Number(b.dataset.previewCard)+']||0)>0')),
+   'Fusion deck editor only shows actually owned fusion cards');
+  const group=d.querySelector('#menuNav [data-fm-group="deck"]');
+  group?.click();
+  expect(group?.getAttribute('aria-expanded')==='false'&&group.closest('.fm-menu-group')?.querySelector('.fm-submenu')?.hidden,
+   'Pressing active menu group closes its submenu');
+  group?.click();
+  expect(group?.getAttribute('aria-expanded')==='true'&&!group.closest('.fm-menu-group')?.querySelector('.fm-submenu')?.hidden,
+   'Pressing again reopens its submenu');
+  if(w.innerWidth>=981)expect(w.getComputedStyle(d.getElementById('menuNav')).overflowY==='auto',
+   'Desktop navigation scrolls independently from the menu content');
   w.eval('menuTab="lexicon";renderMenu()');
   expect(d.querySelector('.monster-index')!==null,'Discoverable monster lexicon renders');
   w.eval('menuTab="free";renderMenu()');
@@ -61,6 +100,48 @@ iframe.addEventListener('load',()=>{
   expect(d.getElementById('modalGo')?.textContent.includes('DUELL STARTEN'),'Duel start modal available');
   d.dispatchEvent(new w.KeyboardEvent('keydown',{bubbles:true,cancelable:true,key:' ',code:'Space'}));
   expect(d.getElementById('overlay')?.classList.contains('hidden'),'Space starts duel while start modal active');
+  expect(!!d.querySelector('.ad-battle-intro')&&d.getElementById('myLP')?.textContent==='0',
+   'Opening duel cinematic reveals 0 LP before visible count-up begins');
+
+  // Regression: the actual duel inspector must use small readable ATK/DEF digits,
+  // regardless of the much taller deck editor card styles.
+  w.eval('game.selection={type:"hand",uid:game.players[0].hand[0].uid};renderCardPreview()');
+  const preview=d.querySelector('#largeCardPreview .hand-card.tc-card');
+  const pv=preview?.querySelector('.hand-stats .stat-value');
+  const pn=preview?.querySelector('.card-name');
+  expect(!!pv&&parseFloat(w.getComputedStyle(pv).fontSize)>=15&&parseFloat(w.getComputedStyle(pv).fontSize)<=17,
+   'Duel inspection ATK and DEF are readable at 15–17px');
+  expect(!!pn&&parseFloat(w.getComputedStyle(pn).fontSize)>=14&&parseFloat(w.getComputedStyle(pn).fontSize)<=16,
+   'Duel inspection card name is readable at 14–16px');
+  expect(!!w.ArcaneFusionCinema,
+   'Arcane Fusion Cinema module loaded after the evolution engine');
+  // Exercise the actual DOM/CSS cinematic in Chromium (a fixture card is used
+  // solely for UI validation; real engine arithmetic is tested in Node).
+  w.eval(`game.lastSummoned={id:RPG_START_FUSIONS[0],fusion:true,card:{level:4,atk:470,def:870},
+   roleOverride:'guardian',materialsUsed:3,pattern:'Drilling',
+   rollTrace:[{atk:440,def:830},{atk:470,def:850}],
+   rollMath:{winnerIndex:1,winner:{atk:470,def:850},bonus:{atk:0,def:20},
+    penalty:0,final:{atk:470,def:870},role:'guardian'}};
+   animationSpeed='fast';
+   window.__roleStampSmoke=fusionAnimation(4,[
+    {art:CARDS[0].art,level:1},{art:CARDS[1].art,level:1},{art:CARDS[13].art,level:2}]);`);
+  const ritual=d.querySelector('.ritual-overlay'),floating=ritual?.querySelector('.monster-card'),
+    mathWindow=ritual?.querySelector('.math-zone');
+  expect(!!ritual&&!!floating&&!!mathWindow,
+   'Floating fusion card is structurally distinct from the calculation window');
+  expect(!!ritual?.querySelector('.ritual-sparks .ritual-spark'),
+   'Offline CSS particles render even if tsParticles cannot load');
+  expect(!!floating&&!!mathWindow&&
+   floating.getBoundingClientRect().top<mathWindow.getBoundingClientRect().top,
+   'Floating card sits above the math popup on desktop');
+  expect(!!d.querySelector('.evo-stamp-scene .evo-actual-material img'),
+   'Fusion cinema displays actual monster material artwork');
+  expect(!!d.querySelector('.evo-stamp-scene .evo-role-seal.evo-seal-guardian'),
+   'Defender role appears as a heavy cinematic seal on the resulting monster');
+  await w.__roleStampSmoke;
+  expect(!d.querySelector('.evo-stamp-scene'),'Fusion cinematic completes and cleans up the overlay');
+  w.eval('game.lastSummoned=null');
+
  }catch(e){pass=false;steps.push('EXCEPTION: '+e.message+' '+(e.stack||'').slice(0,350));}
  r.textContent=steps.join('\n');
  document.body.dataset.uiTest=pass?'pass':'fail';

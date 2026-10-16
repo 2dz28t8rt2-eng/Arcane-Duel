@@ -15,7 +15,7 @@ frame.addEventListener('load',()=>{
   const modal=d.getElementById('modal');
   check(modal?.classList.contains('fusion-choice-modal'),'Fusionsauswahl verwendet kompaktes Layout');
   check(!modal.querySelector('details.fusion-how')&&!!modal.querySelector('.arcane-fusion-mystery'),'Neue kompakte Fusionsauswahl enthält keine alte ausführliche Werteberechnung');
-  check(!modal.querySelector('.fusion-forecast')&&modal.querySelector('.arcane-fusion-mystery')?.textContent.includes('ATK'),'Fusionswerte bleiben bis zur Beschwörung verborgen');
+  check(!!modal.querySelector('.arcane-fusion-potential')&&modal.querySelector('.arcane-fusion-potential')?.textContent.includes('DEF'),'Mögliches ATK/DEF-Potenzial sichtbar, echter Endwert weiterhin verborgen');
   const card=modal.querySelector('.fusion-choice-grid .arcane-fusion-pick[data-fusion-choice]');
   check(!!card,'Fusionsmonsterkarte ist ein auswählbares HTML-Button-Element');
   const id=Number(card?.dataset.fusionChoice);

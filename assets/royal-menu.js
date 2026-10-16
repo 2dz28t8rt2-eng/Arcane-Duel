@@ -4,12 +4,13 @@
 (()=>{
 const oldMenu=renderMenu;
 const oldRules=showRules;
+const collapsedGroups=new Set();
 const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const categories=[
  {id:'play',icon:'⚔',title:'Duellieren',subtitle:'Arena, Duelle & PvP',tabs:['tournament','free','pvp']},
  {id:'deck',icon:'▤',title:'Deck & Sammlung',subtitle:'Karten und Deckbau',tabs:['collection','fusions','decks','lexicon']},
  {id:'missions',icon:'✧',title:'Herausforderungen',subtitle:'Lernpfad und Quests',tabs:['challenges']},
- {id:'growth',icon:'✦',title:'Fortschritt',subtitle:'Skills und Belohnungen',tabs:['upgrades','xp','shop','packs']},
+ {id:'growth',icon:'✦',title:'Fortschritt',subtitle:'Skills, Belohnungen & Booster-Shop',tabs:['upgrades','xp','shop','packs']},
  {id:'options',icon:'⚙',title:'Spielstand & Extras',subtitle:'Chronik und Optionen',tabs:['stats','settings']}
 ];
 const descriptions={
@@ -26,7 +27,7 @@ const descriptions={
  xp:['Levelbelohnungen','Sieh deine nächsten Fortschrittsmeilensteine.'],
  upgrades:['Skills & Perks','Passe deine langfristigen Verbesserungen an.'],
  stats:['Chronik & Hinweise','Deine Duelle, Taktiken und Statistiken.'],
- settings:['Spielstand','Speichern, Import, Export und Einstellungen.']
+ settings:['Einstellungen und Spielstandoptionen','Speichern, Import, Export und Einstellungen.']
 };
 function go(tab){
  const item=$('menuNav')?.querySelector('[data-tab="'+tab+'"]');
@@ -48,22 +49,28 @@ function renderRoyalMenu(){
  const tabs=new Map([...nav.querySelectorAll('button[data-tab]')].map(btn=>[btn.dataset.tab,btn]));
  nav.replaceChildren();nav.className='fm-navigation';
  nav.innerHTML='<div class="fm-nav-brand"><span>✧</span><div><strong>ARCANE DUEL</strong><small>3.0 · BESTIARIUM</small></div></div>';
- const titles={tournament:'Turnier',free:'Freie Duelle',pvp:'Lokales PvP',collection:'Hauptdeck',fusions:'Fusionsdeck',decks:'Deckplätze',lexicon:'Monsterlexikon',challenges:'Challenges & Quests',upgrades:'Skills & Perks',xp:'Levelbelohnungen',shop:'Booster-Shop',packs:'Charakter-Boosterpacks',stats:'Chronik',settings:'Einstellungen'};
+ const titles={tournament:'Turnier',free:'Freie Duelle',pvp:'Lokales PvP',collection:'Hauptdeck',fusions:'Fusionsdeck',decks:'Deckplätze',lexicon:'Monsterlexikon',challenges:'Challenges & Quests',upgrades:'Skills & Perks',xp:'Levelbelohnungen',shop:'Booster-Shop',packs:'Charakter-Boosterpacks',stats:'Chronik',settings:'Einstellungen und Spielstandoptionen'};
  const activeGroup=categories.find(g=>g.tabs.includes(menuTab))||categories[0];
  for(const group of categories){
   const active=group.id===activeGroup.id,section=document.createElement('section');section.className='fm-menu-group'+(active?' selected':'');
-  section.innerHTML='<button type="button" class="fm-group-button" data-fm-group="'+group.id+'" aria-expanded="'+active+'">'+
-   '<span class="fm-group-icon">'+group.icon+'</span><span class="fm-group-copy"><strong>'+group.title+'</strong><small>'+group.subtitle+'</small></span><span class="fm-arrow">'+(active?'⌄':'›')+'</span></button>';
+  section.innerHTML='<button type="button" class="fm-group-button" data-fm-group="'+group.id+'" aria-expanded="'+(active&&!collapsedGroups.has(group.id))+'">'+
+   '<span class="fm-group-icon">'+group.icon+'</span><span class="fm-group-copy"><strong>'+group.title+'</strong><small>'+group.subtitle+'</small></span><span class="fm-arrow">'+(active&&!collapsedGroups.has(group.id)?'⌄':'›')+'</span></button>';
   if(active){
-   const sub=document.createElement('div');sub.className='fm-submenu';
+   const sub=document.createElement('div');sub.className='fm-submenu';sub.hidden=collapsedGroups.has(group.id);
    for(const id of group.tabs){const button=tabs.get(id);if(!button)continue;button.textContent=titles[id];sub.append(button);}
+   if(group.id==='deck'){
+    const forge=document.createElement('button');forge.type='button';
+    forge.className='menu-tab fm-forge-shortcut';forge.dataset.royal='forge';
+    forge.textContent='⚒ Monsterwerkstatt · Verbinden & Zerlegen';sub.append(forge);
+   }
    section.append(sub);
   }
   nav.append(section);
  }
  const help=document.createElement('div');help.className='fm-help';
  help.innerHTML='<button type="button" class="fm-rule-link" data-royal="rules">📖 <strong>Regel-Lexikon</strong><small>Alle Mechaniken & Suche</small></button>'+
- '<button type="button" class="fm-start-link" data-royal="start">✧ Startanleitung</button>';
+ '<button type="button" class="fm-start-link" data-royal="start">✧ Startanleitung</button>'+ 
+ '<button type="button" class="fm-start-link fm-hint-link" data-royal="stats">✦ Taktische Hinweise kaufen · Chronik</button>';
  nav.append(help);
  const hidden=document.createElement('div');hidden.hidden=true;hidden.className='fm-tab-storage';
  for(const [,button] of tabs)if(!button.isConnected)hidden.append(button);
@@ -90,6 +97,9 @@ function renderRoyalMenu(){
    (maxed?'✓ Maximal':cost+' Essenz · Verbessern')+'</button></article>';
   }).join('')+'</div></section>').join('');
   bindMenu();
+ }
+ if(['upgrades','xp','shop','packs'].includes(menuTab)){
+  const notice=document.createElement('div');notice.className='fm-shop-guide';notice.innerHTML='<strong>✦ Fortschritt & Shop</strong><span>Unter Fortschritt findest du auch den Booster-Shop und die Charakter-Boosterpacks.</span><button type="button" class="btn" data-royal="shop">Zum Booster-Shop</button>';panel.prepend(notice);
  }
  if(menuTab==='lexicon'){
   const entry=document.createElement('section');entry.className='menu-panel fm-lexicon-intro';
@@ -142,11 +152,18 @@ const delegate=e=>{
  if(action==='rules'){showRules();return;}
  if(action==='start'){openStart();return;}
  if(action==='gallery'){openGallery();return;}
+ if(action==='forge'){
+  if(menuTab!=='collection')go('collection');
+  else if(!document.getElementById('arcaneMonsterForge'))renderMenu();
+  const forge=document.getElementById('arcaneMonsterForge');
+  if(forge)forge.scrollIntoView({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?'auto':'smooth',block:'start'});
+  return;
+ }
  if(action==='resume'){resumeDuel();return;}
  if(categories.some(group=>group.tabs.includes(action))){go(action);return;}
 };
 $('menuScreen')?.addEventListener('click',delegate);
- $('menuNav')?.addEventListener('click',e=>{const btn=e.target.closest('[data-fm-group]');if(!btn)return;const group=categories.find(g=>g.id===btn.dataset.fmGroup);if(!group)return;const submenu=btn.closest('.fm-menu-group')?.querySelector('.fm-submenu');if(group.tabs.includes(menuTab)&&submenu){submenu.hidden=!submenu.hidden;btn.setAttribute('aria-expanded',String(!submenu.hidden));const arrow=btn.querySelector('.fm-arrow');if(arrow)arrow.textContent=submenu.hidden?'›':'⌄';return;}go(group.tabs[0]);});
+ $('menuNav')?.addEventListener('click',e=>{const btn=e.target.closest('[data-fm-group]');if(!btn)return;const group=categories.find(g=>g.id===btn.dataset.fmGroup);if(!group)return;const submenu=btn.closest('.fm-menu-group')?.querySelector('.fm-submenu');if(group.tabs.includes(menuTab)&&submenu){submenu.hidden=!submenu.hidden;if(submenu.hidden)collapsedGroups.add(group.id);else collapsedGroups.delete(group.id);btn.setAttribute('aria-expanded',String(!submenu.hidden));const arrow=btn.querySelector('.fm-arrow');if(arrow)arrow.textContent=submenu.hidden?'›':'⌄';return;}collapsedGroups.delete(group.id);go(group.tabs[0]);});
 function makeText(node,cls,label){const p=document.createElement(node);p.className=cls;p.textContent=label;return p;}
 function decorateRules(){
  oldRules();

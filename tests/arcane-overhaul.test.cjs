@@ -74,12 +74,12 @@ test('forge refuses illegal recipes, locked levels and assigned deck copies',()=
  assert.equal(reserved.ok,false);
  assert.equal(g.profile.inventory[l1],before);
 });
-test('role inheritance requires three more same-role materials than opposing role',()=>{
+test('role inheritance preserves the majority even with two same-role materials',()=>{
  const g=start();
  const mock=role=>({id:g.CARDS.find(c=>!c.retired&&c.role===role).id});
  const D=()=>mock('guardian'),P=()=>mock('predator'),N=()=>mock('combatant');
  assert.equal(g.roles.inheritance([D(),D(),D()]),'guardian');
- assert.equal(g.roles.inheritance([D(),D(),D(),P()]),null);
+ assert.equal(g.roles.inheritance([D(),D(),D(),P()]),'guardian');
  assert.equal(g.roles.inheritance([D(),D(),D(),D(),P()]),'guardian');
  assert.equal(g.roles.inheritance([P(),P(),P(),N(),N()]),'predator');
  assert.equal(g.roles.inheritance([D(),D(),P(),P()]),null);
