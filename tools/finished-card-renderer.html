@@ -51,11 +51,13 @@ async function cardDraw(model){
  const bg=ctx.createLinearGradient(15,10,246,397);bg.addColorStop(0,'#19213a');bg.addColorStop(.5,'#080f20');bg.addColorStop(1,'#171a35');
  rounded(ctx,1,1,254,406,15,bg,rim,2);
  rounded(ctx,23,42,211,342,8,'#080f20',rim,1.4);
+ // Frame ornaments sit BEHIND content so title and lore stay readable.
+ ctx.drawImage(frame,0,0,256,408);
  const plaque=ctx.createLinearGradient(24,43,24,85);plaque.addColorStop(0,'#30324a');plaque.addColorStop(.52,'#0a1226');plaque.addColorStop(1,'#171224');
  rounded(ctx,26,42,204,43,6,plaque,light,1.1);
  ctx.fillStyle='#fff4d8';ctx.textBaseline='alphabetic';
  const title=c.name;
- if(title.length>24){
+ if(title.length>19){
   const parts=title.split(/\s+/),a=[],b=[];let line='';
   for(const p of parts){if((line+' '+p).trim().length<=18)line=(line+' '+p).trim();else{a.push(line);line=p;}}
   if(line)a.push(line);
@@ -85,8 +87,7 @@ async function cardDraw(model){
  ctx.textAlign='left';ctx.fillStyle='#e9e6e8';
  const lore=wrap(ctx,c.desc,180,3,8.6);ctx.font='8.6px Arial';lore.forEach((line,i)=>ctx.fillText(line,37,358+i*10.1));
  if(c.fusionOnly){ctx.textAlign='right';ctx.font='5.4px Arial';ctx.fillStyle=light;ctx.fillText('GRUNDWERTE',220,390);}
- // The repository's ORIGINAL transparent template is the topmost ornament.
- ctx.drawImage(frame,0,0,256,408);
+ // Content is drawn ABOVE the original metallic layout to avoid covering lore.
  return canvas;
 }
 root.addEventListener('load',async()=>{
