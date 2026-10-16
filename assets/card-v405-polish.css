@@ -95,7 +95,6 @@ html body .arcane-enemy-large .hand-card.tc-card[data-element] .hand-type.ad-car
  color:var(--e-bright)!important;border-color:var(--e-border)!important;
  background:linear-gradient(100deg,var(--e-bg2),var(--e-bg1),var(--e-bg2))!important;
  text-shadow:0 1px 2px #000,0 0 3px var(--e-border)!important;
- animation:ad405-element-breath var(--e-cycle,7.2s) ease-in-out infinite!important;
 }
 
 /* Static element summary BELOW the card, independently colored from child data-element. */

@@ -1,0 +1,100 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8">
+<title>Arcane Duel 4.1 – Artwork and element animation QA</title>
+<style>body{font:13px monospace;background:#101728;color:#e4e9f3}#result{white-space:pre-wrap}</style>
+</head><body><pre id="result">Loading…</pre>
+<iframe id="runtime" title="Isolated test game" src="../index.html" style="position:absolute;left:-6000px;width:100vw;height:1000px;border:0"></iframe>
+<script>
+document.getElementById('runtime').addEventListener('load',async()=>{
+ const win=document.getElementById('runtime').contentWindow,doc=win.document;
+ const output=document.getElementById('result'),checks=[];
+ let passed=true,fixture=null;const previewNodes=[];
+ const check=(value,label)=>{checks.push((value?'OK ':'FAIL ')+label);if(!value)passed=false;};
+ const wait=ms=>new Promise(resolve=>win.setTimeout(resolve,ms));
+ const expected={
+  53:[5,1290,840,'predator','FEUER'],62:[7,1490,1720,'soul','WASSER'],
+  70:[9,2040,2360,'guardian','DUNKEL'],74:[10,2350,2720,'soul','WIND'],
+  181:[5,1110,810,'predator','LICHT'],260:[9,2290,1540,'soul','DUNKEL'],
+  315:[4,740,1250,'predator','FEUER'],316:[6,1080,1140,'combatant','ERDE'],
+  318:[8,2140,1510,'predator','FEUER'],320:[10,2870,2030,'predator','WIND']
+ };
+ const colors={FEUER:'rgb(255, 211, 156)',WASSER:'rgb(212, 245, 255)',ERDE:'rgb(228, 249, 197)',
+  WIND:'rgb(224, 255, 250)',LICHT:'rgb(255, 246, 206)',DUNKEL:'rgb(239, 219, 255)'};
+ try{
+  const response=await fetch('../assets/custom-art/generated-4-1/manifest.json');
+  if(!response.ok)throw Error('Artwork manifest HTTP '+response.status);
+  const manifest=await response.json(),rows=manifest.replacements;
+  check(rows.length===10&&new Set(rows.map(x=>x.id)).size===10,'Ten distinct replacement cards');
+  win.eval("hideModal();if(animationSpeed!=='fast')toggleSpeed();");
+  const reduced=win.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  fixture=doc.createElement('section');fixture.id='artwork-renewal-qa';
+  fixture.style.cssText='position:absolute;left:-4000px;top:400px;width:1000px;display:flex;flex-wrap:wrap;gap:10px';
+  doc.body.append(fixture);
+  const byId=new Map();
+  for(const row of rows){
+   const card=win.eval('CARDS['+row.id+']'),stats=expected[row.id];
+   check(card.name===row.cardName&&card.desc===row.description,'Name and description '+row.id);
+   check(card.art===row.art&&card.customArt===row.art,'Live artwork mapping '+row.id);
+   check(JSON.stringify([card.level,card.atk,card.def,card.role,card.element])===JSON.stringify(stats),'Original gameplay values '+row.id);
+   const holder=doc.createElement('div');holder.style.width='180px';
+   holder.innerHTML=win.eval('fullCardHtml(CARDS['+row.id+'])');fixture.append(holder);
+   const element=holder.querySelector('.hand-card'),img=element.querySelector('.hand-art img');
+   await img.decode();
+   check(img.naturalWidth===1024&&img.naturalHeight===1024,'1024px image decoded '+row.id);
+   check(element.querySelector('.card-name').textContent===row.cardName&&img.alt===row.cardName,'Card title and alternative text '+row.id);
+   check(element.dataset.element===stats[4]&&element.querySelector('.ad-level-medallion')?.textContent===String(stats[0]),'Element and level seal '+row.id);
+   byId.set(row.id,element);
+  }
+  await wait(150);
+  for(const [id,element] of byId){
+   const type=element.querySelector('.hand-type'),style=win.getComputedStyle(type);
+   check(style.color===colors[element.dataset.element],'Correct element palette '+id);
+   check(style.animationName===(reduced?'none':'ad405-element-breath'),'Element glow setting '+id);
+   check(win.getComputedStyle(type,'::after').animationName===(reduced?'none':'ad405-element-motes'),'Element particle setting '+id);
+   const name=element.querySelector('.card-name');
+   check(name.scrollHeight<=name.clientHeight+1,'Name fits card title '+id);
+  }
+  if(!reduced){
+   const target=byId.get(53).querySelector('.hand-type');
+   const animation=target.getAnimations().find(x=>x.animationName==='ad405-element-breath');
+   const before=animation?.currentTime;await wait(120);
+   check(animation?.playState==='running'&&animation.currentTime>before,'Element glow advances over time');
+  }
+  win.ArcanePreviewMotion.enhanceTraits(fixture);await wait(80);
+  for(const [id,element] of byId){
+   const chip=element.querySelector('.ad-card-element');
+   check(!!chip&&win.getComputedStyle(chip).color===colors[element.dataset.element],'Split preview element chip '+id);
+   check(!!chip&&win.getComputedStyle(chip).animationName===(reduced?'none':'ad405-element-breath'),'Split preview animation '+id);
+  }
+  const portal=doc.createElement('div');portal.id='deckSidePreview';portal.className='ad-deck-portal';doc.body.append(portal);previewNodes.push(portal);
+  const enemy=doc.createElement('div');enemy.className='arcane-enemy-large';fixture.append(enemy);
+  const previews=[];
+  for(const [label,parent] of [['deck portal',portal],['duel inspector',doc.getElementById('largeCardPreview')],['enemy inspector',enemy]]){
+   const card=byId.get(74).cloneNode(true);parent.append(card);previewNodes.push(card);
+   previews.push([label,card.querySelector('.ad-card-element')]);
+  }
+  for(const [label,chip] of previews)check(win.getComputedStyle(chip).animationName===(reduced?'none':'ad405-element-breath'),'Large preview respects motion preference: '+label);
+  win.toggleSpeed();await wait(80);
+  check(doc.body.classList.contains('ad-motion-disabled'),'Animation switch immediately updates the expected body class');
+  for(const [id,element] of byId){
+   const chip=element.querySelector('.ad-card-element');
+   check(win.getComputedStyle(chip).animationName==='none'&&win.getComputedStyle(chip,'::after').animationName==='none','Element animations stop '+id);
+   check(win.getComputedStyle(element,'::before').animationName==='none','Frame animations stop '+id);
+  }
+  for(const [label,chip] of previews)check(win.getComputedStyle(chip).animationName==='none','Large preview animations stop: '+label);
+  win.toggleSpeed();await wait(80);
+  check(!doc.body.classList.contains('ad-motion-disabled'),'Animation switch restores the active setting');
+  check(win.getComputedStyle(byId.get(53).querySelector('.ad-card-element')).animationName===(reduced?'none':'ad405-element-breath'),'Animation restoration respects reduced motion');
+  for(const [label,chip] of previews)check(win.getComputedStyle(chip).animationName===(reduced?'none':'ad405-element-breath'),'Large preview motion restores: '+label);
+  const collectionResponse=await fetch('../assets/collection-v3-data.js');
+  const source=await collectionResponse.text();
+  const collection=JSON.parse(source.split('window.ARCANE_COLLECTION_V3=')[1].trim().replace(/;\s*$/,''));
+  for(const row of rows){
+   const card=collection.find(x=>x.id===row.id);
+   check(card?.art===row.art&&card.name===row.cardName&&card.desc===row.description,'Collection matches live card '+row.id);
+  }
+ }catch(error){passed=false;checks.push('ERROR '+(error.stack||error));}
+ finally{for(const node of previewNodes)node.remove();fixture?.remove();}
+ output.textContent=checks.join('\n');
+ document.documentElement.dataset.artworkRenewal=passed?'pass':'fail';
+});
+</script></body></html>

@@ -1,5 +1,7 @@
 # Arcane Duel 4.0.6 – Import der zehn hochwertigen Monsterbilder
 
+**Historischer Importweg:** Die aktuellen zehn Bilder wurden mit dem neueren 4.1-Integrationspaket direkt eingebaut; siehe [GENERATED_ARTWORKS_4_1.md](GENERATED_ARTWORKS_4_1.md). Ein Upload des älteren ZIPs ist dafür nicht erforderlich. Die aktualisierten Namen und Beschreibungen sind im neuen Integrationsbericht dokumentiert.
+
 Die Importautomatik ist vorbereitet. Sie aktiviert sich, sobald die geprüfte Datei **Arcane-Duel-4.0.6-Artwork-Integrationspaket.zip** im **Root des Branches development** nach GitHub hochgeladen wird.
 
 Einmaliger Schritt: GitHub → Branch development → Add file → Upload files → ZIP hochladen und committen. Diese Datei ist im Chat als Download verfügbar.
