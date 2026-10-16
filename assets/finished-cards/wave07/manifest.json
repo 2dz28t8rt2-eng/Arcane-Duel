@@ -24,8 +24,8 @@
       "atk": 730,
       "role": "predator",
       "element": "ERDE",
-      "description": "Das echte normale ACE von Kael Ardent.",
-      "artwork": "assets/curated-openart-v1/og-0314-argentum-koloss.webp",
+      "description": "Silberne Panzerplatten umschließen einen Leib aus Fels. Sein Faustschlag lässt den Boden bersten. Kael Ardents normales ACE.",
+      "artwork": "assets/custom-art/generated-4-1/monster-0314.webp",
       "frame": "assets/card-templates/ace-02.svg",
       "template": "ace-02",
       "def": 520
