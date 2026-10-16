@@ -53,7 +53,7 @@ document.getElementById('game').addEventListener('load',async()=>{
   check(normal.querySelector('.stat.def .stat-value').textContent===String(first.def),'DEF unchanged');
   check(normal.querySelector('.card-level-badge').textContent.trim()==='LV '+first.level,
     'Original small top-level badge preserved');
-  const fate=make('fullCardHtml(CARDS[FATE_CARD_IDS[0]])');
+  const fate=make('fullCardHtml({...CARDS[FATE_CARD_IDS[0]],fate:true})');
   check(!fate.classList.contains('ad-level-frame')&&!fate.querySelector('.ad-level-medallion'),
     'Special Fate card does not inherit modern frame or duplicate medallion');
  }catch(error){ok=false;tests.push('EXCEPTION '+(error?.stack||error));}
