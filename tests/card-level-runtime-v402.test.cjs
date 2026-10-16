@@ -53,12 +53,12 @@ test('Live game synchronizes existing hand cards, ACE and fusion battlefield car
 });
 test('CSS draws ornaments visibly above live card art, preserving Fate and base frame assets',()=>{
  assert.match(css,/::before/);
- assert.match(css,/background-image:var\(--ad-level-trim\)!important/);
+ assert.match(css,/background:var\(--ad-level-trim\) center \/ 100% 100% no-repeat!important/);
  assert.match(css,/pointer-events:none!important/);
  assert.match(css,/z-index:7!important/);
  const idx=read('index.html');
  assert.ok(idx.indexOf('card-level-runtime-v402.js')>idx.indexOf('card-level-frames-v401.js'));
  assert.ok(idx.indexOf('card-level-runtime-v402.css')>idx.indexOf('card-level-frames-v401.css'));
- assert.ok(idx.includes('4.0.2-live-fix'));
+ assert.ok(idx.includes('4.0.3-frame-cleanup'));
  assert.ok(read('tests/browser-card-templates.html').includes('Individual Level 10 ornament'));
 });
