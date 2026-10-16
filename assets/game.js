@@ -1319,6 +1319,7 @@ function renderHud(){
  $('soundBtn').textContent='♪ Ton: '+(soundOn?'An':'Aus');
  $('speedBtn').textContent='✧ Animationen: '+(animationSpeed==='instant'?'Aus':'An');
  document.body.classList.toggle('instant',animationSpeed==='instant');
+ document.body.classList.toggle('ad-motion-disabled',animationSpeed==='instant');
 }
 function lootText(l){return l?`+${l.shards} Splitter${l.card!==null?' · '+CARDS[l.card].name+(l.duplicate?' · weiteres Exemplar':' · NEU'):''}`:'';}
 function sourceCards(fusion){return (fusion?RPG_FUSIONS:RPG_BASE_CARDS).filter(c=>ownsCard(c.id)).sort((a,b)=>fusion?b.level-a.level||b.atk-a.atk||a.name.localeCompare(b.name):a.id-b.id);}

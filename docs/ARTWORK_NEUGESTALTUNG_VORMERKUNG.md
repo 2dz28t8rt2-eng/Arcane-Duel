@@ -1,7 +1,7 @@
 # Artwork-Neugestaltung – separate spätere Produktionsphase
 
-**Status:** vorgemerkt, nicht Teil des 4.0.2-Rahmenfixes.
-**Entscheidung:** Bestehende Bilder bleiben vorerst unverändert; neue Illustrationen werden separat erstellt, gezeigt, abgenommen und erst dann den Karten-IDs zugewiesen.
+**Status am 16.10.2026:** Alle zwölf beauftragten Bildersetzungen sind auf `development` integriert; siehe [GENERATED_ARTWORKS_4_1.md](GENERATED_ARTWORKS_4_1.md).
+**Abschluss:** Die folgende Tabelle dokumentiert die ursprüngliche Sichtung. Alle dort aufgeführten Karten wurden inzwischen ersetzt, einschließlich Argentum-Koloss (314) und Nox-Albtraum (319). Zusätzlich wurden Aschenwolf (53), Schattenwolf Lyra (70) und Windgeist Areon (74) erneuert. Die unten separat genannten Prüfkandidaten betreffen mögliche spätere Sichtungen.
 
 ## Priorisierte Kandidaten aus den Screenshots und der bisherigen Besprechung
 

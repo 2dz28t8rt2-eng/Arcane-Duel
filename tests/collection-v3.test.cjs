@@ -15,7 +15,7 @@ test('All twelve levels represented; level 11 and 12 stay visually special',()=>
 });
 test('All custom art references exist, and manifested forms share their art',()=>{
  const byId=new Map(cards.map(c=>[c.id,c]));for(const c of cards){if(c.art)assert.ok(fs.existsSync(path.join(root,c.art)),'Missing '+c.art);if(c.manifestOf!=null&&c.art)assert.equal(c.art,byId.get(c.manifestOf)?.art);}
- assert.equal(new Set(cards.filter(c=>c.art).map(c=>c.art)).size,38);
+ assert.equal(new Set(cards.filter(c=>c.art).map(c=>c.art)).size,49);
  for(const c of cards.filter(c=>c.variantOf!=null))assert.equal(c.art,byId.get(c.variantOf)?.art);
 });
 test('Collection view has working filter hooks and never changes saved profile',()=>{

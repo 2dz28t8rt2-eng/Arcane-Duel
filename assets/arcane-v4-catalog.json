@@ -471,8 +471,10 @@
       {
         "id": 314,
         "level": 3,
-        "art": "assets/curated-openart-v1/og-0314-argentum-koloss.webp",
-        "template": "ace-02"
+        "art": "assets/custom-art/generated-4-1/monster-0314.webp",
+        "template": "ace-02",
+        "name": "Argentum-Koloss",
+        "desc": "Silberne Panzerplatten umschließen einen Leib aus Fels. Sein Faustschlag lässt den Boden bersten. Kael Ardents normales ACE."
       },
       {
         "id": 45,
@@ -517,68 +519,90 @@
       {
         "id": 315,
         "level": 4,
-        "art": "assets/curated-openart-v3/og-0315-phoenix-myrra.webp",
-        "template": "ace-02"
+        "art": "assets/custom-art/generated-4-1/monster-0315.webp",
+        "template": "ace-02",
+        "name": "Phönix Myrra",
+        "desc": "Aus goldenem Feuer erhebt sich Myrra über die Asche. Akari Hoshinos normales ACE."
       },
       {
         "id": 53,
         "level": 5,
-        "art": "assets/curated-openart-v3/og-0053-aschenwolf.webp",
-        "template": "fusion-03"
+        "art": "assets/custom-art/generated-4-1/monster-0053.webp",
+        "template": "fusion-03",
+        "name": "Aschenwolf",
+        "desc": "Glut brennt unter seinem schwarzen Fell. Durch Asche und Funken jagt er über die Flanken des Vulkans."
       },
       {
         "id": 181,
         "level": 5,
-        "art": "assets/curated-openart-v3/og-0181-morgenfluegel.webp",
-        "template": "fusion-03"
+        "art": "assets/custom-art/generated-4-1/monster-0181.webp",
+        "template": "fusion-03",
+        "name": "Morgenflügel",
+        "desc": "Goldene Schwingen tragen den Morgen über das Wolkenmeer. Einmalige Belohnung der dritten Trainingsprüfung; einmal je Duell beschwörbar."
       },
       {
         "id": 316,
         "level": 6,
-        "art": "assets/curated-openart-v3/og-0316-thronhirsch-sylvan.webp",
-        "template": "ace-03"
+        "art": "assets/custom-art/generated-4-1/monster-0316.webp",
+        "template": "ace-03",
+        "name": "Sylvan, Wächter des Urwalds",
+        "desc": "Rinde, Moos und Wurzeln formen den uralten Hüter des grünen Throns. Rin Wilders Fusions-ACE."
       },
       {
         "id": 62,
         "level": 7,
-        "art": "assets/curated-openart-v3/og-0062-korallenfuerstin.webp",
-        "template": "fusion-04"
+        "art": "assets/custom-art/generated-4-1/monster-0062.webp",
+        "template": "fusion-04",
+        "name": "Korallenfürstin",
+        "desc": "Zwischen leuchtenden Korallen lenkt sie die Strömungen der Tiefsee und bewacht den Thron versunkener Reiche."
       },
       {
         "id": 318,
         "level": 8,
-        "art": "assets/curated-openart-v3/og-0318-aschewyrm-rakh.webp",
-        "template": "ace-04"
+        "art": "assets/custom-art/generated-4-1/monster-0318.webp",
+        "template": "ace-04",
+        "name": "Aschewyrm Rakh",
+        "desc": "Rakh entfaltet seine Magmaflügel über brennenden Ruinen. Ryuji Kagetsus Fusions-ACE."
       },
       {
         "id": 70,
         "level": 9,
-        "art": "assets/curated-openart-v3/og-0070-schattenwolf-lyra.webp",
-        "template": "fusion-05"
+        "art": "assets/custom-art/generated-4-1/monster-0070.webp",
+        "template": "fusion-05",
+        "name": "Schattenwolf Lyra",
+        "desc": "Im violetten Mondlicht nimmt Lyra Gestalt an. Lautlos bewacht der Spektralwolf die Pfade zur Schattenwelt."
       },
       {
         "id": 260,
         "level": 9,
-        "art": "assets/custom-art/wave4-05.webp",
-        "template": "fusion-05"
+        "art": "assets/custom-art/generated-4-1/monster-0260.webp",
+        "template": "fusion-05",
+        "name": "Schattenwyrm der Zwischenwelt",
+        "desc": "Um seinen dunklen Leib kreisen Splitter ferner Sterne. Wo er die Welten berührt, zucken violette Blitze durch die Leere."
       },
       {
         "id": 319,
         "level": 9,
-        "art": "assets/curated-openart-v3/og-0319-nox-albtraum.webp",
-        "template": "ace-05"
+        "art": "assets/custom-art/generated-4-1/monster-0319.webp",
+        "template": "ace-05",
+        "name": "Nox-Albtraum",
+        "desc": "Ein gehörnter Nachtmahr jagt mit Obsidianklauen durch violetten Mondnebel. Noa Kuronagis Fusions-ACE."
       },
       {
         "id": 74,
         "level": 10,
-        "art": "assets/curated-openart-v3/og-0074-windgeist-areon.webp",
-        "template": "fusion-05"
+        "art": "assets/custom-art/generated-4-1/monster-0074.webp",
+        "template": "fusion-05",
+        "name": "Areon, Himmlischer Sturmwyrm",
+        "desc": "Sein silberner Leib windet sich durch donnernde Wolken. Jeder Flügelschlag entfesselt die Macht des Himmelssturms."
       },
       {
         "id": 320,
         "level": 10,
-        "art": "assets/curated-openart-v3/og-0320-himmelskrone.webp",
-        "template": "ace-05"
+        "art": "assets/custom-art/generated-4-1/monster-0320.webp",
+        "template": "ace-05",
+        "name": "Himmelskrone",
+        "desc": "Über dem Wolkenmeer herrscht der gekrönte Drache der Winde. Sora Amayas Fusions-ACE."
       }
     ]
   },

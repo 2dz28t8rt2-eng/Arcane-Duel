@@ -1,0 +1,133 @@
+name: Import Arcane Duel 4.0.6 Artworks
+on:
+  push:
+    branches: [development]
+    paths:
+      - Arcane-Duel-4.0.6-Artwork-Integrationspaket.zip
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: arcane-406-artwork-install
+  cancel-in-progress: false
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Image tools
+        run: python -m pip install pillow
+      - name: Verify and extract approved original artwork
+        run: |
+          python - <<'PY'
+          import hashlib,zipfile,subprocess,sys
+          from pathlib import Path
+          archive=Path('Arcane-Duel-4.0.6-Artwork-Integrationspaket.zip')
+          expected='facf3fb81ffafce3b18a3aa425e10aa6345aedd8695a5aa410755c84165ed3aa'
+          if not archive.is_file() or hashlib.sha256(archive.read_bytes()).hexdigest()!=expected:
+              raise SystemExit('Missing or modified original 4.0.6 ZIP. Upload the approved ZIP to development root.')
+          with zipfile.ZipFile(archive) as z:
+              files=z.infolist()
+              if not files or any(
+                  '..' in Path(x.filename).parts or Path(x.filename).is_absolute()
+                  or not x.filename.startswith('Arcane-Duel-Artworks-4.0.6-Integration/')
+                  for x in files
+              ): raise SystemExit('Invalid ZIP paths')
+              z.extractall('/tmp/arcane-v406')
+          folder='/tmp/arcane-v406/Arcane-Duel-Artworks-4.0.6-Integration/'
+          subprocess.run([sys.executable,folder+'test_installation.py'],check=True)
+          subprocess.run([sys.executable,folder+'apply_artworks_v406.py','--repo','.'],check=True)
+          subprocess.run([sys.executable,folder+'apply_artworks_v406.py','--repo','.','--check'],check=True)
+          PY
+      - name: Align live renderer, gallery and themed monster names
+        run: |
+          python - <<'PY'
+          import json,re
+          from pathlib import Path
+          pack=Path('/tmp/arcane-v406/Arcane-Duel-Artworks-4.0.6-Integration')
+          rows=json.loads((pack/'artwork-map.json').read_text('utf8'))['artworks']
+          names={74:'Areon, Himmlischer Sturmwyrm',
+                 260:'Schattenwyrm der Zwischenwelt',
+                 316:'Sylvan, Wächter des Urwalds'}
+          path=Path('assets/arcane-v4-live.js')
+          code=path.read_text('utf8')
+          for row in rows:
+              id=row['id']
+              pattern=r'(\{"id":'+str(id)+r',[^{}]*?"art":")([^"\n]+)(")'
+              hits=list(re.finditer(pattern,code))
+              if len(hits)!=1:raise RuntimeError('Missing duplicate art path: '+str(id))
+              old=hits[0].group(2)
+              if not (old.startswith('assets/curated-openart-') or old.startswith('assets/custom-art/') or old==row['assetPath']):
+                  raise RuntimeError('Unexpected old artwork: '+old)
+              code=re.sub(pattern,lambda m,new=row['assetPath']:m.group(1)+new+m.group(3),code,count=1)
+          path.write_text(code,encoding='utf8')
+          loader=Path('assets/artwork-renewal-v406.js')
+          code=loader.read_text('utf8')
+          marker="  card.art=item.art;card.customArt=item.art;card.artEdition='4.0.6';"
+          if code.count(marker)!=1:raise RuntimeError('Invalid v406 loader')
+          extra='\n  const newNames='+json.dumps(names,ensure_ascii=False,separators=(',',':'))+';'
+          extra+='\n  if(Object.prototype.hasOwnProperty.call(newNames,item.id))card.name=newNames[item.id];'
+          loader.write_text(code.replace(marker,marker+extra),encoding='utf8')
+          path=Path('assets/finished-cards/wave09/manifest.json')
+          manifest=json.loads(path.read_text('utf8'))
+          by_id={c['id']:c for c in manifest['cards']}
+          for row in rows:
+              if by_id[row['id']]['name']!=row['cardName']:
+                  raise RuntimeError('Unexpected original card name: '+str(row['id']))
+              if row['id'] in names:by_id[row['id']]['name']=names[row['id']]
+          path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+          path=Path('assets/collection-v3-data.js')
+          raw=path.read_text('utf8')
+          mark='window.ARCANE_COLLECTION_V3='
+          if raw.count(mark)!=1:raise RuntimeError('Missing collection data')
+          prefix,content=raw.split(mark,1)
+          collection=json.loads(content.strip().rstrip(';'))
+          by_id={c['id']:c for c in collection}
+          for row in rows:
+              card=by_id[row['id']]
+              card['art']=row['assetPath']
+              if row['id'] in names:card['name']=names[row['id']]
+          path.write_text(prefix+mark+json.dumps(collection,ensure_ascii=False,separators=(',',':'))+';\n',encoding='utf8')
+          docs=['# Arcane Duel 4.0.6 – Neue Monsterillustrationen','',
+            'Zehn durch OpenAI für Arcane Duel generierte Fantasy-Illustrationen. Die bisherigen lizenzierten Quellen bleiben unverändert und ihre Künstlercredits dürfen nicht auf die neuen Bilder übertragen werden.','',
+            '| ID | Neuer Kartenname | Bildtitel |','|---:|---|---|']
+          for row in sorted(rows,key=lambda x:x['id']):
+              docs.append(f"| {row['id']} | {names.get(row['id'],row['cardName'])} | {row['artTitle']} |")
+          docs+=['','Nicht ersetzt: Argentum-Koloss (314) und Nox-Albtraum (319).','',
+            'IDs, Level, Elemente, Rollen, ATK/DEF, Effekte und Speicherstände bleiben erhalten.']
+          Path('docs/ARTWORK_RENEWAL_4_0_6.md').write_text('\n'.join(docs)+'\n',encoding='utf8')
+          PY
+          node --check assets/artwork-renewal-v406.js
+          node --check assets/arcane-v4-live.js
+      - name: Render renewed artwork cards and verify
+        run: |
+          python tools/arcane-v4-export.py render --waves 09
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('assets/finished-cards/wave09')
+          manifest=json.loads((root/'manifest.json').read_text('utf8'))
+          ids={53,62,70,74,181,260,315,316,318,320}
+          assert len(manifest['cards'])==11
+          assert ids<=set(x['id'] for x in manifest['cards'])
+          for row in manifest['cards']:
+              if row['id'] in ids:
+                  assert row['artwork']==f"assets/artworks/renewal01/monster-{row['id']:04d}.webp"
+                  assert (root/f"monster-{row['id']:04d}.png").stat().st_size>10000
+          PY
+          git show HEAD:assets/arcane-v4-render-status.json >assets/arcane-v4-render-status.json
+      - name: Commit imported images and generated cards
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/artworks/renewal01 assets/artwork-renewal-v406.js assets/arcane-v4-live.js assets/arcane-v4-catalog.json assets/collection-v3-data.js assets/finished-cards/wave09 index.html docs/ARTWORK_RENEWAL_4_0_6.md
+          git rm -f -- Arcane-Duel-4.0.6-Artwork-Integrationspaket.zip
+          git commit -m "art(4.0.6): integrate ten original monster artworks and themed names"
+          for attempt in 1 2 3; do
+            git pull --rebase origin development
+            if git push origin HEAD:development; then exit 0; fi
+            sleep 4
+          done
+          exit 1

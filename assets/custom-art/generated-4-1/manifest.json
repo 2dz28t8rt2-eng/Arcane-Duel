@@ -1,0 +1,138 @@
+{
+  "release": "4.1",
+  "branch": "development",
+  "type": "generative-fantasy-art",
+  "replacements": [
+    {
+      "id": 320,
+      "cardName": "Himmelskrone",
+      "artworkTitle": "Himmlischer Kronendrache",
+      "sourcePNG": "himmlischer_kronendrache_über_den_wolken.png",
+      "art": "assets/custom-art/generated-4-1/monster-0320.webp",
+      "sha256": "7653d7907eb4ccd2ee831fbdff8ea37bde7c6900f7ecedb8b056d356dd7df909",
+      "bytes": 386984,
+      "description": "Über dem Wolkenmeer herrscht der gekrönte Drache der Winde. Sora Amayas Fusions-ACE."
+    },
+    {
+      "id": 74,
+      "cardName": "Areon, Himmlischer Sturmwyrm",
+      "artworkTitle": "Himmlischer Sturmwyrm",
+      "sourcePNG": "himmlischer_sturmwyrm_im_wolkenwirbel.png",
+      "art": "assets/custom-art/generated-4-1/monster-0074.webp",
+      "sha256": "e6f51626810c4cef09b17acf898066e2b0d2c55257887944e99de73d6f47c067",
+      "bytes": 374906,
+      "previousCardName": "Windgeist Areon",
+      "description": "Sein silberner Leib windet sich durch donnernde Wolken. Jeder Flügelschlag entfesselt die Macht des Himmelssturms."
+    },
+    {
+      "id": 181,
+      "cardName": "Morgenflügel",
+      "artworkTitle": "Himmelsdrache im goldenen Morgenlicht",
+      "sourcePNG": "himmelsdrache_im_goldenen_morgenlicht.png",
+      "art": "assets/custom-art/generated-4-1/monster-0181.webp",
+      "sha256": "fc18038f467ac67958e427cb456aaa246dcc0147451f498b77f78d8984df10ae",
+      "bytes": 272260,
+      "description": "Goldene Schwingen tragen den Morgen über das Wolkenmeer. Einmalige Belohnung der dritten Trainingsprüfung; einmal je Duell beschwörbar."
+    },
+    {
+      "id": 318,
+      "cardName": "Aschewyrm Rakh",
+      "artworkTitle": "Magma-Drache über brennenden Ruinen",
+      "sourcePNG": "magma_drache_über_brennenden_ruinen.png",
+      "art": "assets/custom-art/generated-4-1/monster-0318.webp",
+      "sha256": "c63e869cf4e91872f509eeb9249f206c706e3d0317182f2984e503345691cba5",
+      "bytes": 472856,
+      "description": "Rakh entfaltet seine Magmaflügel über brennenden Ruinen. Ryuji Kagetsus Fusions-ACE."
+    },
+    {
+      "id": 316,
+      "cardName": "Sylvan, Wächter des Urwalds",
+      "artworkTitle": "Erhabener Wächter des Urwalds",
+      "sourcePNG": "erhabener_wächter_des_urwaldes.png",
+      "art": "assets/custom-art/generated-4-1/monster-0316.webp",
+      "sha256": "fd6795bb7d85026019bc3c8c39e155a3ace8ab2e46f8c6bb7c5612b2cfba85d1",
+      "bytes": 534078,
+      "previousCardName": "Thronhirsch Sylvan",
+      "description": "Rinde, Moos und Wurzeln formen den uralten Hüter des grünen Throns. Rin Wilders Fusions-ACE."
+    },
+    {
+      "id": 53,
+      "cardName": "Aschenwolf",
+      "artworkTitle": "Lavawolf im Sturm der Asche",
+      "sourcePNG": "lavawolf_im_sturm_der_asche.png",
+      "art": "assets/custom-art/generated-4-1/monster-0053.webp",
+      "sha256": "334edc4a845d75bce6b551b0d3124400525489341e47b67e54c57122b8a4b44c",
+      "bytes": 355750,
+      "description": "Glut brennt unter seinem schwarzen Fell. Durch Asche und Funken jagt er über die Flanken des Vulkans."
+    },
+    {
+      "id": 62,
+      "cardName": "Korallenfürstin",
+      "artworkTitle": "Korallenkönigin in der Tiefsee",
+      "sourcePNG": "korallenkönigin_in_der_tiefsee.png",
+      "art": "assets/custom-art/generated-4-1/monster-0062.webp",
+      "sha256": "28ee94efcfbb7c655718b841ee440fca53e008d53889246805ee27478d3cbb11",
+      "bytes": 411166,
+      "description": "Zwischen leuchtenden Korallen lenkt sie die Strömungen der Tiefsee und bewacht den Thron versunkener Reiche."
+    },
+    {
+      "id": 315,
+      "cardName": "Phönix Myrra",
+      "artworkTitle": "Phönix aus Flammen und Gold",
+      "sourcePNG": "phönix_aus_flammen_und_gold.png",
+      "art": "assets/custom-art/generated-4-1/monster-0315.webp",
+      "sha256": "afd55521e26f917b8d58b2e4895c2fd769c56db2acf5cd59d268fd9f1f513af8",
+      "bytes": 493952,
+      "description": "Aus goldenem Feuer erhebt sich Myrra über die Asche. Akari Hoshinos normales ACE."
+    },
+    {
+      "id": 260,
+      "cardName": "Schattenwyrm der Zwischenwelt",
+      "artworkTitle": "Schattenwyrm im kosmischen Gewitter",
+      "sourcePNG": "schattenwyrm_im_kosmischen_gewitter.png",
+      "art": "assets/custom-art/generated-4-1/monster-0260.webp",
+      "sha256": "baa8b7f378920495a8a4e576b70795118c4e5e868f2a721e5873ed9c42804191",
+      "bytes": 457256,
+      "previousCardName": "Schattenlord der Zwischenwelt",
+      "description": "Um seinen dunklen Leib kreisen Splitter ferner Sterne. Wo er die Welten berührt, zucken violette Blitze durch die Leere."
+    },
+    {
+      "id": 70,
+      "cardName": "Schattenwolf Lyra",
+      "artworkTitle": "Spektralwolf im Mondlicht",
+      "sourcePNG": "spektralwolf_im_mondlicht.png",
+      "art": "assets/custom-art/generated-4-1/monster-0070.webp",
+      "sha256": "08a0e94ff61367f1e2b6a2b6fb34ab8ea239ed814fa8a2e6da758e2cafe84880",
+      "bytes": 406398,
+      "description": "Im violetten Mondlicht nimmt Lyra Gestalt an. Lautlos bewacht der Spektralwolf die Pfade zur Schattenwelt."
+    },
+    {
+      "id": 314,
+      "cardName": "Argentum-Koloss",
+      "artworkTitle": "Silberner Erdkoloss in den Ruinen",
+      "description": "Silberne Panzerplatten umschließen einen Leib aus Fels. Sein Faustschlag lässt den Boden bersten. Kael Ardents normales ACE.",
+      "art": "assets/custom-art/generated-4-1/monster-0314.webp",
+      "sha256": "63f5f96d1c94a2c90ab043f2180043c12c5f0c4e2bee8032f3a96542d3ef6115",
+      "bytes": 562782,
+      "generationTool": "OpenAI image_gen (built-in)",
+      "originalSize": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "id": 319,
+      "cardName": "Nox-Albtraum",
+      "artworkTitle": "Gehörnter Nachtmahr der Mondruinen",
+      "description": "Ein gehörnter Nachtmahr jagt mit Obsidianklauen durch violetten Mondnebel. Noa Kuronagis Fusions-ACE.",
+      "art": "assets/custom-art/generated-4-1/monster-0319.webp",
+      "sha256": "50a4bcdc936856d66c38ddf517027b8898d5b5c74ba56cd63fcce2b5ae9ee345",
+      "bytes": 504590,
+      "generationTool": "OpenAI image_gen (built-in)",
+      "originalSize": [
+        1254,
+        1254
+      ]
+    }
+  ]
+}
