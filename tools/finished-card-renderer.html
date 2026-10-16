@@ -1,4 +1,4 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Arcane Duel – 10 fertige Monsterkarten</title>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Arcane Duel – Kartenexport · Produktionswellen</title>
 <style>
 body{background:radial-gradient(ellipse at 50% -20%,#34304f,#0b1325 65%);color:#f8e9c7;font:14px system-ui;margin:0;padding:26px}
 h1{font:700 34px Georgia,serif;margin:0 0 9px}p{color:#d9d4db;max-width:80ch}
@@ -6,13 +6,16 @@ h1{font:700 34px Georgia,serif;margin:0 0 9px}p{color:#d9d4db;max-width:80ch}
 .card{padding:10px;border:1px solid #b8a17875;background:#151b30;border-radius:12px;box-shadow:0 12px 30px #0008;text-align:center}
 .card canvas{width:100%;height:auto;display:block;aspect-ratio:256/408}.card strong{display:block;margin:9px;font:700 13px Georgia,serif}
 iframe{display:none}
-</style></head><body><h1>✧ Monsterkarten · Welle 01</h1>
-<p>10 vollständige Karten auf Basis der 20 Originalrahmen. Alle Namen, Elemente, Rollen und Grundwerte kommen aus dem laufenden Bestiarium. Fusionswerte sind im Duell weiterhin würfelabhängig.</p>
+</style></head><body><h1 id="waveTitle">✧ Monsterkarten · Welle 01</h1>
+<p>Fertige Monsterkarten auf Basis der 20 Originalrahmen. Namen, Elemente, Rollen und Grundwerte stammen aus dem echten Bestiarium. Fusionswerte bleiben im Duell würfelabhängig.</p>
 <main id="gallery"></main><div id="message">Kartendaten werden geladen …</div>
 <script type="application/json" id="pngExport"></script>
 <iframe title="Arcane Game Runtime" id="runtime" src="../index.html"></iframe>
 <script>
 const root=document.getElementById('runtime'),gallery=document.getElementById('gallery');
+const wave=new URLSearchParams(location.search).get('wave')==='02'?'02':'01';
+const wave02Ids=[1,2,4,5,6,8,10,13,16,19,20,22,42,66,69,73,90,102,105,317];
+document.getElementById('waveTitle').textContent='✧ Monsterkarten · Welle '+wave;
 const clean=v=>String(v??'');
 const roles={guardian:'WÄCHTER',predator:'PREDATOR',soul:'SEELENZEHRER',weaver:'RUNENWEBER',support:'UNTERSTÜTZER'};
 const rolePalette={guardian:['#143a40','#a5eadb'],predator:['#41231e','#ffc49c'],soul:['#3f214d','#e4bafa'],weaver:['#2a3d65','#c2e1fa'],support:['#31434b','#cbe8de']};
@@ -56,16 +59,25 @@ async function cardDraw(model){
  const plaque=ctx.createLinearGradient(24,43,24,85);plaque.addColorStop(0,'#30324a');plaque.addColorStop(.52,'#0a1226');plaque.addColorStop(1,'#171224');
  rounded(ctx,26,42,204,43,6,plaque,light,1.1);
  ctx.fillStyle='#fff4d8';ctx.textBaseline='alphabetic';
- const title=c.name;
- if(title.length>19){
-  const parts=title.split(/\s+/),a=[],b=[];let line='';
-  for(const p of parts){if((line+' '+p).trim().length<=18)line=(line+' '+p).trim();else{a.push(line);line=p;}}
-  if(line)a.push(line);
-  if(a.length>2)throw Error('Name passt nicht: '+title);
-  ctx.fillStyle='#fff4d8';a.forEach((text,i)=>fit(ctx,text,34,58+i*12.4,148,11.1,9));
- }else fit(ctx,title,34,67,149,12.5,8.2);
- rounded(ctx,185,53,42,24,5,'#241b2c',rim,1.2);
- ctx.fillStyle=light;ctx.font='bold 11.5px Georgia,serif';ctx.textAlign='center';ctx.fillText('LV '+c.level,206,69,36);
+ const title=String(c.name||'Unbekanntes Wesen').trim(),words=title.split(/\s+/);
+ let titleLines=null,titleSize=12.5;
+ for(let fontSize=12.5;fontSize>=7.5;fontSize-=.35){
+  ctx.font='bold '+fontSize+'px Georgia,serif';
+  const lines=[];let line='';
+  for(const word of words){
+   const next=line?line+' '+word:word;
+   if(line&&ctx.measureText(next).width>145){lines.push(line);line=word;}else line=next;
+  }
+  if(line)lines.push(line);
+  if(lines.length<=3&&lines.every(text=>ctx.measureText(text).width<=145)){
+   titleLines=lines;titleSize=fontSize;break;
+  }
+ }
+ if(!titleLines)throw new Error('Kartenname passt nicht in drei Zeilen: '+title);
+ ctx.fillStyle='#fff4d8';ctx.font='bold '+titleSize+'px Georgia,serif';
+ const startY=titleLines.length===1?67:titleLines.length===2?60:53.5;
+ const lineStep=titleLines.length===3?12:13;
+ titleLines.forEach((text,i)=>ctx.fillText(text,34,startY+i*lineStep));
  ctx.textAlign='left';
  rounded(ctx,27,86,202,195,4,'#030914',light,1.7);
  ctx.save();ctx.beginPath();ctx.rect(31,90,194,187);ctx.clip();cover(ctx,art,31,90,194,187);ctx.restore();
@@ -85,7 +97,12 @@ async function cardDraw(model){
  ctx.fillStyle='#d8f4ff';ctx.fillText(c.def,177,336.8);
  rounded(ctx,30,347,196,38,4,'#0a101e',rim,.85);
  ctx.textAlign='left';ctx.fillStyle='#e9e6e8';
- const lore=wrap(ctx,c.desc,180,3,8.6);ctx.font='8.6px Arial';lore.forEach((line,i)=>ctx.fillText(line,37,358+i*10.1));
+ let lore=null,loreSize=8.6;
+ for(;loreSize>=6.35;loreSize-=.3){
+  try{lore=wrap(ctx,clean(c.desc),180,4,loreSize);break;}catch(e){}
+ }
+ if(!lore)throw new Error('Kartenbeschreibung passt nicht: '+c.name);
+ ctx.font=loreSize+'px Arial';lore.forEach((line,i)=>ctx.fillText(line,37,358+i*(lore.length===4?8.1:9.5)));
  if(c.fusionOnly){ctx.textAlign='right';ctx.font='5.4px Arial';ctx.fillStyle=light;ctx.fillText('GRUNDWERTE',220,390);}
  // Content is drawn ABOVE the original metallic layout to avoid covering lore.
  return canvas;
@@ -94,8 +111,14 @@ root.addEventListener('load',async()=>{
  const msg=document.getElementById('message');
  try{
   const w=root.contentWindow;
-  const cards=w.eval("ArcaneArtCatalog.installed.cards.map(x=>{const c=CARDS[x.id],t=ArcaneCardTemplates.choose(c);return {card:{id:c.id,name:c.name,level:c.level,atk:c.atk,def:c.def,role:c.role,element:c.element,desc:c.desc,art:c.art,fusionOnly:!!c.fusionOnly,ace:!!c.ace,essenceMonster:!!c.essenceMonster},family:t.family,frame:t.frame,template:t.id}})");
-  if(cards.length!==10||new Set(cards.map(x=>x.card.id)).size!==10)throw new Error('Unerwartete Kartenzuordnung');
+  const ids=wave==='01'?'ArcaneArtCatalog.installed.cards.map(x=>x.id)':JSON.stringify(wave02Ids);
+  const cards=w.eval(ids+".map(id=>{const c=CARDS[id];if(!c)throw Error('Karte fehlt: '+id);const t=ArcaneCardTemplates.choose(c);if(!t)throw Error('Kein Template: '+id);return {card:{id:c.id,name:c.name,level:c.level,atk:c.atk,def:c.def,role:c.role,element:c.element,desc:c.desc,art:c.art,fusionOnly:!!c.fusionOnly,ace:!!c.ace,essenceMonster:!!c.essenceMonster},family:t.family,frame:t.frame,template:t.id}})");
+  const expected=wave==='02'?20:10;
+  if(cards.length!==expected||new Set(cards.map(x=>x.card.id)).size!==expected)throw new Error('Unerwartete Kartenzuordnung');
+  if(wave==='02'){
+   if(cards.some(x=>x.card.level>10||x.card.level<1))throw new Error('Level 11/12 dürfen nicht exportiert werden');
+   if(new Set(cards.map(x=>x.card.art)).size!==20||cards.some(x=>!x.card.art?.startsWith('assets/custom-art/')))throw new Error('Doppelte/fehlende Originalillustrationen');
+  }
   const built=[];
   for(const model of cards){
    const canvas=await cardDraw(model);
@@ -104,20 +127,20 @@ root.addEventListener('load',async()=>{
    label.append(img);
    const name=document.createElement('strong');name.textContent=model.card.name;
    label.append(name);gallery.append(label);
-   built.push({id:model.card.id,filename:model.card.art.split('/').pop().replace('.webp','.png'),base64:canvas.toDataURL('image/png').split(',')[1],metadata:model});
+   built.push({id:model.card.id,filename:wave==='02'?'monster-'+String(model.card.id).padStart(4,'0')+'.png':model.card.art.split('/').pop().replace('.webp','.png'),base64:canvas.toDataURL('image/png').split(',')[1],metadata:model});
   }
   // Contact sheet, suitable for thumbnail review and release notes.
-  const sheet=document.createElement('canvas');sheet.width=1300;sheet.height=1140;
-  const c=sheet.getContext('2d');c.fillStyle='#0b1323';c.fillRect(0,0,1300,1140);
+  const sheet=document.createElement('canvas');sheet.width=1300;sheet.height=114+Math.ceil(cards.length/5)*507+12;
+  const c=sheet.getContext('2d');c.fillStyle='#0b1323';c.fillRect(0,0,sheet.width,sheet.height);
   c.fillStyle='#f8e5b5';c.font='bold 44px Georgia';c.fillText('ARCANE DUEL · BESTIARIUM',34,58);
-  c.font='20px Arial';c.fillStyle='#bdc9d8';c.fillText('Monsterkarten · Produktionswelle 01 · 10 Designs',38,92);
+  c.font='20px Arial';c.fillStyle='#bdc9d8';c.fillText('Monsterkarten · Produktionswelle '+wave+' · '+cards.length+' Designs',38,92);
   [...gallery.querySelectorAll('canvas')].forEach((canvas,i)=>{
    const x=22+i%5*258,y=114+Math.floor(i/5)*507;
    c.drawImage(canvas,x,y,245,390);
   });
-  document.getElementById('pngExport').textContent=JSON.stringify({status:'ok',cards:built,sheet:sheet.toDataURL('image/png').split(',')[1],preview:sheet.toDataURL('image/webp',.36).split(',')[1]});
+  document.getElementById('pngExport').textContent=JSON.stringify({status:'ok',wave,cards:built,sheet:sheet.toDataURL('image/png').split(',')[1],preview:sheet.toDataURL('image/webp',.36).split(',')[1]});
   document.documentElement.dataset.cardExport='pass';
-  msg.textContent='10 fertige Monsterkarten in Originalrahmen gerendert.';
+  msg.textContent=cards.length+' fertige Monsterkarten in Originalrahmen gerendert.';
  }catch(e){
   document.documentElement.dataset.cardExport='fail';
   msg.textContent='FEHLER: '+(e?.stack||e);
