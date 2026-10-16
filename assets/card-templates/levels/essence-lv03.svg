@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 408" role="img" aria-label="essence Level 3">
+ <path d="M15 48V30L30 15H86 M170 15H226L241 30V48M15 360V379L30 393H86M170 393H226L241 379V360" fill="none" stroke="#98d9f4" stroke-width="1.43" opacity=".95"/>
+ <path d="M23 52V350M233 52V350" fill="none" stroke="#f2fcff" stroke-width=".7" opacity=".42"/>
+ <g><path d="M12 62.0l3 5-3 5-3-5Z" fill="#98d9f4" stroke="#f2fcff" stroke-width=".6" opacity=".82"/><path d="M12 193.0l3 5-3 5-3-5Z" fill="#98d9f4" stroke="#f2fcff" stroke-width=".6" opacity=".82"/><path d="M12 324.0l3 5-3 5-3-5Z" fill="#98d9f4" stroke="#f2fcff" stroke-width=".6" opacity=".82"/><path d="M244 62.0l3 5-3 5-3-5Z" fill="#98d9f4" stroke="#f2fcff" stroke-width=".6" opacity=".82"/><path d="M244 193.0l3 5-3 5-3-5Z" fill="#98d9f4" stroke="#f2fcff" stroke-width=".6" opacity=".82"/><path d="M244 324.0l3 5-3 5-3-5Z" fill="#98d9f4" stroke="#f2fcff" stroke-width=".6" opacity=".82"/><path d="M31 37Q68 34.0 91 37 M165 37Q188 34.0 225 37" fill="none" stroke="#f2fcff" stroke-width="1.1" opacity=".82"/></g>
+ <path d="M108 21l10-9h20l10 9-10 12h-20Z" fill="#153951" stroke="#98d9f4" stroke-width="2.2"/>
+ <path d="M113 21l7-6h16l7 6-7 8h-16Z" fill="none" stroke="#f2fcff" stroke-width=".7" opacity=".85"/>
+ <text x="128" y="25" font-family="Georgia,serif" font-size="8" font-weight="bold" text-anchor="middle" fill="#f2fcff">III</text>
+ <circle cx="128" cy="397" r="2.6" fill="#98d9f4" stroke="#f2fcff" stroke-width=".8"/>
+ </svg>

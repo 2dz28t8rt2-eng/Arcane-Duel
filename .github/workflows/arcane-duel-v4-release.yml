@@ -24,6 +24,8 @@ jobs:
         run: python tools/arcane-v4-export.py import
       - name: Render 94 cards in seven level-ordered waves
         run: python tools/arcane-v4-export.py render
+      - name: Refresh original Wave 01 with level-specific frames
+        run: python tools/render-legacy-wave01-frames-v401.py
       - name: Publish generated images and source audit on development
         run: |
           set -euo pipefail

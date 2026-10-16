@@ -49,8 +49,9 @@ async function cardDraw(model){
  const c=model.card;
  const [rim,light]=fallBacks[model.family]||fallBacks.normal;
  const [roleBg,roleText]=rolePalette[c.role]||rolePalette.guardian;
- const [art,frame]=await Promise.all([loadImage(path(c.art)),loadImage(path(model.frame))]);
+ const [art,frame,levelTrim]=await Promise.all([loadImage(path(c.art)),loadImage(path(model.frame)),model.levelOverlay?loadImage(path(model.levelOverlay)):Promise.resolve(null)]);
  const canvas=document.createElement('canvas');canvas.width=768;canvas.height=1224;
+ // Original SVG and individual level trim are both rendered at full resolution.
  const ctx=canvas.getContext('2d',{alpha:false});ctx.scale(3,3);
  const bg=ctx.createLinearGradient(15,10,246,397);bg.addColorStop(0,'#19213a');bg.addColorStop(.5,'#080f20');bg.addColorStop(1,'#171a35');
  rounded(ctx,1,1,254,406,15,bg,rim,2);
@@ -105,6 +106,7 @@ async function cardDraw(model){
  if(!lore)throw new Error('Kartenbeschreibung passt nicht: '+c.name);
  ctx.font=loreSize+'px Arial';lore.forEach((line,i)=>ctx.fillText(line,37,358+i*(lore.length===4?8.1:9.5)));
  if(c.fusionOnly){ctx.textAlign='right';ctx.font='5.4px Arial';ctx.fillStyle=light;ctx.fillText('GRUNDWERTE',220,390);}
+ if(levelTrim)ctx.drawImage(levelTrim,0,0,256,408);
  // Content is drawn ABOVE the original metallic layout to avoid covering lore.
  return canvas;
 }
@@ -113,7 +115,7 @@ root.addEventListener('load',async()=>{
  try{
   const w=root.contentWindow;
   const ids=wave==='01'?'ArcaneArtCatalog.installed.cards.map(x=>x.id)':JSON.stringify(wave==='02'?wave02Ids:(waveV4Ids[wave]||[]));
-  const cards=w.eval(ids+".map(id=>{const c=CARDS[id];if(!c)throw Error('Karte fehlt: '+id);const t=ArcaneCardTemplates.choose(c);if(!t)throw Error('Kein Template: '+id);return {card:{id:c.id,name:c.name,level:c.level,atk:c.atk,def:c.def,role:c.role,element:c.element,desc:c.desc,art:c.art,fusionOnly:!!c.fusionOnly,ace:!!c.ace,essenceMonster:!!c.essenceMonster},family:t.family,frame:t.frame,template:t.id}})");
+  const cards=w.eval(ids+".map(id=>{const c=CARDS[id];if(!c)throw Error('Karte fehlt: '+id);const t=ArcaneCardTemplates.choose(c);if(!t)throw Error('Kein Template: '+id);return {card:{id:c.id,name:c.name,level:c.level,atk:c.atk,def:c.def,role:c.role,element:c.element,desc:c.desc,art:c.art,fusionOnly:!!c.fusionOnly,ace:!!c.ace,essenceMonster:!!c.essenceMonster},family:t.family,frame:t.frame,template:t.id,levelOverlay:window.ArcaneLevelFrames?.resolve(c)?.overlay||null}})");
   const expected=({'01':10,'02':20,'03':20,'04':20,'05':20,'06':15,'07':5,'08':3,'09':11})[wave];
   if(cards.length!==expected||new Set(cards.map(x=>x.card.id)).size!==expected)throw new Error('Unerwartete Kartenzuordnung');
   if(wave==='02'){
