@@ -87,8 +87,10 @@ def build(waves):
    raw=subprocess.run(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=180)
    doc=raw.stdout.decode('utf8','replace')
    if 'data-card-export="pass"' not in doc:
-    print('BROWSER DEBUG:',raw.stderr.decode('utf8','replace')[-2000:],flush=True)
-    print('HTML ERROR:',doc[-1800:],flush=True)
+    import re,html
+    match=re.search(r'<div id="message"[^>]*>(.*?)</div>',doc,re.S)
+    print('RENDERER ERROR WAVE',wave,html.unescape(re.sub('<[^>]+>','',match.group(1))) if match else '(missing message)',flush=True)
+    print('BROWSER DEBUG:',raw.stderr.decode('utf8','replace')[-1000:],flush=True)
     raise RuntimeError('Failed Chrome card renderer, wave '+wave)
    parser=DOM();parser.feed(doc)
    payload=json.loads(parser.text)
