@@ -1,0 +1,10 @@
+<!doctype html><html lang="de"><meta charset="utf-8"><title>Arcane Wave Card Metadata</title><pre id="exportStats">Loading</pre><iframe id="app" src="../index.html" style="display:none"></iframe><script>
+document.getElementById('app').addEventListener('load',()=>{
+ const out=document.getElementById('exportStats');
+ try{
+  const w=document.getElementById('app').contentWindow;
+  const payload=w.eval("ArcaneArtCatalog.installed.cards.map(c=>{const p=CARDS[c.id];const t=ArcaneCardTemplates.choose(p);return {id:p.id,name:p.name,level:p.level,atk:p.atk,def:p.def,role:p.role||null,element:p.element,desc:p.desc,art:p.art,ace:!!p.ace,essenceMonster:!!p.essenceMonster,fusionOnly:!!p.fusionOnly,ability:p.ability||null,template:t?.id||null}})");
+  out.textContent=JSON.stringify({status:'ok',cards:payload});
+ }catch(e){out.textContent=JSON.stringify({status:'error',error:String(e)});}
+});
+</script></html>
