@@ -29,9 +29,8 @@
   panel.style.setProperty('--ad-portal-width',width+'px');
   panel.style.setProperty('--ad-portal-height',height+'px');
  }
- function ghost(from,to){
-  if(!from||!to||!motion())return;
-  const card=anchor?.isConnected?anchor:null;if(!card)return;
+ function ghost(from,to,card=anchor){
+  if(!from||!to||!card||!motion())return;
   const clone=card.cloneNode(true);
   clone.removeAttribute('data-preview-card');clone.removeAttribute('data-preview-kind');
   clone.querySelectorAll('[data-preview-card],[data-preview-kind]').forEach(e=>{e.removeAttribute('data-preview-card');e.removeAttribute('data-preview-kind');});
@@ -66,7 +65,7 @@
   const preview=panel.querySelector('.deck-preview-card .hand-card');
   const large=preview?.getBoundingClientRect();
   if(!immediate&&motion()&&target&&large){
-   ghost(large,target);
+   ghost(large,target,preview);
    const anim=panel.animate([
     {opacity:1,transform:'translateY(0) scale(1)'},
     {opacity:0,transform:'translateY(-8px) scale(.94)'}
@@ -100,6 +99,7 @@
   panel.prepend(closeBtn);
   const current=anchorRect||sourceRect();
   const preview=panel.querySelector('.deck-preview-card .hand-card');
+  enhanceTraits(panel);
   if(motion()&&current&&preview){
    ghost(current,preview.getBoundingClientRect());
    panel.animate([{opacity:0,transform:'translateY(11px) scale(.95)'},{opacity:1,transform:'none'}],
@@ -140,5 +140,26 @@
   close(true);
   return beforeMenu(...args);
  };
- window.ArcaneDeckPortal=Object.freeze({version:'4.0.0',close:()=>close(),reposition:()=>activePanel&&position(activePanel)});
+ // Reused by the duel card inspector: exact same physical card-flight keyframes.
+ // This helper never changes a selected card, a summon, or a battle action.
+ function enhanceTraits(root){
+  if(!root)return;
+  root.querySelectorAll('.hand-card.tc-card').forEach(card=>{
+   const type=card.querySelector('.hand-type');
+   const role=card.querySelector('.arcane-card-role');
+   if(!type||!role||type.classList.contains('ad-card-traits'))return;
+   const label=type.textContent.trim();
+   type.textContent='';
+   const element=document.createElement('span');
+   element.className='ad-card-element';
+   element.textContent=label;
+   element.title='Element: '+label;
+   type.classList.add('ad-card-traits');
+   type.append(role,element);
+  });
+ }
+ window.ArcanePreviewMotion=Object.freeze({
+  version:'4.1.0',fly:ghost,enhanceTraits,enabled:motion
+ });
+ window.ArcaneDeckPortal=Object.freeze({version:'4.1.0',close:()=>close(),reposition:()=>activePanel&&position(activePanel)});
 })();
