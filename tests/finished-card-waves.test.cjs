@@ -19,7 +19,7 @@ test('Wave 02 picks 20 different existing original artworks with level cap 10',(
 test('Export uses live cards, not hardcoded art values or mock ATK/DEF',()=>{
  assert.match(renderer,/ArcaneCardTemplates\.choose\(c\)/);
  assert.match(renderer,/atk:c\.atk,def:c\.def/);
- assert.match(renderer,/wave==='02'\?20:10/);
+ assert.match(renderer,/const expected=/);assert.match(renderer,/'02':20/);
  assert.match(renderer,/sheet.height=114\+Math\.ceil\(cards.length\/5\)\*507\+12/);
  assert.match(renderer,/Kartenname passt nicht in drei Zeilen/);
  assert.match(renderer,/Level 11\/12 dürfen nicht exportiert werden/);
@@ -34,8 +34,8 @@ test('Wave 02 workflow creates 20 PNG images and remains in development',()=>{
  assert.ok(!workflow.includes('HEAD:main'));
 });
 test('Gallery displays both series and full PNG downloads',()=>{
- assert.match(gallery,/const waves=\['01','02'\]/);
- assert.match(gallery,/cards.length!==30/);
+ assert.match(gallery,/const waves=\['01','02','03'/);
+ assert.match(gallery,/totalReady/);
  assert.match(gallery,/c.wave/);
  assert.match(gallery,/download=c.filename/);
 });
