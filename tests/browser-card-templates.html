@@ -64,6 +64,38 @@ async function start(){
     'Real game DOM uses the original metallic ACE-05 SVG');
   check(gw.getComputedStyle(late,'::before').backgroundImage.includes('ace-lv10.svg'),
     'Individual Level 10 ornament is visibly layered over the game card');
+  // Frame cleanup regression: exactly one of each visual layer, no legacy ACE,
+  // Old Bronze overlay or decorative pseudo-element may survive.
+  const aceStyle=gw.getComputedStyle(late);
+  const aceBefore=gw.getComputedStyle(late,'::before');
+  const aceAfter=gw.getComputedStyle(late,'::after');
+  check((aceStyle.backgroundImage.match(/ace-05\.svg/g)||[]).length===1,
+    'ACE has exactly one official base SVG in its background');
+  check(!aceStyle.backgroundImage.includes('ace-lv10.svg') &&
+        !aceStyle.backgroundImage.includes('ace-regalia'),
+    'ACE base contains no duplicate level engraving or legacy regalia');
+  check((aceBefore.backgroundImage.match(/ace-lv10\.svg/g)||[]).length===1,
+    'ACE has exactly one level overlay drawn on ::before');
+  check(aceBefore.borderTopWidth==='0px' && aceBefore.animationName==='none',
+    'ACE ornament has no competing border stroke or legacy animation');
+  check(aceAfter.display==='none' && aceAfter.content==='none',
+    'Legacy ACE embossed glyph/sheen is completely disabled');
+  check(aceStyle.borderTopStyle==='solid' && aceStyle.borderTopWidth==='2px',
+    'ACE receives exactly one solid official family-colored outer border');
+  check(!aceStyle.outlineStyle || aceStyle.outlineStyle==='none',
+    'Legacy ACE/special double outline removed');
+  const boardStyle=gw.getComputedStyle(field),boardBefore=gw.getComputedStyle(field,'::before');
+  check((boardStyle.backgroundImage.match(/fusion-04\.svg/g)||[]).length===1,
+    'Battlefield Fusion draws its official base SVG only once');
+  check(boardBefore.backgroundImage.includes('fusion-lv07.svg') &&
+        boardBefore.borderTopWidth==='0px',
+    'Battlefield Fusion draws only its one transparent level inscription');
+  const focus=doc.createElement('div');
+  focus.className='hand-card tc-card ad-template ad-template-normal-01 ad-level-frame ad-level-normal-01 selected';
+  doc.body.append(focus);
+  check(gw.getComputedStyle(focus).outlineStyle==='solid',
+    'Gameplay selection highlight survives removal of legacy frame outlines');
+  focus.remove();
   late.remove();field.remove();fate.remove();
   for(const family of ['normal','fusion','ace','essence']){
    const response=await fetch('../assets/card-templates/'+family+'-05.svg');

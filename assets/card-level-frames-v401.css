@@ -1,12 +1,15 @@
 /* Arcane Duel 4.0.1: additional per-level metalwork on top of real SVG frames.
  * CSS loaded AFTER existing template and visual CSS to resolve old collisions.
  */
+/* ONLY the official family/tier SVG belongs to the card background.
+ * The ONE transparent level trim is drawn by ::before in v402.
+ * Do not insert the same SVG into two separate painting layers. */
 .hand-card.tc-card.ad-template.ad-level-frame,
 .board-creature.tc-card.ad-template.ad-level-frame{
-  background-image:var(--ad-level-trim),var(--ad-tpl-frame),
+  background-image:var(--ad-tpl-frame),
     radial-gradient(ellipse at 50% 0%,color-mix(in srgb,var(--ad-tpl-light) 28%,transparent),transparent 47%),
     linear-gradient(136deg,var(--ad-tpl-light) 0%,var(--ad-tpl-rim) 4%,var(--ad-tpl-night) 13%,#101424 62%,var(--ad-tpl-night) 86%,var(--ad-tpl-rim) 96%,var(--ad-tpl-light) 100%)!important;
-  background-size:100% 100%,100% 100%,cover,cover!important;
+  background-size:100% 100%,cover,cover!important;
   background-position:center!important;
   background-repeat:no-repeat!important;
   border-color:var(--ad-tpl-rim)!important;
