@@ -104,12 +104,12 @@ html body .arcane-enemy-large .hand-card.tc-card[data-element] .hand-type.ad-car
  color:var(--e-meta-color,#e2d7c4)!important;text-shadow:none!important;
  animation:none!important;filter:none!important;
 }
-#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="FEUER"]) {--e-meta-color:10.7s;}
-#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="WASSER"]) {--e-meta-color:13.5s;}
-#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="ERDE"]) {--e-meta-color:15s;}
-#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="WIND"]) {--e-meta-color:8.7s;}
-#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="LICHT"]) {--e-meta-color:12.3s;}
-#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="DUNKEL"]) {--e-meta-color:16s;}
+#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="FEUER"]) {--e-meta-color:#ffb780;}
+#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="WASSER"]) {--e-meta-color:#9adfff;}
+#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="ERDE"]) {--e-meta-color:#bae99c;}
+#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="WIND"]) {--e-meta-color:#a6ece9;}
+#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="LICHT"]) {--e-meta-color:#ffe6a0;}
+#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="DUNKEL"]) {--e-meta-color:#d9b6ff;}
 
 /* Role banners below collection cards and in the enlarged side pane. Text stays accessible. */
 html body #menuScreen .deck-editor-grid .collection-item .arcane-role-readout,
