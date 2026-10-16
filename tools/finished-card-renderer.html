@@ -114,7 +114,7 @@ root.addEventListener('load',async()=>{
    const x=22+i%5*258,y=114+Math.floor(i/5)*507;
    c.drawImage(canvas,x,y,245,390);
   });
-  document.getElementById('pngExport').textContent=JSON.stringify({status:'ok',cards:built,sheet:sheet.toDataURL('image/png').split(',')[1]});
+  document.getElementById('pngExport').textContent=JSON.stringify({status:'ok',cards:built,sheet:sheet.toDataURL('image/png').split(',')[1],preview:sheet.toDataURL('image/webp',.36).split(',')[1]});
   document.documentElement.dataset.cardExport='pass';
   msg.textContent='10 fertige Monsterkarten in Originalrahmen gerendert.';
  }catch(e){
