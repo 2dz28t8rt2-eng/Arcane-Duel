@@ -40,6 +40,58 @@ document.getElementById('app').addEventListener('load',async ()=>{
   d.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
   await pause(540);
   test(!d.querySelector('.ad-deck-portal'),'Escape dismisses the card portal');
+
+  // Dedicated layout QA for the real bug report: close button must never
+  // overlap the ornate card border, and role + element share one aligned ribbon.
+  const openCard=cards[1];openCard?.scrollIntoView({block:'center',behavior:'instant'});openCard?.click();
+  const fitted=d.querySelector('#deckSidePreview.ad-deck-portal');
+  const fittedCard=fitted?.querySelector('.deck-preview-card .hand-card.tc-card');
+  const button=fitted?.querySelector('.ad-deck-close');
+  const bounds=fitted?.getBoundingClientRect(),cb=fittedCard?.getBoundingClientRect(),xb=button?.getBoundingClientRect();
+  test(!!bounds&&!!cb&&cb.left>=bounds.left+7&&cb.right<=bounds.right-7,
+   'Deck preview card fully fits INSIDE the outer gilded window');
+  test(!!xb&&!!cb&&xb.bottom<=cb.top-3,
+   'Close X stays in its own toolbar ABOVE the ornate card, not on the border');
+  test(!!fittedCard?.querySelector('.hand-type.ad-card-traits .arcane-card-role')&&
+   !!fittedCard?.querySelector('.hand-type.ad-card-traits .ad-card-element'),
+   'Large deck card shows role left and element right in the same aligned row');
+  button?.click();
+  await pause(510);
+
+  // Duel inspection uses the very same shared flight helper, without changing
+  // summon/attack click behavior. Check own hand, own board, enemy modal.
+  w.eval('game=createGame({mode:"pve",opponentId:1,context:"free",starter:0,seed:1337});uiMode="duel";busy=false;aiRunning=false;$("menuScreen").hidden=true;$("duelScreen").hidden=false;render()');
+  test(!!w.ArcaneDuelCardCinema?.sharedMotion()&&!!w.ArcanePreviewMotion,
+   'Duel preview and deck preview share one card-flight engine');
+  const hand=d.querySelector('#hand [data-hand]');
+  hand?.click();
+  test(!!d.querySelector('#largeCardPreview .hand-card.tc-card')&&
+   !!d.querySelector('#largeCardPreview .hand-type.ad-card-traits .ad-card-element'),
+   'Own hand card opens with a real large inspector and aligned element ribbon');
+  test(d.querySelectorAll('.ad-deck-ghost').length>=1,
+   'Own hand miniature visibly flies into duel inspector');
+  await pause(490);
+  hand?.closest('.hand')?.querySelector('[data-hand]')?.click();
+  await pause(640);
+  test(!d.querySelector('.ad-deck-ghost'),'Return trip leaves no orphan card clone');
+
+  w.eval('game.players[0].field[0]=newInstance(game,0,0);game.selection=null;render()');
+  d.querySelector('#ownRow [data-mine="0"]')?.click();
+  test(!!d.querySelector('#largeCardPreview .hand-card.tc-card'),
+   'Own field card uses same duel inspection entry');
+  await pause(490);
+
+  w.eval('game.selection=null;game.players[1].field[0]=newInstance(game,0,1);render()');
+  d.querySelector('#enemyRow [data-enemy="0"]')?.click();
+  test(!!d.querySelector('.arcane-enemy-large .hand-type.ad-card-traits .arcane-card-role'),
+   'Enemy field card modal receives matching enlarged role/element ribbon');
+  test(d.querySelectorAll('.ad-deck-ghost').length>=1,
+   'Enemy miniature flies into its full modal inspection');
+  d.querySelector('#arcaneCloseEnemy')?.click();
+  await pause(670);
+  test(!d.querySelector('.ad-deck-ghost'),
+   'Closing opponent inspection absorbs the preview and cleans up the clone');
+
   const pair=w.ArcaneFusionBonus.describe({pattern:'Paar',materialsUsed:2,
    rollMath:{combo:{name:'Paar',qualityPct:5.5,rollBonus:0,materialCount:2}}});
   const triplet=w.ArcaneFusionBonus.describe({pattern:'Drilling',materialsUsed:3,
