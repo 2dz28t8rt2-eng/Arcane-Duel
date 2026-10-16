@@ -65,6 +65,7 @@
   return null;
  }
  function apply(){
+  if(typeof CARDS==='undefined'||!Array.isArray(CARDS))return {count:0,cards:[],issues:[]};
   const used=new Set(),installed=[],issues=[];
   for(const design of wave){
    const card=pick(design.select,used);
