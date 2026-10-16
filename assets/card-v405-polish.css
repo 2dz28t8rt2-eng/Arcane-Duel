@@ -1,0 +1,174 @@
+/* Arcane Duel 4.0.5 — element breath, quiet motes and heraldic roles.
+   Isolated visual layer. Place AFTER card-shell-v404.css.
+   Animated element effects may ONLY target .hand-type INSIDE .hand-card.
+   Collection meta labels are STATIC. */
+
+/* Top-right LV pill is redundant now the large enamel disc is between ATK and DEF. */
+html body .hand-card.tc-card.ad-template.ad-level-frame:not(.tc-fate) .card-level-badge {
+ display:none!important;
+}
+html body .hand-card.tc-card.ad-template.ad-level-frame:not(.tc-fate) .hand-title {
+ justify-content:flex-start!important;align-items:center!important;min-height:25px!important;
+ height:auto!important;flex:0 0 auto!important;padding:3px 6px!important;
+ gap:0!important;overflow:hidden!important;
+ background:linear-gradient(105deg,#101c31 0%,#1b2940 48%,#0f182b 100%)!important;
+}
+html body .hand-card.tc-card.ad-template.ad-level-frame:not(.tc-fate) .hand-title .card-name {
+ display:-webkit-box!important;-webkit-box-orient:vertical!important;
+ -webkit-line-clamp:2!important;line-clamp:2!important;
+ max-width:100%!important;min-width:0!important;white-space:normal!important;
+ overflow:hidden!important;text-overflow:ellipsis!important;overflow-wrap:anywhere!important;
+ font:800 11.5px/1.17 Georgia,serif!important;letter-spacing:.005em!important;
+ color:#fff1d6!important;text-align:left!important;
+ text-shadow:0 1px 2px #000e,0 0 5px #ffebbd28!important;
+}
+html body #duelScreen .card-preview-panel .hand-card.tc-card.ad-level-frame .hand-title .card-name,
+html body #menuScreen .deck-preview-card .hand-card.tc-card.ad-level-frame .hand-title .card-name,
+html body > #deckSidePreview .hand-card.tc-card.ad-level-frame .hand-title .card-name {
+ font-size:clamp(15px,1.9vw,21px)!important;line-height:1.14!important;
+}
+
+/* All six original elements, colors from the original 4.0.5 design package. */
+html body .hand-card.tc-card[data-element="FEUER"] {--e-bright:#ffd39c;--e-border:#ec8445;--e-bg1:#682e19;--e-bg2:#241421;--e-particles:255 155 75;--e-halo:#f27438a8;--e-cycle:6.5s;--e-mote-cycle:10.7s;}
+html body .hand-card.tc-card[data-element="WASSER"] {--e-bright:#d4f5ff;--e-border:#54c5fb;--e-bg1:#134c69;--e-bg2:#0a223b;--e-particles:124 216 255;--e-halo:#3fb4ee94;--e-cycle:8.2s;--e-mote-cycle:13.5s;}
+html body .hand-card.tc-card[data-element="ERDE"] {--e-bright:#e4f9c5;--e-border:#91ca77;--e-bg1:#315039;--e-bg2:#18291f;--e-particles:184 224 120;--e-halo:#88ce5b86;--e-cycle:9s;--e-mote-cycle:15s;}
+html body .hand-card.tc-card[data-element="WIND"] {--e-bright:#e0fffa;--e-border:#5ed2cc;--e-bg1:#235562;--e-bg2:#0e2c3c;--e-particles:156 237 235;--e-halo:#53d2c588;--e-cycle:7.6s;--e-mote-cycle:8.7s;}
+html body .hand-card.tc-card[data-element="LICHT"] {--e-bright:#fff6ce;--e-border:#eecb69;--e-bg1:#745520;--e-bg2:#302519;--e-particles:255 230 148;--e-halo:#eec664a0;--e-cycle:8.8s;--e-mote-cycle:12.3s;}
+html body .hand-card.tc-card[data-element="DUNKEL"] {--e-bright:#efdbff;--e-border:#af7adb;--e-bg1:#523266;--e-bg2:#241730;--e-particles:201 151 251;--e-halo:#ab6bd7a8;--e-cycle:10s;--e-mote-cycle:16s;}
+
+/* Only the inner card stripe breathes. No effects on the collection readout. */
+html body .hand-card.tc-card[data-element] .hand-type:not(.ad-card-traits) {
+ position:relative!important;isolation:isolate!important;display:flex!important;
+ align-items:center!important;justify-content:center!important;min-width:0!important;
+ box-sizing:border-box!important;overflow:hidden!important;padding:2px 5px!important;
+ color:var(--e-bright)!important;
+ background:linear-gradient(90deg,var(--e-bg2),var(--e-bg1) 49%,var(--e-bg2))!important;
+ border:1px solid var(--e-border)!important;font-weight:900!important;letter-spacing:.055em!important;
+ text-align:center!important;text-shadow:0 1px 2px #000,0 0 4px var(--e-border)!important;
+ box-shadow:0 0 0 1px #050916,inset 0 0 3px var(--e-halo)!important;
+ animation:ad405-element-breath var(--e-cycle,7.2s) ease-in-out infinite!important;
+}
+html body .hand-card.tc-card[data-element] .hand-type:not(.ad-card-traits)::after {
+ content:""!important;display:block!important;position:absolute!important;inset:0!important;
+ pointer-events:none!important;z-index:0!important;opacity:.26;
+ background-image:
+   radial-gradient(circle,rgb(var(--e-particles) / .85) 0 1px,transparent 1.7px),
+   radial-gradient(circle,rgb(var(--e-particles) / .55) 0 .7px,transparent 1.6px),
+   radial-gradient(ellipse at 50% 50%,rgb(var(--e-particles) / .16),transparent 67%);
+ background-size:43px 24px,69px 23px,100% 100%;
+ background-position:6px 4px,28px 10px,0 0;
+ background-repeat:repeat,repeat,no-repeat;
+ animation:ad405-element-motes var(--e-mote-cycle,11.5s) ease-in-out infinite alternate!important;
+}
+/* In split role/element rows, breathe the element chip, NOT the role chip. */
+html body .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element {
+ position:relative!important;isolation:isolate!important;overflow:hidden!important;
+ border:1px solid var(--e-border)!important;border-radius:4px!important;
+ background:linear-gradient(100deg,var(--e-bg2),var(--e-bg1),var(--e-bg2))!important;
+ color:var(--e-bright)!important;font-weight:900!important;
+ text-shadow:0 1px 2px #000,0 0 3px var(--e-border)!important;
+ box-shadow:inset 0 0 3px var(--e-halo)!important;
+ animation:ad405-element-breath var(--e-cycle,7.2s) ease-in-out infinite!important;
+}
+html body .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element::after {
+ content:"";position:absolute;inset:0;pointer-events:none;opacity:.20;
+ background:radial-gradient(circle,rgb(var(--e-particles) / .8) 0 1px,transparent 2px) 7px 2px / 37px 19px repeat;
+ animation:ad405-element-motes var(--e-mote-cycle,12s) ease-in-out infinite alternate;
+}
+@keyframes ad405-element-breath {
+ 0%,100%{box-shadow:0 0 0 1px #050916,inset 0 0 2px var(--e-halo),0 0 1px transparent;filter:brightness(1)}
+ 48%,57%{box-shadow:0 0 0 1px #050916,inset 0 0 7px var(--e-halo),0 0 8px var(--e-halo);filter:brightness(1.12)}
+}
+@keyframes ad405-element-motes {
+ 0%{opacity:.12;transform:translate3d(-4px,1px,0)}
+ 55%{opacity:.34}
+ 100%{opacity:.18;transform:translate3d(6px,-2px,0)}
+}
+/* The old duel-specific 52% left padding is inappropriate for the centered element stripe. */
+html body #duelScreen .hand-card.tc-card[data-element] .hand-type:not(.ad-card-traits) {
+ padding-left:5px!important;padding-right:5px!important;text-align:center!important;justify-content:center!important;
+}
+/* In large previews preserve contrast against old brown affinity text styling. */
+html body #duelScreen .card-preview-panel .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element,
+html body #deckSidePreview.ad-deck-portal .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element,
+html body .arcane-enemy-large .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element {
+ color:var(--e-bright)!important;border-color:var(--e-border)!important;
+ background:linear-gradient(100deg,var(--e-bg2),var(--e-bg1),var(--e-bg2))!important;
+ text-shadow:0 1px 2px #000,0 0 3px var(--e-border)!important;
+ animation:ad405-element-breath var(--e-cycle,7.2s) ease-in-out infinite!important;
+}
+
+/* Static element summary BELOW the card, independently colored from child data-element. */
+#menuScreen .deck-editor-grid .collection-item .collection-actions > span {
+ font-weight:800!important;letter-spacing:.013em!important;
+ color:var(--e-meta-color,#e2d7c4)!important;text-shadow:none!important;
+ animation:none!important;filter:none!important;
+}
+#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="FEUER"]) {--e-meta-color:10.7s;}
+#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="WASSER"]) {--e-meta-color:13.5s;}
+#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="ERDE"]) {--e-meta-color:15s;}
+#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="WIND"]) {--e-meta-color:8.7s;}
+#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="LICHT"]) {--e-meta-color:12.3s;}
+#menuScreen .deck-editor-grid .collection-item:has(> .hand-card[data-element="DUNKEL"]) {--e-meta-color:16s;}
+
+/* Role banners below collection cards and in the enlarged side pane. Text stays accessible. */
+html body #menuScreen .deck-editor-grid .collection-item .arcane-role-readout,
+html body #menuScreen .deck-preview-meta .arcane-role-readout {
+ --role-mark:var(--role-mark-color,#f3d5a3);
+ --role-icon-left:url("card-v405-icons/combatant-swords.svg");
+ --role-icon-right:url("card-v405-icons/combatant-swords.svg");
+ --role-lamp:#e6bf724d;
+ display:grid!important;grid-template-columns:17px minmax(0,1fr) 17px!important;
+ align-items:center!important;justify-items:center!important;gap:3px!important;
+ min-height:35px!important;padding:6px 5px!important;margin:9px 2px 6px!important;
+ box-sizing:border-box!important;text-align:center!important;
+ font:850 10px/1.26 system-ui,sans-serif!important;letter-spacing:.012em!important;
+ white-space:normal!important;overflow-wrap:anywhere!important;
+}
+html body #menuScreen .deck-editor-grid .collection-item .arcane-role-readout::before,
+html body #menuScreen .deck-editor-grid .collection-item .arcane-role-readout::after,
+html body #menuScreen .deck-preview-meta .arcane-role-readout::before,
+html body #menuScreen .deck-preview-meta .arcane-role-readout::after {
+ content:""!important;display:block!important;width:16px!important;height:16px!important;
+ background:currentColor!important;
+ -webkit-mask-image:var(--role-icon-left)!important;mask-image:var(--role-icon-left)!important;
+ -webkit-mask-position:center!important;mask-position:center!important;
+ -webkit-mask-size:contain!important;mask-size:contain!important;
+ -webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;
+ opacity:.9!important;filter:drop-shadow(0 0 3px var(--role-lamp))!important;
+ animation:none!important;pointer-events:none!important;
+}
+html body #menuScreen .deck-editor-grid .collection-item .arcane-role-readout::after,
+html body #menuScreen .deck-preview-meta .arcane-role-readout::after {
+ -webkit-mask-image:var(--role-icon-right)!important;mask-image:var(--role-icon-right)!important;
+}
+html body #menuScreen .arcane-role-readout.arcane-role-predator {--role-icon-left:url("card-v405-icons/predator-skull.svg");--role-icon-right:url("card-v405-icons/predator-skull.svg");--role-lamp:#fa977383;}
+html body #menuScreen .arcane-role-readout.arcane-role-guardian {--role-icon-left:url("card-v405-icons/guardian-shield.svg");--role-icon-right:url("card-v405-icons/guardian-sword.svg");--role-lamp:#9fe1b383;}
+html body #menuScreen .arcane-role-readout.arcane-role-defender {--role-icon-left:url("card-v405-icons/guardian-shield.svg");--role-icon-right:url("card-v405-icons/guardian-shield.svg");--role-lamp:#9fe1b383;}
+html body #menuScreen .arcane-role-readout.arcane-role-soul {--role-icon-left:url("card-v405-icons/soul-spiral.svg");--role-icon-right:url("card-v405-icons/soul-spiral.svg");--role-lamp:#cda5ff80;}
+html body #menuScreen .arcane-role-readout.arcane-role-weaver {--role-icon-left:url("card-v405-icons/weaver-rune.svg");--role-icon-right:url("card-v405-icons/weaver-rune.svg");--role-lamp:#cea9ff80;}
+html body #menuScreen .arcane-role-readout.arcane-role-hunter {--role-icon-left:url("card-v405-icons/hunter-arrow.svg");--role-icon-right:url("card-v405-icons/hunter-arrow.svg");--role-lamp:#b0d1ff7c;}
+html body #menuScreen .arcane-role-readout.arcane-role-support {--role-icon-left:url("card-v405-icons/support-star.svg");--role-icon-right:url("card-v405-icons/support-star.svg");--role-lamp:#b0e0ff7c;}
+html body #menuScreen .arcane-role-readout.arcane-role-combatant {--role-icon-left:url("card-v405-icons/combatant-swords.svg");--role-icon-right:url("card-v405-icons/combatant-swords.svg");--role-lamp:#e8c99c77;}
+html body #menuScreen .deck-preview-meta .arcane-role-readout {
+ grid-template-columns:22px minmax(0,1fr) 22px!important;font-size:13px!important;gap:8px!important;padding:10px 12px!important;
+}
+html body #menuScreen .deck-preview-meta .arcane-role-readout::before,
+html body #menuScreen .deck-preview-meta .arcane-role-readout::after {
+ width:20px!important;height:20px!important;
+}
+/* Accessibility & user setting: animations fully disabled when requested. */
+@media(prefers-reduced-motion:reduce) {
+ html body .hand-card.tc-card[data-element] .hand-type:not(.ad-card-traits),
+ html body .hand-card.tc-card[data-element] .hand-type:not(.ad-card-traits)::after,
+ html body .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element,
+ html body .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element::after {
+  animation:none!important;filter:none!important;
+ }
+}
+body.ad-motion-disabled .hand-card.tc-card[data-element] .hand-type:not(.ad-card-traits),
+body.ad-motion-disabled .hand-card.tc-card[data-element] .hand-type:not(.ad-card-traits)::after,
+body.ad-motion-disabled .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element,
+body.ad-motion-disabled .hand-card.tc-card[data-element] .hand-type.ad-card-traits .ad-card-element::after {
+ animation:none!important;filter:none!important;
+}
