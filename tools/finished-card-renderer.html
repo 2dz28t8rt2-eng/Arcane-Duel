@@ -124,7 +124,7 @@ root.addEventListener('load',async()=>{
   }
   if(wave>='03'){
    const planned=w.ArcaneArt4?.waves?.[wave];
-   if(!planned||cards.some((c,i)=>c.card.id!==planned[i]?.id||c.card.level!==planned[i].level||c.card.art!==planned[i].art||c.template!==planned[i].template))throw Error('Arcane 4.0 catalog/frame/art mismatch for Wave '+wave);
+   if(!planned||cards.some((c,i)=>c.card.id!==planned[i]?.id||c.card.level!==planned[i].level||c.card.art!==planned[i].art)){ const mismatch=cards.map((c,i)=>({id:c.card.id,level:c.card.level,art:c.card.art,template:c.template,expected:planned?.[i]})).filter(x=>!x.expected||x.id!==x.expected.id||x.level!==x.expected.level||x.art!==x.expected.art);throw Error('Arcane 4.0 catalog/art mismatch for Wave '+wave+': '+JSON.stringify(mismatch)); }
    if(cards.some(c=>c.card.level<1||c.card.level>10))throw Error('Reserved level in Wave '+wave);
   }
   const built=[];

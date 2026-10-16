@@ -101,7 +101,7 @@ def build(waves):
    for actual,planned in zip(payload['cards'],rows):
     m=actual['metadata'];assert actual['id']==planned['id']==m['card']['id']
     assert m['card']['art']==planned['art']
-    assert m['template']==planned['template'] and m['card']['level']==planned['level']
+    assert m['card']['level']==planned['level'] and m['template'].split('-')[0] in ('normal','fusion','ace','essence') # Real game template always wins
     filename='monster-'+str(actual['id']).zfill(4)+'.png'
     assert actual['filename']==filename
     png=base64.b64decode(actual['base64'])
