@@ -71,7 +71,7 @@ document.getElementById('app').addEventListener('load',async ()=>{
   test(d.querySelectorAll('.ad-deck-ghost').length>=1,
    'Own hand miniature visibly flies into duel inspector');
   await pause(490);
-  hand?.closest('.hand')?.querySelector('[data-hand]')?.click();
+  d.querySelector('#hand [data-hand]')?.click();
   await pause(640);
   test(!d.querySelector('.ad-deck-ghost'),'Return trip leaves no orphan card clone');
 
