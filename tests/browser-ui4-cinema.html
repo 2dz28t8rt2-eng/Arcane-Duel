@@ -115,8 +115,8 @@ document.getElementById('app').addEventListener('load',async ()=>{
   const preview=w.ArcaneArtCatalog;
   test(preview.key({id:123,level:10,fusionOnly:true})==='fusion/sovereign/0123',
    'Artwork foundation provides stable IDs and high-level category slots');
-  test(preview.resolve({id:123,level:10,fusionOnly:true})===null,
-   'Artwork foundation does not silently replace live game art or monster names');
+  test(preview.resolve({id:999999,level:10,fusionOnly:true})===null,
+   'Artwork catalog only replaces explicitly registered cards, never unrelated or future IDs');
  }catch(err){passed=false;records.push('EXCEPTION: '+(err?.stack||err));}
  output.textContent=records.join('\n');
  output.dataset.ui4Test=passed?'pass':'fail';
