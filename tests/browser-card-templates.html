@@ -80,7 +80,7 @@ async function start(){
     'ACE ornament has no competing border stroke or legacy animation');
   check(aceAfter.display==='none' && aceAfter.content==='none',
     'Legacy ACE embossed glyph/sheen is completely disabled');
-  check(aceStyle.borderTopStyle==='solid' && aceStyle.borderTopWidth==='2px',
+  check(aceStyle.borderTopStyle==='solid' && aceStyle.borderTopWidth==='1px',
     'ACE receives exactly one solid official family-colored outer border');
   check(!aceStyle.outlineStyle || aceStyle.outlineStyle==='none',
     'Legacy ACE/special double outline removed');
