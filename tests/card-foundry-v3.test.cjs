@@ -18,7 +18,7 @@ test('Cards keep original identifiers and combat stats but expose element metada
  assert.ok(game.includes("const displayElement=element=>element==='DUNKEL'?'Dunkelheit':element"));
  assert.doesNotMatch(game,/class=\"hand-description\">/);
  assert.match(game,/class=\"card-level-badge\"/);
- assert.match(game,/class="hand-stats" aria-label="Angriff \$\{t\.atk\}, Verteidigung \$\{t\.def\}"/);
+ assert.match(game,/class="hand-stats" aria-label="Angriff \$\{t\.atk\}, Level \$\{t\.level\}, Verteidigung \$\{t\.def\}"/);
 });
 test('Original fantasy gem frames distinguish normal, fusion and ACE cards',()=>{
  for(const select of [
