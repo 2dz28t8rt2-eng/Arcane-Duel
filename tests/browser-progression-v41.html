@@ -76,12 +76,12 @@ document.getElementById('app').addEventListener('load',async()=>{
   check(!d.getElementById('duelScreen').dataset.lpPhase&&!w.eval('busy')&&Number(d.getElementById('myLP').textContent)===w.eval('game.players[0].lp'),'LP enden exakt am echten Wert und die Steuerung wird freigegeben');
   w.eval(`game.players[0].field[2]=null;game.summoned=false;game.selection=null;const t=RPG_FUSIONS.find(c=>c.level===2&&!c.retired&&!c.enemyOnly);const f=newInstance(game,t.id,0);f.fusion=true;f.materialsUsed=3;game.pending={kind:'fusion',card:f,levels:[1,1],revealed:true};render();`);
   d.querySelector('[data-mine="2"]').click();
-  await pause(540);
+  await pause(900);
   const landed=d.querySelector('[data-mine="2"] .board-creature'),zone=d.querySelector('[data-mine="2"]');
   const cr=landed?.getBoundingClientRect(),zr=zone?.getBoundingClientRect();
   check(!!cr&&cr.left>=zr.left-1&&cr.right<=zr.right+1&&cr.top>=zr.top-1&&cr.bottom<=zr.bottom+1,'Die beschworene Fusion trifft genau innerhalb ihrer endgültigen Monsterzone auf');
   check(!!d.querySelector('.ad-sparks-dust'),'Staub erscheint zeitgleich mit dem Aufprall');
-  await pause(450);
+  await pause(100);
   check(!d.querySelector('.ad-titan-impact')&&!d.querySelector('.ad-impact-shake'),'Der Aufprall endet ohne zurückspringende Karte oder hängenbleibenden Effekt');
   w.eval(`window.__flightBounds=null;window.__ritualAnimate=Element.prototype.animate;
    Element.prototype.animate=function(...args){const anim=window.__ritualAnimate.apply(this,args);if(this.classList.contains('monster-card')){

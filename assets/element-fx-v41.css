@@ -41,9 +41,9 @@ html body.ad-motion-disabled .hand-card.tc-card[data-element][data-level] :is(.h
 html body.ad-motion-disabled .hand-card.tc-card[data-element][data-level] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::before,
 html body.ad-motion-disabled .hand-card.tc-card[data-element][data-level] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::after{display:none!important}
 @media(prefers-reduced-motion:reduce){
- html body .hand-card.tc-card[data-element] :is(.hand-type:not(.ad-card-traits),.ad-card-element),
- html body .hand-card.tc-card[data-element] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::before,
- html body .hand-card.tc-card[data-element] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::after{animation:none!important;filter:none!important}
- html body .hand-card.tc-card[data-element] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::before,
- html body .hand-card.tc-card[data-element] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::after{display:none!important}
+ html body .hand-card.tc-card[data-element][data-level] :is(.hand-type:not(.ad-card-traits),.ad-card-element),
+ html body .hand-card.tc-card[data-element][data-level] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::before,
+ html body .hand-card.tc-card[data-element][data-level] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::after{animation:none!important;filter:none!important}
+ html body .hand-card.tc-card[data-element][data-level] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::before,
+ html body .hand-card.tc-card[data-element][data-level] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::after{display:none!important}
 }
