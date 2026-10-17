@@ -47,3 +47,29 @@ Ab Level 5 gerundet nach 630 + 170×(L−4) + 14×(L−4)². Nur Vorschlag für 
 - Mögliches Zerlegen überflüssiger Karten für Arkanschmiede-Ressourcen und zufällige Karten aus klaren Levelbereichen; genaue Preise und Sicherheitsregeln fehlen.
 - Schwierigkeit IV, V und IX nicht ohne erneute Abstimmung ändern.
 - main nicht ohne Freigabe aktualisieren.
+
+
+## Status Update 18. Oktober 2026: neue 4.2-Balance auf development implementiert
+
+### Rollenfreies Fusionssystem
+- Allgemeine PvE-Fusionsvorlagen erhalten keine verbindliche Rollenprägung mehr; ihre gespeicherten alten Rollen-Metadaten sind nur noch Altdaten, der Fusionsablauf berechnet die Rolle ausschließlich anhand der eingesetzten Materialien.
+- Eindeutiger Spezialistenüberhang vererbt Predator beziehungsweise Verteidiger (Wächter und Seelenzehrer zählen für die Mehrheit zusammen); reine Seelenzehrer-Kombination ergibt Seelenzehrer.
+- Bei Gleichstand der Spezialisten oder ausschließlich neutralen Materialien wird das **Fusionsmonster** zum **Resonator**. Normale Allrounder werden nie als Resonator umbenannt.
+- Allrounder/Resonatoren sind bei der **Mehrheit neutral** und nehmen spezialisierten Materialien niemals ihre bestehende Rollenmehrheit weg.
+- Der Resonator erhält **keine ATK-/DEF-Gewichtungsverschiebung**, sondern die neutrale Verteilung ×1/×1 vor echten Würfen; seine reale Fusionsinstanz führt den Role-Override auch im gesicherten Duell.
+- Als später verbrauchtes Feldmaterial verleiht ein Resonator +10 % Qualitätsbonus, nach einer überstandenen eigenen Runde +20 %, nach zwei +30 %. Neutrale normale Allrounder gelten weiterhin +4/+8/+12/+16 %. Maximal gemeinsam +24 % für normale Allrounder plus +60 % für Resonatoren (Maximalqualität gesamt begrenzt), kein Resonanzbonus für klassisches PvP.
+- Resonanzmaterialien wirken weiterhin nur positiv auf Kombofaktor, Würfelbonus und erreichbares Ziellevel. Kein Erwerb von Rollen- oder Seelenfähigkeiten durch Resonator.
+
+### Wertebudget auf development aktiviert
+Neues gemeinsames ATK+DEF-Budget gewöhnlicher PvE-Kreaturen:
+180, 270, 420, 630, 810, 1030, 1270, 1530, 1830, 2150 (Level 1–10).
+Rolle verteilt Grundwerte. Seltene und ACE-Karten erhalten weiterhin bewusst kleinere Seltenheitsaufschläge. Die alten klassischen PvP-Startkartentemplates (ID < 20), Essenz-Schulmonster und reine Fusionsvorlagen werden nicht direkt überschrieben, um deren eigene Mechaniken nicht zu beschädigen. Die PvE-Fusionsreferenz übernimmt automatisch die neuen Normalmonster-Mittelwerte. Alte Kartennummern und Speicherstände bleiben stabil.
+
+### Noch NICHT implementiert
+1. Level-1-Schwarmperk mit Geschichte/Schulungsduellen, Floating, Geisterslots, exklusiven Level-1-Fusionen, 10–20 Spezialkarten, Kontrolle der 40er-Deck-Verfügbarkeit und gezielten Anti-Endgame-Optionen.
+2. Langzeit-Rollenbalance und High-Level-Boss-/Drop-Ökonomie, einschließlich der Bewertung der neuen Budgetkurve in echten Decks.
+3. Individuelle Offline-trainierte KI-Profile und Rollen-Decks für Turniergegner IV–X (I–III generisch). Eiman Huel: **Kontrolle und Verteidigung**.
+4. Ausbau der Werkstatt zum sicheren Karten-Zerlegen und Material-Crafting inklusive Chancen und Ressourcenpreisen.
+5. Weitere aktive Rollenfähigkeiten und gezielte Status-/Cooldown-Anzeigen je neuer Mechanik.
+
+Diese Punkte nacheinander abstimmen und implementieren; main bleibt bis zur Freigabe unverändert.
