@@ -64,6 +64,15 @@ document.getElementById('app').addEventListener('load',async()=>{
    for(let i=0;i<18&&d.querySelector('.ritual-overlay');i++){d.querySelector('.ritual-overlay').click();await pause(90);}
    await w.__aiFusion;w.eval('chooseAiAction=__choose;');
    check(!w.eval('busy||aiRunning')&&!d.querySelector('.evo-fusion-awaiting'),'Gegnerische Fusion endet mit sichtbarer Karte und freigegebener Steuerung');
+   // Actual player summon and attack paths also await their shared effects.
+   w.eval(`game.active=0;game.turn=10;game.summoned=false;game.pending=null;game.players[0].field.fill(null);game.players[1].field.fill(null);busy=false;aiRunning=false;
+    window.__ghostOwners=[];__observer.observe(document.body,{childList:true});const c=game.players[0].hand[0];prepareNormal(game,c.uid);render();window.__ownSummon=onOwnSlot(0);`);
+   await w.__ownSummon;w.eval('__observer.disconnect();');
+   check(w.__ghostOwners.includes('0')&&!w.eval('busy'),'Eigene Normalbeschwörung verwendet denselben Flug ohne blockierte Steuerung');
+   w.eval(`game.active=0;game.turn=12;game.pending=null;game.players[0].field=[__make('predator',0),null,null,null,null];game.players[0].field[0].mode='atk';game.players[0].field[0].attacked=false;
+    game.players[1].field=[__make('guardian',1),null,null,null,null];render();window.__counter=performAttack(0,0);`);
+   await pause(240);check(!!d.querySelector('.ad-projectile-counter'),'Ein echter Gegenschlag startet sein gebogenes Projektil mit Sternenschweif');
+   await w.__counter;check(!d.querySelector('.ad-projectile-counter')&&!w.eval('busy'),'Gegenschlag endet sauber und gibt die Eingabe frei');
    // One persistent enemy orb survives both Soul effects and disappears afterward.
    w.eval(`game.active=1;game.turn=8;game.pending=null;game.players[0].field=[__make('guardian',0),__make('soul',0),__make('soul',0),null,null];game.players[0].field[1].card.def-=80;game.players[1].field=[__make('predator',1),null,null,null,null];game.players[1].field[0].summonedTurn=game.turn;advanceTurn(game);render();window.__effects=ArcaneDefenderFX.flush(game);`);
    await pause(400);const orb=d.querySelector('.ad-soul-orb');check(!!orb,'Orb erscheint nach dem Kartenziehen bei vorhandenen Verteidigern');

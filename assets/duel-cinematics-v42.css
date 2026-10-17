@@ -15,7 +15,7 @@ html body #duelScreen .monster-slot::before{inset:5%;border:0;border-radius:0;ba
 html body #duelScreen .monster-slot>.board-creature.tc-card{flex:none!important;width:62cqw!important;max-width:none!important;height:90cqw!important;max-height:none!important;margin:0!important;box-sizing:border-box!important;transform:rotate(0deg)!important;transform-origin:center!important;transition:transform .32s ease!important}
 html body #duelScreen .monster-slot>.board-creature.tc-card.defense{transform:rotate(90deg)!important}
 html body #duelScreen .monster-slot .board-name{font-size:clamp(6px,7cqw,10px)!important;line-height:1.1!important;padding:2px 1px!important;white-space:normal!important}
-html body #duelScreen .monster-slot .board-stats{font-size:clamp(6px,5.5cqw,9px)!important;gap:1px!important;padding:1px!important;--ad-seal-size:14px}
+html body #duelScreen .monster-slot .board-stats{font-size:clamp(6px,5cqw,8px)!important;gap:1px!important;padding:1px!important;--ad-seal-size:14px}
 html body #duelScreen .monster-slot .board-stats b{font-size:inherit!important;min-width:0}
 html body #duelScreen .monster-slot .board-art{min-height:0!important;flex:1 1 0!important;height:auto!important;object-fit:cover}
 html body #duelScreen .monster-slot .board-creature{display:flex!important;flex-direction:column!important}
