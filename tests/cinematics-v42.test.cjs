@@ -44,7 +44,7 @@ test('Overcharged DEF is derived from current layers and clears at the real maxi
 });
 test('Counterstrikes are recorded only for actual eligible hits, including a destroyed defender',()=>{
  const b=setup();b.ctx.matchMedia=()=>({matches:false});
- const r=b.run(`(()=>{const {g,guardian,prey}=cinemaFixture();g.active=1;g.turn=6;g.players[0].field=[guardian,null,null,null,null];prey.mode='atk';prey.card.atk=9000;guardian.card.atk=300;g.players[1].lp=g.maxLP;prey.attacked=false;prey.summonedTurn=1;guardian.card.def=1;const result=attack(g,0,0),first=ArcaneDefenderFX.pending(g);attack(g,0,0);return {destroyed:result.destroyed,first,after:ArcaneDefenderFX.pending(g)};})()`);
+ const r=b.run(`(()=>{const {g,guardian,prey}=cinemaFixture();g.active=1;g.turn=6;g.players[0].field=[guardian,null,null,null,null];prey.mode='atk';prey.card.atk=9000;guardian.card.atk=300;g.players[1].lp=g.maxLP;g.players[1].shield=0;prey.attacked=false;prey.summonedTurn=1;guardian.card.def=1;const result=attack(g,0,0),first=ArcaneDefenderFX.pending(g);attack(g,0,0);return {destroyed:result.destroyed,first,after:ArcaneDefenderFX.pending(g)};})()`);
  assert.deepEqual(r.destroyed,['0:0']);assert.equal(r.first.length,1);assert.equal(r.first[0].type,'counter');assert.ok(r.first[0].amount>0);assert.deepEqual(r.first,r.after);
 });
 test('One phase skip completes that phase only and cannot skip the following phase',async()=>{
