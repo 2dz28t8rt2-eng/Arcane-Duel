@@ -3,8 +3,8 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const {boot}=require('./helpers/game-runtime.cjs');
 test('Defender fusion rolls use 135% DEF and 75% ATK before dice; no post-roll second multiplier',()=>{
  const code=require('node:fs').readFileSync(require('node:path').resolve(__dirname,'../assets/evolution.js'),'utf8');
- assert.match(code,/role==='guardian'\\|\\|role==='soul'\\?\\{atk:\\.75,def:1\\.35\\}/);
- assert.match(code,/role==='predator'\\?\\{atk:1\\.20,def:\\.75\\}/);
+ assert.ok(code.includes("role==='guardian'||role==='soul'?{atk:.75,def:1.35}"));
+ assert.ok(code.includes("role==='predator'?{atk:1.20,def:.75}"));
 });
 test('Targeted Seelenraub costs one active soul action and only drains existing target stats',()=>{
  const b=boot();const r=b.run(`(()=>{
