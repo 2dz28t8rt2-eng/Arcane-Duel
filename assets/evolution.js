@@ -150,7 +150,7 @@ function tunedFusionQuality(g,levels,elements=[],materials=[]){
  const resonance=allrounder?.evaluate?.(g,materials)||{bonus:0,materials:0,charges:0};
  if(g?.mode==='pve'&&g.active===0&&resonance.materials){
   const original=materials.filter(c=>!allrounder.isAllrounder(c));
-  if(original.length>=2){
+  if(original.length>=1){
    const baseline=fusionQuality(original.map(c=>dataOf(c).level),original.map(c=>dataOf(c).element));
    f.factor=Math.max(f.factor,baseline.factor);
    f.rollBonus=Math.max(f.rollBonus,baseline.rollBonus);
@@ -715,6 +715,6 @@ showRules=function(){
 showIphoneHelp=function(){previous.showIphoneHelp();$('modal')?.insertAdjacentHTML('beforeend','<p class="evo-rulebox">Arcane Duel: Handkarte einmal antippen und Feldzone wählen. Für Fusionen „Touch-Fusion“ aktivieren und zwei bis fünf Materialien antippen; es wird nichts mehr bloß abgeworfen.</p>');};
 if(window.__arcaneEvolutionPendingSave){try{profile.activeDuel=validateDuelSnapshot(window.__arcaneEvolutionPendingSave);saveProfile();}catch(err){console.warn('Fusion Evolution: gespeicherte Partie nicht wiederhergestellt',err);profile.migrationMessage='Ein laufendes Duell konnte nicht wiederhergestellt werden. Der übrige Spielstand bleibt erhalten.';}delete window.__arcaneEvolutionPendingSave;}
 // Public diagnostics for automated tests and balancing. No hidden admin mode.
-window.ArcaneEvolution={version:'3.1.0',MODES,decodeId,fusionPattern,fusionQuality,fusionReferenceStats,objectives,claimQuest,skipQuest,quests,modeCashout,refillQuests};
+window.ArcaneEvolution={version:'3.1.0',MODES,decodeId,fusionPattern,fusionQuality,tunedFusionQuality,fusionReferenceStats,objectives,claimQuest,skipQuest,quests,modeCashout,refillQuests};
 if(uiMode==='menu')renderMenu();else if(game)render();
 })();
