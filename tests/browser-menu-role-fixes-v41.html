@@ -19,7 +19,9 @@ document.getElementById('app').addEventListener('load',async()=>{
   }
   // Force an LV10 front card so the former blur is covered on every run.
   rack.innerHTML=w.ArcaneArchiveTheme.renderCards(w.eval('[CARDS[0],CARDS[ACE_CARD_IDS[10]],CARDS[ESSENCE_MONSTER_IDS.fusion]]'));
-  await new Promise(resolve=>w.requestAnimationFrame(()=>w.requestAnimationFrame(resolve)));
+  // Headless virtual time may suspend iframe rAF after result text grows.
+  // The parent timer keeps the test progressing even when the frame is offscreen.
+  await new Promise(resolve=>setTimeout(resolve,120));
   for(const wrapper of rack.children){
    const card=wrapper.querySelector('.hand-card'),img=card.querySelector('.hand-art img');
    if(!img.complete)await new Promise((resolve,reject)=>{
