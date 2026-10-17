@@ -4,6 +4,7 @@
 <script>
 document.getElementById('app').addEventListener('load',async()=>{
  const w=document.getElementById('app').contentWindow,d=w.document,lines=[];let pass=true;
+ if(new URLSearchParams(location.search).get('width')==='410')document.getElementById('app').style.width='410px';
  const pause=ms=>new Promise(r=>setTimeout(r,ms));
  const check=(ok,label)=>{lines.push((ok?'OK: ':'FEHLER: ')+label);if(!ok)pass=false;document.getElementById('result').textContent=lines.join('\n');};
  const inside=(a,b)=>a.left>=b.left-1&&a.top>=b.top-1&&a.right<=b.right+1&&a.bottom<=b.bottom+1;
