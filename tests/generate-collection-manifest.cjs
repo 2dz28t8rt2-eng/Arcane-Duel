@@ -1,12 +1,8 @@
 'use strict';
-const {readFileSync,writeFileSync}=require('node:fs'),vm=require('node:vm'),path=require('node:path');
-const ROOT=path.resolve(__dirname,'..');
-const node=()=>({innerHTML:'',textContent:'',hidden:false,disabled:false,style:{},dataset:{},classList:{add(){},remove(){},toggle(){},contains(){return true}},addEventListener(){},click(){},remove(){},append(){}});
-const nodes=new Map();
-const document={body:node(),getElementById(id){if(!nodes.has(id))nodes.set(id,node());return nodes.get(id)},querySelector(){return null},querySelectorAll(){return []},createElement:node,addEventListener(){}};
-const ctx=vm.createContext({window:{localStorage:{getItem(){return null},setItem(){}},crypto:{getRandomValues(a){a[0]=15432;return a}}},document,setInterval(){},clearInterval(){},setTimeout(){},clearTimeout(){},console,Blob,URL:{createObjectURL(){return 'blob:test'},revokeObjectURL(){}}});
-for(const file of ['art-engine.js','game.js'])vm.runInContext(readFileSync(path.join(ROOT,'assets',file),'utf8'),ctx,{timeout:14000});
-const cards=JSON.parse(vm.runInContext('JSON.stringify(CARDS.filter(c=>UPDATE_B_SET.has(c.id)).map(c=>({id:c.id,name:c.name,level:c.level,kind:c.kind,element:c.element,fusion:!!c.fusionOnly,manifestOf:c.manifestOf??null,variantOf:c.variantOf??null,art:c.art?.startsWith("assets/")?c.art:null})))',ctx));
-const filename=path.join(ROOT,'assets','collection-v3-data.js');
-writeFileSync(filename,'/* Auto-generated from real game templates from the curated 3.0 Update B collectible roster. */\nwindow.ARCANE_COLLECTION_V3='+JSON.stringify(cards)+';\n');
-console.log(`Rebuilt ${filename} with ${cards.length} cards and ${cards.filter(c=>c.variantOf!=null).length} normal-monster level variants`);
+// Use the complete production script order, including all art waves and family mappings.
+const {writeFileSync}=require('node:fs'),path=require('node:path');
+const {boot,repo}=require('./helpers/game-runtime.cjs');
+const cards=boot().run('UPDATE_B_ACTIVE_IDS.map(id=>CARDS[id]).map(c=>({id:c.id,name:c.name,level:c.level,kind:c.kind,element:c.element,fusion:!!c.fusionOnly,manifestOf:c.manifestOf??null,variantOf:c.variantOf??c.lineRoot??null,art:c.art?.startsWith("assets/")?c.art:null}))');
+for(const c of cards)if(c.variantOf===c.id)c.variantOf=null;
+writeFileSync(path.join(repo,'assets/collection-v3-data.js'),'/* Generated from the complete current game catalog; run node tests/generate-collection-manifest.cjs. */\nwindow.ARCANE_COLLECTION_V3='+JSON.stringify(cards)+';\n');
+console.log('Updated '+cards.length+' collectible cards, '+cards.filter(c=>!c.art).length+' missing artworks.');

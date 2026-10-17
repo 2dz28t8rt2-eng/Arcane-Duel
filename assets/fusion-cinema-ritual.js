@@ -47,10 +47,10 @@
   const index=owner<0?-1:g.players[owner].field.findIndex(mon=>mon?.uid===c.uid);
   const slot=index<0?null:document.querySelector(owner===0?'#ownRow [data-mine="'+index+'"]':'#enemyRow [data-enemy="'+index+'"]');
   const boardCard=slot?.querySelector('.board-creature');
-  let landed=false;
+  let landed=false,sharedLanding=false;
   const overlay=document.createElement('div');
   overlay.className='evo-summon evo-fusion-scene evo-stamp-scene ritual-overlay';
-  overlay.dataset.role=role;
+  overlay.dataset.role=role;overlay.dataset.owner=String(owner<0?g.active:owner);
   overlay.dataset.variant=variant;
   overlay.setAttribute('role','status');
   overlay.setAttribute('aria-label','Fusion von '+t.name+': '+rolls.length+' echte Wertewürfe');
@@ -113,27 +113,34 @@
   };
   if(boardCard)boardCard.classList.add('evo-fusion-awaiting');
   document.body.append(overlay);
+  const phases=window.ArcaneCinemaPhases.create(overlay,wait);
+  wait=phases.wait;
   const particleTask=motes(overlay,role).catch(()=>null);
   playSound('summon');
   try{
    // 1. Material orbit and actual fusion merge: there is no popup yet.
+   await phases.run('Materialrotation',async()=>{
    overlay.classList.add('evo-phase-orbit');await wait(samples.length>=4?1100:960);
    overlay.classList.remove('evo-phase-orbit');overlay.classList.add('evo-phase-merge');
    await wait(670);
+   });
    // 2. Open a completely empty calculation window, card rises above it.
+   await phases.run('Enthüllung',async()=>{
    overlay.classList.add('evo-phase-shell');await wait(590);
    overlay.classList.add('evo-phase-reveal');await wait(1050);
+   });
    // 3. A single severe blow permanently assigns its precomputed role.
-   if(seal){
+   if(seal)await phases.run('Rollenprägung',async()=>{
     overlay.classList.add('evo-stamp-impact','ritual-screen-shake');playSound('summon');
     await wait(460);overlay.classList.remove('ritual-screen-shake');await wait(370);
-   }
+   });
    // After the role's card seal, stamp the ACTUAL combination quality across
    // the whole scene. This does not re-roll or modify the persisted numbers.
    if(window.ArcaneFusionBonus?.stamp){
-    try{await window.ArcaneFusionBonus.stamp(overlay,c,animationWait,1);}
+    try{await phases.run('Spezialbonus',()=>window.ArcaneFusionBonus.stamp(overlay,c,ms=>phases.wait(ms,animationWait),1));}
     catch(error){console.warn('Bonus-Cinema übersprungen:',error);}
    }
+   await phases.run('Werteberechnung',async()=>{
    overlay.classList.add('evo-phase-rolls','evo-stamp-settled');
    const weights=math.roleWeights||{atk:1,def:1};
    const information=document.createElement('div');
@@ -185,9 +192,14 @@
    }else{
     atk.textContent=num(t.atk);def.textContent=num(t.def);
    }
-   overlay.classList.add('evo-card-locked');await wait(850);
+   });
+   await phases.run('Fertige Karte',async()=>{overlay.classList.add('evo-card-locked');await wait(650);});
    // 7. Flight to actual occupied zone; no change to authoritative state.
-   if(slot&&typeof actor.animate==='function'){
+   await phases.run('Platzierung',async()=>{
+   if(boardCard&&window.ArcaneSummonFX){
+    overlay.classList.remove('evo-phase-rolls');overlay.classList.add('evo-phase-landing','ad-depth-landing');actor.style.opacity='0';
+    await window.ArcaneSummonFX.land(g,c,{phase:phases});landed=true;sharedLanding=true;
+   }else if(slot&&typeof actor.animate==='function'){
     overlay.classList.remove('evo-phase-rolls');
     overlay.classList.add('evo-phase-landing');
     const from=actor.getBoundingClientRect(),to=(boardCard||slot).getBoundingClientRect();
@@ -206,7 +218,9 @@
     ]);
     landed=true;
    }else{overlay.classList.add('evo-card-land');await wait(550);}
+   });
   }finally{
+   phases.close();
    overlay.remove();running=false;
    particleTask.then(container=>container?.destroy?.()).catch(()=>{});
    if(boardCard){
@@ -215,11 +229,11 @@
     if(landed){
      if(!completedLandings.has(g))completedLandings.set(g,new Set());
      completedLandings.get(g).add(c.uid);
-     window.ArcaneBattleFX?.landingDust?.(boardCard,(c.materialsUsed||0)>=4);
+     if(!sharedLanding)window.ArcaneBattleFX?.landingDust?.(boardCard,(c.materialsUsed||0)>=4);
     }
     setTimeout(()=>boardCard.classList.remove('evo-fusion-landed'),900);
    }
   }
  }
- window.ArcaneFusionCinema=Object.freeze({version:'2.1.0',play,landed:(g,uid)=>!!completedLandings.get(g)?.has(uid)});
+ window.ArcaneFusionCinema=Object.freeze({version:'2.2.0',play,landed:(g,uid)=>!!completedLandings.get(g)?.has(uid)});
 })();

@@ -1,0 +1,75 @@
+/* Dedicated to the decorative menu fan: all other stat panels stay visible. */
+html body #menuScreen.atlas-screen .atlas-preview-card .hand-stats .stat{display:none!important}
+html body #menuScreen.atlas-screen .atlas-preview-card .hand-stats{grid-template-columns:1fr!important;justify-items:center!important;border:0!important;background:#101a2d!important}
+/* Fully opaque inspection panels, above the decorative frame. */
+html body :is(.card-preview-panel,.arcane-enemy-large,#deckSidePreview,.ad-card-reward-panel) .hand-card.tc-card.ad-template.ad-level-frame .hand-stats{position:relative!important;z-index:12!important;background:#101a2d!important;opacity:1!important;backdrop-filter:none!important;isolation:isolate}
+html body :is(.card-preview-panel,.arcane-enemy-large,#deckSidePreview,.ad-card-reward-panel) .hand-card.tc-card.ad-template.ad-level-frame .hand-stats .stat{position:relative;z-index:1;background:#1b3049!important;opacity:1!important;border:1px solid #bda173!important}
+html body :is(.card-preview-panel,.arcane-enemy-large,#deckSidePreview,.ad-card-reward-panel) .hand-card.tc-card.ad-template.ad-level-frame .hand-stats .stat.def{background:#163e50!important;border-color:#69b5ca!important}
+.ad-defender-ability{padding:12px;border:1px solid #89c3d05c;border-radius:8px;background:#101e30;color:#bdd9df;text-align:left;font:12px/1.65 system-ui}
+.ad-defender-ability>strong{color:#f4deb6}.ad-defender-ability p{margin:7px 0!important;font-size:12px!important;line-height:1.65!important;color:#bed0de!important}
+.ad-defender-ability .ad-charge-note{border-top:1px solid #c7abf05c;padding-top:8px;color:#e8c3ff!important}
+/* Square zones have a cross-shaped inset for upright and horizontal cards. */
+html body #duelScreen .slots{grid-template-columns:repeat(5,minmax(66px,1fr))!important;gap:8px!important;min-width:362px;max-width:780px}
+html body #duelScreen .monster-slot{container-type:inline-size;aspect-ratio:1;height:auto!important;min-height:0!important;padding:0!important;overflow:hidden!important;border-radius:10px;background:radial-gradient(circle,#25374b,#111d2d 80%)}
+html body #duelScreen .monster-slot::before{inset:5%;border:0;border-radius:0;background:#b3c3db20;clip-path:polygon(25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%,0 25%,25% 25%)}
+html body #duelScreen .monster-slot>.board-creature.tc-card{flex:none!important;width:57cqw!important;max-width:none!important;height:90cqw!important;max-height:none!important;margin:0!important;box-sizing:border-box!important;transform:rotate(0deg)!important;transform-origin:center!important;transition:transform .32s ease!important}
+html body #duelScreen .monster-slot>.board-creature.tc-card.defense{transform:rotate(90deg)!important}
+html body #duelScreen .monster-slot .board-name{font-size:clamp(6px,7cqw,10px)!important;line-height:1.1!important;padding:2px 1px!important;white-space:normal!important}
+html body #duelScreen .monster-slot .board-stats{font-size:clamp(6px,7cqw,10px)!important;gap:1px!important;padding:1px!important;--ad-seal-size:14px}
+html body #duelScreen .monster-slot .board-stats b{font-size:inherit!important;min-width:0}
+html body #duelScreen .monster-slot .board-art{min-height:0!important;flex:1 1 0!important;height:auto!important;object-fit:cover}
+html body #duelScreen .monster-slot .board-creature{display:flex!important;flex-direction:column!important}
+html body #duelScreen .field-area{overflow-x:auto;padding:12px!important}
+@media(max-width:650px){html body #duelScreen .field-area{padding:8px 5px!important}html body #duelScreen .slots{gap:5px!important;min-width:350px}}
+/* Roles breathe beneath the hand rather than obscuring the illustration. */
+html body #hand .ad-hand-role{position:relative;animation:var(--ad-role-motion,ad-role-breathe 3.4s ease-in-out infinite)}
+html body #hand .ad-hand-role::before{content:'';display:inline-block;width:4px;height:4px;margin-right:6px;border-radius:50%;background:currentColor;box-shadow:0 0 7px currentColor;vertical-align:middle;animation:var(--ad-role-dot-motion,ad-role-dot 3.4s ease-in-out infinite)}
+@keyframes ad-role-breathe{0%,100%{text-shadow:0 0 2px currentColor}50%{text-shadow:0 0 10px currentColor}}
+@keyframes ad-role-dot{0%,100%{opacity:.5;box-shadow:0 0 3px currentColor}50%{opacity:1;box-shadow:0 0 11px 2px currentColor}}
+/* Overcharged is a visible status, not an additional combat bonus. */
+html body .hand-card.tc-card.ad-template.ad-level-frame.ad-overcharged .hand-stats .stat.def,
+html body #duelScreen .board-creature.tc-card.ad-template.ad-level-frame.ad-overcharged .board-stats b:last-child{position:relative!important;border:1px solid #e6b5ff!important;background:#3e2459!important;color:#f5dbff!important;box-shadow:0 0 10px #cb91ef88!important;animation:var(--ad-charge-motion,ad-charge-glow 2.5s ease-in-out infinite);overflow:hidden}
+html body .hand-card.tc-card.ad-template.ad-level-frame.ad-overcharged .hand-stats .stat.def .stat-value{color:#f5dbff!important}
+html body .ad-overcharged :is(.stat.def,.board-stats b:last-child)::after{content:'✧ · ✧';position:absolute;inset:0;display:grid;place-items:center;color:#f6d5ff;opacity:.3;pointer-events:none;font-size:12px;letter-spacing:8px;animation:var(--ad-charge-motes,ad-charge-motes 2.8s linear infinite)}
+@keyframes ad-charge-glow{0%,100%{box-shadow:0 0 5px #d09aef55}50%{box-shadow:0 0 14px #d09aefb0,inset 0 0 7px #dbb7f14d}}
+@keyframes ad-charge-motes{0%{transform:translateY(12px);opacity:0}35%,65%{opacity:.3}100%{transform:translateY(-12px);opacity:0}}
+.ad-summon-hidden{visibility:hidden!important}.ad-summon-ghost{position:fixed;z-index:35100;pointer-events:none;transform-origin:center;will-change:transform,opacity}
+html body .ad-summon-ghost>.board-creature.tc-card{width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;display:flex!important;flex-direction:column!important;margin:0!important;visibility:visible!important;animation:none!important}
+html body .ad-summon-ghost>.board-creature.tc-card.defense{transform:rotate(90deg)!important;transform-origin:center}
+html body .ad-summon-ghost .board-art{width:100%;min-height:0!important;flex:1 1 0!important;height:auto!important;object-fit:cover}
+html body .ad-summon-ghost .board-name{font-size:8px!important;line-height:1.1!important;padding:2px!important;background:#101a2d!important}
+html body .ad-summon-ghost .board-stats{font-size:8px!important;--ad-seal-size:14px}
+.ad-phase-skip{position:fixed;z-index:20;right:16px;bottom:max(16px,env(safe-area-inset-bottom));max-width:calc(100vw - 32px);padding:12px 16px;border:1px solid #c5a3df99;border-radius:7px;background:#171528f5;color:#f2e5ff;font:700 11px/1.4 system-ui;cursor:pointer}
+.ad-soul-orb{position:fixed;z-index:31800;width:27px;height:27px;margin:-13px 0 0 -13px;pointer-events:none;border:1px solid #e8d8ff;border-radius:50%;background:radial-gradient(circle,#fff5ff,#b49ce9 26%,#71549380 56%,transparent 72%);box-shadow:0 0 15px #d5b5ff,0 0 28px #a88bda80;animation:ad-orb-breathe 1.8s ease-in-out infinite}
+.ad-soul-orb::after{content:'✧';position:absolute;inset:-7px;display:grid;place-items:center;color:#e1ceff;animation:ad-orb-turn 4s linear infinite}
+.ad-soul-orb.ad-orb-dismiss{opacity:0;scale:.3;transition:opacity .28s,scale .28s}
+@keyframes ad-orb-breathe{0%,100%{filter:brightness(1);scale:.9}50%{filter:brightness(1.35);scale:1.08}}
+@keyframes ad-orb-turn{to{transform:rotate(360deg)}}
+.ad-arc-projectile{position:fixed;inset:0;z-index:31900;pointer-events:none}
+.ad-arc-projectile i{position:absolute;left:0;top:0;margin:-8px;color:var(--ad-energy);text-shadow:0 0 6px var(--ad-energy),0 0 17px var(--ad-energy);font:18px/1 Georgia;will-change:transform,opacity}
+.ad-arc-projectile i:first-child{font-size:25px}.ad-arc-projectile i:nth-child(n+5){font-size:13px}.ad-arc-projectile i:nth-child(n+9){font-size:9px}
+.ad-energy-receive{animation:ad-energy-flash .65s ease-out!important}
+@keyframes ad-energy-flash{20%,45%{filter:brightness(1.45) drop-shadow(0 0 16px var(--ad-receive-color))}100%{filter:none}}
+/* Result and reward remain independent, scrollable dialogs. */
+html body #modal.ad-outcome,html body #modal.ad-result-scroll{max-height:calc(100dvh - 32px)!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain}
+html body #modal.ad-outcome .modal-actions{position:sticky;bottom:-1px;z-index:20;padding:12px 2px;background:#151d2d;box-shadow:0 -10px 20px #151d2d}
+.ad-card-reward-scene{position:fixed;inset:0;z-index:36000;display:grid;place-items:center;overflow:hidden;padding:16px;background:radial-gradient(ellipse,#594455b8,#090e1bee 75%);backdrop-filter:blur(9px);isolation:isolate}
+.ad-card-reward-panel{position:relative;z-index:1;box-sizing:border-box;display:grid;gap:12px;justify-items:center;width:min(430px,100%);max-height:calc(100dvh - 32px);overflow:auto;padding:24px 20px 16px;border:2px solid #dbc18b;border-radius:14px;background:radial-gradient(ellipse at top,#3c3048,#101b2c 70%);box-shadow:0 0 40px #e6bd6d44,0 20px 80px #000a;color:#efd6a4;text-align:center}
+.ad-card-reward-panel .arcane-reward-showcase{display:grid;gap:12px;justify-items:center;margin:0!important;padding:0!important;border:0!important;background:none!important}
+.ad-card-reward-panel .arcane-reward-showcase>strong{font:800 12px/1.6 system-ui;letter-spacing:.08em;color:#ffe3a8}
+html body .ad-card-reward-panel .hand-card.tc-card{width:208px!important;max-width:208px!important;height:326px!important;min-height:326px!important;margin:0!important;flex:none!important;transform:none!important;opacity:1!important}
+.ad-card-reward-panel small{color:#bfcde1;line-height:1.5;font:11px/1.6 system-ui}.ad-card-reward-panel p{font:12px/1.6 system-ui;color:#bfcde1;margin:0}
+.ad-reward-dismiss{opacity:.75}.ad-reward-particles{position:absolute;inset:50% auto auto 50%;width:0;height:0;pointer-events:none;z-index:0}
+.ad-reward-particles i{position:absolute;color:#f8da96;text-shadow:0 0 10px #ffd18b;font:20px Georgia;--a:0deg;animation:var(--ad-reward-motion,ad-reward-star 4s ease-in-out var(--d) infinite)}
+@keyframes ad-reward-star{0%{transform:rotate(var(--a)) translateX(110px) rotate(calc(-1*var(--a))) scale(.3);opacity:0}25%,65%{opacity:.9}100%{transform:rotate(var(--a)) translateX(var(--r)) rotate(calc(-1*var(--a))) scale(1.2);opacity:0}}
+@media(max-height:700px){.ad-card-reward-panel{padding-top:14px}html body .ad-card-reward-panel .hand-card.tc-card{width:168px!important;max-width:168px!important;height:266px!important;min-height:266px!important}}
+body.instant :is(.ad-hand-role,.ad-hand-role::before,.ad-overcharged .stat.def,.ad-overcharged .stat.def::after,.ad-overcharged .board-stats b,.ad-overcharged .board-stats b::after,.ad-reward-particles i),
+body.ad-motion-disabled :is(.ad-hand-role,.ad-hand-role::before,.ad-overcharged .stat.def,.ad-overcharged .stat.def::after,.ad-overcharged .board-stats b,.ad-overcharged .board-stats b::after,.ad-reward-particles i){animation:none!important}
+body.instant :is(.ad-reward-particles,.ad-overcharged .stat.def::after,.ad-overcharged .board-stats b::after),body.ad-motion-disabled :is(.ad-reward-particles,.ad-overcharged .stat.def::after,.ad-overcharged .board-stats b::after){display:none!important}
+@media(prefers-reduced-motion:reduce){html body :is(.ad-hand-role,.ad-hand-role::before,.ad-overcharged .stat.def,.ad-overcharged .stat.def::after,.ad-overcharged .board-stats b,.ad-overcharged .board-stats b::after,.ad-reward-particles i){animation:none!important}html body :is(.ad-reward-particles,.ad-overcharged .stat.def::after,.ad-overcharged .board-stats b::after){display:none!important}html body #duelScreen .monster-slot>.board-creature.tc-card{transition:none!important}}
+
+.ritual-overlay.evo-summon.ad-depth-landing{background:transparent!important}
+.ritual-overlay.ad-depth-landing .ritual-window{visibility:hidden!important}
+html body :is(#duelScreen,#deckSidePreview,.arcane-enemy-large) .hand-card.tc-card.ad-template.ad-level-frame.ad-overcharged .hand-stats .stat.def{background:#3e2459!important;border-color:#e6b5ff!important}
+html body:is(.instant,.ad-motion-disabled){--ad-role-motion:none;--ad-role-dot-motion:none;--ad-charge-motion:none;--ad-charge-motes:none;--ad-reward-motion:none}
+@media(prefers-reduced-motion:reduce){html body{--ad-role-motion:none;--ad-role-dot-motion:none;--ad-charge-motion:none;--ad-charge-motes:none;--ad-reward-motion:none}}

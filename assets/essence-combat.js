@@ -76,7 +76,7 @@
  function absorb(g,creature,owner){
   const store=statLayer(creature),opponent=g.players[1-owner];
   const lv=dataOf(creature).level,rank=soulRank(creature);
-  let earned=0,drainedDef=0,drainedAtk=0;
+  let earned=0,drainedDef=0,drainedAtk=0;const targets=[];
   for(const target of opponent.field.filter(Boolean)){
    if(!target.card)continue;
    const lost={atk:0,def:0};
@@ -89,13 +89,14 @@
     if(target.card[stat]===0&&target.card[stat==='atk'?'def':'atk']>0)stat=stat==='atk'?'def':'atk';
     const n=Math.min(target.card[stat],5);target.card[stat]-=n;lost[stat]+=n;
    }
-   earned+=lost.atk+lost.def;drainedDef+=lost.def;drainedAtk+=lost.atk;
+   earned+=lost.atk+lost.def;drainedDef+=lost.def;drainedAtk+=lost.atk;if(lost.atk+lost.def)targets.push({uid:target.uid,index:opponent.field.indexOf(target),amount:lost.atk+lost.def});
   }
   if(!earned)return;
   const tier=activeSchool(g)==='defense'&&owner===0?perkRank(buffTier(g)):0;
   const intake=tier>=4?1.22:tier>=2?1.08:1;
   const gain=Math.min(Math.max(0,250+lv*125-store.soul),Math.floor(earned*intake));
   store.soul+=gain;
+  window.ArcaneDefenderFX?.record(g,{type:'absorb',owner,uid:creature.uid,index:g.players[owner].field.indexOf(creature),element:dataOf(creature).element,targets,gain});
   // Offensive identity of defensive decks: essence is a steady pressure source,
   // even when attackers wisely refuse to hit the blockade.
   // Cap applies per eater and round to keep five defenders from bursting
@@ -281,7 +282,7 @@
    if(endDefense){q.graveyard.push(d);q.field[di]=null;destroyed.push(q.id+':'+di);}
    if(isDefender(d)&&!immuneBefore){
     const counter= Math.floor(Math.max(0,dataOf(d).atk)*.5);
-    if(counter>0){const actual=damagePlayer(g,p.id,counter);g.damageDealt[q.id]+=actual;logEvent(g,dataOf(d).name+' · Gegenschlag: '+actual+' LP.');}
+    if(counter>0){const actual=damagePlayer(g,p.id,counter);g.damageDealt[q.id]+=actual;logEvent(g,dataOf(d).name+' · Gegenschlag: '+actual+' LP.');window.ArcaneDefenderFX?.record(g,{type:'counter',owner:q.id,uid:d.uid,index:di,element:dataOf(d).element,amount:actual});}
    }
    if(p.field[ai]===a){
     const sA=statLayer(a);sA.attacksThisTurn=Math.min(2,sA.attacksThisTurn+1);
@@ -335,17 +336,20 @@
    const owner=g.active,team=g.players[owner].field.filter(Boolean);
    // Guardian healing restores base creature HP only; no bonus-layer duplication.
    const allies=team.filter(c=>isDefender(c)&&c.mode==='def');
+   window.ArcaneDefenderFX?.beginTurn(g,owner,allies);
    for(const guardian of team.filter(c=>roleOf(c)==='guardian'&&c.mode==='def')){
     for(const ally of allies){
      if(ally===guardian||!ally.card)continue;
      const layer=statLayer(ally),amount=Math.min(150,25+dataOf(guardian).level*12);
-     ally.card.def=Math.min(layer.maxDef,ally.card.def+amount);
+     const before=ally.card.def;ally.card.def=Math.min(layer.maxDef,ally.card.def+amount);
+     if(ally.card.def>before)window.ArcaneDefenderFX?.record(g,{type:'heal',owner,uid:ally.uid,index:g.players[owner].field.indexOf(ally),fromUid:guardian.uid,fromIndex:g.players[owner].field.indexOf(guardian),amount:ally.card.def-before});
     }
    }
    for(const creature of team){
     if(creature.mode==='def'&&isSoul(creature))absorb(g,creature,owner);
     if(g.winner!==null)break;
    }
+   window.ArcaneDefenderFX?.endTurn(g);
   }
   // A defense-position monster with no DEF layers left cannot block forever.
   // Last Bastion preserves one base-DEF during its promised immunity window.
