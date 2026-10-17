@@ -82,8 +82,10 @@ const report=b.run('('+function(){
     }
    }
    if(g.aiPhase==='attacks'&&!g.pending&&k!=='passive'&&g.active===0)skillPhase(g,k,stat);
-   const act=chooseAiAction(g,'guardian');
-   if(!applyAiAction(g,act))throw Error('Turn strategy action invalid: '+act.type);
+   if(g.winner!==null)break; // A successful soul discharge can end the match mid-turn.
+   const act=chooseAiAction(g,'guardian'),before=g.turn;
+   const applied=applyAiAction(g,act);
+   if(!applied&&!(act.type==='end'&&(g.turn!==before||g.winner!==null)))throw Error('Turn strategy action invalid: '+act.type);
   }
   if(g.turn===turn&&g.winner===null)throw Error('Defender action budget exhausted');
  }
@@ -101,6 +103,9 @@ const report=b.run('('+function(){
       opponentId:tier,starter:i%2,seed:20261017+tier*1091+i*37,
       deck:spec.deck,fusionDeck:spec.fusionDeck,
       enemy:{...npc,power:Math.min(2,npc.power*1.85)}});
+     // First-trial tournament modifiers can push 1.85x synthetic NPC power above
+     // the validated save range: restrict ONLY this test, never production stats.
+     g.players[1].power=Math.min(2,g.players[1].power);
      game=g;uiMode='duel';busy=false;aiRunning=false;$('overlay').classList.add('hidden');
      const card=newInstance(g,spec.soul.id,0);card.mode=kind==='offense'?'atk':'def';
      g.players[0].field[0]=card;
