@@ -80,7 +80,7 @@
   if(menuTab==='upgrades')p.insertAdjacentHTML('beforeend',essenceDashboard());
   if(menuTab==='lexicon'&&E().school)p.insertAdjacentHTML('beforeend','<section class="menu-panel essence-lore-teaser"><h2>✧ Die vergessenen Schriften</h2><p>Ein neues Kapitel erzählt vom Bund zwischen Duellanten und Essenzwesen.</p>'+loreMarkup()+'</section>');
  }
- const roleLabel={predator:'PREDATOR',guardian:'WÄCHTER',soul:'SEELENZEHRER',support:'UNTERSTÜTZER',weaver:'RUNENWEBER',hunter:'JÄGER',combatant:'KÄMPFER'};
+ const roleLabel={predator:'PREDATOR',guardian:'WÄCHTER',soul:'SEELENZEHRER',support:'UNTERSTÜTZER',weaver:'RUNENWEBER',hunter:'JÄGER',combatant:'ALLROUNDER',resonator:'RESONATOR'};
  const roleText={
   predator:'Predator: verursacht erhöhten Druck gegen Verteidiger-HP.',
   guardian:'Wächter: regeneriert in DEF-Position die Grund-DEF verbündeter Verteidiger.',

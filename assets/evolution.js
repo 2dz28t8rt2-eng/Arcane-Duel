@@ -578,9 +578,9 @@ fusionAnimation=async function(level,visuals=null,variant='full'){
  if(fieldCard)fieldCard.classList.add('evo-fusion-awaiting');
  const cards=visuals||fusionVisualMaterials||[];fusionVisualMaterials=null;
  const trace=c?.rollTrace||[],math=c?.rollMath,role=c?.roleOverride||math?.role||CARDS[c?.id]?.role||'combatant';
- const labels={predator:'PREDATOR',guardian:'WÄCHTER',soul:'SEELENZEHRER'};
+ const labels={predator:'PREDATOR',guardian:'WÄCHTER',soul:'SEELENZEHRER',resonator:'RESONATOR'};
  const count=c?.materialsUsed||cards.length||2,pattern=c?.pattern||'Fusion',grand=count>=4;
- const fx=document.createElement('div');fx.className='evo-summon evo-fusion-scene evo-stamp-scene'+(grand?' evo-summon-grand':'')+(!['predator','guardian','soul'].includes(role)?' evo-no-role-stamp':'');
+ const fx=document.createElement('div');fx.className='evo-summon evo-fusion-scene evo-stamp-scene'+(grand?' evo-summon-grand':'')+(!['predator','guardian','soul','resonator'].includes(role)?' evo-no-role-stamp':'');
  fx.setAttribute('role','status');fx.setAttribute('aria-label','Fusion: Rollenprägung und '+trace.length+' echte Wertewürfe');
  fx.innerHTML='<div class="evo-mat-count">✧ '+count+' Materialien · '+escapeHtml(pattern)+' ✧</div>'+
   '<div class="evo-visual-stage"><div class="evo-material-layer" aria-hidden="true"></div>'+
@@ -614,7 +614,7 @@ fusionAnimation=async function(level,visuals=null,variant='full'){
   fx.classList.add('evo-phase-shell');await animationWait(430);
   fx.classList.add('evo-phase-reveal');await animationWait(1080);
   // Phase 3: the heavy role stamp lands on the finished card BEFORE the dice.
-  if(['predator','guardian','soul'].includes(role)){
+  if(['predator','guardian','soul','resonator'].includes(role)){
    fx.classList.add('evo-stamp-impact');sound('summon');await animationWait(780);
   }
   fx.classList.add('evo-stamp-settled','evo-phase-rolls');

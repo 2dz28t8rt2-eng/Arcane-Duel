@@ -12,7 +12,11 @@
  const rarityFactor=c=>c.ace?1.12:c.rarity==='legendary'||c.rarity==='mythic'?1.18:c.rarity==='epic'?1.13:c.rarity==='rare'?1.09:1;
  const round=n=>Math.round(n/10)*10;
  const changed=[];
+ const unbound=[];
  workshopBudget=function(lv){return budget(lv);};
+ for(const c of CARDS){
+  if(c?.rpg&&c.fusionOnly){c.fusionRoleFree=true;unbound.push(c.id);}
+ }
  for(const c of CARDS){
   if(!c||!c.rpg||c.fusionOnly||c.essenceMonster||c.id<20||c.level<1||c.level>10||c.retired)continue;
   const total=round(budget(c.level)*rarityFactor(c));
@@ -24,5 +28,5 @@
   c.atk=atk;c.def=def;changed.push(c.id);
  }
  window.ArcaneLevelBudget=Object.freeze({version:'4.2',totals,changed:Object.freeze(changed),rarityFactor,
-  budget,shares:Object.freeze(shares)});
+  budget,shares:Object.freeze(shares),unbound:Object.freeze(unbound)});
 })();
