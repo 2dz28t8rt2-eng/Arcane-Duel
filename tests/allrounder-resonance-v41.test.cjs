@@ -10,7 +10,7 @@ test('Hand Allrounder is positive and level-mismatched material cannot weaken ch
   const others=RPG_BASE_CARDS.filter(c=>c.role!=='combatant'&&!c.fusionOnly&&!c.ace&&c.level>=3&&c.level<=5).slice(0,2);
   if(!all||others.length!==2)throw Error('Fixtures unavailable');
   const a=newInstance(game,all.id,0),b=others.map(c=>newInstance(game,c.id,0));
-  const quality=cards=>tunedFusionQuality(game,cards.map(c=>dataOf(c).level),cards.map(c=>dataOf(c).element),cards);
+  const quality=cards=>window.ArcaneEvolution.tunedFusionQuality(game,cards.map(c=>dataOf(c).level),cards.map(c=>dataOf(c).element),cards);
   const hand=window.ArcaneAllrounder.evaluate(game,[a,...b]);
   const base=quality(b),low=quality([a,...b]);
   game.players[0].field[0]=a;a.resonance=3;
