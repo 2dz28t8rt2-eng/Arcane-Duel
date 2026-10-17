@@ -485,7 +485,7 @@ chooseFusionModal=function(levels,materials,callback,extra=''){const options=fus
 // The animation never modifies the duel state, and honors instant/reduced-motion.
 let fusionVisualMaterials=null;
 let fusionVisualResult=null;
-function fusionVisualCard(card){if(!card)return null;const t=dataOf(card);return {art:t.art,name:t.name,level:t.level};}
+function fusionVisualCard(card){if(!card)return null;const t=dataOf(card);return {art:t.art,name:t.name,level:t.level,soul:Math.max(0,Math.floor(card.essenceCombat?.soul||0)),field:!!game?.players?.[game?.active]?.field?.some(c=>c?.uid===card.uid)};}
 function fusionVisualSnapshot(cards){return cards.filter(Boolean).slice(0,5).map(fusionVisualCard);}
 // Preserve actual enemy materials as well: the AI removes them before its animation starts.
 const previousApplyAiAction=applyAiAction;

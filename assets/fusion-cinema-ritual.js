@@ -43,6 +43,7 @@
   running=true;
   const role=c.roleOverride||c.rollMath.role||t.role||'combatant';
   const seal=STAMPS[role]||'',rolls=c.rollTrace,math=c.rollMath;
+  const soul=c.soulInheritance&&c.soulInheritance.energy>0?c.soulInheritance:null;
   const owner=g.players.findIndex(p=>p.field?.some(mon=>mon?.uid===c.uid));
   const index=owner<0?-1:g.players[owner].field.findIndex(mon=>mon?.uid===c.uid);
   const slot=index<0?null:document.querySelector(owner===0?'#ownRow [data-mine="'+index+'"]':'#enemyRow [data-enemy="'+index+'"]');
@@ -52,6 +53,7 @@
   overlay.className='evo-summon evo-fusion-scene evo-stamp-scene ritual-overlay';
   overlay.dataset.role=role;overlay.dataset.owner=String(owner<0?g.active:owner);
   overlay.dataset.variant=variant;
+  overlay.dataset.soulInherited=soul?'true':'false';
   overlay.setAttribute('role','status');
   overlay.setAttribute('aria-label','Fusion von '+t.name+': '+rolls.length+' echte Wertewürfe');
   overlay.innerHTML=
@@ -129,7 +131,13 @@
    overlay.classList.add('evo-phase-shell');await wait(590);
    overlay.classList.add('evo-phase-reveal');await wait(1050);
    });
-   // 3. A single severe blow permanently assigns its precomputed role.
+   // 3. The stored field energy passes visibly between material and result.
+   // The already committed soulInheritance is the sole authority for displayed values.
+   if(soul&&window.ArcaneSoulCinema?.play){
+    try{await phases.run('Seelen-Erbe',()=>window.ArcaneSoulCinema.play(overlay,materials,soul,ms=>phases.wait(ms,animationWait)));}
+    catch(error){console.warn('Seelen-Cinema übersprungen:',error);}
+   }
+   // 4. A single severe blow permanently assigns its precomputed role.
    if(seal)await phases.run('Rollenprägung',async()=>{
     overlay.classList.add('evo-stamp-impact','ritual-screen-shake');playSound('summon');
     await wait(460);overlay.classList.remove('ritual-screen-shake');await wait(370);
@@ -176,11 +184,18 @@
     log.insertAdjacentHTML('beforeend','<div class="evo-calc-divider"></div>');
     for(const [label,a,d,css] of [
      ['Bester Wurf',best.atk,best.def,'evo-calc-winning'],
-     ['+ Material',math.bonus?.atk,math.bonus?.def,''],
+     ['+ Material',math.bonus?.atk,Math.max(0,(math.bonus?.def||0)-(soul?.defBonus||0)),''],
      ['− Abzug',math.penalty,math.penalty,'']
     ]){
      const node=line(label,a,d,css);
      node.classList.add('evo-calc-stamped','stamped');await wait(260);
+    }
+    if(soul){
+     const bonus=line('✦ SEELEN-ERBE',0,soul.defBonus,'ritual-soul-inherit-line');
+     bonus.classList.add('evo-calc-stamped','stamped');
+     const note=document.createElement('div');note.className='ritual-soul-energy-note';
+     note.textContent='✦ '+num(soul.energy)+' eingesetzte Seelenenergie · '+num(soul.carried)+' Energie übertragen';
+     log.append(note);await wait(490);
     }
     log.insertAdjacentHTML('beforeend','<div class="evo-calc-divider evo-double"></div>');
     const result=line('= ENDWERT',math.final.atk,math.final.def,'evo-calc-final');
@@ -193,7 +208,7 @@
     atk.textContent=num(t.atk);def.textContent=num(t.def);
    }
    });
-   await phases.run('Fertige Karte',async()=>{overlay.classList.add('evo-card-locked');await wait(650);});
+   await phases.run('Fertige Karte',async()=>{overlay.classList.add('evo-card-locked');await wait(soul?900:650);});
    // 7. Flight to actual occupied zone; no change to authoritative state.
    await phases.run(boardCard?'Platzierung':'Ritualabschluss',async()=>{
    if(boardCard&&window.ArcaneSummonFX){

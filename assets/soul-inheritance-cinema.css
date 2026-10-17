@@ -1,0 +1,112 @@
+/* Arcane Duel · soul inheritance fusion display, independent from saved stats. */
+#ownRow .monster-slot.arcane-synth-charged.arcane-synth-picked,
+#ownRow .monster-slot.arcane-synth-charged.arcane-synth-picked .board-creature{
+ border-color:#df80ff!important;
+ box-shadow:0 0 0 2px #d785ffb4,0 0 25px 7px #bb41ffe0,inset 0 0 18px #932eff70!important;
+ filter:drop-shadow(0 0 9px #a940ff);
+ animation:soul-picked-pulse 1.4s ease-in-out infinite alternate!important;
+}
+#ownRow .monster-slot.arcane-synth-charged{position:relative;isolation:isolate;}
+.arcane-soul-chosen{
+ position:absolute;z-index:9;left:-6px;right:-6px;bottom:-18px;pointer-events:none;
+ display:block;padding:4px 5px;border:1px solid #c579f9;border-radius:6px;
+ background:linear-gradient(110deg,#261037,#592b75,#25143b);
+ color:#f3cbff;font:800 10px/1.2 system-ui,sans-serif!important;
+ text-shadow:0 0 5px #f1b3ff,0 0 11px #d15cff;
+ box-shadow:0 0 17px #bb4cffbb;
+}
+@keyframes soul-picked-pulse{
+ from{filter:drop-shadow(0 0 3px #aa48e9);box-shadow:0 0 11px #bb47ee93,inset 0 0 5px #a64df388}
+ to{filter:drop-shadow(0 0 12px #c965ff);box-shadow:0 0 31px #d46cffdd,inset 0 0 18px #b34efa94}
+}
+.ritual-overlay[data-soul-inherited="true"] .evo-fusion-result.monster-card{
+ box-shadow:0 15px 28px #05030edb,0 0 34px 10px #ae48f7bb,0 0 76px 30px #7c1cae81!important;
+ border-color:#c989fa!important;
+}
+.ritual-overlay[data-soul-inherited="true"] .evo-fusion-result.monster-card::before{
+ content:"";position:absolute;inset:-17px;z-index:-1;pointer-events:none;border-radius:21px;
+ background:radial-gradient(ellipse,#b84ffff0,transparent 72%);
+ filter:blur(16px);opacity:.7;animation:soul-backlight 1.5s ease-in-out infinite alternate;
+}
+.ritual-overlay .evo-calc-row.ritual-soul-inherit-line{
+ position:relative!important;border:1px solid #d693ff!important;border-radius:7px!important;
+ background:linear-gradient(90deg,#36164f,#69317ccf,#251036)!important;
+ box-shadow:0 0 18px #b348f9a1,inset 0 0 11px #e08cff5a!important;
+ color:#f5d4ff!important;text-shadow:0 0 9px #e5a2ff!important;
+ animation:soul-row-shimmer 1.65s ease-in-out infinite alternate!important;
+}
+.ritual-overlay .evo-calc-row.ritual-soul-inherit-line b{color:#f9d4ff!important;text-shadow:0 0 10px #e9a8ff!important}
+.ritual-soul-energy-note{
+ font:750 11px/1.3 system-ui,sans-serif;text-align:center;color:#dfb4ff;
+ text-shadow:0 0 9px #bd59ff;letter-spacing:.01em;padding:3px 1px;
+}
+.soul-cinema-layer{position:absolute;inset:0;z-index:40;pointer-events:none;overflow:visible}
+.soul-source-card{
+ position:absolute;left:50%;top:8px;transform:translateX(-50%) scale(.58);
+ width:194px;height:257px;opacity:0;overflow:hidden;border:5px ridge #c980fb;
+ border-radius:12px;background:#1a102c;
+ box-shadow:0 0 29px #c25aff,0 16px 39px #0d091ddd;z-index:3;
+ display:flex;flex-direction:column;padding:6px;box-sizing:border-box;
+}
+.soul-source-card img{width:100%;height:215px;object-fit:cover;border-radius:5px}
+.soul-source-card span{font:800 13px/1.3 Georgia,serif;text-align:center;color:#ebc6ff;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:4px}
+.soul-generic-card{display:grid;place-items:center;height:100%;font-size:64px;color:#d88bff}
+.soul-phase-material .soul-source-card{animation:soul-card-arrives .48s cubic-bezier(.15,.85,.3,1.15) both}
+.soul-hidden-orb{
+ position:absolute;left:50%;top:121px;width:92px;height:92px;
+ transform:translate(-50%,-50%) scale(.3);z-index:1;opacity:0;border-radius:50%;
+ background:radial-gradient(circle at 33% 27%,#fff,#e9b8ff 24%,#ab34ee 57%,#341044 77%);
+ box-shadow:0 0 30px 17px #b13cf8a1,0 0 85px 28px #8c24d584;
+}
+.soul-phase-material .soul-hidden-orb{opacity:1;transform:translate(-50%,-50%) scale(1);transition:transform .4s,opacity .4s}
+.soul-phase-shatter .soul-source-card{animation:soul-card-break .32s ease-in forwards!important}
+.soul-phase-shatter .soul-hidden-orb{animation:soul-orb-pop .56s ease-out both!important}
+.soul-shatter{position:absolute;left:50%;top:121px;z-index:5}
+.soul-shard{
+ position:absolute;left:-34px;top:-46px;display:block;opacity:0;
+ width:70px;height:95px;background:linear-gradient(137deg,#e6b0ff,#642b8b 48%,#211334);
+ background-image:var(--soul-image,linear-gradient(135deg,#cf82ff,#4e1e75));
+ background-size:194px 257px;background-position:center;
+ clip-path:polygon(2% 1%,100% 16%,71% 92%,10% 99%,20% 51%);
+ border:1px solid #d295ff;box-shadow:0 0 15px #d767ff;
+}
+.soul-phase-shatter .soul-shard{animation:soul-shard-flight .65s cubic-bezier(.15,.6,.8,1) both;animation-delay:calc(var(--i)*19ms)}
+.soul-projectiles{position:absolute;inset:0;z-index:9}
+.soul-arc-projectile{
+ position:absolute;left:50%;top:121px;width:12px;height:12px;opacity:0;
+ background:radial-gradient(circle at 28% 22%,#fff 0 18%,#ce78ff 30%,#8a31d5 68%);
+ border-radius:50%;box-shadow:0 0 12px #f2cbff,0 0 21px #a44bfa;
+ /* a bite taken out of the bright core forms a little concave/crescent projectile */
+ clip-path:polygon(0 0,94% 8%,100% 40%,60% 42%,47% 64%,72% 100%,0 85%,20% 48%);
+}
+.soul-arc-projectile::after{
+ content:'✦ ✧';position:absolute;left:-31px;top:6px;
+ color:#edbfff;font-size:11px;letter-spacing:2px;text-shadow:0 0 9px #d365ff;
+}
+.soul-comet{position:absolute;left:-13px;top:-14px;color:#fff;font-size:10px;text-shadow:0 0 6px #f5d9ff}
+.soul-phase-transfer .soul-arc-projectile{
+ animation:soul-arc-flight .9s cubic-bezier(.2,.5,.3,1) var(--lag) both;
+}
+.soul-inheritance-impact .evo-fusion-result.monster-card{animation:soul-result-charge .75s ease-out!important}
+@keyframes soul-card-arrives{from{opacity:0;transform:translateX(-50%) scale(.46) translateY(30px)}to{opacity:1;transform:translateX(-50%) scale(1) translateY(0)}}
+@keyframes soul-card-break{0%{opacity:1;filter:brightness(1.3)}30%{opacity:.85;filter:brightness(3)}100%{opacity:0;filter:brightness(6);transform:translateX(-50%) scale(1.18)}}
+@keyframes soul-orb-pop{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}42%{opacity:1;transform:translate(-50%,-50%) scale(2.1)}100%{opacity:0;transform:translate(-50%,-50%) scale(3)}}
+@keyframes soul-shard-flight{0%{opacity:1;transform:rotate(0) scale(.7)}100%{opacity:0;transform:rotate(calc(var(--angle) + 75deg)) translateX(var(--distance)) scale(.05)}}
+@keyframes soul-arc-flight{0%{opacity:0;transform:translate(0,0) scale(.3)}15%{opacity:1}
+ 48%{opacity:1;transform:translate(var(--arc-x),var(--arc-y)) scale(1.4)}
+ 100%{opacity:0;transform:translate(0,-40px) scale(.1)}}
+@keyframes soul-result-charge{0%{filter:brightness(1)}38%{filter:brightness(1.9) drop-shadow(0 0 28px #cf77ff)}100%{filter:brightness(1)}}
+@keyframes soul-row-shimmer{from{filter:brightness(.96)}to{filter:brightness(1.22)}}
+@keyframes soul-backlight{from{opacity:.5}to{opacity:1}}
+@media(max-width:520px){
+ .soul-source-card{width:153px;height:205px;top:0}
+ .soul-source-card img{height:165px}
+ .soul-hidden-orb,.soul-shatter,.soul-arc-projectile{top:90px}
+ .ritual-overlay .ritual-soul-energy-note{font-size:9px}
+ .arcane-soul-chosen{font-size:8px!important;bottom:-15px}
+}
+@media(prefers-reduced-motion:reduce){
+ .soul-source-card,.soul-hidden-orb,.soul-shard,.soul-arc-projectile,
+ .ritual-overlay[data-soul-inherited="true"] .evo-fusion-result.monster-card::before{
+ animation:none!important;transition:none!important}
+}
