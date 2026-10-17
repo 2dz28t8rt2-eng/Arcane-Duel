@@ -65,6 +65,11 @@ document.getElementById('app').addEventListener('load',async()=>{
   let stampTime=0,sharp=false;
   await w.ArcaneFusionBonus.stamp(w.__comboRoot,w.__comboCard,async ms=>{stampTime+=ms;const n=d.querySelector('.ad-combo-ink');sharp=!!n&&w.getComputedStyle(n).filter==='none';});
   check(combo&&stampTime>=3000&&sharp,'Spezialbonus bleibt mindestens drei Sekunden scharf lesbar');w.__comboRoot.remove();
+  // Headless virtual time can suspend iframe rAF despite visible parent timers.
+  // Supply a deterministic 60 Hz clock for the real LP presentation function.
+  const nativeRAF=w.requestAnimationFrame.bind(w),nativeCancel=w.cancelAnimationFrame.bind(w);
+  w.requestAnimationFrame=callback=>w.setTimeout(()=>callback(w.performance.now()),16);
+  w.cancelAnimationFrame=id=>w.clearTimeout(id);
   w.eval(`hideModal();game.selection=null;busy=false;window.__introPromise=ArcaneBattleFX.beginCinema();`);
   await pause(100);
   check(!!d.querySelector('.ad-battle-intro')&&d.getElementById('duelScreen').dataset.lpPhase==='intro'&&d.getElementById('myLP').textContent==='0','LP bleiben während des Duellstartbildschirms bei null');
@@ -74,6 +79,7 @@ document.getElementById('app').addEventListener('load',async()=>{
   check(Number(d.getElementById('myLP').textContent)>0&&Number(d.getElementById('myLP').textContent)<w.eval('game.players[0].lp'),'Der langsamere LP-Aufbau ist sichtbar zwischen null und Endwert');
   await pause(1900);
   check(!d.getElementById('duelScreen').dataset.lpPhase&&!w.eval('busy')&&Number(d.getElementById('myLP').textContent)===w.eval('game.players[0].lp'),'LP enden exakt am echten Wert und die Steuerung wird freigegeben');
+  w.requestAnimationFrame=nativeRAF;w.cancelAnimationFrame=nativeCancel;
   w.eval(`game.players[0].field[2]=null;game.summoned=false;game.selection=null;const t=RPG_FUSIONS.find(c=>c.level===2&&!c.retired&&!c.enemyOnly);const f=newInstance(game,t.id,0);f.fusion=true;f.materialsUsed=3;game.pending={kind:'fusion',card:f,levels:[1,1],revealed:true};render();`);
   d.querySelector('[data-mine="2"]').click();
   await pause(900);
@@ -85,7 +91,12 @@ document.getElementById('app').addEventListener('load',async()=>{
   check(!d.querySelector('.ad-titan-impact')&&!d.querySelector('.ad-impact-shake'),'Der Aufprall endet ohne zurückspringende Karte oder hängenbleibenden Effekt');
   w.eval(`window.__flightBounds=null;window.__ritualAnimate=Element.prototype.animate;
    Element.prototype.animate=function(...args){const anim=window.__ritualAnimate.apply(this,args);if(this.classList.contains('monster-card')){
-    const actor=this;anim.addEventListener('finish',()=>{const a=actor.getBoundingClientRect(),b=document.querySelector('[data-mine="2"] .board-creature').getBoundingClientRect();window.__flightBounds={left:a.left-b.left,top:a.top-b.top,width:a.width-b.width,height:a.height-b.height};});}return anim;};
+    const actor=this,capture=()=>{if(!actor.isConnected)return;const a=actor.getBoundingClientRect(),b=document.querySelector('[data-mine="2"] .board-creature').getBoundingClientRect();window.__flightBounds={left:a.left-b.left,top:a.top-b.top,width:a.width-b.width,height:a.height-b.height};};
+    anim.addEventListener('finish',capture);
+    // Sample the actual Web Animation at its endpoint even when headless
+    // rendering has deferred its finish event. CSS still determines the bounds.
+    setTimeout(()=>{if(!actor.isConnected)return;anim.currentTime=args[1].duration;capture();anim.finish();},args[1].duration);
+   }return anim;};
    const c=game.players[0].field[2];c.roleOverride='predator';c.materialsUsed=3;c.pattern='Paar';c.rollTrace=[{atk:c.card.atk,def:c.card.def}];c.rollMath={base:{atk:c.card.atk,def:c.card.def},winnerIndex:0,winner:{atk:c.card.atk,def:c.card.def},final:{atk:c.card.atk,def:c.card.def},bonus:{atk:0,def:0},penalty:0,combo:{name:'Paar',qualityPct:5.5,materialCount:3}};
    window.__actualLanding=ArcaneFusionCinema.play({instance:c,materials:game.players[0].hand.slice(0,3).map(c=>({art:dataOf(c).art,level:dataOf(c).level})),battle:game,card:dataOf(c),level:dataOf(c).level,variant:'field',wait:()=>Promise.resolve(),playSound:()=>{}});`);
   await w.__actualLanding;
