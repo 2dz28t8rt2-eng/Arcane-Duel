@@ -50,3 +50,6 @@ jobs:
 
       - name: QA tight equal-seed soul survival and skill matches
         run: node tests/qa-tight-soul-matches.cjs
+
+      - name: QA defender tactical stress against harder matched NPCs
+        run: node tests/qa-soul-pressure-matches.cjs
