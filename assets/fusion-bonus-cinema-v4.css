@@ -50,8 +50,8 @@
 }
 @keyframes ad-combo-impact{
  0%{opacity:0;transform:translateY(12px) scale(.96);filter:none}
- 10%,87%{opacity:1;transform:translateY(0) scale(1);filter:none}
- 100%{opacity:0;transform:translateY(-8px) scale(1);filter:none}
+ 10%,62%{opacity:1;transform:translateY(0) scale(1);filter:none}
+ 100%{opacity:0;transform:translate(var(--ad-bonus-dx,0px),var(--ad-bonus-dy,120px)) scale(.45);filter:none}
 }
 @keyframes ad-combo-burst{
  0%{opacity:0;transform:translate(0,0) scale(.2)}

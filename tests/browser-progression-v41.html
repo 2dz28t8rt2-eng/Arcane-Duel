@@ -64,7 +64,7 @@ document.getElementById('app').addEventListener('load',async()=>{
   const combo=w.eval(`(()=>{const c={pattern:'Kleine Straße',materialsUsed:3,rollMath:{combo:{name:'Kleine Straße',qualityPct:8,materialCount:3,rollBonus:1}}};const root=document.createElement('div');root.className='ritual-overlay';document.body.append(root);window.__comboRoot=root;window.__comboCard=c;return true;})()`);
   let stampTime=0,sharp=false;
   await w.ArcaneFusionBonus.stamp(w.__comboRoot,w.__comboCard,async ms=>{stampTime+=ms;const n=d.querySelector('.ad-combo-ink');sharp=!!n&&w.getComputedStyle(n).filter==='none';});
-  check(combo&&stampTime>=3000&&sharp,'Spezialbonus bleibt mindestens drei Sekunden scharf lesbar');w.__comboRoot.remove();
+  check(combo&&stampTime>=2000&&stampTime<=2400&&sharp,'Spezialbonus bleibt zwei bis 2,4 Sekunden scharf lesbar und endet etwas früher');w.__comboRoot.remove();
   // Headless virtual time can suspend iframe rAF despite visible parent timers.
   // Supply a deterministic 60 Hz clock for the real LP presentation function.
   const nativeRAF=w.requestAnimationFrame.bind(w),nativeCancel=w.cancelAnimationFrame.bind(w);
@@ -90,8 +90,8 @@ document.getElementById('app').addEventListener('load',async()=>{
   await pause(100);
   check(!d.querySelector('.ad-titan-impact')&&!d.querySelector('.ad-impact-shake'),'Der Aufprall endet ohne zurückspringende Karte oder hängenbleibenden Effekt');
   w.eval(`window.__flightBounds=null;window.__ritualAnimate=Element.prototype.animate;
-   Element.prototype.animate=function(...args){const anim=window.__ritualAnimate.apply(this,args);if(this.classList.contains('monster-card')){
-    const actor=this,capture=()=>{if(!actor.isConnected)return;const a=actor.getBoundingClientRect(),b=document.querySelector('[data-mine="2"] .board-creature').getBoundingClientRect();window.__flightBounds={left:a.left-b.left,top:a.top-b.top,width:a.width-b.width,height:a.height-b.height};};
+   Element.prototype.animate=function(...args){const anim=window.__ritualAnimate.apply(this,args);if(this.classList.contains('ad-summon-ghost')){
+    const actor=this,capture=()=>{if(!actor.isConnected)return;const a=(actor.querySelector('.board-creature')||actor).getBoundingClientRect(),b=document.querySelector('[data-mine="2"] .board-creature').getBoundingClientRect();window.__flightBounds={left:a.left-b.left,top:a.top-b.top,width:a.width-b.width,height:a.height-b.height};};
     anim.addEventListener('finish',capture);
     // Sample the actual Web Animation at its endpoint even when headless
     // rendering has deferred its finish event. CSS still determines the bounds.

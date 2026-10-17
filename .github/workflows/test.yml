@@ -182,3 +182,18 @@ jobs:
               exit 1
             fi
           done
+
+          for size in 1200 410; do
+            echo "Checking defender effects, independent phase skips and victory exit at ${size}px ..."
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-renderer-backgrounding --virtual-time-budget=35000 --window-size="${size},1050" --dump-dom http://127.0.0.1:8757/tests/browser-cinematics-v42.html >"/tmp/arcane-cinematics42-${size}.html" 2>/tmp/arcane-cinematics42.log
+            if ! grep -q 'data-cinematics-test="pass"' "/tmp/arcane-cinematics42-${size}.html"; then
+              echo "Cinematics 4.2 QA failed at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/arcane-cinematics42-${size}.html" | head -125 || true
+              exit 1
+            fi
+          done
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --force-prefers-reduced-motion=reduce --virtual-time-budget=15000 --window-size="410,1050" --dump-dom http://127.0.0.1:8757/tests/browser-cinematics-v42.html >/tmp/arcane-cinematics42-reduced.html 2>/tmp/arcane-cinematics42.log
+          if ! grep -q 'data-cinematics-test="pass"' /tmp/arcane-cinematics42-reduced.html; then
+            sed -n '/<pre id="result"/,/<\/pre>/p' /tmp/arcane-cinematics42-reduced.html | head -125 || true
+            exit 1
+          fi

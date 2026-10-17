@@ -140,14 +140,7 @@
   const placed=g?.players[owner]?.field[idx];
   if(!pending||game!==g||g.pending||!placed?.fusion||placed.uid===before||reduced())return;
   if(window.ArcaneFusionCinema?.landed?.(g,placed.uid))return;
-  const cell=document.querySelector('[data-mine="'+idx+'"] .board-creature');if(!cell)return;
-  // Capture the FINAL, untransformed slot rectangle, then land exactly there.
-  const heavy=(placed.materialsUsed||0)>=4;
-  cell.classList.add('ad-titan-impact');setTimeout(()=>cell.classList.remove('ad-titan-impact'),800);
-  setTimeout(()=>{
-   if(game!==g||!cell.isConnected)return;
-   landingDust(cell,heavy);
-  },500);
+  if(window.ArcaneSummonFX)await window.ArcaneSummonFX.land(g,placed);
 
  };
  window.ArcaneBattleFX=Object.freeze({version:'1.1',beginCinema,landingDust,introDuration:1650,fillDuration:2400});

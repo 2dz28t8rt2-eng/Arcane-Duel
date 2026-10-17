@@ -1,0 +1,160 @@
+{
+  "version": "4.2",
+  "created": "2026-10-17",
+  "generator": "Built-in image_gen",
+  "assets": [
+    {
+      "key": "frostklingen_greif",
+      "name": "Frostklingen-Greif",
+      "prompt": "Create a single finished original creature illustration for the dark fantasy card game Arcane Duel. ASSET: Frostklingen-Greif (Frostblade Gryphon), WIND-element predator. One magnificent eagle-lion gryphon with silver-white feathers, slate-blue fur, icy translucent blade-shaped wing feathers and hooked talons, diving across a windswept ruined alpine bridge; curling snow and strong wind reveal its silhouette. Dramatic highly detailed painterly fantasy TCG concept art, realistic materials, deep indigo shadows, luminous cyan edge light, restrained gold highlights, rich atmospheric landscape. Central complete creature dominates the square image; head and important limbs safely within the central 80 percent for portrait card cropping, compelling anatomy, distinct readable silhouette. This is artwork only: edge-to-edge scene, no border, no frame, no lettering, no symbols resembling text, no card UI, no watermark, no collage. Square composition, crisp and polished.",
+      "path": "assets/custom-art/generated-4-2/frostklingen-greif.webp",
+      "sha256": "0e2eaac8d6cffd502d0b2bf1391ba15521012e68f49b15c6f56d3d53f1f0470b",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "key": "glyphenjaeger",
+      "name": "Glyphenjäger",
+      "prompt": "Create ONE finished original creature illustration for the dark fantasy card game Arcane Duel. Highly detailed painterly fantasy trading-card concept art, realistic textures, rich moody atmosphere, dramatic light, crisp readable silhouette, deep indigo shadows. One central creature only, with a complete coherent anatomy and important head/limbs inside the central 80 percent for portrait card cropping. Edge-to-edge square scene; artwork only, NO card border, NO frame, NO lettering, NO numbers, NO UI, NO watermark, NO collage. ASSET: Glyphenjäger. LIGHT-element predator mage: an ominous faceless arcane hunter in ivory and tarnished gold battle robes, floating above ancient steps, wielding a sharp luminous golden crescent bow made of geometric runic energy, cloak swept backward, blinding light blades and shattered stone, striking offensive stance.",
+      "path": "assets/custom-art/generated-4-2/glyphenjaeger.webp",
+      "sha256": "96e031993fc0a034f17eeea2d246c6aebe18ed05189288eb5bebea6e07a875ea",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "key": "chronosgeist",
+      "name": "Chronosgeist",
+      "prompt": "Create ONE finished original creature illustration for the dark fantasy card game Arcane Duel. Highly detailed painterly fantasy trading-card concept art, realistic textures, rich moody atmosphere, dramatic light, crisp readable silhouette, deep indigo shadows. One central creature only, with a complete coherent anatomy and important head/limbs inside the central 80 percent for portrait card cropping. Edge-to-edge square scene; artwork only, NO card border, NO frame, NO lettering, NO numbers, NO UI, NO watermark, NO collage. ASSET: Chronosgeist. LIGHT-element soul-eating defender spirit: a translucent ancient time wraith in flowing pearl and bronze robes, hood framing a glowing empty visage, one large broken bronze hourglass held against its chest, concentric golden clockwork rings without numbers suspended behind it, siphoning soft wisps of pale light in a timeless ruined observatory.",
+      "path": "assets/custom-art/generated-4-2/chronosgeist.webp",
+      "sha256": "ef3872a8218ac88c97654faaf6b90400022cef4bea5ab18aa638a1990dce637d",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "key": "eisenfunke",
+      "name": "Eisenfunke",
+      "prompt": "Create ONE finished original creature illustration for the dark fantasy card game Arcane Duel. Highly detailed painterly fantasy trading-card concept art, realistic textures, rich moody atmosphere, dramatic light, crisp readable silhouette, deep indigo shadows. One central creature only, with a complete coherent anatomy and important head/limbs inside the central 80 percent for portrait card cropping. Edge-to-edge square scene; artwork only, NO card border, NO frame, NO lettering, NO numbers, NO UI, NO watermark, NO collage. ASSET: Eisenfunke. EARTH-element living iron knight: compact powerful sentient suit of pitted black iron armor with a forge-bright amber core, broad hammer and iron shield, grounded powerful stance on shattered ore beside an abandoned forge, small sparks and gritty bronze dust, no fire monster.",
+      "path": "assets/custom-art/generated-4-2/eisenfunke.webp",
+      "sha256": "4295116a609f393f9d128a44d432bf36cac14ef498cc826eac7a21ef09118f83",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "key": "dornenklinge",
+      "name": "Dornenklinge",
+      "prompt": "Create ONE finished original creature illustration for the dark fantasy card game Arcane Duel. Highly detailed painterly fantasy trading-card concept art, realistic textures, rich moody atmosphere, dramatic light, crisp readable silhouette, deep indigo shadows. One central creature only, with a complete coherent anatomy and important head/limbs inside the central 80 percent for portrait card cropping. Edge-to-edge square scene; artwork only, NO card border, NO frame, NO lettering, NO numbers, NO UI, NO watermark, NO collage. ASSET: Dornenklinge. EARTH-element thorn stag: lean aggressive woodland stag with blade-like branching antlers made of dark iron-hard thorns, mossy green bark plates along shoulders, emerald eyes, surging through a fern-filled deep green ruined forest, sharp thorn silhouette.",
+      "path": "assets/custom-art/generated-4-2/dornenklinge.webp",
+      "sha256": "202ad968764d33e5f741cd278e5aeb43f5b20e77bb467ea7bed8d803ace575da",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "key": "hainwacht",
+      "name": "Hainwacht",
+      "prompt": "Create ONE finished original creature illustration for the dark fantasy card game Arcane Duel. Highly detailed painterly fantasy trading-card concept art, realistic textures, rich moody atmosphere, dramatic light, crisp readable silhouette, deep indigo shadows. One central creature only, with a complete coherent anatomy and important head/limbs inside the central 80 percent for portrait card cropping. Edge-to-edge square scene; artwork only, NO card border, NO frame, NO lettering, NO numbers, NO UI, NO watermark, NO collage. ASSET: Hainwacht. EARTH-element sacred grove guardian stag: broad majestic calm white-faced stag with mossy ancient bark armor, a broad sheltering canopy of leafy antlers, warm emerald heart crystal, standing protectively before a moonlit sacred grove and standing stones, grounded noble protective presence.",
+      "path": "assets/custom-art/generated-4-2/hainwacht.webp",
+      "sha256": "08f74cc181d2a0f679a346bbcd7b02b50e5d193da5d1941f00a11721dcb063c3",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "key": "wurzelwolf",
+      "name": "Wurzelwolf",
+      "prompt": "Create ONE finished original creature illustration for the dark fantasy card game Arcane Duel. Highly detailed painterly fantasy trading-card concept art, realistic textures, rich moody atmosphere, dramatic light, crisp readable silhouette, deep indigo shadows. One central creature only, with a complete coherent anatomy and important head/limbs inside the central 80 percent for portrait card cropping. Edge-to-edge square scene; artwork only, NO card border, NO frame, NO lettering, NO numbers, NO UI, NO watermark, NO collage. ASSET: Wurzelwolf. EARTH-element root wolf: clearly a single anatomically wolf-shaped beast, body woven from gnarled dark roots, moss and layered bark, emerald sap light between roots, long root tail and root claws, prowling low over a ruined forest path, tangled but readable canine silhouette.",
+      "path": "assets/custom-art/generated-4-2/wurzelwolf.webp",
+      "sha256": "06f36e607a21bc0cf57035e96d03e58fe0f625860246fb3fe7f2ff06d666ad5e",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "key": "kronenhirsch",
+      "name": "Kronenhirsch",
+      "prompt": "Create ONE finished original creature illustration for the dark fantasy card game Arcane Duel. Highly detailed painterly fantasy trading-card concept art, realistic textures, rich moody atmosphere, dramatic light, crisp readable silhouette, deep indigo shadows. One central creature only, with a complete coherent anatomy and important head/limbs inside the central 80 percent for portrait card cropping. Edge-to-edge square scene; artwork only, NO card border, NO frame, NO lettering, NO numbers, NO UI, NO watermark, NO collage. ASSET: Kronenhirsch. EARTH-element forest sovereign stag: huge regal golden-eyed dark forest elk wearing a living crown of mighty interlocking antlers shaped like an ancient crown, tiny amber sap gemstones and autumn leaves among antlers, dark bark mantle, standing on mossy stone dais amid ancient oak ruins, proud monumental silhouette.",
+      "path": "assets/custom-art/generated-4-2/kronenhirsch.webp",
+      "sha256": "4b18c616bd9c7d04097c552a03d6bbb2a866bf79c68ba402f3c7889095b0a2fe",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "key": "schildholz",
+      "name": "Schildholz",
+      "prompt": "Create ONE finished original creature illustration for the dark fantasy card game Arcane Duel. Highly detailed painterly fantasy trading-card concept art, realistic textures, rich moody atmosphere, dramatic light, crisp readable silhouette, deep indigo shadows. One central creature only, with a complete coherent anatomy and important head/limbs inside the central 80 percent for portrait card cropping. Edge-to-edge square scene; artwork only, NO card border, NO frame, NO lettering, NO numbers, NO UI, NO watermark, NO collage. ASSET: Schildholz. EARTH-element living shieldwood guardian: ancient stag-shaped wooden guardian with a heavy broad overlapping carapace of curved shield-like oak bark plates, low sweeping antlers forming a protective arc, stout powerful legs and glowing green eyes, sheltering small ferns in a dark misty grove, clearly distinct from a humanoid tree.",
+      "path": "assets/custom-art/generated-4-2/schildholz.webp",
+      "sha256": "3fe13e066d3aea0bbd6aa43749f7f78d202094c1cb42760422aa1056d5a0ed07",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "key": "reisszahn",
+      "name": "Essenzbestie · Reißzahn",
+      "prompt": "Create ONE finished original creature illustration for the dark fantasy card game Arcane Duel. Highly detailed painterly fantasy trading-card concept art, realistic textures, rich moody atmosphere, dramatic light, crisp readable silhouette, deep indigo shadows. One central creature only, with a complete coherent anatomy and important head/limbs inside the central 80 percent for portrait card cropping. Edge-to-edge square scene; artwork only, NO card border, NO frame, NO lettering, NO numbers, NO UI, NO watermark, NO collage. ASSET: Essenzbestie · Reißzahn. DARK-element bonded predator wolf: original lean black obsidian-furred wolf with enormous ivory saber fangs, violet soul-light along its spine and a single teal essence crystal at its chest, tense forward hunting pose on shattered slate, wisps of purple essence, direct intelligent gaze, no duplicate wolf.",
+      "path": "assets/custom-art/generated-4-2/reisszahn.webp",
+      "sha256": "2e0e62280bd12497ed231e04a399c8915a7fc09b8b779635d21bd747fdaf275e",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "key": "aschenhort",
+      "name": "Essenzbestie · Aschenhort",
+      "prompt": "Create ONE finished original creature illustration for the dark fantasy card game Arcane Duel. Highly detailed painterly fantasy trading-card concept art, realistic textures, rich moody atmosphere, dramatic light, crisp readable silhouette, deep indigo shadows. One central creature only, with a complete coherent anatomy and important head/limbs inside the central 80 percent for portrait card cropping. Edge-to-edge square scene; artwork only, NO card border, NO frame, NO lettering, NO numbers, NO UI, NO watermark, NO collage. ASSET: Essenzbestie · Aschenhort. EARTH-element bonded guardian golem: squat massive protective stone creature built of ash-gray basalt and layered ancient hearth stones, rounded broad back, jade crystal heart glowing through cracks, moss on shoulders, hands braced to protect its tiny glowing essence core, settled in an earthy ruined sanctuary, earthy green and amber not a fire monster.",
+      "path": "assets/custom-art/generated-4-2/aschenhort.webp",
+      "sha256": "561e7c102f8a7a7f609b184f7929ad6916306e9a5cac519edc39f5064c07fc17",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "key": "basalt_rammbock",
+      "name": "Basalt-Rammbock",
+      "prompt": "Create ONE finished original creature illustration for the dark fantasy card game Arcane Duel. Highly detailed painterly fantasy trading-card concept art, realistic textures, rich moody atmosphere, dramatic light, crisp readable silhouette, deep indigo shadows. One central creature only, with a complete coherent anatomy and important head/limbs inside the central 80 percent for portrait card cropping. Edge-to-edge square scene; artwork only, NO card border, NO frame, NO lettering, NO numbers, NO UI, NO watermark, NO collage. ASSET: Basalt-Rammbock. EARTH-element defensive stone ram golem: one massive quadruped ram assembled from angular charcoal basalt slabs, broad curled stone horns, squat armored silhouette and thick legs, subtle emerald mineral seams, hooves crushing rocky ground in a ruined mountain pass, dust and moss, no mechanical vehicle.",
+      "path": "assets/custom-art/generated-4-2/basalt-rammbock.webp",
+      "sha256": "072f33e63fac384b5bcb922034c8dbd43bc752c7f7e0e772bc591ee595bedf05",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "key": "schattenegel",
+      "name": "Schattenegel der Tiefen",
+      "prompt": "Create ONE finished original creature illustration for the dark fantasy card game Arcane Duel. Highly detailed painterly fantasy trading-card concept art, realistic textures, rich moody atmosphere, dramatic light, crisp readable silhouette, deep indigo shadows. One central creature only, with a complete coherent anatomy and important head/limbs inside the central 80 percent for portrait card cropping. Edge-to-edge square scene; artwork only, NO card border, NO frame, NO lettering, NO numbers, NO UI, NO watermark, NO collage. ASSET: Schattenegel der Tiefen. DARK-element soul-draining abyssal leech serpent: a long elegant monstrous eel-leech creature floating above black water in a subterranean flooded temple, glossy midnight blue segmented skin, a ring-shaped violet glowing mouth, spectral purple soul threads drawn toward it, curved serpentine body and fine whisker-like sensory tendrils, eerie fantasy beauty rather than gore.",
+      "path": "assets/custom-art/generated-4-2/schattenegel.webp",
+      "sha256": "4ce3a6da0cf7ac73ccc0cec1f4564879f4711e6eb79f0231e1711c9014d80418",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "key": "glutjaeger",
+      "name": "Glutjäger der Dünen",
+      "prompt": "Create ONE finished original creature illustration for the dark fantasy card game Arcane Duel. Highly detailed painterly fantasy trading-card concept art, realistic textures, rich moody atmosphere, dramatic light, crisp readable silhouette, deep indigo shadows. One central creature only, with a complete coherent anatomy and important head/limbs inside the central 80 percent for portrait card cropping. Edge-to-edge square scene; artwork only, NO card border, NO frame, NO lettering, NO numbers, NO UI, NO watermark, NO collage. ASSET: Glutjäger der Dünen. FIRE-element dune predator wolf: a sleek jackal-wolf of dark bronze and charred copper fur with ember-cracked paws and a burning orange mane, stalking over rippled black desert dunes near half-buried temple columns at twilight, windblown sparks and small flames, unmistakably canine and agile.",
+      "path": "assets/custom-art/generated-4-2/glutjaeger.webp",
+      "sha256": "1f37ef894f207d2870933d2d63ef8fa475b864e2bf199e573bae6a2702b624f0",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "key": "runenkroete",
+      "name": "Runenkröte des Moores",
+      "prompt": "Create ONE finished original creature illustration for the dark fantasy card game Arcane Duel. Highly detailed painterly fantasy trading-card concept art, realistic textures, rich moody atmosphere, dramatic light, crisp readable silhouette, deep indigo shadows. One central creature only, with a complete coherent anatomy and important head/limbs inside the central 80 percent for portrait card cropping. Edge-to-edge square scene; artwork only, NO card border, NO frame, NO lettering, NO numbers, NO UI, NO watermark, NO collage. ASSET: Runenkröte des Moores. WATER-element rune-weaving marsh toad: one large wise emerald and blue-black toad on an ancient half-submerged stone altar, naturally glowing turquoise abstract rune-like skin markings without readable text, webbed forefeet touching floating rings of water magic, wet moss, luminous blue mushrooms and deep misty marsh ruins, rounded memorable creature anatomy.",
+      "path": "assets/custom-art/generated-4-2/runenkroete.webp",
+      "sha256": "ed50babaa6ced4978630b675c5758e248286cfa417ad9169dad2eac295ae9ce8",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "key": "spiegelmotte",
+      "name": "Spiegelmotte",
+      "prompt": "Create ONE finished original creature illustration for the dark fantasy card game Arcane Duel. Highly detailed painterly fantasy trading-card concept art, realistic textures, rich moody atmosphere, dramatic light, crisp readable silhouette, deep indigo shadows. One central creature only, with a complete coherent anatomy and important head/limbs inside the central 80 percent for portrait card cropping. Edge-to-edge square scene; artwork only, NO card border, NO frame, NO lettering, NO numbers, NO UI, NO watermark, NO collage. ASSET: Spiegelmotte. LIGHT-element support mirror moth: one luminous large ethereal moth, body pearl white with delicate silver antennae, four broad iridescent mirror-like wings reflecting fragments of a moonlit ruined glass cathedral, pastel lilac silver and restrained gold, tiny floating glass motes, poised gracefully in the air, insect anatomy clear and symmetrical.",
+      "path": "assets/custom-art/generated-4-2/spiegelmotte.webp",
+      "sha256": "0b2f204f65b111bec243602ebd2e2da81e275baa1b73d3e7ca4cceda2c72bc4b",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "key": "seelenbeisser",
+      "name": "Seelenbeißer",
+      "prompt": "Create ONE finished original creature illustration for the dark fantasy card game Arcane Duel. Highly detailed painterly fantasy trading-card concept art, realistic textures, rich moody atmosphere, dramatic light, crisp readable silhouette, deep indigo shadows. One central creature only, with a complete coherent anatomy and important head/limbs inside the central 80 percent for portrait card cropping. Edge-to-edge square scene; artwork only, NO card border, NO frame, NO lettering, NO numbers, NO UI, NO watermark, NO collage. ASSET: Seelenbeißer. DARK-element legendary soul-biter wolf: one huge gaunt black and indigo dire wolf, spectral pale violet fire trapped within its rib-like armored shoulders, jagged silver-black fangs and soul-light leaking from open jaws, white-violet eyes, stalking among shattered gothic graveyard columns, threatening but no gore, distinct from the smaller essence wolf with no teal chest crystal.",
+      "path": "assets/custom-art/generated-4-2/seelenbeisser.webp",
+      "sha256": "8d56eab14301e783046d146b58d5600c5d42f7a9b5c1323e46950d7e092582de",
+      "width": 1024,
+      "height": 1024
+    }
+  ]
+}

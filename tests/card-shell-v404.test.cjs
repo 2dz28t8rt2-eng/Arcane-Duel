@@ -57,7 +57,7 @@ test('Canvas/export includes same standalone medallion without replacing Monster
 test('Entrypoint shell loaded LAST and browser visual acceptance test is in workflow',()=>{
  const html=read('index.html');
  assert.ok(html.indexOf('card-shell-v404.css')>html.indexOf('card-level-runtime-v402.css'));
- assert.match(html,/game\.js\?v=progression-20261017-1/);
+ assert.match(html,/game\.js\?v=cinematics-20261017-1/);
  assert.match(read('.github/workflows/test.yml'),/browser-card-shell-v404.html/);
  assert.match(read('tests/browser-card-shell-v404.html'),/getComputedStyle/);
 });

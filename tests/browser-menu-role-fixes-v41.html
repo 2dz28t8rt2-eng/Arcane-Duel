@@ -29,7 +29,7 @@ document.getElementById('app').addEventListener('load',async()=>{
    });
    check(img.naturalWidth>0,'Full-resolution artwork loads');
    check(card.classList.contains('ad-template')&&card.classList.contains('ad-level-frame'),'Same complete card shell as collection and duel');
-   check(!!card.querySelector('.ad-level-medallion')&&!!card.querySelector('.stat.atk')&&!!card.querySelector('.stat.def'),'Level seal and both live values appear');
+   check(!!card.querySelector('.ad-level-medallion')&&[...card.querySelectorAll('.stat')].every(s=>w.getComputedStyle(s).display==='none'),'Decorative fan keeps its level seal and hides ATK/DEF only here');
    check(w.getComputedStyle(wrapper).display!=='none','All three fan cards remain visible at this viewport');
    check(w.getComputedStyle(wrapper).filter==='none'&&w.getComputedStyle(img).filter==='none','No blur or aura filter on the card face');
    check(w.getComputedStyle(img).animationName==='none','LV10 artwork has no brightness or blur animation');

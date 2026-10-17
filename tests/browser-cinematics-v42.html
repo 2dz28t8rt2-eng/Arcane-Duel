@@ -1,0 +1,94 @@
+<!doctype html><html lang="de"><meta charset="utf-8"><title>Arcane Duel 4.2 · Duellkino</title>
+<style>body{margin:10px;background:#101728;color:#edf0f8;font:13px system-ui}pre{white-space:pre-wrap;max-height:125px;overflow:auto}iframe{width:100%;height:940px;border:0}</style>
+<h1>Duellkino, Verteidiger und Belohnungen</h1><pre id="result">Prüfung läuft …</pre><iframe id="app" src="../index.html" title="Arcane Duel"></iframe>
+<script>
+document.getElementById('app').addEventListener('load',async()=>{
+ const w=document.getElementById('app').contentWindow,d=w.document,lines=[];let pass=true;
+ if(new URLSearchParams(location.search).get('width')==='410')document.getElementById('app').style.width='410px';
+ const pause=ms=>new Promise(r=>setTimeout(r,ms));
+ const check=(ok,label)=>{lines.push((ok?'OK: ':'FEHLER: ')+label);if(!ok)pass=false;document.getElementById('result').textContent=lines.join('\n');};
+ const inside=(a,b)=>a.left>=b.left-1&&a.top>=b.top-1&&a.right<=b.right+1&&a.bottom<=b.bottom+1;
+ try{
+  check(w.ArcaneArtworkCoverage.audit().missingCards===0,'Keine fehlenden Illustrationen im aktiven Katalog');
+  const menu=[...d.querySelectorAll('.atlas-preview-card .hand-card')];
+  check(menu.length===3&&menu.every(c=>[...c.querySelectorAll('.stat')].every(s=>w.getComputedStyle(s).display==='none')),'Nur die drei Menükarten verbergen ihre ATK/DEF-Boxen');
+  w.eval(`profile=freshProfile();profile.guideSeen=true;profile.cleared=[1,2,3,4];hideModal();busy=false;aiRunning=false;animationSpeed='normal';document.body.classList.remove('instant','ad-motion-disabled');
+   game=createGame({id:'cinematics-qa',mode:'pve',opponentId:3,context:'free',seed:42,starter:0});game.active=0;game.turn=4;game.players.forEach(p=>p.field.fill(null));
+   window.__make=(role,owner)=>{const t=CARDS.find(c=>c&&!c.retired&&!c.fusionOnly&&c.role===role&&c.level===4);const c=newInstance(game,t.id,owner);c.mode='def';c.summonedTurn=1;ArcaneEssenceCombat.statLayer(c);return c;};
+   game.players[0].field=[__make('guardian',0),__make('soul',0),null,null,null];game.players[0].field[1].essenceCombat.soul=90;
+   game.players[1].field=[__make('guardian',1),__make('predator',1),null,null,null];game.players[1].field[1].card.atk=10000;game.players[1].field[1].card.def=10000;game.selection={type:'field',idx:1};uiMode='duel';$('duelScreen').hidden=false;$('menuScreen').hidden=true;render();`);
+  await pause(380);
+  for(const row of ['ownRow','enemyRow'])for(const cell of d.querySelectorAll('#'+row+' .monster-slot')){
+   const card=cell.querySelector('.board-creature');if(!card)continue;
+   const transform=w.getComputedStyle(card).transform;
+   check(inside(card.getBoundingClientRect(),cell.getBoundingClientRect()),row+': 90°-Karte passt vollständig in ihre kreuzförmige Zone');
+   check(transform.startsWith('matrix(0, 1, -1, 0,'),row+': echte Drehung um 90° · '+transform);
+  }
+  check([...d.querySelectorAll('.board-stats b')].every(b=>b.scrollWidth<=b.clientWidth+1),'Kleine Feldwerte bleiben bis 10000 ohne Abschneiden lesbar');
+  check(!!d.querySelector('#largeCardPreview .ad-defender-ability')&&d.querySelector('#largeCardPreview').textContent.includes('50 %'),'Große Verteidigerkarte erklärt den Gegenschlag');
+  check(!!d.querySelector('#ownRow .ad-overcharged')&&!!d.querySelector('#largeCardPreview .ad-charge-note'),'Überladene DEF sind an Feldkarte und großer Ansicht erkennbar');
+  const stats=[...d.querySelectorAll('#largeCardPreview .stat')];
+  check(stats.length===2&&stats.every(s=>w.getComputedStyle(s).opacity==='1'&&!w.getComputedStyle(s).backgroundColor.endsWith(', 0)')),'Große ATK/DEF-Boxen sind vollständig blickdicht');
+  check([...d.querySelectorAll('#hand .stat')].every(s=>w.getComputedStyle(s).display!=='none'),'Handkarten behalten beide Werteboxen');
+  const reduced=w.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const role=d.querySelector('#hand .ad-hand-role');
+  check(!role||w.getComputedStyle(role).animationName===(reduced?'none':'ad-role-breathe'),'Rollenpuls beachtet reduzierte Bewegung');
+  if(new URLSearchParams(location.search).get('preview')==='field'){document.body.dataset.cinematicsTest='preview';return;}
+  w.eval(`game.players[0].field[1].essenceCombat.soul=0;render();`);
+  check(!d.querySelector('#ownRow .ad-overcharged'),'Statusleuchten endet ohne temporären DEF-Überschuss');
+  if(!reduced){
+   // Native committed fusion: each click finishes exactly one current phase.
+   w.eval(`const target=RPG_FUSIONS.find(c=>!c.retired&&!c.enemyOnly&&c.role==='predator'&&c.level===5);game.players[0].remainingFusion=[target.id];game.players[0].fusionDeck=[target.id];game.fusionChoice=target.id;
+    const materials=[__make('predator',0),__make('predator',0)];const f=fusedInstance(game,materials,[4,4]);delete game.fusionChoice;f.mode='def';game.players[0].field[2]=f;render();
+    window.__beforeFusion=JSON.stringify({seed:game.seed,card:f.card,rolls:f.rollTrace,math:f.rollMath});
+    window.__phaseSeen=[];window.__cinema=ArcaneFusionCinema.play({instance:f,materials:materials.map(c=>({art:dataOf(c).art,level:4})),battle:game,card:dataOf(f),level:5,wait:animationWait,playSound:()=>{}});`);
+   const first=d.querySelector('.ritual-overlay');check(first?.dataset.cinemaPhase==='Materialrotation','Ritual beginnt mit einer eigenen Rotationsphase');first?.click();await pause(80);
+   check(d.querySelector('.ritual-overlay')?.dataset.cinemaPhase==='Enthüllung','Ein Klick überspringt genau die Rotation und lässt die nächste Phase stehen');
+   const seen=new Set(['Materialrotation']);
+   for(let i=0;i<16&&d.querySelector('.ritual-overlay');i++){const scene=d.querySelector('.ritual-overlay');seen.add(scene.dataset.cinemaPhase);scene.click();await pause(90);}
+   await w.__cinema;
+   check(['Materialrotation','Enthüllung','Rollenprägung','Spezialbonus','Werteberechnung','Fertige Karte','Platzierung'].every(p=>seen.has(p)),'Alle sieben Phasen lassen sich unabhängig überspringen · '+[...seen].join(', '));
+   check(w.eval(`__beforeFusion===JSON.stringify({seed:game.seed,card:game.players[0].field[2].card,rolls:game.players[0].field[2].rollTrace,math:game.players[0].field[2].rollMath})`),'Überspringen verändert weder Würfe noch Endwerte oder Zufallsgenerator');
+   check(!d.querySelector('.ad-summon-ghost')&&!d.querySelector('.evo-fusion-awaiting'),'Kein zurückbleibender Flug oder verborgenes Monster nach dem Überspringen');
+   // Real normal opponent placement runs through the shared summon animation.
+   w.eval(`game.active=1;game.turn=6;game.summoned=false;game.pending=null;game.players[1].field.fill(null);game.players[0].field.fill(null);const c=game.players[1].hand[0];
+    window.__ghostOwners=[];window.__observer=new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes)if(node.classList?.contains('ad-summon-ghost'))__ghostOwners.push(node.dataset.owner);});__observer.observe(document.body,{childList:true});
+    window.__choose=chooseAiAction;window.__actions=[{type:'normal',uid:c.uid},{type:'place',idx:2},{type:'end'}];chooseAiAction=g=>__actions.shift()||{type:'end'};window.__ai=runAi();`);
+   await w.__ai;w.eval('chooseAiAction=__choose;__observer.disconnect();');
+   check(w.__ghostOwners.includes('1')&&!w.eval('busy||aiRunning'),'Gegnerische Normalbeschwörung verwendet die gemeinsame Animation und gibt den Zug frei');
+   w.eval(`game.active=1;game.turn=8;game.summoned=false;game.pending=null;game.players[1].field.fill(null);game.players[0].field.fill(null);
+    const target=RPG_FUSIONS.find(c=>!c.retired&&!c.enemyOnly&&c.role==='predator'&&c.level===5);game.players[1].remainingFusion=[target.id];game.players[1].fusionDeck=[target.id];game.players[1].hand=[__make('predator',1),__make('predator',1)];
+    window.__actions=[{type:'fusion',uids:game.players[1].hand.map(c=>c.uid)},{type:'place',idx:2},{type:'end'}];chooseAiAction=g=>__actions.shift()||{type:'end'};window.__aiFusion=runAi();`);
+   await pause(180);
+   check(d.querySelector('.ritual-overlay')?.dataset.owner==='1','Auch gegnerische Handfusionen öffnen das vollständige Ritual');
+   for(let i=0;i<18&&d.querySelector('.ritual-overlay');i++){d.querySelector('.ritual-overlay').click();await pause(90);}
+   await w.__aiFusion;w.eval('chooseAiAction=__choose;');
+   check(!w.eval('busy||aiRunning')&&!d.querySelector('.evo-fusion-awaiting'),'Gegnerische Fusion endet mit sichtbarer Karte und freigegebener Steuerung');
+   // Actual player summon and attack paths also await their shared effects.
+   w.eval(`game.active=0;game.turn=10;game.summoned=false;game.pending=null;game.players[0].field.fill(null);game.players[1].field.fill(null);busy=false;aiRunning=false;
+    window.__ghostOwners=[];__observer.observe(document.body,{childList:true});const c=game.players[0].hand[0];prepareNormal(game,c.uid);render();window.__ownSummon=onOwnSlot(0);`);
+   await w.__ownSummon;w.eval('__observer.disconnect();');
+   check(w.__ghostOwners.includes('0')&&!w.eval('busy'),'Eigene Normalbeschwörung verwendet denselben Flug ohne blockierte Steuerung');
+   w.eval(`game.active=0;game.turn=12;game.pending=null;game.players[0].field=[__make('predator',0),null,null,null,null];game.players[0].field[0].mode='atk';game.players[0].field[0].attacked=false;
+    game.players[1].field=[__make('guardian',1),null,null,null,null];render();window.__counter=performAttack(0,0);`);
+   await pause(240);check(!!d.querySelector('.ad-projectile-counter'),'Ein echter Gegenschlag startet sein gebogenes Projektil mit Sternenschweif');
+   await w.__counter;check(!d.querySelector('.ad-projectile-counter')&&!w.eval('busy'),'Gegenschlag endet sauber und gibt die Eingabe frei');
+   // One persistent enemy orb survives both Soul effects and disappears afterward.
+   w.eval(`game.active=1;game.turn=8;game.pending=null;game.players[0].field=[__make('guardian',0),__make('soul',0),__make('soul',0),null,null];game.players[0].field[1].card.def-=80;game.players[1].field=[__make('predator',1),null,null,null,null];game.players[1].field[0].summonedTurn=game.turn;advanceTurn(game);render();window.__effects=ArcaneDefenderFX.flush(game);`);
+   await pause(400);const orb=d.querySelector('.ad-soul-orb');check(!!orb,'Orb erscheint nach dem Kartenziehen bei vorhandenen Verteidigern');
+   await pause(900);check(orb?.isConnected&&d.querySelector('.ad-soul-orb')===orb,'Derselbe Orb bleibt für mehrere Verteidigereffekte bestehen');
+   await w.__effects;await pause(300);check(!d.querySelector('.ad-soul-orb')&&!d.querySelector('.ad-arc-projectile'),'Orb und Sternenschweife verschwinden nach der Effektfolge');
+  }
+  w.eval(`busy=false;aiRunning=false;profile=freshProfile();profile.guideSeen=true;profile.cleared=[];game=createGame({id:'cinematics-victory',mode:'pve',opponentId:1,context:'tournament',seed:71017,starter:0});uiMode='duel';game.turn=4;window.__ace=OPPONENTS[1].aceCard;window.__aceBefore=profile.inventory[__ace]||0;conclude(game,0,'Prüfung bestanden.');showFinished();`);
+  const reward=d.querySelector('.ad-card-reward-panel');
+  check(!!reward&&inside(reward.getBoundingClientRect(),{left:0,top:0,right:w.innerWidth,bottom:w.innerHeight}),'Turnierkartenfenster steht mittig und bleibt vollständig im Bildschirm');
+  check(reward?.textContent.includes('nicht erhalten')&&w.eval('(profile.inventory[__ace]||0)===__aceBefore'),'ACE-Freischaltung bleibt ausdrücklich eine Shop-Vorschau und vergibt keine Gratis-Karte');
+  if(new URLSearchParams(location.search).get('preview')==='reward'){document.body.dataset.cinematicsTest='preview';return;}
+  d.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+  check(!d.querySelector('.ad-card-reward-scene')&&w.eval('!!game&&game.finishShown')&&!d.getElementById('overlay').classList.contains('hidden'),'Erstes Esc schließt nur die Kartenpräsentation, das Siegesfenster bleibt');
+  d.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+  check(w.eval('game===null&&uiMode==="menu"')&&!d.getElementById('menuScreen').hidden&&d.getElementById('duelScreen').hidden,'Zweites Esc führt vom Duellergebnis sicher ins Hauptmenü');
+ }catch(error){check(false,error.stack||String(error));}
+ document.body.dataset.cinematicsTest=pass?'pass':'fail';
+});
+</script></html>
