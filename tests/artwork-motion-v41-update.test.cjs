@@ -33,6 +33,22 @@ test('All ten approved 4.1 artworks exist as real GH art paths in the committed 
   assert.ok(fs.existsSync(path.join(root,'assets/custom-art/generated-4-1/monster-'+String(id).padStart(4,'0')+'.webp')));
  }
 });
+test('The two generated artworks are checked into Git as intact WebP images',()=>{
+ const crypto=require('node:crypto');
+ for(const [file,expected] of [
+  ['funkenwyrm-new.webp','5946f13b3a7a05331c45201d24a87e3cd8014c6b'],
+  ['waldschlund-new.webp','2ef5618e4ad41ead85aa9692edbb872423197f27']
+ ]){
+  const full=path.join(root,'assets/custom-art/generated-4-1',file);
+  assert.ok(fs.existsSync(full),file+' missing');
+  const buffer=fs.readFileSync(full);
+  assert.ok(buffer.byteLength>50000,'Real illustration must not be a blank placeholder');
+  assert.equal(buffer.subarray(0,4).toString(),'RIFF');
+  assert.equal(buffer.subarray(8,12).toString(),'WEBP');
+  const sha=crypto.createHash('sha1').update(Buffer.from('blob '+buffer.length+'\0')).update(buffer).digest('hex');
+  assert.equal(sha,expected,'Binary artwork differs from the approved rendered image');
+ }
+});
 test('Two new art references are keyed to exact existing cards, with graceful missing-file handling',()=>{
  const fix=r('assets/artwork-hotfix-v41.js'),index=r('index.html'),gallery=r('assets/collection-v3.js');
  assert.match(fix,/Funkenwyrm.*funkenwyrm-new\.webp/);
