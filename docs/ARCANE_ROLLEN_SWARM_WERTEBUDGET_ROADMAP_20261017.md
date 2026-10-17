@@ -25,7 +25,7 @@ Stand 17. Oktober 2026. Implementierung und Vorschläge getrennt.
 - Allrounder: flexible Fusionsverbindungsstücke, Resonanz durch Einsatz von Hand und Feld; beachten, dass reines DEF-Camping nicht dominant wird.
 - Level 1: schnelle Schwärme, Floating und Kombinationen.
 
-## Neues Wertebudget 1–10 (nur Vorschlag, NICHT implementiert)
+## Neues Wertebudget 1–10 (auf development implementiert; Fine-Tuning und Bossprüfung offen)
 Gewöhnliche Monster: gemeinsames ATK+DEF-Budget; alte Werkstattformel 150 + 30×Level². Vorschlag:
 Level | bisher | vorgeschlagen
 1 | 180 | 180
