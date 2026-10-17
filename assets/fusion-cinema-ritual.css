@@ -142,6 +142,9 @@
  animation:none!important;transform:translateX(-50%);
  /* No !important opacity: Web Animations must be allowed to fade during the flight. */
 }
+/* A flying card can extend the overlay's scroll area. A newly allocated
+   scrollbar would shift its centered parent halfway through the flight. */
+.ritual-overlay.evo-summon.evo-phase-landing{overflow:hidden!important}
 /* The flight already reaches the final card bounds. Do not start a second
    translate/scale arrival on the board after the overlay disappears. */
 .board-creature.evo-fusion-landed{animation:ritual-landed-glow .35s ease-out both!important}
