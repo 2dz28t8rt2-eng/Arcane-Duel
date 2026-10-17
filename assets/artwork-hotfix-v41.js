@@ -25,6 +25,8 @@
   assign(c,artRoot+art);
  }
  const checkImage=path=>new Promise(resolve=>{
+  // The complete battle runtime also runs without DOM/Image inside Node.js.
+  if(typeof Image==='undefined'){resolve(false);return;}
   const im=new Image();
   im.onload=()=>resolve(true);
   im.onerror=()=>resolve(false);
