@@ -720,7 +720,13 @@ const ARCANE_WORKSHOP_IDS=[];
 function workshopTierFor(level){
  return level<=4?0:level<=6?3:level<=8?5:level<=10?7:11;
 }
-function workshopBudget(level){return 150+30*level*level;}
+function workshopBudget(level){
+ // Role-neutral combined ATK+DEF baseline, level 1–10; flatten endgame.
+ const levelValue=Math.max(1,Math.min(10,Math.trunc(Number(level)||1)));
+ if(levelValue<=4)return 150+30*levelValue*levelValue;
+ const rise=levelValue-4;
+ return round10(630+170*rise+14*rise*rise);
+}
 function workshopValues(level,role){
  const budget=workshopBudget(level);
  const share=role==='predator'?.76:role==='guardian'?.25:role==='soul'?.22:
@@ -793,6 +799,21 @@ UPDATE_B_ACTIVE_IDS.push(GENERIC_START_LV3);
 UPDATE_B_SET.add(GENERIC_START_LV3);
 // Fixed numeric IDs and original card art stay unmodified.
 
+// New 1–10 stat budget: align every currently active ordinary PvE monster
+// at levels 5–10, including original families and their variants. Preserve
+// the existing ATK/DEF role ratio, every card ID, art, and enhancement rank.
+// Rare ACEs, fate monsters, fusion templates and school-exclusive Essence
+// monsters are separate reward systems and are deliberately exempt.
+for(const card of RPG_BASE_CARDS){
+ if(!card||card.retired||card.fusionOnly||card.ace||card.essenceMonster||
+    !Number.isInteger(card.level)||card.level<5||card.level>10)continue;
+ const before=Math.max(1,(card.atk||0)+(card.def||0));
+ const budget=workshopBudget(card.level);
+ const ratio=Math.max(.12,Math.min(.88,(card.atk||0)/before));
+ const atk=Math.max(80,Math.min(budget-80,round10(budget*ratio)));
+ card.atk=atk;
+ card.def=budget-atk;
+}
 // Normalize legacy per-card combat perks after ALL RPG templates and workshop stages
 // have been registered. General role abilities are deliberately unaffected.
 const RETIRED_SINGLE_CARD_ABILITIES=new Set(['aegis','pierce','hunt','guide','rush','guard']);
