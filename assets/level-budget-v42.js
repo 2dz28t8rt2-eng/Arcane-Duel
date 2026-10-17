@@ -17,16 +17,24 @@
  for(const c of CARDS){
   if(c?.rpg&&c.fusionOnly){c.fusionRoleFree=true;unbound.push(c.id);}
  }
- for(const c of CARDS){
-  if(!c||!c.rpg||c.fusionOnly||c.essenceMonster||c.id<20||c.level<1||c.level>10||c.retired)continue;
+ function assign(c){
   const total=round(budget(c.level)*rarityFactor(c));
   const share=shares[c.role]??.5;
   const atk=Math.max(50,round(total*share));
-  const def=Math.max(50,total-atk);
-  // Store old values for audit only; do not multiply stacked old stats again.
+  c.atk=atk;c.def=Math.max(50,total-atk);
+ }
+ for(const c of CARDS){
+  if(!c||!c.rpg||c.fusionOnly||c.essenceMonster||c.id<20||c.level<1||c.level>10||c.retired)continue;
+  // Store old values once for audit. Do not multiply them or capture later
+  // rendering-compatibility mutations as a new baseline.
   Object.defineProperty(c,'arcaneOriginalStats',{value:{atk:c.atk,def:c.def},configurable:true});
-  c.atk=atk;c.def=def;changed.push(c.id);
+  assign(c);changed.push(c.id);
+ }
+ function refresh(){
+  // Late-loaded role/art modules are allowed to update visual metadata, but
+  // they must not silently restore obsolete 3,000-stat combat templates.
+  for(const id of changed){const c=CARDS[id];if(c&&!c.fusionOnly&&!c.retired)assign(c);}
  }
  window.ArcaneLevelBudget=Object.freeze({version:'4.2',totals,changed:Object.freeze(changed),rarityFactor,
-  budget,shares:Object.freeze(shares),unbound:Object.freeze(unbound)});
+  budget,shares:Object.freeze(shares),unbound:Object.freeze(unbound),refresh});
 })();
