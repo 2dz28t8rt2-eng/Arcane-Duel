@@ -29,11 +29,13 @@
   const clone=cell.cloneNode(true);clone.classList.remove('evo-fusion-awaiting','evo-fusion-landed','ad-summon-hidden','summon-anim','ad-titan-impact');ghost.append(clone);
   cell.classList.add('ad-summon-hidden');document.body.append(ghost);
   try{
-   const animation=ghost.animate([{transform:'scale(4.8)',opacity:.06},{transform:'scale(1.55)',opacity:.6,offset:.48},{transform:'scale(1)',opacity:1,offset:.84},{transform:'scale(1)',opacity:1}],{duration:480,easing:'cubic-bezier(.55,.02,.7,1)',fill:'forwards'});
-   await settled(animation,480,phase);
+   const massFusion=(c.materialsUsed||0)>=3;
+   const landingMs=massFusion?245:480;
+   const animation=ghost.animate([{transform:'scale(4.8)',opacity:.06},{transform:'scale(1.55)',opacity:.6,offset:massFusion?.35:.48},{transform:'scale(1)',opacity:1,offset:massFusion?.79:.84},{transform:'scale(1)',opacity:1}],{duration:landingMs,easing:'cubic-bezier(.55,.02,.7,1)',fill:'forwards'});
+   await settled(animation,landingMs,phase);
   }finally{
    cell.classList.remove('ad-summon-hidden');ghost.remove();
-   if(game===g&&cell.isConnected){cell.classList.add('evo-fusion-landed');window.ArcaneBattleFX?.landingDust(cell,(c.materialsUsed||0)>=4);setTimeout(()=>cell.classList.remove('evo-fusion-landed'),900);}
+   if(game===g&&cell.isConnected){cell.classList.add('evo-fusion-landed');window.ArcaneBattleFX?.landingDust(cell,(c.materialsUsed||0)>=4);setTimeout(()=>cell.classList.remove('evo-fusion-landed'),(c.materialsUsed||0)>=3?460:900);}
   }
  }
  window.ArcaneSummonFX=Object.freeze({land});
