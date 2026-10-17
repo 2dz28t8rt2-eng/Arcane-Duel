@@ -5,6 +5,8 @@
 'use strict';
 (()=>{
  const C=window.ArcaneEssenceCombat;if(!C)return;
+ // Fallback-free visual role resolution works with older cached combat extensions.
+ const roleOf=c=>c?.roleOverride||CARDS[c?.id]?.role||'combatant';
  const names={predator:'Predatoren',fusion:'Runenfusion',defense:'Bollwerk'};
  const labels={predator:'Reißzahn · Die ungezähmte Vorhut',fusion:'Runenherz · Die arkane Stimme',defense:'Aschenhort · Der unnachgiebige Wächter'};
  const intro=['predator','fusion','defense'];
@@ -90,7 +92,7 @@
  };
  const originalFullCardHtml=fullCardHtml;
  fullCardHtml=function(card,attrs='',classes='',badge=''){
-  const html=originalFullCardHtml(card,attrs,classes,badge),c=CARDS[card?.id],role=C.roleOf(card);
+  const html=originalFullCardHtml(card,attrs,classes,badge),c=CARDS[card?.id],role=roleOf(card);
   if(!role||role==='combatant'||!html.includes('<div class="hand-title">'))return html;
   const text=c.essenceMonster?'ESSENZWESEN':roleLabel[role]||role;
   return html.replace('<div class="hand-title">','<span class="essence-role-chip essence-role-'+role+'">'+esc(text)+'</span><div class="hand-title">');
@@ -339,7 +341,7 @@
   }
   if(html)bar.insertAdjacentHTML('beforeend','<div class="essence-actions"><strong>✦ Kreaturenfähigkeit</strong>'+html+'</div>');
  };
- const CARB=C.roleOf;
+ const CARB=roleOf;
  $('duelScreen')?.addEventListener('click',ev=>{
   const button=ev.target.closest('button[data-essence-combat],button[data-essence-drain],button[data-essence-target]');if(!button)return;
   if(!game||game.selection?.type!=='field')return;
