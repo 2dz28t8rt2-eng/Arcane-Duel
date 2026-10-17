@@ -157,7 +157,7 @@
     ' / DEF ×'+Number(weights.def).toFixed(2).replace('.',',')+
     ' · Basis '+num(math.base?.atk)+' / '+num(math.base?.def);
    log.append(information);
-   if(c.resonanceFusion?.bonusPct){const note=document.createElement('div');note.className='ritual-resonance-note';note.textContent='◇ ALLROUNDER-RESONANZ: +'+c.resonanceFusion.bonusPct+' % Fusionsqualität (vor den Würfen)';log.append(note);}
+   if(c.resonanceFusion?.bonusPct){const note=document.createElement('div');note.className='ritual-resonance-note';note.textContent='✦ MATERIAL-RESONANZ: +'+c.resonanceFusion.bonusPct+' % Fusionsqualität (vor den Würfen)';log.append(note);}
    log.insertAdjacentHTML('beforeend','<div class="evo-calc-cols"><span>BESTER WURF GEWINNT</span><b>ATK</b><b>DEF</b></div>');
    // 4. Each real roll: two synchronized reels, then separate ink stamp.
    for(let i=0;i<rolls.length;i++){

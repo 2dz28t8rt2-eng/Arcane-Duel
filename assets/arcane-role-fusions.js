@@ -6,7 +6,7 @@
 (()=>{
  const escape=s=>escapeHtml(String(s));
  const roleOf=c=>c?.roleOverride||CARDS[c?.id]?.role||'combatant';
- const roleName={predator:'Predator',guardian:'Verteidiger',soul:'Seelenzehrer'};
+ const roleName={predator:'Predator',guardian:'Verteidiger',soul:'Seelenzehrer',resonator:'Resonator'};
  const r10=n=>Math.max(10,Math.round(n/10)*10);
  function inheritance(materials){
   // Equal roles (including two soul eaters) must win over an unrelated template tag.
@@ -18,7 +18,7 @@
   const majority=Math.floor(roles.length/2)+1;
   if(defense>=majority&&defense>predators)return 'guardian';
   if(predators>=majority&&predators>defense)return 'predator';
-  return null;
+  return 'resonator'; // No majority: a neutral, unweighted fusion instance.
  }
  function soulOdds(materials){
   return Math.min(.75,.20+materials.reduce((n,c)=>n+.035+.007*Math.min(12,Math.max(1,dataOf(c).level)),0));
@@ -27,7 +27,7 @@
   if(g?.mode!=='pve'||materials.length<2)return null;
   const inherited=inheritance(materials);
   if(!inherited)return null;
-  if(inherited==='predator'||inherited==='soul')return {role:inherited,source:'material',materials:materials.length};
+  if(inherited==='predator'||inherited==='soul'||inherited==='resonator')return {role:inherited,source:'material',materials:materials.length};
   // Only 3+ guardian materials can roll for a Seelenzehrer awakening.
   if(materials.length===2)return {role:'guardian',source:'material',materials:2,soulOdds:0,soulAwakened:false};
   const field=Array.isArray(g.arcaneFieldInputs)?g.arcaneFieldInputs:[];
@@ -152,5 +152,5 @@
    if(q.p.field[idx])b.classList.add('arcane-synth-available');
   });
  };
- window.ArcaneRoleFusion=Object.freeze({version:'1.2.0',inheritance,soulOdds,imprint,reset});
+ window.ArcaneRoleFusion=Object.freeze({version:'1.3.0',inheritance,soulOdds,imprint,reset});
 })();

@@ -1,7 +1,7 @@
 /* Small duel cards keep the artwork and numbers free of role overlays. */
 'use strict';
 (()=>{
- const names={guardian:'Wächter',soul:'Seelenzehrer',predator:'Predator',combatant:'Allrounder',hunter:'Jäger',support:'Unterstützer',weaver:'Runenweber'};
+ const names={guardian:'Wächter',soul:'Seelenzehrer',predator:'Predator',combatant:'Allrounder',resonator:'Resonator',hunter:'Jäger',support:'Unterstützer',weaver:'Runenweber'};
  const oldCard=fullCardHtml,oldBoard=cardHtml;
  // Visual metadata is authoritative in the catalog; an optional combat API cannot crash the hand.
  const roleOf=c=>c?.roleOverride||CARDS[c?.id]?.role||'combatant';

@@ -149,13 +149,13 @@ function tunedFusionQuality(g,levels,elements=[],materials=[]){
  const allrounder=window.ArcaneAllrounder;
  const resonance=allrounder?.evaluate?.(g,materials)||{bonus:0,materials:0,charges:0};
  if(g?.mode==='pve'&&g.active===0&&resonance.materials){
-  const original=materials.filter(c=>!allrounder.isAllrounder(c));
+  const original=materials.filter(c=>!allrounder.isAllrounder(c)&&!allrounder.isResonator?.(c));
   if(original.length>=1){
    const baseline=fusionQuality(original.map(c=>dataOf(c).level),original.map(c=>dataOf(c).element));
    f.factor=Math.max(f.factor,baseline.factor);
    f.rollBonus=Math.max(f.rollBonus,baseline.rollBonus);
    f.levelBonus=Math.max(f.levelBonus,baseline.levelBonus);
-   if(baseline.hasCombo&&!f.hasCombo){f.name=baseline.name+' · Allrounder';f.hasCombo=true;}
+   if(baseline.hasCombo&&!f.hasCombo){f.name=baseline.name+' · Resonanz';f.hasCombo=true;}
   }
   f.resonancePct=resonance.bonus;
   f.resonanceMaterials=resonance.materials;
@@ -166,7 +166,7 @@ function tunedFusionQuality(g,levels,elements=[],materials=[]){
  if(g?.mode==='pve'&&g.active===1){f.factor=Math.max(.72,Math.min(1.48,1+.045*(levels.length-2)-.075*f.spread));f.rollBonus=0;f.levelBonus=0;f.qualityBonus=0;f.lowLevelBonus=0;f.hasCombo=false;f.name='Freie Fusion';}
  if(g?.mode==='pve'&&g.active===0&&levels.length>=3&&f.hasCombo)
   f.factor=Math.min(1.48,f.factor+.015*(profile?.upgrades?.fusionPrecision||0));
- if(f.resonancePct)f.factor=Math.min(1.72,f.factor+f.resonancePct/100);
+ if(f.resonancePct)f.factor=Math.min(2.2,f.factor+f.resonancePct/100);
  return f;
 }
 fusionBudget=function(levels,g,materials=[]){
@@ -182,7 +182,7 @@ fusionBudget=function(levels,g,materials=[]){
  // A weak Allrounder may be used to ENHANCE, never spoil the reachable fusion
  // level of an already legal chain. Retain total-level cap and max Lv12.
  if(g.active===0&&window.ArcaneAllrounder?.isAllrounder&&materials.length===levels.length){
-  const ordinary=materials.filter(c=>!window.ArcaneAllrounder.isAllrounder(c));
+  const ordinary=materials.filter(c=>!window.ArcaneAllrounder.isAllrounder(c)&&!window.ArcaneAllrounder.isResonator?.(c));
   if(ordinary.length>=2)result=Math.max(result,budget(ordinary.map(c=>dataOf(c).level)));
  }
  return Math.min(12,cap,result);
@@ -230,7 +230,7 @@ function opponentFusionCandidates(g,materials,p){
  const expectedRoll=1+.018*Math.max(0,rolls-1); // mild average benefit of best-of-N
  const ref=fusionReferenceStats(template.level);
  const inherited=window.ArcaneRoleFusion?.inheritance?.(materials);
- const role=inherited||template.role||'combatant';
+ const role=inherited||(g.mode==='pve'?'resonator':template.role||'combatant');
  const weights=fusionRoleWeights(role);
  const scale=(p.power||1)*quality.factor*expectedRoll;
  return {materials,level:template.level,
@@ -288,7 +288,7 @@ fusedInstance=function(g,instances,levels){
    [...pool].sort((a,b)=>b.level-a.level||b.atk-a.atk)[0];
  if(!template)return null;
  const imprint=window.ArcaneRoleFusion?.imprint?.(g,instances)||null;
- const role=imprint?.role||template.role||'combatant';
+ const role=imprint?.role||(g.mode==='pve'?'resonator':template.role||'combatant');
  const roleWeights=fusionRoleWeights(role);
  const f=tunedFusionQuality(g,levels,instances.map(c=>dataOf(c).element),instances);
  const rolls=Math.min(7,qualityRolls(levels)+f.rollBonus+
@@ -324,7 +324,7 @@ fusedInstance=function(g,instances,levels){
     combo:{name:f.name,qualityPct:Math.round(f.qualityBonus*1000)/10,
      rollBonus:f.rollBonus,materialCount:instances.length}},
   attacked:instances.some(c=>c.attacked)};
- if(f.resonancePct)logEvent(g,'Allrounder-Resonanz: +'+f.resonancePct+' % Fusionsqualität durch '+f.resonanceMaterials+' Allrounder.');
+ if(f.resonancePct)logEvent(g,'Materialresonanz: +'+f.resonancePct+' % Fusionsqualität durch '+f.resonanceMaterials+' Resonanz-Materialien.');
  if(imprint){
   result.roleOverride=imprint.role;result.roleOrigin='material';
   result.roleMaterials=imprint.materials;
@@ -387,9 +387,9 @@ validateDuelSnapshot=function(raw){const projected=JSON.parse(JSON.stringify(raw
  // validator. Inherited class tags must survive page reload / resumed duels.
  function restoreFusion(to,from){
   if(!to||!from||to.id!==from.id||to.uid!==from.uid||!to.fusion)return;
-  if(['predator','guardian','soul'].includes(from.roleOverride)){
+  if(['predator','guardian','soul','resonator'].includes(from.roleOverride)){
    to.roleOverride=from.roleOverride;to.roleOrigin='material';
-   to.roleMaterials=Number.isInteger(from.roleMaterials)&&from.roleMaterials>=3&&from.roleMaterials<=5?from.roleMaterials:3;
+   to.roleMaterials=Number.isInteger(from.roleMaterials)&&from.roleMaterials>=2&&from.roleMaterials<=5?from.roleMaterials:2;
   }
   if(from.soulAwakened===true&&to.roleOverride==='soul')to.soulAwakened=true;
   if(from.soulInheritance&&['energy','defBonus','carried'].every(k=>
@@ -398,7 +398,7 @@ validateDuelSnapshot=function(raw){const projected=JSON.parse(JSON.stringify(raw
    from.soulInheritance.carried<=2000)
    to.soulInheritance={energy:from.soulInheritance.energy,
     defBonus:from.soulInheritance.defBonus,carried:from.soulInheritance.carried};
-  if(from.resonanceFusion&&Number.isInteger(from.resonanceFusion.bonusPct)&&from.resonanceFusion.bonusPct>=0&&from.resonanceFusion.bonusPct<=24&&Number.isInteger(from.resonanceFusion.materials)&&from.resonanceFusion.materials>=1&&from.resonanceFusion.materials<=5&&Number.isInteger(from.resonanceFusion.charges)&&from.resonanceFusion.charges>=0&&from.resonanceFusion.charges<=15)
+  if(from.resonanceFusion&&Number.isInteger(from.resonanceFusion.bonusPct)&&from.resonanceFusion.bonusPct>=0&&from.resonanceFusion.bonusPct<=84&&Number.isInteger(from.resonanceFusion.materials)&&from.resonanceFusion.materials>=1&&from.resonanceFusion.materials<=5&&Number.isInteger(from.resonanceFusion.charges)&&from.resonanceFusion.charges>=0&&from.resonanceFusion.charges<=15)
    to.resonanceFusion={bonusPct:from.resonanceFusion.bonusPct,materials:from.resonanceFusion.materials,charges:from.resonanceFusion.charges};
   if(typeof from.pattern==='string'&&from.pattern.length<=50)to.pattern=from.pattern;
   if(Number.isInteger(from.materialsUsed)&&from.materialsUsed>=2&&from.materialsUsed<=5)to.materialsUsed=from.materialsUsed;
@@ -438,8 +438,8 @@ validateDuelSnapshot=function(raw){const projected=JSON.parse(JSON.stringify(raw
  // only bounded per-instance ALLROUNDER charge counters, never template data.
  function restoreCharge(to,from){
   if(to&&from&&to.id===from.id&&to.uid===from.uid&&
-   (CARDS[to.id]?.role==='combatant')&&!to.fusion&&
-   Number.isInteger(from.resonance)&&from.resonance>=0&&from.resonance<=3)
+   ((CARDS[to.id]?.role==='combatant'&&!to.fusion)||(to.fusion&&to.roleOverride==='resonator'))&&
+   Number.isInteger(from.resonance)&&from.resonance>=0&&from.resonance<=(to.fusion?2:3))
    to.resonance=from.resonance;
  }
  for(let owner=0;owner<2;owner++){
@@ -517,7 +517,7 @@ function modeHud(){let panel=$('evolutionStatus');if(!panel){panel=document.crea
  const cash=$('evoCashout');if(cash)cash.onclick=modeCashout;
  $('arenaStatus').textContent=game.evolutionMode==='burst'?'BURST: KEIN ZERFALL · MAX. '+game.evolutionRoundLimit+' RUNDEN':game.evolutionMode==='defense'?'VERTEIDIGUNG: NUR GEGNER VERURSACHT LP-KAMPFSCHADEN · SCHNELLER ZERFALL':$('arenaStatus').textContent;
 }
-render=function(){previous.render();if(game){const selected=game.materials||[];if(selected.length>=2){const ms=selected.map(uid=>self().hand.find(c=>c.uid===uid)).filter(Boolean),levels=ms.map(c=>dataOf(c).level);if(ms.length>=2){const f=tunedFusionQuality(game,levels,ms.map(c=>dataOf(c).element),ms);$('summonStage').insertAdjacentHTML('beforeend',`<div class="evo-fusion-preview"><b>${f.name}</b> · ${ms.length} Materialien · Potenzial ${(f.factor*100).toFixed(0)} %${f.resonancePct?' · ◇ Resonanz +'+f.resonancePct+' %':''} · Vorlagen bis Lv ${fusionBudget(levels,game,ms)}</div>`);}document.querySelectorAll('.discard-mark').forEach(x=>x.classList.remove('discard-mark'));document.querySelectorAll('.material-label').forEach(x=>x.textContent='MATERIAL');}
+render=function(){previous.render();if(game){const selected=game.materials||[];if(selected.length>=2){const ms=selected.map(uid=>self().hand.find(c=>c.uid===uid)).filter(Boolean),levels=ms.map(c=>dataOf(c).level);if(ms.length>=2){const f=tunedFusionQuality(game,levels,ms.map(c=>dataOf(c).element),ms);$('summonStage').insertAdjacentHTML('beforeend',`<div class="evo-fusion-preview"><b>${f.name}</b> · ${ms.length} Materialien · Potenzial ${(f.factor*100).toFixed(0)} %${f.resonancePct?' · ✦ Resonanz +'+f.resonancePct+' %':''} · Vorlagen bis Lv ${fusionBudget(levels,game,ms)}</div>`);}document.querySelectorAll('.discard-mark').forEach(x=>x.classList.remove('discard-mark'));document.querySelectorAll('.material-label').forEach(x=>x.textContent='MATERIAL');}
  $('summonBtn').textContent=game.pending?'✦ Platzieren':'✦ Beschwören (oder Handkarte anklicken)';}modeHud();};
 // Single left-click immediately prepares a normal monster; the player then picks the field.
 onHand=function(uid){if(!inputAllowed()||game.summoned||game.pending)return;if(materialMode){markMaterial(uid);return;}game.materials=[];const card=self().hand.find(c=>c.uid===uid);if(!card)return;if(self().field.every(Boolean)){toast('Alle Monsterzonen belegt. Wähle Materialien zur Feldfusion oder mache Platz.');return;}if(prepareNormal(game,uid)){render();toast('Monster ausgewählt: Klicke jetzt auf eine freie Zone.');}};
@@ -536,8 +536,8 @@ prepareFusion=async function(choice){if(!inputAllowed()||game.summoned||game.pen
   }
  }else render();
  toast('Fusion enthüllt: Wähle eine Monsterzone. Belegte Zonen starten eine schnellere zweite Fusion.');};
-fusionPreview=function(g,c,materials,levels=materials.map(m=>dataOf(m).level)){const p=g.players[g.active],f=tunedFusionQuality(g,levels,materials.map(m=>dataOf(m).element),materials),bonus=materialBlocks(g,materials).reduce((a,b)=>a+b,0),inherited=window.ArcaneRoleFusion?.inheritance?.(materials),role=inherited||c.role,weights=fusionRoleWeights(role),range=stat=>[Math.max(0,round10(fusionReferenceStat(c,stat,p)*weights[stat]*.88*f.factor)-fusionPenalty(g)),Math.max(0,round10(fusionReferenceStat(c,stat,p)*weights[stat]*1.12*f.factor)+bonus-fusionPenalty(g))];return {atk:range('atk'),def:range('def'),bonus,remaining:countCard(p.remainingFusion,c.id)-1,attackSpent:materials.some(m=>m.attacked),rolls:Math.min(7,qualityRolls(levels)+f.rollBonus+(window.ArcaneEssenceCombat?.fusionRollBonus?.(g)||0)+materials.filter(m=>dataOf(m).ability==='guide').length+(g.active===0&&!g.totalFusions[0]?(profile.upgrades.fusionLore||0):0)),pattern:f.name,resonancePct:f.resonancePct||0};};
-chooseFusionModal=function(levels,materials,callback,extra=''){const options=fusionOptions(game,levels,materials).filter(c=>game.pending||canCompleteHandFusion(game,levels,c.id)).sort((a,b)=>b.level-a.level||b.atk-a.atk);if(!options.length){toast(fusionFailureReason(game,levels));return;}const f=tunedFusionQuality(game,levels,materials.map(m=>dataOf(m).element),materials);openModal(modalHtml('FUSIONSVORSCHAU',f.name,'✧','Tippe eine Monsterkarte an, um die Fusionsvorlage auszuwählen. Alle markierten Materialien werden eingesetzt.',`<p><b>Material:</b> ${materials.map(m=>escapeHtml(dataOf(m).name)).join(' + ')}</p><p>Qualität: <b>${(f.factor*100).toFixed(0)} %</b>${f.resonancePct?' · <b>◇ Allrounder-Resonanz +'+f.resonancePct+' %</b>':''} · Niveau ${f.average.toFixed(1)} · mögliche Stufe bis <b>${fusionBudget(levels,game,materials)}</b>. ${extra}</p><details class="fusion-how"><summary>Wie berechnet sich die Fusion?</summary><p>Die durchschnittliche Materialstufe entscheidet über das Potenzial. Hohe Differenzen zwischen Materialien senken die Qualität. Spezialkombinationen und Elemente können diese verbessern. Fusionen starten bei den mittleren ATK-/DEF-Werten gewöhnlicher Monster ihrer Zielstufe. Ein geerbter Predator-, Wächter- oder Seelenzehrer-Tag verlagert die ATK-/DEF-Grundwerte bereits VOR den Würfen. Pro Wurf entstehen 88–112 % des geprägten Referenzwerts; nur der beste gemeinsame Wertewurf gewinnt, danach werden Materialboni addiert und Abzüge verrechnet. Es gibt keine garantierte Stärke durch das beste Material. Material-Aufstiegsboni werden zusätzlich zufällig auf ATK oder DEF verteilt. Eine schlechte Fusion kann schwächer als ihr stärkstes Material ausfallen.</p></details><div class="pool-grid fusion-choice-grid">${options.map(c=>{const v=fusionPreview(game,c,materials,levels);return `<article class="fusion-offer">${fullCardHtml({id:c.id,card:{level:c.level,atk:round10((v.atk[0]+v.atk[1])/2),def:round10((v.def[0]+v.def[1])/2)}},`data-fusion-choice="${c.id}" title="${escapeHtml(c.name)} auswählen"`,'fusion-pick-card')}<div class="fusion-forecast"><strong>ATK ${fmt(v.atk[0])}–${fmt(v.atk[1])}</strong><strong>DEF ${fmt(v.def[0])}–${fmt(v.def[1])}</strong></div><p class="fusion-short">${v.rolls} Wertewürfe · ${escapeHtml(v.pattern)} · Materialbonus +${v.bonus}${v.resonancePct?' · ◇ Resonanz +'+v.resonancePct+' %':''}<br>Noch ${v.remaining} Fusionskopie(n)</p><button class="btn" data-fusion-choice="${c.id}">Diese Fusion wählen</button></article>`;}).join('')}</div>`, '<button class="btn" id="fusionCancel">ZURÜCK</button>'));$('modal').classList.add('pool-modal','fusion-choice-modal');$('fusionCancel').onclick=hideModal;let chosen=false;document.querySelectorAll('[data-fusion-choice]').forEach(b=>b.onclick=()=>{if(chosen)return;chosen=true;hideModal();callback(Number(b.dataset.fusionChoice));});};
+fusionPreview=function(g,c,materials,levels=materials.map(m=>dataOf(m).level)){const p=g.players[g.active],f=tunedFusionQuality(g,levels,materials.map(m=>dataOf(m).element),materials),bonus=materialBlocks(g,materials).reduce((a,b)=>a+b,0),inherited=window.ArcaneRoleFusion?.inheritance?.(materials),role=inherited||c.role,weights=fusionRoleWeights(role),range=stat=>[Math.max(0,round10(fusionReferenceStat(c,stat,p)*weights[stat]*.88*f.factor)-fusionPenalty(g)),Math.max(0,round10(fusionReferenceStat(c,stat,p)*weights[stat]*1.12*f.factor)+bonus-fusionPenalty(g))];return {atk:range('atk'),def:range('def'),bonus,role,remaining:countCard(p.remainingFusion,c.id)-1,attackSpent:materials.some(m=>m.attacked),rolls:Math.min(7,qualityRolls(levels)+f.rollBonus+(window.ArcaneEssenceCombat?.fusionRollBonus?.(g)||0)+materials.filter(m=>dataOf(m).ability==='guide').length+(g.active===0&&!g.totalFusions[0]?(profile.upgrades.fusionLore||0):0)),pattern:f.name,resonancePct:f.resonancePct||0};};
+chooseFusionModal=function(levels,materials,callback,extra=''){const options=fusionOptions(game,levels,materials).filter(c=>game.pending||canCompleteHandFusion(game,levels,c.id)).sort((a,b)=>b.level-a.level||b.atk-a.atk);if(!options.length){toast(fusionFailureReason(game,levels));return;}const f=tunedFusionQuality(game,levels,materials.map(m=>dataOf(m).element),materials);openModal(modalHtml('FUSIONSVORSCHAU',f.name,'✧','Tippe eine Monsterkarte an, um die Fusionsvorlage auszuwählen. Alle markierten Materialien werden eingesetzt.',`<p><b>Material:</b> ${materials.map(m=>escapeHtml(dataOf(m).name)).join(' + ')}</p><p>Qualität: <b>${(f.factor*100).toFixed(0)} %</b>${f.resonancePct?' · <b>✦ Materialresonanz +'+f.resonancePct+' %</b>':''} · Niveau ${f.average.toFixed(1)} · mögliche Stufe bis <b>${fusionBudget(levels,game,materials)}</b>. ${extra}</p><details class="fusion-how"><summary>Wie berechnet sich die Fusion?</summary><p>Die durchschnittliche Materialstufe entscheidet über das Potenzial. Hohe Differenzen zwischen Materialien senken die Qualität. Spezialkombinationen und Elemente können diese verbessern. Fusionen starten bei den mittleren ATK-/DEF-Werten gewöhnlicher Monster ihrer Zielstufe. Ein geerbter Predator-, Wächter- oder Seelenzehrer-Tag verlagert die ATK-/DEF-Grundwerte bereits VOR den Würfen. Pro Wurf entstehen 88–112 % des geprägten Referenzwerts; nur der beste gemeinsame Wertewurf gewinnt, danach werden Materialboni addiert und Abzüge verrechnet. Es gibt keine garantierte Stärke durch das beste Material. Material-Aufstiegsboni werden zusätzlich zufällig auf ATK oder DEF verteilt. Eine schlechte Fusion kann schwächer als ihr stärkstes Material ausfallen.</p></details><div class="pool-grid fusion-choice-grid">${options.map(c=>{const v=fusionPreview(game,c,materials,levels);return `<article class="fusion-offer">${fullCardHtml({id:c.id,card:{level:c.level,atk:round10((v.atk[0]+v.atk[1])/2),def:round10((v.def[0]+v.def[1])/2)}},`data-fusion-choice="${c.id}" title="${escapeHtml(c.name)} auswählen"`,'fusion-pick-card')}<div class="fusion-forecast"><strong>ATK ${fmt(v.atk[0])}–${fmt(v.atk[1])}</strong><strong>DEF ${fmt(v.def[0])}–${fmt(v.def[1])}</strong></div><p class="fusion-short">${v.rolls} Wertewürfe · ${escapeHtml(v.pattern)} · Materialbonus +${v.bonus}${v.resonancePct?' · ✦ Resonanz +'+v.resonancePct+' %':''}<br>Noch ${v.remaining} Fusionskopie(n)</p><button class="btn" data-fusion-choice="${c.id}">Diese Fusion wählen</button></article>`;}).join('')}</div>`, '<button class="btn" id="fusionCancel">ZURÜCK</button>'));$('modal').classList.add('pool-modal','fusion-choice-modal');$('fusionCancel').onclick=hideModal;let chosen=false;document.querySelectorAll('[data-fusion-choice]').forEach(b=>b.onclick=()=>{if(chosen)return;chosen=true;hideModal();callback(Number(b.dataset.fusionChoice));});};
 // Real material art is captured before materials leave the hand / field.
 // The animation never modifies the duel state, and honors instant/reduced-motion.
 let fusionVisualMaterials=null;

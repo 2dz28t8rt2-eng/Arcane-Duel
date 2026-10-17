@@ -1,0 +1,5 @@
+#duelScreen .ad-resonance-chip{letter-spacing:.025em}
+#duelScreen .ad-role-resonator,#duelScreen .ad-hand-role.ad-role-resonator{
+ color:#efccff!important;text-shadow:0 0 8px #d070ffad;
+}
+#duelScreen .ad-resonance-chip:has(+ .none){color:#e8ceff}
