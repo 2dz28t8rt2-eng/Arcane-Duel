@@ -151,3 +151,13 @@ jobs:
             sed -n '/<pre id="result"/,/<\/pre>/p' /tmp/arcane-artwork41-reduced.html | head -190 || true
             exit 1
           fi
+
+          echo "Checking first-run handbook, current rules and complete chapter search..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-renderer-backgrounding --virtual-time-budget=35000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-handbook-v41.html >"/tmp/arcane-handbook41-${size}.html" 2>/tmp/arcane-handbook41-chrome.log
+            if ! grep -q 'data-handbook-test="pass"' "/tmp/arcane-handbook41-${size}.html"; then
+              echo "Handbook navigation/rules QA failed at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/arcane-handbook41-${size}.html" | head -110 || true
+              exit 1
+            fi
+          done

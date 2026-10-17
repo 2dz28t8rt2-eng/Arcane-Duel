@@ -21,7 +21,7 @@ test('Low-level pairs in a two-pair combination beat the two-card level-three pa
 });
 test('Rulebook includes current game title, complete poker table, start fusion clarification, and quests',()=>{
  const run=boot(),r=run(`(()=>{showRules();return document.getElementById('modal').innerHTML})()`);
- for(const phrase of ['ARCANE DUEL 3.0','Monsterlexikon','Funkenwyrm','Runengreif','Zwei Paare','Große Straße','+8 Prozentpunkte','15 abgeschlossene','Fusionsdeck','ATK','DEF','Verteidigung','Burst'])assert.ok(r.includes(phrase),phrase);
+ for(const phrase of ['ARCANE DUEL 4.1','Monsterlexikon','Funkenwyrm','Runengreif','Zwei Paare','Große Straße','zusammen höchstens 8','15 abgeschlossene','Fusionsdeck','ATK','DEF','Verteidigung','Burst'])assert.ok(r.includes(phrase),phrase);
 });
 test('Fusion cinema uses real material artwork, with reduced-motion and instant guards',()=>{
  const js=fs.readFileSync(path.join(root,'assets/evolution.js'),'utf8');const css=fs.readFileSync(path.join(root,'assets/evolution.css'),'utf8');

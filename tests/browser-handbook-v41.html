@@ -1,0 +1,58 @@
+<!doctype html><html lang="de"><meta charset="utf-8"><title>Arcane Duel – Handbuch 4.1 QA</title>
+<style>body{font:14px system-ui;background:#111827;color:#fff;margin:12px}iframe{width:100%;height:750px}pre{white-space:pre-wrap}</style>
+<h1>Startbuch und Regel-Lexikon</h1><pre id="result">Prüfung läuft …</pre><iframe id="app" src="../index.html" title="Arcane Duel"></iframe>
+<script>
+const frame=document.getElementById('app'),result=document.getElementById('result');
+frame.addEventListener('load',async()=>{
+ const steps=[];let pass=true;
+ function expect(ok,label){steps.push((ok?'OK: ':'FEHLER: ')+label);if(!ok)pass=false;}
+ try{
+  const w=frame.contentWindow,d=w.document;
+  const before=w.eval('JSON.stringify({coins:profile.coins,xp:profile.xp,inventory:profile.inventory,cleared:profile.cleared,deck:profile.activeDeck,upgrades:profile.upgrades})');
+  expect(d.querySelector('.guide-header h2')?.textContent==='Willkommen in Arcane Duel','First-run book opens at the welcome page');
+  expect(w.ArcaneExpansion.featureCount===16,'All sixteen current guide chapters available');
+  expect(d.querySelectorAll('#guideChapter option').length===16,'Every guide chapter can be reached directly');
+  d.getElementById('guideNext').click();
+  expect(d.querySelector('.guide-header h2')?.textContent==='Deine Monsterkarte','Next page still introduces the actual monster card');
+  const cardImage=d.querySelector('.ad-guide-figure img');
+  if(cardImage&&!cardImage.complete)await new Promise(resolve=>{cardImage.addEventListener('load',resolve,{once:true});cardImage.addEventListener('error',resolve,{once:true});});
+  expect(cardImage?.naturalWidth===768,'Tutorial uses an existing full-resolution finished card');
+  for(let index=0;index<16;index++){
+   const select=d.getElementById('guideChapter');select.value=String(index);select.dispatchEvent(new w.Event('change',{bubbles:true}));
+   expect(Number(d.getElementById('guideChapter').value)===index,'Chapter selection reaches page '+(index+1));
+   const modal=d.getElementById('modal');
+   expect(modal.scrollWidth<=modal.clientWidth+2,'Guide page '+(index+1)+' fits the viewport horizontally');
+   const text=modal.textContent;
+   if(index===3)expect(text.includes('35 %')&&text.includes('650')&&text.includes('Gegenschlag'),'DEF-HP example includes actual armor and counters');
+   if(index===5)expect(text.includes('Wächter und Seelenzehrer')&&text.includes('regenerieren')&&text.includes('Seelenbrand'),'Defender introduction explains protection and pressure as a combined team');
+   if(index===6)expect(text.includes('130 %')&&text.includes('175 %'),'Soul example matches released burn and discharge');
+   if(index===10)expect(/Fusionen bei\s*25/.test(text),'Guide uses current fusion decay');
+  }
+  d.getElementById('guideClose').click();d.getElementById('helpDismiss')?.click();
+  w.eval('showRules()');await new Promise(resolve=>w.setTimeout(resolve,0));
+  const book=d.querySelector('.arcane-handbook'),chapters=[...book.querySelectorAll('.arcane-rule-chapter')],links=[...book.querySelectorAll('.royal-rule-directory button')];
+  expect(book.textContent.includes('Arcane Duel 4.1'),'Rulebook identifies the current handbook');
+  expect(chapters.length>=13,'Core rules, learning, perks and Essence details are present');
+  expect(links.length===chapters.length,'Directory includes chapters appended by later modules');
+  expect(new Set(chapters.map(c=>c.id)).size===chapters.length,'All chapter anchors are unique');
+  const essence=d.getElementById('essenceCombatRules');
+  expect(!!essence&&essence.textContent.includes('130 %')&&essence.textContent.includes('175 %'),'Advanced Essence chapter uses live values');
+  expect(links.some(b=>b.getAttribute('aria-controls')==='essenceCombatRules'),'Late Essence chapter has an accessible jump link');
+  const search=book.querySelector('.royal-rule-search');search.value='Seelenstoß';search.dispatchEvent(new w.Event('input',{bubbles:true}));
+  expect(!essence.hidden&&essence.open,'Searching finds and opens the late Essence chapter');
+  const visibleLinks=links.filter(b=>!b.hidden);expect(visibleLinks.some(b=>b.getAttribute('aria-controls')==='essenceCombatRules'),'Search retains the Essence navigation target');
+  search.value='';search.dispatchEvent(new w.Event('input',{bubbles:true}));
+  expect(chapters.every(c=>!c.hidden),'Clearing search restores every chapter');
+  const text=book.textContent;
+  expect(text.includes('35 %')&&text.includes('650 DEF'),'Rulebook explains armor with a checked numerical example');
+  expect(text.includes('Wächter und Seelenzehrer gehören zusammen'),'Shared defender strategy has its own explanation');
+  expect(!text.includes('110 % Stärke')&&!text.includes('maximal 135 %')&&!text.includes('45 + 42'),'Outdated Soul values are absent');
+  expect(!text.includes('endgültigen ATK/DEF zu verraten'),'Old hidden-final-values promise is absent');
+  expect(text.includes('Normale Wächter')&&text.includes('Monsterwerkstatt'),'Normal role synergy and permanent workshop are explained');
+  expect(book.querySelector('.arcane-rule-table tbody tr').children.length===5,'Pattern table distinguishes recipe, quality, rolls and level budget');
+  expect(d.getElementById('modal').scrollWidth<=d.getElementById('modal').clientWidth+2,'Full rulebook fits the viewport horizontally');
+  expect(w.eval('JSON.stringify({coins:profile.coins,xp:profile.xp,inventory:profile.inventory,cleared:profile.cleared,deck:profile.activeDeck,upgrades:profile.upgrades})')===before,'Reading and navigating does not alter game progress or deck');
+ }catch(error){expect(false,error.stack||String(error));}
+ result.textContent=steps.join('\n');document.body.dataset.handbookTest=pass?'pass':'fail';
+});
+</script></html>
