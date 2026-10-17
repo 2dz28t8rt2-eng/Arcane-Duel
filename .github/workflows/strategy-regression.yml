@@ -53,3 +53,6 @@ jobs:
 
       - name: QA defender tactical stress against harder matched NPCs
         run: node tests/qa-soul-pressure-matches.cjs
+
+      - name: QA real field fusion battle comparison for stored souls
+        run: node tests/qa-charged-field-fusion-matches.cjs
