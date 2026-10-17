@@ -44,3 +44,6 @@ jobs:
 
       - name: QA October 17 full-runtime duels and 18 connected careers
         run: node tests/qa-balance-current.cjs
+
+      - name: QA paired defender Seelenraub active vs passive
+        run: node tests/qa-soul-active-comparison.cjs
