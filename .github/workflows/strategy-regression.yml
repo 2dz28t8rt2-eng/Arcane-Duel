@@ -41,3 +41,6 @@ jobs:
           node -e 'const r=require("/tmp/arcane-qa-solo.json");console.log("QA_SOLO_20261017 "+JSON.stringify({battles:r.battles,errors:r.errors,rows:r.rows}))'
       - name: QA sample - 24 connected tournament careers
         run: node tests/evolution-full-tournament-audit.cjs
+
+      - name: QA October 17 full-runtime duels and 18 connected careers
+        run: node tests/qa-balance-current.cjs
