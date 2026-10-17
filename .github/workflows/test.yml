@@ -114,6 +114,17 @@ jobs:
             fi
           done
 
+          echo "Checking actual Funkenwyrm/Waldschlund card art at 1200px and 410px..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=25000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-artwork-hotfix-v41.html >"/tmp/arcane-artfix-${size}.html" 2>/tmp/arcane-artfix-chrome.log
+            if ! grep -q 'data-artwork41="pass"' "/tmp/arcane-artfix-${size}.html"; then
+              echo "Artwork hotfix failed at ${size}px" >&2
+              grep -A16 'id="result"' "/tmp/arcane-artfix-${size}.html" | head -22 || true
+              tail -20 /tmp/arcane-artfix-chrome.log || true
+              exit 1
+            fi
+          done
+
           echo "Checking Arcane Duel 4.0 contextual deck preview and fusion-quality stamps..."
           for size in 1200 410; do
             "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=12000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-ui4-cinema.html >"/tmp/arcane-ui4-${size}.html" 2>/tmp/arcane-ui4-chrome.log

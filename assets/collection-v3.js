@@ -7,6 +7,13 @@ window.addEventListener('DOMContentLoaded',()=>{
  ];
  const $=id=>document.getElementById(id);
  const byId=new Map(cards.map(c=>[c.id,c]));
+ // Preview gallery uses the same newly generated artworks, once deployed.
+ for(const [id,file] of [[41,'funkenwyrm-new.webp'],[45,'waldschlund-new.webp']]){
+  const img=new Image(),path='assets/custom-art/generated-4-1/'+file+'?v=artfix-20261017-2';
+  img.onload=()=>{const c=byId.get(id);if(c){c.art=path;render();}};
+  img.onerror=()=>{}; // Preserve previous image when binary is not deployed.
+  img.src=path;
+ }
  const state={level:'all',search:'',art:'all',sort:'level'};
  const tierList=$('tierList');
  for(let level=1;level<=12;level++){

@@ -1,0 +1,28 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Arcane Duel 4.1 Art QA</title></head><body data-artwork-41="pending"><pre id="result">Prüfung läuft ...</pre><iframe id="game" src="../index.html" title="Arcane Duel"></iframe><script>
+document.getElementById('game').addEventListener('load',async function(){
+ const w=this.contentWindow,d=w.document,errors=[],check=(ok,m)=>{if(!ok)errors.push(m)};
+ try{
+  const src=(name)=>'assets/custom-art/generated-4-1/'+name+'?v=artfix-20261017-2';
+  const works=async name=>new Promise(resolve=>{
+   const i=new w.Image();i.onload=()=>resolve({ok:i.naturalWidth>=600&&i.naturalHeight>=600,width:i.naturalWidth});i.onerror=()=>resolve({ok:false,width:0});i.src=src(name);
+  });
+  const [fire,forest]=await Promise.all([works('funkenwyrm-new.webp'),works('waldschlund-new.webp')]);
+  check(fire.ok,'Funkenwyrm WebP muss real laden und >=600 Pixel groß sein');
+  check(forest.ok,'Waldschlund WebP muss real laden und >=600 Pixel groß sein');
+  // Both runtime overrides apply after preload, not before the card metadata is ready.
+  await new Promise(r=>setTimeout(r,350));
+  const art=w.eval('({fire:CARDS[41].art,forest:CARDS[45].art,fireName:CARDS[41].name,forestName:CARDS[45].name,pack:CARDS[320].art})');
+  check(art.fireName==='Funkenwyrm'&&art.fire.includes('funkenwyrm-new.webp'),'ID 41 benutzt neues Funkenwyrm-Motiv');
+  check(art.forestName==='Waldschlund'&&art.forest.includes('waldschlund-new.webp'),'ID 45 benutzt neues Waldschlund-Motiv');
+  check(art.pack==='assets/custom-art/generated-4-1/monster-0320.webp','Paket-Artwork Himmelskrone weiterhin aktiv');
+  check(d.title.includes('4.1'),'Aktueller Titel 4.1');
+  const root=d.querySelector('.brandtitle');check(root?.textContent?.includes('4.1'),'4.1 im Spielkopf');
+  const realImg=w.eval("fullCardHtml({id:41})");
+  check(realImg.includes('funkenwyrm-new.webp'),'Kartenrenderer gibt neues Bild im HTML aus');
+  const forestImg=w.eval("fullCardHtml({id:45})");
+  check(forestImg.includes('waldschlund-new.webp'),'Kartenrenderer gibt Waldschlund-Bild im HTML aus');
+ }catch(e){errors.push(String(e.stack||e));}
+ document.getElementById('result').textContent=errors.length?errors.join('\n'):'Artwork-Mapping und Bilddateien OK';
+ document.body.dataset.artwork41=errors.length?'fail':'pass';
+});
+</script></body></html>
