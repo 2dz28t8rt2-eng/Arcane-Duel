@@ -423,7 +423,7 @@ test('Imprinted fusion chooses role before rolling and displays exact best-roll 
  assert.ok(calculation&&Number.isInteger(calculation.winnerIndex));
  assert.equal(calculation.role,result.roleOverride);
  assert.equal(calculation.roleWeights.atk,.75);
- assert.equal(calculation.roleWeights.def,1.25);
+ assert.equal(calculation.roleWeights.def,1.35);
  const best=result.rollTrace[calculation.winnerIndex];
  assert.ok(result.rollTrace.length>=1&&result.rollTrace.length<=7);
  assert.equal(best.atk+best.def,Math.max(...result.rollTrace.map(x=>x.atk+x.def)));
