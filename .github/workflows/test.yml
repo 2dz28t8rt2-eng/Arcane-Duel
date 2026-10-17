@@ -103,6 +103,17 @@ jobs:
             fi
           done
 
+          echo "Checking actual tournament and free duel startup with a missing role helper..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=22000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-duel-start.html >"/tmp/arcane-duel-start-${size}.html" 2>/tmp/arcane-duel-start-chrome.log
+            if ! grep -q 'data-duel-start="pass"' "/tmp/arcane-duel-start-${size}.html"; then
+              echo "Actual Duel Start FAILED at ${size}px" >&2
+              grep -A24 'id="result"' "/tmp/arcane-duel-start-${size}.html" | head -30 || true
+              tail -20 /tmp/arcane-duel-start-chrome.log || true
+              exit 1
+            fi
+          done
+
           echo "Checking Arcane Duel 4.0 contextual deck preview and fusion-quality stamps..."
           for size in 1200 410; do
             "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=12000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-ui4-cinema.html >"/tmp/arcane-ui4-${size}.html" 2>/tmp/arcane-ui4-chrome.log

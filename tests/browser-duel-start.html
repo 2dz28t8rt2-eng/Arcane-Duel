@@ -1,0 +1,34 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Arcane Duel – Duellstart Regression</title><style>body{background:#141725;color:#eee;font:12px system-ui;margin:8px}iframe{width:100%;height:710px}pre{white-space:pre-wrap}</style></head>
+<body data-duel-start="pending"><h3>Duellstart-Regressionsprüfung</h3><pre id="result">Startet ...</pre><iframe id="app" src="../index.html" title="Arcane Duel"></iframe>
+<script>
+document.getElementById('app').addEventListener('load',async()=>{
+ const w=document.getElementById('app').contentWindow,d=w.document,lines=[],fail=[];
+ const check=(ok,desc)=>{lines.push((ok?'OK: ':'FEHLER: ')+desc);if(!ok)fail.push(desc)};
+ try{
+  d.getElementById('guideClose')?.click();d.getElementById('helpDismiss')?.click();
+  w.eval("hideModal();profile=freshProfile();profile.trainingWins=3;profile.guideSeen=true;profile.rewardQueue=[];profile.activeDuel=null;busy=false;aiRunning=false;storageConflict=false;uiMode='menu';game=null;");
+  check(typeof w.ArcaneEssenceCombat?.roleOf==='function','Combat API wurde komplett geladen');
+  // Simulate the screenshot failure: the module is present but its roleOf helper is missing.
+  w.eval("window.__savedRoleFn=ArcaneEssenceCombat.roleOf;delete ArcaneEssenceCombat.roleOf;");
+  w.eval("startDuel('pve',1,'tournament','easy')");
+  check(w.eval("uiMode==='duel'&&!!game"),'Turnierduell gestartet');
+  check(d.getElementById('handCount').textContent.includes('5 / 5'),'Handzähler korrekt');
+  check(d.querySelectorAll('#hand [data-hand]').length===5,'Alle fünf Handkarten sichtbar');
+  check(d.querySelectorAll('#hand .ad-hand-role').length===5,'Rollenmarkierungen ohne roleOf');
+  check(!!d.getElementById('modalGo'),'Startdialog vorhanden');
+  d.getElementById('modalGo')?.click();
+  check(d.getElementById('overlay').classList.contains('hidden'),'Startdialog schließt');
+  w.eval('game.active=0;busy=false;aiRunning=false;render()');
+  d.querySelector('#hand [data-hand]')?.click();
+  check(w.eval("game.selection?.type==='hand'||!!game.pending"),'Handkarte ist anklickbar');
+  w.eval('ArcaneEssenceCombat.roleOf=window.__savedRoleFn;game.selection=null;render()');
+  check(d.querySelectorAll('#hand [data-hand]').length===5,'Karten bleiben nach erneuter Darstellung sichtbar');
+  w.eval("game=null;profile.activeDuel=null;profile.cleared=[1];uiMode='menu';busy=false;aiRunning=false;hideModal()");
+  w.eval("startDuel('pve',1,'free','easy')");
+  check(w.eval("uiMode==='duel'&&!!game"),'Freiduell gestartet');
+  check(d.querySelectorAll('#hand [data-hand]').length===5,'Fünf Handkarten im Freiduell');
+ }catch(e){fail.push(String(e.stack||e));}
+ document.getElementById('result').textContent=lines.join('\n')+(fail.length?'\nFEHLER: '+fail.join('; '):'');
+ document.body.dataset.duelStart=fail.length?'fail':'pass';
+});
+</script></body></html>
