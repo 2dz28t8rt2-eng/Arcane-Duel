@@ -64,7 +64,7 @@ document.getElementById('app').addEventListener('load',async()=>{
   const combo=w.eval(`(()=>{const c={pattern:'Kleine Straße',materialsUsed:3,rollMath:{combo:{name:'Kleine Straße',qualityPct:8,materialCount:3,rollBonus:1}}};const root=document.createElement('div');root.className='ritual-overlay';document.body.append(root);window.__comboRoot=root;window.__comboCard=c;return true;})()`);
   let stampTime=0,sharp=false;
   await w.ArcaneFusionBonus.stamp(w.__comboRoot,w.__comboCard,async ms=>{stampTime+=ms;const n=d.querySelector('.ad-combo-ink');sharp=!!n&&w.getComputedStyle(n).filter==='none';});
-  check(combo&&stampTime>=2000&&stampTime<=2400&&sharp,'Spezialbonus bleibt zwei bis 2,4 Sekunden scharf lesbar und endet etwas früher');w.__comboRoot.remove();
+  check(combo&&stampTime>=1750&&stampTime<=2150&&sharp,'Spezialbonus fliegt während etwa 1,8 bis 2,1 Sekunden vergrößert Richtung Spieler');w.__comboRoot.remove();
   // Headless virtual time can suspend iframe rAF despite visible parent timers.
   // Supply a deterministic 60 Hz clock for the real LP presentation function.
   const nativeRAF=w.requestAnimationFrame.bind(w),nativeCancel=w.cancelAnimationFrame.bind(w);
