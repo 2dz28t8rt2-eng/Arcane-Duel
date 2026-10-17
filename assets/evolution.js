@@ -154,6 +154,8 @@ function tunedFusionQuality(g,levels,elements=[],materials=[]){
    const baseline=fusionQuality(original.map(c=>dataOf(c).level),original.map(c=>dataOf(c).element));
    f.factor=Math.max(f.factor,baseline.factor);
    f.rollBonus=Math.max(f.rollBonus,baseline.rollBonus);
+   f.levelBonus=Math.max(f.levelBonus,baseline.levelBonus);
+   if(baseline.hasCombo&&!f.hasCombo){f.name=baseline.name+' · Allrounder';f.hasCombo=true;}
   }
   f.resonancePct=resonance.bonus;
   f.resonanceMaterials=resonance.materials;

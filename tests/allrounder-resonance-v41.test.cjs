@@ -73,3 +73,21 @@ test('Resonance UI and animation render authoritative quality bonus only',()=>{
  assert.match(read('assets/fusion-cinema-ritual.js'),/ALLROUNDER-RESONANZ/);
  assert.match(read('assets/evolution.js'),/resonanceFusion/);
 });
+
+test('Level-one Allrounder does not reduce the highest legal fusion tier of a two-card chain',()=>{
+ const x=boot().run('('+function(){
+  profile=freshProfile();game=createGame({mode:'pve',context:'free',opponentId:5,seed:1551});game.active=0;
+  const a=RPG_BASE_CARDS.find(c=>c.role==='combatant'&&!c.fusionOnly&&c.level===1);
+  const normal=RPG_BASE_CARDS.filter(c=>c.role!=='combatant'&&!c.fusionOnly&&c.level===4).slice(0,2);
+  if(!a||normal.length!==2)throw Error('Level-one or level-four fixture unavailable');
+  const cards=normal.map(c=>newInstance(game,c.id,0)),weak=newInstance(game,a.id,0);
+  const baseLevels=cards.map(c=>dataOf(c).level),levels=[...baseLevels,dataOf(weak).level];
+  const before=fusionBudget(baseLevels,game),unprotected=fusionBudget(levels,game);
+  const after=fusionBudget(levels,game,[...cards,weak]);
+  const quality=window.ArcaneEvolution.tunedFusionQuality(game,levels,[...cards,weak].map(c=>dataOf(c).element),[...cards,weak]);
+  return {before,unprotected,after,factor:quality.factor,resonance:quality.resonancePct};
+ }.toString()+')()');
+ assert.ok(x.before>=5,'A pair of high-level materials should access a higher fusion tier');
+ assert.ok(x.after>=x.before,'An extra Allrounder cannot lower the reachable tier');
+ assert.equal(x.resonance,4);
+});
