@@ -1,0 +1,80 @@
+<!doctype html><html lang="de"><meta charset="utf-8"><title>Fortschritt und Duellansicht · Prüfung</title>
+<style>body{font:13px system-ui;margin:8px;background:#101728;color:#edf0f8}pre{white-space:pre-wrap;max-height:150px;overflow:auto}iframe{width:100%;height:1000px;border:0}</style>
+<h1>Fortschritt und Duellansicht</h1><pre id="result">Prüfung läuft …</pre><iframe id="app" src="../index.html" title="Arcane Duel"></iframe>
+<script>
+document.getElementById('app').addEventListener('load',async()=>{
+ const w=document.getElementById('app').contentWindow,d=w.document,out=document.getElementById('result');
+ const lines=[];let pass=true;const pause=ms=>new Promise(r=>setTimeout(r,ms));
+ const check=(ok,label)=>{lines.push((ok?'OK: ':'FEHLER: ')+label);if(!ok)pass=false;out.textContent=lines.join('\n');};
+ try{
+  w.eval(`hideModal();profile.guideSeen=true;profile.rewardQueue=[];animationSpeed='fast';busy=false;aiRunning=false;`);
+  const fan=[...d.querySelectorAll('.atlas-showcase-face')];
+  check(fan.length===3&&fan.every(c=>c.classList.contains('ad-template')&&c.classList.contains('ad-level-frame')),'Alle drei Menükarten verwenden vollständige aktuelle Rahmen');
+  check(fan.every(c=>w.getComputedStyle(c).filter==='none'),'Menükarten bleiben scharf');
+  d.querySelector('[data-fm-group="growth"]')?.click();
+  const workshop=d.querySelector('.fm-menu-group.selected [data-tab="workshop"]');
+  check(!!workshop,'Monsterwerkstatt hat einen eigenen Unterpunkt unter Fortschritt');
+  workshop?.click();
+  check(!!d.querySelector('#arcaneMonsterForge')&&!d.querySelector('.deck-editor-grid'),'Werkstatt besitzt eine eigene Seite');
+  w.ArcaneRoyalUI.navigate('collection');
+  check(!d.querySelector('#arcaneMonsterForge')&&!!d.querySelector('.deck-editor-grid'),'Hauptdeck enthält keinen eingebetteten Werkstattblock mehr');
+  w.eval(`game=createGame({id:'browser-progression41',mode:'pve',opponentId:3,context:'free',starter:0,seed:171});game.turn=3;game.active=0;
+   const ids=[...ARCANE_STAGE_IDS.values()];const same=ids.find(id=>CARDS[id].role==='predator'&&CARDS[id].level===1);
+   game.players[0].hand=[same,same,same].map(id=>newInstance(game,id,0));
+   game.players[0].field=[newInstance(game,same,0),newInstance(game,same,0),null,null,null];game.players[1].field.fill(null);
+   uiMode='duel';$('menuScreen').hidden=true;$('duelScreen').hidden=false;hideModal();render();`);
+  await pause(100);
+  const hand=[...d.querySelectorAll('#hand .hand-card')];
+  check(hand.length===3&&hand.every(c=>!c.querySelector('.essence-role-chip,.arcane-card-role')),'Kleine Handkarten enthalten keine Rollenplaketten');
+  check(d.querySelectorAll('#hand .ad-hand-role').length===3,'Rollen stehen getrennt unter den Handkarten');
+  check(!d.querySelector('.board-creature .arcane-board-role'),'Feldkarten sind frei von Rollenplaketten');
+  check(hand.every(c=>w.getComputedStyle(c.querySelector('.card-level-badge')).display==='none'),'Obere Levelplaketten sind ausgeblendet');
+  check(hand.every(c=>parseFloat(w.getComputedStyle(c.querySelector('.stat.atk')).borderTopWidth)>=1&&parseFloat(w.getComputedStyle(c.querySelector('.stat.def')).borderTopWidth)>=1),'ATK und DEF stehen in eigenen Kästen');
+  for(const card of hand.slice(0,2))card.dispatchEvent(new w.MouseEvent('contextmenu',{bubbles:true,cancelable:true}));
+  const marked=[...d.querySelectorAll('#hand .fusion-mark')];
+  check(marked.length===2,'Rechtsklick markiert echte Fusionsmaterialien');
+  check(marked.every(c=>{const r=c.getBoundingClientRect(),b=c.querySelector('.order-badge')?.getBoundingClientRect();return b&&b.left>=r.left&&b.top>=r.top&&b.right<=r.right&&b.bottom<=r.bottom;}),'Fusionsnummern liegen vollständig innerhalb der Karten');
+  check(marked.every(c=>w.getComputedStyle(c).boxShadow.includes('14px')),'Markierte Materialien haben einen sichtbaren dezenten Leuchtsaum');
+  w.eval(`game.materials=[];game.selection=null;render();window.__flightCount=0;window.__originalAnimate=Element.prototype.animate;
+   Element.prototype.animate=function(...args){if(this.classList.contains('ad-deck-ghost'))window.__flightCount++;return window.__originalAnimate.apply(this,args);};`);
+  d.querySelector('[data-mine="0"] .board-creature').click();
+  const first=w.__flightCount;
+  d.querySelector('[data-mine="0"] .board-creature').click();
+  check(first===1&&w.__flightCount===first,'Erneuter Klick auf dieselbe angezeigte Instanz startet keine Erscheinungsanimation');
+  d.querySelector('[data-mine="1"] .board-creature').click();
+  check(w.__flightCount===first+1,'Eine andere Kopie desselben Monsters erhält weiterhin ihre eigene Animation');
+  w.Element.prototype.animate=w.__originalAnimate;
+  w.eval(`game.selection=null;const t=RPG_FUSIONS.find(c=>c.level===2&&!c.retired&&!c.enemyOnly);
+   game.players[0].fusionDeck=[t.id,t.id];game.players[0].remainingFusion=[t.id,t.id];window.__chosenFusion=null;
+   const m=game.players[0].hand.slice(0,2);chooseFusionModal([1,1],m,id=>window.__chosenFusion=id);`);
+  await pause(80);
+  const choices=[...d.querySelectorAll('[data-fusion-choice]')],pick=choices[0],box=pick?.getBoundingClientRect();
+  check(choices.length===1&&box.width/box.height>.52&&box.width/box.height<.72,'Eine einzelne Fusionsvorlage behält normale Kartenproportionen');
+  check(!!pick?.querySelector('.hand-title,.hand-art')&&[...pick.querySelectorAll('.stat-value')].every(n=>n.textContent==='?'),'Vorlage zeigt das volle Kartenlayout; endgültige Werte bleiben verborgen');
+  check(!!d.querySelector('.ad-fusion-decision')&&!!d.querySelector('.ad-fusion-role-preview'),'Materialverbrauch und geerbte Rolle stehen vor der Entscheidung fest');
+  pick?.querySelector('img')?.click();
+  check(Number.isInteger(w.__chosenFusion),'Ein Klick auf das Kartenbild führt die tatsächliche Auswahl aus');
+  w.eval(`const fx=document.createElement('div');fx.id='elementFixture';fx.innerHTML=['FEUER','WASSER','ERDE','WIND','LICHT','DUNKEL'].map(e=>{const c=CARDS.find(c=>c.rpg&&c.element===e&&!c.retired&&!c.enemyOnly);return fullCardHtml({id:c.id});}).join('');document.body.append(fx);`);
+  const types=[...d.querySelectorAll('#elementFixture .hand-type')];
+  check(types.length===6&&types.every(t=>parseFloat(w.getComputedStyle(t).animationDuration)<5.1),'Alle sechs Elemente atmen deutlich schneller sichtbar');
+  check(new Set(types.map(t=>w.getComputedStyle(t,'::before').animationName)).size===6,'Jedes Element hat einen eigenen kleinen Partikeleffekt');
+  d.body.classList.add('ad-motion-disabled');
+  check(types.every(t=>w.getComputedStyle(t).animationName==='none'&&w.getComputedStyle(t,'::before').display==='none'),'Animationen-Aus deaktiviert auch sämtliche neuen Partikel');
+  d.body.classList.remove('ad-motion-disabled');d.getElementById('elementFixture').remove();
+  const combo=w.eval(`(()=>{const c={pattern:'Kleine Straße',materialsUsed:3,rollMath:{combo:{name:'Kleine Straße',qualityPct:8,materialCount:3,rollBonus:1}}};const root=document.createElement('div');root.className='ritual-overlay';document.body.append(root);window.__comboRoot=root;window.__comboCard=c;return true;})()`);
+  let stampTime=0,sharp=false;
+  await w.ArcaneFusionBonus.stamp(w.__comboRoot,w.__comboCard,async ms=>{stampTime+=ms;const n=d.querySelector('.ad-combo-ink');sharp=!!n&&w.getComputedStyle(n).filter==='none';});
+  check(combo&&stampTime>=3000&&sharp,'Spezialbonus bleibt mindestens drei Sekunden scharf lesbar');w.__comboRoot.remove();
+  w.eval(`hideModal();game.selection=null;busy=false;window.__introPromise=ArcaneBattleFX.beginCinema();`);
+  await pause(100);
+  check(!!d.querySelector('.ad-battle-intro')&&d.getElementById('duelScreen').dataset.lpPhase==='intro'&&d.getElementById('myLP').textContent==='0','LP bleiben während des Duellstartbildschirms bei null');
+  await pause(1750);
+  check(!d.querySelector('.ad-battle-intro')&&d.getElementById('duelScreen').dataset.lpPhase==='filling','LP-Aufbau beginnt erst nach dem Startbildschirm');
+  await pause(750);
+  check(Number(d.getElementById('myLP').textContent)>0&&Number(d.getElementById('myLP').textContent)<w.eval('game.players[0].lp'),'Der langsamere LP-Aufbau ist sichtbar zwischen null und Endwert');
+  await pause(1900);
+  check(!d.getElementById('duelScreen').dataset.lpPhase&&!w.eval('busy')&&Number(d.getElementById('myLP').textContent)===w.eval('game.players[0].lp'),'LP enden exakt am echten Wert und die Steuerung wird freigegeben');
+ }catch(error){check(false,error.stack||String(error));}
+ document.body.dataset.progressionTest=pass?'pass':'fail';
+});
+</script></html>

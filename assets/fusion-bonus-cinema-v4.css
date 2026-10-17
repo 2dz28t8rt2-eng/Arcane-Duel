@@ -25,7 +25,7 @@
  font:900 clamp(30px,7.4vw,100px)/1.05 Georgia,serif;
  letter-spacing:.045em;text-transform:uppercase;
  max-width:100%;overflow-wrap:anywhere;
- text-shadow:0 0 13px currentColor,0 4px 3px #000;
+ text-shadow:0 2px 2px #000;
 }
 .ritual-overlay .ad-combo-ink span{
  color:#fff4db;font:850 clamp(13px,2.2vw,24px)/1.4 ui-monospace,Consolas,monospace;
@@ -49,13 +49,9 @@
  border-radius:2px;box-shadow:0 0 13px 3px var(--ad-combo-secondary);
 }
 @keyframes ad-combo-impact{
- 0%{opacity:0;transform:perspective(600px) translateZ(480px) scale(4) rotate(-11deg);filter:blur(6px)}
- 13%{opacity:1;transform:perspective(600px) translateZ(0) scale(.88) rotate(-6deg);filter:blur(0)}
- 20%{transform:scale(1.08) rotate(-4deg)}
- 31%{transform:scale(1) rotate(-5deg)}
- 55%{opacity:1;transform:scale(1) rotate(-5deg)}
- 85%{opacity:.65;transform:perspective(700px) translateZ(170px) scale(2.15) rotate(-2deg)}
- 100%{opacity:0;transform:perspective(700px) translateZ(400px) scale(3.35);filter:blur(15px)}
+ 0%{opacity:0;transform:translateY(12px) scale(.96);filter:none}
+ 10%,87%{opacity:1;transform:translateY(0) scale(1);filter:none}
+ 100%{opacity:0;transform:translateY(-8px) scale(1);filter:none}
 }
 @keyframes ad-combo-burst{
  0%{opacity:0;transform:translate(0,0) scale(.2)}

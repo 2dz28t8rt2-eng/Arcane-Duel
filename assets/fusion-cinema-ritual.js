@@ -129,7 +129,7 @@
    // After the role's card seal, stamp the ACTUAL combination quality across
    // the whole scene. This does not re-roll or modify the persisted numbers.
    if(window.ArcaneFusionBonus?.stamp){
-    try{await window.ArcaneFusionBonus.stamp(overlay,c,wait,variant==='field'?.54:1);}
+    try{await window.ArcaneFusionBonus.stamp(overlay,c,wait,1);}
     catch(error){console.warn('Bonus-Cinema übersprungen:',error);}
    }
    overlay.classList.add('evo-phase-rolls','evo-stamp-settled');

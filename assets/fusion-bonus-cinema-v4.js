@@ -35,7 +35,7 @@
   const node=document.createElement('div');
   node.className='ad-combo-ritual ad-combo-tier-'+bonus.tier;
   node.setAttribute('aria-hidden','true');
-  node.style.setProperty('--ad-combo-duration',Math.round((1350+bonus.tier*115)*pace)+'ms');
+  node.style.setProperty('--ad-combo-duration',Math.round((2800+bonus.tier*140)*pace)+'ms');
   const text=document.createElement('div');text.className='ad-combo-ink';
   const title=document.createElement('strong');title.textContent=bonus.title;
   const subtitle=document.createElement('span');
@@ -65,7 +65,7 @@
   if(!bonus||reduced())return bonus;
   const node=makeImpact(root,bonus,pace);
   root.classList.add('ad-combo-visible','ritual-screen-shake');
-  const duration=1350+bonus.tier*115;
+  const duration=Math.round((2800+bonus.tier*140)*pace);
   try{
    await wait(300);
    root.classList.remove('ritual-screen-shake');
@@ -76,5 +76,5 @@
   }
   return bonus;
  }
- window.ArcaneFusionBonus=Object.freeze({version:'4.0.0',describe,stamp});
+ window.ArcaneFusionBonus=Object.freeze({version:'4.1.0',describe,stamp});
 })();

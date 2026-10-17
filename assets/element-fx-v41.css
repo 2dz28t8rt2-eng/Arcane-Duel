@@ -1,0 +1,49 @@
+/* Six small, readable element effects. Two CSS layers per strip, no canvas,
+ * external runtime, random timers or particles over the card name/stats. */
+html body .hand-card.tc-card[data-element="FEUER"]{--e-cycle:3.2s;--e-mote-cycle:2.6s;--efx-flow:ad-fire-rise;--efx-shape:45% 45% 20% 20%}
+html body .hand-card.tc-card[data-element="WASSER"]{--e-cycle:4.3s;--e-mote-cycle:4.4s;--efx-flow:ad-water-drift}
+html body .hand-card.tc-card[data-element="ERDE"]{--e-cycle:4.9s;--e-mote-cycle:5.5s;--efx-flow:ad-earth-drift}
+html body .hand-card.tc-card[data-element="WIND"]{--e-cycle:3.8s;--e-mote-cycle:3.4s;--efx-flow:ad-wind-flow}
+html body .hand-card.tc-card[data-element="LICHT"]{--e-cycle:4.1s;--e-mote-cycle:3.9s;--efx-flow:ad-light-glint}
+html body .hand-card.tc-card[data-element="DUNKEL"]{--e-cycle:4.7s;--e-mote-cycle:5.2s;--efx-flow:ad-dark-drift}
+html body .hand-card.tc-card[data-element][data-level] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::after{
+ content:""!important;display:block!important;position:absolute!important;inset:-3px!important;z-index:0!important;pointer-events:none!important;
+ background-image:radial-gradient(ellipse,rgb(var(--e-particles) / .95) 0 1px,transparent 2px),radial-gradient(circle,rgb(var(--e-particles) / .8) 0 .7px,transparent 1.7px)!important;
+ background-size:27px 18px,43px 21px!important;background-position:4px 8px,18px 3px;
+ animation:ad405-element-motes var(--e-mote-cycle,4s) linear infinite!important;
+}
+html body .hand-card.tc-card[data-element][data-level] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::before{
+ content:""!important;display:block!important;position:absolute!important;inset:0!important;pointer-events:none!important;z-index:0!important;opacity:.38;
+ background:radial-gradient(ellipse at 20% 120%,rgb(var(--e-particles) / .65),transparent 40%),radial-gradient(ellipse at 78% 105%,rgb(var(--e-particles) / .6),transparent 34%);
+ animation:var(--efx-flow,ad-water-drift) var(--e-mote-cycle,4s) ease-in-out infinite alternate!important;
+}
+html body .hand-card.tc-card[data-element="FEUER"] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::before{
+ inset:3px 0 -4px!important;transform-origin:50% 100%;
+ background:radial-gradient(ellipse at 12% 105%,#ffe2a2b0 0 5%,#ff7a37a0 16%,transparent 35%),radial-gradient(ellipse at 50% 125%,#ffd280ad 0 12%,#f0632980 25%,transparent 45%),radial-gradient(ellipse at 86% 110%,#ffd48ba0 0 6%,#ff673070 20%,transparent 38%)!important;
+}
+html body .hand-card.tc-card[data-element="WIND"] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::before{background:repeating-linear-gradient(-12deg,transparent 0 8px,#b8fbef55 9px,transparent 10px 17px)!important;background-size:140% 100%!important}
+html body .hand-card.tc-card[data-element="LICHT"] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::before{background:radial-gradient(ellipse at 18% 50%,#fff6cc90,transparent 27%),radial-gradient(ellipse at 82% 50%,#fff3a770,transparent 24%)!important}
+html body .hand-card.tc-card[data-element="DUNKEL"] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::before{background:radial-gradient(ellipse at 10% 70%,#d29cf580,transparent 42%),radial-gradient(ellipse at 80% 20%,#ab6bf394,transparent 42%)!important}
+@keyframes ad405-element-breath{
+ 0%,100%{box-shadow:inset 0 0 4px var(--e-halo),0 0 2px var(--e-halo);filter:brightness(1)}
+ 50%{box-shadow:inset 0 0 12px var(--e-halo),0 0 9px var(--e-halo);filter:brightness(1.22)}
+}
+@keyframes ad405-element-motes{0%{opacity:.25;transform:translate(-5px,5px)}45%{opacity:.65}100%{opacity:.25;transform:translate(5px,-6px)}}
+@keyframes ad-fire-rise{0%{opacity:.3;transform:scaleY(.65) translateX(-2px)}40%{opacity:.65;transform:scaleY(1.15)}100%{opacity:.45;transform:scaleY(.8) translateX(2px)}}
+@keyframes ad-water-drift{from{opacity:.3;transform:translateX(-8px) scaleX(.9)}to{opacity:.55;transform:translateX(8px) scaleX(1.1)}}
+@keyframes ad-earth-drift{from{opacity:.25;transform:translateY(4px)}to{opacity:.55;transform:translateY(-2px)}}
+@keyframes ad-wind-flow{from{opacity:.2;background-position:-15px 0}to{opacity:.5;background-position:15px 0}}
+@keyframes ad-light-glint{from{opacity:.15;transform:scale(.8)}to{opacity:.65;transform:scale(1.15)}}
+@keyframes ad-dark-drift{from{opacity:.25;transform:translate(-5px,2px)}to{opacity:.55;transform:translate(5px,-2px)}}
+body.ad-motion-disabled .hand-card.tc-card[data-element] :is(.hand-type:not(.ad-card-traits),.ad-card-element),
+body.ad-motion-disabled .hand-card.tc-card[data-element] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::before,
+body.ad-motion-disabled .hand-card.tc-card[data-element] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::after{animation:none!important;filter:none!important}
+body.ad-motion-disabled .hand-card.tc-card[data-element] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::before,
+body.ad-motion-disabled .hand-card.tc-card[data-element] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::after{display:none!important}
+@media(prefers-reduced-motion:reduce){
+ html body .hand-card.tc-card[data-element] :is(.hand-type:not(.ad-card-traits),.ad-card-element),
+ html body .hand-card.tc-card[data-element] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::before,
+ html body .hand-card.tc-card[data-element] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::after{animation:none!important;filter:none!important}
+ html body .hand-card.tc-card[data-element] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::before,
+ html body .hand-card.tc-card[data-element] :is(.hand-type:not(.ad-card-traits),.ad-card-element)::after{display:none!important}
+}

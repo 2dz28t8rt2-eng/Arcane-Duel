@@ -34,19 +34,39 @@
   busy=true;
   const mine=document.getElementById('myLP'),foe=document.getElementById('enemyLP');
   const left=document.getElementById('myLPBar'),right=document.getElementById('enemyLPBar');
-  const started=performance.now();const duration=1350;
-  const draw=(f)=>{
+  const screen=document.getElementById('duelScreen');
+  const introDuration=1650,fillDuration=2400;
+  const draw=f=>{
    if(game!==g||t!==key)return;
    if(mine)mine.textContent=String(Math.round(fromLP[0]*f));
    if(foe)foe.textContent=String(Math.round(fromLP[1]*f));
    if(left)left.style.width=(Math.max(0,fromLP[0]/full)*100*f)+'%';
    if(right)right.style.width=(Math.max(0,fromLP[1]/full)*100*f)+'%';
   };
-  draw(0);
+  render();draw(0);if(screen)screen.dataset.lpPhase='intro';
   return new Promise(resolve=>{
-   let done=false;const close=()=>{if(done)return;done=true;pane.remove();if(game===g){busy=false;render();}resolve();};
-   function frame(now){if(done||game!==g)return close();const f=Math.min(1,Math.max(0,(now-started)/duration));draw(1-Math.pow(1-f,2.3));if(f<1)requestAnimationFrame(frame);else close();}
-   requestAnimationFrame(frame);setTimeout(close,2000);
+   let done=false,raf=0;
+   const close=()=>{
+    if(done)return;done=true;cancelAnimationFrame(raf);pane.remove();
+    if(game===g&&t===key){screen?.removeAttribute('data-lp-phase');busy=false;render();}
+    resolve();
+   };
+   // Keep LP at zero while the start screen is visible. Only then reveal
+   // the slower, visible fill on the unobscured battlefield.
+   setTimeout(()=>{
+    pane.remove();if(done||game!==g||t!==key)return close();
+    if(screen)screen.dataset.lpPhase='filling';
+    const started=performance.now();
+    function frame(now){
+     if(done||game!==g||t!==key)return close();
+     const f=Math.min(1,Math.max(0,(now-started)/fillDuration));
+     draw(f<.5?2*f*f:1-Math.pow(-2*f+2,2)/2);
+     if(f<1)raf=requestAnimationFrame(frame);else close();
+    }
+    raf=requestAnimationFrame(frame);
+   },introDuration);
+   // Also releases input if a hidden tab throttles animation frames.
+   setTimeout(close,introDuration+fillDuration+350);
   });
  }
  // A duel begins only after the player confirms the existing modal.
@@ -108,17 +128,22 @@
  };
  const oldOwn=onOwnSlot;
  onOwnSlot=async function(idx,...rest){
-  const g=game,pending=g?.pending,big=pending?.kind==='fusion'&&(pending.card?.materialsUsed||0)>=4;
+  const g=game,pending=g?.pending,owner=g?.active,before=g?.players[owner]?.field[idx]?.uid;
   await oldOwn(idx,...rest);
-  if(!big||game!==g||g.pending||reduced())return;
+  const placed=g?.players[owner]?.field[idx];
+  if(!pending||game!==g||g.pending||!placed?.fusion||placed.uid===before||reduced())return;
   const cell=document.querySelector('[data-mine="'+idx+'"] .board-creature');if(!cell)return;
-  const r=center(cell);if(!r)return;
-  // Physical landing: quick wind-up, impact, dust cloud – never changes stats.
-  cell.classList.add('ad-titan-impact');setTimeout(()=>cell.classList.remove('ad-titan-impact'),850);
-  const table=document.querySelector('.table-surface');
-  table?.classList.add('ad-impact-shake');
-  setTimeout(()=>table?.classList.remove('ad-impact-shake'),410);
-  sparks('ad-sparks-dust',r.x,r.y,40,true);
+  // Capture the FINAL, untransformed slot rectangle, then land exactly there.
+  const rect=cell.getBoundingClientRect(),heavy=(placed.materialsUsed||0)>=4;
+  cell.classList.add('ad-titan-impact');setTimeout(()=>cell.classList.remove('ad-titan-impact'),800);
+  setTimeout(()=>{
+   if(game!==g||!cell.isConnected)return;
+   const table=document.querySelector('.table-surface');
+   table?.classList.add('ad-impact-shake');
+   setTimeout(()=>table?.classList.remove('ad-impact-shake'),410);
+   sparks('ad-sparks-dust',rect.left+rect.width/2,rect.bottom-5,heavy?36:22,heavy);
+  },500);
+
  };
- window.ArcaneBattleFX=Object.freeze({version:'1.0',beginCinema});
+ window.ArcaneBattleFX=Object.freeze({version:'1.1',beginCinema,introDuration:1650,fillDuration:2400});
 })();

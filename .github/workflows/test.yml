@@ -171,3 +171,14 @@ jobs:
               exit 1
             fi
           done
+
+          for size in 1200 410; do
+            echo "Checking progression rewards and duel presentation at ${size}px ..."
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-renderer-backgrounding --virtual-time-budget=35000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-progression-v41.html >"/tmp/arcane-progression-${size}.html" 2>/tmp/arcane-progression.log
+            if ! grep -q 'data-progression-test="pass"' "/tmp/arcane-progression-${size}.html"; then
+              echo "Progression UI failed at ${size}px" >&2
+              grep -E -A45 'id="result"' "/tmp/arcane-progression-${size}.html" | head -50 || true
+              tail -25 /tmp/arcane-progression.log || true
+              exit 1
+            fi
+          done

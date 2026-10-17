@@ -10,7 +10,7 @@ const categories=[
  {id:'play',icon:'⚔',title:'Duellieren',subtitle:'Arena, Duelle & PvP',tabs:['tournament','free','pvp']},
  {id:'deck',icon:'▤',title:'Deck & Sammlung',subtitle:'Karten und Deckbau',tabs:['collection','fusions','decks','lexicon']},
  {id:'missions',icon:'✧',title:'Herausforderungen',subtitle:'Lernpfad und Quests',tabs:['challenges']},
- {id:'growth',icon:'✦',title:'Fortschritt',subtitle:'Skills, Belohnungen & Booster-Shop',tabs:['upgrades','xp','shop','packs']},
+ {id:'growth',icon:'✦',title:'Fortschritt',subtitle:'Skills, Belohnungen & Booster-Shop',tabs:['workshop','upgrades','xp','shop','packs']},
  {id:'options',icon:'⚙',title:'Spielstand & Extras',subtitle:'Chronik und Optionen',tabs:['stats','settings']}
 ];
 const descriptions={
@@ -25,6 +25,7 @@ const descriptions={
  shop:['Booster-Shop','Entdecke neue Kreaturen und Sonderangebote.'],
  packs:['Charakter-Boosterpacks','Öffne bereits verdiente Charakter-Boosterpacks.'],
  xp:['Levelbelohnungen','Sieh deine nächsten Fortschrittsmeilensteine.'],
+ workshop:['Monsterwerkstatt','Verbinde und zerlege freie Monster derselben Familie.'],
  upgrades:['Skills & Perks','Passe deine langfristigen Verbesserungen an.'],
  stats:['Chronik & Hinweise','Deine Duelle, Taktiken und Statistiken.'],
  settings:['Einstellungen und Spielstandoptionen','Speichern, Import, Export und Einstellungen.']
@@ -49,7 +50,7 @@ function renderRoyalMenu(){
  const tabs=new Map([...nav.querySelectorAll('button[data-tab]')].map(btn=>[btn.dataset.tab,btn]));
  nav.replaceChildren();nav.className='fm-navigation';
  nav.innerHTML='<div class="fm-nav-brand"><span>✧</span><div><strong>ARCANE DUEL</strong><small>3.0 · BESTIARIUM</small></div></div>';
- const titles={tournament:'Turnier',free:'Freie Duelle',pvp:'Lokales PvP',collection:'Hauptdeck',fusions:'Fusionsdeck',decks:'Deckplätze',lexicon:'Monsterlexikon',challenges:'Challenges & Quests',upgrades:'Skills & Perks',xp:'Levelbelohnungen',shop:'Booster-Shop',packs:'Charakter-Boosterpacks',stats:'Chronik',settings:'Einstellungen und Spielstandoptionen'};
+ const titles={tournament:'Turnier',free:'Freie Duelle',pvp:'Lokales PvP',collection:'Hauptdeck',fusions:'Fusionsdeck',decks:'Deckplätze',lexicon:'Monsterlexikon',challenges:'Challenges & Quests',workshop:'Monsterwerkstatt',upgrades:'Skills & Perks',xp:'Levelbelohnungen',shop:'Booster-Shop',packs:'Charakter-Boosterpacks',stats:'Chronik',settings:'Einstellungen und Spielstandoptionen'};
  const activeGroup=categories.find(g=>g.tabs.includes(menuTab))||categories[0];
  for(const group of categories){
   const active=group.id===activeGroup.id,section=document.createElement('section');section.className='fm-menu-group'+(active?' selected':'');
@@ -58,11 +59,6 @@ function renderRoyalMenu(){
   if(active){
    const sub=document.createElement('div');sub.className='fm-submenu';sub.hidden=collapsedGroups.has(group.id);
    for(const id of group.tabs){const button=tabs.get(id);if(!button)continue;button.textContent=titles[id];sub.append(button);}
-   if(group.id==='deck'){
-    const forge=document.createElement('button');forge.type='button';
-    forge.className='menu-tab fm-forge-shortcut';forge.dataset.royal='forge';
-    forge.textContent='⚒ Monsterwerkstatt · Verbinden & Zerlegen';sub.append(forge);
-   }
    section.append(sub);
   }
   nav.append(section);
@@ -152,13 +148,7 @@ const delegate=e=>{
  if(action==='rules'){showRules();return;}
  if(action==='start'){openStart();return;}
  if(action==='gallery'){openGallery();return;}
- if(action==='forge'){
-  if(menuTab!=='collection')go('collection');
-  else if(!document.getElementById('arcaneMonsterForge'))renderMenu();
-  const forge=document.getElementById('arcaneMonsterForge');
-  if(forge)forge.scrollIntoView({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?'auto':'smooth',block:'start'});
-  return;
- }
+ if(action==='forge'){go('workshop');return;}
  if(action==='resume'){resumeDuel();return;}
  if(categories.some(group=>group.tabs.includes(action))){go(action);return;}
 };
