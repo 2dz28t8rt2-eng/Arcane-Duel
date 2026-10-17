@@ -35,7 +35,10 @@ document.getElementById('runtime').addEventListener('load',async()=>{
    const card=win.eval('CARDS['+row.id+']'),stats=expected[row.id];
    check(card.name===row.cardName&&card.desc===row.description,'Name and description '+row.id);
    check(card.art===row.art&&card.customArt===row.art,'Live artwork mapping '+row.id);
-   check(JSON.stringify([card.level,card.atk,card.def,card.role,card.element])===JSON.stringify(stats),'Original gameplay values '+row.id);
+   const baseValues=[card.level,card.arcaneOriginalStats?.atk??card.atk,card.arcaneOriginalStats?.def??card.def,card.role,card.element];
+   const budgetOk=!card.arcaneOriginalStats||Math.abs(card.atk+card.def-
+    Math.round(win.ArcaneLevelBudget.budget(card.level)*win.ArcaneLevelBudget.rarityFactor(card)/10)*10)<=10;
+   check(JSON.stringify(baseValues)===JSON.stringify(stats)&&budgetOk,'Original identity and approved new budget '+row.id);
    const holder=doc.createElement('div');holder.style.width='180px';
    holder.innerHTML=win.eval('fullCardHtml(CARDS['+row.id+'])');fixture.append(holder);
    const element=holder.querySelector('.hand-card'),img=element.querySelector('.hand-art img');
