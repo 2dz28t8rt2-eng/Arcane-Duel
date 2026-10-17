@@ -49,7 +49,7 @@ function renderRoyalMenu(){
  screen.classList.add('fm-screen');document.body.classList.add('fm-menu-active');
  const tabs=new Map([...nav.querySelectorAll('button[data-tab]')].map(btn=>[btn.dataset.tab,btn]));
  nav.replaceChildren();nav.className='fm-navigation';
- nav.innerHTML='<div class="fm-nav-brand"><span>✧</span><div><strong>ARCANE DUEL</strong><small>3.0 · BESTIARIUM</small></div></div>';
+ nav.innerHTML='<div class="fm-nav-brand"><span>✧</span><div><strong>ARCANE DUEL</strong><small>4.1 · BESTIARIUM</small></div></div>';
  const titles={tournament:'Turnier',free:'Freie Duelle',pvp:'Lokales PvP',collection:'Hauptdeck',fusions:'Fusionsdeck',decks:'Deckplätze',lexicon:'Monsterlexikon',challenges:'Challenges & Quests',workshop:'Monsterwerkstatt',upgrades:'Skills & Perks',xp:'Levelbelohnungen',shop:'Booster-Shop',packs:'Charakter-Boosterpacks',stats:'Chronik',settings:'Einstellungen und Spielstandoptionen'};
  const activeGroup=categories.find(g=>g.tabs.includes(menuTab))||categories[0];
  for(const group of categories){
@@ -72,7 +72,7 @@ function renderRoyalMenu(){
  for(const [,button] of tabs)if(!button.isConnected)hidden.append(button);
  nav.append(hidden);
  const slot=$('activeSlotSelect'),current=descriptions[menuTab]||descriptions.tournament;
- hero.innerHTML='<div class="fm-hero-content"><div><span class="fm-eyebrow">✦ ARCANE DUEL 3.0 · '+safe(activeGroup.title)+'</span>'+
+ hero.innerHTML='<div class="fm-hero-content"><div><span class="fm-eyebrow">✦ ARCANE DUEL 4.1 · '+safe(activeGroup.title)+'</span>'+
  '<h1>'+safe(current[0])+'</h1><p>'+safe(current[1])+'</p></div>'+
  '<div class="fm-hero-utility"><button type="button" class="fm-hero-rules" data-royal="rules">📖 Regel-Lexikon</button>'+
  '<label>Aktives Deck <span id="fmDeckSlot"></span></label></div></div>'+
