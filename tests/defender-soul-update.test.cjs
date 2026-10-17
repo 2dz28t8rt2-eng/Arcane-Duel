@@ -41,7 +41,7 @@ test('Charged FIELD materials give only the fused card bounded DEF and soul ener
   function run(stored,field=true){
    profile=freshProfile();profile.guideSeen=true;
    const g=createGame({id:'inherit-'+stored+'-'+field,mode:'pve',opponentId:4,context:'free',seed:4071});
-   g.players[0].field.fill(null);
+   g.active=0;g.players[0].field.fill(null);
    const mat=CARDS.find(c=>c.role==='soul'&&!c.fusionOnly&&c.level===4)||CARDS.find(c=>c.role==='soul'&&!c.fusionOnly);
    const fusions=RPG_FUSIONS.filter(c=>!c.retired&&!c.enemyOnly&&c.role==='soul');
    const base=newInstance(g,mat.id,0),extra=newInstance(g,mat.id,0);

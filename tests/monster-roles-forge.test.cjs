@@ -283,9 +283,10 @@ test('Ordinary 2-material fusion may roll below the normal level reference',()=>
   const cards=[0,1].map(id=>g.newInstance(duel,id,0));
   const fused=g.fusedInstance(duel,cards,cards.map(c=>c.card.level));
   assert.ok(fused);
-  const ref=evolution.fusionReferenceStats(fused.card.level);
-  weaker||=fused.card.atk+fused.card.def<ref.atk+ref.def;
-  stronger||=fused.card.atk+fused.card.def>ref.atk+ref.def;
+  // Measure downside/upside against the role-adjusted reference before actual dice.
+  const base=fused.rollMath.base,rolled=fused.rollMath.winner;
+  weaker||=rolled.atk+rolled.def<base.atk+base.def;
+  stronger||=rolled.atk+rolled.def>base.atk+base.def;
   if(weaker&&stronger)break;
  }
  assert.ok(weaker,'some fusion rolls should have a real downside');
