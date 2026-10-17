@@ -130,7 +130,7 @@
   screen.classList.add('atlas-screen');screen.dataset.atlasTheme=section[1];
   nav.classList.add('atlas-nav');hero.classList.add('atlas-hero');panel.classList.add('atlas-content');
   enhanceNav(nav,section);enhanceHero(hero);enhancePanels(panel,section);
-  const marker=hero.querySelector('.fm-eyebrow');if(marker)marker.textContent=section[0]+' · ARCANE DUEL 3.0';
+  const marker=hero.querySelector('.fm-eyebrow');if(marker)marker.textContent=section[0]+' · ARCANE DUEL 4.1';
   const subtitle=document.querySelector('.mast .subtitle');
   if(subtitle)subtitle.textContent='DAS BESTIARIUM DER DUELLANTEN';
  }
