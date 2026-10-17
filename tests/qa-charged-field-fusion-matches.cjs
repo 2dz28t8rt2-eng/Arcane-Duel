@@ -24,7 +24,7 @@ const r=b.run('('+function(){
      const g=createGame({id:'fusion-lab-'+tier+'-'+pressure+'-'+charge+'-'+seed,
        mode:'pve',context:'tournament',opponentId:tier,starter:0,
        seed:221001+tier*1109+seed*43,deck,fusionDeck,
-       enemy:{...npc,power:npc.power*pressure}});
+       enemy:{...npc,power:Math.min(2,npc.power*pressure)}});
      game=g;uiMode='duel';busy=false;aiRunning=false;$('overlay').classList.add('hidden');
      const p=g.players[0],source=newInstance(g,soul.id,0),hand=newInstance(g,soul.id,0);
      source.mode='def';
@@ -64,7 +64,7 @@ const r=b.run('('+function(){
   }
  }
  return {kind:'identical real placePending field fusion, charge inheritance test only',battles:tiers.length*pressures.length*charges.length*n,rows,errors,examples,
-  limitations:['Soul is pre-charged to fixed amounts as a controlled experiment; no free energy in a real duel','Tier-limited but synthetic card selection','NPC power scaled in test only']};
+  limitations:['Soul is pre-charged to fixed amounts as a controlled experiment; no free energy in a real duel','Tier-limited but synthetic card selection','NPC power scaled in test only, capped at save-valid power 2.0']};
 }.toString()+')()');
 console.log('QA_CHARGED_FUSION '+JSON.stringify(r));
 if(r.errors.length)process.exitCode=1;
