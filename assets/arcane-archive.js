@@ -54,13 +54,14 @@
  }
  function showcaseMarkup(cards){
   return cards.map((c,i)=>'<div class="atlas-preview-card atlas-preview-'+i+
-   (c.level>=10?' atlas-lv10':c.level===9?' atlas-lv9':c.level===8?' atlas-lv8':'')+'" data-card-level="'+c.level+'">'+
-   '<span class="atlas-preview-corner">✦</span>'+
-   '<img src="'+escape(c.art)+'" alt="" loading="lazy" decoding="async">'+
-   '<span class="atlas-preview-footer">LV '+c.level+'</span>'+
-   (c.level>=10?'<span class="atlas-legend-energy" aria-hidden="true">'+
-    '<i></i><i></i><i></i><i></i><i></i><i></i><b>ϟ</b></span>':'')+'</div>').join('');
+   (c.level>=10?' atlas-lv10':c.level===9?' atlas-lv9':c.level===8?' atlas-lv8':'')+'" data-card-id="'+c.id+'" data-card-level="'+c.level+'" inert>'+
+   fullCardHtml({id:c.id},'tabindex="-1" aria-hidden="true"','atlas-showcase-face')+'</div>').join('');
  }
+ function refreshShowcase(){
+  const rack=document.querySelector('#menuHero .atlas-showcase-cards');
+  if(rack&&uiMode==='menu')rack.innerHTML=showcaseMarkup(featureArt());
+ }
+
  function rotateShowcase(){
   document.documentElement.classList.toggle('ad-motion-disabled',animationSpeed==='instant'||reduceMotion());
   if(transitioning||uiMode!=='menu'||document.hidden||!document.getElementById('menuHero'))return;
@@ -135,7 +136,10 @@
  }
  renderMenu=function(){previous();decorate();};
  if(uiMode==='menu')renderMenu();
- window.ArcaneArchiveTheme={version:'1.2.0',name:'Gilded Archive',rotateShowcase};
+ window.ArcaneArchiveTheme={version:'1.3.0',name:'Gilded Archive',rotateShowcase,renderCards:showcaseMarkup};
+ // Deferred frame and artwork modules are ready before this first refresh.
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refreshShowcase,{once:true});
+ else refreshShowcase();
  // One timer per page instance, no whole-menu rerender and no gameplay changes.
  setInterval(rotateShowcase,7600);
 })();

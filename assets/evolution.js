@@ -268,7 +268,7 @@ fusedInstance=function(g,instances,levels){
   const atkPercent=.88+randomInt(g,25)/100,defPercent=.88+randomInt(g,25)/100;
   const candidate={atk:round10(baseline.atk*atkPercent),def:round10(baseline.def*defPercent)};
   trace.push(candidate);
-  if(!best||candidate.atk+candidate.def>best.atk+best.def){best=candidate;bestIndex=i;}
+  if(!best||candidate.atk+candidate.def>best.atk+best.def){best={...candidate};bestIndex=i;}
  }
  const winner={...best},bonus={atk:0,def:0};
  for(const n of materialBlocks(g,instances))bonus[randomInt(g,2)?'atk':'def']+=n;
@@ -326,6 +326,13 @@ validateDuelSnapshot=function(raw){const projected=JSON.parse(JSON.stringify(raw
    from.rollTrace.every(x=>finite(x?.atk)&&finite(x?.def)))
    to.rollTrace=from.rollTrace.map(x=>({atk:x.atk,def:x.def}));
   const m=from.rollMath;
+  // Old saves may contain the aliased, already adjusted winning trace entry.
+  // Repair presentation metadata only when the independent raw winner proves it.
+  if(m&&to.rollTrace&&Number.isInteger(m.winnerIndex)&&m.winnerIndex>=0&&m.winnerIndex<to.rollTrace.length&&
+   finite(m.winner?.atk)&&finite(m.winner?.def)&&finite(m.bonus?.atk)&&finite(m.bonus?.def)&&finite(m.penalty)&&
+   ['atk','def'].every(stat=>to.rollTrace[m.winnerIndex][stat]===m.final?.[stat]&&
+    Math.max(0,m.winner[stat]+m.bonus[stat]-m.penalty)===m.final[stat]))
+   to.rollTrace[m.winnerIndex]={atk:m.winner.atk,def:m.winner.def};
   if(m&&to.rollTrace&&Number.isInteger(m.winnerIndex)&&m.winnerIndex>=0&&m.winnerIndex<to.rollTrace.length&&
    finite(m.bonus?.atk)&&finite(m.bonus?.def)&&finite(m.penalty)&&
    finite(m.final?.atk)&&finite(m.final?.def)&&m.final.atk===to.card?.atk&&m.final.def===to.card?.def)

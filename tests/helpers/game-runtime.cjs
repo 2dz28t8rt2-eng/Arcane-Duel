@@ -1,0 +1,46 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const repo=process.env.ARCANE_AUDIT_REPO?path.resolve(process.env.ARCANE_AUDIT_REPO):path.resolve(__dirname,'../..');
+const index=fs.readFileSync(path.join(repo,'index.html'),'utf8');
+const scripts=[...index.matchAll(/<script\b[^>]*\bsrc="([^"]+)"[^>]*>/g)].map(m=>m[1].split('?')[0]);
+const source=new Map(scripts.map(file=>[file,fs.readFileSync(path.join(repo,file),'utf8')]));
+function boot({seed=1,withoutArmor=false,saved=null}={}){
+ const nodes=new Map(),storage=new Map(saved?Object.entries(saved):[]);
+ function el(id=''){
+  const attributes=new Map(),classes=new Set();
+  return {id,tagName:'DIV',innerHTML:'',textContent:'',value:'',hidden:false,disabled:false,dataset:{},children:[],style:{setProperty(){},removeProperty(){}},
+   classList:{add(...s){s.forEach(x=>classes.add(x));},remove(...s){s.forEach(x=>classes.delete(x));},toggle(s,on){if(on===undefined)on=!classes.has(s);on?classes.add(s):classes.delete(s);return on;},contains(s){return classes.has(s);}},
+   append(...c){this.children.push(...c);},prepend(...c){this.children.unshift(...c);},appendChild(c){this.children.push(c);return c;},insertBefore(c){this.children.unshift(c);return c;},replaceChildren(...c){this.children=[...c];},replaceWith(){},remove(){},setAttribute(k,v){attributes.set(k,String(v));},getAttribute(k){return attributes.get(k)||null;},removeAttribute(k){attributes.delete(k);},addEventListener(){},removeEventListener(){},insertAdjacentHTML(){},querySelector(){return null;},querySelectorAll(){return [];},closest(){return null;},contains(){return false;},focus(){},click(){this.onclick?.();},getBoundingClientRect(){return {left:0,top:0,width:100,height:100,right:100,bottom:100};}};
+ }
+ const document={body:el('body'),documentElement:el('html'),hidden:false,visibilityState:'visible',readyState:'complete',
+  getElementById(id){if(!nodes.has(id))nodes.set(id,el(id));return nodes.get(id);},createElement:el,createElementNS:(ns,t)=>el(t),querySelector(){return null;},querySelectorAll(){return [];},createTreeWalker(){return {nextNode(){return null;}};},addEventListener(){},removeEventListener(){},elementFromPoint(){return null;}};
+ const localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,String(v)),removeItem:k=>storage.delete(k)};
+ let state=seed>>>0||1,clock=Date.parse('2026-10-17T05:04:03Z');
+ const random=()=>{state=(state+0x6D2B79F5)>>>0;let t=state;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};
+ const auditMath=Object.create(Math);auditMath.random=random;
+ class AuditDate extends Date{constructor(...args){super(...(args.length?args:[clock]));}static now(){return clock;}}
+ class Observer{observe(){}disconnect(){}unobserve(){}}
+ const ctx={document,localStorage,console,Date:AuditDate,Math:auditMath,JSON,Map,Set,Array,Number,Object,String,RegExp,Error,TypeError,Uint32Array,Boolean,Infinity,NaN,Blob,URL,URLSearchParams,
+  navigator:{language:'de-AT',onLine:true},location:{protocol:'https:',hostname:'audit.arcane.test',href:'https://audit.arcane.test/index.html',search:''},
+  crypto:{getRandomValues(a){for(let i=0;i<a.length;i++)a[i]=Math.floor(random()*4294967296);return a;}},
+  innerWidth:1200,innerHeight:980,devicePixelRatio:1,matchMedia(){return {matches:true,addEventListener(){},removeEventListener(){}};},
+  setTimeout(){return 0;},clearTimeout(){},setInterval(){return 0;},clearInterval(){},requestAnimationFrame(){return 0;},cancelAnimationFrame(){},
+  addEventListener(){},removeEventListener(){},MutationObserver:Observer,ResizeObserver:Observer,performance:{now(){return clock;}},
+  getComputedStyle(){return {getPropertyValue(){return '';}};},alert(){},confirm(){return false;},scrollTo(){},
+  atob:s=>Buffer.from(s,'base64').toString('binary'),btoa:s=>Buffer.from(s,'binary').toString('base64'),
+  fetch:async url=>{const file=path.join(repo,String(url).split('?')[0]);return {ok:fs.existsSync(file),json:async()=>JSON.parse(fs.readFileSync(file,'utf8')),text:async()=>fs.readFileSync(file,'utf8')};}
+ };
+ ctx.window=ctx;ctx.self=ctx;ctx.globalThis=ctx;
+ vm.createContext(ctx);
+ for(const file of scripts){
+  let code=source.get(file);
+  if(withoutArmor&&file==='assets/essence-combat.js'){
+   const needle='const mitigation=isDefender(d)?.35:0;';if(!code.includes(needle))throw Error('Armor control hook changed');
+   code=code.replace(needle,'const mitigation=isDefender(d)?(q.id===0?0:.35):0;');
+  }
+  vm.runInContext(code,ctx,{filename:file,timeout:30000});
+ }
+ return {ctx,storage,scripts,run(code,timeout=120000){return JSON.parse(vm.runInContext('JSON.stringify(('+code+'))',ctx,{timeout}));},exec(code,timeout=120000){return vm.runInContext(code,ctx,{timeout});},advanceClock(ms=1000){clock+=ms;}};
+}
+module.exports={boot,repo,scripts};
+if(require.main===module){const b=boot();console.log(JSON.stringify({scripts:b.scripts.length,checks:b.run('({cards:CARDS.length,armor:createGame({mode:"pve",opponentId:1}).essenceRules,profileValid:!!validateProfile(JSON.parse(JSON.stringify(profile))),roles:window.ArcaneRoleFusion.version,forge:!!window.ArcaneMonsterForge})')}));}
