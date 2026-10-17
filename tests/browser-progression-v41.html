@@ -95,13 +95,13 @@ document.getElementById('app').addEventListener('load',async()=>{
     anim.addEventListener('finish',capture);
     // Sample the actual Web Animation at its endpoint even when headless
     // rendering has deferred its finish event. CSS still determines the bounds.
-    setTimeout(()=>{if(!actor.isConnected)return;anim.currentTime=args[1].duration;capture();anim.finish();},args[1].duration);
+    setTimeout(()=>{if(!actor.isConnected)return;anim.pause();anim.currentTime=args[1].duration;capture();anim.finish();},args[1].duration);
    }return anim;};
    const c=game.players[0].field[2];c.roleOverride='predator';c.materialsUsed=3;c.pattern='Paar';c.rollTrace=[{atk:c.card.atk,def:c.card.def}];c.rollMath={base:{atk:c.card.atk,def:c.card.def},winnerIndex:0,winner:{atk:c.card.atk,def:c.card.def},final:{atk:c.card.atk,def:c.card.def},bonus:{atk:0,def:0},penalty:0,combo:{name:'Paar',qualityPct:5.5,materialCount:3}};
    window.__actualLanding=ArcaneFusionCinema.play({instance:c,materials:game.players[0].hand.slice(0,3).map(c=>({art:dataOf(c).art,level:dataOf(c).level})),battle:game,card:dataOf(c),level:dataOf(c).level,variant:'field',wait:()=>Promise.resolve(),playSound:()=>{}});`);
   await w.__actualLanding;
   w.Element.prototype.animate=w.__ritualAnimate;
-  check(!!w.__flightBounds&&Object.values(w.__flightBounds).every(n=>Math.abs(n)<2),'Der echte Ritualflug endet in Position und Größe exakt an der Karte statt am äußeren Zonenfeld');
+  check(!!w.__flightBounds&&Object.values(w.__flightBounds).every(n=>Math.abs(n)<2),'Der echte Ritualflug endet in Position und Größe exakt an der Karte statt am äußeren Zonenfeld · '+JSON.stringify(w.__flightBounds));
   check(w.eval('ArcaneFusionCinema.landed(game,game.players[0].field[2].uid)'),'Eine bereits gelandete Ritualkarte erhält keinen zweiten Aufprall');
  }catch(error){check(false,error.stack||String(error));}
  document.body.dataset.progressionTest=pass?'pass':'fail';
