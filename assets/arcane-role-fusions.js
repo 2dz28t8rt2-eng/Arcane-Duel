@@ -12,10 +12,15 @@
   // Equal roles (including two soul eaters) must win over an unrelated template tag.
   if(!Array.isArray(materials)||materials.length<2)return null;
   const roles=materials.map(roleOf);
-  if(roles.every(r=>r==='soul'))return 'soul';
-  const defense=roles.filter(r=>r==='guardian'||r==='soul').length;
-  const predators=roles.filter(r=>r==='predator').length;
-  const majority=Math.floor(roles.length/2)+1;
+  // Neutral Allrounders and existing Resonators provide positive fusion quality
+  // but NEVER dilute a specialist majority. Otherwise adding an Allrounder could
+  // remove a Guardian/Predator role and violate the no-downgrade contract.
+  const specialist=roles.filter(r=>['predator','guardian','soul'].includes(r));
+  if(!specialist.length)return 'resonator';
+  if(specialist.every(r=>r==='soul'))return 'soul';
+  const defense=specialist.filter(r=>r==='guardian'||r==='soul').length;
+  const predators=specialist.filter(r=>r==='predator').length;
+  const majority=Math.floor(specialist.length/2)+1;
   if(defense>=majority&&defense>predators)return 'guardian';
   if(predators>=majority&&predators>defense)return 'predator';
   return 'resonator'; // No majority: a neutral, unweighted fusion instance.
