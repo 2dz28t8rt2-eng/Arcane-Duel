@@ -56,3 +56,6 @@ jobs:
 
       - name: QA real field fusion battle comparison for stored souls
         run: node tests/qa-charged-field-fusion-matches.cjs
+
+      - name: QA equal-inventory tactical defender vs passive and predator
+        run: node tests/qa-tactical-defender-parity.cjs
