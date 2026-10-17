@@ -1,6 +1,6 @@
 /* Dedicated to the decorative menu fan: all other stat panels stay visible. */
-html body #menuScreen.atlas-screen .atlas-preview-card .hand-stats .stat{display:none!important}
-html body #menuScreen.atlas-screen .atlas-preview-card .hand-stats{grid-template-columns:1fr!important;justify-items:center!important;border:0!important;background:#101a2d!important}
+html body #menuScreen.atlas-screen .atlas-preview-card .hand-card.tc-card.ad-template.ad-level-frame .hand-stats .stat{display:none!important}
+html body #menuScreen.atlas-screen .atlas-preview-card .hand-card.tc-card.ad-template.ad-level-frame .hand-stats{grid-template-columns:1fr!important;justify-items:center!important;border:0!important;background:#101a2d!important}
 /* Fully opaque inspection panels, above the decorative frame. */
 html body :is(.card-preview-panel,.arcane-enemy-large,#deckSidePreview,.ad-card-reward-panel) .hand-card.tc-card.ad-template.ad-level-frame .hand-stats{position:relative!important;z-index:12!important;background:#101a2d!important;opacity:1!important;backdrop-filter:none!important;isolation:isolate}
 html body :is(.card-preview-panel,.arcane-enemy-large,#deckSidePreview,.ad-card-reward-panel) .hand-card.tc-card.ad-template.ad-level-frame .hand-stats .stat{position:relative;z-index:1;background:#1b3049!important;opacity:1!important;border:1px solid #bda173!important}
@@ -12,14 +12,14 @@ html body :is(.card-preview-panel,.arcane-enemy-large,#deckSidePreview,.ad-card-
 html body #duelScreen .slots{grid-template-columns:repeat(5,minmax(66px,1fr))!important;gap:8px!important;min-width:362px;max-width:780px}
 html body #duelScreen .monster-slot{container-type:inline-size;aspect-ratio:1;height:auto!important;min-height:0!important;padding:0!important;overflow:hidden!important;border-radius:10px;background:radial-gradient(circle,#25374b,#111d2d 80%)}
 html body #duelScreen .monster-slot::before{inset:5%;border:0;border-radius:0;background:#b3c3db20;clip-path:polygon(25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%,0 25%,25% 25%)}
-html body #duelScreen .monster-slot>.board-creature.tc-card{flex:none!important;width:57cqw!important;max-width:none!important;height:90cqw!important;max-height:none!important;margin:0!important;box-sizing:border-box!important;transform:rotate(0deg)!important;transform-origin:center!important;transition:transform .32s ease!important}
+html body #duelScreen .monster-slot>.board-creature.tc-card{flex:none!important;width:62cqw!important;max-width:none!important;height:90cqw!important;max-height:none!important;margin:0!important;box-sizing:border-box!important;transform:rotate(0deg)!important;transform-origin:center!important;transition:transform .32s ease!important}
 html body #duelScreen .monster-slot>.board-creature.tc-card.defense{transform:rotate(90deg)!important}
 html body #duelScreen .monster-slot .board-name{font-size:clamp(6px,7cqw,10px)!important;line-height:1.1!important;padding:2px 1px!important;white-space:normal!important}
-html body #duelScreen .monster-slot .board-stats{font-size:clamp(6px,7cqw,10px)!important;gap:1px!important;padding:1px!important;--ad-seal-size:14px}
+html body #duelScreen .monster-slot .board-stats{font-size:clamp(6px,5.5cqw,9px)!important;gap:1px!important;padding:1px!important;--ad-seal-size:14px}
 html body #duelScreen .monster-slot .board-stats b{font-size:inherit!important;min-width:0}
 html body #duelScreen .monster-slot .board-art{min-height:0!important;flex:1 1 0!important;height:auto!important;object-fit:cover}
 html body #duelScreen .monster-slot .board-creature{display:flex!important;flex-direction:column!important}
-html body #duelScreen .field-area{overflow-x:auto;padding:12px!important}
+html body #duelScreen .field-area{overflow-x:auto;overflow-y:hidden;padding:12px!important}
 @media(max-width:650px){html body #duelScreen .field-area{padding:8px 5px!important}html body #duelScreen .slots{gap:5px!important;min-width:350px}}
 /* Roles breathe beneath the hand rather than obscuring the illustration. */
 html body #hand .ad-hand-role{position:relative;animation:var(--ad-role-motion,ad-role-breathe 3.4s ease-in-out infinite)}
@@ -73,3 +73,15 @@ body.instant :is(.ad-reward-particles,.ad-overcharged .stat.def::after,.ad-overc
 html body :is(#duelScreen,#deckSidePreview,.arcane-enemy-large) .hand-card.tc-card.ad-template.ad-level-frame.ad-overcharged .hand-stats .stat.def{background:#3e2459!important;border-color:#e6b5ff!important}
 html body:is(.instant,.ad-motion-disabled){--ad-role-motion:none;--ad-role-dot-motion:none;--ad-charge-motion:none;--ad-charge-motes:none;--ad-reward-motion:none}
 @media(prefers-reduced-motion:reduce){html body{--ad-role-motion:none;--ad-role-dot-motion:none;--ad-charge-motion:none;--ad-charge-motes:none;--ad-reward-motion:none}}
+
+/* Three columns form an actual cross on phones, keeping rotated cards readable. */
+@media(max-width:760px){
+ html body #duelScreen .slots{grid-template-columns:repeat(3,minmax(100px,1fr))!important;grid-template-rows:repeat(3,auto);min-width:310px;max-width:460px;gap:6px!important}
+ html body #duelScreen .monster-slot:nth-child(1){grid-column:2;grid-row:1}
+ html body #duelScreen .monster-slot:nth-child(2){grid-column:1;grid-row:2}
+ html body #duelScreen .monster-slot:nth-child(3){grid-column:2;grid-row:2}
+ html body #duelScreen .monster-slot:nth-child(4){grid-column:3;grid-row:2}
+ html body #duelScreen .monster-slot:nth-child(5){grid-column:2;grid-row:3}
+}
+
+html body #duelScreen .monster-slot .board-creature.ad-compact-values .board-stats b{font-size:clamp(6px,4.8cqw,8px)!important}

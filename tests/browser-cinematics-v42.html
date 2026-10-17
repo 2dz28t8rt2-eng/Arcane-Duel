@@ -1,5 +1,5 @@
 <!doctype html><html lang="de"><meta charset="utf-8"><title>Arcane Duel 4.2 · Duellkino</title>
-<style>body{margin:10px;background:#101728;color:#edf0f8;font:13px system-ui}pre{white-space:pre-wrap}iframe{width:100%;height:940px;border:0}</style>
+<style>body{margin:10px;background:#101728;color:#edf0f8;font:13px system-ui}pre{white-space:pre-wrap;max-height:125px;overflow:auto}iframe{width:100%;height:940px;border:0}</style>
 <h1>Duellkino, Verteidiger und Belohnungen</h1><pre id="result">Prüfung läuft …</pre><iframe id="app" src="../index.html" title="Arcane Duel"></iframe>
 <script>
 document.getElementById('app').addEventListener('load',async()=>{
@@ -15,7 +15,7 @@ document.getElementById('app').addEventListener('load',async()=>{
    game=createGame({id:'cinematics-qa',mode:'pve',opponentId:3,context:'free',seed:42,starter:0});game.active=0;game.turn=4;game.players.forEach(p=>p.field.fill(null));
    window.__make=(role,owner)=>{const t=CARDS.find(c=>c&&!c.retired&&!c.fusionOnly&&c.role===role&&c.level===4);const c=newInstance(game,t.id,owner);c.mode='def';c.summonedTurn=1;ArcaneEssenceCombat.statLayer(c);return c;};
    game.players[0].field=[__make('guardian',0),__make('soul',0),null,null,null];game.players[0].field[1].essenceCombat.soul=90;
-   game.players[1].field=[__make('guardian',1),__make('predator',1),null,null,null];game.selection={type:'field',idx:1};uiMode='duel';$('duelScreen').hidden=false;$('menuScreen').hidden=true;render();`);
+   game.players[1].field=[__make('guardian',1),__make('predator',1),null,null,null];game.players[1].field[1].card.atk=10000;game.players[1].field[1].card.def=10000;game.selection={type:'field',idx:1};uiMode='duel';$('duelScreen').hidden=false;$('menuScreen').hidden=true;render();`);
   await pause(380);
   for(const row of ['ownRow','enemyRow'])for(const cell of d.querySelectorAll('#'+row+' .monster-slot')){
    const card=cell.querySelector('.board-creature');if(!card)continue;
@@ -23,6 +23,7 @@ document.getElementById('app').addEventListener('load',async()=>{
    check(inside(card.getBoundingClientRect(),cell.getBoundingClientRect()),row+': 90°-Karte passt vollständig in ihre kreuzförmige Zone');
    check(transform.startsWith('matrix(0, 1, -1, 0,'),row+': echte Drehung um 90° · '+transform);
   }
+  check([...d.querySelectorAll('.board-stats b')].every(b=>b.scrollWidth<=b.clientWidth+1),'Kleine Feldwerte bleiben bis 10000 ohne Abschneiden lesbar');
   check(!!d.querySelector('#largeCardPreview .ad-defender-ability')&&d.querySelector('#largeCardPreview').textContent.includes('50 %'),'Große Verteidigerkarte erklärt den Gegenschlag');
   check(!!d.querySelector('#ownRow .ad-overcharged')&&!!d.querySelector('#largeCardPreview .ad-charge-note'),'Überladene DEF sind an Feldkarte und großer Ansicht erkennbar');
   const stats=[...d.querySelectorAll('#largeCardPreview .stat')];
@@ -31,6 +32,7 @@ document.getElementById('app').addEventListener('load',async()=>{
   const reduced=w.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const role=d.querySelector('#hand .ad-hand-role');
   check(!role||w.getComputedStyle(role).animationName===(reduced?'none':'ad-role-breathe'),'Rollenpuls beachtet reduzierte Bewegung');
+  if(new URLSearchParams(location.search).get('preview')==='field'){document.body.dataset.cinematicsTest='preview';return;}
   w.eval(`game.players[0].field[1].essenceCombat.soul=0;render();`);
   check(!d.querySelector('#ownRow .ad-overcharged'),'Statusleuchten endet ohne temporären DEF-Überschuss');
   if(!reduced){
@@ -53,6 +55,14 @@ document.getElementById('app').addEventListener('load',async()=>{
     window.__choose=chooseAiAction;window.__actions=[{type:'normal',uid:c.uid},{type:'place',idx:2},{type:'end'}];chooseAiAction=g=>__actions.shift()||{type:'end'};window.__ai=runAi();`);
    await w.__ai;w.eval('chooseAiAction=__choose;__observer.disconnect();');
    check(w.__ghostOwners.includes('1')&&!w.eval('busy||aiRunning'),'Gegnerische Normalbeschwörung verwendet die gemeinsame Animation und gibt den Zug frei');
+   w.eval(`game.active=1;game.turn=8;game.summoned=false;game.pending=null;game.players[1].field.fill(null);game.players[0].field.fill(null);
+    const target=RPG_FUSIONS.find(c=>!c.retired&&!c.enemyOnly&&c.role==='predator'&&c.level===5);game.players[1].remainingFusion=[target.id];game.players[1].fusionDeck=[target.id];game.players[1].hand=[__make('predator',1),__make('predator',1)];
+    window.__actions=[{type:'fusion',uids:game.players[1].hand.map(c=>c.uid)},{type:'place',idx:2},{type:'end'}];chooseAiAction=g=>__actions.shift()||{type:'end'};window.__aiFusion=runAi();`);
+   await pause(180);
+   check(d.querySelector('.ritual-overlay')?.dataset.owner==='1','Auch gegnerische Handfusionen öffnen das vollständige Ritual');
+   for(let i=0;i<18&&d.querySelector('.ritual-overlay');i++){d.querySelector('.ritual-overlay').click();await pause(90);}
+   await w.__aiFusion;w.eval('chooseAiAction=__choose;');
+   check(!w.eval('busy||aiRunning')&&!d.querySelector('.evo-fusion-awaiting'),'Gegnerische Fusion endet mit sichtbarer Karte und freigegebener Steuerung');
    // One persistent enemy orb survives both Soul effects and disappears afterward.
    w.eval(`game.active=1;game.turn=8;game.pending=null;game.players[0].field=[__make('guardian',0),__make('soul',0),__make('soul',0),null,null];game.players[0].field[1].card.def-=80;game.players[1].field=[__make('predator',1),null,null,null,null];game.players[1].field[0].summonedTurn=game.turn;advanceTurn(game);render();window.__effects=ArcaneDefenderFX.flush(game);`);
    await pause(400);const orb=d.querySelector('.ad-soul-orb');check(!!orb,'Orb erscheint nach dem Kartenziehen bei vorhandenen Verteidigern');
@@ -63,6 +73,7 @@ document.getElementById('app').addEventListener('load',async()=>{
   const reward=d.querySelector('.ad-card-reward-panel');
   check(!!reward&&inside(reward.getBoundingClientRect(),{left:0,top:0,right:w.innerWidth,bottom:w.innerHeight}),'Turnierkartenfenster steht mittig und bleibt vollständig im Bildschirm');
   check(reward?.textContent.includes('nicht erhalten')&&w.eval('(profile.inventory[__ace]||0)===__aceBefore'),'ACE-Freischaltung bleibt ausdrücklich eine Shop-Vorschau und vergibt keine Gratis-Karte');
+  if(new URLSearchParams(location.search).get('preview')==='reward'){document.body.dataset.cinematicsTest='preview';return;}
   d.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
   check(!d.querySelector('.ad-card-reward-scene')&&w.eval('!!game&&game.finishShown')&&!d.getElementById('overlay').classList.contains('hidden'),'Erstes Esc schließt nur die Kartenpräsentation, das Siegesfenster bleibt');
   d.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));

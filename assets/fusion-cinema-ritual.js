@@ -195,7 +195,7 @@
    });
    await phases.run('Fertige Karte',async()=>{overlay.classList.add('evo-card-locked');await wait(650);});
    // 7. Flight to actual occupied zone; no change to authoritative state.
-   await phases.run('Platzierung',async()=>{
+   await phases.run(boardCard?'Platzierung':'Ritualabschluss',async()=>{
    if(boardCard&&window.ArcaneSummonFX){
     overlay.classList.remove('evo-phase-rolls');overlay.classList.add('evo-phase-landing','ad-depth-landing');actor.style.opacity='0';
     await window.ArcaneSummonFX.land(g,c,{phase:phases});landed=true;sharedLanding=true;

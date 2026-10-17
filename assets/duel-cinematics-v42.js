@@ -102,7 +102,7 @@
  window.ArcaneDefenderFX=Object.freeze({beginTurn,record,endTurn,flush,charge,projectile,pending:g=>(queues.get(g)||[]).map(e=>({...e,steps:e.steps?.map(s=>({...s}))}))});
  const full=fullCardHtml,board=cardHtml;
  fullCardHtml=function(c,attrs='',classes='',badge=''){return full(c,attrs,classes+(charge(c)?' ad-overcharged':''),badge);};
- cardHtml=function(c,...args){let html=board(c,...args);const state=charge(c);if(state)html=html.replace('class="board-creature','data-overcharge="'+state.extra+'" title="Überladen: '+state.extra+' temporäre DEF über dem regulären Maximum" class="board-creature ad-overcharged');return html;};
+ cardHtml=function(c,...args){let html=board(c,...args);if(Math.max(dataOf(c).atk,dataOf(c).def)>=10000)html=html.replace('class="board-creature','class="board-creature ad-compact-values');const state=charge(c);if(state)html=html.replace('class="board-creature','data-overcharge="'+state.extra+'" title="Überladen: '+state.extra+' temporäre DEF über dem regulären Maximum" class="board-creature ad-overcharged');return html;};
  function ability(c){
   if(!defender(c))return '';
   const state=charge(c);

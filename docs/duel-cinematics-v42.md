@@ -8,7 +8,8 @@ Angriff auf einen Verteidiger in DEF, einschließlich Zerstörung, ohne Auslösu
 während der Angriffsimmunität. Die Beschreibung nennt den PvE-Geltungsbereich.
 
 Feldzonen haben einen kreuzförmigen Einsatz und genug Platz für beide
-Ausrichtungen. Verteidigung dreht die Karte tatsächlich um 90°. Rollen unter der
+Ausrichtungen. Auf schmalen Bildschirmen stehen die fünf Zonen selbst in einer
+Plusform, damit die gedrehten Karten und ihre Werte lesbar bleiben. Verteidigung dreht die Karte tatsächlich um 90°. Rollen unter der
 Handkarte pulsieren in ihrer Farbe. Liegt die effektive DEF eines Verteidigers
 über seinem bei Beschwörung festgehaltenen Maximum, färbt sich seine DEF-Box
 violett und erhält ein zurückhaltendes Partikelleuchten. Die große Ansicht
