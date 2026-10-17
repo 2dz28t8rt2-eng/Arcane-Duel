@@ -319,6 +319,9 @@ fusedInstance=function(g,instances,levels){
     }
    }
    result.soulInheritance={energy:stored,defBonus:defGain,carried};
+   // These charged source instances enter the graveyard after the transaction.
+   // Clear their spent reserves now so revival cannot harvest the same energy twice.
+   for(const source of charged)if(source.essenceCombat)source.essenceCombat.soul=0;
    logEvent(g,'Seelen-Erbe der Feldfusion: '+stored+' eingesetzte Seelenenergie → +'+defGain+' DEF'+(carried?' und '+carried+' gespeicherte Seelenessenz':'')+'.');
   }
  }

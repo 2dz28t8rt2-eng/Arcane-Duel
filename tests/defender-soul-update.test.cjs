@@ -64,11 +64,37 @@ test('Charged FIELD materials give only the fused card bounded DEF and soul ener
  assert.equal(empty.imprint,undefined);assert.equal(hand.imprint,undefined);
  assert.equal(charged.fusedDef,charged.roll.winner.def+charged.roll.bonus.def-charged.roll.penalty);
  assert.ok(charged.energy>=0&&charged.energy<=150);
- assert.equal(charged.rawBase,500,'Material retains charge until transaction removes it');
+ assert.equal(charged.rawBase,0,'Field material soul energy is consumed and cannot be revived for reuse');
 });
 test('PvP role overrides cannot activate Seelenraub',()=>{
  const r=boot().run(`(()=>{
   game=createGame({mode:'pvp',seed:42010});game.active=0;uiMode='duel';busy=false;aiRunning=false;$('overlay').classList.add('hidden');
   return window.ArcaneEssenceCombat.soulRaid(0,0);
  })()`);assert.equal(r,false);
+});
+
+test('Inherited field fusion soul and roll arithmetic survive a duel snapshot',()=>{
+ const result=boot().run(`(()=>{
+  profile=freshProfile();const g=createGame({id:'inherit-snapshot',mode:'pve',context:'free',opponentId:4,seed:70707});
+  g.active=0;g.players[0].field.fill(null);
+  const src=CARDS.find(c=>c.role==='soul'&&!c.fusionOnly&&c.level===4);
+  const a=newInstance(g,src.id,0),b=newInstance(g,src.id,0);
+  window.ArcaneEssenceCombat.statLayer(a).soul=400;
+  g.players[0].field[0]=a;
+  const options=fusionOptions(g,[4,4]),template=options.find(c=>c.role==='soul')||options[0];
+  g.fusionChoice=template.id;g.players[0].remainingFusion=[template.id];
+  const fused=fusedInstance(g,[a,b],[4,4]);
+  g.players[0].field[0]=fused;
+  g.players[0].graveyard.push(a,b);
+  const snap=validateDuelSnapshot(JSON.parse(JSON.stringify(g)));
+  const card=snap.players[0].field[0];
+  return {energy:fused.soulInheritance.energy,saved:card.soulInheritance,
+    roll:card.rollMath,soul:card.essenceCombat?.soul||0,
+    old:snap.players[0].graveyard[0].essenceCombat?.soul||0};
+ })()`);
+ assert.equal(result.energy,400);
+ assert.deepEqual(result.saved,{energy:400,defBonus:120,carried:result.saved.carried});
+ assert.equal(result.saved.carried,result.soul);
+ assert.equal(result.old,0);
+ assert.ok(result.roll.final.def>=result.roll.winner.def);
 });
