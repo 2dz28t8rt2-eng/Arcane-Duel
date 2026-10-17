@@ -58,6 +58,15 @@ const report=b.run('('+function(){
    if(!opts.length)continue;
    const goal=opts.sort((a,b)=>b.level-a.level||b.def-a.def)[0];
    const before=old.c.essenceCombat.soul;
+   // Value gate: do not throw away a mature eater merely to gain a small DEF badge.
+   // The visible monster can still counterattack/harvest while its soul stays stored.
+   const ref=window.ArcaneEvolution.fusionReferenceStats(goal.level);
+   const expectedDEF=ref.def*(goal.role==='soul'||goal.role==='guardian'?1.35:1)*.94+
+     Math.min(250,Math.floor(before*.3/10)*10)+
+     (goal.role==='soul'?Math.floor(before*.30):0);
+   const currentDEF=old.c.card.def+before+(old.c.essenceCombat?.condensed||0);
+   if(expectedDEF<currentDEF*1.25+100)continue;
+   if(before*1.30>=g.players[1].lp+g.players[1].shield)continue;
    if(!prepareNormal(g,h.uid))continue;
    const res=placePending(g,old.i,goal.id);
    if(!res?.fused)throw Error('Committed charged material did not field-fuse');
