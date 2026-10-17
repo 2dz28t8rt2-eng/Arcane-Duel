@@ -26,7 +26,7 @@
 .guide-spread{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:8px;background:#1c1a24;border-radius:9px;box-shadow:0 2px 0 #b5905d}
 .guide-page{min-height:270px;padding:clamp(15px,3vw,32px);border:1px solid #ae8d5c;border-radius:4px;background:linear-gradient(155deg,#fff1d5,#d3b991);color:#2f2630;box-shadow:inset 0 0 23px #76553320}
 .guide-page h3{font:700 22px Georgia,serif;color:#51321c;margin:0 0 12px}
-.guide-page p{font:500 15px/1.65 Segoe UI,sans-serif;color:#322d2c}
+.guide-page p{font:500 15px/1.65 Segoe UI,sans-serif;color:#322d2c;text-align:left}
 .guide-page b{color:#3c234c}.guide-symbol{font-size:68px;text-align:center;color:#7a4b60;margin-top:20px}
 .guide-pill{border:1px solid #785b40;border-radius:22px;padding:12px;background:#e9d4ad;text-align:center;color:#423126;font-weight:700}
 .guide-numbers{display:flex;gap:9px;justify-content:center;align-items:center;flex-wrap:wrap;padding:15px 0}
@@ -36,6 +36,12 @@
 .guide-figure b{color:#f5db90}.guide-icon{display:grid;place-content:center;height:95px;width:114px;background:radial-gradient(#4d6588,#151d32);border:2px solid #d9be8b;font-size:68px}
 .guide-figure span{font-size:10px}.guide-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:17px 0 0}
 .guide-footer button{min-width:125px}
+.guide-page{min-width:0;overflow-wrap:anywhere}
+.ad-guide-chapters{display:grid;gap:6px;margin:15px 0 4px;color:#ead6ad;font-size:12px;font-weight:700}
+.ad-guide-chapters select{width:100%;min-width:0;padding:10px;border:1px solid #b99a69;border-radius:7px;background:#192338;color:#fff1d2;font:inherit}
+.ad-guide-figure{margin:8px auto;text-align:center;max-width:260px}
+.ad-guide-figure img{display:block;max-width:100%;max-height:245px;width:auto;height:auto;margin:0 auto;filter:drop-shadow(0 4px 7px #26182b45)}
+.ad-guide-figure figcaption{font:500 12px/1.5 system-ui,sans-serif;color:#493a36;margin-top:10px}
 .combat-impact{position:fixed;z-index:999;pointer-events:none;width:0;height:0}
 .combat-impact i{display:block;position:absolute;top:-3px;left:-3px;width:6px;height:6px;border-radius:2px;background:#fff3b1;box-shadow:0 0 12px #ffbd50;animation:impactBurst .52s ease-out forwards}
 .combat-impact i:nth-child(2){--a:45deg}.combat-impact i:nth-child(3){--a:105deg}.combat-impact i:nth-child(4){--a:160deg}

@@ -172,14 +172,15 @@ function decorateRules(){
  if(!book.querySelector('#fm-perk-rule')){
   book.insertAdjacentHTML('beforeend',
    '<details class="arcane-rule-chapter" id="fm-perk-rule"><summary>12 · Skills, Perks &amp; sichere Investitionen</summary>'+
-   '<div class="arcane-rule-body"><p>Skills kosten <b>Essenz</b>, sind dauerhaft und haben feste Maximalstufen. Die Spezialboni gelten nur im Einzelspieler-Modus. Bereits gekaufte Upgrades bleiben bestehen.</p>'+
-   '<ul><li><b>Runenpräzision:</b> +1,5 Prozentpunkte Fusionsqualität pro Rang, maximal +4,5 Punkte, nur bei Spezialkombinationen mit mindestens drei Materialien. Die Obergrenze von 148 % gilt weiterhin.</li>'+
-   '<li><b>Kampfdisziplin:</b> Verhindert je Rang 2 Punkte des normalen Angriffsverschleißes – statt −30 sind es −28, −26 oder −24 ATK.</li>'+
-   '<li><b>Vorhut-Schutz:</b> +25 Schildpunkte pro Rang bei Duellbeginn, maximal +75; die Gesamtobergrenze des Schildes bleibt 600.</li>'+
-   '<li><b>Monstertraining, Grundausbildung und Standhaftigkeit:</b> sind weiterhin ergänzende Werte- beziehungsweise Zerfall-Skills. Fusionskunde, Beutestudien, Werkzeugkunde und Trainingsroutine stärken andere Spielbereiche.</li></ul>'+
-   '<p><b>Tagesquests</b> findest du ausschließlich unter <b>Herausforderungen → Challenges &amp; Quests</b>. Sie sammeln nur für aktive Aufgaben Fortschritt.</p></div></details>');
+   '<div class="arcane-rule-body"><h3>Ein Ausbau soll zu deinen gespielten Karten passen</h3><p>Ausbauten kosten Essenz und wirken dauerhaft im Einzelspieler-Modus. Lies vor dem Kauf, welche Karten sie betreffen. Ein Bonus auf normale Monster erhöht nicht automatisch die Referenzwerte deiner Fusionen.</p>'+
+   '<p><b>Jagdinstinkt</b> verbessert normale Predatoren. <b>Schildwall</b> verbessert normale Wächter und Seelenzehrer gemeinsam. Beide haben höchstens fünf Ränge und skalieren mit der Monsterstufe. Bei Stufe 5 gibt ein Rang Jagdinstinkt beispielsweise 55 ATK und 15 DEF; ein Rang Schildwall gibt einem passenden Verteidiger 15 ATK und 60 DEF.</p>'+
+   '<p>Normale Wächter und Seelenzehrer erhalten zusätzlich einen DEF-Grundbonus aus 9 % des Budgets ihrer Monsterstufe. Ab Stufe 6 erhalten normale Monster je weiterer Stufe 20 ATK und DEF. Diese Grundboni sind unabhängig davon, ob du schon eine Rollenspezialisierung gekauft hast.</p>'+
+   '<p><b>Monstertraining</b> ist ein allgemeiner Wertebonus mit höchstens 110 ATK und DEF. <b>Grundausbildung</b> betrifft die ursprünglichen 20 Startkarten – nicht jede später erhaltene Stufe-1-Karte. Prüfe deshalb, wie viele dieser Karten du noch im aktiven Deck spielst. <b>Standhaftigkeit</b> verringert den gewöhnlichen Kreaturenzerfall.</p>'+
+   '<p><b>Fusionskunde</b> gibt deiner ersten Fusion einen zusätzlichen Wertewurf. <b>Runenpräzision</b> verbessert geeignete Spezialkombinationen mit mindestens drei Materialien um 1,5 Prozentpunkte Qualität je Rang, höchstens 4,5 Punkte. Die allgemeine Qualitätsgrenze von 148 % und die Obergrenze von sieben Würfen bleiben bestehen.</p>'+
+   '<p><b>Kampfdisziplin</b> senkt den Angriffsverschleiß von 30 auf 28, 26 oder 24 ATK. <b>Vorhut-Schutz</b> gibt 25 Schildpunkte je Rang, höchstens 75 zusätzlich; die gesamte Schildgrenze bleibt 600.</p>'+
+   '<p>Beutestudien, Werkzeugkunde und Trainingsroutine unterstützen Belohnungen, Herstellung beziehungsweise Automatik. Wenn du gerade an einer Prüfung festhängst, ist die passende Karte oder Fusionsvorlage manchmal nützlicher als ein weiterer allgemeiner Ausbau.</p></div></details>');
  }
- const chapters=[...book.querySelectorAll('.arcane-rule-chapter')];
+ let chapters=[];
  const intro=document.createElement('div');intro.className='royal-handbook-intro';
  const heading=makeText('h3','', 'Willkommen im Duellantenhandbuch');
  const desc=makeText('p','','Beginne mit den drei Schritten oder springe direkt zur gesuchten Mechanik. Alle Kapitel lassen sich einzeln aufklappen.');
@@ -201,16 +202,8 @@ function decorateRules(){
  const empty=makeText('p','royal-rules-empty','Keine passenden Kapitel gefunden. Versuche einen kürzeren Suchbegriff.');
  empty.hidden=true;
  const normal=s=>String(s).toLocaleLowerCase('de-AT').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
- const links=[];
- chapters.forEach((chapter,index)=>{
-  const title=chapter.querySelector('summary')?.textContent?.trim()||'Kapitel '+(index+1);
-  chapter.id='royal-rule-'+index;
-  const jump=document.createElement('button');jump.type='button';jump.textContent=title;
-  jump.setAttribute('aria-controls',chapter.id);
-  jump.onclick=()=>{chapter.open=true;chapter.scrollIntoView({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});};
-  links.push(jump);directory.append(jump);
- });
- input.addEventListener('input',()=>{
+ let links=[];
+ function filterChapters(){
   const needle=normal(input.value.trim());let count=0;
   chapters.forEach((chapter,i)=>{
    const hit=!needle||normal(chapter.textContent).includes(needle);
@@ -219,9 +212,29 @@ function decorateRules(){
    if(needle&&hit)chapter.open=true;
   });
   empty.hidden=count>0;
+ }
+ function rebuildDirectory(){
+  chapters=[...book.querySelectorAll('.arcane-rule-chapter')];links=[];directory.replaceChildren();
+  chapters.forEach((chapter,index)=>{
+   const title=chapter.querySelector('summary')?.textContent?.trim()||'Kapitel '+(index+1);
+   if(!chapter.id)chapter.id='royal-rule-'+index;
+   const jump=document.createElement('button');jump.type='button';jump.textContent=title;
+   jump.setAttribute('aria-controls',chapter.id);
+   jump.onclick=()=>{chapter.open=true;chapter.scrollIntoView({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});};
+   links.push(jump);directory.append(jump);
+  });
+  filterChapters();
+ }
+ input.addEventListener('input',()=>{
+  if(book.querySelectorAll('.arcane-rule-chapter').length!==chapters.length)rebuildDirectory();
+  else filterChapters();
  });
  intro.append(heading,desc,steps,searchLabel,directory,empty);
  book.insertBefore(intro,book.firstChild);
+ rebuildDirectory();
+ // Later rule modules append Essence chapters within this same call stack.
+ // Build their navigation and searchable entries after those additions as well.
+ Promise.resolve().then(()=>{if(book.isConnected)rebuildDirectory();});
 }
 showRules=decorateRules;
 window.ArcaneRoyalUI={version:'royal-1',navigate:go,openStart};
