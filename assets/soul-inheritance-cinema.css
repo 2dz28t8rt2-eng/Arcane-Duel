@@ -74,9 +74,13 @@
 .soul-projectiles{position:absolute;inset:0;z-index:9}
 .soul-arc-projectile{
  position:absolute;left:50%;top:121px;width:12px;height:12px;opacity:0;
+ overflow:visible;background:transparent;
+}
+.soul-arc-projectile::before{
+ content:"";position:absolute;inset:0;border-radius:50%;
  background:radial-gradient(circle at 28% 22%,#fff 0 18%,#ce78ff 30%,#8a31d5 68%);
- border-radius:50%;box-shadow:0 0 12px #f2cbff,0 0 21px #a44bfa;
- /* a bite taken out of the bright core forms a little concave/crescent projectile */
+ box-shadow:0 0 12px #f2cbff,0 0 21px #a44bfa;
+ /* Crescent silhouette affects ONLY the core; stars may trail outside it. */
  clip-path:polygon(0 0,94% 8%,100% 40%,60% 42%,47% 64%,72% 100%,0 85%,20% 48%);
 }
 .soul-arc-projectile::after{
