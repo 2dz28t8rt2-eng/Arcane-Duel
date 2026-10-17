@@ -90,7 +90,7 @@
  };
  const originalFullCardHtml=fullCardHtml;
  fullCardHtml=function(card,attrs='',classes='',badge=''){
-  const html=originalFullCardHtml(card,attrs,classes,badge),c=CARDS[card?.id],role=c?.role;
+  const html=originalFullCardHtml(card,attrs,classes,badge),c=CARDS[card?.id],role=C.roleOf(card);
   if(!role||role==='combatant'||!html.includes('<div class="hand-title">'))return html;
   const text=c.essenceMonster?'ESSENZWESEN':roleLabel[role]||role;
   return html.replace('<div class="hand-title">','<span class="essence-role-chip essence-role-'+role+'">'+esc(text)+'</span><div class="hand-title">');

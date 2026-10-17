@@ -14,6 +14,7 @@ document.getElementById('app').addEventListener('load',async()=>{
    const card=wrapper.querySelector('.hand-card'),current=w.eval('CARDS['+wrapper.dataset.cardId+']');
    check(card?.classList.contains('ad-level-frame'),'Live showcase uses the canonical level frame');
    check(card?.querySelector('.card-name')?.textContent===current.name,'Startup showcase uses the current monster name');
+   check(current.art.startsWith('assets/'),'Showcase omits legacy procedural placeholder artwork');
    check(card?.querySelector('.hand-art img')?.getAttribute('src')===current.art,'Startup showcase uses the current monster artwork');
   }
   // Force an LV10 front card so the former blur is covered on every run.
@@ -46,6 +47,7 @@ document.getElementById('app').addEventListener('load',async()=>{
    fused.mode='def';game.players[0].field[0]=fused;window.ArcaneEssenceCombat.statLayer(fused).soul=100;
    game.selection={type:'field',idx:0};uiMode='duel';$('menuScreen').hidden=true;$('duelScreen').hidden=false;render();`);
   const buttons=[...d.querySelectorAll('.essence-actions [data-essence-drain]')];
+  check(!!d.querySelector('#largeCardPreview .essence-role-soul')&&!d.querySelector('#largeCardPreview .essence-role-predator'),'Large preview role chip matches the inherited Soul role');
   check(buttons.length===2,'Inherited Soul Eater exposes both focus buttons in the actual control bar');
   check(!!d.querySelector('.essence-actions [data-essence-combat="discharge"]'),'Inherited Soul Eater exposes its discharge action');
   const defButton=d.querySelector('.essence-actions [data-essence-drain="def"]');

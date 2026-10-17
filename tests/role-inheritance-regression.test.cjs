@@ -65,6 +65,15 @@ test('An inherited rank-three Soul Eater can switch focus only once per turn',()
  assert.equal(r.role,'soul');assert.equal(r.level,5);assert.equal(r.accepted,true);
  assert.equal(r.repeat,false);assert.equal(r.preference,2);assert.equal(r.lowRankAccepted,false);
 });
+test('Full card previews label the actual Soul role rather than the Predator template',()=>{
+ const r=setup().run(`(()=>{
+  const {f}=RoleRegression.fixture('predator','soul');
+  const html=fullCardHtml(f);
+  return {template:CARDS[f.id].role,soulChip:html.includes('essence-role-chip essence-role-soul'),
+   predatorChip:html.includes('essence-role-chip essence-role-predator')};
+ })()`);
+ assert.deepEqual(r,{template:'predator',soulChip:true,predatorChip:false});
+});
 test('A Soul Eater fusion actually heals LP from its chosen DEF focus',()=>{
  const r=setup().run(`(()=>{
   const {g,f,C}=RoleRegression.fixture('predator','soul');g.active=0;g.turn=4;
