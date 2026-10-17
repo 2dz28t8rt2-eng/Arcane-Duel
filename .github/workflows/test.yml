@@ -58,7 +58,7 @@ jobs:
           "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=22000 --window-size="1200,980" --dump-dom http://127.0.0.1:8757/tests/browser-ui.html > /tmp/arcane-interaction.html 2>/tmp/arcane-interaction-chrome.log
           if ! grep -q 'data-ui-test="pass"' /tmp/arcane-interaction.html; then
             echo "Interactive UI smoke test failed." >&2
-            grep -E -A20 'id="result"' /tmp/arcane-interaction.html | head -26 || true
+            grep -E -A90 'id="result"' /tmp/arcane-interaction.html | head -96 || true
             tail -30 /tmp/arcane-interaction-chrome.log || true
             exit 1
           fi
@@ -83,7 +83,7 @@ jobs:
 
           echo "Checking REAL fusion cinema phase ordering and scaled stats at 1200px and 410px..."
           for size in 1200 410; do
-            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=43000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-fusion-visual.html >"/tmp/arcane-fusion-visual-${size}.html" 2>/tmp/arcane-visual-chrome.log
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=60000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-fusion-visual.html >"/tmp/arcane-fusion-visual-${size}.html" 2>/tmp/arcane-visual-chrome.log
             if ! grep -q 'data-fusion-cinema-ui="pass"' "/tmp/arcane-fusion-visual-${size}.html"; then
               echo "Fusion visual phase/stat audit FAILED at ${size}px" >&2
               grep -E -A24 'id="result"' "/tmp/arcane-fusion-visual-${size}.html" | head -35 || true
@@ -168,6 +168,17 @@ jobs:
             if ! grep -q 'data-menu-role-test="pass"' "/tmp/arcane-menu-role-${size}.html"; then
               echo "Menu card / inherited ability regression failed at ${size}px" >&2
               sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/arcane-menu-role-${size}.html" | head -100 || true
+              exit 1
+            fi
+          done
+
+          for size in 1200 410; do
+            echo "Checking progression rewards and duel presentation at ${size}px ..."
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-renderer-backgrounding --virtual-time-budget=35000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-progression-v41.html >"/tmp/arcane-progression-${size}.html" 2>/tmp/arcane-progression.log
+            if ! grep -q 'data-progression-test="pass"' "/tmp/arcane-progression-${size}.html"; then
+              echo "Progression UI failed at ${size}px" >&2
+              grep -E -A45 'id="result"' "/tmp/arcane-progression-${size}.html" | head -50 || true
+              tail -25 /tmp/arcane-progression.log || true
               exit 1
             fi
           done

@@ -100,16 +100,17 @@
   const options=fusionOptions(game,levels).filter(c=>game.pending||canCompleteHandFusion(game,levels,c.id))
    .sort((a,b)=>b.level-a.level||b.atk-a.atk);
   if(!options.length){toast(fusionFailureReason(game,levels));return;}
-  const safeImage=c=>/^(assets\/|data:image\/svg\+xml)/.test(c.art||'')?c.art:'';
   const body='<p>Materialien: '+materials.map(c=>esc(dataOf(c).name)).join(' + ')+'</p>'+
    '<p class="arcane-fusion-mystery">Die Bereiche zeigen nur das mögliche Potenzial. Die echten Würfe und Endwerte werden erst bei der Fusion enthüllt.</p>'+
    '<div class="pool-grid fusion-choice-grid arcane-sealed-choices">'+options.map(c=>{
-    const img=safeImage(c),v=game.mode==='pve'?fusionPreview(game,c,materials,levels):null;
+    const v=game.mode==='pve'?fusionPreview(game,c,materials,levels):null;
     const forecast=v?'<span class="arcane-fusion-potential">ATK '+fmt(v.atk[0])+'–'+fmt(v.atk[1])+' · DEF '+fmt(v.def[0])+'–'+fmt(v.def[1])+'</span><small>'+v.rolls+' Wertewürfe · kein fester Endwert</small>':'';
-    return '<article class="arcane-sealed-choice"><button type="button" class="arcane-fusion-pick" data-fusion-choice="'+c.id+'">'+
-     (img?'<img src="'+img+'" alt="" loading="lazy">':'<span class="arcane-fusion-emblem">✧</span>')+
-     '<strong>'+esc(c.name)+'</strong><span>LV '+c.level+' · '+(countCard(game.players[game.active].remainingFusion,c.id)-1)+' weitere Karten</span>'+
-     forecast+'<small>Fusionskarte auswählen</small></button></article>';
+    let face=fullCardHtml({id:c.id},'data-fusion-choice="'+c.id+'"','ad-fusion-template arcane-fusion-pick');
+    face=face.replace(/<strong class="stat-value[^"]*">[0-9]+<\/strong>/g,'<strong class="stat-value">?</strong>')
+     .replace(/aria-label="[^"]*"/g,'aria-label="'+esc(c.name)+', Fusionsvorlage, Werte noch unbekannt"')
+     .replace(/title="(?:Angriff|Verteidigung) [0-9]+"/g,'title="Wert wird beim Beschwören ausgewürfelt"');
+    return '<article class="arcane-sealed-choice">'+face+
+     '<div class="ad-fusion-offer-meta"><span data-fusion-stock>LV '+c.level+' · danach '+(countCard(game.players[game.active].remainingFusion,c.id)-1)+' Vorlagenkopien</span>'+forecast+'<small>Karte anklicken zum Auswählen</small></div></article>';
    }).join('')+'</div>';
   openModal(modalHtml('FUSION', 'Welches Wesen soll entstehen?', '✧',
    'Du bestimmst die Fusionskarte. Was die Vereinigung wirklich bewirkt, bleibt bis zur Beschwörung verborgen.',

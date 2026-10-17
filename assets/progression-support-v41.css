@@ -1,0 +1,22 @@
+.ad-reward-step{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:70px;white-space:normal!important}
+.ad-challenge-prize-note{font:600 10px/1.4 system-ui;color:#d9dfeb;max-width:120px}
+.ad-prize-explanation,.ad-legacy-prize-note{border-left:2px solid #d2b477;padding:10px 13px;background:#151e31;border-radius:4px}
+.ad-progression-help{text-align:left;max-width:720px;margin:auto}
+.ad-progression-help ol{padding-left:22px;color:#d1d9e7;font:14px/1.7 system-ui}
+.ad-progression-help li{margin:12px 0}
+.ad-help-links{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:18px 0}
+.ad-progression-help .info-pills{margin:14px 0}
+.ad-progress-help-entry{border-color:#c7a46a!important}
+.ad-challenge-prize{margin:18px auto 0;border:1px solid #b4a376;padding:15px;border-radius:10px;background:#10192b;max-width:400px}
+.ad-challenge-prize>strong{display:block;margin-bottom:12px;color:#f2dba2}
+.ad-challenge-prize>.hand-card{margin:0 auto}
+.ad-fusion-decision{max-width:740px;margin:12px auto 20px;padding:15px 18px;border:1px solid #8a81b6;border-radius:10px;background:#172137;text-align:left}
+.ad-fusion-decision h3{font:700 19px Georgia,serif;color:#f1dfbe;margin:0 0 8px}
+.modal .ad-fusion-decision p{max-width:none;text-align:left;margin:8px 0 10px;color:#d4dceb;line-height:1.6}
+.ad-fusion-decision summary{cursor:pointer;color:#cec3f5;font-weight:700;font-size:12px;padding:5px 0}
+.modal .ad-fusion-decision .ad-fusion-warning{color:#f4c7a0}
+.ad-fusion-role-preview{padding:10px 8px;border:1px solid #6f6a93;border-radius:7px;background:#151d30;text-align:left;margin-top:8px}
+.ad-fusion-role-preview strong{font:700 12px system-ui;color:#ebdfb8}
+.ad-fusion-role-preview small{display:block;font:11px/1.5 system-ui;color:#c6cce0;margin-top:3px}
+.modal .ad-fusion-role-preview p{font:11px/1.5 system-ui;margin:7px 0 0;text-align:left;color:#c4dfdd}
+@media(max-width:550px){.ad-fusion-decision{padding:12px}.ad-reward-step{min-height:80px;flex:1 1 78px!important}.ad-challenge-prize-note{font-size:9px}.ad-progression-help .info-pills span{font-size:10px}}

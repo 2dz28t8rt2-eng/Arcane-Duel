@@ -67,11 +67,14 @@ iframe.addEventListener('load',async()=>{
   d.getElementById('helpDismiss')?.click();
   w.eval('menuTab="collection";renderMenu()');
   expect(d.querySelector('#cardSearch')!==null&&d.querySelectorAll('.collection-item').length>0,'Main deck has usable filter toolbar');
-  expect(!!d.getElementById('arcaneMonsterForge'),'Monster workshop is visible inside deck collection');
-  expect(!!d.querySelector('#menuNav [data-royal="forge"]'),'Monster workshop has its own left-navigation entry');
+  expect(!d.getElementById('arcaneMonsterForge'),'Main deck no longer embeds the monster workshop');
+  w.ArcaneRoyalUI.navigate('workshop');
+  expect(!!d.getElementById('arcaneMonsterForge'),'Monster workshop renders its own page');
+  expect(!!d.querySelector('#menuNav .fm-menu-group.selected [data-tab="workshop"]'),'Monster workshop has its own progress-navigation entry');
   expect(!!d.querySelector('#arcaneMonsterForge [data-forge-preset="ones"]'),'Workshop offers one-click split presets');
   expect(!!d.querySelector('#arcaneMonsterForge [data-forge-preset="halves"]'),'Workshop offers a balanced split preset');
 
+  w.ArcaneRoyalUI.navigate('collection');
   const search=d.querySelector('#cardSearch');
   if(search){search.value='kein-monster-mit-diesem-namen';search.dispatchEvent(new w.Event('input',{bubbles:true}));}
   expect([...d.querySelectorAll('.collection-item')].every(x=>x.hidden),'Card search hides nonmatching cards');

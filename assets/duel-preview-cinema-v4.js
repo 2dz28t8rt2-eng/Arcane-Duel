@@ -7,7 +7,7 @@
  if(!motion)return;
  const duel=()=>document.getElementById('duelScreen');
  const inspector=()=>document.getElementById('largeCardPreview');
- let requested=null,lastSource=null,enemySource=null;
+ let requested=null,lastSource=null,enemySource=null,visibleGame=null;
  const sourceFor=origin=>{
   if(!origin)return null;
   if(origin.selector)return document.querySelector(origin.selector);
@@ -51,11 +51,14 @@
   const oldRect=old?.getBoundingClientRect();
   const req=requested?.type==='enemy'?null:requested;
   if(req)requested=null;
+  const sameGame=visibleGame===game;
   const result=previousRender(...args);
+  visibleGame=game;
   if(!root||uiMode!=='duel')return result;
   motion.enhanceTraits(root);
   if(!req)return result;
   const current=root.querySelector('.hand-card.tc-card');
+  if(current&&old&&sameGame&&current.dataset.instanceUid&&current.dataset.instanceUid===old.dataset.instanceUid){lastSource=req;return result;}
   if(current){
    fly(req.rect,current.getBoundingClientRect(),req.node);
    entering(root);

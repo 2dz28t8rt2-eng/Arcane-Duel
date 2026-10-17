@@ -1,0 +1,46 @@
+/* One readable title, an element strip and three distinct stat columns. */
+html body #hand .ad-hand-entry{flex:0 0 152px;width:152px;min-width:0;scroll-snap-align:start}
+html body #hand .ad-hand-entry>.hand-card{display:flex!important;flex-direction:column!important;width:100%!important;max-width:none!important;height:246px!important;margin:0!important;transform:none!important}
+html body #hand .ad-hand-role{display:block;position:static;padding:5px 3px 0;text-align:center;color:#b6c3d8;font:700 10px/1.4 system-ui,sans-serif;letter-spacing:.025em}
+html body #hand .ad-role-soul{color:#d1b5ee}html body #hand .ad-role-guardian{color:#a4d0b0}
+html body #hand .ad-role-predator{color:#e7bc98}
+.ad-action-role{margin-bottom:5px;color:#e7d3b0;font-weight:800}
+html body :is(#hand,.atlas-showcase-cards,.arcane-sealed-choices) .hand-card.tc-card .hand-title{position:relative!important;z-index:8!important;flex:0 0 35px!important;min-height:35px!important;height:35px!important;max-height:35px!important;padding:3px 5px!important}
+html body :is(#hand,.atlas-showcase-cards,.arcane-sealed-choices) .hand-card.tc-card .hand-title .card-name{font:800 11px/1.23 Georgia,serif!important;-webkit-line-clamp:2!important;line-clamp:2!important}
+html body :is(#hand,.atlas-showcase-cards,.arcane-sealed-choices) .hand-card.tc-card :is(.card-level-badge,.hand-stars,.essence-role-chip,.arcane-card-role){display:none!important}
+/* Cut only the redundant upper level inscription out of the trim. Corners stay. */
+html body :is(#hand,.atlas-showcase-cards,.arcane-sealed-choices) .hand-card.tc-card.ad-level-frame::before,
+html body #duelScreen .board-creature.tc-card.ad-level-frame::before{clip-path:polygon(0 0,38% 0,38% 10%,62% 10%,62% 0,100% 0,100% 100%,0 100%)!important}
+html body #duelScreen .board-creature :is(.board-level,.arcane-board-role,.essence-role-chip){display:none!important}
+html body #duelScreen .board-creature .board-name{position:relative!important;z-index:8!important;background:#101a2df2!important}
+html body #hand .hand-card.tc-card.ad-template.ad-level-frame .hand-stats{flex:0 0 33px!important;height:33px!important;min-height:33px!important;max-height:33px!important;--ad-seal-size:23px;padding:2px!important;gap:3px!important}
+html body :is(#hand,.atlas-showcase-cards,.arcane-sealed-choices) .hand-card.tc-card.ad-template.ad-level-frame .hand-stats .stat{display:grid!important;place-content:center!important;min-height:25px!important;padding:2px!important;border:1px solid #bda17399!important;border-radius:4px!important;background:linear-gradient(#273b51,#111c2e)!important;box-shadow:inset 0 1px #ffffff13!important}
+html body :is(#hand,.atlas-showcase-cards,.arcane-sealed-choices) .hand-card.tc-card.ad-template.ad-level-frame .hand-stats .stat.def{border:1px solid #69b5caaa!important;background:linear-gradient(#1b4152,#101e30)!important}
+html body #hand .hand-card.tc-card .hand-stats .stat-value{font:800 12px/14px system-ui,sans-serif!important}
+html body #duelScreen .board-creature.tc-card.ad-template.ad-level-frame .board-stats b{padding:2px 0!important;border:1px solid #9b947d99!important;border-radius:3px;background:#18283b!important}
+/* Number belongs to the artwork corner, wholly INSIDE the card. */
+html body #hand .hand-card .order-badge{top:48px!important;left:10px!important;right:auto!important;width:24px!important;height:24px!important;z-index:12!important;border:1px solid #ead8ff!important;background:#513775f2!important;color:#fff6ff!important;font:900 13px/1 system-ui!important;box-shadow:0 2px 8px #050611b0!important}
+html body #hand .hand-card .material-label{top:51px!important;left:40px!important;right:10px!important;padding:4px 2px!important;z-index:11!important;border:1px solid #c9a5e866;font-size:8px!important;line-height:12px!important;background:#302347ed!important}
+html body #hand .hand-card.tc-card.ad-template.ad-level-frame.fusion-mark{border-color:#d2b5f6!important;outline:1px solid #c6a1f0!important;outline-offset:1px!important;box-shadow:0 0 0 2px #9971d02e,0 0 14px #b48ae880,0 5px 13px #000a!important;filter:none!important}
+html body #hand .hand-card.tc-card.ad-template.ad-level-frame.discard-mark{border-color:#d69f99!important;outline-color:#d69f99!important;box-shadow:0 0 12px #cf888766,0 5px 13px #000a!important}
+html body #hand .discard-mark .order-badge,html body #hand .discard-mark .material-label{background:#593238ed!important;border-color:#e6b6a4!important}
+/* A sole fusion offer keeps exactly the same card shape as several offers. */
+html body .arcane-sealed-choices{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(168px,198px))!important;justify-content:center!important;align-items:start!important;gap:18px!important}
+html body .arcane-sealed-choice{width:100%!important;max-width:198px!important;padding:8px!important;display:grid;justify-items:center;gap:8px;overflow:visible!important}
+html body .arcane-sealed-choice>.hand-card.tc-card{display:flex!important;flex-direction:column!important;width:180px!important;max-width:100%!important;height:290px!important;min-height:290px!important;max-height:290px!important;flex:none!important;margin:0!important;transform:none!important;cursor:pointer}
+html body .arcane-sealed-choice>.hand-card.tc-card .hand-art{flex:1 1 0!important;height:auto!important;min-height:0!important}
+html body .arcane-sealed-choice>.hand-card.tc-card .hand-art img{width:100%!important;height:100%!important;object-fit:cover!important;border-radius:0!important}
+html body .ad-fusion-offer-meta{display:grid;gap:5px;text-align:center;font:700 11px/1.5 system-ui;color:#c9d9ee}
+html body .ad-fusion-offer-meta small{color:#e3c894}
+.ad-fusion-role-preview{width:100%;box-sizing:border-box}
+@media(max-width:650px){
+ html body #hand .ad-hand-entry{flex-basis:138px;width:138px}
+ html body #hand .ad-hand-entry>.hand-card{height:231px!important}
+ html body .arcane-sealed-choices{grid-template-columns:repeat(auto-fit,minmax(144px,180px))!important;gap:10px!important}
+ html body .arcane-sealed-choice>.hand-card.tc-card{height:270px!important;min-height:270px!important;max-height:270px!important}
+}
+
+/* Large inspection keeps a single role ribbon rather than duplicate labels. */
+html body #duelScreen .card-preview-panel .hand-card.tc-card .essence-role-chip,
+html body .arcane-enemy-large .hand-card.tc-card .essence-role-chip,
+html body #deckSidePreview.ad-deck-portal .hand-card.tc-card .essence-role-chip{display:none!important}

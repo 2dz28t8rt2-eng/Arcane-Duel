@@ -17,14 +17,15 @@
 @keyframes ad-outcome-spin{to{transform:rotate(360deg)}}
 .ad-burst{position:fixed;width:0;height:0;z-index:32000;pointer-events:none;transform:translateZ(0)}
 .ad-burst i{position:absolute;left:0;top:0;width:6px;height:6px;border-radius:50%;background:radial-gradient(circle,#fff5c6 0%,#ff9b28 58%,#b43314 100%);box-shadow:0 0 9px #ff9038;animation:ad-ember .7s cubic-bezier(.05,.5,.3,1) var(--delay) forwards;opacity:0;transform-origin:center;scale:var(--scale)}
-.ad-sparks-dust i{width:11px;height:7px;background:radial-gradient(ellipse,#d1bcad,#786c6b 55%,transparent);box-shadow:0 0 6px #bbb09a;animation-duration:.9s}
+.ad-sparks-dust i{width:11px;height:7px;background:radial-gradient(ellipse,#d1bcad,#786c6b 55%,transparent);box-shadow:0 0 6px #bbb09a;animation-name:ad-dust-rise;animation-duration:.85s}
+@keyframes ad-dust-rise{0%{opacity:0;transform:translate(0,0) scale(.3)}18%{opacity:.6}65%{opacity:.3;transform:translate(calc(var(--dx)*1.05),calc(var(--dy)*.45 - 8px)) scale(1.4)}100%{opacity:0;transform:translate(calc(var(--dx)*1.3),calc(var(--dy)*.65 - 15px)) scale(2)}}
 .ad-sparks-victory i{background:radial-gradient(circle,#fffde5,#e6bc69 70%,#a67aab);box-shadow:0 0 15px #ffd47c;animation-duration:.9s}
 @keyframes ad-ember{0%{opacity:0;transform:translate(0,0) scale(.4)}14%{opacity:1}70%{opacity:.85}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.16)}}
 .ad-monster-dissolve{position:fixed;width:86px;height:105px;margin-left:-43px;margin-top:-53px;z-index:31999;pointer-events:none;border:2px solid #e5ac4ca0;border-radius:8px;overflow:hidden;box-shadow:0 0 30px #f6a33f;animation:ad-dissolve .66s ease forwards}
 .ad-monster-dissolve img{display:block;width:100%;height:100%;object-fit:cover;filter:brightness(1.3) sepia(.3)}
 @keyframes ad-dissolve{0%{opacity:1;transform:scale(1);filter:brightness(1)}45%{opacity:.9;transform:scale(1.24);filter:brightness(2.5) sepia(1)}100%{opacity:0;transform:scale(.05) rotate(20deg);filter:brightness(4)}}
-.ad-titan-impact{transform-origin:50% 100%;animation:ad-titan-slam .81s cubic-bezier(.23,.77,.13,1) both!important;z-index:6}
-@keyframes ad-titan-slam{0%{transform:translateY(-115px) scale(1.29);opacity:.48;filter:brightness(1.9)}43%{transform:translateY(-60px) scale(1.13);opacity:1}58%{transform:translateY(8px) scale(1.08,.88);filter:brightness(2)}75%{transform:translateY(-7px) scale(.97,1.02)}100%{transform:none;filter:none}}
+.ad-titan-impact{transform-origin:50% 100%;animation:ad-titan-slam .78s cubic-bezier(.23,.77,.13,1) both!important;z-index:6}
+@keyframes ad-titan-slam{0%{transform:translateY(-96px) scale(1.12) rotate(-7deg);opacity:.35;filter:brightness(1.2)}38%{transform:translateY(-50px) scale(1.06) rotate(-3deg);opacity:1}64%{transform:translateY(0) scale(1) rotate(0);filter:brightness(1.28)}80%,100%{transform:translateY(0) scale(1) rotate(0);opacity:1;filter:none}}
 .ad-impact-shake{animation:ad-titan-quake .38s ease-in-out!important;transform-origin:50% 60%}
 @keyframes ad-titan-quake{0%,100%{transform:none}15%{transform:translate(3px,-2px) rotate(.18deg)}30%{transform:translate(-3px,3px) rotate(-.18deg)}55%{transform:translate(2px,0)}80%{transform:translate(-1px,1px)}}
 /* Fix hero showcase: a Level 10 card belongs in the center and shines ON ITS FRAME. */
@@ -46,3 +47,6 @@
 body.instant .ad-battle-intro,body.instant .ad-burst,body.instant .ad-monster-dissolve{display:none!important}
 body.instant #menuScreen .atlas-preview-card.atlas-lv10::after{animation:none!important;opacity:.15!important}
 @media(max-width:600px){.ad-battle-inner strong{font-size:clamp(29px,10vw,58px)}.ad-outcome-banner{min-height:72px}.ad-outcome-sigil{font-size:95px}}
+
+/* LP numbers and bars follow the same presentation clock during the intro. */
+#duelScreen[data-lp-phase] .lp-track>span{transition:none!important}

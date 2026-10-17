@@ -76,7 +76,7 @@
  }
  const btn=(action,label,disabled=false)=>'<button type="button" class="btn '+(action==='combine'?'primary':'')+'" data-forge-action="'+action+'" '+(disabled?'disabled':'')+'>'+label+'</button>';
  function show(){
-  if(uiMode!=='menu'||menuTab!=='collection')return;
+  if(uiMode!=='menu'||menuTab!=='workshop')return;
   const target=$('menuContent');if(!target)return;
   let root=chosenRoot;
   if(!roots.includes(root))root=roots.find(r=>available(r).some(lv=>free(stage(r,lv))>0))||roots[0];
@@ -157,6 +157,6 @@
    if(confirmed.ok){combineText='';splitText='';renderMenu();}
   };
  });
- window.ArcaneMonsterForge=Object.freeze({version:'1.1.0',levelCap,parseRecipe,findComposition,transact,stage});
+ window.ArcaneMonsterForge=Object.freeze({version:'1.2.0',levelCap,parseRecipe,findComposition,transact,stage});
  if(uiMode==='menu')show();
 })();
