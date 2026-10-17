@@ -92,6 +92,17 @@ jobs:
             fi
           done
 
+          echo "Checking purple soul inheritance animation on desktop and mobile..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=50000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-soul-inheritance.html >"/tmp/arcane-soul-${size}.html" 2>/tmp/arcane-soul-chrome.log
+            if ! grep -q 'data-soul-fx="pass"' "/tmp/arcane-soul-${size}.html"; then
+              echo "Soul inheritance FAILED at ${size}px" >&2
+              grep -A25 'id="result"' "/tmp/arcane-soul-${size}.html" | head -36 || true
+              tail -20 /tmp/arcane-soul-chrome.log || true
+              exit 1
+            fi
+          done
+
           echo "Checking Arcane Duel 4.0 contextual deck preview and fusion-quality stamps..."
           for size in 1200 410; do
             "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=12000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-ui4-cinema.html >"/tmp/arcane-ui4-${size}.html" 2>/tmp/arcane-ui4-chrome.log

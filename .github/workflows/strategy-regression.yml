@@ -35,3 +35,27 @@ jobs:
         run: node --test tests/arcane-overhaul.test.cjs
       - name: Monster families, field roles and workshop regression
         run: node --test tests/monster-roles-forge.test.cjs
+      - name: QA sample - 600 seeded solo duels across I-X
+        run: |
+          node tests/battle-simulator.cjs --samples 15 --json > /tmp/arcane-qa-solo.json
+          node -e 'const r=require("/tmp/arcane-qa-solo.json");console.log("QA_SOLO_20261017 "+JSON.stringify({battles:r.battles,errors:r.errors,rows:r.rows}))'
+      - name: QA sample - 24 connected tournament careers
+        run: node tests/evolution-full-tournament-audit.cjs
+
+      - name: QA October 17 full-runtime duels and 18 connected careers
+        run: node tests/qa-balance-current.cjs
+
+      - name: QA paired defender Seelenraub active vs passive
+        run: node tests/qa-soul-active-comparison.cjs
+
+      - name: QA tight equal-seed soul survival and skill matches
+        run: node tests/qa-tight-soul-matches.cjs
+
+      - name: QA defender tactical stress against harder matched NPCs
+        run: node tests/qa-soul-pressure-matches.cjs
+
+      - name: QA real field fusion battle comparison for stored souls
+        run: node tests/qa-charged-field-fusion-matches.cjs
+
+      - name: QA equal-inventory tactical defender vs passive and predator
+        run: node tests/qa-tactical-defender-parity.cjs

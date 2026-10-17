@@ -141,7 +141,8 @@
    '<details class="arcane-rule-chapter" id="essenceCombatRules"><summary>14 · Seelenessenz, Entladen und Bollwerk im Detail</summary>'+
    '<div class="arcane-rule-body"><h3>Wie aus Absaugen offensiver Druck wird</h3><p>Ein Seelenzehrer in DEF-Position zehrt zu Beginn seines eigenen Zuges von allen gegnerischen Feldmonstern. Je Ziel zieht er zunächst bis zu 10 ATK und 10 DEF ab. Dazu kommt je eigener Monsterstufe ein weiterer 5-Punkte-Schritt, der ATK oder DEF trifft. Es können nur tatsächlich vorhandene Werte entzogen werden.</p>'+
    '<p>Das Absaugen verursacht sofort <b>Seelenbrand</b> in Höhe von <b>175 % der entzogenen Werte</b>, höchstens <b>60 + 60 je Monsterstufe</b> pro Seelenzehrer und Absaugen. Hat ein Stufe-3-Seelenzehrer beispielsweise insgesamt 100 Werte entzogen, sind das 175 Schaden vor einem gegnerischen Schild; seine Stufengrenze liegt bei 240. Ohne gegnerische Feldmonster gibt es nichts abzusaugen.</p>'+
-   '<p>Die aufgenommenen Werte bilden zusätzlich gespeicherte Seelenessenz. Ihr Vorrat ist je Monster auf <b>250 + 125 je Monsterstufe</b> begrenzt. Sie schützt die Grund-DEF als zusätzliche Schicht, ersetzt aber nicht die Unterstützung durch deine Wächter.</p>'+
+   '<p>Die aufgenommenen Werte bilden zusätzlich gespeicherte Seelenessenz. Seelenzehrer-Fusionen wandeln dabei 150 % der tatsächlich entzogenen Werte um (der Bollwerk-Bonus wird nicht darauf multipliziert). Ihr Vorrat ist je Monster auf <b>250 + 125 je Monsterstufe</b> begrenzt. Sie schützt die Grund-DEF als zusätzliche Schicht, ersetzt aber nicht die Unterstützung durch deine Wächter.</p>'+
+   '<h3>Aktiver Seelenraub</h3><p>Seelenraub schwächt ein gewähltes gegnerisches Feldmonster gezielt um bis zu 250 % eines normalen Einzelziel-Entzugs. Nur vorhandene ATK/DEF können entfernt werden. Die Essenz wird wie beim passiven Entzug gespeichert, aber Seelenraub verursacht keinen unmittelbaren Seelenbrand. Die Fähigkeit hat drei eigene Züge Abklingzeit. Pro Seelenzehrer und eigenem Zug kannst du nur eine aktive Seelenfähigkeit wählen: Raub, Verdichten oder Entladen.</p><p>Bei einer Feldfusion wird bereits gespeicherte Seelenenergie aus den tatsächlich verbrauchten Feldmonstern teilweise zu zusätzlicher DEF der neuen Karte. Ist das Ergebnis ein Seelenzehrer, übernimmt es auch einen begrenzten Teil als Seelenessenz. Handkarten erzeugen keinen solchen Bonus.</p>'+
    '<h3>Seelenstoß oder Schutz?</h3><p>Mit <b>Seelenstoß · Entladen (130 %)</b> verbrauchst du ab 40 gespeicherter Seelenessenz den ganzen Vorrat und verursachst 130 % davon als direkten Schaden. Das geht einmal pro eigenem Zug. 100 Seelenessenz ergeben 130 Schaden vor einem möglichen Schild. Du gibst damit auch diese Schutzschicht auf.</p>'+
    '<p><b>Verdichten</b> verbraucht 75 % des Vorrats und erzeugt daraus stabile DEF. Diese Schicht baut sich über drei eigene Zugenden ab, ohne LP-Burn auszulösen. Die Fähigkeit hat drei eigene Züge Abklingzeit. Sie ist eine Möglichkeit, einen besonders gefährlichen gegnerischen Angriff vorzubereiten.</p>'+
    '<p>Am Ende eigener Züge verfällt auch unverdichtete Seelenessenz: 32 % des Vorrats, mindestens 10 und nie mehr als vorhanden. Nur <b>35 % dieses verfallenden Anteils</b> werden zu Burn. Wird Seelenessenz durch einen Angriff zerstört, werden stattdessen 50 % des verlorenen Anteils als Burn ausgelöst. Das sind getrennte Vorgänge.</p>'+
@@ -317,13 +318,20 @@
   const e=sel.essenceCombat;if(!e)return;
   let html='';
   if(CARB(sel)==='soul'&&sel.mode==='def'){
+   const spent=e.lastSoulAction===g.turn;
    html+='<small>Seelenessenz '+e.soul+' · Verdichtet '+e.condensed+' · Cooldown '+e.cooldown+'</small>';
-   html+='<button class="btn" data-essence-combat="condense" '+(e.cooldown||e.soul<40?'disabled':'')+'>◇ Verdichten (3 Züge)</button>';
+   html+='<button class="btn" data-essence-combat="condense" '+(spent||e.cooldown||e.soul<40?'disabled':'')+'>◇ Verdichten (3 Züge)</button>';
    if(C.soulRank(sel)>=3)html+='<div class="essence-target"><small>Entzugsfokus: '+(e.drainPreference===1?'ATK':e.drainPreference===2?'DEF':'Ausgewogen')+'</small>'+
     '<button type="button" class="btn ghost" data-essence-drain="atk" '+(e.lastDrainSwitch===g.turn?'disabled':'')+'>ATK priorisieren</button>'+
     '<button type="button" class="btn ghost" data-essence-drain="def" '+(e.lastDrainSwitch===g.turn?'disabled':'')+'>DEF priorisieren</button></div>';
 
-   html+='<button class="btn" data-essence-combat="discharge" '+(e.soul<40||e.lastDischarge===g.turn?'disabled':'')+'>✦ Seelenstoß · Entladen (130 %)</button>';
+   html+='<button class="btn" data-essence-combat="discharge" '+(spent||e.soul<40||e.lastDischarge===g.turn?'disabled':'')+'>✦ Seelenstoß · Entladen (130 %)</button>';
+   html+='<small>Seelenraub · ein Ziel, 250 % Entzugsstärke · Abklingzeit '+(e.raidCooldown||0)+'</small>';
+   for(let targetIndex=0;targetIndex<5;targetIndex++){
+    const target=g.players[1].field[targetIndex];if(!target?.card||!(target.card.atk+target.card.def))continue;
+    html+='<button class="btn" data-essence-target="'+targetIndex+'" '+(spent||e.raidCooldown?'disabled':'')+'>'+
+     '◇ Seelenraub: '+escapeHtml(dataOf(target).name)+'</button>';
+   }
   }
   if(sel.id===E().chosen&&CARDS[sel.id].essenceSchool==='predator'&&g.essenceSchool==='predator'){
    html+='<button class="btn" data-essence-combat="predator" '+(e.attacksThisTurn||e.lastToggle===g.turn?'disabled':'')+'>'+
@@ -333,10 +341,11 @@
  };
  const CARB=C.roleOf;
  $('duelScreen')?.addEventListener('click',ev=>{
-  const button=ev.target.closest('button[data-essence-combat],button[data-essence-drain]');if(!button)return;
+  const button=ev.target.closest('button[data-essence-combat],button[data-essence-drain],button[data-essence-target]');if(!button)return;
   if(!game||game.selection?.type!=='field')return;
   const idx=game.selection.idx;
   if(button.dataset.essenceCombat==='condense')C.condense(idx);
+  if(button.dataset.essenceTarget!==undefined)C.soulRaid(idx,Number(button.dataset.essenceTarget));
   if(button.dataset.essenceDrain)C.chooseDrain(idx,button.dataset.essenceDrain);
   else if(button.dataset.essenceCombat==='discharge')C.discharge(idx);
   else if(button.dataset.essenceCombat==='predator')C.predatorMode(idx);

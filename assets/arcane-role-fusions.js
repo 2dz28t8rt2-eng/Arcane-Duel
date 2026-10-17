@@ -97,14 +97,14 @@
   const q=candidates(),m=picked();if(!q||!m.length||m.length>4){toast('Wähle ein bis vier eigene Monster auf dem Feld als Fusionsmaterial.');return;}
   const materials=[q.hand,...m.map(x=>x.c)],levels=materials.map(c=>dataOf(c).level);
   const options=fusionOptions(game,levels);if(!options.length){toast('Mit diesen Monsterstufen ist derzeit keine passende Fusionskarte verfügbar.');return;}
-  const visualMaterials=materials.map(c=>({art:dataOf(c).art,name:dataOf(c).name,level:dataOf(c).level}));
+  const visualMaterials=materials.map(c=>({art:dataOf(c).art,name:dataOf(c).name,level:dataOf(c).level,field:m.some(x=>x.c.uid===c.uid),soul:Math.max(0,c.essenceCombat?.soul||0)}));
   chooseFusionModal(levels,materials,async id=>{
    if(!commitFusion(id)){toast('Die Feldfusion konnte nicht abgeschlossen werden.');return;}
    const result=game.lastSummoned;if(!result)return;
    busy=true;
    try{await fusionAnimation(dataOf(result).level,visualMaterials,'field');}
    finally{busy=false;game.cinemaActive=false;render();}
-  },'Feldmonster werden tatsächlich verbraucht.');
+  },'Feldmonster werden tatsächlich verbraucht. Gespeicherte Seelenenergie verleiht der neuen Fusion zusätzlich DEF; Seelenzehrer können einen Teil davon als Energie übernehmen.');
  }
  $('ownRow')?.addEventListener('click',ev=>{
   if(!fieldPick||!candidates())return;
@@ -137,14 +137,18 @@
   if(!q){if(!game?.pending||game.pending.kind!=='normal')reset();return;}
   const stage=$('summonStage');if(!stage)return;
   const count=picked().length;
+  const soulStored=picked().reduce((total,x)=>total+Math.min(2000,Math.max(0,x.c.essenceCombat?.soul||0)),0);
   stage.insertAdjacentHTML('beforeend','<section class="arcane-field-synthesis">'+
-   '<strong>✧ Freie Feldfusion</strong><p>Die Handkarte eröffnet die Fusion. Wähle danach bis zu vier deiner Feldmonster. Zwei gleichartige Materialien vererben ihre Rolle. Bei gemischten Gruppen entscheidet die Mehrheit. Zwei Seelenzehrer bleiben Seelenzehrer.</p>'+
+   '<strong>✧ Freie Feldfusion</strong><p>Die Handkarte eröffnet die Fusion. Wähle danach bis zu vier deiner Feldmonster. Zwei gleichartige Materialien vererben ihre Rolle. Bei gemischten Gruppen entscheidet die Mehrheit. Zwei Seelenzehrer bleiben Seelenzehrer. Gesammelte Seelenenergie auf Feldmaterial wird teilweise zu zusätzlicher DEF der Fusion.</p>'+
    '<button type="button" class="btn" data-field-synthesis="toggle">'+(fieldPick?'Feldmaterialwahl beenden':'Feldmonster auswählen')+'</button>'+
-   (fieldPick?'<span class="arcane-synth-status">'+count+' Feldmonster gewählt</span>'+
+   (fieldPick?'<span class="arcane-synth-status">'+count+' Feldmonster gewählt'+(soulStored?' · ✦ '+soulStored+' Seele → +'+Math.min(250,Math.floor(soulStored*.3/10)*10)+' DEF (max.)':'')+'</span>'+
    '<button type="button" class="btn primary" data-field-synthesis="commit" '+(!count?'disabled':'')+'>Feldfusion mit '+(count+1)+' Materialien</button>':'')+'</section>');
   if(fieldPick)$('ownRow')?.querySelectorAll('[data-mine]').forEach(b=>{
    const idx=Number(b.dataset.mine);
    b.classList.toggle('arcane-synth-picked',zones.includes(idx));
+   const soul=Math.max(0,Math.floor(q.p.field[idx]?.essenceCombat?.soul||0));
+   if(soul){b.classList.add('arcane-synth-charged');b.style.setProperty('--soul-energy',String(soul));
+    if(zones.includes(idx))b.insertAdjacentHTML('beforeend','<span class="arcane-soul-chosen">✦ '+soul+' Seelenenergie · Erbe +'+Math.min(250,Math.floor(soul*.3/10)*10)+' DEF</span>');}
    if(q.p.field[idx])b.classList.add('arcane-synth-available');
   });
  };

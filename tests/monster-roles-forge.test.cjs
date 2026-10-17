@@ -283,9 +283,10 @@ test('Ordinary 2-material fusion may roll below the normal level reference',()=>
   const cards=[0,1].map(id=>g.newInstance(duel,id,0));
   const fused=g.fusedInstance(duel,cards,cards.map(c=>c.card.level));
   assert.ok(fused);
-  const ref=evolution.fusionReferenceStats(fused.card.level);
-  weaker||=fused.card.atk+fused.card.def<ref.atk+ref.def;
-  stronger||=fused.card.atk+fused.card.def>ref.atk+ref.def;
+  // Measure downside/upside against the role-adjusted reference before actual dice.
+  const base=fused.rollMath.base,rolled=fused.rollMath.winner;
+  weaker||=rolled.atk+rolled.def<base.atk+base.def;
+  stronger||=rolled.atk+rolled.def>base.atk+base.def;
   if(weaker&&stronger)break;
  }
  assert.ok(weaker,'some fusion rolls should have a real downside');
@@ -422,7 +423,7 @@ test('Imprinted fusion chooses role before rolling and displays exact best-roll 
  assert.ok(calculation&&Number.isInteger(calculation.winnerIndex));
  assert.equal(calculation.role,result.roleOverride);
  assert.equal(calculation.roleWeights.atk,.75);
- assert.equal(calculation.roleWeights.def,1.25);
+ assert.equal(calculation.roleWeights.def,1.35);
  const best=result.rollTrace[calculation.winnerIndex];
  assert.ok(result.rollTrace.length>=1&&result.rollTrace.length<=7);
  assert.equal(best.atk+best.def,Math.max(...result.rollTrace.map(x=>x.atk+x.def)));

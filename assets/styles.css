@@ -279,3 +279,12 @@
 .collection-filters input,.collection-filters select{width:100%;min-height:36px;background:#19253a;color:#fff4da;border:1px solid #b59c72;border-radius:5px;padding:6px}
 .victory-cards{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:12px 0}
 .victory-cards .hand-card{flex:0 0 132px;pointer-events:none}
+
+/* Contextual progression guidance after two consecutive tournament defeats. */
+.progression-hint{margin:14px 0;padding:14px 16px;border:1px solid rgba(207,175,112,.52);border-radius:12px;background:linear-gradient(125deg,rgba(96,71,35,.25),rgba(23,31,46,.55));text-align:left}
+.progression-hint h3{margin:0 0 7px;color:#f1dbab}
+.progression-hint p{margin:0 0 9px}
+.progression-hint ul{margin:0 0 12px;padding-left:20px;line-height:1.5}
+.progression-hint-links{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 8px}
+.progression-hint-links .btn{flex:1 1 125px;min-width:0}
+.progression-hint small{opacity:.78}

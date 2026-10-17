@@ -29,7 +29,7 @@ test('Offer triggers only after three wins and expires after the next duel',()=>
  assert.equal(r.two,2);assert.equal(r.afterThree.streak,0);assert.equal(r.expired,true);
 });
 test('Mandatory dialogue starts a resumable showcase duel, with high-level enemy deck',()=>{
- const r=boot()(`(()=>{profile.trainingWins=3;profile.showcase.pending=true;const shown=showShowcaseIntro();const title=document.getElementById('modal').innerHTML;document.getElementById('showcaseBegin').onclick();const g=game;return {shown,title:title.includes('Vael'),pending:profile.showcase.pending,seen:profile.showcase.seen,showcase:g.showcase,opponent:g.opponentId,levels:g.players[1].originalDeck.map(id=>CARDS[id].level),saved:!!profile.activeDuel,resumed:validateDuelSnapshot(profile.activeDuel).showcase};})()`);
+ const r=boot()(`(()=>{profile.trainingWins=3;profile.showcase.pending=true;const shown=showShowcaseIntro();const title=document.getElementById('modal').innerHTML;document.getElementById('showcaseBegin').onclick();const g=game;return {shown,title:title.includes('Eiman Huel Stalker'),pending:profile.showcase.pending,seen:profile.showcase.seen,showcase:g.showcase,opponent:g.opponentId,levels:g.players[1].originalDeck.map(id=>CARDS[id].level),saved:!!profile.activeDuel,resumed:validateDuelSnapshot(profile.activeDuel).showcase};})()`);
  assert.equal(r.shown,true);assert.equal(r.title,true);assert.equal(r.pending,false);assert.equal(r.seen,true);assert.equal(r.showcase,true);assert.equal(r.opponent,8);assert.ok(r.levels.every(n=>n>=8&&n<=10));assert.equal(r.saved,true);assert.equal(r.resumed,true);
 });
 test('Special character pack can be opened without unlocking opponent VIII',()=>{
