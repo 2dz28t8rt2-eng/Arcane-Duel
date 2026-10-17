@@ -232,7 +232,7 @@ const pages=[
   {
     "title": "Willkommen in Arcane Duel",
     "sub": "Ein guter erster Zug ist mehr wert als zwanzig Regeln auf einmal.",
-    "left": "<h3>Worum es im Duell geht</h3><p>Du gewinnst, wenn die Lebenspunkte deines Gegners auf null fallen. Dafür baust du eine Stellung aus Monstern auf, greifst an und nutzt ihre Rollen. Manchmal ist ein schneller Angriff richtig. Manchmal gewinnt eine gut geschützte Gruppe, die den Gegner langsam zermürbt.</p><p>Dein Weg beginnt mit <b>drei Trainingssiegen</b>. Danach warten zehn Turnierprüfungen. Neue Karten und Möglichkeiten kommen mit deinem Fortschritt dazu.</p>",
+    "left": "<h3>Worum es im Duell geht</h3><p>Du gewinnst, wenn die Lebenspunkte deines Gegners auf null fallen. Dafür baust du eine Stellung aus Monstern auf, greifst an und nutzt ihre Rollen. Manchmal ist ein schneller Angriff richtig. Manchmal gewinnt eine gut geschützte Gruppe, die den Gegner langsam zermürbt.</p><p>Zum Einstieg empfehlen sich die <b>drei Trainingsduelle</b>. Du kannst aber auch schon vorher die erste der zehn Turnierprüfungen versuchen. Neue Karten und Möglichkeiten kommen mit deinem Fortschritt dazu.</p>",
     "right": "<h3>Lies so viel, wie du gerade brauchst</h3><p>Für den Anfang reichen die nächsten drei Kapitel: eine Karte lesen, ein Monster beschwören und einen Kampf verstehen. Die späteren Seiten erklären Rollen, Fusionen und deine Sammlung genauer.</p><p>Über die <b>Kapitelwahl</b> kannst du direkt zu einem Thema springen. Du darfst das Buch jederzeit schließen und später im Hauptmenü über <b>Startanleitung</b> wieder öffnen. Das durchsuchbare <b>Regel-Lexikon</b> ist zum Nachschlagen da.</p>"
   },
   {
@@ -336,6 +336,7 @@ function showGuide(page=0){
  '<button class="btn" id="guideClose">Buch schließen</button>'+
  (index===pages.length-1?'<button class="btn primary" id="guideNext">Ab ins Duell!</button>':'<button class="btn primary" id="guideNext">Weiter →</button>')+'</div>');
  $('modal').classList.add('guide-modal');
+ $('modal').scrollTop=0;
  $('guideChapter').onchange=event=>showGuide(Number(event.target.value));
  if($('guidePrev'))$('guidePrev').onclick=()=>showGuide(index-1);
  $('guideClose').onclick=()=>finishGuide();

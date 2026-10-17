@@ -131,6 +131,12 @@
  const oldRules=showRules;showRules=function(){
   oldRules();const modal=$('modal'),book=modal?.querySelector('.arcane-handbook');
   if(!book)return;
+  if(!book.querySelector('.essence-lore'))book.insertAdjacentHTML('beforeend',E().school?loreMarkup():
+   '<details class="arcane-rule-chapter essence-lore"><summary>13 · Dein späterer Bund mit einem Essenzwesen</summary>'+
+   '<div class="arcane-rule-body"><p>Nach Turnier III kannst du drei geführte Probe-Duelle mit Leihdecks spielen. Dabei lernst du Predatoren, Fusionen und die gemeinsame Verteidigerstrategie kennen. Diese Prüfungen verändern deinen eigenen Kartenbestand nicht.</p>'+
+   '<p>Danach wählst du <b>ein einziges Essenzmonster dauerhaft</b>. Lass dir dafür Zeit: Diese Karte kannst du in diesem Spielstand nicht austauschen. Den passiven Bonus deiner Schule wählst du anschließend getrennt. Passen Karte und Schule zusammen, entsteht zusätzliche Resonanz.</p>'+
+   '<p>Dein Begleiter entwickelt sich an Turniermeilensteinen. Damit er dich im Duell unterstützt und genährt wird, muss seine Karte in deinem aktiven Hauptdeck liegen. Seine Nahrung stammt aus neuen Duellbelohnungen; dein vorhandener Essenzvorrat wird dafür nicht rückwirkend angetastet. Zusätzliche Verstärkungen kaufst du bewusst.</p>'+
+   '<p>Du kannst die Entscheidung vertagen und währenddessen mit deinen bisherigen Monstern weiterspielen.</p></div></details>');
   if(!book.querySelector('#essenceCombatRules'))book.insertAdjacentHTML('beforeend',
    '<details class="arcane-rule-chapter" id="essenceCombatRules"><summary>14 · Seelenessenz, Entladen und Bollwerk im Detail</summary>'+
    '<div class="arcane-rule-body"><h3>Wie aus Absaugen offensiver Druck wird</h3><p>Ein Seelenzehrer in DEF-Position zehrt zu Beginn seines eigenen Zuges von allen gegnerischen Feldmonstern. Je Ziel zieht er zunächst bis zu 10 ATK und 10 DEF ab. Dazu kommt je eigener Monsterstufe ein weiterer 5-Punkte-Schritt, der ATK oder DEF trifft. Es können nur tatsächlich vorhandene Werte entzogen werden.</p>'+
@@ -144,7 +150,6 @@
    '<p>Perkrang 5 eröffnet einmal pro Duell das <b>Letzte Bollwerk</b>: Ein eigener Verteidiger überlebt einen sonst tödlichen Angriff mit 1 Grund-DEF und erhält Angriffsschutz für zwei weitere gegnerische Züge. Während dieser Immunität erzeugt er nicht durch jeden abgewehrten Angriff erneut Gegenschlag.</p>'+
    '<p>Den Perkrang deiner Schule und die normalen Ausbauten Schildwall oder Jagdinstinkt solltest du getrennt betrachten. Die Schule gehört zur Essenzbindung; die normalen Ausbauten kaufst du unabhängig davon im Fortschrittsmenü.</p>'+
    '</div></details>');
-  if(E().school&&!book.querySelector('.essence-lore'))book.insertAdjacentHTML('beforeend',loreMarkup());
  };
  const oldReward=rewardMatch;
  rewardMatch=function(g){

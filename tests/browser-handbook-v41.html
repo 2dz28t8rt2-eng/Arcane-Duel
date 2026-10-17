@@ -18,9 +18,11 @@ frame.addEventListener('load',async()=>{
   if(cardImage&&!cardImage.complete)await new Promise(resolve=>{cardImage.addEventListener('load',resolve,{once:true});cardImage.addEventListener('error',resolve,{once:true});});
   expect(cardImage?.naturalWidth===768,'Tutorial uses an existing full-resolution finished card');
   for(let index=0;index<16;index++){
+   d.getElementById('modal').scrollTop=100;
    const select=d.getElementById('guideChapter');select.value=String(index);select.dispatchEvent(new w.Event('change',{bubbles:true}));
    expect(Number(d.getElementById('guideChapter').value)===index,'Chapter selection reaches page '+(index+1));
    const modal=d.getElementById('modal');
+   expect(modal.scrollTop===0,'Guide page '+(index+1)+' starts at its heading');
    expect(modal.scrollWidth<=modal.clientWidth+2,'Guide page '+(index+1)+' fits the viewport horizontally');
    const text=modal.textContent;
    if(index===3)expect(text.includes('35 %')&&text.includes('650')&&text.includes('Gegenschlag'),'DEF-HP example includes actual armor and counters');
@@ -32,7 +34,8 @@ frame.addEventListener('load',async()=>{
   w.eval('showRules()');await new Promise(resolve=>w.setTimeout(resolve,0));
   const book=d.querySelector('.arcane-handbook'),chapters=[...book.querySelectorAll('.arcane-rule-chapter')],links=[...book.querySelectorAll('.royal-rule-directory button')];
   expect(book.textContent.includes('Arcane Duel 4.1'),'Rulebook identifies the current handbook');
-  expect(chapters.length>=13,'Core rules, learning, perks and Essence details are present');
+  expect(chapters.length===14,'All fourteen core, learning, perk and Essence chapters are present');
+  expect(chapters.every((c,i)=>parseInt(c.querySelector('summary').textContent,10)===i+1),'Chapter order stays complete for a new player');
   expect(links.length===chapters.length,'Directory includes chapters appended by later modules');
   expect(new Set(chapters.map(c=>c.id)).size===chapters.length,'All chapter anchors are unique');
   const essence=d.getElementById('essenceCombatRules');
