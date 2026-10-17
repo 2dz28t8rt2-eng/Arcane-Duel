@@ -333,7 +333,7 @@ function bestFusionDeck(ids,enhancements={},inventory=null){const sorted=[...new
 function strongestMainDeck(ids,enhancements={},inventory=null){return [...new Set(ids)].filter(id=>CARDS[id]&&!CARDS[id].fusionOnly).sort((a,b)=>(CARDS[b].atk+CARDS[b].def+2*ascensionStep(b)*(enhancements[b]||0))-(CARDS[a].atk+CARDS[a].def+2*ascensionStep(a)*(enhancements[a]||0))).flatMap(id=>Array(Math.min(3,inventory?inventory[id]||0:3)).fill(id)).slice(0,40);}
 function themedEnemyLoadout(id,difficulty='easy'){const o=RPG_OPPONENTS[id],available=RPG_OPPONENTS.filter(x=>x.id<=id).flatMap(x=>x.loot),hard=difficulty==='hard';const ownBasics=o.loot.filter(cid=>!CARDS[cid].fusionOnly),basics=[...DEFAULT_DECK,...available.filter(cid=>!CARDS[cid].fusionOnly),...(hard?o.hardLoot.filter(cid=>!CARDS[cid].fusionOnly):[])];const deck=strongestMainDeck(basics);for(const cid of ownBasics)while(countCard(deck,cid)<3){const replace=deck.findIndex(x=>!ownBasics.includes(x)&&countCard(deck,x)>1);if(replace<0)break;deck[replace]=cid;}
  const manifestation=hard?o.hardManifest:o.easyManifest;if(manifestation!==undefined){const amount=hard?3:id>=5?2:1;for(let n=0;n<amount;n++){const candidates=deck.map((cid,i)=>({cid,i})).filter(x=>!ownBasics.includes(x.cid)&&x.cid!==manifestation).sort((a,b)=>CARDS[a.cid].atk-CARDS[b.cid].atk);if(candidates.length)deck[candidates[0].i]=manifestation;}}
- const ids=[...RPG_START_FUSIONS,...available.filter(cid=>CARDS[cid].fusionOnly),...(hard?o.hardLoot.filter(cid=>CARDS[cid].fusionOnly):[])];let fusionDeck=bestFusionDeck(ids);const signature=hard?o.hardLoot[2]:o.signature;for(let i=0;i<2;i++)if(countCard(fusionDeck,signature)<2){if(fusionDeck.length===15)fusionDeck.pop();fusionDeck.push(signature);}// The compact roster can make a legacy opponent try four copies of a card.
+ const ids=[...RPG_START_FUSIONS.slice(0,2),...available.filter(cid=>CARDS[cid].fusionOnly),...(hard?o.hardLoot.filter(cid=>CARDS[cid].fusionOnly):[])];let fusionDeck=bestFusionDeck(ids);const signature=hard?o.hardLoot[2]:o.signature;for(let i=0;i<2;i++)if(countCard(fusionDeck,signature)<2){if(fusionDeck.length===15)fusionDeck.pop();fusionDeck.push(signature);}// The compact roster can make a legacy opponent try four copies of a card.
  // Preserve strong monsters while enforcing the exact three-copy game rule.
  const copies=new Map();const options=[...new Set([...basics,...DEFAULT_DECK])].filter(id=>UPDATE_B_SET.has(id)&&!CARDS[id].fusionOnly);
  for(let i=0;i<deck.length;i++){
@@ -602,7 +602,7 @@ const AUTO_CAP=30;
    indexes. Only ACTIVE_CARD_IDS may enter new loot, decks or booster pools.
    The 22 roots and their three variants share one art and one element per line. */
 const UPDATE_B_NORMAL_ROOTS=Object.freeze([...NORMAL_LINE_ROOT_IDS]);
-const UPDATE_B_FUSION_IDS=Object.freeze([
+let UPDATE_B_FUSION_IDS=Object.freeze([
  ...RPG_START_FUSIONS,TRAINING_FUSION,
  ...RPG_OPPONENTS.flatMap(o=>o.loot.slice(2,4)),
  90,102,105,121,260
@@ -777,7 +777,20 @@ for(const [name,role,element,origin,kind,color] of ARCANE_NEW_FAMILIES){
   registerWorkshopStage(CARDS[childId],id,level,origin);
  }
 }
-// Full levels are deterministic IDs; no new copies are granted by this setup.
+// Add the neutral level-3 bridge fusion AFTER old IDs and workshop stages.
+ // Stored collection IDs are stable across this addition.
+const GENERIC_START_LV3=addRpgCard({
+ name:'Runengeist der Schwelle',level:3,atk:580,def:550,
+ role:'combatant',kind:'spirit',element:'LICHT',color:'#c7b2ec',
+ source:-1,requiredTier:0,rarity:'common',fusionOnly:true,
+ desc:'Neutrale Startfusion Stufe 3 · Rollenprägung aus den Materialien.'
+});
+RPG_START_FUSIONS.push(GENERIC_START_LV3);
+RPG_FUSIONS.push(CARDS[GENERIC_START_LV3]);
+UPDATE_B_FUSION_IDS=Object.freeze([...UPDATE_B_FUSION_IDS,GENERIC_START_LV3]);
+UPDATE_B_ACTIVE_IDS.push(GENERIC_START_LV3);
+UPDATE_B_SET.add(GENERIC_START_LV3);
+// Fixed numeric IDs and original card art stay unmodified.
 
 // Normalize legacy per-card combat perks after ALL RPG templates and workshop stages
 // have been registered. General role abilities are deliberately unaffected.
@@ -811,7 +824,7 @@ function validInt(v,max=1e9){return Number.isSafeInteger(v)&&v>=0&&v<=max;}
 function migrateLegacy(raw){if(raw.version!==1||!validInt(raw.pvpMatches)||!['fast','instant'].includes(raw.settings?.animation))throw Error('Ungültiger älterer Spielstand.');const p=freshProfile();p.pvpMatches=raw.pvpMatches;p.settings={animation:raw.settings.animation,sound:raw.settings.sound===true};legacyImported=true;return p;}
 function validateLegacyProfile(raw){if(raw?.version===1)return migrateLegacy(raw);if(!raw||raw.version!==2)throw Error('Nicht unterstützte Spielstand-Version.');const p=freshProfile();for(const k of ['coins','xp','wins','losses','pvpMatches','totalTurns','totalFusions','nextMatch']){if(!validInt(raw[k]))throw Error('Ungültiger Spielstand: '+k);p[k]=raw[k];}if(!p.nextMatch)throw Error('Ungültige Duellnummer.');
  const ids=(a,allowed)=>{if(!Array.isArray(a)||new Set(a).size!==a.length||a.some(x=>!allowed.includes(x)))throw Error('Ungültige Karten oder Gegner.');return [...a];};
- p.unlocked=ids(raw.unlocked,RPG_BASE_CARDS.map(c=>c.id));if(DEFAULT_DECK.some(id=>!p.unlocked.includes(id)))throw Error('Startkarten fehlen.');if(mainDeckError(raw.activeDeck,p.unlocked))throw Error(mainDeckError(raw.activeDeck,p.unlocked));p.activeDeck=[...raw.activeDeck];p.fusionOwned=ids(raw.fusionOwned,RPG_FUSIONS.map(c=>c.id));if(RPG_START_FUSIONS.some(id=>!p.fusionOwned.includes(id)))throw Error('Startfusionen fehlen.');p.fusionDeck=ids(raw.fusionDeck,p.fusionOwned);const error=fusionDeckError(p.fusionDeck);if(error)throw Error(error);
+ p.unlocked=ids(raw.unlocked,RPG_BASE_CARDS.map(c=>c.id));if(DEFAULT_DECK.some(id=>!p.unlocked.includes(id)))throw Error('Startkarten fehlen.');if(mainDeckError(raw.activeDeck,p.unlocked))throw Error(mainDeckError(raw.activeDeck,p.unlocked));p.activeDeck=[...raw.activeDeck];p.fusionOwned=ids(raw.fusionOwned,RPG_FUSIONS.map(c=>c.id));if(RPG_START_FUSIONS.slice(0,2).some(id=>!p.fusionOwned.includes(id)))throw Error('Startfusionen fehlen.');p.fusionDeck=ids(raw.fusionDeck,p.fusionOwned);const error=fusionDeckError(p.fusionDeck);if(error)throw Error(error);
  p.cleared=ids(raw.cleared,OPPONENTS.slice(1).map(o=>o.id));if(p.cleared.some(id=>id>1&&!p.cleared.includes(id-1)))throw Error('Turnierstufen müssen der Reihe nach freigeschaltet sein.');
  for(const k of ['shards','pity','mastery']){if(!Array.isArray(raw[k])||raw[k].length!==11||raw[k].some(x=>!validInt(x,k==='pity'?4:1e9)))throw Error('Ungültiger Fortschritt.');p[k]=[...raw[k]];}
  for(const [id,rank]of Object.entries(raw.enhancements||{})){if(![...p.unlocked,...p.fusionOwned].includes(Number(id))||!(CARDS[Number(id)]?.rpg||Number(id)<20)||!validInt(rank,5))throw Error('Ungültige Verstärkung.');p.enhancements[id]=rank;}
@@ -840,6 +853,17 @@ function validateLegacyProfile(raw){if(raw?.version===1)return migrateLegacy(raw
 function markStorageConflict(){storageConflict=true;storageWarning='Ein anderer Tab hat den Spielstand geändert. Speichern und neue Kämpfe sind angehalten. Exportiere bei Bedarf diesen Stand und lade die Seite neu.';}
 function loadProfile(){try{lastStoredProfile=window.localStorage.getItem(SAVE_KEY);if(lastStoredProfile){const raw=JSON.parse(lastStoredProfile);if(raw.evolution&&raw.activeDuel){window.__arcaneEvolutionPendingSave=raw.activeDuel;raw.activeDuel=null;}const loaded=validateProfile(raw);if(raw.evolution)loaded.evolution=raw.evolution;return loaded;}return freshProfile();}catch(e){storageWritable=false;storageWarning='Spielstand konnte nicht geladen werden. Bestehende Daten bleiben erhalten. Exportiere deinen Fortschritt oder importiere eine gültige Sicherung.';return freshProfile();}}
 let profile=loadProfile();
+// A one-time starter gift for existing accounts, added AFTER validating the
+// untouched old profile. Never reset progress or equipment.
+if(profile&&!profile.startLv3Granted){
+ if(!profile.fusionOwned.includes(GENERIC_START_LV3))profile.fusionOwned.push(GENERIC_START_LV3);
+ profile.inventory[GENERIC_START_LV3]=Math.max(2,profile.inventory[GENERIC_START_LV3]||0);
+ if(profile.fusionDeck.length<=13&&countCard(profile.fusionDeck,GENERIC_START_LV3)===0)
+  profile.fusionDeck.push(GENERIC_START_LV3,GENERIC_START_LV3);
+ if(profile.slots?.[profile.activeSlot])
+  profile.slots[profile.activeSlot].fusion=[...profile.fusionDeck];
+ profile.startLv3Granted=true;
+}
 function saveProfile(){if(!storageWritable||storageConflict)return false;try{if(window.localStorage.getItem(SAVE_KEY)!==lastStoredProfile){markStorageConflict();return false;}syncSlot();profile.savedAt=Date.now();const text=JSON.stringify(profile);window.localStorage.setItem(SAVE_KEY,text);lastStoredProfile=text;storageWarning='';return true;}catch(e){storageWarning='Speichern nicht möglich. Bitte sichere deinen Fortschritt über Einstellungen → Export.';return false;}}
 function newMatchId(){const id=Date.now().toString(36)+'-'+profile.nextMatch+'-'+rng(0xffffffff).toString(36);profile.nextMatch=profile.nextMatch>=1e9?1:profile.nextMatch+1;saveProfile();return id;}
 function tournamentUnlocked(id){return id>=1&&id<=10&&(id===1||profile.cleared.includes(id-1));}
@@ -868,7 +892,7 @@ function investmentFor(id){if(profile.investments[id])return profile.investments
 function refundQuote(id){const spent=investmentFor(id);return {coins:Math.floor(spent.coins*.75),shards:Math.floor(spent.shards*.75),source:Math.max(0,CARDS[id].source)};}
 
 
-function freshProfile(){const p=freshLegacyProfile();p.version=3;p.inventory=Object.fromEntries(DEFAULT_DECK.map(id=>[id,2]));RPG_START_FUSIONS.forEach(id=>p.inventory[id]=2);p.fusionDeck=RPG_START_FUSIONS.flatMap(id=>[id,id]);p.slots=Array.from({length:3},(_,i)=>({name:'Deck '+(i+1),main:[...p.activeDeck],fusion:[...p.fusionDeck]}));p.activeSlot=0;p.favorites=[];p.manualEasy=Array(11).fill(0);p.hardWins=Array(11).fill(0);p.dropCharges=0;p.useDropCharges=false;p.packProgress=Array(22).fill(0);p.packs=Array(22).fill(0);p.openPack=null;p.challenges=[];p.lastReview=null;p.migrationMessage='';p.progressionVersion=3;p.trainingWins=0;p.milestones=[];p.rewardQueue=[];p.encounters=[];p.wanderer=null;p.lastBooster=null;p.acePurchased=[];p.aceHints=[];p.tournamentLosses=Array(11).fill(0);p.progressionHintSeen=[];p.guideSeen=false;p.showcase={pending:false,seen:false,firstWin:false,streak:0,offered:false};return p;}
+function freshProfile(){const p=freshLegacyProfile();p.version=3;p.inventory=Object.fromEntries(DEFAULT_DECK.map(id=>[id,2]));RPG_START_FUSIONS.forEach(id=>p.inventory[id]=2);p.fusionDeck=RPG_START_FUSIONS.flatMap(id=>[id,id]);p.slots=Array.from({length:3},(_,i)=>({name:'Deck '+(i+1),main:[...p.activeDeck],fusion:[...p.fusionDeck]}));p.activeSlot=0;p.favorites=[];p.manualEasy=Array(11).fill(0);p.hardWins=Array(11).fill(0);p.dropCharges=0;p.useDropCharges=false;p.packProgress=Array(22).fill(0);p.packs=Array(22).fill(0);p.openPack=null;p.challenges=[];p.lastReview=null;p.migrationMessage='';p.progressionVersion=3;p.trainingWins=0;p.milestones=[];p.rewardQueue=[];p.encounters=[];p.wanderer=null;p.lastBooster=null;p.acePurchased=[];p.aceHints=[];p.tournamentLosses=Array(11).fill(0);p.progressionHintSeen=[];p.guideSeen=false;p.showcase={pending:false,seen:false,firstWin:false,streak:0,offered:false};p.startLv3Granted=true;return p;}
 // Besitzer früherer normaler ACEs behalten ihre Karten. Wurden solche ACEs
 // in Alpha 2.5 zur Fusion, werden Hauptdecks vor der strengen Profilprüfung
 // repariert. Kein Zurücksetzen von Inventar, Münzen, Fortschritt oder Aufstiegen.
@@ -902,7 +926,7 @@ function migrateFusionAceDecks(raw){
  p.__migratedFusionAces=true;
  return p;
 }
-function validateProfileCore(raw){raw=migrateFusionAceDecks(raw);if(raw?.version===1)return migrateLegacy(raw);if(!raw||![2,3].includes(raw.version))throw Error('Nicht unterstützte Spielstand-Version.');const v3=raw.version===3,legacy={...raw,version:2,upgrades:{...raw.upgrades,power:raw.upgrades?.power||0},fusionDeck:[...RPG_START_FUSIONS],activeDuel:null,history:(raw.history||[]).map(h=>({...h,context:h.context==='challenge'?'free':h.context}))};const p=validateLegacyProfile(legacy);p.version=3;
+function validateProfileCore(raw){raw=migrateFusionAceDecks(raw);if(raw?.version===1)return migrateLegacy(raw);if(!raw||![2,3].includes(raw.version))throw Error('Nicht unterstützte Spielstand-Version.');const v3=raw.version===3,legacy={...raw,version:2,upgrades:{...raw.upgrades,power:raw.upgrades?.power||0},fusionDeck:[...RPG_START_FUSIONS.slice(0,2)],activeDuel:null,history:(raw.history||[]).map(h=>({...h,context:h.context==='challenge'?'free':h.context}))};const p=validateLegacyProfile(legacy);p.version=3;
  if(!v3){p.inventory=Object.fromEntries([...p.unlocked,...p.fusionOwned].map(id=>[id,CARDS[id].fusionOnly?Math.max(2,countCard(raw.fusionDeck,id)):3]));p.fusionDeck=[...raw.fusionDeck];p.slots=Array.from({length:3},(_,i)=>({name:'Deck '+(i+1),main:[...p.activeDeck],fusion:[...p.fusionDeck]}));p.migrationMessage='Alpha 1.5: Sammlung und Decks übernommen. Basiskarten: drei Exemplare je bekannter Art; Fusionen: mindestens zwei. Alte laufende Duelle wurden wegen der neuen Fusionsregeln beendet. Hardmode zählt neue manuelle Easy-Siege.';return p;}
  if(!raw.inventory||typeof raw.inventory!=='object'||Array.isArray(raw.inventory))throw Error('Ungültiger Kartenbestand.');p.inventory={};for(const [key,n]of Object.entries(raw.inventory)){const id=Number(key);if(![...p.unlocked,...p.fusionOwned].includes(id)||!validInt(n,999999))throw Error('Ungültiger Kartenbestand.');p.inventory[id]=n;}
  const deck=(d,fusion=false)=>{const err=fusion?fusionDeckError(d):mainDeckError(d);if(err||inventoryError(d,p.inventory))throw Error(err||'Deck enthält fehlende Exemplare.');return [...d];};p.activeDeck=deck(raw.activeDeck);p.fusionDeck=deck(raw.fusionDeck,true);
@@ -1041,7 +1065,7 @@ function validateEncounter(e){if(!e||typeof e.id!=='string'||e.id.length>100||ty
 function makeEncounter(tier,kind,g){tier=Math.max(0,Math.min(10,tier));const source=Math.min(tier,highestCleared()),pool=[...DEFAULT_DECK,...UPDATE_B_MAIN_IDS.filter(id=>!CARDS[id].ace&&(CARDS[id].requiredTier==null||CARDS[id].requiredTier<=tier))],deck=[];while(deck.length<40){const options=pool.filter(id=>countCard(deck,id)<3),id=options[randomInt(g,options.length)];deck.push(id);}const base=rpgEnemyLoadout(tier,'easy',2),candidates=UPDATE_B_FUSION_IDS.map(id=>CARDS[id]).filter(c=>!c.trainingReward&&(c.source===-1||c.source>=0&&c.source<=tier)),stock=[];for(const level of [...new Set(candidates.map(c=>c.level))].sort((a,b)=>a-b)){const pool=candidates.filter(c=>c.level===level);stock.push(pool[randomInt(g,pool.length)].id);}while(stock.length<15){const pool=candidates.filter(c=>countCard(stock,c.id)<3);if(!pool.length)break;stock.push(pool[randomInt(g,pool.length)].id);}return {id:'enc-'+Date.now().toString(36)+'-'+randomInt(g,1e9),name:['Wandernde','Verborgene','Fremde'][randomInt(g,3)]+' '+['Runenhüterin','Duellantin','Bestienmeisterin'][randomInt(g,3)],tier,source,seed:randomInt(g,4294967295)||1,kind,enemy:{deck,fusionDeck:stock,enhancements:{},power:base.power}};}
 function rewardMatch(g){if(g.showcase)return showcaseReward(g);const reward=rewardMatch16(g);if(!reward||g.mode!=='pve'||g.surrendered)return reward;if(reward.trainingAdvance===3)profile.activeDuel=null;if(reward.first)reward.refilled=true;if(g.context==='encounter'&&g.winner===0){const extra=Math.floor(reward.coins*.25),xp=Math.floor(reward.xp*.25);profile.coins+=extra;profile.xp+=xp;reward.coins+=extra;reward.xp+=xp;profile.shards[g.opponentId]+=2;if(reward.loot)reward.loot.shards+=2;if(profile.history[0]){profile.history[0].coins=reward.coins;profile.history[0].xp=reward.xp;}}
 if(g.context==='tournament'){profile.encounters=[-1,0,1].map(d=>makeEncounter(g.opponentId+d,'tournament',g));}else if(g.context==='free'&&!profile.wanderer&&randomInt(g,100)<5){profile.wanderer=makeEncounter(Math.min(10,highestCleared()+1),'random',g);}showcaseTrackDuel(g);grantMilestones();if(reward.refilled)profile.dropCharges=dropChargeCap();saveProfile();return reward;}
-function validateProfile(raw){const modern=raw?.progressionVersion===3;const projected={...raw,progressionVersion:raw?.progressionVersion===3?2:raw?.progressionVersion,activeDuel:modern?raw.activeDuel:null};const p=validateProfile16(projected);p.progressionVersion=3;
+function validateProfile(raw){const modern=raw?.progressionVersion===3;const projected={...raw,progressionVersion:raw?.progressionVersion===3?2:raw?.progressionVersion,activeDuel:modern?raw.activeDuel:null};const p=validateProfile16(projected);p.progressionVersion=3;p.startLv3Granted=raw?.startLv3Granted===true;
  // Retain optional extension data before the initial bootstrap save. The role
  // reward module resolves the IDs against the complete late-loaded catalogue.
  if(raw?.progressionSupport)p.progressionSupport={version:1,prizes:Object.fromEntries(['defense','burst','fusion'].map(mode=>[mode,Array.from({length:5},(_,i)=>{const id=raw.progressionSupport?.prizes?.[mode]?.[i];return Number.isSafeInteger(id)&&id>=0&&id<100000?id:null;})]))};
