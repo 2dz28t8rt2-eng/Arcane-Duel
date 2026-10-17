@@ -1,0 +1,93 @@
+/* Arcane Duel 4.1: resolved UI-only changes (no stat/rule modifications). */
+
+/* Large inspectors: omit only the redundant TOP level crest. The centre
+   medallion in the ATK/DEF strip remains legible. Card frame corners survive. */
+html body :is(
+ #duelScreen #largeCardPreview,
+ #duelScreen .card-preview-panel,
+ .arcane-enemy-large,
+ #deckSidePreview.ad-deck-portal
+) .hand-card.tc-card :is(.card-level-badge,.hand-stars){display:none!important}
+html body :is(
+ #duelScreen #largeCardPreview,
+ #duelScreen .card-preview-panel,
+ .arcane-enemy-large,
+ #deckSidePreview.ad-deck-portal
+) .hand-card.tc-card.ad-level-frame::before{
+ clip-path:polygon(0 0,37% 0,37% 11%,63% 11%,63% 0,100% 0,100% 100%,0 100%)!important;
+}
+
+/* Labels are below hand cards, without leading dot. */
+html body #duelScreen #hand .ad-hand-role{
+ font:800 13px/1.35 system-ui,sans-serif!important;
+ letter-spacing:.045em!important;
+ padding:6px 2px 1px!important;
+}
+html body #duelScreen #hand .ad-hand-role::before{
+ content:none!important;display:none!important;animation:none!important;
+}
+
+/* Grow real monster zones and cards together; don't zoom the board with
+   transforms, which would break selection hitboxes and landing animations. */
+@media(min-width:1100px){
+ html body #duelScreen .slots{
+  max-width:880px!important;gap:9px!important;
+ }
+ html body #duelScreen .backrow,
+ html body #duelScreen .center-divider{max-width:880px!important}
+ html body #duelScreen .field-area{padding:14px 12px!important}
+ html body #duelScreen .monster-slot>.board-creature.tc-card{
+  width:68cqw!important;height:97cqw!important;
+ }
+ html body #duelScreen .monster-slot .board-name{
+  font-size:clamp(7px,7.2cqw,11px)!important;
+ }
+ html body #duelScreen .monster-slot .board-stats{
+  font-size:clamp(7px,5.3cqw,9px)!important;
+ }
+}
+/* Existing cross layout stays intact on narrow/mobile viewports. */
+
+html body #duelScreen .monster-slot .ad-soul-field-indicator{
+ position:absolute;z-index:18;left:3px;bottom:3px;
+ max-width:calc(100% - 6px);pointer-events:none;
+ padding:2px 4px;border-radius:5px;
+ border:1px solid #bb80f2a3;background:#2b1641eb;
+ color:#eed2ff;font:850 10px/1.2 system-ui,sans-serif;
+ text-shadow:0 0 6px #bf6ff8;
+ box-shadow:0 0 9px #ae55f877;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+html body #duelScreen .monster-slot .ad-soul-field-indicator[data-energy="0"]{
+ border-color:#66567b;background:#201a2bcc;color:#c5b3d9;box-shadow:none;
+}
+html body #duelScreen .monster-slot .ad-soul-field-indicator .ad-soul-wait{
+ color:#ffe0a6;margin-left:4px;
+}
+.essence-actions .ad-cooldown-note{color:#ecce9d;font-weight:750}
+/* Only events with known combat sources use a named float. */
+.ad-role-stat-float{
+ position:fixed;z-index:140;pointer-events:none;
+ min-width:82px;max-width:200px;padding:5px 9px;
+ border:1px solid #9dcdaaaa;border-radius:8px;
+ background:#152b31ed;color:#d2ffe4;
+ font:850 12px/1.2 system-ui,sans-serif;text-align:center;
+ text-shadow:0 0 9px #abebd1;
+ box-shadow:0 0 17px #7acdab82;
+ transform:translate(-50%,-50%);opacity:0;
+ animation:ad-role-stat-rise 1s ease-out forwards;
+}
+.ad-role-stat-float[data-kind="soul"]{
+ border-color:#d39af2;color:#f0d5ff;
+ background:#341d4ced;box-shadow:0 0 17px #b266eb99;
+}
+@keyframes ad-role-stat-rise{
+ 0%{opacity:0;transform:translate(-50%,-20%) scale(.84)}
+ 18%{opacity:1;transform:translate(-50%,-65%) scale(1.1)}
+ 64%{opacity:.95;transform:translate(-50%,-96%) scale(1.06)}
+ 100%{opacity:0;transform:translate(-50%,-150%) scale(.92)}
+}
+@media(prefers-reduced-motion:reduce){
+ .ad-role-stat-float{animation:none!important;opacity:1!important}
+}
+html body:is(.instant,.ad-motion-disabled) .ad-role-stat-float{animation:none!important}

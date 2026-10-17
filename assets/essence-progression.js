@@ -322,7 +322,7 @@
   if(CARB(sel)==='soul'&&sel.mode==='def'){
    const spent=e.lastSoulAction===g.turn;
    html+='<small>Seelenessenz '+e.soul+' · Verdichtet '+e.condensed+' · Cooldown '+e.cooldown+'</small>';
-   html+='<button class="btn" data-essence-combat="condense" '+(spent||e.cooldown||e.soul<40?'disabled':'')+'>◇ Verdichten (3 Züge)</button>';
+   html+='<button class="btn" data-essence-combat="condense" '+(spent||e.cooldown||e.soul<40?'disabled':'')+'>◇ Verdichten '+(e.cooldown?'(⌛ '+e.cooldown+' Züge)':'(bereit · 3 Züge CD)')+'</button>';
    if(C.soulRank(sel)>=3)html+='<div class="essence-target"><small>Entzugsfokus: '+(e.drainPreference===1?'ATK':e.drainPreference===2?'DEF':'Ausgewogen')+'</small>'+
     '<button type="button" class="btn ghost" data-essence-drain="atk" '+(e.lastDrainSwitch===g.turn?'disabled':'')+'>ATK priorisieren</button>'+
     '<button type="button" class="btn ghost" data-essence-drain="def" '+(e.lastDrainSwitch===g.turn?'disabled':'')+'>DEF priorisieren</button></div>';
@@ -332,7 +332,7 @@
    for(let targetIndex=0;targetIndex<5;targetIndex++){
     const target=g.players[1].field[targetIndex];if(!target?.card||!(target.card.atk+target.card.def))continue;
     html+='<button class="btn" data-essence-target="'+targetIndex+'" '+(spent||e.raidCooldown?'disabled':'')+'>'+
-     '◇ Seelenraub: '+escapeHtml(dataOf(target).name)+'</button>';
+     '◇ Seelenraub: '+escapeHtml(dataOf(target).name)+(e.raidCooldown?' · ⌛ '+e.raidCooldown+' Züge':'')+'</button>';
    }
   }
   if(sel.id===E().chosen&&CARDS[sel.id].essenceSchool==='predator'&&g.essenceSchool==='predator'){
