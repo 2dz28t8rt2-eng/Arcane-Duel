@@ -62,7 +62,7 @@
  const buffTier=g=>Math.max(0,g?.essenceTier||0);
  const activeSchool=g=>g?.essenceSchool||null;
  const statLayer=c=>{
-  if(!c.essenceCombat)c.essenceCombat={soul:0,condensed:0,cooldown:0,condenseLeft:0,condenseSlice:0,guardLeft:0,doubleChoice:1,lastToggle:0,maxDef:Math.max(0,c.card?.def||0),attacksThisTurn:0,lastDischarge:0,guardGrantedTurn:0,drainPreference:0,lastDrainSwitch:0};
+  if(!c.essenceCombat)c.essenceCombat={soul:0,condensed:0,cooldown:0,condenseLeft:0,condenseSlice:0,guardLeft:0,doubleChoice:1,lastToggle:0,maxDef:Math.max(0,c.card?.def||0),attacksThisTurn:0,lastDischarge:0,guardGrantedTurn:0,drainPreference:0,lastDrainSwitch:0,lastSoulAction:0,raidCooldown:0};
   return c.essenceCombat;
  };
  const roll=(g,n)=>randomInt(g,Math.max(1,n));
@@ -72,6 +72,19 @@
   g.damageDealt[owner]+=actual;logEvent(g,desc+': '+actual+' LP Burn.');
   if(g.players[victim].lp===0)conclude(g,owner,'Seelenessenz hat die Lebenspunkte auf 0 reduziert.');
   return actual;
+ }
+ // Conversion, not extraction: the attacker still loses exactly the drained stats.
+ // Soul fusions convert at 150%, ordinary eaters at 100%; Bollwerk never stacks multiplicatively.
+ function conversionFactor(g,creature,owner){
+  const tier=activeSchool(g)==='defense'&&owner===0?perkRank(buffTier(g)):0;
+  const school=tier>=4?1.22:tier>=2?1.08:1;
+  return Math.max(school,creature.fusion&&isSoul(creature)?1.50:1);
+ }
+ function storeDrainedEnergy(g,creature,owner,earned){
+  const e=statLayer(creature),limit=250+dataOf(creature).level*125;
+  const gain=Math.min(Math.max(0,limit-e.soul),Math.floor(earned*conversionFactor(g,creature,owner)));
+  e.soul+=gain;
+  return gain;
  }
  function absorb(g,creature,owner){
   const store=statLayer(creature),opponent=g.players[1-owner];
@@ -92,10 +105,7 @@
    earned+=lost.atk+lost.def;drainedDef+=lost.def;drainedAtk+=lost.atk;if(lost.atk+lost.def)targets.push({uid:target.uid,index:opponent.field.indexOf(target),amount:lost.atk+lost.def});
   }
   if(!earned)return;
-  const tier=activeSchool(g)==='defense'&&owner===0?perkRank(buffTier(g)):0;
-  const intake=tier>=4?1.22:tier>=2?1.08:1;
-  const gain=Math.min(Math.max(0,250+lv*125-store.soul),Math.floor(earned*intake));
-  store.soul+=gain;
+  const gain=storeDrainedEnergy(g,creature,owner,earned);
   window.ArcaneDefenderFX?.record(g,{type:'absorb',owner,uid:creature.uid,index:g.players[owner].field.indexOf(creature),element:dataOf(creature).element,targets,gain});
   // Offensive identity of defensive decks: essence is a steady pressure source,
   // even when attackers wisely refuse to hit the blockade.
@@ -125,6 +135,7 @@
    if(s.condenseLeft===0)s.condensed=0;
   }
   if(s.cooldown>0)s.cooldown--;
+  if(s.raidCooldown>0)s.raidCooldown--;
  }
  const originalCreate=createGame;
  let trial=null;
@@ -375,12 +386,12 @@
  function condense(idx){
   if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0)return false;
   const c=game.players[0].field[idx];if(!c||!isSoul(c)||c.mode!=='def')return false;
-  const e=statLayer(c);if(e.soul<40||e.cooldown>0)return false;
+  const e=statLayer(c);if(e.soul<40||e.cooldown>0||e.lastSoulAction===game.turn)return false;
   const amount=Math.floor(e.soul*.75);
   e.soul-=amount;e.condensed=Math.min(9000,e.condensed+amount);
-  e.condenseLeft=3;e.condenseSlice=Math.ceil(e.condensed/3);e.cooldown=3;
+  e.condenseLeft=3;e.condenseSlice=Math.ceil(e.condensed/3);e.cooldown=3;e.lastSoulAction=game.turn;
   logEvent(game,dataOf(c).name+' verdichtet '+amount+' Seelenessenz (3 eigene Züge Cooldown).');
-  render();return true;
+  saveDuelSnapshot();render();return true;
  }
  function discharge(idx){
   if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0)return false;
@@ -388,10 +399,40 @@
   const e=statLayer(c);
   // All Soul Eaters have an offensive release. Higher rank gains its edge
   // naturally by harvesting more essence; the one-use-per-turn gate remains.
-  if(e.lastDischarge===game.turn||e.soul<40)return false;
-  const amount=e.soul;e.soul=0;e.lastDischarge=game.turn;
+  if(e.lastDischarge===game.turn||e.lastSoulAction===game.turn||e.soul<40)return false;
+  const amount=e.soul;e.soul=0;e.lastDischarge=game.turn;e.lastSoulAction=game.turn;
   addBurn(game,0,Math.floor(amount*1.30),dataOf(c).name+' · aktive Entladung');
-  render();if(game.winner!==null)showFinished();return true;
+  saveDuelSnapshot();render();if(game.winner!==null)showFinished();return true;
+ }
+ // Choose one enemy monster. Seelenraub trades the turn's active ability for
+ // 250% of a normal single-target passive extraction; no immediate LP burn.
+ function soulRaid(idx,targetIndex){
+  if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0||!Number.isInteger(targetIndex)||
+     targetIndex<0||targetIndex>=5)return false;
+  const creature=game.players[0].field[idx],target=game.players[1].field[targetIndex];
+  if(!creature||!isSoul(creature)||creature.mode!=='def'||!target?.card)return false;
+  const layer=statLayer(creature);
+  if(layer.raidCooldown>0||layer.lastSoulAction===game.turn||game.winner!==null)return false;
+  const level=dataOf(creature).level,normal=20+5*level,budget=Math.floor(normal*2.5);
+  const ratio=layer.drainPreference===1?.7:layer.drainPreference===2?.3:.5;
+  const first=ratio>=.5?'atk':'def',second=first==='atk'?'def':'atk';
+  let remaining=budget,drainedAtk=0,drainedDef=0;
+  const take=(stat,n)=>{const real=Math.min(Math.max(0,target.card[stat]),n);
+   target.card[stat]-=real;remaining-=real;if(stat==='atk')drainedAtk+=real;else drainedDef+=real;};
+  take(first,Math.ceil(budget*Math.max(ratio,1-ratio)));
+  take(second,remaining);
+  if(remaining>0)take(first,remaining);
+  const actual=drainedAtk+drainedDef;
+  if(!actual)return false;
+  const gained=storeDrainedEnergy(game,creature,0,actual);
+  layer.raidCooldown=3;layer.lastSoulAction=game.turn;
+  logEvent(game,dataOf(creature).name+' · Seelenraub auf '+dataOf(target).name+
+   ': −'+drainedAtk+' ATK / −'+drainedDef+' DEF, +'+gained+
+   ' Seelenessenz (3 eigene Züge Abklingzeit).');
+  window.ArcaneDefenderFX?.record(game,{type:'absorb',owner:0,uid:creature.uid,
+   index:idx,element:dataOf(creature).element,
+   targets:[{uid:target.uid,index:targetIndex,amount:actual}],gain:gained});
+  saveDuelSnapshot();render();return true;
  }
  function predatorMode(idx){
   if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0)return false;
@@ -419,5 +460,5 @@
   const c=g.players[0].field.find(c=>c?.id===essence().chosen&&CARDS[c.id]?.essenceSchool==='fusion');
   return c?1+(activeSchool(g)==='fusion'&&perkRank(buffTier(g))>=3?1:0):0;
  }
- window.ArcaneEssenceCombat={condense,discharge,predatorMode,fusionRollBonus,beginTrial,chooseDrain,statLayer,roleOf,soulRank,perkRank,evolvedLevel,rankCap,nextCost,essence,schools,schoolName,monsterIds};
+ window.ArcaneEssenceCombat={condense,discharge,soulRaid,conversionFactor,predatorMode,fusionRollBonus,beginTrial,chooseDrain,statLayer,roleOf,soulRank,perkRank,evolvedLevel,rankCap,nextCost,essence,schools,schoolName,monsterIds};
 })();

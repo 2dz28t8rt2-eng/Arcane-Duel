@@ -241,7 +241,7 @@ chooseAiAction=function(g,policy='balanced'){
 };
 
 function fusionRoleWeights(role){
- return role==='predator'?{atk:1.20,def:.75}:role==='guardian'||role==='soul'?{atk:.75,def:1.25}:{atk:1,def:1};
+ return role==='predator'?{atk:1.20,def:.75}:role==='guardian'||role==='soul'?{atk:.75,def:1.35}:{atk:1,def:1};
 }
 fusedInstance=function(g,instances,levels){
  if(instances.length>5||instances.length<2)return null;
@@ -292,6 +292,36 @@ fusedInstance=function(g,instances,levels){
   logEvent(g,dataOf(result).name+' erbt '+imprint.role+' durch '+instances.length+
    ' Materialien: die Rolle prägt bereits die Würfelgrundwerte.');
  }
+ // Field materials can pass on a bounded part of already collected soul energy.
+ // A hand material contributes nothing; materials are consumed in the real fusion transaction.
+ if(g.mode==='pve'){
+  const fieldUids=new Set(g.players[g.active].field.filter(Boolean).map(c=>c.uid));
+  const used=new Set(),charged=instances.filter(c=>{
+   if(!fieldUids.has(c.uid)||used.has(c.uid))return false;
+   used.add(c.uid);return true;
+  });
+  const stored=charged.reduce((n,c)=>n+Math.max(0,Math.min(2000,c.essenceCombat?.soul||0)),0);
+  if(stored>0){
+   const available=Math.max(0,10000-result.card.def);
+   const defGain=Math.min(250,available,Math.floor(stored*.30/10)*10);
+   if(defGain){
+    result.card.def+=defGain;
+    result.rollMath.final.def+=defGain;
+    result.rollMath.bonus.def+=defGain; // Keep the rolled-stat equation truthful.
+   }
+   let carried=0;
+   if(role==='soul'){
+    const layer=window.ArcaneEssenceCombat?.statLayer?.(result);
+    if(layer){
+     carried=Math.min(250+result.card.level*125,Math.floor(stored*.30));
+     layer.soul=carried; // Never return more energy than the consumed inputs.
+     layer.maxDef=result.card.def;
+    }
+   }
+   result.soulInheritance={energy:stored,defBonus:defGain,carried};
+   logEvent(g,'Seelen-Erbe der Feldfusion: '+stored+' eingesetzte Seelenenergie → +'+defGain+' DEF'+(carried?' und '+carried+' gespeicherte Seelenessenz':'')+'.');
+  }
+ }
  logEvent(g,template.name+': '+instances.length+' Materialien · '+f.name+' · '+rolls+
   ' Rollenwürfe · final ATK '+best.atk+' / DEF '+best.def+'.');
  return result;
@@ -319,6 +349,12 @@ validateDuelSnapshot=function(raw){const projected=JSON.parse(JSON.stringify(raw
    to.roleMaterials=Number.isInteger(from.roleMaterials)&&from.roleMaterials>=3&&from.roleMaterials<=5?from.roleMaterials:3;
   }
   if(from.soulAwakened===true&&to.roleOverride==='soul')to.soulAwakened=true;
+  if(from.soulInheritance&&['energy','defBonus','carried'].every(k=>
+   Number.isSafeInteger(from.soulInheritance[k])&&from.soulInheritance[k]>=0)&&
+   from.soulInheritance.energy<=8000&&from.soulInheritance.defBonus<=250&&
+   from.soulInheritance.carried<=2000)
+   to.soulInheritance={energy:from.soulInheritance.energy,
+    defBonus:from.soulInheritance.defBonus,carried:from.soulInheritance.carried};
   if(typeof from.pattern==='string'&&from.pattern.length<=50)to.pattern=from.pattern;
   if(Number.isInteger(from.materialsUsed)&&from.materialsUsed>=2&&from.materialsUsed<=5)to.materialsUsed=from.materialsUsed;
   const finite=n=>Number.isInteger(n)&&n>=0&&n<=10000;
