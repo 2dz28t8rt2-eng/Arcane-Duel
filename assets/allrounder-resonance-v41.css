@@ -1,0 +1,15 @@
+/* Allrounder resonance appears beneath the monster artwork, not on hand art. */
+html body #duelScreen .monster-slot .ad-resonance-chip{
+ position:absolute;z-index:17;right:3px;bottom:3px;pointer-events:none;
+ padding:2px 4px;border:1px solid #d6be81b3;border-radius:5px;
+ background:#342a1df0;color:#f7dfa5;
+ font:800 10px/1.25 system-ui,sans-serif;
+ box-shadow:0 0 9px #dcbd7477;
+}
+.evo-resonance-note,.ritual-resonance-note{
+ color:#e3d5a4!important;font:800 12px/1.5 system-ui,sans-serif;
+ text-align:center;padding:4px 8px;
+ border:1px solid #b79a6590;border-radius:6px;
+ background:linear-gradient(90deg,#382c16d9,#55411d90,#382c16d9);
+ text-shadow:0 0 7px #ead09591;
+}
