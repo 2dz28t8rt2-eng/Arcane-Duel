@@ -70,7 +70,7 @@ test('Allrounder perk cannot alter classic PvP or permanent template stats',()=>
 test('Resonance UI and animation render authoritative quality bonus only',()=>{
  const read=p=>fs.readFileSync(path.resolve(__dirname,'..',p),'utf8');
  assert.match(read('index.html'),/allrounder-resonance-v41\.js/);
- assert.match(read('assets/fusion-cinema-ritual.js'),/ALLROUNDER-RESONANZ/);
+ assert.match(read('assets/fusion-cinema-ritual.js'),/MATERIAL-RESONANZ/);
  assert.match(read('assets/evolution.js'),/resonanceFusion/);
 });
 
