@@ -18,12 +18,12 @@
  '<path d="M150 25 162 56 150 72 138 56Z M150 228 162 244 150 275 138 244Z M25 150 56 138 72 150 56 162Z M228 150 244 138 275 150 244 162Z" fill="none" stroke="currentColor" stroke-width="1.5"/>'+
  '<path d="M150 88 165 135 212 150 165 165 150 212 135 165 88 150 135 135Z M150 109 191 150 150 191 109 150Z M150 65V103 M150 197V235 M65 150H103 M197 150H235" fill="none" stroke="currentColor" stroke-width="1.3"/>'+
  '<circle cx="150" cy="150" r="12" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="150" cy="150" r="3.5" fill="currentColor"/></svg></div>';
- // Animated showcase. Draw from every active RPG monster, including level-10 cards.
+ // Animated showcase. Use current illustrated monsters, including level-10 cards.
  // Visual previews never create, unlock or award an actual card.
  let showcaseLastArt=[],showcaseCycle=0,transitioning=false,rotationTimer=null;
  const reduceMotion=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
- const allArt=()=>CARDS.filter(c=>c?.rpg&&c.level>=1&&c.level<=10&&!c.retired&&
-   typeof c.art==='string'&&/^(assets\/|data:image\/svg\+xml)/.test(c.art));
+ const allArt=()=>CARDS.filter(c=>c?.rpg&&c.level>=1&&c.level<=10&&!c.retired&&!c.enemyOnly&&
+   typeof c.art==='string'&&/^assets\//.test(c.art));
  function shuffled(values){
   const arr=[...values];
   for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
@@ -54,13 +54,14 @@
  }
  function showcaseMarkup(cards){
   return cards.map((c,i)=>'<div class="atlas-preview-card atlas-preview-'+i+
-   (c.level>=10?' atlas-lv10':c.level===9?' atlas-lv9':c.level===8?' atlas-lv8':'')+'" data-card-level="'+c.level+'">'+
-   '<span class="atlas-preview-corner">✦</span>'+
-   '<img src="'+escape(c.art)+'" alt="" loading="lazy" decoding="async">'+
-   '<span class="atlas-preview-footer">LV '+c.level+'</span>'+
-   (c.level>=10?'<span class="atlas-legend-energy" aria-hidden="true">'+
-    '<i></i><i></i><i></i><i></i><i></i><i></i><b>ϟ</b></span>':'')+'</div>').join('');
+   (c.level>=10?' atlas-lv10':c.level===9?' atlas-lv9':c.level===8?' atlas-lv8':'')+'" data-card-id="'+c.id+'" data-card-level="'+c.level+'" inert>'+
+   fullCardHtml({id:c.id},'tabindex="-1" aria-hidden="true"','atlas-showcase-face')+'</div>').join('');
  }
+ function refreshShowcase(){
+  const rack=document.querySelector('#menuHero .atlas-showcase-cards');
+  if(rack&&uiMode==='menu')rack.innerHTML=showcaseMarkup(featureArt());
+ }
+
  function rotateShowcase(){
   document.documentElement.classList.toggle('ad-motion-disabled',animationSpeed==='instant'||reduceMotion());
   if(transitioning||uiMode!=='menu'||document.hidden||!document.getElementById('menuHero'))return;
@@ -135,7 +136,10 @@
  }
  renderMenu=function(){previous();decorate();};
  if(uiMode==='menu')renderMenu();
- window.ArcaneArchiveTheme={version:'1.2.0',name:'Gilded Archive',rotateShowcase};
+ window.ArcaneArchiveTheme={version:'1.3.1',name:'Gilded Archive',rotateShowcase,renderCards:showcaseMarkup};
+ // Deferred frame and artwork modules are ready before this first refresh.
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refreshShowcase,{once:true});
+ else refreshShowcase();
  // One timer per page instance, no whole-menu rerender and no gameplay changes.
  setInterval(rotateShowcase,7600);
 })();

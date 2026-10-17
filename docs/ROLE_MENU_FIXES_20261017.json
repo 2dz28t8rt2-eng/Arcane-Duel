@@ -1,0 +1,962 @@
+{
+  "baseline": "1ebbd02ba84e81e523275ee193c8b359e2130795",
+  "baseline_combat_report": "7c3ea2bd33aa0d3af0938dada5bdb81044d4e66c",
+  "date": "2026-10-17",
+  "method": "Same deterministic seeds, role-aware controller and original NPC AI; mock presentation and timers. Synthetic defenders contain both Guardians and Soul Eaters. Career inventories and spending are earned in actual duels.",
+  "states": {
+    "before": {
+      "individual_duels": 3840,
+      "fusion_count": 18928,
+      "trace_issues": 4665,
+      "career_duels": 1600,
+      "career_errors": 0,
+      "valid_final_saves": 48,
+      "reward_duplicate_checks": 1600,
+      "comparisons": [
+        {
+          "kind": "predator",
+          "difficulty": "easy",
+          "rank": 0,
+          "n": 240,
+          "wins": 238,
+          "half_turns": 9.025
+        },
+        {
+          "kind": "predator",
+          "difficulty": "easy",
+          "rank": 3,
+          "n": 240,
+          "wins": 239,
+          "half_turns": 7.838
+        },
+        {
+          "kind": "predator",
+          "difficulty": "hard",
+          "rank": 0,
+          "n": 240,
+          "wins": 212,
+          "half_turns": 11.879
+        },
+        {
+          "kind": "predator",
+          "difficulty": "hard",
+          "rank": 3,
+          "n": 240,
+          "wins": 233,
+          "half_turns": 10.158
+        },
+        {
+          "kind": "defense",
+          "difficulty": "easy",
+          "rank": 0,
+          "n": 240,
+          "wins": 237,
+          "half_turns": 15.804
+        },
+        {
+          "kind": "defense",
+          "difficulty": "easy",
+          "rank": 3,
+          "n": 240,
+          "wins": 239,
+          "half_turns": 15.104
+        },
+        {
+          "kind": "defense",
+          "difficulty": "hard",
+          "rank": 0,
+          "n": 240,
+          "wins": 210,
+          "half_turns": 19.337
+        },
+        {
+          "kind": "defense",
+          "difficulty": "hard",
+          "rank": 3,
+          "n": 240,
+          "wins": 221,
+          "half_turns": 19.033
+        },
+        {
+          "kind": "fusion",
+          "difficulty": "easy",
+          "rank": 0,
+          "n": 240,
+          "wins": 237,
+          "half_turns": 11.592
+        },
+        {
+          "kind": "fusion",
+          "difficulty": "easy",
+          "rank": 3,
+          "n": 240,
+          "wins": 237,
+          "half_turns": 11.488
+        },
+        {
+          "kind": "fusion",
+          "difficulty": "hard",
+          "rank": 0,
+          "n": 240,
+          "wins": 205,
+          "half_turns": 14.35
+        },
+        {
+          "kind": "fusion",
+          "difficulty": "hard",
+          "rank": 3,
+          "n": 240,
+          "wins": 206,
+          "half_turns": 14.329
+        },
+        {
+          "kind": "mixed",
+          "difficulty": "easy",
+          "rank": 0,
+          "n": 240,
+          "wins": 240,
+          "half_turns": 11.838
+        },
+        {
+          "kind": "mixed",
+          "difficulty": "easy",
+          "rank": 3,
+          "n": 240,
+          "wins": 240,
+          "half_turns": 12.012
+        },
+        {
+          "kind": "mixed",
+          "difficulty": "hard",
+          "rank": 0,
+          "n": 240,
+          "wins": 211,
+          "half_turns": 15.146
+        },
+        {
+          "kind": "mixed",
+          "difficulty": "hard",
+          "rank": 3,
+          "n": 240,
+          "wins": 216,
+          "half_turns": 15.067
+        }
+      ],
+      "careers": [
+        {
+          "kind": "predator",
+          "n": 12,
+          "cleared_X": 12,
+          "duels": 397,
+          "mean_duels": 33.083,
+          "median_duels": 33.0,
+          "min_duels": 19,
+          "max_duels": 55,
+          "by_seed": [
+            {
+              "seed": 101,
+              "duels": 19,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 103,
+              "duels": 33,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 107,
+              "duels": 32,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 109,
+              "duels": 29,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 113,
+              "duels": 34,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 127,
+              "duels": 55,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 131,
+              "duels": 33,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 137,
+              "duels": 37,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 139,
+              "duels": 20,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 149,
+              "duels": 29,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 151,
+              "duels": 35,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 157,
+              "duels": 41,
+              "cleared": 10,
+              "error": null
+            }
+          ]
+        },
+        {
+          "kind": "defense",
+          "n": 12,
+          "cleared_X": 12,
+          "duels": 451,
+          "mean_duels": 37.583,
+          "median_duels": 32.5,
+          "min_duels": 26,
+          "max_duels": 57,
+          "by_seed": [
+            {
+              "seed": 101,
+              "duels": 28,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 103,
+              "duels": 33,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 107,
+              "duels": 57,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 109,
+              "duels": 51,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 113,
+              "duels": 27,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 127,
+              "duels": 31,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 131,
+              "duels": 27,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 137,
+              "duels": 47,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 139,
+              "duels": 32,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 149,
+              "duels": 26,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 151,
+              "duels": 51,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 157,
+              "duels": 41,
+              "cleared": 10,
+              "error": null
+            }
+          ]
+        },
+        {
+          "kind": "fusion",
+          "n": 12,
+          "cleared_X": 11,
+          "duels": 392,
+          "mean_duels": 32.667,
+          "median_duels": 26.5,
+          "min_duels": 16,
+          "max_duels": 77,
+          "by_seed": [
+            {
+              "seed": 101,
+              "duels": 18,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 103,
+              "duels": 25,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 107,
+              "duels": 38,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 109,
+              "duels": 29,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 113,
+              "duels": 77,
+              "cleared": 9,
+              "error": null
+            },
+            {
+              "seed": 127,
+              "duels": 54,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 131,
+              "duels": 26,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 137,
+              "duels": 35,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 139,
+              "duels": 27,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 149,
+              "duels": 22,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 151,
+              "duels": 16,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 157,
+              "duels": 25,
+              "cleared": 10,
+              "error": null
+            }
+          ]
+        },
+        {
+          "kind": "mixed",
+          "n": 12,
+          "cleared_X": 12,
+          "duels": 360,
+          "mean_duels": 30,
+          "median_duels": 28.0,
+          "min_duels": 20,
+          "max_duels": 45,
+          "by_seed": [
+            {
+              "seed": 101,
+              "duels": 20,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 103,
+              "duels": 20,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 107,
+              "duels": 31,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 109,
+              "duels": 25,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 113,
+              "duels": 37,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 127,
+              "duels": 42,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 131,
+              "duels": 20,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 137,
+              "duels": 35,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 139,
+              "duels": 22,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 149,
+              "duels": 22,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 151,
+              "duels": 45,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 157,
+              "duels": 41,
+              "cleared": 10,
+              "error": null
+            }
+          ]
+        }
+      ]
+    },
+    "after": {
+      "individual_duels": 3840,
+      "fusion_count": 18907,
+      "trace_issues": 0,
+      "career_duels": 1552,
+      "career_errors": 0,
+      "valid_final_saves": 48,
+      "reward_duplicate_checks": 1552,
+      "comparisons": [
+        {
+          "kind": "predator",
+          "difficulty": "easy",
+          "rank": 0,
+          "n": 240,
+          "wins": 238,
+          "half_turns": 9.025
+        },
+        {
+          "kind": "predator",
+          "difficulty": "easy",
+          "rank": 3,
+          "n": 240,
+          "wins": 239,
+          "half_turns": 7.838
+        },
+        {
+          "kind": "predator",
+          "difficulty": "hard",
+          "rank": 0,
+          "n": 240,
+          "wins": 212,
+          "half_turns": 11.879
+        },
+        {
+          "kind": "predator",
+          "difficulty": "hard",
+          "rank": 3,
+          "n": 240,
+          "wins": 233,
+          "half_turns": 10.158
+        },
+        {
+          "kind": "defense",
+          "difficulty": "easy",
+          "rank": 0,
+          "n": 240,
+          "wins": 237,
+          "half_turns": 15.758
+        },
+        {
+          "kind": "defense",
+          "difficulty": "easy",
+          "rank": 3,
+          "n": 240,
+          "wins": 239,
+          "half_turns": 15.092
+        },
+        {
+          "kind": "defense",
+          "difficulty": "hard",
+          "rank": 0,
+          "n": 240,
+          "wins": 210,
+          "half_turns": 19.321
+        },
+        {
+          "kind": "defense",
+          "difficulty": "hard",
+          "rank": 3,
+          "n": 240,
+          "wins": 221,
+          "half_turns": 19.033
+        },
+        {
+          "kind": "fusion",
+          "difficulty": "easy",
+          "rank": 0,
+          "n": 240,
+          "wins": 237,
+          "half_turns": 11.592
+        },
+        {
+          "kind": "fusion",
+          "difficulty": "easy",
+          "rank": 3,
+          "n": 240,
+          "wins": 237,
+          "half_turns": 11.496
+        },
+        {
+          "kind": "fusion",
+          "difficulty": "hard",
+          "rank": 0,
+          "n": 240,
+          "wins": 205,
+          "half_turns": 14.342
+        },
+        {
+          "kind": "fusion",
+          "difficulty": "hard",
+          "rank": 3,
+          "n": 240,
+          "wins": 206,
+          "half_turns": 14.329
+        },
+        {
+          "kind": "mixed",
+          "difficulty": "easy",
+          "rank": 0,
+          "n": 240,
+          "wins": 240,
+          "half_turns": 11.871
+        },
+        {
+          "kind": "mixed",
+          "difficulty": "easy",
+          "rank": 3,
+          "n": 240,
+          "wins": 240,
+          "half_turns": 12.029
+        },
+        {
+          "kind": "mixed",
+          "difficulty": "hard",
+          "rank": 0,
+          "n": 240,
+          "wins": 211,
+          "half_turns": 15.188
+        },
+        {
+          "kind": "mixed",
+          "difficulty": "hard",
+          "rank": 3,
+          "n": 240,
+          "wins": 216,
+          "half_turns": 15.083
+        }
+      ],
+      "careers": [
+        {
+          "kind": "predator",
+          "n": 12,
+          "cleared_X": 12,
+          "duels": 397,
+          "mean_duels": 33.083,
+          "median_duels": 33.0,
+          "min_duels": 19,
+          "max_duels": 55,
+          "by_seed": [
+            {
+              "seed": 101,
+              "duels": 19,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 103,
+              "duels": 33,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 107,
+              "duels": 32,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 109,
+              "duels": 29,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 113,
+              "duels": 34,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 127,
+              "duels": 55,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 131,
+              "duels": 33,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 137,
+              "duels": 37,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 139,
+              "duels": 20,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 149,
+              "duels": 29,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 151,
+              "duels": 35,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 157,
+              "duels": 41,
+              "cleared": 10,
+              "error": null
+            }
+          ]
+        },
+        {
+          "kind": "defense",
+          "n": 12,
+          "cleared_X": 12,
+          "duels": 422,
+          "mean_duels": 35.167,
+          "median_duels": 33.0,
+          "min_duels": 26,
+          "max_duels": 51,
+          "by_seed": [
+            {
+              "seed": 101,
+              "duels": 28,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 103,
+              "duels": 33,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 107,
+              "duels": 28,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 109,
+              "duels": 39,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 113,
+              "duels": 27,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 127,
+              "duels": 32,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 131,
+              "duels": 35,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 137,
+              "duels": 33,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 139,
+              "duels": 49,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 149,
+              "duels": 26,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 151,
+              "duels": 51,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 157,
+              "duels": 41,
+              "cleared": 10,
+              "error": null
+            }
+          ]
+        },
+        {
+          "kind": "fusion",
+          "n": 12,
+          "cleared_X": 11,
+          "duels": 392,
+          "mean_duels": 32.667,
+          "median_duels": 26.5,
+          "min_duels": 16,
+          "max_duels": 77,
+          "by_seed": [
+            {
+              "seed": 101,
+              "duels": 18,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 103,
+              "duels": 25,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 107,
+              "duels": 38,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 109,
+              "duels": 29,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 113,
+              "duels": 77,
+              "cleared": 9,
+              "error": null
+            },
+            {
+              "seed": 127,
+              "duels": 54,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 131,
+              "duels": 26,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 137,
+              "duels": 35,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 139,
+              "duels": 27,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 149,
+              "duels": 22,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 151,
+              "duels": 16,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 157,
+              "duels": 25,
+              "cleared": 10,
+              "error": null
+            }
+          ]
+        },
+        {
+          "kind": "mixed",
+          "n": 12,
+          "cleared_X": 12,
+          "duels": 341,
+          "mean_duels": 28.417,
+          "median_duels": 23.5,
+          "min_duels": 20,
+          "max_duels": 45,
+          "by_seed": [
+            {
+              "seed": 101,
+              "duels": 20,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 103,
+              "duels": 20,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 107,
+              "duels": 31,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 109,
+              "duels": 25,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 113,
+              "duels": 37,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 127,
+              "duels": 42,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 131,
+              "duels": 20,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 137,
+              "duels": 35,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 139,
+              "duels": 22,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 149,
+              "duels": 22,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 151,
+              "duels": 45,
+              "cleared": 10,
+              "error": null
+            },
+            {
+              "seed": 157,
+              "duels": 22,
+              "cleared": 10,
+              "error": null
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

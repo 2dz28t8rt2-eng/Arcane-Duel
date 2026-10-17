@@ -53,8 +53,11 @@
  }
  const essence=()=>profile.essence||(profile.essence=defaults());
  const isOwn=(card)=>!!card&&card.id===essence().chosen;
- const isSoul=c=>(c?.roleOverride||CARDS[c?.id]?.role)==='soul';
- const isDefender=c=>['soul','guardian'].includes(c?.roleOverride||CARDS[c?.id]?.role);
+ // One effective role/rank for passive effects, active abilities and their UI.
+ const roleOf=c=>c?.roleOverride||CARDS[c?.id]?.role||'combatant';
+ const isSoul=c=>roleOf(c)==='soul';
+ const isDefender=c=>['soul','guardian'].includes(roleOf(c));
+ const soulRank=c=>isSoul(c)?(c.soulRank||CARDS[c.id]?.soulRank||Math.min(5,Math.max(1,Math.ceil(dataOf(c).level/2)))):0;
  const isEssenceDuel=g=>g?.mode==='pve'&&g.essenceRules===true;
  const buffTier=g=>Math.max(0,g?.essenceTier||0);
  const activeSchool=g=>g?.essenceSchool||null;
@@ -72,7 +75,7 @@
  }
  function absorb(g,creature,owner){
   const store=statLayer(creature),opponent=g.players[1-owner];
-  const lv=dataOf(creature).level,rank=creature.soulRank||CARDS[creature.id].soulRank||Math.min(5,Math.max(1,Math.ceil(lv/2)));
+  const lv=dataOf(creature).level,rank=soulRank(creature);
   let earned=0,drainedDef=0,drainedAtk=0;
   for(const target of opponent.field.filter(Boolean)){
    if(!target.card)continue;
@@ -332,7 +335,7 @@
    const owner=g.active,team=g.players[owner].field.filter(Boolean);
    // Guardian healing restores base creature HP only; no bonus-layer duplication.
    const allies=team.filter(c=>isDefender(c)&&c.mode==='def');
-   for(const guardian of team.filter(c=>CARDS[c.id]?.role==='guardian'&&c.mode==='def')){
+   for(const guardian of team.filter(c=>roleOf(c)==='guardian'&&c.mode==='def')){
     for(const ally of allies){
      if(ally===guardian||!ally.card)continue;
      const layer=statLayer(ally),amount=Math.min(150,25+dataOf(guardian).level*12);
@@ -404,7 +407,7 @@
  function chooseDrain(idx,stat){
   if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0)return false;
   const c=game.players[0].field[idx],s=c&&statLayer(c);
-  if(!c||!isSoul(c)||!s||c.mode!=='def'||(CARDS[c.id]?.soulRank||0)<3||s.lastDrainSwitch===game.turn||!['atk','def'].includes(stat))return false;
+  if(!c||!isSoul(c)||!s||c.mode!=='def'||soulRank(c)<3||s.lastDrainSwitch===game.turn||!['atk','def'].includes(stat))return false;
   s.drainPreference=stat==='atk'?1:2;s.lastDrainSwitch=game.turn;render();return true;
  }
  function fusionRollBonus(g){
@@ -412,5 +415,5 @@
   const c=g.players[0].field.find(c=>c?.id===essence().chosen&&CARDS[c.id]?.essenceSchool==='fusion');
   return c?1+(activeSchool(g)==='fusion'&&perkRank(buffTier(g))>=3?1:0):0;
  }
- window.ArcaneEssenceCombat={condense,discharge,predatorMode,fusionRollBonus,beginTrial,chooseDrain,statLayer,perkRank,evolvedLevel,rankCap,nextCost,essence,schools,schoolName,monsterIds};
+ window.ArcaneEssenceCombat={condense,discharge,predatorMode,fusionRollBonus,beginTrial,chooseDrain,statLayer,roleOf,soulRank,perkRank,evolvedLevel,rankCap,nextCost,essence,schools,schoolName,monsterIds};
 })();

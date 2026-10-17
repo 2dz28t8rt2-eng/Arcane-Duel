@@ -1,0 +1,64 @@
+<!doctype html><html lang="de"><meta charset="utf-8"><title>Arcane Duel – Menükarten und Rollenfähigkeiten</title>
+<style>body{font:13px system-ui;background:#101728;color:#edf0f8;margin:12px}pre{white-space:pre-wrap}iframe{width:100%;height:900px;border:0}</style>
+<h1>Menükarten und geerbte Seelenfähigkeiten</h1><pre id="result">Prüfung läuft …</pre><iframe id="app" src="../index.html" title="Arcane Duel"></iframe>
+<script>
+document.getElementById('app').addEventListener('load',async()=>{
+ const frame=document.getElementById('app'),w=frame.contentWindow,d=w.document,output=document.getElementById('result');
+ const lines=[];let pass=true;
+ const check=(ok,label)=>{lines.push((ok?'OK: ':'FEHLER: ')+label);if(!ok)pass=false;output.textContent=lines.join('\n');};
+ try{
+  const before=w.eval('JSON.stringify({inventory:profile.inventory,coins:profile.coins,xp:profile.xp,cleared:profile.cleared,deck:profile.activeDeck})');
+  const rack=d.querySelector('#menuHero .atlas-showcase-cards');
+  check(rack?.children.length===3,'All three live menu cards are present after startup');
+  for(const wrapper of rack.children){
+   const card=wrapper.querySelector('.hand-card'),current=w.eval('CARDS['+wrapper.dataset.cardId+']');
+   check(card?.classList.contains('ad-level-frame'),'Live showcase uses the canonical level frame');
+   check(card?.querySelector('.card-name')?.textContent===current.name,'Startup showcase uses the current monster name');
+   check(current.art.startsWith('assets/'),'Showcase omits legacy procedural placeholder artwork');
+   check(card?.querySelector('.hand-art img')?.getAttribute('src')===current.art,'Startup showcase uses the current monster artwork');
+  }
+  // Force an LV10 front card so the former blur is covered on every run.
+  rack.innerHTML=w.ArcaneArchiveTheme.renderCards(w.eval('[CARDS[0],CARDS[ACE_CARD_IDS[10]],CARDS[ESSENCE_MONSTER_IDS.fusion]]'));
+  // Headless virtual time may suspend iframe rAF after result text grows.
+  // The parent timer keeps the test progressing even when the frame is offscreen.
+  await new Promise(resolve=>setTimeout(resolve,120));
+  for(const wrapper of rack.children){
+   const card=wrapper.querySelector('.hand-card'),img=card.querySelector('.hand-art img');
+   if(!img.complete)await new Promise((resolve,reject)=>{
+    img.addEventListener('load',resolve,{once:true});img.addEventListener('error',()=>reject(Error('Artwork load failed')), {once:true});
+   });
+   check(img.naturalWidth>0,'Full-resolution artwork loads');
+   check(card.classList.contains('ad-template')&&card.classList.contains('ad-level-frame'),'Same complete card shell as collection and duel');
+   check(!!card.querySelector('.ad-level-medallion')&&!!card.querySelector('.stat.atk')&&!!card.querySelector('.stat.def'),'Level seal and both live values appear');
+   check(w.getComputedStyle(wrapper).display!=='none','All three fan cards remain visible at this viewport');
+   check(w.getComputedStyle(wrapper).filter==='none'&&w.getComputedStyle(img).filter==='none','No blur or aura filter on the card face');
+   check(w.getComputedStyle(img).animationName==='none','LV10 artwork has no brightness or blur animation');
+   check(w.getComputedStyle(wrapper,'::after').display==='none','Old foil overlay cannot wash out the artwork');
+   check(wrapper.hasAttribute('inert')&&card.tabIndex===-1,'Decorative previews cannot trigger gameplay or keyboard focus');
+  }
+  check(rack.children[1].classList.contains('atlas-lv10'),'Formerly affected LV10 front card is explicitly covered');
+  // Create a real material fusion on an originally Predator template.
+  w.eval(`hideModal();animationSpeed='instant';busy=false;aiRunning=false;
+   const target=RPG_FUSIONS.find(c=>c.role==='predator'&&c.level===5&&!c.retired&&!c.enemyOnly);
+   const other=RPG_FUSIONS.find(c=>c.id!==target.id&&c.level<=5&&!c.retired&&!c.enemyOnly);
+   game=createGame({id:'browser-role-regression',mode:'pve',context:'free',opponentId:7,seed:60139,
+    deck:RPG_DEFAULT_DECK,fusionDeck:[target.id,other.id]});game.active=0;game.turn=4;
+   game.players[0].field.fill(null);game.players[1].field.fill(null);
+   const materials=[...ARCANE_STAGE_IDS.values()].filter(id=>CARDS[id].role==='soul'&&CARDS[id].level===4).slice(0,2).map(id=>newInstance(game,id,0));
+   game.fusionChoice=target.id;const fused=fusedInstance(game,materials,[4,4]);delete game.fusionChoice;
+   fused.mode='def';game.players[0].field[0]=fused;window.ArcaneEssenceCombat.statLayer(fused).soul=100;
+   game.selection={type:'field',idx:0};uiMode='duel';$('menuScreen').hidden=true;$('duelScreen').hidden=false;render();`);
+  const buttons=[...d.querySelectorAll('.essence-actions [data-essence-drain]')];
+  check(!!d.querySelector('#largeCardPreview .essence-role-soul')&&!d.querySelector('#largeCardPreview .essence-role-predator'),'Large preview role chip matches the inherited Soul role');
+  check(buttons.length===2,'Inherited Soul Eater exposes both focus buttons in the actual control bar');
+  check(!!d.querySelector('.essence-actions [data-essence-combat="discharge"]'),'Inherited Soul Eater exposes its discharge action');
+  const defButton=d.querySelector('.essence-actions [data-essence-drain="def"]');
+  check(!!defButton&&!defButton.disabled,'Rank-three inherited DEF focus is usable');
+  defButton?.click();
+  check(w.eval('game.players[0].field[0].essenceCombat.drainPreference')===2,'Clicking DEF focus changes the real fusion instance');
+  check([...d.querySelectorAll('.essence-actions [data-essence-drain]')].every(button=>button.disabled),'Focus cannot be changed twice in one turn');
+  check(w.eval('JSON.stringify({inventory:profile.inventory,coins:profile.coins,xp:profile.xp,cleared:profile.cleared,deck:profile.activeDeck})')===before,'Preview and ability checks preserve inventory, currency and progression');
+ }catch(error){check(false,error.stack||String(error));}
+ document.body.dataset.menuRoleTest=pass?'pass':'fail';
+});
+</script></html>

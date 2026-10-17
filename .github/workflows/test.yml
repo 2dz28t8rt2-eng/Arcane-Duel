@@ -161,3 +161,13 @@ jobs:
               exit 1
             fi
           done
+
+          echo "Checking modern menu cards, crisp LV10 artwork and inherited Soul controls..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-renderer-backgrounding --virtual-time-budget=35000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-menu-role-fixes-v41.html >"/tmp/arcane-menu-role-${size}.html" 2>/tmp/arcane-menu-role.log
+            if ! grep -q 'data-menu-role-test="pass"' "/tmp/arcane-menu-role-${size}.html"; then
+              echo "Menu card / inherited ability regression failed at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/arcane-menu-role-${size}.html" | head -100 || true
+              exit 1
+            fi
+          done
