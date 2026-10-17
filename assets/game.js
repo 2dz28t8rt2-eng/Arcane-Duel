@@ -781,6 +781,7 @@ for(const [name,role,element,origin,kind,color] of ARCANE_NEW_FAMILIES){
  // Stored collection IDs are stable across this addition.
 const GENERIC_START_LV3=addRpgCard({
  name:'Runengeist der Schwelle',level:3,atk:580,def:550,
+ art:'assets/custom-art/generated-4-1/runengeist-der-schwelle.svg',customArt:'assets/custom-art/generated-4-1/runengeist-der-schwelle.svg',
  role:'combatant',kind:'spirit',element:'LICHT',color:'#c7b2ec',
  source:-1,requiredTier:0,rarity:'common',fusionOnly:true,
  desc:'Neutrale Startfusion Stufe 3 · Rollenprägung aus den Materialien.'

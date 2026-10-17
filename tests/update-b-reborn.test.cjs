@@ -13,7 +13,7 @@ function boot(saved=null){
 }
 test('32 workshop families through level 10 retain unique IDs and the fusion/ACE roster',()=>{
  const r=boot().run(`({total:UPDATE_B_ACTIVE_IDS.length,unique:new Set(UPDATE_B_ACTIVE_IDS).size,normal:UPDATE_B_MAIN_IDS.filter(id=>!CARDS[id].ace).length,roots:UPDATE_B_NORMAL_ROOTS.length,variants:NORMAL_LINE_VARIANT_IDS.length,fusions:UPDATE_B_FUSION_IDS.length,aces:UPDATE_B_ACE_IDS.length,roster:RPG_BASE_CARDS.length+RPG_FUSIONS.length,version:SAVE_KEY})`);
- assert.equal(r.total,r.unique);assert.equal(r.roots,22);assert.equal(r.variants,66);assert.equal(r.fusions,30);assert.equal(r.aces,10);assert.equal(r.roster,r.total+3);assert.ok(r.total>=128);assert.equal(r.normal,r.total-40);
+ assert.equal(r.total,r.unique);assert.equal(r.roots,22);assert.equal(r.variants,66);assert.equal(r.fusions,31);assert.equal(r.aces,10);assert.equal(r.roster,r.total+3);assert.ok(r.total>=128);assert.equal(r.normal,r.total-41);
  assert.match(r.version,/v4-reborn$/);
 });
 test('Normal monster family retains one element and one artwork across four real cards',()=>{
@@ -23,7 +23,7 @@ test('Normal monster family retains one element and one artwork across four real
 test('Legacy saves are intentionally ignored and newly created players have valid fresh decks',()=>{
  const old='arcane-duel-rpg-profile-v3';const b=boot([[old,JSON.stringify({coins:1234567,version:3})]]);
  const r=b.run(`({coins:profile.coins,version:profile.version,main:mainDeckError(profile.activeDeck),fusion:fusionDeckError(profile.fusionDeck),length:profile.activeDeck.length,fusionCount:profile.fusionDeck.length,containsOldKey:!!window.localStorage.getItem('arcane-duel-rpg-profile-v3'),activeKeys:Object.keys(profile.inventory).length})`);
- assert.equal(r.coins,0);assert.equal(r.main,'');assert.equal(r.fusion,'');assert.equal(r.length,40);assert.equal(r.fusionCount,4);assert.equal(r.containsOldKey,true);
+ assert.equal(r.coins,0);assert.equal(r.main,'');assert.equal(r.fusion,'');assert.equal(r.length,40);assert.equal(r.fusionCount,6);assert.equal(r.containsOldKey,true);
 });
 test('All tournament tiers have valid opponent decks and preserve collectible ACE identity',()=>{
  const r=boot().run(`OPPONENTS.map(o=>{const levels={};for(const mode of ['easy','hard']){const e=rpgEnemyLoadout(o.id,mode);levels[mode]={main:mainDeckError(e.deck),fusion:fusionDeckError(e.fusionDeck),count:e.deck.length,stock:e.fusionDeck.length,normal:!e.deck.some(id=>CARDS[id].fusionOnly),available:e.deck.every(id=>UPDATE_B_SET.has(id)),fusions:e.fusionDeck.filter(id=>!UPDATE_B_SET.has(id)).length};}return {id:o.id,levels,ace:o.id===0?true:(CARDS[o.aceCard].fusionOnly?levels.easy.stock>=1:true)};})`);

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Runengeist der Schwelle, geisterhafter Runenwanderer im alten Tor">
+<defs>
+ <radialGradient id="sky"><stop stop-color="#9f87d4" offset="0"/><stop stop-color="#332e5d" offset=".38"/><stop stop-color="#0a142d" offset="1"/></radialGradient>
+ <radialGradient id="orb"><stop stop-color="#fff8db" offset="0"/><stop stop-color="#f5ccfa" offset=".16"/><stop stop-color="#9b69e7" offset=".45"/><stop stop-color="#432a8d" stop-opacity=".1" offset=".96"/></radialGradient>
+ <linearGradient id="stone" x2=".8" y2="1"><stop stop-color="#7d819d"/><stop stop-color="#272e48" offset=".52"/><stop stop-color="#101625" offset="1"/></linearGradient>
+ <linearGradient id="robe" x2=".8" y2="1"><stop stop-color="#989ad7"/><stop stop-color="#362c73" offset=".32"/><stop stop-color="#171831" offset=".8"/><stop stop-color="#7b5eaf" offset="1"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="15"/></filter>
+ <filter id="soft"><feGaussianBlur stdDeviation="4"/></filter>
+ <pattern id="grain" patternUnits="userSpaceOnUse" width="68" height="68"><path d="M0 35h68M32 0v68" stroke="#b7b1eb" stroke-width=".5" opacity=".17"/></pattern>
+</defs>
+<rect width="1024" height="1024" fill="url(#sky)"/>
+<path d="M0 690Q110 550 220 645Q350 535 455 660Q560 570 703 660Q837 566 1024 658V1024H0Z" fill="#162333" opacity=".8"/>
+<path d="M0 810Q145 710 307 788Q486 658 663 786Q809 675 1024 790V1024H0Z" fill="#141b2f"/>
+<!-- Ancient arch -->
+<path d="M122 865V342Q156 156 506 112Q870 155 897 342V865H782V382Q757 248 509 228Q280 248 244 382V865Z" fill="url(#stone)" stroke="#aaa8cb" stroke-width="17"/>
+<path d="M207 690V366Q248 216 511 190Q774 211 812 366V690" fill="none" stroke="#dfd0fa" stroke-width="5" opacity=".38"/>
+<path d="M102 292l124-90M820 199l109 97" fill="none" stroke="#9c8aa8" stroke-width="23" opacity=".7"/>
+<!-- Carved runes and dimension-light -->
+<g stroke="#c6a0fa" stroke-width="7" fill="none" opacity=".85">
+<path d="M165 363l25-32v61m-25-28l29 24M838 365l26-36v66m-27-28l32 23"/>
+<path d="M162 482h35m-18-18v38m654-30h41l-21 33-20-33"/>
+<path d="M157 607l22-27 21 28-21 27zm680 5l22-31 20 31-21 26z"/>
+<path d="M154 748l30-43m-22-8l32 50M835 737l26-33 24 33"/>
+</g>
+<ellipse cx="511" cy="450" rx="238" ry="250" fill="#bd8bf8" opacity=".24" filter="url(#glow)"/>
+<circle cx="512" cy="461" r="250" fill="url(#orb)" opacity=".88" filter="url(#soft)"/>
+<!-- Floating armor and luminous cloak of a neutral spectral guardian -->
+<path d="M400 486Q310 558 272 800L194 1030H823L735 797Q713 565 614 488L566 534H450Z" fill="url(#robe)" stroke="#ac8bc3" stroke-width="12"/>
+<path d="M360 710Q313 825 275 1024M644 696Q744 882 773 1024" fill="none" stroke="#c8aae8" stroke-width="11" opacity=".57"/>
+<path d="M452 438l-76 49-24-112 57-87 97-26 111 41 51 90-36 98-82-48Z" fill="#282344" stroke="#ddc5ea" stroke-width="13"/>
+<path d="M427 382Q440 329 507 318Q576 326 600 383Q588 460 510 498Q432 454 427 382Z" fill="#17182c" stroke="#8e72bd" stroke-width="8"/>
+<ellipse cx="472" cy="394" rx="25" ry="15" fill="#e7deff" filter="url(#soft)"/>
+<ellipse cx="550" cy="394" rx="25" ry="15" fill="#e7deff" filter="url(#soft)"/>
+<path d="M431 527l78 57 81-56-14 145-67 62-64-60Z" fill="#53378f" stroke="#d9c3f7" stroke-width="10"/>
+<path d="M509 584V718m-68-74h135M470 615l38 47 42-47" fill="none" stroke="#fff0b2" stroke-width="9"/>
+<circle cx="509" cy="640" r="54" fill="url(#orb)"/>
+<!-- Fractured rune fragments -->
+<g fill="#ab91db" stroke="#efe1ff" stroke-width="5">
+<path d="M278 468l-74-44 23-86 87 21z"/><path d="M706 478l105-33-18-96-102 30z"/>
+<path d="M305 596l-78-8-42 89 108-12z"/><path d="M721 612l77-14 48 87-113-18z"/>
+</g>
+<g fill="#e9d1ff">
+<circle cx="260" cy="310" r="7"/><circle cx="768" cy="272" r="9"/><circle cx="325" cy="223" r="5"/>
+<circle cx="865" cy="560" r="6"/><circle cx="159" cy="576" r="6"/><circle cx="664" cy="198" r="8"/>
+</g>
+<path d="M0 890Q212 836 412 891T1024 868V1024H0Z" fill="#0d1426" opacity=".55"/>
+<rect width="1024" height="1024" fill="url(#grain)" opacity=".24"/>
+</svg>

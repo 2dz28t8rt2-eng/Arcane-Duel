@@ -30,7 +30,7 @@ test('Ungültige Fusion verbraucht keine Ressourcen',()=>{
 
 test('Drei ausgewählte Materialien: eine Fusion und drei Friedhofskarten',()=>{
   const x=boot().run("(()=>{const g=createGame({mode:'pve',starter:0,seed:7}),p=g.players[0],uids=p.hand.slice(0,3).map(c=>c.uid);const ok=prepareHandFusion(g,uids,RPG_START_FUSIONS[0]);return {ok,hand:p.hand.length,grave:p.graveyard.length,fusions:p.remainingFusion.length,pending:g.pending?.kind};})()");
-  assert.deepEqual(plain(x),{ok:true,hand:2,grave:3,fusions:1,pending:'fusion'});
+  assert.deepEqual(plain(x),{ok:true,hand:2,grave:3,fusions:2,pending:'fusion'});
 });
 
 test('Feldfusion verbraucht eine Kopie und behält Position und Angriffsstatus',()=>{
@@ -73,7 +73,7 @@ test('100 deterministische Duelle werden ohne Hänger abgeschlossen',()=>{
 });
 
 test('Volles Feld verhindert Fusion ohne gültige zweite Fusionskopie',()=>{
- const x=boot().run("(()=>{const g=createGame({mode:'pve',starter:0,seed:88}),p=g.players[0],id=RPG_DEFAULT_DECK[0];p.field=Array.from({length:5},()=>newInstance(g,id,0));p.hand[0]=newInstance(g,id,0);p.hand[1]=newInstance(g,id,0);const ids=p.hand.slice(0,2).map(c=>c.uid),before=[p.hand.length,p.graveyard.length,p.remainingFusion.length],ok=prepareHandFusion(g,ids,RPG_START_FUSIONS[0]);return {ok,before,after:[p.hand.length,p.graveyard.length,p.remainingFusion.length],pending:g.pending};})()");
+ const x=boot().run("(()=>{const g=createGame({mode:'pve',starter:0,seed:88}),p=g.players[0],id=RPG_DEFAULT_DECK[0];p.field=Array.from({length:5},()=>newInstance(g,id,0));p.remainingFusion=RPG_START_FUSIONS.slice(0,2);p.hand[0]=newInstance(g,id,0);p.hand[1]=newInstance(g,id,0);const ids=p.hand.slice(0,2).map(c=>c.uid),before=[p.hand.length,p.graveyard.length,p.remainingFusion.length],ok=prepareHandFusion(g,ids,RPG_START_FUSIONS[0]);return {ok,before,after:[p.hand.length,p.graveyard.length,p.remainingFusion.length],pending:g.pending};})()");
  assert.equal(x.ok,false);assert.deepEqual(plain(x.before),plain(x.after));assert.equal(x.pending,null);
 });
 
