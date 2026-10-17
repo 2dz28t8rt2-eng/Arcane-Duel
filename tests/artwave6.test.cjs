@@ -9,10 +9,10 @@ function cards(){
  for(const file of ['assets/art-engine.js','assets/game.js'])vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),ctx,{timeout:12000});
  return JSON.parse(vm.runInContext('JSON.stringify(CARDS.map(c=>({id:c.id,name:c.name,customArt:c.customArt,art:c.art,manifestOf:c.manifestOf,atk:c.atk,def:c.def,level:c.level})))',ctx));
 }
-test('60 distinct curated illustrations exist and original 324 card IDs remain unchanged',()=>{
+test('61 curated illustrations including the new Lv3 starter retain original card IDs',()=>{
  const all=cards();assert.ok(all.length>=390,'Neue Werkstattfamilien dürfen ursprüngliche Karten nicht ersetzen');
- const unique=new Set(all.filter(c=>c.customArt).map(c=>c.customArt));assert.equal(unique.size,60);
- for(const src of unique){const file=path.join(root,src);assert.ok(fs.existsSync(file),src);assert.ok(fs.statSync(file).size>6000,src);}
+ const unique=new Set(all.filter(c=>c.customArt).map(c=>c.customArt));assert.equal(unique.size,61);
+ for(const src of unique){const file=path.join(root,src);assert.ok(fs.existsSync(file),src);assert.ok(fs.statSync(file).size>(src.endsWith('.svg')?2000:6000),src);}
 });
 test('Wave 6 maps ten new original illustrations while preserving valid game values',()=>{
  const all=cards(),ids=[86,89,317,210,33,121,69,304,106,81];

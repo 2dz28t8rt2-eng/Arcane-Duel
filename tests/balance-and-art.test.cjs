@@ -14,7 +14,7 @@ function boot(){
 }
 test('Sämtliche Karten besitzen Bilder; ursprüngliche Illustrationen bleiben erhalten',()=>{
  const run=boot(),x=run('({number:CARDS.length,unique: new Set(CARDS.map(c=>c.art)).size,generated:CARDS.filter(c=>String(c.art).startsWith("data:image/svg+xml")).length,custom:CARDS.filter(c=>String(c.art).startsWith("assets/custom-art/")).length,customUnique:new Set(CARDS.filter(c=>String(c.art).startsWith("assets/custom-art/")).map(c=>c.art)).size,formsMatch:CARDS.filter(c=>c.manifestOf!=null&&String(c.art).startsWith("assets/custom-art/")).every(c=>CARDS[c.manifestOf]?.art===c.art),version:window.ArcaneArt.version})');
- assert.ok(x.number>=390);assert.equal(x.generated+x.custom,x.number);assert.equal(x.customUnique,60);assert.ok(x.unique>=293);assert.equal(x.formsMatch,true);assert.equal(x.version,'2.1');
+ assert.ok(x.number>=390);assert.equal(x.generated+x.custom,x.number);assert.equal(x.customUnique,61);assert.ok(x.unique>=293);assert.equal(x.formsMatch,true);assert.equal(x.version,'2.1');
 });
 test('Charakterpacks liefern drei verschiedene Angebote und höchstens eine seltene Gestalt',()=>{
  const run=boot();

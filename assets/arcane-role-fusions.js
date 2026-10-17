@@ -71,7 +71,7 @@
   const q=candidates(),m=picked();if(!q||!m.length||m.length>4)return false;
   const card=CARDS[id];
   const entries=[q.hand,...m.map(x=>x.c)],levels=entries.map(c=>dataOf(c).level);
-  if(!card||!fusionOptions(game,levels).some(c=>c.id===id))return false;
+  if(!card||!fusionOptions(game,levels,entries).some(c=>c.id===id))return false;
   if(!q.p.remainingFusion.includes(id))return false;
   if(m.some(x=>q.p.field[x.i]!==x.c))return false;
   if(q.p.hand.findIndex(c=>c.uid===q.hand.uid)<0)return false;
@@ -96,7 +96,7 @@
  function launch(){
   const q=candidates(),m=picked();if(!q||!m.length||m.length>4){toast('Wähle ein bis vier eigene Monster auf dem Feld als Fusionsmaterial.');return;}
   const materials=[q.hand,...m.map(x=>x.c)],levels=materials.map(c=>dataOf(c).level);
-  const options=fusionOptions(game,levels);if(!options.length){toast('Mit diesen Monsterstufen ist derzeit keine passende Fusionskarte verfügbar.');return;}
+  const options=fusionOptions(game,levels,materials);if(!options.length){toast('Mit diesen Monsterstufen ist derzeit keine passende Fusionskarte verfügbar.');return;}
   const visualMaterials=materials.map(c=>({art:dataOf(c).art,name:dataOf(c).name,level:dataOf(c).level,field:m.some(x=>x.c.uid===c.uid),soul:Math.max(0,c.essenceCombat?.soul||0)}));
   chooseFusionModal(levels,materials,async id=>{
    if(!commitFusion(id)){toast('Die Feldfusion konnte nicht abgeschlossen werden.');return;}
