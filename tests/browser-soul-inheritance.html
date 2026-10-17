@@ -1,0 +1,34 @@
+<!doctype html><html lang="de"><meta charset="utf-8"><title>Soul inheritance visual QA</title>
+<style>body{background:#111629;color:#eee;font:12px system-ui;padding:6px}iframe{width:100%;height:730px;border:0}pre{white-space:pre-wrap}</style>
+<body data-soul-fx="pending"><h3>Seelen-Erbe Browser-Test</h3><pre id="result">Initialisierung ...</pre><iframe src="../index.html" title="Arcane Duel"></iframe>
+<script>
+document.querySelector('iframe').addEventListener('load',async function(){
+ const w=this.contentWindow,d=w.document,out=document.getElementById('result');
+ const checked=[],fail=[],test=(ok,s)=>{checked.push((ok?'✓ ':'✗ ')+s);if(!ok)fail.push(s)};
+ try{
+ d.getElementById('guideClose')?.click();d.getElementById('helpDismiss')?.click();
+ test(!!w.ArcaneSoulCinema,'Seelen-Cinema Modul');
+ const inherited=w.eval("(function(){\n profile=freshProfile();profile.trainingWins=3;profile.guideSeen=true;\n game=createGame({mode:'pve',context:'free',opponentId:4,seed:77014,starter:0});\n game.active=0;uiMode='duel';busy=false;aiRunning=false;animationSpeed='fast';\n $('menuScreen').hidden=true;$('duelScreen').hidden=false;$('overlay').classList.add('hidden');\n const t=CARDS.find(x=>x.rpg&&!x.fusionOnly&&x.role==='soul'&&x.level===4);\n const source=newInstance(game,t.id,0),hand=newInstance(game,t.id,0);\n source.mode='def';window.ArcaneEssenceCombat.statLayer(source).soul=400;\n game.players[0].field[0]=source;game.players[0].hand.unshift(hand);\n const opts=fusionOptions(game,[4,4]),choice=opts.find(x=>x.role==='soul')||opts[0];\n if(!choice||!prepareNormal(game,hand.uid))throw Error('No legal material preparation');\n const result=placePending(game,0,choice.id);\n if(!result?.fused)throw Error('No actual field fusion');\n render();window.__soulQA=[\n  {art:dataOf(source).art,name:dataOf(source).name,level:4,soul:400,field:true},\n  {art:dataOf(hand).art,name:dataOf(hand).name,level:4,soul:0,field:false}\n ];\n return result.card.soulInheritance;\n})()");
+ test(inherited.energy===400&&inherited.defBonus===120&&inherited.carried===120,'Reale Fusion: 400 → +120 DEF, +120 Seele');
+ w.eval('window.__soulPromise=fusionAnimation(dataOf(game.players[0].field[0]).level,window.__soulQA,"field")');
+ const overlay=d.querySelector('.ritual-overlay');
+ test(!!overlay&&overlay.dataset.soulInherited==='true','Spezielle geladene Fusionsszene');
+ const seen={card:false,orb:false,shatter:false,projectiles:false,math:false};
+ const scan=()=>{
+  seen.card||=!!overlay?.querySelector('.soul-source-card');
+  seen.orb||=!!overlay?.querySelector('.soul-hidden-orb');
+  seen.shatter||=!!overlay?.querySelector('.soul-phase-shatter');
+  seen.projectiles||=(overlay?.querySelectorAll('.soul-arc-projectile').length||0)>=15;
+  const row=overlay?.querySelector('.ritual-soul-inherit-line');
+  seen.math||=!!row&&row.textContent.includes('120');
+ };
+ const observer=new w.MutationObserver(scan);
+ if(overlay)observer.observe(overlay,{attributes:true,childList:true,subtree:true});
+ await w.__soulPromise;observer.disconnect();scan();
+ for(const [key,ok]of Object.entries(seen))test(ok,'Visual: '+key);
+ test(!d.querySelector('.ritual-overlay'),'Overlay entfernt');
+ }catch(error){fail.push(String(error.stack||error));}
+ out.textContent=checked.join('\n')+(fail.length?'\nFEHLER:\n'+fail.join('\n'):'');
+ document.body.dataset.soulFx=fail.length?'fail':'pass';
+});
+</script></body></html>
