@@ -47,3 +47,6 @@ jobs:
 
       - name: QA paired defender Seelenraub active vs passive
         run: node tests/qa-soul-active-comparison.cjs
+
+      - name: QA tight equal-seed soul survival and skill matches
+        run: node tests/qa-tight-soul-matches.cjs
