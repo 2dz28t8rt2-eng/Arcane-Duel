@@ -47,3 +47,6 @@
 body.instant .ad-battle-intro,body.instant .ad-burst,body.instant .ad-monster-dissolve{display:none!important}
 body.instant #menuScreen .atlas-preview-card.atlas-lv10::after{animation:none!important;opacity:.15!important}
 @media(max-width:600px){.ad-battle-inner strong{font-size:clamp(29px,10vw,58px)}.ad-outcome-banner{min-height:72px}.ad-outcome-sigil{font-size:95px}}
+
+/* LP numbers and bars follow the same presentation clock during the intro. */
+#duelScreen[data-lp-phase] .lp-track>span{transition:none!important}

@@ -30,7 +30,7 @@ document.getElementById('app').addEventListener('load',async()=>{
   check(!d.querySelector('.board-creature .arcane-board-role'),'Feldkarten sind frei von Rollenplaketten');
   check(hand.every(c=>w.getComputedStyle(c.querySelector('.card-level-badge')).display==='none'),'Obere Levelplaketten sind ausgeblendet');
   check(hand.every(c=>parseFloat(w.getComputedStyle(c.querySelector('.stat.atk')).borderTopWidth)>=1&&parseFloat(w.getComputedStyle(c.querySelector('.stat.def')).borderTopWidth)>=1),'ATK und DEF stehen in eigenen Kästen');
-  for(const card of hand.slice(0,2))card.dispatchEvent(new w.MouseEvent('contextmenu',{bubbles:true,cancelable:true}));
+  for(let index=0;index<2;index++)d.querySelectorAll('#hand .hand-card')[index].dispatchEvent(new w.MouseEvent('contextmenu',{bubbles:true,cancelable:true}));
   const marked=[...d.querySelectorAll('#hand .fusion-mark')];
   check(marked.length===2,'Rechtsklick markiert echte Fusionsmaterialien');
   check(marked.every(c=>{const r=c.getBoundingClientRect(),b=c.querySelector('.order-badge')?.getBoundingClientRect();return b&&b.left>=r.left&&b.top>=r.top&&b.right<=r.right&&b.bottom<=r.bottom;}),'Fusionsnummern liegen vollständig innerhalb der Karten');
@@ -74,6 +74,15 @@ document.getElementById('app').addEventListener('load',async()=>{
   check(Number(d.getElementById('myLP').textContent)>0&&Number(d.getElementById('myLP').textContent)<w.eval('game.players[0].lp'),'Der langsamere LP-Aufbau ist sichtbar zwischen null und Endwert');
   await pause(1900);
   check(!d.getElementById('duelScreen').dataset.lpPhase&&!w.eval('busy')&&Number(d.getElementById('myLP').textContent)===w.eval('game.players[0].lp'),'LP enden exakt am echten Wert und die Steuerung wird freigegeben');
+  w.eval(`game.players[0].field[2]=null;game.summoned=false;game.selection=null;const t=RPG_FUSIONS.find(c=>c.level===2&&!c.retired&&!c.enemyOnly);const f=newInstance(game,t.id,0);f.fusion=true;f.materialsUsed=3;game.pending={kind:'fusion',card:f,levels:[1,1],revealed:true};render();`);
+  d.querySelector('[data-mine="2"]').click();
+  await pause(540);
+  const landed=d.querySelector('[data-mine="2"] .board-creature'),zone=d.querySelector('[data-mine="2"]');
+  const cr=landed?.getBoundingClientRect(),zr=zone?.getBoundingClientRect();
+  check(!!cr&&cr.left>=zr.left-1&&cr.right<=zr.right+1&&cr.top>=zr.top-1&&cr.bottom<=zr.bottom+1,'Die beschworene Fusion trifft genau innerhalb ihrer endgültigen Monsterzone auf');
+  check(!!d.querySelector('.ad-sparks-dust'),'Staub erscheint zeitgleich mit dem Aufprall');
+  await pause(450);
+  check(!d.querySelector('.ad-titan-impact')&&!d.querySelector('.ad-impact-shake'),'Der Aufprall endet ohne zurückspringende Karte oder hängenbleibenden Effekt');
  }catch(error){check(false,error.stack||String(error));}
  document.body.dataset.progressionTest=pass?'pass':'fail';
 });

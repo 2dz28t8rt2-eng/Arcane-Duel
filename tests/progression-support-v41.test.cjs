@@ -10,7 +10,7 @@ function setup(){
    g.evolutionCashout=true;g.winner=0;
    if(mode==='defense')g.turn=2*([3,5,7][goals-1]+Math.floor((stage-1)/2))-1;
    if(mode==='burst')g.damageDealt[0]=[0,3000,4000,5000,6000,7500][stage]*[.25,.55,.95][goals-1];
-   if(mode==='fusion'){g.evoStats.fusions=3;g.evoStats.maxMaterials=Math.min(5,stage+1);g.evoStats.combos=1;}
+   if(mode==='fusion'){g.totalFusions[0]=3;g.evoStats.materialsMax=Math.max(3,Math.min(5,stage+1));g.evoStats.combos=1;}
    return g;
   };`);
  return b;
@@ -78,4 +78,22 @@ test('Attack statistics survive reload; legacy snapshots stay ineligible; malfor
  assert.deepEqual(boot({saved}).run('profile.activeDuel.executedAttacks'),[2,4]);
  const r=b.run(`(()=>{const raw=profile.activeDuel,restored=validateDuelSnapshot(raw);delete raw.executedAttacks;const legacy=validateDuelSnapshot(raw);legacy.winner=0;let bad=false;try{validateDuelSnapshot({...raw,executedAttacks:[0,-1]});}catch(e){bad=true;}return {count:restored.executedAttacks,legacy:ArcaneDuelMerit.bonusFor(legacy),bad};})()`);
  assert.deepEqual(r,{count:[2,4],legacy:0,bad:true});
+});
+test('The defensive win bonus is included before feeding the bound Essence creature',()=>{
+ const r=setup().run(`(()=>{profile.cleared=[1,2,3];const e=ArcaneEssenceCombat.essence();e.intro=3;e.chosen=ESSENCE_MONSTER_IDS.defense;e.school='defense';addCard(e.chosen);profile.activeDeck[0]=e.chosen;
+  const g=createGame({mode:'pve',opponentId:3,context:'free',seed:1917});g.essenceTrial=null;g.essenceParticipated=true;g.essenceKills=1;g.essenceTurns=1;g.winner=0;
+  const before=profile.coins,r=rewardMatch(g),gross=OPPONENTS[3].coins+Math.floor(OPPONENTS[3].coins*.1);
+  return {bonus:r.noAttackBonus,food:r.essenceFood,expectedFood:Math.floor(gross*.05)+5,net:r.coins,expectedNet:gross-(Math.floor(gross*.05)+5),delta:profile.coins-before,nourished:e.nourished};})()`);
+ assert.ok(r.bonus>0);assert.equal(r.food,r.expectedFood);assert.equal(r.net,r.expectedNet);assert.equal(r.net,r.delta);assert.equal(r.food,r.nourished);
+});
+test('Claimed role cards remain claimed after a complete bootstrap reload',()=>{
+ const b=setup(),saved=b.run(`(()=>{const r=rewardMatch(prizeGame('defense'));return {[SAVE_KEY]:JSON.stringify(profile)};})()`),restored=boot({saved});
+ assert.equal(restored.run('profile.progressionSupport.prizes.defense.filter(Number.isInteger).length'),1);
+});
+
+test('All fifteen role challenge stages award the intended role once',()=>{
+ const rows=setup().run(`(()=>{const rows=[];for(const mode of ['defense','burst','fusion'])for(let stage=1;stage<=5;stage++){
+  const g=prizeGame(mode,stage,7),r=rewardMatch(g),id=r.roleChallengeCard;rows.push({mode,stage,goals:r.objectives,role:CARDS[id]?.role,fusion:!!CARDS[id]?.fusionOnly,level:CARDS[id]?.level,got:Number.isInteger(id)});
+ }return rows;})()`);
+ for(const r of rows){assert.ok(r.got,JSON.stringify(r));assert.equal(r.goals,3);assert.ok(r.level<=10);if(r.mode==='fusion')assert.ok(r.fusion);else assert.equal(r.role,r.mode==='burst'?'predator':r.stage%2?'soul':'guardian');}
 });
