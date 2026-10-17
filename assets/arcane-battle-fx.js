@@ -24,6 +24,13 @@
  function center(el){
   const r=el?.getBoundingClientRect();return r?{x:r.left+r.width/2,y:r.top+r.height/2}:null;
  }
+ function landingDust(cell,heavy=false){
+  if(reduced()||!cell?.isConnected)return;
+  const rect=cell.getBoundingClientRect(),table=document.querySelector('.table-surface');
+  table?.classList.add('ad-impact-shake');
+  setTimeout(()=>table?.classList.remove('ad-impact-shake'),410);
+  sparks('ad-sparks-dust',rect.left+rect.width/2,rect.bottom-5,heavy?36:22,heavy);
+ }
  function beginCinema(){
   if(reduced()||!game||uiMode!=='duel')return Promise.resolve();
   const g=game,t=++key,fromLP=g.players.map(p=>Math.max(0,p.lp)),full=g.maxLP||8000;
@@ -132,18 +139,16 @@
   await oldOwn(idx,...rest);
   const placed=g?.players[owner]?.field[idx];
   if(!pending||game!==g||g.pending||!placed?.fusion||placed.uid===before||reduced())return;
+  if(window.ArcaneFusionCinema?.landed?.(g,placed.uid))return;
   const cell=document.querySelector('[data-mine="'+idx+'"] .board-creature');if(!cell)return;
   // Capture the FINAL, untransformed slot rectangle, then land exactly there.
-  const rect=cell.getBoundingClientRect(),heavy=(placed.materialsUsed||0)>=4;
+  const heavy=(placed.materialsUsed||0)>=4;
   cell.classList.add('ad-titan-impact');setTimeout(()=>cell.classList.remove('ad-titan-impact'),800);
   setTimeout(()=>{
    if(game!==g||!cell.isConnected)return;
-   const table=document.querySelector('.table-surface');
-   table?.classList.add('ad-impact-shake');
-   setTimeout(()=>table?.classList.remove('ad-impact-shake'),410);
-   sparks('ad-sparks-dust',rect.left+rect.width/2,rect.bottom-5,heavy?36:22,heavy);
+   landingDust(cell,heavy);
   },500);
 
  };
- window.ArcaneBattleFX=Object.freeze({version:'1.1',beginCinema,introDuration:1650,fillDuration:2400});
+ window.ArcaneBattleFX=Object.freeze({version:'1.1',beginCinema,landingDust,introDuration:1650,fillDuration:2400});
 })();

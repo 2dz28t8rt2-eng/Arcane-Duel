@@ -142,6 +142,10 @@
  animation:none!important;transform:translateX(-50%);
  /* No !important opacity: Web Animations must be allowed to fade during the flight. */
 }
+/* The flight already reaches the final card bounds. Do not start a second
+   translate/scale arrival on the board after the overlay disappears. */
+.board-creature.evo-fusion-landed{animation:ritual-landed-glow .35s ease-out both!important}
+@keyframes ritual-landed-glow{from{filter:brightness(1.25)}to{filter:brightness(1)}}
 .ritual-overlay.ritual-screen-shake .ritual-window{
  animation:ritual-window-shake .135s linear 3!important;
 }

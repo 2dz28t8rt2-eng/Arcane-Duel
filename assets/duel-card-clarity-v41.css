@@ -39,3 +39,8 @@ html body .ad-fusion-offer-meta small{color:#e3c894}
  html body .arcane-sealed-choices{grid-template-columns:repeat(auto-fit,minmax(144px,180px))!important;gap:10px!important}
  html body .arcane-sealed-choice>.hand-card.tc-card{height:270px!important;min-height:270px!important;max-height:270px!important}
 }
+
+/* Large inspection keeps a single role ribbon rather than duplicate labels. */
+html body #duelScreen .card-preview-panel .hand-card.tc-card .essence-role-chip,
+html body .arcane-enemy-large .hand-card.tc-card .essence-role-chip,
+html body #deckSidePreview.ad-deck-portal .hand-card.tc-card .essence-role-chip{display:none!important}

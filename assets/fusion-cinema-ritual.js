@@ -7,6 +7,7 @@
  const num=v=>Math.max(0,Math.floor(Number(v)||0)).toLocaleString('de-AT');
  const STAMPS={predator:'PREDATOR',guardian:'VERTEIDIGER',soul:'SEELENZEHRER'};
  let running=false,particleLoader=null;
+ const completedLandings=new WeakMap();
  function addScript(url,check){
   if(check())return Promise.resolve();
   return new Promise((ok,fail)=>{
@@ -46,6 +47,7 @@
   const index=owner<0?-1:g.players[owner].field.findIndex(mon=>mon?.uid===c.uid);
   const slot=index<0?null:document.querySelector(owner===0?'#ownRow [data-mine="'+index+'"]':'#enemyRow [data-enemy="'+index+'"]');
   const boardCard=slot?.querySelector('.board-creature');
+  let landed=false;
   const overlay=document.createElement('div');
   overlay.className='evo-summon evo-fusion-scene evo-stamp-scene ritual-overlay';
   overlay.dataset.role=role;
@@ -129,7 +131,7 @@
    // After the role's card seal, stamp the ACTUAL combination quality across
    // the whole scene. This does not re-roll or modify the persisted numbers.
    if(window.ArcaneFusionBonus?.stamp){
-    try{await window.ArcaneFusionBonus.stamp(overlay,c,wait,1);}
+    try{await window.ArcaneFusionBonus.stamp(overlay,c,animationWait,1);}
     catch(error){console.warn('Bonus-Cinema übersprungen:',error);}
    }
    overlay.classList.add('evo-phase-rolls','evo-stamp-settled');
@@ -186,19 +188,23 @@
    overlay.classList.add('evo-card-locked');await wait(850);
    // 7. Flight to actual occupied zone; no change to authoritative state.
    if(slot&&typeof actor.animate==='function'){
+    overlay.classList.remove('evo-phase-rolls');
     overlay.classList.add('evo-phase-landing');
-    const from=actor.getBoundingClientRect(),to=slot.getBoundingClientRect();
+    const from=actor.getBoundingClientRect(),to=(boardCard||slot).getBoundingClientRect();
     const dx=to.left+to.width/2-(from.left+from.width/2);
     const dy=to.top+to.height/2-(from.top+from.height/2);
-    const scale=Math.min(1,Math.max(.15,to.width/Math.max(1,from.width)));
+    const sx=to.width/Math.max(1,from.width),sy=to.height/Math.max(1,from.height);
+    const target='translateX(-50%) translate('+dx+'px,'+dy+'px) scale('+sx+','+sy+')';
     const flight=actor.animate([
      {transform:'translateX(-50%) translate(0,0) scale(1)',opacity:1},
-     {transform:'translateX(-50%) translate('+dx+'px,'+dy+'px) scale('+scale+')',opacity:0}
-    ],{duration:720,easing:'cubic-bezier(.22,.69,.2,1)',fill:'forwards'});
+     {transform:target,opacity:1,offset:.9},
+     {transform:target,opacity:0}
+    ],{duration:650,easing:'cubic-bezier(.45,0,.8,.55)',fill:'forwards'});
     await Promise.race([
      new Promise(resolve=>{flight.onfinish=resolve;flight.oncancel=resolve;}),
-     wait(890)
+     animationWait(850)
     ]);
+    landed=true;
    }else{overlay.classList.add('evo-card-land');await wait(550);}
   }finally{
    overlay.remove();running=false;
@@ -206,9 +212,14 @@
    if(boardCard){
     boardCard.classList.remove('evo-fusion-awaiting');
     boardCard.classList.add('evo-fusion-landed');
+    if(landed){
+     if(!completedLandings.has(g))completedLandings.set(g,new Set());
+     completedLandings.get(g).add(c.uid);
+     window.ArcaneBattleFX?.landingDust?.(boardCard,(c.materialsUsed||0)>=4);
+    }
     setTimeout(()=>boardCard.classList.remove('evo-fusion-landed'),900);
    }
   }
  }
- window.ArcaneFusionCinema=Object.freeze({version:'2.0.0',play});
+ window.ArcaneFusionCinema=Object.freeze({version:'2.1.0',play,landed:(g,uid)=>!!completedLandings.get(g)?.has(uid)});
 })();

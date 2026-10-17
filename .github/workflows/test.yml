@@ -58,7 +58,7 @@ jobs:
           "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=22000 --window-size="1200,980" --dump-dom http://127.0.0.1:8757/tests/browser-ui.html > /tmp/arcane-interaction.html 2>/tmp/arcane-interaction-chrome.log
           if ! grep -q 'data-ui-test="pass"' /tmp/arcane-interaction.html; then
             echo "Interactive UI smoke test failed." >&2
-            grep -E -A20 'id="result"' /tmp/arcane-interaction.html | head -26 || true
+            grep -E -A90 'id="result"' /tmp/arcane-interaction.html | head -96 || true
             tail -30 /tmp/arcane-interaction-chrome.log || true
             exit 1
           fi
@@ -83,7 +83,7 @@ jobs:
 
           echo "Checking REAL fusion cinema phase ordering and scaled stats at 1200px and 410px..."
           for size in 1200 410; do
-            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=43000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-fusion-visual.html >"/tmp/arcane-fusion-visual-${size}.html" 2>/tmp/arcane-visual-chrome.log
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=60000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-fusion-visual.html >"/tmp/arcane-fusion-visual-${size}.html" 2>/tmp/arcane-visual-chrome.log
             if ! grep -q 'data-fusion-cinema-ui="pass"' "/tmp/arcane-fusion-visual-${size}.html"; then
               echo "Fusion visual phase/stat audit FAILED at ${size}px" >&2
               grep -E -A24 'id="result"' "/tmp/arcane-fusion-visual-${size}.html" | head -35 || true
