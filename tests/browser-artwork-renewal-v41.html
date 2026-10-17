@@ -39,7 +39,7 @@ document.getElementById('runtime').addEventListener('load',async()=>{
    const budgetOk=card.arcaneOriginalStats
     ?Math.abs(card.atk+card.def-Math.round(win.ArcaneLevelBudget.budget(card.level)*win.ArcaneLevelBudget.rarityFactor(card)/10)*10)<=10
     :card.atk===stats[1]&&card.def===stats[2];
-   check(stableIdentity&&budgetOk,'Original identity and approved new budget '+row.id);
+   check(stableIdentity&&budgetOk,'Original identity and approved new budget '+row.id+(stableIdentity&&budgetOk?'': ' · actual '+JSON.stringify([card.level,card.atk,card.def,card.role,card.element])+' old '+JSON.stringify(stats)+' metadata '+JSON.stringify(card.arcaneOriginalStats||null)+' budget '+win.ArcaneLevelBudget.budget(card.level)));
    const holder=doc.createElement('div');holder.style.width='180px';
    holder.innerHTML=win.eval('fullCardHtml(CARDS['+row.id+'])');fixture.append(holder);
    const element=holder.querySelector('.hand-card'),img=element.querySelector('.hand-art img');
