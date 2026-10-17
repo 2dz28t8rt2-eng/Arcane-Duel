@@ -64,3 +64,30 @@ test('progression hint provides direct navigation to free fights, workshop, upgr
  }
  assert.ok(game.includes('returnToMenu();'));
 });
+
+test('lost tournament battle grants small capped essence exactly once, without altering victory flags',()=>{
+ const run=boot();
+ const r=run(`(()=>{
+  const g=createGame({id:'tournament-loss-essence',seed:987,mode:'pve',context:'tournament',opponentId:4});
+  g.winner=1;
+  const first=rewardMatch(g),again=rewardMatch(g);
+  return {coins:first.coins,balance:profile.coins,losses:profile.losses,
+   repeated:again===null,cleared:profile.cleared.includes(4),
+   lastHistory:profile.history[0]};
+ })()`);
+ assert.equal(r.coins,9);
+ assert.equal(r.balance,9);
+ assert.equal(r.losses,1);
+ assert.equal(r.repeated,true);
+ assert.equal(r.cleared,false);
+ assert.equal(r.lastHistory.coins,9);
+});
+test('tournament loss reward is capped at 25 essence in the final rounds',()=>{
+ const run=boot();
+ const r=run(`(()=>{
+  const g=createGame({id:'final-loss-essence',seed:983,mode:'pve',context:'tournament',opponentId:10});
+  g.winner=1;
+  return {coins:rewardMatch(g).coins,cleared:profile.cleared.length};
+ })()`);
+ assert.deepEqual(r,{coins:25,cleared:0});
+});
