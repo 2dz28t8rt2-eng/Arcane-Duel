@@ -65,5 +65,5 @@ test('All customized card art assets are shipped in the local build',()=>{
  const missing=art.filter(p=>!fs.existsSync(path.join(root,p)));
  assert.deepEqual(missing,[]);
  const webps=fs.readdirSync(path.join(root,'assets/custom-art')).filter(n=>n.endsWith('.webp'));
- assert.equal(webps.length,70);
+ assert.equal(webps.length,77); // four approved Level-1 fusion artworks added in v4.4
 });

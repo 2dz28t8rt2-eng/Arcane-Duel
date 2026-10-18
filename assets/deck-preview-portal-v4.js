@@ -130,15 +130,20 @@
   if(!activePanel||event.target.closest?.('#deckSidePreview'))return;
   if(anchor?.isConnected){
    const r=anchor.getBoundingClientRect();
-   if(r.bottom<0||r.top>innerHeight){close(true);return;}
+   if(r.bottom<0||r.top>innerHeight){return;} // Keep the selected card inspector visible while scrolling.
   }
   position(activePanel);
  },true);
  window.addEventListener('resize',()=>{if(activePanel)position(activePanel);});
  const beforeMenu=renderMenu;
  renderMenu=function(...args){
+  // Periodic menu refreshes must not silently dismiss a card the player is reading.
+  const keep=!!activePanel&&allowed(),tab=menuTab,id=editorPreviewIds[tab];
   close(true);
-  return beforeMenu(...args);
+  const result=beforeMenu(...args);
+  if(keep&&menuTab===tab&&allowed()&&Number.isInteger(id))
+   updateDeckPreview(tab==='fusions',id);
+  return result;
  };
  // Reused by the duel card inspector: exact same physical card-flight keyframes.
  // This helper never changes a selected card, a summon, or a battle action.

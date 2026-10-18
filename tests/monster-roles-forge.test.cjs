@@ -66,7 +66,7 @@ test('Role inheritance from two matching cards prevents unrelated fusion tags',(
  assert.equal(role.inheritance([{id:1,roleOverride:'guardian'},{id:2,roleOverride:'guardian'}]),'guardian');
  assert.equal(role.inheritance([{id:1,roleOverride:'soul'},{id:2,roleOverride:'soul'}]),'soul');
  assert.equal(role.inheritance([{id:1,roleOverride:'predator'},{id:2,roleOverride:'predator'}]),'predator');
- assert.equal(role.inheritance([{id:1,roleOverride:'guardian'},{id:2,roleOverride:'predator'}]),null);
+ assert.equal(role.inheritance([{id:1,roleOverride:'guardian'},{id:2,roleOverride:'predator'}]),'resonator');
  assert.equal(role.inheritance([{id:1,roleOverride:'predator'},{id:2,roleOverride:'predator'},{id:3,roleOverride:'predator'}]),'predator');
 });
 test('Soul awakening probability is below 75 percent or capped',()=>{

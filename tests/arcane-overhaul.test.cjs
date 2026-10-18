@@ -82,7 +82,7 @@ test('role inheritance preserves the majority even with two same-role materials'
  assert.equal(g.roles.inheritance([D(),D(),D(),P()]),'guardian');
  assert.equal(g.roles.inheritance([D(),D(),D(),D(),P()]),'guardian');
  assert.equal(g.roles.inheritance([P(),P(),P(),N(),N()]),'predator');
- assert.equal(g.roles.inheritance([D(),D(),P(),P()]),null);
+ assert.equal(g.roles.inheritance([D(),D(),P(),P()]),'resonator');
 });
 test('real seeded PvE fusion creates inherited stats and bounded soul awakening',()=>{
  const g=start();

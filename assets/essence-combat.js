@@ -120,7 +120,12 @@
   logEvent(g,dataOf(creature).name+' zehrt '+drainedAtk+' ATK / '+drainedDef+' DEF; +'+gain+' Seelenessenz.');
  }
  function soulDecay(g,c,owner){
-  const s=statLayer(c);
+   const s=statLayer(c);
+   if(owner===0&&c.arcaneDecaySkipTurn===g.turn-1){
+    if(s.cooldown>0)s.cooldown--;
+    if(s.raidCooldown>0)s.raidCooldown--;
+    return; // Seelenraub pauses decay; cooldowns still progress.
+   }
   if(s.soul>0){
    const amount=Math.min(s.soul,Math.max(10,Math.ceil(s.soul*.32)));
    s.soul-=amount;
@@ -431,8 +436,11 @@
    ' Seelenessenz (3 eigene Züge Abklingzeit).');
   window.ArcaneDefenderFX?.record(game,{type:'absorb',owner:0,uid:creature.uid,
    index:idx,element:dataOf(creature).element,
-   targets:[{uid:target.uid,index:targetIndex,amount:actual}],gain:gained});
-  saveDuelSnapshot();render();return true;
+   targets:[{uid:target.uid,index:targetIndex,amount:actual}],gain:gained,activeRaid:true});
+  // Active Seelenraub occurs outside end-turn batches: show the arc immediately.
+  saveDuelSnapshot();render();
+  void window.ArcaneDefenderFX?.flush?.(game);
+  return true;
  }
  function predatorMode(idx){
   if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0)return false;

@@ -22,9 +22,9 @@ iframe.addEventListener('load',async()=>{
   const own=stats('#duelScreen .card-preview-panel .stat-value');
   check(own.length===2&&own.every(el=>fontSize(el)>=15&&fontSize(el)<=17),'Große Duellkarte: ATK/DEF lesbare 15–17px (Anzahl '+own.length+', Schrift '+own.map(fontSize).join('/')+')');
   w.eval('game.selection=null;game.players[1].field[0]=newInstance(game,0,1);render();onEnemySlot(0)');
-  const enemy=stats('.arcane-enemy-large .stat-value');
-  check(enemy.length===2&&enemy.every(el=>fontSize(el)>=15&&fontSize(el)<=17),'Große Gegnerkarte: ATK/DEF lesbare 15–17px');
-  d.getElementById('arcaneCloseEnemy')?.click();
+  const enemy=stats('#duelScreen .card-preview-panel .stat-value');
+  check(enemy.length===2&&enemy.every(el=>fontSize(el)>=15&&fontSize(el)<=17)&&!d.querySelector('.arcane-enemy-large'),'Große Gegnerkarte links: ATK/DEF lesbare 15–17px, kein Popup');
+  d.getElementById('duelScreen')?.click();
   w.eval(`(()=>{
    const c=newInstance(game,RPG_START_FUSIONS[0],0);
    c.card={level:4,atk:12345,def:23456};c.roleOverride='guardian';c.fusion=true;

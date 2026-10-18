@@ -1,0 +1,45 @@
+<!doctype html><html lang="de">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer"><title>Arcane Duel · Online 2v2</title>
+<link rel="stylesheet" href="assets/duo-campaign-demo.css?v=online-1">
+</head>
+<body><main class="duo-wrap">
+<header class="duo-header"><div><p class="kicker">✦ ARCANE DUEL · ONLINE</p><h1>Das Bündnis der Vier</h1>
+<p>Einladung verschicken, gemeinsam gegen zwei KI-Gegner spielen.</p></div>
+<a href="index.html">← Hauptmenü</a></header>
+<aside class="notice" id="duoOnlineNotice">Online-Raumserver wird überprüft. Der Prototyp verwendet 7 Feldplätze je Duellant und 16.000 LP pro Team.</aside>
+<div class="duo-layout">
+<section class="duo-panel">
+<h2>✧ Privater Raum</h2>
+<div id="duoOnlineCreate">
+<label>Kapitel<select id="duoOnlineChapter"></select></label>
+<label>Dein Name<input id="duoOnlineName" maxlength="32" value="Duellant"></label>
+<button id="duoOnlineCreateBtn" class="primary" disabled>Raum mit Einladungslink erstellen</button>
+</div>
+<div id="duoOnlineJoin" hidden>
+<h3>Du wurdest eingeladen!</h3>
+<label>Dein Name<input id="duoOnlinePartnerName" maxlength="32" value="Partner"></label>
+<button id="duoOnlineJoinBtn" class="primary" disabled>Einladung annehmen</button></div>
+<div id="duoOnlineRoom" hidden>
+<h3>Raum <code id="duoOnlineRoomCode"></code></h3>
+<div id="duoOnlineInviteBox" hidden>
+<p>Nur für deinen Partner. Der Link kann einmal verwendet werden.</p>
+<input id="duoOnlineInviteUrl" aria-label="Einladungslink" readonly>
+<button id="duoOnlineCopy">Link kopieren</button></div>
+<p id="duoOnlineRole"></p><p id="duoOnlineStatus" role="status" aria-live="polite"></p>
+<button id="duoOnlineRefresh">Spielstand aktualisieren</button></div>
+<p class="micro">Deine geheimen Handkarten werden nicht an den Partner gesendet. Andere Decks bleiben verborgen.
+Online-Zugriff ist erst nach Einrichtung eines Supabase-Projekts möglich.</p>
+</section>
+<section class="duo-panel duo-battle">
+<div class="stats"><div><small>TEAM VERBÜNDETE</small><strong id="duoOnlineFriendlyLP">16.000 LP</strong></div>
+<div><small>TEAM GEGNER</small><strong id="duoOnlineEnemyLP">16.000 LP</strong></div></div>
+<div id="duoOnlineTrack" class="turn-track"></div>
+<h2 id="duoOnlineTurn">Noch keine aktive Partie</h2>
+<div class="four-seats" id="duoOnlineSeats"></div>
+<div id="duoOnlineActions" class="action-dock"></div>
+<div class="duo-log"><h3>Kampfprotokoll</h3><ol id="duoOnlineLog"></ol></div>
+</section></div></main>
+<script src="assets/duo-online-config.js?v=online-1"></script>
+<script src="assets/duo-online.js?v=online-1"></script>
+</body></html>

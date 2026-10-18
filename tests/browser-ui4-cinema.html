@@ -83,14 +83,13 @@ document.getElementById('app').addEventListener('load',async ()=>{
 
   w.eval('game.selection=null;game.players[1].field[0]=newInstance(game,0,1);render()');
   d.querySelector('#enemyRow [data-enemy="0"]')?.click();
-  test(!!d.querySelector('.arcane-enemy-large .hand-type.ad-card-traits .arcane-card-role'),
-   'Enemy field card modal receives matching enlarged role/element ribbon');
-  test(d.querySelectorAll('.ad-deck-ghost').length>=1,
-   'Enemy miniature flies into its full modal inspection');
-  d.querySelector('#arcaneCloseEnemy')?.click();
-  await pause(670);
-  test(!d.querySelector('.ad-deck-ghost'),
-   'Closing opponent inspection absorbs the preview and cleans up the clone');
+  test(!!d.querySelector('#largeCardPreview .hand-type.ad-card-traits .arcane-card-role')&&!d.querySelector('.arcane-enemy-large'),
+   'Enemy field card uses the LEFT inspector with role and element and no extra modal');
+  await pause(490);
+  d.getElementById('duelScreen')?.click();
+  await pause(530);
+  test(!d.querySelector('.ad-deck-ghost')&&!d.querySelector('#largeCardPreview .hand-card.tc-card'),
+   'Clicking the battlefield dismisses enemy inspection cleanly without orphan clones');
 
   const pair=w.ArcaneFusionBonus.describe({pattern:'Paar',materialsUsed:2,
    rollMath:{combo:{name:'Paar',qualityPct:5.5,rollBonus:0,materialCount:2}}});

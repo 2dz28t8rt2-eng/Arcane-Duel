@@ -5,7 +5,7 @@
 (()=>{
  const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
  const num=v=>Math.max(0,Math.floor(Number(v)||0)).toLocaleString('de-AT');
- const STAMPS={predator:'PREDATOR',guardian:'VERTEIDIGER',soul:'SEELENZEHRER'};
+ const STAMPS={predator:'PREDATOR',guardian:'VERTEIDIGER',soul:'SEELENZEHRER',resonator:'RESONATOR'};
  let running=false,particleLoader=null;
  const completedLandings=new WeakMap();
  function addScript(url,check){
@@ -24,7 +24,7 @@
    await window.loadSlim(window.tsParticles);return window.tsParticles;
   })().catch(()=>null);
   const engine=await particleLoader;if(!engine||!host.isConnected)return null;
-  const color={predator:'#f26c66',guardian:'#75c7f9',soul:'#da9eff'}[role]||'#c8b0ff';
+  const color={predator:'#f26c66',guardian:'#75c7f9',soul:'#da9eff',resonator:'#e6beff'}[role]||'#c8b0ff';
   return engine.load({id:'arcane-fusion-motes',options:{
    fullScreen:{enable:false},fpsLimit:40,
    particles:{number:{value:host.dataset.variant==='field'?58:26,density:{enable:false}},color:{value:[color,'#f2d29a','#cfb0ff']},
@@ -157,6 +157,7 @@
     ' / DEF ×'+Number(weights.def).toFixed(2).replace('.',',')+
     ' · Basis '+num(math.base?.atk)+' / '+num(math.base?.def);
    log.append(information);
+   if(c.resonanceFusion?.bonusPct){const note=document.createElement('div');note.className='ritual-resonance-note';note.textContent='✦ MATERIAL-RESONANZ: +'+c.resonanceFusion.bonusPct+' % Fusionsqualität (vor den Würfen)';log.append(note);}
    log.insertAdjacentHTML('beforeend','<div class="evo-calc-cols"><span>BESTER WURF GEWINNT</span><b>ATK</b><b>DEF</b></div>');
    // 4. Each real roll: two synchronized reels, then separate ink stamp.
    for(let i=0;i<rolls.length;i++){

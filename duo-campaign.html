@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcane Duel · 2v2 Kampagnenlabor</title>
+<link rel="stylesheet" href="assets/duo-campaign-demo.css?v=duo-chapters-2">
+</head>
+<body>
+<main class="duo-wrap">
+<header class="duo-header">
+ <div><p class="kicker">✧ ARCANE DUEL · KAMPAGNENLABOR</p><h1>Das Bündnis der Vier</h1>
+ <p>Teste den Zugwechsel zwischen zwei Verbündeten und zwei KI-Gegnern.</p></div>
+ <a href="index.html">← Zum Hauptspiel</a>
+</header>
+<aside class="notice"><b>Online-Raum mit Einladungslink – technische Vorschau.</b>
+ Die beiden menschlichen Spieler können von unterschiedlichen Geräten beitreten. Der Server prüft alle Aktionen und synchronisiert die Partie. Dies ist weiterhin ein vereinfachter Kampagnen-Prototyp, kein vollständiger 1v1-Regelimport. Deine Einzelspielerstände bleiben unverändert.</aside>
+<div class="duo-layout">
+<section class="duo-panel" id="setupPanel">
+ <h2>✦ Kampagne & Raum</h2>
+ <label>Spielstart
+  <select id="duoEntry">
+   <option value="new" selected>Neue Kampagne – von Kapitel I beginnen</option>
+   <option value="chapter">Kapitel direkt auswählen</option>
+  </select>
+ </label>
+ <label id="duoChapterSelect" hidden>Gewünschtes Kapitel <select id="duoChapter"></select></label>
+ <label>Dein Name <input id="duoHostName" maxlength="32" value="Duellant A"></label>
+ 
+ <div class="actions"><button id="duoCreate">Neue Kampagne erstellen</button><button id="duoAccept" hidden>Einladung annehmen</button><button id="duoJoin" disabled hidden>Partnerbeitritt</button></div><div id="duoInviteBox" hidden><label>Einladungslink <input id="duoInvite" readonly aria-label="Einladungslink"></label><button id="duoCopy">Einladungslink kopieren</button></div>
+ <div class="room-code">Raumkennung: <code id="duoRoomId">—</code></div>
+ <p class="micro">Privater Raum · Einladung für genau einen Partner · bis zu 48 Stunden gültig. Bewahre den Link wie ein Zugangstoken auf. Sitzungsdaten bleiben in diesem Browser-Tab.</p>
+ <h3>Dein Kampagnenstart</h3><p id="duoChapterInfo"></p>
+ <div class="duo-chapter-rewards" id="duoRewardInfo" aria-live="polite"></div>
+ <div id="duoStatus" role="status" aria-live="polite"></div>
+</section>
+<section class="duo-panel duo-battle">
+ <div class="stats"><div><small>TEAM VERBÜNDETE</small><strong id="duoAlliedLP">16.000 LP</strong></div><div><small>TEAM GEGNER</small><strong id="duoEnemyLP">16.000 LP</strong></div></div>
+ <div class="turn-track" id="duoTrack"></div>
+ <h2 id="duoTurnName">Auf einen Raum warten</h2>
+ <p class="duo-chapter-rewards" id="duoCurrentReward" hidden></p>
+ <div class="four-seats" id="duoSeats"></div>
+ <div class="action-dock" id="duoActions"></div>
+ <div class="duo-log"><h3>Kampfprotokoll</h3><ol id="duoLog"></ol></div>
+</section>
+</div>
+</main>
+<script src="assets/duo-campaign-core.js?v=duo-chapters-2"></script>
+<script src="assets/duo-campaign-demo.js?v=duo-chapters-2"></script>
+</body></html>

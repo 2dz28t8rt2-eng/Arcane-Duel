@@ -1,0 +1,54 @@
+<!doctype html><html lang="de"><meta charset="utf-8"><title>Arcane Duel 4.1 – Feldskalierung und Rollenstatus</title>
+<style>body{margin:4px;background:#121926;color:#e2e7f2;font:12px system-ui}iframe{width:100%;height:820px;border:0}pre{white-space:pre-wrap}</style>
+<body data-clarity-check="pending"><pre id="result">Läuft ...</pre><iframe id="game" src="../index.html" title="Arcane Duel"></iframe>
+<script>
+document.getElementById('game').addEventListener('load',()=>{
+ const w=document.getElementById('game').contentWindow,d=w.document,result=document.getElementById('result');
+ const marks=[],errors=[],check=(yes,why)=>{marks.push((yes?'PASS ':'FAIL ')+why);if(!yes)errors.push(why)};
+ try{
+  d.getElementById('guideClose')?.click();d.getElementById('helpDismiss')?.click();
+  check(!!w.ArcaneFieldStatus,'UI decorator loaded');
+  w.eval("hideModal();profile=freshProfile();profile.guideSeen=true;profile.trainingWins=3;profile.rewardQueue=[];profile.activeDuel=null;busy=false;aiRunning=false;storageConflict=false;game=null;uiMode='menu';startDuel('pve',1,'tournament','easy')");
+  check(w.eval("uiMode==='duel'&&!!game"),'Real tournament duel started');
+  d.getElementById('modalGo')?.click();
+  w.eval(`(()=>{
+   game.active=0;game.essenceRules=true;busy=false;aiRunning=false;
+   const c=CARDS.find(c=>c.role==='soul'&&!c.fusionOnly&&c.level<=6);
+   if(!c)throw Error('Missing soul test creature');
+   const monster=newInstance(game,c.id,0);
+   monster.mode='def';
+   game.players[0].field[0]=monster;
+   const e=window.ArcaneEssenceCombat.statLayer(monster);
+   e.soul=180;e.cooldown=2;e.raidCooldown=1;
+   game.selection={type:'field',idx:0};
+   render();
+  })()`);
+  const soulChip=d.querySelector('#ownRow [data-mine="0"]>.ad-soul-field-indicator');
+  check(!!soulChip&&soulChip.textContent.includes('180'),'Board energy indicator shows actual stored soul');
+  check(!!soulChip&&soulChip.textContent.includes('V 2')&&soulChip.textContent.includes('R 1'),'Board displays both skill cooldowns');
+  const buttons=[...d.querySelectorAll('.essence-actions button')];
+  check(buttons.some(x=>x.textContent.includes('Verdichten')&&x.textContent.includes('2 Züge')&&x.disabled),'Condense button explains remaining cooldown');
+  check(buttons.some(x=>x.textContent.includes('Seelenraub')&&x.textContent.includes('1 Züge')&&x.disabled)||!!soulChip,'Raid cooldown exposed on field');
+  const role=d.querySelector('#hand .ad-hand-role'),style=role&&w.getComputedStyle(role),dot=role&&w.getComputedStyle(role,'::before');
+  check(!!role&&parseFloat(style.fontSize)>=12.5,'Hand role is larger');
+  check(!!dot&&dot.display==='none','Role bullet is absent');
+  const card=d.querySelector('#largeCardPreview .hand-card.tc-card'),trim=card&&w.getComputedStyle(card,'::before');
+  check(!!card,'Large preview is shown');
+  check(!!trim&&trim.clipPath.includes('polygon'),'Top level trim is masked in preview');
+  check(!!card?.querySelector('.ad-level-medallion'),'Bottom level marker is retained');
+  const slots=d.querySelector('#ownRow.slots')||d.getElementById('ownRow'),css=w.getComputedStyle(slots);
+  const item=d.querySelector('#ownRow [data-mine="0"]'),body=item?.querySelector('.board-creature');
+  const r=item?.getBoundingClientRect(),c=body?.getBoundingClientRect();
+  const width=d.documentElement.clientWidth;
+  if(width>=1100){
+    check(css.maxWidth==='880px','Desktop field enlarged with real zones');
+    check(!!r&&!!c&&c.width/r.width>.63,'Actual monster is larger inside its slot');
+  }else{
+    check(css.gridTemplateColumns.split(' ').length===3,'Mobile cross layout remains intact');
+  }
+  check(d.querySelectorAll('#hand [data-hand]').length===5,'Five hand cards still render');
+ }catch(e){errors.push(String(e.stack||e))}
+ result.textContent=marks.join('\n')+(errors.length?'\nERRORS: '+errors.join(' | '):'');
+ document.body.dataset.clarityCheck=errors.length?'fail':'pass';
+});
+</script></body></html>

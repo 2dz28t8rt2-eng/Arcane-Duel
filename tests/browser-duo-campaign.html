@@ -1,0 +1,31 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>2v2 browser QA</title></head><body>
+<pre id="result">Lädt...</pre><iframe id="duo" src="../duo-campaign.html" width="1000" height="900"></iframe>
+<script>
+const frame=document.getElementById('duo');
+frame.addEventListener('load',()=>{
+ const output=document.getElementById('result'),d=frame.contentDocument,notes=[];
+ let good=true;
+ const check=(value,msg)=>{notes.push((value?'OK ':'FAIL ')+msg);if(!value)good=false;output.textContent=notes.join('\n');};
+ try{
+  check(!!d.getElementById('duoChapter').options.length,'Four campaign chapters are loaded');
+  check(!!d.querySelector('.notice')?.textContent.includes('Online-Raum'),'Online room notice visible');
+  check(d.getElementById('duoEntry').value==='new','New campaign default selected');
+  check(d.getElementById('duoChapterSelect').hidden,'Chapter selector is optional and hidden initially');
+  check(d.getElementById('duoRewardInfo').textContent.includes('Level-2'),'Chapter-I pack level shown');
+  check(d.getElementById('duoRewardInfo').textContent.includes('Wurzelwacht'),'Three-card pack names previewed');
+  d.getElementById('duoEntry').value='chapter';
+  d.getElementById('duoEntry').dispatchEvent(new Event('change',{bubbles:true}));
+  check(!d.getElementById('duoChapterSelect').hidden,'Explicit chapter selector available');
+  d.getElementById('duoChapter').value='4';
+  d.getElementById('duoChapter').dispatchEvent(new Event('change',{bubbles:true}));
+  check(d.getElementById('duoRewardInfo').textContent.includes('Level-8'),'Late chapter provides correct card level');
+  check(d.getElementById('duoRewardInfo').textContent.includes('Aetherarchon'),'Late chapter preview contains correct card');
+  check(!!d.getElementById('duoInviteBox')&&!!d.getElementById('duoCopy'),'Invite link controls present');
+  check(!!d.getElementById('duoAccept'),'Invitation acceptance available');
+  check(d.querySelectorAll('#duoSeats .seat').length===0,'No room data rendered before authorization');
+  check(d.getElementById('duoAlliedLP').textContent.includes('16.000'),'Double LP shown before starting');
+  check(getComputedStyle(d.createElement('div')).display!=='not-a-real-display','DOM accessible');
+  document.documentElement.dataset.duoBrowser=good?'pass':'fail';
+ }catch(e){check(false,e.stack||e.message);document.documentElement.dataset.duoBrowser='fail';}
+});
+</script></body></html>

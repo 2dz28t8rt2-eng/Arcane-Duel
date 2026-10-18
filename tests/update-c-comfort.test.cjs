@@ -42,9 +42,9 @@ test('Replacement quest does not retroactively earn progress from an already-sta
  const r=boot().run(`(()=>{const g=createGame({mode:'pve',opponentId:0,seed:88,starter:0}),start=g.questActiveIds;window.ArcaneEvolution.skipQuest(start[0]);g.winner=0;g.totalFusions[0]=12;rewardMatch(g);return {start,active:profile.evolution.active.map(q=>({id:q.id,progress:q.progress})),newCount:profile.evolution.active.filter(q=>!start.includes(q.id)).length}})()`);
  assert.equal(r.newCount,1);const newcomer=r.active.find(q=>!r.start.includes(q.id));assert.ok(newcomer);assert.equal(newcomer.progress,0);
 });
-test('Existing save key remains stable; fresh account has level 2 and 4 starter fusions only',()=>{
+test('Existing save key remains stable; fresh account has level 2, 3 and 4 starter fusions',()=>{
  const r=boot().run(`({key:SAVE_KEY,starter:profile.fusionDeck.map(id=>({level:CARDS[id].level,rare:CARDS[id].rarity==='rare'})),level6:profile.fusionDeck.some(id=>CARDS[id].level===6)})`);
- assert.equal(r.key,'arcane-duel-rpg-profile-v4-reborn');assert.deepEqual([...new Set(r.starter.map(x=>x.level))].sort((a,b)=>a-b),[2,4]);assert.equal(r.starter.some(x=>x.rare),false);assert.equal(r.level6,false);
+ assert.equal(r.key,'arcane-duel-rpg-profile-v4-reborn');assert.deepEqual([...new Set(r.starter.map(x=>x.level))].sort((a,b)=>a-b),[2,3,4]);assert.equal(r.starter.some(x=>x.rare),false);assert.equal(r.level6,false);
 });
 test('Two pairs including level-one materials beat a single pair at level three in quality',()=>{
  const r=boot().run(`({single:window.ArcaneEvolution.fusionQuality([3,3]).factor,two:window.ArcaneEvolution.fusionQuality([3,3,1,1]).factor,small:window.ArcaneEvolution.fusionQuality([1,2,3]).factor})`);

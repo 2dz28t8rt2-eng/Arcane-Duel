@@ -60,6 +60,13 @@
  function record(g,event){const b=batches.get(g);if(b&&event.type!=='counter')b.steps.push(event);else enqueue(g,event);}
  function endTurn(g){batches.delete(g);}
  function flash(node,color){if(!node||!motion())return;node.style.setProperty('--ad-receive-color',color);node.classList.add('ad-energy-receive');setTimeout(()=>node.classList.remove('ad-energy-receive'),650);}
+ function roleStatFloat(node,message,kind){if(!node||!motion()||!message)return;
+  const p=point(node);if(!p)return;
+  const el=document.createElement('div');el.className='ad-role-stat-float';el.dataset.kind=kind;
+  el.textContent=message;el.style.left=p.x+'px';el.style.top=p.y+'px';
+  el.setAttribute('aria-hidden','true');document.body.append(el);
+  setTimeout(()=>el.remove(),1100);
+ }
  async function projectile(from,to,color,kind='soul'){
   if(!from||!to||!motion())return;
   const host=document.createElement('div');host.className='ad-arc-projectile ad-projectile-'+kind;host.style.setProperty('--ad-energy',color);host.setAttribute('aria-hidden','true');
@@ -75,12 +82,23 @@
   const node=creatureNode(g,event.owner,event.uid,event.index),color=colors[event.element]||'#d8b5ff';
   if(event.type==='absorb'){
    const paths=event.targets.map(target=>({from:point(orbs?.get(target.uid)||creatureNode(g,1-event.owner,target.uid,target.index)),to:point(node)}));
-   await Promise.all(paths.map(p=>projectile(p.from,p.to,color,'soul')));if(game===g)flash(node,color);
+   await Promise.all(paths.map(p=>projectile(p.from,p.to,event.activeRaid?'#e155ff':color,'soul')));if(game===g){flash(node,event.activeRaid?'#d978ff':color);if(event.gain>0)roleStatFloat(node,'+'+event.gain+' Seele · '+(event.activeRaid?'SEELENRAUB':'Entzug'),'soul');}
   }else if(event.type==='heal'){
-   await projectile(point(creatureNode(g,event.owner,event.fromUid,event.fromIndex)),point(node),'#a9e58d','heal');if(game===g)flash(node,'#a9e58d');
+   await projectile(point(creatureNode(g,event.owner,event.fromUid,event.fromIndex)),point(node),'#a9e58d','heal');if(game===g){flash(node,'#a9e58d');if(event.amount>0)roleStatFloat(node,'Wächter +'+event.amount+' DEF','guardian');}
   }else if(event.type==='counter'){
+   // Explicitly harmful: the red projectile travels from defender TO attacker LP.
    const banner=document.getElementById(event.owner===0?'enemyBanner':'myBanner');
-   await projectile(point(node),point(banner),'#ffe5a4','counter');if(game===g)flash(banner,'#ffe5a4');
+   const goal=point(banner),origin=point(node);
+   await projectile(origin,goal,'#ff214c','counter');
+   if(game===g){
+    flash(banner,'#ff214c');
+    banner?.classList.add('ad-counter-damage');
+    if(event.amount>0)roleStatFloat(banner,'−'+event.amount+' LP · GEGENSCHLAG','counter-damage');
+    const shock=document.createElement('div');
+    shock.className='ad-counter-impact';shock.setAttribute('aria-hidden','true');
+    if(goal){shock.style.left=goal.x+'px';shock.style.top=goal.y+'px';document.body.append(shock);setTimeout(()=>shock.remove(),940);}
+    setTimeout(()=>banner?.classList.remove('ad-counter-damage'),820);
+   }
   }
  }
  async function playBatch(g,batch){

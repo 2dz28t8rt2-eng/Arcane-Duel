@@ -35,7 +35,14 @@ document.getElementById('runtime').addEventListener('load',async()=>{
    const card=win.eval('CARDS['+row.id+']'),stats=expected[row.id];
    check(card.name===row.cardName&&card.desc===row.description,'Name and description '+row.id);
    check(card.art===row.art&&card.customArt===row.art,'Live artwork mapping '+row.id);
-   check(JSON.stringify([card.level,card.atk,card.def,card.role,card.element])===JSON.stringify(stats),'Original gameplay values '+row.id);
+   const stableIdentity=card.level===stats[0]&&card.role===stats[3]&&card.element===stats[4];
+   const approvedAceUpgrade=card.ace&&win.ArcaneQaSprint52?.improvedAces?.includes(row.id);
+   const expectedBudget=Math.round(win.ArcaneLevelBudget.budget(card.level)*
+     (approvedAceUpgrade?1.90:win.ArcaneLevelBudget.rarityFactor(card))/10)*10;
+   const budgetOk=card.arcaneOriginalStats
+    ?Math.abs(card.atk+card.def-expectedBudget)<=10
+    :card.atk===stats[1]&&card.def===stats[2];
+   check(stableIdentity&&budgetOk,'Original identity and approved new budget '+row.id+(stableIdentity&&budgetOk?'': ' · actual '+JSON.stringify([card.level,card.atk,card.def,card.role,card.element])+' old '+JSON.stringify(stats)+' metadata '+JSON.stringify(card.arcaneOriginalStats||null)+' budget '+win.ArcaneLevelBudget.budget(card.level)));
    const holder=doc.createElement('div');holder.style.width='180px';
    holder.innerHTML=win.eval('fullCardHtml(CARDS['+row.id+'])');fixture.append(holder);
    const element=holder.querySelector('.hand-card'),img=element.querySelector('.hand-art img');

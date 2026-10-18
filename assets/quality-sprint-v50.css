@@ -1,0 +1,123 @@
+
+/* Arcane Duel QA sprint: readable summoning area and discoverable progression. */
+#duelScreen .summon-stage,#duelScreen #summonStage{
+ display:grid!important;grid-template-columns:minmax(150px,195px) minmax(0,1fr);
+ gap:16px!important;align-items:start;max-width:100%;min-width:0;
+}
+#duelScreen #summonStage > .stage-copy:only-child{grid-column:1/-1}
+#duelScreen #summonStage > .stage-card{position:relative!important;width:100%!important;max-width:185px;min-width:0!important;overflow:visible}
+#duelScreen #summonStage > .stage-copy{
+ min-width:0!important;max-width:100%!important;overflow-wrap:anywhere!important;
+ word-break:normal!important;line-height:1.6!important;
+ padding:12px!important;align-self:start;
+}
+#duelScreen #summonStage > .stage-copy .step{display:block;margin-bottom:8px;white-space:normal;letter-spacing:.11em;line-height:1.6}
+#duelScreen #summonStage > .stage-card .hand-card{max-width:100%!important;box-sizing:border-box}
+#duelScreen #summonStage :is(.evo-fusion-preview,.arcane-fusion-concealed){min-width:0;max-width:100%}
+@media(max-width:720px){
+ #duelScreen #summonStage{grid-template-columns:1fr!important}
+ #duelScreen #summonStage>.stage-card{justify-self:center}
+ #duelScreen #summonStage>.stage-copy{grid-column:1}
+}
+#adQuestReminder.ad-qa-promo{
+ display:flex;align-items:center;justify-content:space-between;gap:18px;
+ border:1px solid #d9b56eaa;border-radius:15px;padding:18px 22px;margin-bottom:18px;
+ background:radial-gradient(ellipse at 12% 30%,#5f3e2544,transparent 57%),linear-gradient(135deg,#1a223c,#121625);
+ box-shadow:inset 0 0 35px #cfa05416,0 0 20px #cfa05422
+}
+#adQuestReminder b{font:800 17px Georgia,serif;color:#ffda90}
+#adQuestReminder p{margin:6px 0 0;line-height:1.5;color:#e4d6b5}
+#adQuestReminder .btn{flex-shrink:0;box-shadow:0 0 17px #ecc47e55}
+#adQuestReminder:has(.btn:hover){box-shadow:inset 0 0 35px #cfa05422,0 0 30px #cfa0545c}
+#menuContent [data-preview-card].ad-upgrade-ready{
+ position:relative;filter:drop-shadow(0 0 8px #8df7cba3);
+ outline:2px solid #a7f5cb88;outline-offset:3px;border-radius:9px;
+ animation:adAscendPulse 2.8s ease-in-out infinite;
+}
+@keyframes adAscendPulse{50%{filter:drop-shadow(0 0 17px #a6ffdfdd);outline-color:#adffdaa8}}
+#largeCardPreview.ad-inspected{
+ border-color:#b7a36dbb;box-shadow:0 0 21px #ba9b6633;
+ animation:adInspectorEnter .3s ease-out
+}
+@keyframes adInspectorEnter{from{opacity:.4;transform:translateX(-14px)}to{opacity:1;transform:none}}
+.ad-levelup-modal{text-align:center}
+.ad-levelup-modal .ad-levelup-orbit{
+ position:relative;display:flex;align-items:center;justify-content:center;gap:40px;
+ min-height:210px;margin:25px auto 18px;width:min(440px,90%);
+ color:#ffe09d;background:radial-gradient(ellipse,#ab7c3044,transparent 71%);
+}
+.ad-levelup-orbit strong{font:900 clamp(4rem,11vw,7rem) Georgia,serif;text-shadow:0 0 18px #fff4cbaa,0 0 56px #d69b3ebb;animation:adMilestoneRise 1.6s ease-out both}
+.ad-levelup-orbit span{font:normal 3rem Georgia,serif;color:#ffcf76;animation:adLevelStar 3s linear infinite}
+.ad-levelup-orbit span:last-child{animation-delay:1.2s}
+@keyframes adMilestoneRise{0%{opacity:0;transform:scale(.5) translateY(50px);filter:blur(11px)}65%{transform:scale(1.13)}100%{opacity:1;transform:none}}
+@keyframes adLevelStar{50%{transform:rotate(40deg) scale(1.35);filter:drop-shadow(0 0 14px #fbd890)}}
+@media(max-width:640px){#adQuestReminder{flex-direction:column;align-items:stretch!important}#adQuestReminder .btn{width:100%}}
+@media(prefers-reduced-motion:reduce){#menuContent [data-preview-card].ad-upgrade-ready,.ad-levelup-orbit strong,.ad-levelup-orbit span{animation:none!important}}
+
+/* Reward/booster/ACE purchase views: canonical ATK+DEF stat boxes and one level indicator.
+   Do not change field cards or the player's deck-editor cards. */
+html body :is(.pool-grid,.pack-grid,.arcane-reward-showcase,.ad-card-reward-panel,.ad-fate-purchase,.ace-offer,.ace-shop)
+ .hand-card.tc-card .card-level-badge{display:none!important}
+html body :is(.pool-grid,.pack-grid,.arcane-reward-showcase,.ad-card-reward-panel,.ad-fate-purchase,.ace-offer,.ace-shop)
+ .hand-card.tc-card .hand-stats{
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;
+  visibility:visible!important;opacity:1!important;position:relative!important;
+  min-height:24px!important;align-items:center!important;
+  background:#111929!important;border:1px solid #756a69!important;border-radius:4px!important;
+  z-index:16!important;isolation:isolate!important;
+}
+html body :is(.pool-grid,.pack-grid,.arcane-reward-showcase,.ad-card-reward-panel,.ad-fate-purchase,.ace-offer,.ace-shop)
+ .hand-card.tc-card .hand-stats .stat{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  min-width:0!important;min-height:19px!important;padding:1px 3px!important;
+  border:1px solid #aa8d5b!important;border-radius:3px!important;
+  background:#192336!important;color:#f4dba1!important;visibility:visible!important;opacity:1!important;
+}
+html body :is(.pool-grid,.pack-grid,.arcane-reward-showcase,.ad-card-reward-panel,.ad-fate-purchase,.ace-offer,.ace-shop)
+ .hand-card.tc-card .hand-stats .stat.def{background:#163747!important;border-color:#5c9eb1!important}
+html body :is(.pool-grid,.pack-grid,.arcane-reward-showcase,.ad-card-reward-panel,.ad-fate-purchase,.ace-offer,.ace-shop)
+ .hand-card.tc-card .hand-stats .stat-value{
+  display:block!important;font-weight:800!important;opacity:1!important;color:#f4e0ab!important;
+  font-size:clamp(11px,1.35vw,16px)!important;line-height:1.2!important;
+}
+html body :is(.pool-grid,.pack-grid,.arcane-reward-showcase,.ad-card-reward-panel,.ad-fate-purchase,.ace-offer,.ace-shop)
+ .hand-card.tc-card .hand-stats .stat.def .stat-value{color:#c1f1ff!important}
+html body .ad-card-reward-panel .hand-card.tc-card .ad-level-medallion{z-index:18!important}
+@media(max-width:700px){html body :is(.pool-grid,.pack-grid,.arcane-reward-showcase,.ad-card-reward-panel)
+ .hand-card.tc-card .hand-stats .stat-value{font-size:12px!important}}
+
+/* Eiman Huel appears as a temporary shimmering challenger, not an ordinary panel. */
+html body #menuContent .ad-eiman-encounter{
+ position:relative;border:2px solid #c9baff!important;overflow:hidden;
+ background:radial-gradient(circle at 30% 15%,#745ba640,#151b2a 72%)!important;
+ box-shadow:0 0 19px #a58cff88,inset 0 0 31px #ba8aff32!important;
+ animation:adEimanGlow 2.7s ease-in-out infinite alternate;
+}
+html body #menuContent .ad-eiman-encounter::before{
+ content:'';position:absolute;inset:-80%;pointer-events:none;
+ background:linear-gradient(115deg,transparent 38%,#f4e2ff00 48%,#edd8ff45 50%,#f4e2ff00 53%,transparent 64%);
+ transform:translateX(-35%) rotate(8deg);animation:adEimanSweep 4.4s linear infinite;
+}
+html body #menuContent .ad-eiman-encounter>*{position:relative;z-index:2}
+@keyframes adEimanGlow{to{box-shadow:0 0 40px #d5b2ffbf,inset 0 0 50px #deabff55}}
+@keyframes adEimanSweep{to{transform:translateX(38%) rotate(8deg)}}
+/* Each ACE emanates its ELEMENT color; ordinary cards keep the usual frame.
+   The field version receives data-element via the late presentation-only wrapper. */
+html body :is(.hand-card.tc-ace,.board-creature.tc-ace){--ad-ace-glow:#d19aff}
+html body :is(.hand-card.tc-ace,.board-creature.tc-ace)[data-element="FEUER"]{--ad-ace-glow:#ff5b35}
+html body :is(.hand-card.tc-ace,.board-creature.tc-ace)[data-element="WASSER"]{--ad-ace-glow:#59d4ff}
+html body :is(.hand-card.tc-ace,.board-creature.tc-ace)[data-element="ERDE"]{--ad-ace-glow:#8dde6f}
+html body :is(.hand-card.tc-ace,.board-creature.tc-ace)[data-element="WIND"]{--ad-ace-glow:#a7ffe6}
+html body :is(.hand-card.tc-ace,.board-creature.tc-ace)[data-element="LICHT"]{--ad-ace-glow:#ffe09c}
+html body :is(.hand-card.tc-ace,.board-creature.tc-ace)[data-element="DUNKEL"]{--ad-ace-glow:#c28cff}
+html body :is(.hand-card.tc-ace,.board-creature.tc-ace){
+ animation:adAceElementBreath 3s ease-in-out infinite alternate;
+}
+@keyframes adAceElementBreath{
+ from{filter:drop-shadow(0 0 4px var(--ad-ace-glow))}
+ to{filter:drop-shadow(0 0 13px var(--ad-ace-glow)) brightness(1.12)}
+}
+@media(prefers-reduced-motion:reduce){
+ html body .ad-eiman-encounter,html body .ad-eiman-encounter::before,
+ html body :is(.hand-card.tc-ace,.board-creature.tc-ace){animation:none!important}
+}

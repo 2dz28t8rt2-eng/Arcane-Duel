@@ -1,0 +1,6 @@
+#duelScreen .ad-resonance-chip{letter-spacing:.025em}
+#duelScreen .ad-role-resonator,#duelScreen .ad-hand-role.ad-role-resonator{
+ color:#efccff!important;text-shadow:0 0 8px #d070ffad;
+}
+#duelScreen .evo-seal-resonator{color:#f6deff!important;border-color:#d79efa!important;box-shadow:0 0 18px #bd65ffb0!important}
+.ritual-overlay[data-role="resonator"]{--ritual-role-color:#dda2fa}

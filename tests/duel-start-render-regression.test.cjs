@@ -10,6 +10,8 @@ test('Duel hand role rendering works without optional combat roleOf',()=>{
 });
 test('Invalidate combat and both role renderer caches on the deployed page',()=>{
  const page=read('index.html');
- for(const file of ['essence-combat.js','essence-progression.js','duel-card-clarity-v41.js'])
-  assert.ok(page.includes('assets/'+file+'?v=duel-start-fix-20261017-1'),file);
+ for(const file of ['essence-combat.js','essence-progression.js','duel-card-clarity-v41.js']){
+  const version=file==='essence-combat.js'?'qa-20261018-3':'duel-start-fix-20261017-1';
+  assert.ok(page.includes('assets/'+file+'?v='+version),file);
+ }
 });

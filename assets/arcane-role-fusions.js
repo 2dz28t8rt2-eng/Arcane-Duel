@@ -5,20 +5,25 @@
 'use strict';
 (()=>{
  const escape=s=>escapeHtml(String(s));
- const roleOf=c=>c?.roleOverride||CARDS[c?.id]?.role||'combatant';
- const roleName={predator:'Predator',guardian:'Verteidiger',soul:'Seelenzehrer'};
+ const roleOf=c=>c?.fusion?(c.roleOverride||'resonator'):CARDS[c?.id]?.fusionOnly?'unassigned':(c?.roleOverride||CARDS[c?.id]?.role||'combatant');
+ const roleName={predator:'Predator',guardian:'Verteidiger',soul:'Seelenzehrer',resonator:'Resonator',unassigned:'Rollenfrei'};
  const r10=n=>Math.max(10,Math.round(n/10)*10);
  function inheritance(materials){
   // Equal roles (including two soul eaters) must win over an unrelated template tag.
   if(!Array.isArray(materials)||materials.length<2)return null;
   const roles=materials.map(roleOf);
-  if(roles.every(r=>r==='soul'))return 'soul';
-  const defense=roles.filter(r=>r==='guardian'||r==='soul').length;
-  const predators=roles.filter(r=>r==='predator').length;
-  const majority=Math.floor(roles.length/2)+1;
+  // Neutral Allrounders and existing Resonators provide positive fusion quality
+  // but NEVER dilute a specialist majority. Otherwise adding an Allrounder could
+  // remove a Guardian/Predator role and violate the no-downgrade contract.
+  const specialist=roles.filter(r=>['predator','guardian','soul'].includes(r));
+  if(!specialist.length)return 'resonator';
+  if(specialist.every(r=>r==='soul'))return 'soul';
+  const defense=specialist.filter(r=>r==='guardian'||r==='soul').length;
+  const predators=specialist.filter(r=>r==='predator').length;
+  const majority=Math.floor(specialist.length/2)+1;
   if(defense>=majority&&defense>predators)return 'guardian';
   if(predators>=majority&&predators>defense)return 'predator';
-  return null;
+  return 'resonator'; // No majority: a neutral, unweighted fusion instance.
  }
  function soulOdds(materials){
   return Math.min(.75,.20+materials.reduce((n,c)=>n+.035+.007*Math.min(12,Math.max(1,dataOf(c).level)),0));
@@ -27,7 +32,7 @@
   if(g?.mode!=='pve'||materials.length<2)return null;
   const inherited=inheritance(materials);
   if(!inherited)return null;
-  if(inherited==='predator'||inherited==='soul')return {role:inherited,source:'material',materials:materials.length};
+  if(inherited==='predator'||inherited==='soul'||inherited==='resonator')return {role:inherited,source:'material',materials:materials.length};
   // Only 3+ guardian materials can roll for a Seelenzehrer awakening.
   if(materials.length===2)return {role:'guardian',source:'material',materials:2,soulOdds:0,soulAwakened:false};
   const field=Array.isArray(g.arcaneFieldInputs)?g.arcaneFieldInputs:[];
@@ -71,7 +76,7 @@
   const q=candidates(),m=picked();if(!q||!m.length||m.length>4)return false;
   const card=CARDS[id];
   const entries=[q.hand,...m.map(x=>x.c)],levels=entries.map(c=>dataOf(c).level);
-  if(!card||!fusionOptions(game,levels).some(c=>c.id===id))return false;
+  if(!card||!fusionOptions(game,levels,entries).some(c=>c.id===id))return false;
   if(!q.p.remainingFusion.includes(id))return false;
   if(m.some(x=>q.p.field[x.i]!==x.c))return false;
   if(q.p.hand.findIndex(c=>c.uid===q.hand.uid)<0)return false;
@@ -96,7 +101,7 @@
  function launch(){
   const q=candidates(),m=picked();if(!q||!m.length||m.length>4){toast('Wähle ein bis vier eigene Monster auf dem Feld als Fusionsmaterial.');return;}
   const materials=[q.hand,...m.map(x=>x.c)],levels=materials.map(c=>dataOf(c).level);
-  const options=fusionOptions(game,levels);if(!options.length){toast('Mit diesen Monsterstufen ist derzeit keine passende Fusionskarte verfügbar.');return;}
+  const options=fusionOptions(game,levels,materials);if(!options.length){toast('Mit diesen Monsterstufen ist derzeit keine passende Fusionskarte verfügbar.');return;}
   const visualMaterials=materials.map(c=>({art:dataOf(c).art,name:dataOf(c).name,level:dataOf(c).level,field:m.some(x=>x.c.uid===c.uid),soul:Math.max(0,c.essenceCombat?.soul||0)}));
   chooseFusionModal(levels,materials,async id=>{
    if(!commitFusion(id)){toast('Die Feldfusion konnte nicht abgeschlossen werden.');return;}
@@ -152,5 +157,5 @@
    if(q.p.field[idx])b.classList.add('arcane-synth-available');
   });
  };
- window.ArcaneRoleFusion=Object.freeze({version:'1.2.0',inheritance,soulOdds,imprint,reset});
+ window.ArcaneRoleFusion=Object.freeze({version:'1.3.0',inheritance,soulOdds,imprint,reset});
 })();

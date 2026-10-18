@@ -125,6 +125,17 @@ jobs:
             fi
           done
 
+          echo "Checking 4.1 inspector, role typography and soul status at desktop and mobile sizes..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=22000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-battle-clarity-v41.html >"/tmp/arcane-battle-clarity-${size}.html" 2>/tmp/arcane-clarity-chrome.log
+            if ! grep -q 'data-clarity-check="pass"' "/tmp/arcane-battle-clarity-${size}.html"; then
+              echo "4.1 clarity check failed at ${size}px" >&2
+              grep -A26 'id="result"' "/tmp/arcane-battle-clarity-${size}.html" | head -36 || true
+              tail -20 /tmp/arcane-clarity-chrome.log || true
+              exit 1
+            fi
+          done
+
           echo "Checking Arcane Duel 4.0 contextual deck preview and fusion-quality stamps..."
           for size in 1200 410; do
             "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=12000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-ui4-cinema.html >"/tmp/arcane-ui4-${size}.html" 2>/tmp/arcane-ui4-chrome.log
@@ -230,3 +241,14 @@ jobs:
             sed -n '/<pre id="result"/,/<\/pre>/p' /tmp/arcane-cinematics42-reduced.html | head -125 || true
             exit 1
           fi
+
+          echo "Checking isolated 2v2 turn order and simulated partner join in Chrome..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=9000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-duo-campaign.html >"/tmp/arcane-duo-${size}.html" 2>/tmp/arcane-duo-chrome.log
+            if ! grep -q 'data-duo-browser="pass"' "/tmp/arcane-duo-${size}.html"; then
+              echo "2v2 browser prototype FAILED at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/arcane-duo-${size}.html" | head -65 || true
+              tail -25 /tmp/arcane-duo-chrome.log || true
+              exit 1
+            fi
+          done
