@@ -30,3 +30,11 @@ test('research story finale has a five-phase skippable reveal',()=>{
  const r=setup().run("(()=>{profile.lv1Saga={offered:true,stage:4,perk:false,story:[1,2,3,4],finalRewards:false,aceGranted:false};startDuel('pve',1,'lv1-saga','easy',5);game.lv1SagaProgress={floating:1,swarm:1,special:1};game.winner=0;showFinished();return {finished:profile.lv1Saga.stage,perk:profile.lv1Saga.perk,ace:profile.inventory[ArcaneLv1Swarm.ids.ace]};})()");
  assert.equal(r.finished,5);assert.equal(r.perk,true);assert.equal(r.ace,1);
 });
+
+test('all specialist fusions are genuine Lv1, contribute to Swarm and may occupy ghost slots',()=>{
+ const r=setup().run("(()=>{const ids=ArcaneLv1Swarm.ids,k=['hive','protector','attacker'];const cards=k.map(key=>{const c=newInstance(game,ids[key],0);c.fusion=true;return c;});cards.forEach((c,i)=>game.players[0].field[i]=c);ArcaneLv1Swarm.syncSwarm(game);const s=ArcaneLv1Swarm.state(game);const statuses=cards.map(c=>({lv:CARDS[c.id].level,eligible:ArcaneLv1Swarm.isLv1(c),real:ArcaneLv1Swarm.isReal(c),slot:ArcaneLv1Swarm.stationable(c),bonus:c.lv1SwarmApplied}));const before=s.choices.length;ArcaneLv1Swarm.exitCard(game,cards[0]);return {statuses,avoidsCopy:s.choices.length===before,aceLv:CARDS[ids.ace].level};})()");
+ assert.deepEqual(r.statuses.map(x=>x.lv),[1,1,1]);
+ assert.ok(r.statuses.every(x=>x.eligible&&x.slot&&!x.real&&x.bonus===20));
+ assert.equal(r.avoidsCopy,true);
+ assert.equal(r.aceLv,1);
+});
