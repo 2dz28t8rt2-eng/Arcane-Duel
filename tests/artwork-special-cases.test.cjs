@@ -18,3 +18,10 @@ test('Eiman Huel deck artwork mapping uses actual owned assets, no generated fal
  assert.equal(invalid.length,0,JSON.stringify(invalid));
  console.log('EIMAN_ARTWORK_CHECK',JSON.stringify({main:r.main,side:r.side,uniqueArtworkPaths:new Set(r.cards.map(x=>x.art)).size,cards:r.cards}));
 });
+
+test('all eleven tournament opponent decks and fusion decks have real assets',()=>{
+ const b=boot({seed:404});
+ const r=b.run("(()=>{const checks=[];for(let i=0;i<RPG_OPPONENTS.length;i++)for(const difficulty of ['easy','hard']){let g;try{g=createGame({mode:'pve',opponentId:i,context:'tournament',difficulty});}catch(err){checks.push({opponent:i,difficulty,error:String(err)});continue;}const p=g.players[1],ids=[...new Set([...p.originalDeck,...p.fusionDeck])];for(const id of ids){const c=CARDS[id];if(!c.art?.startsWith('assets/'))checks.push({opponent:i,difficulty,id,name:c.name,retired:c.retired,kind:c.fusionOnly?'fusion':'normal'});}}return checks;})()");
+ console.log('TOURNAMENT_ARTWORK_AUDIT',JSON.stringify(r.slice(0,60)));
+ assert.deepEqual(r,[],'Tournament roster contains procedural artwork or loading errors');
+});
