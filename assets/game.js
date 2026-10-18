@@ -161,7 +161,7 @@ function coreChooseAiAction(g,policy='balanced'){
   }}
   else if(phase==='positions'){const targets=g.players[1-g.active].field.filter(Boolean);const def=field.find(x=>x.c.mode==='def'&&!x.c.switched&&!x.c.attacked&&(targets.length===0||targets.some(t=>effectiveAttack(g,x.c,t)>(t.mode==='atk'?dataOf(t).atk:dataOf(t).def))));if(def)return {type:'switch',idx:def.i};g.aiPhase='attacks';}
   else if(phase==='attacks'){const plan=attackPlan(g);if(plan)return {type:'attack',...plan};g.aiPhase='guard';}
-  else if(phase==='guard'){if(['balanced','economy','guardian'].includes(policy)){const threat=Math.max(0,...g.players[1-g.active].field.filter(Boolean).map(c=>dataOf(c).atk)),guard=field.find(x=>x.c.mode==='atk'&&!x.c.switched&&(dataOf(x.c).def>dataOf(x.c).atk||threat>=dataOf(x.c).atk));if(guard)return {type:'switch',idx:guard.i};}g.aiPhase='end';}
+  else if(phase==='guard'){if(['balanced','economy','guardian'].includes(policy)){const threat=Math.max(0,...g.players[1-g.active].field.filter(Boolean).map(c=>dataOf(c).atk)),guard=field.find(x=>x.c.mode==='atk'&&!x.c.switched&&!x.c.attacked&&(dataOf(x.c).def>dataOf(x.c).atk||threat>=dataOf(x.c).atk));if(guard)return {type:'switch',idx:guard.i};}g.aiPhase='end';}
   else return {type:'end'};
  }
  return {type:'end'};
