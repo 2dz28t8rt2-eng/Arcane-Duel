@@ -240,7 +240,8 @@
    '<div class="fate-cinema-title">✦ DAS SCHICKSAL ERWACHT ✦</div>'+
    '<div class="fate-cinema-sub">Duellant '+(evt.owner+1)+' · Eine letzte Chance</div>'+
    '<div class="fate-cinema-cards">'+evt.cards.map((id,i)=>{
-    const fid=FATE_CARD_IDS.indexOf(id),art=CARDS[FATE_ART_IDS[fid]].art;
+    const fid=FATE_CARD_IDS.indexOf(id),art=window.ArcaneFateVisuals?.artFor?.(fid);
+    if(fid<0||!art)throw new Error('Fehlendes Schicksalsmonster-Artwork für '+id);
     return '<div class="fate-reveal" style="--fate-i:'+i+'"><div class="fate-reveal-inner">'+
      '<div class="fate-reveal-back">✧</div><div class="fate-reveal-front"><img src="'+
       art+'" alt=""><b>✦ '+escapeHtml(FATE_NAMES[fid])+'</b><span>✦ SCHICKSAL ✦</span></div></div></div>';
