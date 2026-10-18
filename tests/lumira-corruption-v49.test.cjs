@@ -21,11 +21,13 @@ test('corrupted fusion recipe allows exactly Lumira plus 2-4 free hand monsters'
  const r=setup().run("(()=>{const g=game,h=g.players[1].hand,ace=h.find(c=>c.id===ArcaneLv1Swarm.ids.ace),extra=h.filter(c=>c.uid!==ace.uid),recipe=ArcaneLumiraCorruption.recipe;return {onlyTwo:recipe(g,[ace,extra[0]]),three:recipe(g,[ace,...extra.slice(0,2)]),five:recipe(g,[ace,...extra]),without:recipe(g,extra.slice(0,3)),duplicate:recipe(g,[ace,extra[0],extra[0]]),unique:recipe(g,[ace,extra[0],extra[1]])};})()");
  assert.deepEqual(r,{onlyTwo:false,three:true,five:true,without:false,duplicate:false,unique:true});
 });
-test('chapter V opponent performs one first-turn mandatory fusion, consumes Lumira and sets post dialogue',()=>{
- const r=setup().run("(()=>{const g=game,p=g.players[1],a=chooseAiAction(g,'offensive'),id=ArcaneLv1Saga.corruptedId;const begins=a.type==='fusion'&&a.uids.includes(g.lv1FanaticAce.uid),ok=applyAiAction(g,a),pending=g.pending?.card?.id===id,lumiraConsumed=p.graveyard.some(c=>c.id===ArcaneLv1Swarm.ids.ace);const pos=chooseAiAction(g,'offensive'),placed=pos.type==='place'?applyAiAction(g,pos):null;return {begins,ok:!!ok,pending,lumiraConsumed,placed:placed?.card?.id===id,played:g.lv1FanaticCorruptPlayed===true,dialog:g.lv1FanaticCorruptDialoguePending===true,hand:p.hand.length};})()");
- assert.equal(r.begins,true);assert.equal(r.ok,true);assert.equal(r.pending,true);
- assert.equal(r.lumiraConsumed,true);assert.equal(r.placed,true);assert.equal(r.played,true);
- assert.equal(r.dialog,true);assert.ok(r.hand<=2);
+test('chapter V opponent now summons Lumira and never consumes her as ordinary fusion material',()=>{
+ const r=setup().run("(()=>{const g=game,p=g.players[1],ace=g.lv1FanaticAce.uid,a=chooseAiAction(g,'offensive'),normal=a.type==='normal'&&a.uid===ace,prepared=applyAiAction(g,a),placed=prepared?applyAiAction(g,chooseAiAction(g,'offensive')):null,lumiraOnField=p.field.some(c=>c?.uid===ace),usedInFusion=p.graveyard.some(c=>c.uid===ace);return {normal,prepared:!!prepared,lumiraOnField,usedInFusion,placed:!!placed};})()");
+ assert.deepEqual(r,{normal:true,prepared:true,lumiraOnField:true,usedInFusion:false,placed:true});
+});
+test('chapter V rejects direct Lumira fusion even when old recipe accepts the material combination',()=>{
+ const r=setup().run("(()=>{const g=game,p=g.players[1],ace=p.hand.find(c=>c.id===ArcaneLv1Swarm.ids.ace),extra=p.hand.filter(c=>c.uid!==ace.uid).slice(0,2),all=[ace,...extra];return {recipe:ArcaneLumiraCorruption.recipe(g,all),blocked:!prepareHandFusion(g,all.map(c=>c.uid)),lumiraStillInHand:p.hand.some(c=>c.uid===ace.uid)};})()");
+ assert.deepEqual(r,{recipe:true,blocked:true,lumiraStillInHand:true});
 });
 test('the boss fusion is never legal without Lumira or outside chapter V',()=>{
  const fifth=setup().run("(()=>{const g=game,p=g.players[1],id=ArcaneLv1Saga.corruptedId,others=p.hand.filter(c=>c.id!==ArcaneLv1Swarm.ids.ace).slice(0,3);g.fusionChoice=id;const r=fusedInstance(g,others,others.map(c=>dataOf(c).level));delete g.fusionChoice;return {r:r===null};})()");
