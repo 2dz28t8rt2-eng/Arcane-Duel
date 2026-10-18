@@ -364,7 +364,7 @@
    let value;try{value=oldStart('pve',1,'challenge','easy',null);}finally{opponentUnlocked=originalUnlock;}
    if(game?.lv1Saga?.stage===stage&&uiMode==='duel'){
     const oldGo=$('modalGo')?.onclick;
-    openModal(modalHtml('VERBOTENE FORSCHUNG · '+stage+'/5',STORIES[stage-1].title,'✦',
+    openModal(modalHtml(intro?'✦ UNBEKANNTE BEGEGNUNG':'VERBOTENE FORSCHUNG · '+stage+'/5',intro?'Der rätselhafte Duellant':STORIES[stage-1].title,'✦',
      stage===1?'Ein unbekannter Duellant tritt dir entgegen. Noch weißt du nichts von seiner Forschung. Beweise ihm in einem normalen Duell dein Können.':STORIES[stage-1].dialog,
      (stage===1?'<p>✧ Kein Forschungsziel – euer erstes Duell beginnt.</p>':
       '<p class="lv1-intro-note"><b>Dein Leihdeck:</b> Jede Forschungsprüfung stellt dir ein passendes Herausforderungsdeck bereit. Dein eigenes Deck bleibt erhalten.</p>'+
