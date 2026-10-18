@@ -5,7 +5,7 @@ function setup(){const b=boot({seed:9811});b.exec("profile=freshProfile();profil
 test('approved fusion artworks retain their final identity, correct templates and effect descriptions',()=>{
  const r=setup().run("Object.fromEntries(Object.entries(ArcaneLv1Swarm.ids).map(([role,id])=>[role,{name:CARDS[id].name,art:CARDS[id].art,atk:CARDS[id].atk,def:CARDS[id].def,desc:CARDS[id].desc}]))");
  for(const [role,expected]of Object.entries({hive:'Nekroth',protector:'Aegurion',attacker:'Nyxar',ace:'Lumira'})){
-  assert.match(r[role].name,new RegExp(expected));assert.ok(r[role].art.endsWith('-illustration.webp'));
+  assert.match(r[role].name,new RegExp(expected));assert.ok(role==='ace'?r[role].art.endsWith('lumira-angel-v49.webp'):r[role].art.endsWith('-illustration.webp'));
   assert.ok(r[role].desc.length>130,role);
  }
  assert.deepEqual([r.ace.atk,r.ace.def],[111,111]);
