@@ -45,7 +45,7 @@ test('every Lumira apparition has a distinct hopeful-to-disillusioned response',
 });
 
 test('chapter V fuses Lumira directly from the opening hand into the corrupted Predator',()=>{
- const r=stage(5).run("(()=>{const g=game,p=g.players[1],a=chooseAiAction(g);g.active=1;const action=chooseAiAction(g),ids=action.uids||[],hadLumira=ids.includes(g.lv1FanaticAce.uid),prepared=applyAiAction(g,action),bossPending=g.pending?.card?.id===ArcaneLv1Saga.corruptedId,lost=p.hand.find(c=>c.id===ArcaneLv1Swarm.ids.ace)===undefined,placed=prepared?placePending(g,0):null;return {type:action.type,hadLumira,amount:ids.length,prepared:!!prepared,bossPending,lost,bossField:placed?.card?.id===ArcaneLv1Saga.corruptedId,preDialog:g.lv1FallPreShown===true,postDialog:g.lv1FanaticCorruptDialoguePending===true,handAcePlayed:g.lv1FanaticAce.played===true};})()");
+ const r=stage(5).run("(()=>{const g=game,p=g.players[1];g.active=1;const action=chooseAiAction(g),ids=action.uids||[],hadLumira=ids.includes(g.lv1FanaticAce.uid),prepared=applyAiAction(g,action),bossPending=g.pending?.card?.id===ArcaneLv1Saga.corruptedId,lost=p.hand.find(c=>c.id===ArcaneLv1Swarm.ids.ace)===undefined,placed=prepared?placePending(g,0):null;return {type:action.type,hadLumira,amount:ids.length,prepared:!!prepared,bossPending,lost,bossField:placed?.card?.id===ArcaneLv1Saga.corruptedId,preDialog:g.lv1FallPreShown===true,postDialog:g.lv1FanaticCorruptDialoguePending===true,handAcePlayed:g.lv1FanaticAce.played===true};})()");
  assert.equal(r.type,'fusion');
  assert.equal(r.hadLumira,true);
  assert.ok(r.amount>=3&&r.amount<=5);
