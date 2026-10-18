@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const {boot}=require('./helpers/game-runtime.cjs');
 function stage(n){
  const b=boot({seed:100+n});
- b.exec("profile=freshProfile();profile.lv1Saga={offered:true,stage:"+(n-1)+",perk:false,aceGranted:false,finalRewards:false,story:[]};profile.activeDuel=null;startDuel('pve',1,'lv1-saga','easy',"+n+");");
+ b.exec("profile=freshProfile();profile.lv1Saga={offered:true,met:true,stage:"+(n-1)+",perk:false,aceGranted:false,finalRewards:false,story:[]};profile.activeDuel=null;startDuel('pve',1,'lv1-saga','easy',"+n+");");
  return b;
 }
 test('all five research decks are different, 40 legal regular cards, and contain the guaranteed sealed Lumira in hand',()=>{
