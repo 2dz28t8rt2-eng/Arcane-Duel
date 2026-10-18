@@ -61,16 +61,18 @@
   s.offers.push({id,echo:!!echo});logFx(g,echo?'echo':'draw',CARDS[id]?.name);return true;
  }
  function exitCard(g,c){
-  if(!stageAllowed(g,2)||!isReal(c))return;
-  const s=current(g);if(s.float>=maxTurns)return;
-  s.float++;
-  s.choices.push({id:c.id});
+  if(!stageAllowed(g,2)||!isLv1(c))return;
+  const s=current(g);
+  // An exiting Lv1 class fusion strengthens survivors, without creating a new Floating chain.
   for(const other of troops(g).filter(x=>x!==c&&isLv1(x))){
    other.lv1Mourn=(other.lv1Mourn||0)+8;
    other.lv1MournUntil=g.turn+3;
    if(other.card){other.card.atk+=8;other.card.def+=8;}
   }
   logFx(g,'mourning',CARDS[c.id].name);
+  if(!isReal(c)||s.float>=maxTurns){syncSwarm(g);return;}
+  s.float++;
+  s.choices.push({id:c.id});
   if(has(g))grantGhost(g);
   if(g.lv1Saga)g.lv1SagaProgress={...(g.lv1SagaProgress||{}),floating:(g.lv1SagaProgress?.floating||0)+1};
   if(has(g)&&s.float<maxTurns){
@@ -214,6 +216,25 @@
  const previousAttack=attack;
  attack=function(g,ai,di){
   if(!enabled(g))return previousAttack(g,ai,di);
+  // Aegurion's attack redirection remains active inside a ghost slot.
+  if(g.active===1&&!g.lv1GhostDefenseRouting){
+   const slots=state(g).ghostSlots;
+   const guardIndex=slots.findIndex(x=>x?.kind==='card'&&keyOf(x.card)==='protector');
+   if(guardIndex>=0){
+    const defender=slots[guardIndex].card,field=g.players[0].field;
+    const free=field.findIndex(x=>!x),ix=free>=0?free:4,saved=field[ix];
+    slots[guardIndex]=null;field[ix]=defender;
+    let resolved=null,remaining=null;
+    g.lv1GhostDefenseRouting=true;
+    try{resolved=attack(g,ai,ix);remaining=field[ix];}
+    finally{
+     g.lv1GhostDefenseRouting=false;field[ix]=saved;
+     if(remaining===defender||!resolved)slots[guardIndex]={kind:'card',card:defender};
+     syncSwarm(g);
+    }
+    return resolved;
+   }
+  }
   if(g.active===1&&di===null&&!g.players[0].field.some(Boolean)){
    const ghost=state(g).ghostSlots.findIndex(x=>x?.kind==='card');
    if(ghost>=0){
@@ -318,7 +339,7 @@
    for(const {c,atk,def}of snap)if(owned(g).includes(c)&&c.card){
     for(const k of ['atk','def']){const old=k==='atk'?atk:def,loss=Math.max(0,old-c.card[k]);c.card[k]+=Math.floor(loss*.30);}
    }
-   const s=state(g);for(const c of owned(g)){
+   const s=state(g);for(const c of troops(g)){
     if(c.lv1Mourn&&g.turn>=(c.lv1MournUntil||0)){
      c.card.atk=Math.max(0,c.card.atk-c.lv1Mourn);c.card.def=Math.max(1,c.card.def-c.lv1Mourn);c.lv1Mourn=0;
     }
