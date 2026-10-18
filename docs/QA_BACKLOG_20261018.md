@@ -22,11 +22,11 @@
 - [ ] **B1. Werteparität Deck/Kampf**: dieselbe Karte mit derselben Verstärkung prüfen; realen Basiswert von bereits erfolgtem Kampfzerfall unterscheiden; alle Faktor- und Rollen-Boni angleichen.
 - [ ] **B2. Kombinierte Beschwörungs-/Fusionsauswahl vollständig neu layouten**: separate Felder für Material, aktuelle Karte, Vorschau, Feldzone, Spezialrollen und Effekte; für PC & Handy, ohne Textüberlagerungen. Screenshot 2.
 - [ ] **B3. Fusions-Rollenstempel im kompletten UI**: Template zeigt nie ungeerbte Rollen; auch große Vorschau, Feldkarte, Dropdown, Nach-Fusionsstempel und wiederholte Aktualisierungen.
-- [ ] **B4. Seelenraub-Aktivierung visualisieren**: passive Saug-Orb-Animation für aktives Seelenraub rezyklieren; Angriff und LP-/ATK-/DEF-Verlust optisch korrekt lesen.
-- [ ] **B5. Gegenschlag-Animation**: eindeutige rote Schadensrichtung zum Angreifer statt versehentlichem grünem Heilungseindruck, wuchtiger Impact.
+- [x] **B4. Seelenraub-Aktivierung visualisieren**: passive Saug-Orb-Animation für aktives Seelenraub rezyklieren; Angriff und LP-/ATK-/DEF-Verlust optisch korrekt lesen.
+- [x] **B5. Gegenschlag-Animation**: eindeutige rote Schadensrichtung zum Angreifer statt versehentlichem grünem Heilungseindruck, wuchtiger Impact.
 - [ ] **B6. Essenzfähigkeiten und Orb**: größere Orb-Effekte und Animationen unabhängig von der weit unten befindlichen Fähigkeitsauswahl sichtbar machen.
 - [ ] **B7. ATK-/DEF-Boxen und redundant schwebende Level-Symbole**: Boosterbelohnung, Meilenstein, ACE-Kaufhinweis und Kartendrop sauber angleichen, auch Mobil.
-- [ ] **B8. Zufallsbegegnungsstart**: das gleiche „Duell startet“-Overlay und langsam auffüllende LP-Balken wie Turniergegner.
+- [x] **B8. Zufallsbegegnungsstart**: das gleiche „Duell startet“-Overlay und langsam auffüllende LP-Balken wie Turniergegner.
 - [ ] **B9. Eiman Huel**: schimmernder Begegnungshinweis, verschwindet nach *einem* anderen manuellen Duell unabhängig vom Ergebnis; danach erneut zufällig. Vorhandenes Streak-/Offer-System gezielt abnehmen. Mindestens ein generisches Artwork im Bossdeck aufspüren/ersetzen.
 - [ ] **B10. Fanatiker-Story**: ab Level 6 proaktiv auffindbar, von Spielern tatsächlich gestartete Kapitel 1–5 abnehmen.
 
@@ -57,3 +57,17 @@
 - Keine unbemerkt falschen Erfolgsbehauptungen. Offen/teilweise sind kein „fertig“.
 - Bei den fünf neuen Artworks erst hochwertige Einzelbilder erstellen und im Kartenrahmen prüfen, dann Commit.
 - Keine Änderung an `main` bis zur gemeinsamen Abnahme.
+
+## Nachtrag – zweite QA-Runde (18.10.2026)
+
+**Technisch integriert (manuelle Grafikabnahme noch ausstehend):**
+- Aktiver Seelenraub: die bereits bestehende violette Soul-Absorb-FX-Warteschlange wird unmittelbar nach dem Zielabzug sichtbar abgespielt, mit der eigenen Markierung „SEELENRAUB“. Passive Entzüge bleiben unverändert.
+- Gegenschlag: kräftiger roter Treffer in Richtung gegnerischer LP-Anzeige, sichtbare negative LP-Zahl, Impact-/Shake-Effekt. Frühere goldfarbene Heilanmutung entfällt.
+- Orb der Seelenzehrer: von 27 auf 58 px vergrößert; höhere Partikelhelligkeit.
+- Belohnungskarten: ATK-/DEF-Zahlenboxen bei Booster, Meilenstein, Drop und ACE-Hinweisen mit eigenen hoch priorisierten CSS-Regeln sichtbar; oberes redundantes Levelbadge in diesen Panels ausgeblendet. Die Levelanzeige in der eigentlichen Karte unten bleibt.
+- Zufallsbegegnungen: eigenes Startmodal mit Namen, LP und erst nach Bestätigung die bekannte Arena-Animation inklusive LP-Auffüllung (statt sofortiger KI-Aktion).
+- Eiman Huel: Angebote verschwinden nach dem nächsten anderen abgeschlossenen PvE-Duell unabhängig von Sieg, Niederlage oder Aufgabe; Begegnungspanel leuchtet und schimmert. Das generische Kartenartwork ist noch nicht ersetzt.
+- ACE-Monster: dezentes Pulsieren gemäß Element (Feuer, Wasser, Erde, Wind, Licht, Dunkel) in Hand, großer Vorschau und Feld; keine Werteveränderungen. Ein größeres individuelles Beschwörungsritual bleibt offen.
+- QA-Werteparität: automatischer Test für gewöhnliche RPG-Monster mit mehreren Upgrade-/Rollen-Spezialisierungen zeigt Deck-Startwerte identisch mit unbeschädigten Startwerten frisch erzeugter Duellkarten. **Weiter offen:** Abweichungen nach Zerfall, Spezialfähigkeiten, Fusionsrunden und Überladung; erst nach reproduziertem Gegenbeispiel spielmechanisch ändern.
+
+**Nicht abgeschlossen:** Komplettes Redesign der Beschwörungsauswahl (nur erste CSS-Reparatur), neue Monsterartworks, Eiman-Deckgrafiken, individuell größere ACE-Rituale, dezidierte Tests sämtlicher Booster-/ACE-Layouts auf mobilen Geräten sowie Level-/DEF-abhängiger Balancezerfall (bewusst nicht ohne vorherige Tests geändert).
