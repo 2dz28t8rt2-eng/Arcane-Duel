@@ -57,7 +57,10 @@
  const priorPlace=placePending;
  placePending=function(g,idx,...args){
   if(isResearch(g)&&g.active===1&&g.players[1].field[idx]?.id===lumiraId())return null;
-  return priorPlace(g,idx,...args);
+  const result=priorPlace(g,idx,...args);
+  if(result?.card&&dataOf(result.card)?.ace)
+   requestAnimationFrame(()=>requestAnimationFrame(()=>aceAwakening(g,result.card)));
+  return result;
  };
  // Counter the special case where old NPC logic still tries a scripted final fusion.
  const priorPrepare=prepareHandFusion;
@@ -186,6 +189,27 @@
   }
   return html;
  };
+ // A true ACE arrival: element-tinted halo, pulsing runes and impact burst.
+ function aceAwakening(g,card){
+  if(g!==game||uiMode!=='duel'||animationSpeed==='instant'||
+    window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches)return;
+  const owner=g.players.findIndex(p=>p.field.includes(card));
+  const idx=g.players[owner]?.field.indexOf(card);
+  if(idx<0)return;
+  const side=owner===(g.mode==='pve'?0:g.active)?'mine':'enemy';
+  const cell=document.querySelector('#'+(side==='mine'?'ownRow':'enemyRow')+
+   ' [data-'+side+'="'+idx+'"] .board-creature');
+  if(!cell)return;
+  const r=cell.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+  const hue={FEUER:'#ff784b',WASSER:'#72daff',ERDE:'#c1a968',WIND:'#b3ffe8',LICHT:'#ffe1a2',DUNKEL:'#cda8ff'}[dataOf(card).element]||'#ffe2a1';
+  const host=document.createElement('div');
+  host.className='ad-ace-awakening';host.style.left=cx+'px';host.style.top=cy+'px';
+  host.style.setProperty('--ad-ace-awake',hue);host.setAttribute('aria-hidden','true');
+  host.innerHTML='<div class="ad-ace-halo"></div><div class="ad-ace-rune">✧ ✦ ✧</div>'+
+   Array.from({length:20},(_,i)=>'<i style="--i:'+i+';--a:'+(i*18)+'deg"></i>').join('');
+  document.body.append(host);cell.classList.add('ad-ace-landing');
+  setTimeout(()=>{host.remove();cell.classList.remove('ad-ace-landing');},1600);
+ }
  // Fate ritual waits up to 15 seconds, but a deliberate click dismisses it.
  fateAnimation=async function(g){
   const evt=g?.fateEvent;if(!evt)return;
