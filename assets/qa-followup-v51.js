@@ -102,6 +102,16 @@
   panel.classList.remove('ad-inspected');
   renderCardPreview();
  });
+ // Reveal the battlefield BEFORE an active soul ability animates. The combat
+ // handler runs in the bubble phase; moving the viewport in capture ensures
+ // that the target, orb and projectile are visible on narrow displays.
+ document.getElementById('duelScreen')?.addEventListener('click',event=>{
+  const button=event.target.closest('button[data-essence-target],button[data-essence-combat]');
+  if(!button||button.disabled||!game||uiMode!=='duel'||busy)return;
+  const target=button.dataset.essenceTarget!==undefined?
+   document.getElementById('enemyRow'):document.getElementById('ownRow');
+  target?.scrollIntoView({block:'center',behavior:'instant'});
+ },true);
  // A visible shortcut on duel-related menus helps players discover quests early.
  const olderRenderMenu=renderMenu;
  renderMenu=function(...args){
