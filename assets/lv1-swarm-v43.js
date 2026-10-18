@@ -145,6 +145,9 @@
    for(let i=0;i<5;i++)restoreCard(g.players[owner].field[i],raw.players?.[owner]?.field?.[i]);
   }
   restoreCard(g.pending?.card,raw.pending?.card);
+  if(g.pending&&raw.pending?.lv1Effect===true)g.pending.lv1Effect=true;
+  const x=raw.lv1SagaProgress;
+  if(x&&['floating','swarm','special'].every(k=>Number.isInteger(x[k])&&x[k]>=0&&x[k]<=100))g.lv1SagaProgress={floating:x.floating,swarm:x.swarm,special:x.special};
   return g;
  };
  const previousOptions=fusionOptions;
@@ -207,6 +210,17 @@
  const previousAttack=attack;
  attack=function(g,ai,di){
   if(!enabled(g))return previousAttack(g,ai,di);
+  if(g.active===1&&di===null&&!g.players[0].field.some(Boolean)){
+   const ghost=state(g).ghostSlots.findIndex(x=>x?.kind==='card');
+   if(ghost>=0){
+    const c=state(g).ghostSlots[ghost].card;
+    state(g).ghostSlots[ghost]=null;g.players[0].field[4]=c;
+    let result,remaining=null;
+    try{result=attack(g,ai,4);remaining=g.players[0].field[4];}
+    finally{g.players[0].field[4]=null;if(remaining===c||!result)state(g).ghostSlots[ghost]={kind:'card',card:c};syncSwarm(g);}
+    return result;
+   }
+  }
   const p=g.players[g.active],enemy=g.players[1-g.active],a=p.field[ai];
   let target=di===null?null:enemy.field[di];
   if(!a)return previousAttack(g,ai,di);
@@ -304,6 +318,8 @@
   if(g.active===0&&g.winner===null){
    const hive=owned(g).find(c=>keyOf(c)==='hive');
    const s=state(g);
+   for(const o of s.ghostSlots)if(o?.kind==='card'){o.card.attacked=false;o.card.switched=false;
+    if(o.card.card){o.card.card.atk=Math.max(0,o.card.card.atk-21);o.card.card.def=Math.max(1,o.card.card.def-21);}}
    if(hive&&s.ghostSlots.length<5){s.ghostSlots.push(null);logFx(g,'slot',s.ghostSlots.length);}
    if(hive){
     const heal=spirits(g).length*20;
@@ -312,7 +328,7 @@
    }
    const protector=owned(g).find(c=>keyOf(c)==='protector');
    if(protector){
-    for(const c of owned(g).filter(isLv1)){
+    for(const c of [...owned(g),...spirits(g).filter(x=>x.kind==='card').map(x=>x.card)].filter(isLv1)){
      const max=Math.max(c.lv1MaxDef||0,c.card.def);
      c.lv1MaxDef=max;
      const need=max-c.card.def;
