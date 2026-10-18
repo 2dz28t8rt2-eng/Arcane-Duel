@@ -42,3 +42,17 @@ test('ACE field previews expose element-specific breathing aura without altering
  const r=b.run("(()=>{const ace=CARDS.find(c=>c.ace),id=CARDS.find(c=>c.rpg&&!c.ace&&!c.fusionOnly).id;const g=createGame({mode:'pve',opponentId:1,context:'free'});game=g;const special=cardHtml(newInstance(g,ace.id,0),'mine'),ordinary=cardHtml(newInstance(g,id,0),'mine');return {element:special.includes('data-element=\\\"'),ordinary:ordinary.includes('data-element=\\\"')};})()");
  assert.deepEqual(r,{element:true,ordinary:false});
 });
+
+test('random encounters wait on the same intro/LP fill confirmation as tournament duels',()=>{
+ const b=boot({seed:890});
+ const r=b.run("(()=>{profile.encounters=[{id:'qa-encounter',source:1,name:'Mystische Begegnung',seed:123,enemy:rpgEnemyLoadout(1,'easy')}];profile.activeDuel=null;startEncounter('qa-encounter');return {context:game?.context,screen:uiMode,listener:typeof document.getElementById('encounterStartGo').onclick,consumed:profile.encounters.length};})()");
+ assert.deepEqual(r,{context:'encounter',screen:'duel',listener:'function',consumed:0});
+ const src=fs.readFileSync(path.join(__dirname,'../assets/game.js'),'utf8');
+ assert.match(src,/ArcaneBattleFX\?\.beginCinema\?\.\(\)/);
+});
+test('temporary Eiman shimmer and six element-specific ACE auras respect accessibility',()=>{
+ const css=fs.readFileSync(path.join(__dirname,'../assets/quality-sprint-v50.css'),'utf8');
+ assert.match(css,/ad-eiman-encounter/);
+ for(const element of ['FEUER','WASSER','ERDE','WIND','LICHT','DUNKEL'])assert.match(css,new RegExp('data-element="'+element+'"'));
+ assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
+});
