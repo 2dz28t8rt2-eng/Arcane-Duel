@@ -130,7 +130,7 @@
   if(!activePanel||event.target.closest?.('#deckSidePreview'))return;
   if(anchor?.isConnected){
    const r=anchor.getBoundingClientRect();
-   if(r.bottom<0||r.top>innerHeight){close(true);return;}
+   if(r.bottom<0||r.top>innerHeight){return;} // Keep the selected card inspector visible while scrolling.
   }
   position(activePanel);
  },true);
