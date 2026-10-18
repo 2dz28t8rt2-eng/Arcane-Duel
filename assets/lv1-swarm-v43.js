@@ -79,6 +79,7 @@
   if(!enabled(g)||g.active!==0)return false;
   const s=state(g),ch=s.choices[index];if(!ch)return false;
   if(type!=='echo'&&type!=='deck')return false;
+  if(s.offers.length>=5)return false;
   let id=ch.id,echo=true;
   if(type==='deck'){
    const p=g.players[0],poss=p.deck.map((card,i)=>({id:card,i})).filter(x=>CARDS[x.id]?.level===1&&!CARDS[x.id].fusionOnly);
@@ -305,6 +306,7 @@
   const ending=g.active,snap=owned(g).filter(isLv1).map(c=>({c,atk:c.card?.atk||0,def:c.card?.def||0}));
   const passed=previousAdvance(g);
   if(passed===false)return passed;
+  if(g.winner===null&&stageAllowed(g,2))for(const {c}of snap)if(!owned(g).includes(c))exitCard(g,c);
   if(ending===0&&g.winner===null){
    for(const {c,atk,def}of snap)if(owned(g).includes(c)&&c.card){
     for(const k of ['atk','def']){const old=k==='atk'?atk:def,loss=Math.max(0,old-c.card[k]);c.card[k]+=Math.floor(loss*.30);}
