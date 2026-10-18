@@ -23,7 +23,7 @@ test('four seats are host, opponent A, partner, opponent B in that exact order',
 test('room opens locked, with partner seat reserved but not present',()=>{
  const g=waiting();
  assert.equal(g.status,'waiting');assert.equal(g.activeSeat,0);
- assert.equal(g.players[2].deck.length,0);assert.deepEqual(g.teams.map(t=>t.lp),[12000,12000]);
+ assert.equal(g.players[2].deck.length,0);assert.deepEqual(g.teams.map(t=>t.lp),[16000,16000]);
 });
 test('invalid, short or malformed host decks cannot initialize a lobby',()=>{
  assert.throws(()=>core.createLobby({roomId:'valid-room',hostDeck:[10],enemyDeckA:deck(20),enemyDeckB:deck(40)}));
@@ -91,5 +91,5 @@ test('team LP damage is shared between both allies while decks remain independen
  const before=g.teams[1].lp;
  g=apply(g,0,{type:'attack',slot:0,targetSeat:null,targetSlot:null});
  assert.equal(g.teams[1].lp,before-450);
- assert.equal(g.teams[0].lp,12000);
+ assert.equal(g.teams[0].lp,16000);
 });
