@@ -43,18 +43,35 @@
    else{g.aiPhase='positions';a=priorChoice(g,policy);}
   }
   if(a?.type==='place'&&foe.field[a.idx]?.id===ace){
-   const safe=foe.field.findIndex(c=>!c);
-   if(safe>=0)a={type:'place',idx:safe};
+   const pending=g.pending;
+   const legal=foe.field.findIndex(c=>!c);
+   if(legal>=0){a={...a,idx:legal};}
    else{
-    const other=foe.field.findIndex((c,i)=>i!==a.idx&&c?.id!==ace&&
-      fusionOptions(g,[...g.pending.levels,dataOf(c).level]).length>0);
-    if(other>=0)a={type:'place',idx:other};
+    const other=foe.field.findIndex((c,i)=>
+      i!==a.idx&&c?.id!==ace&&pending?.levels?.length&&
+      fusionOptions(g,[...pending.levels,dataOf(c).level],[pending.card,c])
+       .some(template=>foe.remainingFusion.includes(template.id)));
+    if(other>=0)a={...a,idx:other};
+    else a={type:'arcane-recover-pending'};
    }
   }
   // Old Chapter-V logic may have raised the scripted fusion intent while
   // evaluating a candidate. Clear it after protecting Lumira.
   g.lv1FanaticCorruptIntent=false;
   return a;
+ };
+ // The AI must be able to complete its turn even with a field full of
+ // cards it cannot legally fuse. Cleanly abandon only the unplaceable
+ // pending action; never overwrite the protected Lumira.
+ const applyBeforeRecovery=applyAiAction;
+ applyAiAction=function(g,a){
+  if(a?.type!=='arcane-recover-pending')return applyBeforeRecovery(g,a);
+  if(!isResearch(g)||g.active!==1||!g.pending)return false;
+  if(g.pending.kind==='fusion'&&g.pending.card)
+   g.players[1].graveyard.push(g.pending.card);
+  logEvent(g,'Der Forscher zieht seine nicht ausführbare Beschwörung zurück: Lumira bleibt geschützt.');
+  g.pending=null;g.summoned=true;g.aiPhase='positions';
+  return true;
  };
  // Extra guard for old/saved pending fusions: chosen Lumira is never consumed.
  const priorPlace=placePending;
