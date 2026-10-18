@@ -1357,7 +1357,28 @@ async function fusionAnimation(level){if(animationSpeed==='instant')return;const
 
 
 function switchMode(){if(inputAllowed()&&game.selection?.type==='field'&&switchPosition(game,game.selection.idx))render();}
-async function performAttack(ai,di){if(!inputAllowed())return;busy=true;const viewId=game.mode==='pve'?0:game.active,a=center(document.querySelector(`[data-mine="${ai}"]`)),b=di===null?center($('enemyBanner')):center(document.querySelector(`[data-enemy="${di}"]`));if(animationSpeed!=='instant'){bolt(a,b);sound('attack');}const result=attack(game,ai,di);if(result){render();if(result.damage)damageFloat(result.damaged===viewId?a:b,'−'+result.damage);await animationWait(120);await window.ArcaneDefenderFX?.flush(game);}busy=false;render();if(game.winner!==null)showFinished();}
+async function performAttack(ai,di){
+ if(!inputAllowed())return;
+ const g=game,viewId=g.mode==='pve'?0:g.active;
+ const attacker=g.players[g.active]?.field?.[ai],opponent=g.players[1-g.active];
+ if(!attacker||!canAttack(g,attacker)||
+    (di!==null&&!opponent.field[di])||(di===null&&opponent.field.some(Boolean))){
+  g.selection=null;render();toast('Angriff nicht verfügbar oder bereits verbraucht.');return;
+ }
+ // Commit combat first. If a late validator rejects the attack, never show
+ // a misleading projectile, sound or damage animation.
+ const result=attack(g,ai,di);
+ if(!result){g.selection=null;render();toast('Angriff nicht ausführbar.');return;}
+ busy=true;
+ try{
+  const a=center(document.querySelector(`[data-mine="${ai}"]`)),
+        b=di===null?center($('enemyBanner')):center(document.querySelector(`[data-enemy="${di}"]`));
+  if(animationSpeed!=='instant'){bolt(a,b);sound('attack');}
+  render();
+  if(result.damage)damageFloat(result.damaged===viewId?a:b,'−'+result.damage);
+  await animationWait(120);await window.ArcaneDefenderFX?.flush(g);
+ }finally{busy=false;if(game===g){render();if(g.winner!==null)showFinished();}}
+}
 function onEnemySlot(idx){if(!game)return;if(inputAllowed()&&game.selection?.type==='field'){enemyPreviewIndex=null;performAttack(game.selection.idx,idx);return;}const foe=game.players[game.mode==='pve'?1:1-game.active];if(foe.field[idx]){enemyPreviewIndex=idx;renderCardPreview();}}
 async function endTurn(){
  if(!inputAllowed()||game.pending)return;
