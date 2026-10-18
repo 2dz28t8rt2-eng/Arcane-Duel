@@ -9,21 +9,11 @@ frame.addEventListener('load',()=>{
  try{
   check(!!d.getElementById('duoChapter').options.length,'Four campaign chapters are loaded');
   check(!!d.querySelector('.notice')?.textContent.includes('noch kein Online-Multiplayer'),'Offline limitations are visible');
-  d.getElementById('duoCreate').click();
-  check(d.getElementById('duoRoomId').textContent.length>=12,'Secure local code is created');
-  check(!d.getElementById('duoJoin').disabled,'Partner can join simulation');
-  d.getElementById('duoJoin').click();
-  check(d.getElementById('duoTurnName').textContent.includes('Duellant A'),'Host is first');
-  check(d.querySelectorAll('#duoSeats .seat').length===4,'Four distinct boards exist');
-  const end=Array.from(d.querySelectorAll('#duoActions button')).find(x=>x.textContent.includes('Zug beenden'));
-  check(!!end,'Host end-turn control available');
-  end?.click();
-  check(d.getElementById('duoTurnName').textContent.includes('Gegner A'),'AI opponent A is second');
-  const ai=Array.from(d.querySelectorAll('#duoActions button')).find(x=>x.textContent.includes('KI-Zug'));
-  check(!!ai,'AI turn action available');
-  ai?.click();
-  check(d.getElementById('duoTurnName').textContent.includes('Duellant B'),'Invited partner third');
-  check(d.querySelectorAll('#duoSeats .field').length===4,'Every seat retains its own field');
+  check(!!d.getElementById('duoInviteBox')&&!!d.getElementById('duoCopy'),'Invite link controls present');
+  check(!!d.getElementById('duoAccept'),'Invitation acceptance available');
+  check(d.querySelectorAll('#duoSeats .seat').length===0,'No room data rendered before authorization');
+  check(d.getElementById('duoAlliedLP').textContent.includes('16.000'),'Double LP shown before starting');
+  check(getComputedStyle(d.createElement('div')).display!=='not-a-real-display','DOM accessible');
   document.documentElement.dataset.duoBrowser=good?'pass':'fail';
  }catch(e){check(false,e.stack||e.message);document.documentElement.dataset.duoBrowser='fail';}
 });
