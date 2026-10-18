@@ -1366,6 +1366,7 @@ async function runAi(){
  enemyPreviewIndex=null;aiRunning=true;busy=true;const g=game;
  try{
   for(let i=0;i<80&&game===g&&g.active===1&&g.winner===null;i++){
+   await window.ArcaneLv1Saga?.flushFanaticDialogue?.(g);
    const a=chooseAiAction(g,OPPONENTS[g.opponentId].policy);let result;
    if(a.type==='attack'&&animationSpeed!=='instant'){
     const from=center(document.querySelector(`[data-enemy="${a.ai}"]`)),to=a.di===null?center($('myBanner')):center(document.querySelector(`[data-mine="${a.di}"]`));bolt(from,to);sound('attack');
@@ -1379,6 +1380,7 @@ async function runAi(){
     else await animationWait(a.type==='attack'?120:60);
     await window.ArcaneDefenderFX?.flush(g);
    }finally{g.cinemaActive=false;}
+   await window.ArcaneLv1Saga?.flushFanaticDialogue?.(g);
    if(a.type==='place')g.lastSummoned=null;
   }
  }catch(e){console.warn('KI-Zug:',e);toast('Der KI-Zug wurde unterbrochen. Klicke auf „KI-Zug fortsetzen“, um weiterzuspielen.');}
