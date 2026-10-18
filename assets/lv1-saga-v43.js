@@ -66,6 +66,16 @@
   if(forced()||randomInt(g,100)<chance){s.offered=true;saveProfile();return true;}
   return false;
  }
+ const OBJECTIVES=[
+  {name:'Einführung',description:'Besiege den Level-1-Fanatiker im 2.000-LP-Duell.',goal:null},
+  {name:'Floating',description:'Lass mindestens ein echtes Level-1-Monster das Feld verlassen und löse Floating aus.',goal:'floating'},
+  {name:'Swarm',description:'Beschwöre ein echtes Level-1-Monster und löse eine Schwarmkopie aus.',goal:'swarm'},
+  {name:'Fusion',description:'Erschaffe mindestens eine der drei exklusiven Level-1-Fusionen.',goal:'special'},
+  {name:'Die letzte Prüfung',description:'Kombiniere Floating, Swarm und eine Spezialfusion im selben Duell.',goal:'all'}
+ ];
+ function mastered(g){const st=g?.lv1Saga?.stage||0,p=g?.lv1SagaProgress||{},goal=OBJECTIVES[st-1]?.goal;
+  return !goal||(goal==='all'?(p.floating>0&&p.swarm>0&&p.special>0):p[goal]>0);
+ }
  const oldReward=rewardMatch;
  rewardMatch=function(g){
   if(!g?.lv1Saga){
@@ -75,7 +85,7 @@
   }
   if(g.rewardClaimed||profile.rewardLedger.includes(g.id))return null;
   g.rewardClaimed=true;profile.rewardLedger.push(g.id);profile.rewardLedger=profile.rewardLedger.slice(-512);
-  const win=g.winner===0&&!g.surrendered,stage=g.lv1Saga.stage,s=state(),first=win&&stage===s.stage+1;
+  const win=g.winner===0&&!g.surrendered,stage=g.lv1Saga.stage,s=state(),first=win&&mastered(g)&&stage===s.stage+1;
   const coins=first?stage===1?10:stage*25:0, xp=first?stage===1?5:10*stage:0;
   if(win)profile.wins++;else profile.losses++;
   if(first){
@@ -111,7 +121,7 @@
  let stageWanted=0;
  function forty(levelCap=1,weakest=false,predator=false){
   const pool=RPG_BASE_CARDS.filter(c=>c.rpg&&!c.fusionOnly&&!c.ace&&!c.essenceMonster&&!c.retired&&c.level<=levelCap)
-   .sort((a,b)=>predator?(b.role==='predator'?1:0)-(a.role==='predator'?1:0)||b.atk-a.atk:
+   .sort((a,b)=>predator?(a.role==='predator'?-1:0)-(b.role==='predator'?-1:0)||b.atk-a.atk:
      weakest?a.atk+a.def-b.atk-b.def:a.level-b.level||a.id-b.id);
   const result=[],count=new Map();
   for(const c of pool){for(let n=0;n<3&&result.length<40;n++){result.push(c.id);count.set(c.id,(count.get(c.id)||0)+1);}if(result.length===40)break;}
@@ -140,7 +150,7 @@
   const g=oldCreate({...options,mode:'pve',opponentId:1,context:'challenge',challenge:null,
    enemy,deck:playerDeck,fusionDeck:stage>=4?loanFusion(stage):options.fusionDeck,
    enhancements:stage===1?options.enhancements:{},flatBonus:stage===1?options.flatBonus:0});
-  g.lv1Saga={stage};g.maxLP=[0,2000,3000,4000,5000,6500][stage];
+  g.lv1Saga={stage};g.lv1SagaProgress={floating:0,swarm:0,special:0};g.maxLP=[0,2000,3000,4000,5000,6500][stage];
   g.players.forEach(p=>{p.lp=g.maxLP;p.shield=0;});
   if(stage===1)for(const c of g.players[1].hand)if(c.card){
    c.card.atk=Math.max(0,c.card.atk-30);c.card.def=Math.max(1,c.card.def-30);
@@ -179,7 +189,7 @@
     openModal(modalHtml('VERBOTENE FORSCHUNG · '+stage+'/5',STORIES[stage-1].title,'✦',
      STORIES[stage-1].dialog,
      '<p class="lv1-intro-note">Geliehene Karten für Stufe II–V · Der Forscher verändert mit jeder Niederlage sein Deck.</p>'+
-     '<p>Duell-LP: '+game.maxLP.toLocaleString('de-AT')+'</p>',
+     '<p>Duell-LP: '+game.maxLP.toLocaleString('de-AT')+'</p><p class="lv1-objective"><b>✦ Prüfungsziel:</b> '+escapeHtml(OBJECTIVES[stage-1].description)+'</p>',
      '<button class="btn primary" id="modalGo">DUELL STARTEN</button>'));
     $('modalGo').onclick=oldGo;
    }
@@ -197,11 +207,12 @@
    if($('lv1VisitFanatic'))$('lv1VisitFanatic').onclick=()=>{returnToMenu();window.ArcaneRoyalUI?.navigate?.('challenges');};
   }
   if(!show||!$('modal'))return;
-  const success=g.winner===0&&!g.surrendered&&state().stage===stage;
+  const success=g.winner===0&&!g.surrendered&&mastered(g)&&state().stage===stage;
   const after=STORIES[stage-1].after;
+  const failedGoal=g.winner===0&&!mastered(g);
   const scene='<section class="lv1-story-result"><h3>✦ '+escapeHtml(STORIES[stage-1].title)+'</h3>'+
-    '<p class="lv1-dialogue">„'+escapeHtml(success?after:'Du bist noch nicht bereit. Kehre zurück, wenn du die Geister verstehst.')+'“</p>'+
-    (success?'<p>Fragment '+stage+' von 5 entdeckt. '+(stage===5?'Das Vermächtnis ist erwacht.':'Nächste Forschung freigeschaltet.')+'</p>':'<p>Diese Stufe kann erneut versucht werden.</p>')+
+    '<p class="lv1-dialogue">„'+escapeHtml(success?after:failedGoal?'Ein Sieg allein genügt nicht. Du hast die besondere Forschungstechnik noch nicht angewendet.':'Du bist noch nicht bereit. Kehre zurück, wenn du die Geister verstehst.')+'“</p>'+
+    (failedGoal?'<p class="lv1-objective"><b>Noch offen:</b> '+escapeHtml(OBJECTIVES[stage-1].description)+'</p>':'')+(success?'<p>Fragment '+stage+' von 5 entdeckt. '+(stage===5?'Das Vermächtnis ist erwacht.':'Nächste Forschung freigeschaltet.')+'</p>':'<p>Diese Stufe kann erneut versucht werden.</p>')+
     (stage===5&&success?'<div class="lv1-unlock"><h3>✦ DAS ERWACHEN DES SCHWARMS ✦</h3><p>Schwarmperk dauerhaft freigeschaltet · ACE: Urfunke erhalten</p>'+
       '<div class="lv1-booster-reveal">'+(g.lv1BonusPacks||[]).map((p,i)=>'<span>✧ Pack '+(i+1)+' · 3 Karten</span>').join('')+'</div>'+
       '<p>10 unabhängige Boosterwürfe à 50 %, 3 Level-1-Karten je gewonnenem Pack.</p></div>':'')+'</section>';
@@ -228,6 +239,6 @@
   const b=e.target.closest('[data-lv1-stage]');if(!b)return;
   const stage=Number(b.dataset.lv1Stage);startDuel('pve',1,'lv1-saga','easy',stage);
  });
- window.ArcaneLv1Saga=Object.freeze({version:'4.3.0',stories:STORIES,state,maybeOffer,fraction,forced,forty,loanFusion});
+ window.ArcaneLv1Saga=Object.freeze({version:'4.4.0',stories:STORIES,objectives:OBJECTIVES,mastered,state,maybeOffer,fraction,forced,forty,loanFusion});
  if(uiMode==='menu')renderMenu();
 })();
