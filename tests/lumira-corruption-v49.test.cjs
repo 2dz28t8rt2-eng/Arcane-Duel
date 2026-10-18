@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const {boot}=require('./helpers/game-runtime.cjs');
 function setup(chapter=5){
  const b=boot({seed:500+chapter});
- b.exec("profile=freshProfile();profile.lv1Saga={offered:true,stage:"+(chapter-1)+",perk:false,aceGranted:false,finalRewards:false,story:[]};profile.activeDuel=null;startDuel('pve',1,'lv1-saga','easy',"+chapter+");game.active=1;game.turn=1;game.summoned=false;");
+ b.exec("profile=freshProfile();profile.lv1Saga={offered:true,met:true,stage:"+(chapter-1)+",perk:false,aceGranted:false,finalRewards:false,story:[]};profile.activeDuel=null;startDuel('pve',1,'lv1-saga','easy',"+chapter+");game.active=1;game.turn=1;game.summoned=false;");
  return b;
 }
 test('both approved 768x1024 angel and eclipse artworks are bound to the existing card IDs',()=>{
