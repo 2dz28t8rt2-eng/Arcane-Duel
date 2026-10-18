@@ -189,8 +189,13 @@
  const oldShow=showFinished;
  showFinished=function(){
   const g=game,show=g?.lv1Saga&&g.winner!==null&&!g.finishShown;
+  const wasOffered=state().offered;
   const stage=g?.lv1Saga?.stage,previous=state().stage;
   oldShow();
+  if(!show&&!wasOffered&&state().offered&&$('modal')){
+   $('modal').insertAdjacentHTML('beforeend','<section class="lv1-story-result"><h3>✦ SELTSAME BEGEGNUNG</h3><p>Ein exzentrischer Duellant, besessen von Level-1-Kreaturen, wartet auf dich. Eine neue Forschungsreihe ist verfügbar.</p><button class="btn primary" id="lv1VisitFanatic">Den Forscher besuchen</button></section>');
+   if($('lv1VisitFanatic'))$('lv1VisitFanatic').onclick=()=>{returnToMenu();window.ArcaneRoyalUI?.navigate?.('challenges');};
+  }
   if(!show||!$('modal'))return;
   const success=g.winner===0&&!g.surrendered&&state().stage===stage;
   const after=STORIES[stage-1].after;
