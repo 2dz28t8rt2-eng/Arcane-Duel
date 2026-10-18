@@ -411,7 +411,7 @@ function startShowcaseDuel(forced=false){
 function showcasePanel(){
  const sc=profile.showcase;
  if(!sc.seen||!sc.offered)return '';
- return `<section class="menu-panel opponent-card"><div class="side-kicker">??? · GEHEIMDUELL</div>
+ return `<section class="menu-panel opponent-card ad-eiman-encounter"><div class="side-kicker">??? · GEHEIMDUELL</div>
  <h2>${SHOWCASE_NAME}</h2><p>Deck: ??? · Stufe: ??? · Fusionen: ??? · Beute: ???</p>
  <p>Der Hochmütige ist nur für <b>ein weiteres Duell</b> hier. „Das hier ist keine Übung. Hoffentlich kannst du wenigstens verlieren, ohne Ausreden zu suchen.“</p>
  <button class="btn primary" id="showcaseOptional">HERAUSFORDERN</button></section>`;
@@ -436,10 +436,11 @@ function showcaseReward(g){
   charge:0,showcase:true,showcaseFirst:first};
 }
 function showcaseTrackDuel(g){
- if(g.mode!=='pve'||g.showcase||g.context==='auto'||g.surrendered||!profile.showcase.seen)return;
+ if(g.mode!=='pve'||g.showcase||g.context==='auto'||!profile.showcase.seen)return;
  const sc=profile.showcase;
  // The visitor departs after the next completed duel, even if that duel is lost.
  if(sc.offered){sc.offered=false;sc.streak=0;return;}
+ if(g.surrendered)return;
  if(g.winner!==0){sc.streak=0;return;}
  sc.streak++;
  if(sc.streak>=3){
