@@ -140,7 +140,7 @@
   if(mode!=='pve'||stage<1||stage>5||stage>s.stage+1||!s.offered){toast('Dieser Forschungsabschnitt ist noch nicht freigeschaltet.');return;}
   stageWanted=stage;
   try{
-   const value=oldStart('pve',1,'challenge','easy',null);
+   const value=oldStart('pve',opponentUnlocked(1)?1:0,'challenge','easy',null);
    if(game?.lv1Saga?.stage===stage&&uiMode==='duel'){
     const oldGo=$('modalGo')?.onclick;
     openModal(modalHtml('VERBOTENE FORSCHUNG · '+stage+'/5',STORIES[stage-1].title,'✦',
