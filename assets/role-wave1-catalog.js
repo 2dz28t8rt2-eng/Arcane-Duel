@@ -1,5 +1,5 @@
-/* Arcane Duel — ROLE-WAVE 1. Artwork files supplied separately as binary WebP.
- * Enabled only once all ten final artworks have been installed in GitHub.
+/* Arcane Duel — ROLE-WAVE 1+2. Artwork files supplied separately as binary WebP.
+ * Enabled only once all 15 final artworks have been installed in GitHub.
  * Install before loadProfile() to retain stable persisted card IDs.
  */
 'use strict';
@@ -134,6 +134,76 @@
     "desc": "Ein uraltes Waldwesen, dessen Resonanz Verbündete und Fusionen stärkt.",
     "style": "allrounder",
     "art": "assets/role-wave1/elementsynthese-orin.webp"
+  },
+  {
+    "key": "ascheklauen-vyrak",
+    "name": "Ascheklauen Vyrak",
+    "role": "predator",
+    "kind": "wolf",
+    "element": "FEUER",
+    "level": 5,
+    "requiredTier": 3,
+    "color": "#e97545",
+    "desc": "Vyrak jagt durch vulkanische Felsspalten und bezwingt Gegner mit explosiver Geschwindigkeit.",
+    "style": "predator",
+    "art": "assets/role-wave1/ascheklauen-vyrak.webp",
+    "customArt": "assets/role-wave1/ascheklauen-vyrak.webp"
+  },
+  {
+    "key": "erdwacht-kolgran",
+    "name": "Erdwacht Kolgran",
+    "role": "guardian",
+    "kind": "golem",
+    "element": "ERDE",
+    "level": 4,
+    "requiredTier": 2,
+    "color": "#b6aa7f",
+    "desc": "Kolgrans Granitpanzer bildet eine natürliche Festung gegen die schwersten Angriffe.",
+    "style": "defender",
+    "art": "assets/role-wave1/erdwacht-kolgran.webp",
+    "customArt": "assets/role-wave1/erdwacht-kolgran.webp"
+  },
+  {
+    "key": "lichtseher-auralis",
+    "name": "Lichtseher Auralis",
+    "role": "guardian",
+    "kind": "stag",
+    "element": "LICHT",
+    "level": 6,
+    "requiredTier": 4,
+    "color": "#f1dc9c",
+    "desc": "Auralis hütet den Sternenhain und stärkt mit seiner Präsenz die Verteidigungslinie.",
+    "style": "guardian",
+    "art": "assets/role-wave1/lichtseher-auralis.webp",
+    "customArt": "assets/role-wave1/lichtseher-auralis.webp"
+  },
+  {
+    "key": "nekroschlund-zayth",
+    "name": "Nekroschlund Zayth",
+    "role": "soul",
+    "kind": "serpent",
+    "element": "DUNKEL",
+    "level": 5,
+    "requiredTier": 3,
+    "color": "#b37ce2",
+    "desc": "Seine Klauen ziehen Seelenenergie aus jeder Wunde und lassen das Dunkel wachsen.",
+    "style": "soul",
+    "art": "assets/role-wave1/nekroschlund-zayth.webp",
+    "customArt": "assets/role-wave1/nekroschlund-zayth.webp"
+  },
+  {
+    "key": "sturmreiter-zephyx",
+    "name": "Sturmreiter Zephyx",
+    "role": "combatant",
+    "kind": "bird",
+    "element": "WIND",
+    "level": 4,
+    "requiredTier": 2,
+    "color": "#73cbd3",
+    "desc": "Zephyx verbindet schnelle Attacken mit einem anpassungsfähigen Schutzgefieder.",
+    "style": "allrounder",
+    "art": "assets/role-wave1/sturmreiter-zephyx.webp",
+    "customArt": "assets/role-wave1/sturmreiter-zephyx.webp"
   }
 ].map(c=>Object.freeze(c)));
  // Keep disabled until artwork files actually exist on development.
