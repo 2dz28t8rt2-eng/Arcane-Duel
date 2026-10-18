@@ -19,6 +19,15 @@
   {id:3,name:'Das verlorene Siegel',description:'Zwei Hüter verteidigen die letzte Passage.',enemyLevel:6},
   {id:4,name:'Krone der Vier',description:'Das Finale fordert Timing und Zusammenarbeit.',enemyLevel:8}
  ]);
+ const CHAPTER_PACKS=Object.freeze({
+  1:Object.freeze([101,102,103]),2:Object.freeze([201,202,203]),
+  3:Object.freeze([301,302,303]),4:Object.freeze([401,402,403])
+ });
+ const CHAPTER_LEVEL=Object.freeze({1:2,2:4,3:6,4:8});
+ // Three guaranteed cards arrive in the opening hand without expanding the
+ // agreed 40-card deck. No permanent inventory is modified by these trials.
+ const chapterPack=n=>[...(CHAPTER_PACKS[n]||[])];
+ const packDeck=(deck,chapter)=>{const value=[...deck];value.splice(0,3,...chapterPack(chapter));return value;};
  const assert=(v,msg)=>{if(!v)throw new Error(msg);};
  const safeName=s=>String(s??'').trim().slice(0,32);
  const properDeck=deck=>Array.isArray(deck)&&deck.length===40&&
@@ -26,20 +35,22 @@
   new Set(deck).size>=1;
  const copy=x=>JSON.parse(JSON.stringify(x));
  const activeTeams=seat=>SEATS[seat]?.team;
- function createLobby({roomId,hostName='Du',hostDeck,enemyDeckA,enemyDeckB,chapter=1,lp=16000}={}){
+ function createLobby({roomId,hostName='Du',hostDeck,enemyDeckA,enemyDeckB,chapter=1,entry='new',lp=16000}={}){
   assert(/^[a-zA-Z0-9_-]{6,64}$/.test(roomId||''),'Ungültige Raumkennung.');
   for(const d of [hostDeck,enemyDeckA,enemyDeckB])assert(properDeck(d),'Ein Deck benötigt genau 40 gültige Karten-IDs.');
   assert(CHAPTERS.some(c=>c.id===chapter),'Unbekanntes Kapitel.');
+  assert(entry==='new'||entry==='chapter','Unbekannte Einstiegsmethode.');
+  if(entry==='new')assert(chapter===1,'Eine neue Kampagne beginnt immer bei Kapitel I.');
   assert(Number.isInteger(lp)&&lp>=1000&&lp<=100000,'Ungültige Team-LP.');
   const players=[
-   {seat:0,name:safeName(hostName)||'Du',kind:'human',team:0,deck:[...hostDeck]},
+   {seat:0,name:safeName(hostName)||'Du',kind:'human',team:0,deck:packDeck(hostDeck,chapter)},
    {seat:1,name:'Gegner A',kind:'ai',team:1,deck:[...enemyDeckA]},
    {seat:2,name:'Partner (ausstehend)',kind:'human',team:0,deck:[]},
    {seat:3,name:'Gegner B',kind:'ai',team:1,deck:[...enemyDeckB]}
-  ].map(p=>({...p,hand:[],field:Array(7).fill(null),graveyard:[],summoned:false}));
-  return {schema:1,mode:'duo-campaign',roomId,chapter,status:'waiting',
+  ].map(p=>({...p,originalDeck:[...p.deck],baseDeck:p.seat===0?[...hostDeck]:[...p.deck],hand:[],field:Array(7).fill(null),graveyard:[],summoned:false}));
+  return {schema:1,mode:'duo-campaign',roomId,chapter,entry,status:'waiting',
    hostSeat:0,activeSeat:0,turn:0,round:1,revision:0,
-   teams:[{lp,maxLp:lp},{lp,maxLp:lp}],players,log:['Raum erstellt. Partner wird erwartet.'],winner:null};
+   teams:[{lp,maxLp:lp},{lp,maxLp:lp}],players,log:['Raum erstellt. Partner wird erwartet.','Kapitel '+chapter+': 3 Karten auf Level '+CHAPTER_LEVEL[chapter]+' für jeden Verbündeten reserviert.'],winner:null};
  }
  function draw(p,count=1){for(let i=0;i<count;i++){if(p.deck.length)p.hand.push(p.deck.shift());}}
  function apply(state,actor,action,{catalog={}}={}){
@@ -51,15 +62,32 @@
    assert(g.status==='waiting'&&actor===2,'Partner kann nicht beitreten.');
    assert(properDeck(action.deck),'Partner benötigt ein Deck mit 40 Karten.');
    const name=safeName(action.name);assert(!!name,'Partnername erforderlich.');
-   p.name=name;p.deck=[...action.deck];g.status='active';
+   p.name=name;p.baseDeck=[...action.deck];p.originalDeck=packDeck(action.deck,g.chapter);p.deck=packDeck(action.deck,g.chapter);g.status='active';
    for(const player of g.players)draw(player,5);
    g.log.push(name+' ist beigetreten. Das Duell beginnt.');
    g.revision++;return g;
   }
-  assert(g.status==='active','Die 2v2-Partie ist nicht aktiv.');
-  assert(g.winner===null,'Partie bereits beendet.');
-  assert(actor===g.activeSeat,'Du bist nicht am Zug.');
+  assert(g.status==='active'||(action.type==='nextChapter'&&g.status==='finished'),'Die 2v2-Partie ist nicht aktiv.');
+  assert(g.winner===null||action.type==='nextChapter','Partie bereits beendet.');
+  assert(actor===g.activeSeat||action.type==='nextChapter','Du bist nicht am Zug.');
   assert(p.kind===(actor===0||actor===2?'human':'ai'),'Ungültiger Akteur.');
+  if(action.type==='nextChapter'){
+   assert(actor===0,'Nur der Gastgeber kann das nächste Kapitel starten.');
+   assert(g.winner===0&&g.chapter<4,'Das nächste Kapitel ist noch nicht freigeschaltet.');
+   const next=g.chapter+1;
+   g.chapter=next;g.status='active';g.winner=null;g.activeSeat=0;g.round=1;g.turn=0;
+   for(const player of g.players){
+    const original=Array.isArray(player.baseDeck)&&player.baseDeck.length===40?player.baseDeck:
+      (player.seat===0?state.players[0].originalDeck:player.seat===2?state.players[2].originalDeck:player.seat===1?state.players[1].originalDeck:state.players[3].originalDeck);
+    assert(properDeck(original),'Das Kapiteldeck fehlt.');
+    player.deck=player.team===0?packDeck(original,next):[...original];
+    player.hand=[];player.field=Array(7).fill(null);player.graveyard=[];player.summoned=false;
+    draw(player,5);
+   }
+   for(const t of g.teams){t.lp=t.maxLp;}
+   g.log.push('Kapitel '+next+' beginnt. Beide Verbündeten erhalten 3 Karten auf Level '+CHAPTER_LEVEL[next]+'.');
+   g.revision++;return g;
+  }
   if(action.type==='summon'){
    assert(!p.summoned,'In diesem Zug bereits beschworen.');
    assert(Number.isInteger(action.handIndex)&&action.handIndex>=0&&action.handIndex<p.hand.length,'Handkarte fehlt.');
@@ -125,5 +153,5 @@
   return g;
  }
  const order=()=>SEATS.map(s=>s.title).join(' → ');
- return Object.freeze({version:'0.2.0',SEATS,CHAPTERS,createLobby,apply,aiTurn,order,properDeck});
+ return Object.freeze({version:'0.3.0',SEATS,CHAPTERS,CHAPTER_PACKS,CHAPTER_LEVEL,chapterPack,packDeck,createLobby,apply,aiTurn,order,properDeck});
 });
