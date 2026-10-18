@@ -69,7 +69,7 @@
     g.lv1BonusPacks=bundles;
    }
   }
-  profile.history.unshift({opponent:1,win,turns:g.turn,coins,xp,at:Date.now(),context:'challenge'});
+  profile.history.unshift({opponent:1,win,turns:g.turn,coins,xp,at:Date.now(),context:'free'});
   profile.history=profile.history.slice(0,30);
   saveProfile();
   return {coins,xp,loot:null,charge:0,lv1Saga:stage,lv1StageNew:first,lv1Completed:stage===5&&first,
