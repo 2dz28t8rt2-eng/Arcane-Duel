@@ -1,0 +1,75 @@
+name: Install Role Wave 1 Artworks
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/role-wave1/arcane_duel_role_wave1_artworks.zip'
+permissions:
+  contents: write
+concurrency:
+  group: role-wave1-import
+  cancel-in-progress: false
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: development
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Verify images, extract original artworks and enable the cards
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,re,sys,zipfile
+          from pathlib import Path
+          archive=Path('assets/role-wave1/arcane_duel_role_wave1_artworks.zip')
+          if not archive.exists():
+              print('Already imported: upload archive is no longer in repository')
+              sys.exit(0)
+          approved={
+              'flammenjaeger-rethar.webp','schattenklinge-zyrr.webp',
+              'eisenbastion-gorrath.webp','dornenschild-varuk.webp',
+              'ewige-wacht-lysar.webp','runenwacht-aegis.webp',
+              'seelenbrut-malgris.webp','leerenpakt-nythor.webp',
+              'sturmschmied-kael.webp','elementsynthese-orin.webp'
+          }
+          with zipfile.ZipFile(archive) as z:
+              manifest=json.loads(z.read('asset-manifest.json'))
+              cards=manifest['cards']
+              assert len(cards)==10 and {c['file'] for c in cards}==approved,'Unvollstaendige Kunstwelle'
+              assert len({c['sha256'] for c in cards})==10,'Doppelte Bilddaten'
+              for c in cards:
+                  name=c['file']
+                  assert re.fullmatch(r'[a-z0-9-]+\.webp',name)
+                  location='assets/role-wave1/'+name
+                  record=z.getinfo(location)
+                  assert 25_000<record.file_size<8_000_000,'Bildgroesse ungueltig: '+name
+                  data=z.read(location)
+                  assert hashlib.sha256(data).hexdigest()==c['sha256'],'Artwork SHA mismatch: '+name
+                  assert data[:4]==b'RIFF' and data[8:12]==b'WEBP','Keine WebP-Datei: '+name
+                  target=Path(location)
+                  target.parent.mkdir(parents=True,exist_ok=True)
+                  target.write_bytes(data)
+                  print('OK',name,len(data))
+          script=Path('assets/role-wave1-catalog.js')
+          text=script.read_text('utf8')
+          assert 'const ASSETS_COMPLETE=false' in text,'Katalog-Schalter nicht im erwarteten Zustand'
+          script.write_text(text.replace('const ASSETS_COMPLETE=false','const ASSETS_COMPLETE=true',1),'utf8')
+          archive.unlink()
+          PY
+      - name: Validate integrated card IDs, art references and booster eligibility
+        shell: bash
+        run: |
+          node --test tests/role-wave1-catalog.test.cjs tests/artwork-coverage-full.test.cjs
+      - name: Commit and push installed artwork wave
+        shell: bash
+        run: |
+          if git status --porcelain -- assets/role-wave1 assets/role-wave1-catalog.js | grep -q .; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A -- assets/role-wave1 assets/role-wave1-catalog.js
+            git commit -m "art: install original role-wave WebPs and activate ten new cards"
+            git push origin HEAD:development
+          fi
