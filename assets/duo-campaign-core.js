@@ -26,7 +26,7 @@
   new Set(deck).size>=1;
  const copy=x=>JSON.parse(JSON.stringify(x));
  const activeTeams=seat=>SEATS[seat]?.team;
- function createLobby({roomId,hostName='Du',hostDeck,enemyDeckA,enemyDeckB,chapter=1,lp=12000}={}){
+ function createLobby({roomId,hostName='Du',hostDeck,enemyDeckA,enemyDeckB,chapter=1,lp=16000}={}){
   assert(/^[a-zA-Z0-9_-]{6,64}$/.test(roomId||''),'Ungültige Raumkennung.');
   for(const d of [hostDeck,enemyDeckA,enemyDeckB])assert(properDeck(d),'Ein Deck benötigt genau 40 gültige Karten-IDs.');
   assert(CHAPTERS.some(c=>c.id===chapter),'Unbekanntes Kapitel.');
@@ -36,7 +36,7 @@
    {seat:1,name:'Gegner A',kind:'ai',team:1,deck:[...enemyDeckA]},
    {seat:2,name:'Partner (ausstehend)',kind:'human',team:0,deck:[]},
    {seat:3,name:'Gegner B',kind:'ai',team:1,deck:[...enemyDeckB]}
-  ].map(p=>({...p,hand:[],field:Array(5).fill(null),graveyard:[],summoned:false}));
+  ].map(p=>({...p,hand:[],field:Array(7).fill(null),graveyard:[],summoned:false}));
   return {schema:1,mode:'duo-campaign',roomId,chapter,status:'waiting',
    hostSeat:0,activeSeat:0,turn:0,round:1,revision:0,
    teams:[{lp,maxLp:lp},{lp,maxLp:lp}],players,log:['Raum erstellt. Partner wird erwartet.'],winner:null};
@@ -63,7 +63,7 @@
   if(action.type==='summon'){
    assert(!p.summoned,'In diesem Zug bereits beschworen.');
    assert(Number.isInteger(action.handIndex)&&action.handIndex>=0&&action.handIndex<p.hand.length,'Handkarte fehlt.');
-   assert(Number.isInteger(action.slot)&&action.slot>=0&&action.slot<5&&!p.field[action.slot],'Eigener Feldplatz muss frei sein.');
+   assert(Number.isInteger(action.slot)&&action.slot>=0&&action.slot<7&&!p.field[action.slot],'Eigener Feldplatz muss frei sein.');
    const id=p.hand[action.handIndex],t=catalog[id];
    assert(t&&Number.isFinite(t.atk)&&Number.isFinite(t.def)&&t.atk>=0&&t.def>=0,'Unbekannte Kartenwerte.');
    p.hand.splice(action.handIndex,1);
@@ -83,7 +83,7 @@
     g.log.push(p.name+' verursacht '+src.atk+' direkten LP-Schaden.');
    }else{
     assert(enemySeats.includes(dSeat),'Das Ziel muss ein gegnerischer Sitzplatz sein.');
-    assert(Number.isInteger(dSlot)&&dSlot>=0&&dSlot<5,'Ungültige Zielzone.');
+    assert(Number.isInteger(dSlot)&&dSlot>=0&&dSlot<7,'Ungültige Zielzone.');
     const foe=g.players[dSeat],target=foe.field[dSlot];
     assert(!!target,'Kein Ziel auf dem angegebenen Feld.');
     const diff=src.atk-(target.mode==='def'?target.def:target.atk);
@@ -125,5 +125,5 @@
   return g;
  }
  const order=()=>SEATS.map(s=>s.title).join(' → ');
- return Object.freeze({version:'0.1.0',SEATS,CHAPTERS,createLobby,apply,aiTurn,order,properDeck});
+ return Object.freeze({version:'0.2.0',SEATS,CHAPTERS,createLobby,apply,aiTurn,order,properDeck});
 });
