@@ -1,6 +1,17 @@
 (function arcaneLv1Saga(){
  'use strict';
  const SW=window.ArcaneLv1Swarm;
+ // Exclusive chapter-V antagonist. No overpowered passive abilities: the shock is visual and narrative.
+ const CORRUPTED_ID=CARDS.length;
+ const CORRUPTED_CARD={id:CORRUPTED_ID,name:'Lumiras Fall · Die verderbte Flamme',
+  level:5,atk:920,def:220,kind:'spirit',element:'DUNKEL',role:'predator',
+  color:'#ef4979',source:-1,rpg:true,fusionOnly:true,enemyOnly:true,milestoneOnly:true,
+  rarity:'legendary',lv1FanaticCorrupt:true,
+  art:'assets/custom-art/lv1-lumira-fall.webp',
+  customArt:'assets/custom-art/lv1-lumira-fall.webp',
+  desc:'Die verzweifelte, verdorbene Level-5-Predator-Fusion aus Lumiras Licht. Keine zusätzliche Kampffähigkeit; ihr Schrecken liegt in der Verwandlung und ihrem rohen Angriff.'};
+ CARDS.push(CORRUPTED_CARD);
+ RPG_FUSIONS.push(CORRUPTED_CARD);
  const STORIES=[
   {title:'Der hoffnungslose Forscher',dialog:'Du denkst wahrscheinlich, du bist stark, was? Mit deinen riesigen Monstern und lächerlichen Fusionen! Aber meine kleinen Freunde verbergen ein GEHEIMNIS! Komm schon! Ich zeige dir, wozu sie fähig sind!',after:'Schon wieder verloren ... Warum existieren diese winzigen Kreaturen überhaupt? Hör zu: In alten Aufzeichnungen ist von einem Schweben zwischen Welten die Rede. Hilfst du mir bei meiner Forschung?'},
   {title:'Die erste Regung',dialog:'Siehst du? Diese kleinen Wesen verschwinden nicht einfach! Ich habe es immer gesagt! Heute finden wir heraus, wie ihr Echo wirklich funktioniert!',after:'Wie hast DU das gemacht? Ich habe es doch entdeckt! Nun gut ... in der nächsten Schriftrolle wird von ganzen Schwärmen gesprochen.'},
@@ -166,7 +177,9 @@
  function fusions(stage){
   const normal=RPG_FUSIONS.filter(c=>c.rpg&&!c.ace&&!c.lv1Exclusive&&!c.retired&&!c.enemyOnly)
    .sort((a,b)=>a.level-b.level||a.atk+a.def-b.atk-b.def);
-  return normal.slice(0,15).map(c=>c.id);
+  const ids=normal.slice(0,stage===5?14:15).map(c=>c.id);
+  if(stage===5)ids.push(CORRUPTED_ID);
+  return ids;
  }
  function loanFusion(stage){
   const allowed=RPG_FUSIONS.filter(c=>c.rpg&&!c.retired&&!c.ace&&!c.enemyOnly&&
@@ -199,6 +212,85 @@
   logEvent(g,'Der Forscher beginnt mit seiner Lumira auf der Hand. Ihr Erwachen bleibt ihm verwehrt.');
   return g;
  };
+ const oldAiChoice=chooseAiAction;
+ chooseAiAction=function(g,policy='balanced'){
+  if(g?.lv1Saga&&g.mode==='pve'&&g.active===1&&!g.pending&&g.winner===null){
+   const s=g.lv1FanaticAce,p=g.players[1];
+   const ace=p.hand.find(c=>c.uid===s?.uid&&c.id===SW.ids.ace);
+   // Forced summoning is the FIRST legal action, even if this is strategically poor.
+   if(ace&&!g.summoned&&p.field.some(c=>!c))return {type:'normal',uid:ace.uid};
+   if(g.lv1Saga.stage===5&&s?.played&&!g.lv1FanaticCorruptPending&&!g.lv1FanaticCorruptPlayed&&!g.summoned&&p.field.some(c=>!c)){
+    const materials=p.hand.filter(c=>!c.fate&&c.id!==SW.ids.ace).slice(0,5);
+    for(let n=5;n>=3;n--){
+     const m=materials.slice(0,n);
+     if(m.length===n&&p.remainingFusion.includes(CORRUPTED_ID)&&
+        fusionOptions(g,m.map(c=>dataOf(c).level),m).some(c=>c.id===CORRUPTED_ID)){
+       g.lv1FanaticCorruptIntent=true;
+       return {type:'fusion',uids:m.map(c=>c.uid)};
+     }
+    }
+   }
+   return oldAiChoice(g,g.lv1Saga.stage>=3?'offensive':'economy');
+  }
+  return oldAiChoice(g,policy);
+ };
+ const oldPrepareHandFusion=prepareHandFusion;
+ prepareHandFusion=function(g,uids,choice){
+  const boss=!!(g?.lv1Saga?.stage===5&&g.active===1&&g.lv1FanaticCorruptIntent&&choice===undefined);
+  if(boss)choice=CORRUPTED_ID;
+  try{
+   const result=oldPrepareHandFusion(g,uids,choice);
+   if(boss&&result)g.lv1FanaticCorruptPending=true;
+   return result;
+  }finally{if(g)g.lv1FanaticCorruptIntent=false;}
+ };
+ const oldPlace=placePending;
+ placePending=function(g,idx,choice){
+  const uid=g?.pending?.card?.uid;
+  const result=oldPlace(g,idx,choice);
+  if(result&&g?.lv1Saga&&g.active===1){
+   if(uid===g.lv1FanaticAce?.uid&&result.card?.id===SW.ids.ace){
+    g.lv1FanaticAce.played=true;
+    if(!g.lv1FanaticAce.dialogShown)g.lv1FanaticAce.dialogPending=true;
+    logEvent(g,'Der Fanatiker ruft Lumira! Ihre Macht bleibt ohne den Erwachensperk versiegelt.');
+   }
+   if(result.card?.id===CORRUPTED_ID){
+    g.lv1FanaticCorruptPlayed=true;
+    g.lv1FanaticCorruptPending=false;
+    g.lv1FanaticCorruptDialoguePending=true;
+    logEvent(g,'LUMIRAS FALL! Der Fanatiker enthüllt seine verderbte Level-5-Predator-Fusion.');
+   }
+  }
+  return result;
+ };
+ function showFanaticDialogue(g,kind){
+  const stage=g.lv1Saga?.stage;
+  if(!stage)return Promise.resolve();
+  const ace=kind==='ace',data=ACE_SCENES[stage-1],art=ace?CARDS[SW.ids.ace]:CORRUPTED_CARD;
+  const title=ace?'✦ LUMIRA · DER ERSTE FUNKE ✦':'✦ LUMIRAS FALL · DIE VERDERBTE FLAMME ✦';
+  const speech=ace?data.text:'SIEH HIN! Ich habe Lumira nicht länger gebraucht! Ihr reines Licht war eine Lüge. Also habe ich daraus etwas erschaffen, das GEHORCHT – meinen eigenen Predator!';
+  const note=ace?data.response:'Das Licht einer einst geliebten Karte zerreißt. Keine göttlichen Fähigkeiten – nur rohe Kraft und ein gebrochener Traum.';
+  return new Promise(resolve=>{
+   openModal(modalHtml(title,ace?'Hoffnung · '+data.mood:'Der endgültige Verrat',ace?'✧':'☄',
+    speech,'<div class="lv1-ace-appearance '+(ace?'hope':'corrupt')+'"><img src="'+escapeHtml(art.art)+'" alt="'+escapeHtml(art.name)+'"><p>'+escapeHtml(note)+'</p></div>',
+    '<button class="btn primary" id="lv1FanaticContinue">WEITERDUELLIEREN</button>'));
+   const button=$('lv1FanaticContinue');
+   if(button)button.onclick=()=>{hideModal();resolve();};
+   else{hideModal();resolve();}
+  });
+ }
+ async function flushFanaticDialogue(g){
+  if(!g?.lv1Saga)return;
+  if(g.lv1FanaticAce?.dialogPending&&!g.lv1FanaticAce.dialogShown){
+   g.lv1FanaticAce.dialogPending=false;
+   g.lv1FanaticAce.dialogShown=true;
+   await showFanaticDialogue(g,'ace');
+  }
+  if(g.lv1FanaticCorruptDialoguePending){
+   g.lv1FanaticCorruptDialoguePending=false;
+   await showFanaticDialogue(g,'corrupt');
+  }
+ }
  const oldFuse=fusedInstance;
  fusedInstance=function(g,materials,levels){
   const result=oldFuse(g,materials,levels);
@@ -314,6 +406,6 @@
   const b=e.target.closest('[data-lv1-stage]');if(!b)return;
   const stage=Number(b.dataset.lv1Stage);startDuel('pve',1,'lv1-saga','easy',stage);
  });
- window.ArcaneLv1Saga=Object.freeze({version:'4.4.0',stories:STORIES,objectives:OBJECTIVES,mastered,state,maybeOffer,fraction,forced,forty,loanFusion});
+ window.ArcaneLv1Saga=Object.freeze({version:'4.6.0',stories:STORIES,objectives:OBJECTIVES,aceScenes:ACE_SCENES,deckProfiles:DECK_PROFILES,corruptedId:CORRUPTED_ID,fanaticDeck,flushFanaticDialogue,mastered,state,maybeOffer,fraction,forced,forty,loanFusion});
  if(uiMode==='menu')renderMenu();
 })();
