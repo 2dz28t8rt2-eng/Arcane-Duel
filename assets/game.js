@@ -873,7 +873,31 @@ function validateLegacyProfile(raw){if(raw?.version===1)return migrateLegacy(raw
  if(!['fast','instant'].includes(raw.settings?.animation)||typeof raw.settings?.sound!=='boolean')throw Error('Ungültige Einstellungen.');p.settings={animation:raw.settings.animation,sound:raw.settings.sound};if(!validInt(raw.auto?.energy,AUTO_CAP)||!validInt(raw.auto?.at,1e15))throw Error('Ungültige Trainingsladung.');p.auto={energy:raw.auto.energy,at:Math.min(Date.now(),raw.auto.at)};p.unseen=ids(raw.unseen||[],[...p.unlocked,...p.fusionOwned]);p.lootHistory=(raw.lootHistory||[]).slice(0,30).map(validateLootEntry);p.lastLoot=p.lootHistory[0]||null;for(const [id,cost] of Object.entries(raw.investments||{})){if(!ownsProfileCard(p,Number(id))||!validInt(cost.coins)||!validInt(cost.shards))throw Error('Ungültige Investition.');p.investments[id]={coins:cost.coins,shards:cost.shards};}p.savedAt=validInt(raw.savedAt,1e15)?raw.savedAt:0;p.activeDuel=raw.activeDuel?validateDuelSnapshot(raw.activeDuel):null;if(p.activeDuel&&p.rewardLedger.includes(p.activeDuel.id))p.activeDuel=null;return p;
 }
 function markStorageConflict(){storageConflict=true;storageWarning='Ein anderer Tab hat den Spielstand geändert. Speichern und neue Kämpfe sind angehalten. Exportiere bei Bedarf diesen Stand und lade die Seite neu.';}
-function loadProfile(){try{lastStoredProfile=window.localStorage.getItem(SAVE_KEY);if(lastStoredProfile){const raw=JSON.parse(lastStoredProfile);if(raw.evolution&&raw.activeDuel){window.__arcaneEvolutionPendingSave=raw.activeDuel;raw.activeDuel=null;}const loaded=validateProfile(raw);if(raw.evolution)loaded.evolution=raw.evolution;return loaded;}return freshProfile();}catch(e){storageWritable=false;storageWarning='Spielstand konnte nicht geladen werden. Bestehende Daten bleiben erhalten. Exportiere deinen Fortschritt oder importiere eine gültige Sicherung.';return freshProfile();}}
+function loadProfile(){try{lastStoredProfile=window.localStorage.getItem(SAVE_KEY);if(lastStoredProfile){const raw=JSON.parse(lastStoredProfile);if(raw.evolution&&raw.activeDuel){window.__arcaneEvolutionPendingSave=raw.activeDuel;raw.activeDuel=null;}
+ // Late-added Lv1 archetype cards live outside the historical catalogue.
+ // Validate a conservative projection now; restore the original selected IDs
+ // once the Lv1 module has registered them after all old catalog audits.
+ let forValidation=raw;
+ if(raw.lv1Saga&&typeof raw.lv1Saga==='object'){
+  window.__arcaneLv1SavedProfile=raw;
+  forValidation=JSON.parse(JSON.stringify(raw));
+  const legal=id=>Number.isInteger(id)&&id>=0&&id<CARDS.length;
+  for(const k of ['unlocked','fusionOwned','unseen','favorites']){
+   if(Array.isArray(forValidation[k]))forValidation[k]=forValidation[k].filter(legal);
+  }
+  for(const k of ['inventory','enhancements','investments'])if(forValidation[k]&&typeof forValidation[k]==='object'){
+   for(const id of Object.keys(forValidation[k]))if(!legal(Number(id)))delete forValidation[k][id];
+  }
+  if(Array.isArray(forValidation.activeDeck)&&forValidation.activeDeck.some(id=>!legal(id)))forValidation.activeDeck=[...RPG_DEFAULT_DECK];
+  if(Array.isArray(forValidation.fusionDeck)&&forValidation.fusionDeck.some(id=>!legal(id)))forValidation.fusionDeck=[...RPG_START_FUSIONS];
+  if(Array.isArray(forValidation.slots))for(const slot of forValidation.slots){
+   if(Array.isArray(slot.main)&&slot.main.some(id=>!legal(id)))slot.main=[...RPG_DEFAULT_DECK];
+   if(Array.isArray(slot.fusion)&&slot.fusion.some(id=>!legal(id)))slot.fusion=[...RPG_START_FUSIONS];
+  }
+  if(Array.isArray(forValidation.history))for(const item of forValidation.history)if(item.context==='challenge')item.context='free';
+  forValidation.activeDuel=null;
+ }
+ const loaded=validateProfile(forValidation);if(raw.evolution)loaded.evolution=raw.evolution;return loaded;}return freshProfile();}catch(e){storageWritable=false;storageWarning='Spielstand konnte nicht geladen werden. Bestehende Daten bleiben erhalten. Exportiere deinen Fortschritt oder importiere eine gültige Sicherung.';return freshProfile();}}
 let profile=loadProfile();
 // A one-time starter gift for existing accounts, added AFTER validating the
 // untouched old profile. Never reset progress or equipment.
