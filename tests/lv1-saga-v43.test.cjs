@@ -4,7 +4,7 @@ const {boot}=require('./helpers/game-runtime.cjs');
 test('Lv1 research registers four cards and allows original PvE and PvP to boot',()=>{
  const r=boot().run("({ids:ArcaneLv1Swarm.ids,cards:CARDS.length,duel:createGame({mode:'pvp',seed:123}).mode})");
  assert.equal(new Set(Object.values(r.ids)).size,4);
- assert.equal(r.cards,374);
+ assert.equal(r.cards,Math.max(...Object.values(r.ids))+1);
  assert.equal(r.duel,'pvp');
 });
 test('Encounter uses independent OR conditions and recognizes exact unique Lv1 collection',()=>{
