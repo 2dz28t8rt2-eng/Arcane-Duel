@@ -16,7 +16,7 @@ function setup(){
 }
 test('All active monsters and the reported legacy wolf have original, distinct motifs',()=>{
  const b=boot(),r=b.run('({audit:ArcaneArtworkCoverage.audit(),count:ArcaneArtworkCompletion.motifs,wolf:[CARDS[113].art,CARDS[159].art]})');
- assert.equal(r.audit.active,370+4); // four intentionally added Level-1 research cardsassert.equal(r.audit.missingCards,0);assert.equal(r.count,17);assert.equal(r.wolf[0],r.wolf[1]);
+ assert.equal(r.audit.active,370+5); // four intentionally added Level-1 research cardsassert.equal(r.audit.missingCards,0);assert.equal(r.count,17);assert.equal(r.wolf[0],r.wolf[1]);
  const m=JSON.parse(fs.readFileSync(path.join(repo,'assets/custom-art/generated-4-2/manifest.json')));
  assert.equal(m.assets.length,17);assert.equal(new Set(m.assets.map(a=>a.sha256)).size,17);
  for(const a of m.assets){const bytes=fs.readFileSync(path.join(repo,a.path));assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),a.sha256);assert.equal(bytes.toString('ascii',0,4),'RIFF');assert.equal(a.width,1024);}
