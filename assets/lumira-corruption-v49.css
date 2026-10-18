@@ -1,0 +1,70 @@
+/* Lumira's Fall — fully scripted, skippable seven-phase boss metamorphosis. */
+.lumira-corruption-cinema{
+ position:fixed;inset:0;z-index:25000;isolation:isolate;
+ display:grid;place-items:center;overflow:hidden;pointer-events:auto;
+ background:radial-gradient(ellipse at center,#38010d 0%,#110007 53%,#040005 100%);
+ font-family:Georgia,serif;color:#fff0ed;
+}
+.lumira-corruption-vignette,.lumira-corruption-flash,.lumira-corruption-particles,.lumira-corruption-runes{
+ position:absolute;inset:0;pointer-events:none;
+}
+.lumira-corruption-vignette{background:radial-gradient(circle at center,transparent 15%,#020001dd 100%);z-index:1;box-shadow:inset 0 0 160px #070003}
+.lumira-corruption-flash{background:radial-gradient(circle,#fff3e1 0%,#ff253c 28%,#89000cbb 58%,transparent 80%);opacity:0;z-index:7}
+.lumira-corruption-runes{inset:50% auto auto 50%;width:540px;height:540px;margin:-270px 0 0 -270px;display:grid;place-items:center;z-index:1;font-size:3rem;color:#ff536b66;letter-spacing:1.2em;border:2px solid #ff27403a;border-radius:50%;box-shadow:0 0 60px #ec174025;animation:lumiraRunes 14s linear infinite;opacity:.5}
+@keyframes lumiraRunes{to{transform:rotate(360deg)}}
+.lumira-corruption-card{position:absolute;z-index:4;width:min(37vw,350px);max-height:80vh;display:grid;place-items:center;filter:drop-shadow(0 0 28px #ec294d);opacity:0;transform:scale(.55)}
+.lumira-corruption-card>*{max-width:100%;max-height:75vh}
+.lumira-corruption-card .lumira-cinema-frame{width:100%;max-width:350px;margin:0}
+.lumira-corruption-card .card,.lumira-corruption-card .game-card,.lumira-corruption-card article{max-width:100%;height:auto}
+.lumira-corruption-card img{max-height:70vh;object-fit:contain}
+.lumira-corruption-original{filter:drop-shadow(0 0 30px #fff2ca)}
+.lumira-corruption-fallen{z-index:8;filter:drop-shadow(0 0 28px #f41641) drop-shadow(0 0 55px #9c032b)}
+.lumira-corruption-orb{position:absolute;z-index:5;width:min(38vw,410px);height:min(38vw,410px);display:grid;place-items:center;opacity:0;transform:scale(.1);border-radius:50%;border:7px solid #ff728ecc;background:radial-gradient(circle,#fff1ef 0%,#ff9094 10%,#fb123a 35%,#a7001f 64%,#230006 76%);box-shadow:0 0 35px #fff1eb,0 0 90px #ff002b,0 0 170px #fc163b;border-style:double}
+.lumira-orb-core{width:72%;height:72%;border:6px dotted #ffd1d1;border-radius:50%;box-shadow:inset 0 0 55px #fff,0 0 60px #f43e58;animation:lumiraOrbRotate 1.1s linear infinite}
+@keyframes lumiraOrbRotate{to{transform:rotate(360deg)}}
+.lumira-corruption-particles{z-index:6;transform-origin:center;opacity:0}
+.lumira-flame-particle{position:absolute;left:50%;top:50%;width:var(--sz);height:calc(var(--sz)*1.9);border-radius:80% 0 70% 0;background:#ff9aa0;box-shadow:0 0 11px #ff315a,0 0 24px #ff001c;opacity:0;transform:rotate(var(--a)) translateX(2px)}
+.lumira-corruption-title{position:absolute;bottom:8vh;left:0;right:0;z-index:12;text-align:center;font-weight:900;font-size:clamp(1.5rem,4vw,3.5rem);letter-spacing:.2em;text-shadow:0 0 16px #ff1e48,0 0 50px #f00030,0 0 90px #ff5266;opacity:0;transform:translateY(40px)}
+.lumira-corruption-title small{display:block;margin-top:.4em;font-family:Georgia,serif;letter-spacing:.33em;font-size:.37em;color:#ffd0d2}
+.lumira-corruption-skip{position:absolute;right:18px;bottom:17px;z-index:20;padding:9px 13px;background:#210810db;border:1px solid #f65e77;color:#fff0f4;border-radius:7px;cursor:pointer;font:600 12px Arial,sans-serif;letter-spacing:.06em}
+.lumira-corruption-skip:hover{background:#753047}
+/* Phase 1 — original living Lumira is shown in the actual card shell. */
+.lumira-stage-angel .lumira-corruption-original{opacity:1;transform:scale(1);animation:lumiraBreathe 2.1s ease-in-out infinite}
+@keyframes lumiraBreathe{50%{transform:scale(1.06);filter:drop-shadow(0 0 35px #ffdfb2)}}
+/* Phase 2 — cracks expand, then an explosive fracture. */
+.lumira-stage-fracture .lumira-corruption-original{opacity:1;animation:lumiraShatter 1.05s ease-out forwards}
+@keyframes lumiraShatter{0%{transform:scale(1);filter:drop-shadow(0 0 10px #fff)}22%{transform:translate(-7px,3px) rotate(-1deg) scale(1.06);filter:drop-shadow(0 0 45px red)}42%{transform:translate(8px,-5px) rotate(2deg) scale(1.03)}65%{transform:scale(1.13);filter:brightness(2) drop-shadow(0 0 80px #f00)}82%{opacity:1;transform:scale(1.2)}100%{opacity:0;transform:scale(1.9) rotate(11deg);filter:brightness(5) blur(22px)}}
+.lumira-stage-fracture .lumira-corruption-flash{animation:lumiraFirstBurst 1.05s ease-out forwards}
+@keyframes lumiraFirstBurst{0%,53%{opacity:0;transform:scale(.2)}66%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2)}}
+/* Phase 3 — fragments swirl in a concave elliptical vortex. */
+.lumira-stage-spiral .lumira-corruption-particles,.lumira-stage-orb .lumira-corruption-particles,.lumira-stage-burst .lumira-corruption-particles,.lumira-stage-fallen .lumira-corruption-particles{opacity:1}
+.lumira-stage-spiral .lumira-flame-particle{opacity:1;animation:lumiraSpiral 1.5s ease-in-out both;animation-delay:calc(var(--n)*8ms)}
+@keyframes lumiraSpiral{0%{transform:translate(0,0) rotate(0);opacity:.1}34%{transform:translate(calc(var(--dx)*.75),calc(var(--dy)*.65)) rotate(80deg);opacity:1}78%{transform:translate(calc(var(--dx)*1.15),calc(var(--dy)*.85)) rotate(280deg);opacity:1}100%{transform:translate(calc(var(--dx)*.15),calc(var(--dy)*.12)) rotate(520deg);opacity:.8}}
+/* Phase 4 — particles collapse into a rotating red energy sphere. */
+.lumira-stage-orb .lumira-corruption-orb{opacity:1;animation:lumiraOrbBirth 1.7s ease-in-out both}
+@keyframes lumiraOrbBirth{0%{transform:scale(.05) rotate(-60deg);opacity:.35}40%{transform:scale(.65) rotate(140deg);opacity:1}76%{transform:scale(1.1) rotate(300deg)}100%{transform:scale(1) rotate(360deg);opacity:1}}
+.lumira-stage-orb .lumira-flame-particle{opacity:1;animation:lumiraAbsorb 1.55s ease-in both;animation-delay:calc(var(--n)*6ms)}
+@keyframes lumiraAbsorb{0%{transform:translate(var(--dx),var(--dy)) rotate(100deg);opacity:1}90%{opacity:1}100%{transform:translate(0,0) rotate(680deg);opacity:0}}
+/* Phase 5 — second explosion from the orb. */
+.lumira-stage-burst .lumira-corruption-orb{animation:lumiraSecondBurst .8s ease-out forwards}
+@keyframes lumiraSecondBurst{0%{opacity:1;transform:scale(1.02)}18%{transform:scale(.82);filter:brightness(2)}45%{opacity:1;transform:scale(1.25);filter:brightness(4)}100%{opacity:0;transform:scale(4);filter:brightness(5) blur(30px)}}
+.lumira-stage-burst .lumira-corruption-flash{animation:lumiraFirstBurst .8s ease-out forwards}
+.lumira-stage-burst .lumira-flame-particle{animation:lumiraEmbers .8s ease-out both}
+@keyframes lumiraEmbers{0%{transform:translate(0,0);opacity:1}100%{transform:translate(calc(var(--dx)*1.7),calc(var(--dy)*1.5)) rotate(600deg);opacity:0}}
+/* Phase 6 — corrupted form, wings and scarlet eclipse. */
+.lumira-stage-fallen .lumira-corruption-fallen,.lumira-stage-land .lumira-corruption-fallen{opacity:1}
+.lumira-stage-fallen .lumira-corruption-fallen{animation:lumiraReveal 1.75s cubic-bezier(.14,.78,.21,1) both}
+@keyframes lumiraReveal{0%{transform:scale(1.5);opacity:0;filter:brightness(3) blur(25px)}37%{opacity:1;filter:brightness(2) blur(2px)}65%{transform:scale(1.15)}100%{transform:scale(1);opacity:1;filter:drop-shadow(0 0 65px #f40f48)}}
+.lumira-stage-fallen .lumira-corruption-title,.lumira-stage-land .lumira-corruption-title{opacity:1;transform:none;animation:lumiraTitle 1.6s ease-out both}
+@keyframes lumiraTitle{0%{opacity:0;transform:translateY(42px)}55%{opacity:1;transform:translateY(-6px)}100%{transform:translateY(0)}}
+.lumira-stage-fallen .lumira-flame-particle{opacity:1;animation:lumiraEmbers 2s ease-out infinite alternate}
+/* Phase 7 — the summoned card becomes a battlefield card. */
+.lumira-stage-land .lumira-corruption-fallen{animation:lumiraLand .72s ease-in forwards}
+@keyframes lumiraLand{0%{transform:scale(1);opacity:1}75%{opacity:1}100%{transform:scale(.18) translateY(-115vh);opacity:0}}
+.lumira-stage-land .lumira-corruption-title{animation:lumiraTitleFade .7s forwards}
+@keyframes lumiraTitleFade{to{opacity:0;transform:translateY(15px)}}
+.lumira-dialogue-art{display:flex;gap:18px;align-items:center;margin:10px auto;padding:12px;background:radial-gradient(circle,#61112866,#100408);border:1px solid #bf4259;border-radius:12px}
+.lumira-dialogue-art img{width:min(28%,160px);aspect-ratio:3/4;object-fit:cover;border-radius:9px;box-shadow:0 0 25px #fc4a6688}
+.lumira-dialogue-art p{flex:1;font-style:italic;line-height:1.6}
+@media(max-width:650px){.lumira-corruption-card{width:min(78vw,300px)}.lumira-corruption-title{bottom:15vh;font-size:1.45rem}.lumira-corruption-runes{width:350px;height:350px;margin:-175px 0 0 -175px}.lumira-corruption-orb{width:65vw;height:65vw}.lumira-dialogue-art{flex-direction:column}.lumira-dialogue-art img{width:150px}}
+@media(prefers-reduced-motion:reduce){.lumira-corruption-cinema *, .lumira-corruption-cinema *:before,.lumira-corruption-cinema *:after{animation:none!important;transition:none!important}.lumira-stage-fallen .lumira-corruption-fallen{transform:scale(1);opacity:1}}
