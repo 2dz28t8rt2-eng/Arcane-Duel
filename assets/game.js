@@ -1368,14 +1368,19 @@ async function runAi(){
   for(let i=0;i<80&&game===g&&g.active===1&&g.winner===null;i++){
    await window.ArcaneLv1Saga?.flushFanaticDialogue?.(g);
    const a=chooseAiAction(g,OPPONENTS[g.opponentId].policy);let result;
+   // Story-only ritual: Lumira speaks before material consumption or any fusion visual.
+   await window.ArcaneLumiraCorruption?.beforeAiAction?.(g,a);
+   if(game!==g||g.winner!==null)break;
    if(a.type==='attack'&&animationSpeed!=='instant'){
     const from=center(document.querySelector(`[data-enemy="${a.ai}"]`)),to=a.di===null?center($('myBanner')):center(document.querySelector(`[data-mine="${a.di}"]`));bolt(from,to);sound('attack');
    }
    result=applyAiAction(g,a);if(!result)throw Error('KI-Aktion nicht möglich.');
    const fusion=a.type==='place'&&result.card?.fusion;
+   const lumiraFall=!!(fusion&&result.card?.id===window.ArcaneLumiraCorruption?.id);
    g.cinemaActive=!!fusion;render();if(g.fateEvent)await fateAnimation(g);
    try{
-    if(fusion)await fusionAnimation(dataOf(result.card).level,null,result.fused?'field':'full');
+    if(lumiraFall)await window.ArcaneLumiraCorruption.play(g,result.card);
+    else if(fusion)await fusionAnimation(dataOf(result.card).level,null,result.fused?'field':'full');
     else if(a.type==='place')await window.ArcaneSummonFX?.land(g,result.card);
     else await animationWait(a.type==='attack'?120:60);
     await window.ArcaneDefenderFX?.flush(g);
