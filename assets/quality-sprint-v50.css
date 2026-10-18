@@ -53,3 +53,35 @@
 @keyframes adLevelStar{50%{transform:rotate(40deg) scale(1.35);filter:drop-shadow(0 0 14px #fbd890)}}
 @media(max-width:640px){#adQuestReminder{flex-direction:column;align-items:stretch!important}#adQuestReminder .btn{width:100%}}
 @media(prefers-reduced-motion:reduce){#menuContent [data-preview-card].ad-upgrade-ready,.ad-levelup-orbit strong,.ad-levelup-orbit span{animation:none!important}}
+
+/* Reward/booster/ACE purchase views: canonical ATK+DEF stat boxes and one level indicator.
+   Do not change field cards or the player's deck-editor cards. */
+html body :is(.pool-grid,.pack-grid,.arcane-reward-showcase,.ad-card-reward-panel,.ad-fate-purchase,.ace-offer,.ace-shop)
+ .hand-card.tc-card .card-level-badge{display:none!important}
+html body :is(.pool-grid,.pack-grid,.arcane-reward-showcase,.ad-card-reward-panel,.ad-fate-purchase,.ace-offer,.ace-shop)
+ .hand-card.tc-card .hand-stats{
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;
+  visibility:visible!important;opacity:1!important;position:relative!important;
+  min-height:24px!important;align-items:center!important;
+  background:#111929!important;border:1px solid #756a69!important;border-radius:4px!important;
+  z-index:16!important;isolation:isolate!important;
+}
+html body :is(.pool-grid,.pack-grid,.arcane-reward-showcase,.ad-card-reward-panel,.ad-fate-purchase,.ace-offer,.ace-shop)
+ .hand-card.tc-card .hand-stats .stat{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  min-width:0!important;min-height:19px!important;padding:1px 3px!important;
+  border:1px solid #aa8d5b!important;border-radius:3px!important;
+  background:#192336!important;color:#f4dba1!important;visibility:visible!important;opacity:1!important;
+}
+html body :is(.pool-grid,.pack-grid,.arcane-reward-showcase,.ad-card-reward-panel,.ad-fate-purchase,.ace-offer,.ace-shop)
+ .hand-card.tc-card .hand-stats .stat.def{background:#163747!important;border-color:#5c9eb1!important}
+html body :is(.pool-grid,.pack-grid,.arcane-reward-showcase,.ad-card-reward-panel,.ad-fate-purchase,.ace-offer,.ace-shop)
+ .hand-card.tc-card .hand-stats .stat-value{
+  display:block!important;font-weight:800!important;opacity:1!important;color:#f4e0ab!important;
+  font-size:clamp(11px,1.35vw,16px)!important;line-height:1.2!important;
+}
+html body :is(.pool-grid,.pack-grid,.arcane-reward-showcase,.ad-card-reward-panel,.ad-fate-purchase,.ace-offer,.ace-shop)
+ .hand-card.tc-card .hand-stats .stat.def .stat-value{color:#c1f1ff!important}
+html body .ad-card-reward-panel .hand-card.tc-card .ad-level-medallion{z-index:18!important}
+@media(max-width:700px){html body :is(.pool-grid,.pack-grid,.arcane-reward-showcase,.ad-card-reward-panel)
+ .hand-card.tc-card .hand-stats .stat-value{font-size:12px!important}}
