@@ -156,14 +156,31 @@
   if(x&&['floating','swarm','special'].every(k=>Number.isInteger(x[k])&&x[k]>=0&&x[k]<=100))g.lv1SagaProgress={floating:x.floating,swarm:x.swarm,special:x.special};
   return g;
  };
+ // SPECIAL SUMMONING LAW — unlike the ordinary fusion-level budget:
+ // exactly three to five genuine Level-1 material levels. No Level-2 ghosts,
+ // hidden mixed-level chains or two-card shortcuts, even for a Level-1 template.
+ function specialFusionLegal(g,levels,materials=[]){
+  if(!stageAllowed(g,4)||g.active!==0||!Array.isArray(levels)||
+      levels.length<3||levels.length>5||levels.some(level=>level!==1))return false;
+  const usable=c=>!!c&&isLv1(c)&&!c.lv1Ghost&&!c.fate;
+  if(materials.length===levels.length)return materials.every(usable);
+  // Field-fusion: an already fused pending card represents its original
+  // hand materials; the additional resident field card supplies one more.
+  const pending=g.pending;
+  return materials.length===2&&pending?.kind==='fusion'&&
+   pending.card?.uid===materials[0]?.uid&&usable(materials[0])&&
+   usable(materials[1])&&Array.isArray(pending.levels)&&
+   pending.levels.length===levels.length-1&&pending.levels.every(level=>level===1);
+ }
  const previousOptions=fusionOptions;
  fusionOptions=function(g,levels,materials=[]){
   const normal=previousOptions(g,levels,materials);
-  return normal.filter(c=>!c.lv1Exclusive||
-   (stageAllowed(g,4)&&materials.length>=3&&materials.every(isLv1)&&materials.every(x=>!x.lv1Ghost)));
+  return normal.filter(c=>!c.lv1Exclusive||specialFusionLegal(g,levels,materials));
  };
  const previousFusion=fusedInstance;
  fusedInstance=function(g,material,levels){
+  if(g?.fusionChoice!==undefined&&CARDS[g.fusionChoice]?.lv1Exclusive&&
+     !specialFusionLegal(g,levels,material))return null;
   if(enabled(g)&&g.active===0&&material.some(c=>c.lv1LockedUntil>g.turn))return null;
   const done=previousFusion(g,material,levels);if(!done||!enabled(g)||g.active!==0)return done;
   const t=keyOf(done),special=!!t&&t!=='ace';
@@ -507,5 +524,5 @@
   render();saveDuelSnapshot();
  },true);
  window.ArcaneLv1Swarm=Object.freeze({version:'4.5.0',ids:IDS,enabled,state,counts,isLv1,isReal,
-  resolveChoice,claimOffer,ghostAttack,station,offer,exitCard,spirits,syncSwarm,stationable});
+  resolveChoice,claimOffer,ghostAttack,station,offer,exitCard,spirits,syncSwarm,stationable,specialFusionLegal});
 })();
