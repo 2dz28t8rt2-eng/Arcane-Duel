@@ -47,3 +47,9 @@
 .lv1-ritual-packs span{padding:6px;border:1px solid #9466bb;background:#221833;border-radius:7px;font-size:.65rem;text-align:center}.lv1-ritual-packs .earned{background:#813eae5e;color:#f2d1ff;border-color:#dba1ff;box-shadow:0 0 15px #be65ff80}.lv1-ritual-done{opacity:.8}.lv1-objective{border-left:3px solid #c587ff;padding:9px 12px;background:#9b4abc22;color:#f8eaff}
 @media(max-width:700px){.lv1-ritual-scene{flex-direction:column;text-align:center;gap:10px;min-height:unset}.lv1-ritual-card-art{max-width:75%;height:215px;width:170px}.lv1-ritual-runes{letter-spacing:.3em}.lv1-ritual-narration h2{font-size:1.3rem}}
 @media(prefers-reduced-motion:reduce){.lv1-ritual-runes,.lv1-ritual-card-art,.lv1-ritual-burst,.lv1-ritual-animate{animation:none!important}}
+
+.lv1-drain-orb,.lv1-shield-orb{position:fixed;z-index:9999;pointer-events:none;width:20px;height:20px;margin:-10px;border-radius:100%;border:2px solid #f3d6ff;background:radial-gradient(circle,#fff,#dc9aff 24%,#a33aff 55%,transparent 90%);box-shadow:0 0 16px 5px #c77bff,0 0 40px 12px #9328e795;animation:lv1SiphonFlight 1.25s cubic-bezier(.17,.75,.22,1) both}
+.lv1-shield-orb{border-color:#bfe1ff;background:radial-gradient(circle,#fff,#9ae6ff 25%,#b285ff 57%,transparent 91%);box-shadow:0 0 20px #b5a5ff}
+@keyframes lv1SiphonFlight{0%{opacity:0;transform:translate(0,0) scale(.25)}16%{opacity:1;transform:translate(calc(var(--lv1dx)*.08),calc(var(--lv1dy)*-.15)) scale(1.45)}65%{opacity:1;transform:translate(calc(var(--lv1dx)*.72),calc(var(--lv1dy)*.65)) scale(.85)}100%{opacity:0;transform:translate(var(--lv1dx),var(--lv1dy)) scale(1.9)}}
+.lv1-ghost-actions{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0;padding:8px;border-top:1px solid #a76fd044}.lv1-ghost-actions .btn{background:#a66cfd22;box-shadow:0 0 14px #a66cfd33}
+@media(prefers-reduced-motion:reduce){.lv1-drain-orb,.lv1-shield-orb{animation:none;display:none}}
