@@ -60,3 +60,18 @@ Die automatisierten Regressionen sind Voraussetzung, aber keine Garantie für fe
 - Alle vier können in erweiterte Geisterslots stationiert werden. Die Auswahl erlaubt, eine normale Level-1-Handkarte zu beschwören oder eine bereits auf dem Feld gespielte Level-1-Fusion dorthin zu verlegen.
 - Die stationierten Spezialfusionen halten ihre Fähigkeiten aufrecht; Aegurion kann auch aus dem Geisterslot Gegnerangriffe auf sich ziehen. Bei Rückkehr einer Fusion muss ein normaler Feldplatz frei sein.
 - Eine scheidende Level-1-Fusion erteilt übrigen Lv1-Kreaturen den Trauerschwarm-Bonus, löst aber selbst keine Floating-Kopie aus. Gesonderte Regressionstests sichern Status, Geisterslots und Schutzmechanik ab.
+
+## Level-1-Fanatiker mit Lumira – fünf eigenständige Gegnerdecks
+Die fünf Fanatiker-Herausforderungen nutzen je ein abgestimmtes 40-Karten-Hauptdeck (maximal drei Exemplare pro normaler Karte). Lumira ist keine der 40 Deckkarten, sondern wird als garantierte fünfte Starthandkarte vergeben. Die KI spielt sie bei erster legaler Gelegenheit zwingend zuerst aus. Ohne Level-1-Erwachen bleibt sie kampftechnisch ohne Spezialeffekte. Nach jeder ihrer fünf Beschwörungen erscheint ein eigener, zunehmend resignierter Dialog mit animierter Kartendarstellung.
+
+| Herausforderung | Spielstil | Maximales Normalmonster-Level | Level-1-Karten | Gegner-Power | LP |
+|---|---|---|---|---|---|
+| I | Exzentrischer, hoffnungslos schwacher Forscher | 1 | 40 | 0,38 | 2.000 |
+| II | Forscher, der erste höhere Wesen ausprobiert | 2 | 32 | 0,49 | 3.000 |
+| III | Erste harte Predator-Eskalation aus Neid | 4 | 14 | 0,77 | 4.500 |
+| IV | Verbittert, aggressiv, geringere Synergien | 5 | 5 | 0,73 | 5.200 |
+| V | Reiner Beatdown, spektakulärer Boss | 7 | 0 | 0,93 | 7.000 |
+
+**Finaler Boss:** Lumiras Fall – Die verderbte Flamme. Einmalige korrumpierte Level-5-Predator-Fusion aus Lumiras Geschichte mit 920 ATK und 220 DEF als Grundwerten (danach die regulären Fusionswürfe und Gegner-Power), individueller WebP-Illustration und eigenem rotem Einmarschdialog. Sie hat bewusst **keine mächtigen eigenen Fähigkeiten** und ist ausschließlich im fünften Gegner-Fusionsdeck erhältlich. Nach Lumiras Hoffnungsmoment versucht die Gegner-KI gezielt, die Verderbnis aus drei bis fünf Materialien zu erschaffen.
+
+Der neue Test lv1-fanatic-ace-v48.test.cjs prüft Kartengarantie, Zwangsbeschwörung, Versiegelung, Deckstruktur und die korrumpierte Fusion. Für endgültige Balance sind längere manuelle Kämpfe weiterhin sinnvoll. Der Branch main wurde nicht geändert.
