@@ -19,7 +19,7 @@ test('ghost slots accept only movement from field and spend the monster action o
  assert.deepEqual(r,{fromHand:false,moved:true,sameTurnAttack:false,sameTurnReturn:false,returned:true,field:true,spent:true});
 });
 test('ghost combat zones are valid direct targets even while the main battlefield is occupied',()=>{
- const r=setup().run("(()=>{const g=game,p=g.players[0],e=g.players[1],base=RPG_BASE_CARDS.find(c=>c.level===1&&!c.fusionOnly&&!c.ace).id,foe=RPG_BASE_CARDS.find(c=>c.level===4&&!c.fusionOnly).id,c=newInstance(g,base,0),other=newInstance(g,base,0),enemy=newInstance(g,foe,1),s=ArcaneLv1Swarm.state(g);c.card.def=1800;e.field[0]=enemy;p.field[0]=other;s.ghostSlots=[{kind:'card',card:c}];g.active=1;enemy.card.atk=115;enemy.summonedTurn=1;const before=c.card.def;const result=attack(g,0,5);return {result:!!result,ghostDamaged:c.card.def<before,stillGhost:s.ghostSlots[0]?.card===c,mainUnaffected:p.field[0]===other};})()");
+ const r=setup().run("(()=>{const g=game,p=g.players[0],e=g.players[1],base=ArcaneLv1Swarm.ids.hive,foe=RPG_BASE_CARDS.find(c=>c.level===4&&!c.fusionOnly).id,c=newInstance(g,base,0),other=newInstance(g,base,0),enemy=newInstance(g,foe,1),s=ArcaneLv1Swarm.state(g);c.card.def=1800;e.field[0]=enemy;p.field[0]=other;s.ghostSlots=[{kind:'card',card:c}];g.active=1;enemy.card.atk=115;enemy.summonedTurn=1;const before=c.card.def;const result=attack(g,0,5);return {result:!!result,ghostDamaged:c.card.def<before,stillGhost:s.ghostSlots[0]?.card===c,mainUnaffected:p.field[0]===other};})()");
  assert.equal(r.result,true);assert.equal(r.ghostDamaged,true);assert.equal(r.stillGhost,true);assert.equal(r.mainUnaffected,true);
 });
 test('ghost cards count as Nekroth revival costs and are sacrificed instead of empty capacity',()=>{
@@ -31,4 +31,9 @@ test('fusion selector considers every marked hand card rather than silently slic
  assert.match(src,/const uids=\[\.\.\.game\.materials\],materials=uids\.map\(/);
  assert.match(src,/fusionOptions\(game,levels,materials\)/);
  assert.doesNotMatch(src,/materials=uids\.slice\(-2\)/);
+});
+
+test('four and five selected normal fusion materials all feed the actual rolls and enter graveyard',()=>{
+ const r=setup().run("(()=>{const g=game,p=g.players[0],id=RPG_BASE_CARDS.find(c=>c.level===1&&!c.fusionOnly&&!c.ace).id,fusion=p.remainingFusion[0],m=Array.from({length:5},()=>newInstance(g,id,0));p.hand=[...m];const ok=prepareHandFusion(g,m.map(c=>c.uid),fusion);return {ok,used:g.pending?.card.materialsUsed,grave:p.graveyard.length,hand:p.hand.length,levelCount:g.pending?.levels.length,rolled:g.pending?.card.rollMath?.combo?.materialCount};})()");
+ assert.deepEqual(r,{ok:true,used:5,grave:5,hand:0,levelCount:5,rolled:5});
 });
