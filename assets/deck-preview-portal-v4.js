@@ -137,8 +137,13 @@
  window.addEventListener('resize',()=>{if(activePanel)position(activePanel);});
  const beforeMenu=renderMenu;
  renderMenu=function(...args){
+  // Periodic menu refreshes must not silently dismiss a card the player is reading.
+  const keep=!!activePanel&&allowed(),tab=menuTab,id=editorPreviewIds[tab];
   close(true);
-  return beforeMenu(...args);
+  const result=beforeMenu(...args);
+  if(keep&&menuTab===tab&&allowed()&&Number.isInteger(id))
+   updateDeckPreview(tab==='fusions',id);
+  return result;
  };
  // Reused by the duel card inspector: exact same physical card-flight keyframes.
  // This helper never changes a selected card, a summon, or a battle action.
