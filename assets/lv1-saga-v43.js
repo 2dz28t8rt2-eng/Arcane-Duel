@@ -121,7 +121,7 @@
   if(result&&g?.lv1Saga?.stage===1&&g.active===1&&result.card){
    result.card.atk=Math.max(0,result.card.atk-50);
    result.card.def=Math.max(1,result.card.def-50);
-   if(result.rollMath){result.rollMath.bonus.atk-=50;result.rollMath.bonus.def-=50;result.rollMath.final.atk=result.card.atk;result.rollMath.final.def=result.card.def;}
+   if(result.rollMath){result.rollMath.penalty+=50;result.rollMath.final.atk=result.card.atk;result.rollMath.final.def=result.card.def;}
   }
   return result;
  };
