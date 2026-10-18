@@ -24,7 +24,7 @@
   c.atk=atk;c.def=Math.max(50,total-atk);
  }
  for(const c of CARDS){
-  if(!c||!c.rpg||c.fusionOnly||c.essenceMonster||c.id<20||c.level<1||c.level>10||c.retired)continue;
+  if(!c||!c.rpg||c.fusionOnly||c.lv1Special||c.essenceMonster||c.id<20||c.level<1||c.level>10||c.retired)continue;
   // Store old values once for audit. Do not multiply them or capture later
   // rendering-compatibility mutations as a new baseline.
   Object.defineProperty(c,'arcaneOriginalStats',{value:{atk:c.atk,def:c.def},configurable:true});
