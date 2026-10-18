@@ -75,3 +75,27 @@ Die fünf Fanatiker-Herausforderungen nutzen je ein abgestimmtes 40-Karten-Haupt
 **Finaler Boss:** Lumiras Fall – Die verderbte Flamme. Einmalige korrumpierte Level-5-Predator-Fusion aus Lumiras Geschichte mit 920 ATK und 220 DEF als Grundwerten (danach die regulären Fusionswürfe und Gegner-Power), individueller WebP-Illustration und eigenem rotem Einmarschdialog. Sie hat bewusst **keine mächtigen eigenen Fähigkeiten** und ist ausschließlich im fünften Gegner-Fusionsdeck erhältlich. Nach Lumiras Hoffnungsmoment versucht die Gegner-KI gezielt, die Verderbnis aus drei bis fünf Materialien zu erschaffen.
 
 Der neue Test lv1-fanatic-ace-v48.test.cjs prüft Kartengarantie, Zwangsbeschwörung, Versiegelung, Deckstruktur und die korrumpierte Fusion. Für endgültige Balance sind längere manuelle Kämpfe weiterhin sinnvoll. Der Branch main wurde nicht geändert.
+
+## 18. Oktober 2026 – V4.9: Lumiras verbindliche Korruption im Bossfinale
+Die beiden freigegebenen ursprünglichen PNG-Bilder wurden als hochauflösende WebP-Dateien eingebunden:
+- assets/custom-art/lumira-angel-v49.webp – normale Lumira, weiße Haare und himmlische Erscheinung
+- assets/custom-art/lumira-fallen-v49.webp – korrumpierte Lumira, dunkle Flügel und rote Eclipse
+
+**Beschwörung in Herausforderung V (ersetzt frühere Story-Regeln):**
+- Auf seinem ersten eigenen Zug fusioniert der Fanatiker ohne vorheriges Ausspielen seiner Lumira.
+- Material: **genau eine Lumira aus seiner Hand**, plus zwei bis vier andere frei wählbare Handmonster, insgesamt drei bis fünf eindeutige Kartenexemplare.
+- Diese Materialien werden vollständig verbraucht. Die Spezialfusion wird ausschließlich dem NPC in Herausforderung V zugänglich gemacht und kann nicht ohne Lumira erfolgen.
+- Der Fanatiker spielt Lumira weiterhin in Herausforderungen I–IV zuerst normal aus; Kapitel V verwendet stattdessen die direkte Pflichtfusion.
+- Lumiras Fall bleibt die exklusive Level-5-Predator-Bossfusion mit 920 ATK / 220 DEF als Basis und ohne zusätzliche kampfstarke passive Fähigkeit.
+
+**Reihenfolge der Inszenierung:**
+1. KI entscheidet sich für die gültige Pflichtfusion.
+2. Ein erster, bewusst vorläufiger Story-Dialog öffnet sich, bevor Materialverbrauch oder Animationen beginnen.
+3. Nach Spielerbestätigung werden die Materialien verbraucht und die Bosskarte vorbereitet.
+4. Der Gegner legt die Fusion auf dem Feld ab; die vollständige eigene Transformation ersetzt die normale Fusionsanimation.
+5. Sieben Phasen: reine Lumira groß in normalem Kartenlayout → rote Risse und erste Explosion → konkave Kreisbewegung der Energiefragmente → wachsender, rotierender, roter Orb → zweiter Ausbruch → korrumpierte Form mit rotem Halo, Partikeln und Glühen → Übergang auf das Feld.
+6. Erst danach erscheint ein zweiter Dialog, in dem der Fanatiker seine zunehmend wahnsinnige Erleichterung zeigt.
+
+Die beiden Story-Dialoge sind vorläufige Vorschläge; die finalen Texte werden später gemeinsam abgestimmt. Animation und Pflichtfusion liegen in assets/lumira-corruption-v49.js und assets/lumira-corruption-v49.css. Die Sequenz kann über einen Skip-Button abgebrochen werden, und reduzierte Animationseinstellungen werden berücksichtigt.
+
+Automatisierte Prüfungen: tests/lumira-corruption-v49.test.cjs. Finale Balance und optischer Langzeittest erfolgen im Anschluss an die technische Abnahme.
