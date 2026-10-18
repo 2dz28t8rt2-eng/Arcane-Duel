@@ -2,6 +2,15 @@
 'use strict';
 (()=>{
  const escape=x=>escapeHtml(String(x));
+ // Restore the ACE's element on actual battlefield cards for the matching
+ // colored aura; fullCardHtml already exposes this attribute.
+ const priorBoard=cardHtml;
+ cardHtml=function(c,...args){
+  const html=priorBoard(c,...args),data=dataOf(c);
+  if(!data?.ace||!html.includes('class="board-creature'))return html;
+  return html.replace('class="board-creature',
+   'data-element="'+escapeHtml(data.element||'')+'" class="board-creature');
+ };
  // Enemy card reading uses the existing large left-hand inspector instead of a modal.
  const previousEnemy=onEnemySlot;
  onEnemySlot=function(idx){
