@@ -22,6 +22,11 @@
   if(!creature)return;
   if(type==='enemy'&&game.selection?.type==='field'&&inputAllowed())return;
   const key=type==='hand'?card.dataset.hand:type==='mine'?card.dataset.mine:card.dataset.enemy;
+  // The second click on the already selected attacker cancels targeting,
+  // not an inspector transition. No ghost flight should play for cancellation.
+  if(type==='mine'&&game.selection?.type==='field'&&String(game.selection.idx)===key){
+   requested=null;return;
+  }
   const selector=type==='hand'?'#hand [data-hand="'+key+'"]':
     type==='mine'?'#ownRow [data-mine="'+key+'"] .board-creature':
     '#enemyRow [data-enemy="'+key+'"] .board-creature';
