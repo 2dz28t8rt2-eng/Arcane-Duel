@@ -1,10 +1,10 @@
 (function arcaneLv1Swarm(){
  'use strict';
  const defs=[
-  {key:'hive',name:'Nekro-Hive · Herr der verlorenen Funken',level:3,atk:130,def:610,role:'guardian',desc:'Geisterslots, Reinkarnation, doppelte Floating-Echos und Geisterheilung.',art:'assets/custom-art/lv1-necro-hive.svg'},
-  {key:'protector',name:'Violettwacht · Schutz der Kleinen',level:3,atk:60,def:780,role:'guardian',desc:'Lenkt Angriffe um, verwandelt DEF in Leben, heilt und verteilt Schutzorbs.',art:'assets/custom-art/lv1-protector.svg'},
-  {key:'attacker',name:'Schwarmklinge · Vielgestaltiger Jäger',level:3,atk:590,def:170,role:'predator',desc:'Wachsende ATK, zwei Angriffe, Kopien nach Angriffen und verringerte Angriffsermüdung.',art:'assets/custom-art/lv1-attacker.svg'},
-  {key:'ace',name:'Urfunke · Der erste Geist',level:1,atk:111,def:111,role:'combatant',desc:'30 % ATK Seelenblitz pro Zug; Lebensverknüpfung und eine einmalige Rettung mit 1 DEF.',art:'assets/custom-art/lv1-urfunke.svg'}
+  {key:'hive',name:'Nekroth · König des Seelenschwarms',level:3,atk:130,def:610,role:'guardian',desc:'Je eigenem Zug +1 Geisterslot (maximal 5); echte Level-1-Monster erzeugen Geister bei Beschwörung und Tod. Doppelte Floating-Todeseffekte. Je belegtem Geisterslot +20 Spieler-LP pro Runde. Stirbt Nekroth, opfert er einen belegten Slot und kehrt mit voller ATK/DEF zurück. Geister können als Stufe-2-Fusionsmaterial dienen.',art:'assets/custom-art/lv1-necro-hive-illustration.webp'},
+  {key:'protector',name:'Aegurion · Hüter der Funken',level:3,atk:60,def:780,role:'guardian',desc:'Alle gegnerischen Einzelangriffe werden auf Aegurion umgeleitet. Für eigene Level-1-Monster gilt DEF als Lebensbalken, auch in Angriffsposition. Heilt je eigener Runde 50 % des fehlenden DEF und verteilt bei voller DEF einen Schutzorb (25 % des aktuellen DEF, maximal 50 %).',art:'assets/custom-art/lv1-protector-illustration.webp'},
+  {key:'attacker',name:'Nyxar · Klinge des Schwarms',level:3,atk:590,def:170,role:'predator',desc:'Erhält jede eigene Runde +20 ATK pro eigenem Level-1-Monster; bis zu zwei Angriffe je Zug. Nach jedem Angriff kann bei freiem Feldplatz eine effektlose Level-1-Kopie bereitgestellt werden. Halbiert die Angriffsabnutzung verbündeter Level-1-Monster.',art:'assets/custom-art/lv1-attacker-illustration.webp'},
+  {key:'ace',name:'Lumira · Der erste Funke',level:1,atk:111,def:111,role:'combatant',desc:'Exakt 111 ATK und 111 DEF. Fügt je eigener Runde automatisch 30 % seiner ATK als LP-Schaden zu. Verursachter Schaden durch Fähigkeiten und Angriffe heilt Spieler-LP und seine eigene DEF. Überlebt einmalig die Zerstörung mit 1 DEF; verliert DEF auch in Angriffsposition.',art:'assets/custom-art/lv1-urfunke-illustration.webp'}
  ];
  const IDS={};
  for(const d of defs){
