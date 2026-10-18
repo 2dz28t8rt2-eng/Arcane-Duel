@@ -24,7 +24,9 @@
   if(!inputAllowed())return;
   const g=game,chosen=g.selection,target=self().field[idx];
   if(!g.pending&&chosen?.type==='field'&&chosen.idx===idx){
-   cancelTarget();return;
+   // Repeated inspection must not trigger another card flight. Explicit
+   // ESC and the cancel button handle attack cancellation instead.
+   return oldOwn(idx,choice);
   }
   // A single click on an occupied field cell while a hand creature is chosen
   // is a hand + field fusion, not a change of inspection focus.
