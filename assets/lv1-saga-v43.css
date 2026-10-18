@@ -53,3 +53,14 @@
 @keyframes lv1SiphonFlight{0%{opacity:0;transform:translate(0,0) scale(.25)}16%{opacity:1;transform:translate(calc(var(--lv1dx)*.08),calc(var(--lv1dy)*-.15)) scale(1.45)}65%{opacity:1;transform:translate(calc(var(--lv1dx)*.72),calc(var(--lv1dy)*.65)) scale(.85)}100%{opacity:0;transform:translate(var(--lv1dx),var(--lv1dy)) scale(1.9)}}
 .lv1-ghost-actions{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0;padding:8px;border-top:1px solid #a76fd044}.lv1-ghost-actions .btn{background:#a66cfd22;box-shadow:0 0 14px #a66cfd33}
 @media(prefers-reduced-motion:reduce){.lv1-drain-orb,.lv1-shield-orb{animation:none;display:none}}
+
+/* Fanatiker: a luminous but sealed childhood ACE, followed by the fallen Level-5 Predator. */
+.lv1-ace-appearance{position:relative;display:flex;gap:18px;align-items:center;margin:14px 0;padding:14px;border:1px solid #bf85ff;border-radius:14px;background:radial-gradient(circle at 30% 40%,#8658ca50,#160b2b 75%);box-shadow:0 0 28px #a75cf85b,inset 0 0 30px #7a30ab33;overflow:hidden}
+.lv1-ace-appearance:before{content:"";position:absolute;inset:-60%;background:conic-gradient(transparent 35%,#e6c3ff22 55%,transparent 70%);animation:lv1Mystic 6s linear infinite;pointer-events:none}
+.lv1-ace-appearance img{position:relative;width:min(32%,180px);aspect-ratio:3/4;object-fit:cover;border:2px solid #e6b5ff;border-radius:12px;box-shadow:0 0 25px #edccff9c,0 0 42px #a04cff7d;animation:lv1GlowImage 2.5s ease-in-out infinite alternate}
+.lv1-ace-appearance p{position:relative;flex:1;font:italic 1.02rem/1.6 Georgia,serif;color:#f7e4ff;text-shadow:0 0 10px #b96dff60}
+.lv1-ace-appearance.corrupt{border-color:#fa3969;background:radial-gradient(circle at 30% 40%,#a6295388,#18060c 75%);box-shadow:0 0 40px #f5385c99,inset 0 0 26px #7e0d374d}
+.lv1-ace-appearance.corrupt img{border-color:#ff92ae;box-shadow:0 0 35px #fb3067bb,0 0 65px #820e4fcc;animation:lv1FallReveal 2.6s ease-in-out infinite alternate}
+@keyframes lv1FallReveal{from{filter:brightness(1);transform:scale(.98)}to{filter:brightness(1.22) saturate(1.2);transform:scale(1.02)}}
+@media(max-width:650px){.lv1-ace-appearance{flex-direction:column;text-align:center}.lv1-ace-appearance img{width:160px}.lv1-ace-appearance p{font-size:.93rem}}
+@media(prefers-reduced-motion:reduce){.lv1-ace-appearance img,.lv1-ace-appearance:before{animation:none}}
