@@ -12,7 +12,7 @@
   if(already){IDS[d.key]=already.id;continue;}
   const id=CARDS.length;IDS[d.key]=id;
   const c={id,level:d.level,name:d.name,kind:'spirit',element:'DUNKEL',color:'#bf79fa',atk:d.atk,def:d.def,
-   rpg:true,source:-1,rarity:d.key==='ace'?'legendary':'rare',role:d.role,retired:false,fusionOnly:d.key!=='ace',ace:d.key==='ace',
+   rpg:true,source:-1,rarity:d.key==='ace'?'legendary':'rare',role:'combatant',lv1Role:d.role,retired:false,fusionOnly:d.key!=='ace',ace:d.key==='ace',
    milestoneOnly:d.key==='ace',lv1Special:d.key,lv1Exclusive:d.key!=='ace',desc:d.desc,art:d.art,customArt:d.art};
   CARDS.push(c);
   if(c.fusionOnly){
