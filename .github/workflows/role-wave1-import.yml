@@ -33,13 +33,16 @@ jobs:
               'eisenbastion-gorrath.webp','dornenschild-varuk.webp',
               'ewige-wacht-lysar.webp','runenwacht-aegis.webp',
               'seelenbrut-malgris.webp','leerenpakt-nythor.webp',
-              'sturmschmied-kael.webp','elementsynthese-orin.webp'
+              'sturmschmied-kael.webp','elementsynthese-orin.webp',
+              'ascheklauen-vyrak.webp','erdwacht-kolgran.webp',
+              'lichtseher-auralis.webp','nekroschlund-zayth.webp',
+              'sturmreiter-zephyx.webp'
           }
           with zipfile.ZipFile(archive) as z:
               manifest=json.loads(z.read('asset-manifest.json'))
               cards=manifest['cards']
-              assert len(cards)==10 and {c['file'] for c in cards}==approved,'Unvollstaendige Kunstwelle'
-              assert len({c['sha256'] for c in cards})==10,'Doppelte Bilddaten'
+              assert len(cards)==15 and {c['file'] for c in cards}==approved,'Unvollstaendige Kunstwelle'
+              assert len({c['sha256'] for c in cards})==15,'Doppelte Bilddaten'
               for c in cards:
                   name=c['file']
                   assert re.fullmatch(r'[a-z0-9-]+\.webp',name)
@@ -70,6 +73,6 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add -A -- assets/role-wave1 assets/role-wave1-catalog.js
-            git commit -m "art: install original role-wave WebPs and activate ten new cards"
+            git commit -m "art: install original role-wave WebPs and activate fifteen new cards"
             git push origin HEAD:development
           fi
