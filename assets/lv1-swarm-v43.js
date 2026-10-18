@@ -8,6 +8,8 @@
  ];
  const IDS={};
  for(const d of defs){
+  const already=CARDS.find(c=>c.lv1Special===d.key);
+  if(already){IDS[d.key]=already.id;continue;}
   const id=CARDS.length;IDS[d.key]=id;
   const c={id,level:d.level,name:d.name,kind:'spirit',element:'DUNKEL',color:'#bf79fa',atk:d.atk,def:d.def,
    rpg:true,source:-1,rarity:d.key==='ace'?'legendary':'rare',fusionOnly:d.key!=='ace',ace:d.key==='ace',
