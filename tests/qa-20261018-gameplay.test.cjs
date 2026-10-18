@@ -19,7 +19,7 @@ test('active soul raid flushes its recorded siphon effect rather than leaving it
 });
 test('counterattack animation uses red hostile impact and explicit negative LP numbers',()=>{
  const s=fs.readFileSync(path.join(__dirname,'../assets/duel-cinematics-v42.js'),'utf8');
- assert.match(s,/\-.'?\+event\.amount/);assert.match(s,/#ff214c/);
+ assert.match(s,/event\.amount>0/);assert.match(s,/LP · GEGENSCHLAG/);assert.match(s,/#ff214c/);
  assert.match(s,/ad-counter-impact/);
 });
 test('reward art retains boxed ATK and DEF and hides only duplicate top-of-card level badges',()=>{
