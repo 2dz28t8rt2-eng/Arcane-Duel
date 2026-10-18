@@ -44,14 +44,7 @@ test('every Lumira apparition has a distinct hopeful-to-disillusioned response',
  assert.ok(r.every(s=>s[1].length>70&&s[2].length>45));
 });
 
-test('chapter V fuses Lumira directly from the opening hand into the corrupted Predator',()=>{
- const r=stage(5).run("(()=>{const g=game,p=g.players[1];g.active=1;const action=chooseAiAction(g),ids=action.uids||[],hadLumira=ids.includes(g.lv1FanaticAce.uid),prepared=applyAiAction(g,action),bossPending=g.pending?.card?.id===ArcaneLv1Saga.corruptedId,lost=p.hand.find(c=>c.id===ArcaneLv1Swarm.ids.ace)===undefined,placed=prepared?placePending(g,0):null;return {type:action.type,hadLumira,amount:ids.length,prepared:!!prepared,bossPending,lost,bossField:placed?.card?.id===ArcaneLv1Saga.corruptedId,preDialog:g.lv1FallPreShown===true,postDialog:g.lv1FanaticCorruptDialoguePending===true,handAcePlayed:g.lv1FanaticAce.played===true};})()");
- assert.equal(r.type,'fusion');
- assert.equal(r.hadLumira,true);
- assert.ok(r.amount>=3&&r.amount<=5);
- assert.equal(r.prepared,true);assert.equal(r.bossPending,true);
- assert.equal(r.lost,true);assert.equal(r.bossField,true);
- assert.equal(r.postDialog,true);assert.equal(r.handAcePlayed,true);
- // The prologue is a user-controlled GUI dialogue, so its state is tested in Chromium.
- assert.equal(r.preDialog,false);
+test('chapter V keeps Lumira on the battlefield and does not sacrifice her on turn one',()=>{
+ const r=stage(5).run("(()=>{const g=game,p=g.players[1],uid=g.lv1FanaticAce.uid;g.active=1;const action=chooseAiAction(g),prepared=applyAiAction(g,action),placed=prepared?applyAiAction(g,chooseAiAction(g)):null;return {type:action.type,lumiraChosen:action.uid===uid,prepared:!!prepared,lumiraOnField:p.field.some(c=>c?.uid===uid),sacrificed:p.graveyard.some(c=>c.uid===uid),placed:!!placed};})()");
+ assert.deepEqual(r,{type:'normal',lumiraChosen:true,prepared:true,lumiraOnField:true,sacrificed:false,placed:true});
 });
