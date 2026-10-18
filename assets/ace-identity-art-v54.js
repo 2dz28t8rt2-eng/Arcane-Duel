@@ -9,6 +9,7 @@
   1:'assets/custom-art/generated-4-1/monster-0314.webp', // Argentum-Koloss
   2:'assets/custom-art/generated-4-1/monster-0315.webp', // Phönix Myrra
   3:'assets/custom-art/generated-4-1/monster-0316.webp', // Sylvan
+  4:'assets/custom-art/wave6-03.webp', // Mondsturm-Leviathan
   5:'assets/custom-art/generated-4-1/monster-0318.webp', // Aschewyrm Rakh
   6:'assets/custom-art/generated-4-1/monster-0319.webp', // Nox-Albtraum
   7:'assets/custom-art/generated-4-1/monster-0320.webp', // Himmelskrone
@@ -24,7 +25,6 @@
    unresolved.push({tier:npc.id,name:ace.name,source:npc.originalSignature,reason:'no approved raster illustration'});
    continue;
   }
-  signature.art=image;signature.customArt=image;
   ace.art=image;ace.customArt=image;ace.artWave='ace-signature';
   ace.artIdentitySourceId=signature.id;
   improvements.push({tier:npc.id,id:ace.id,name:ace.name,art:image,signatureId:signature.id});
