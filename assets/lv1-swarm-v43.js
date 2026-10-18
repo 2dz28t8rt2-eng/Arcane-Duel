@@ -39,6 +39,7 @@
  function owned(g){return g?.players?.[0]?.field?.filter(Boolean)||[];}
  function availableSlots(g){return Math.min(5,Math.max(0,state(g).ghostSlots.length));}
  function spirits(g){return state(g).ghostSlots.filter(x=>x&&(x.kind==='ghost'||x.kind==='card'));}
+ function grantGhost(g){const s=state(g),i=s.ghostSlots.findIndex(x=>x===null);if(i<0)return false;s.ghostSlots[i]={kind:'ghost'};logFx(g,'ghost',i);return true;}
  function counts(g){return owned(g).filter(isLv1).length+spirits(g).filter(x=>x.kind==='card').length;}
  function syncSwarm(g){
   if(!stageAllowed(g,3))return;
@@ -65,6 +66,7 @@
    if(other.card){other.card.atk+=8;other.card.def+=8;}
   }
   logFx(g,'mourning',CARDS[c.id].name);
+  if(has(g))grantGhost(g);
   if(has(g)&&s.float<maxTurns){
    s.float++;s.choices.push({id:c.id});
   }
@@ -107,7 +109,7 @@
   const validId=id=>Number.isInteger(id)&&!!CARDS[id]&&CARDS[id].level===1&&!CARDS[id].fusionOnly;
   if(s.choices.length>5||s.offers.length>5||s.choices.some(x=>!validId(x.id))||s.offers.some(x=>!validId(x.id)||typeof x.echo!=='boolean'))throw Error('Ungültige Schwarmwarteschlange.');
   g.lv1State={choices:s.choices.map(x=>({id:x.id})),offers:s.offers.map(x=>({id:x.id,echo:x.echo})),
-   ghostSlots:s.ghostSlots.map(x=>x&&x.kind==='ghost'?{kind:'ghost'}:null),
+   ghostSlots:s.ghostSlots.map(x=>x&&x.kind==='ghost'?{kind:'ghost'}:x?.kind==='card'&&validId(x.card?.id)&&Number.isInteger(x.card?.uid)?{kind:'card',card:{id:x.card.id,uid:x.card.uid,mode:'atk',attacked:false,switched:false,card:{level:1,atk:Math.max(0,Math.min(10000,x.card.card?.atk||0)),def:Math.max(1,Math.min(10000,x.card.card?.def||1))}}}:null),
    tick:Number.isInteger(s.tick)?s.tick:-1,float:Math.max(0,Math.min(5,s.float||0)),
    swarm:Math.max(0,Math.min(5,s.swarm||0)),events:[]};
   if(Number.isInteger(raw.lv1Saga?.stage)&&raw.lv1Saga.stage>=1&&raw.lv1Saga.stage<=5)
@@ -171,6 +173,7 @@
    if(isReal(spawned)&&!result.fused&&stageAllowed(g,3)){
     const s=current(g);
     if(s.swarm<maxTurns){s.swarm++;offer(g,spawned.id,true);logFx(g,'swarm',dataOf(spawned).name,idx);}
+    if(has(g))grantGhost(g);
    }
    syncSwarm(g);
   }
@@ -197,7 +200,7 @@
   }
   // Level-1 DEF behaves as health in both modes while protected; ACE always has a DEF life bar.
   const custom=g.active===1&&di!==null&&target&&
-    (isLv1(target)&&owned(g).some(c=>keyOf(c)==='protector')||keyOf(target)==='ace'||keyOf(target)==='protector');
+    (isLv1(target)&&owned(g).some(c=>keyOf(c)==='protector')||['ace','protector','hive'].includes(keyOf(target)));
   let result;
   if(custom){
    if(!canAttack(g,a))return null;
@@ -211,6 +214,7 @@
    result={damage:hit,damaged:null,destroyed:dead?['0:'+di]:[],ai,di};
    if(dead&&keyOf(target)==='ace'&&!target.lv1AceSaved){target.lv1AceSaved=true;target.card.def=1;enemy.graveyard.pop();enemy.field[di]=target;result.destroyed=[];logFx(g,'revive','ace',di);}
    if(dead&&keyOf(target)==='hive'){const s=state(g),j=s.ghostSlots.findIndex(x=>x);if(j>=0){
+    const sacrifice=s.ghostSlots[j];if(sacrifice?.kind==='card')enemy.graveyard.push(sacrifice.card);
     s.ghostSlots[j]=null;target.card={...target.card,atk:target.lv1Full?.atk||CARDS[target.id].atk,def:target.lv1Full?.def||CARDS[target.id].def};
     enemy.graveyard.pop();enemy.field[di]=target;result.destroyed=[];logFx(g,'revive','hive',di);
    }}
@@ -307,7 +311,7 @@
    html+=s.offers.map((o,i)=>'<div class="lv1-offer">'+(o.echo?'◇ Effektlose Kopie':'✦ Echte Kreatur')+' · '+esc(CARDS[o.id].name)+' <button class="btn tiny" data-lv1-offer="'+i+'">Zur Hand / Fusion</button></div>').join('');
    if(s.ghostSlots.length){
     html+='<div class="lv1-ghostslots"><b>Geisterslots</b><div class="lv1-ghostgrid">'+s.ghostSlots.map((x,i)=>
-     '<button class="lv1-ghostslot" data-lv1-ghost="'+i+'">'+(x?'✦ Geist':'◇ Frei')+'</button>').join('')+'</div><small>Leere Slots antippen: Geist aus Schwarmenergie binden. Ein belegter Slot schützt den Hive und heilt 20 LP.</small></div>';
+     '<button class="lv1-ghostslot" data-lv1-ghost="'+i+'">'+(x?.kind==='card'?'◇ '+esc(CARDS[x.card.id].name):x?'✦ Geist':'◇ Frei')+'</button>').join('')+'</div><small>Freien Slot antippen: echte Lv1-Handkarte dort stationieren. Belegte Karten antippen: zurück auf die Hand. Andere Geister werden beim Beschwören und Sterben erzeugt.</small></div>';
    }
    html+='</section>';
    host.insertAdjacentHTML('beforeend',html);
@@ -335,9 +339,11 @@
   }else if(b.dataset.lv1Ghost!==undefined){
    const s=state(game),i=Number(b.dataset.lv1Ghost);
    if(s.ghostSlots[i]===null&&i<s.ghostSlots.length){
-    const c=owned(game).find(isReal);
-    if(c){s.ghostSlots[i]={kind:'ghost'};logFx(game,'ghost',i);logEvent(game,'Ein Level-1-Geist wurde an die Geisterzone gebunden.');}
-    else toast('Ein echtes Level-1-Monster auf dem Feld wird benötigt.');
+    const p=game.players[0],c=p.hand.find(isReal);
+    if(c){p.hand.splice(p.hand.indexOf(c),1);s.ghostSlots[i]={kind:'card',card:c};logFx(game,'ghost',i);logEvent(game,'Level-1-Monster in Geisterslot '+(i+1)+' stationiert.');syncSwarm(game);}
+    else toast('Für diesen Geisterslot wird eine echte Level-1-Handkarte benötigt.');
+   }else if(s.ghostSlots[i]?.kind==='card'&&game.players[0].hand.length<9){
+    game.players[0].hand.push(s.ghostSlots[i].card);s.ghostSlots[i]=null;syncSwarm(game);
    }
   }
   render();saveDuelSnapshot();
