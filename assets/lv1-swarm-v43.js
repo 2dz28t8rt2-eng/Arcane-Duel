@@ -267,6 +267,24 @@
   syncSwarm(g);
   return result;
  };
+ function ghostAttack(g,slot,targetIdx=null){
+  if(!enabled(g)||g.active!==0||g.winner!==null||g.pending||g.turn<=1)return false;
+  const status=state(g),v=status.ghostSlots[slot],c=v?.kind==='card'&&v.card;
+  if(!c||c.attacked||c.lv1LockedUntil>g.turn||c.mode!=='atk')return false;
+  const enemy=g.players[1].field,valid=Number.isInteger(targetIdx)&&targetIdx>=0&&targetIdx<5&&!!enemy[targetIdx];
+  if(enemy.some(Boolean)&&!valid)return false;
+  if(!enemy.some(Boolean))targetIdx=null;
+  const own=g.players[0].field,free=own.findIndex(x=>!x),ix=free>=0?free:4,saved=own[ix];
+  status.ghostSlots[slot]=null;own[ix]=c;
+  let result=null,after=null;
+  try{result=attack(g,ix,targetIdx);after=own[ix];}
+  finally{
+   if(after===c||!result)status.ghostSlots[slot]={kind:'card',card:c};
+   own[ix]=saved;g.selection=null;syncSwarm(g);
+  }
+  if(result)logFx(g,'slash','Geisterangriff',slot);
+  return !!result;
+ }
  const previousAdvance=advanceTurn;
  advanceTurn=function(g){
   if(!enabled(g)||g.winner!==null||g.pending)return previousAdvance(g);
@@ -332,6 +350,14 @@
    if(s.ghostSlots.length){
     html+='<div class="lv1-ghostslots"><b>Geisterslots</b><div class="lv1-ghostgrid">'+s.ghostSlots.map((x,i)=>
      '<button class="lv1-ghostslot" data-lv1-ghost="'+i+'">'+(x?.kind==='card'?'◇ '+esc(CARDS[x.card.id].name):x?'✦ Geist → Lv2-Material':'◇ Frei')+'</button>').join('')+'</div><small>Freier Slot: Level-1-Handkarte stationieren. Geist: als neutralen Stufe-2-Fusionskatalysator in die Hand nehmen. Stationierte Karte: zur Hand zurücknehmen.</small></div>';
+    if(game.active===0&&game.turn>1){
+      html+='<div class="lv1-ghost-actions">'+s.ghostSlots.map((v,i)=>v?.kind==='card'&&v.card.mode==='atk'&&!v.card.attacked?
+       '<button class="btn tiny" data-lv1-ghost-select="'+i+'">⚔ '+esc(CARDS[v.card.id].name)+' angreifen lassen</button>':'').join(' ')+'</div>';
+      if(Number.isInteger(s.selectedGhost)){
+       const monsters=game.players[1].field.map((c,i)=>c?'<button class="btn tiny" data-lv1-ghost-target="'+i+'">Gegnerfeld '+(i+1)+'</button>':'').filter(Boolean).join(' ');
+       html+='<div class="lv1-offer">Geisterangriff – Ziel wählen: '+(monsters||'<button class="btn tiny" data-lv1-ghost-target="-1">Direkter Angriff</button>')+'</div>';
+      }
+     }
    }
    if(stageAllowed(game,3)){
     html+='<div class="lv1-offer"><b>✦ Locken</b> · Angriff aufgeben, um eine effektlose Kopie zu rufen.</div>';
@@ -359,10 +385,16 @@
   }
  };
  $('summonStage')?.addEventListener('click',event=>{
-  const b=event.target.closest('[data-lv1-choice],[data-lv1-offer],[data-lv1-ghost],[data-lv1-lock]');
+  const b=event.target.closest('[data-lv1-choice],[data-lv1-offer],[data-lv1-ghost],[data-lv1-lock],[data-lv1-ghost-select],[data-lv1-ghost-target]');
   if(!b||!game||game.active!==0||game.winner!==null)return;
   event.preventDefault();event.stopImmediatePropagation();
-  if(b.dataset.lv1Choice!==undefined){
+  if(b.dataset.lv1GhostSelect!==undefined){
+   state(game).selectedGhost=Number(b.dataset.lv1GhostSelect);
+  }else if(b.dataset.lv1GhostTarget!==undefined){
+   const ix=Number(b.dataset.lv1GhostTarget),s=state(game);
+   if(!ghostAttack(game,s.selectedGhost,ix<0?null:ix))toast('Geisterangriff konnte nicht ausgeführt werden.');
+   s.selectedGhost=null;
+  }else if(b.dataset.lv1Choice!==undefined){
    if(!resolveChoice(game,Number(b.dataset.lv1Choice),b.dataset.kind))toast('Kein freies Angebot oder kein Level-1-Monster mehr im Deck.');
   }else if(b.dataset.lv1Offer!==undefined){
    if(!claimOffer(game,Number(b.dataset.lv1Offer)))toast('Beschwörungsauswahl voll.');
@@ -387,5 +419,5 @@
   render();saveDuelSnapshot();
  },true);
  window.ArcaneLv1Swarm=Object.freeze({version:'4.3.0',ids:IDS,enabled,state,counts,isLv1,isReal,
-  resolveChoice,claimOffer,offer,exitCard,spirits,syncSwarm});
+  resolveChoice,claimOffer,ghostAttack,offer,exitCard,spirits,syncSwarm});
 })();
