@@ -279,8 +279,13 @@ chooseAiAction=function(g,policy='balanced'){
 };
 
 function applyLv1ClassQuality(f,template,materials,g){
- if(!template?.lv1Exclusive||!window.ArcaneLv1Swarm?.enabled?.(g)||g.active!==0||materials.length<3||!materials.every(c=>dataOf(c).level===1))return f;
- if(materials.length!==5)f.factor=Math.min(2.2,f.factor+.18);
+ const pending=g?.pending;
+ const field=materials.length===2&&pending?.kind==='fusion'&&pending.card?.uid===materials[0]?.uid&&Array.isArray(pending.levels);
+ const used=field?pending.levels.length+1:materials.length;
+ if(!template?.lv1Exclusive||!window.ArcaneLv1Swarm?.enabled?.(g)||g.active!==0||
+  used<3||used>5||!materials.every(c=>dataOf(c).level===1)||
+  (field&&!pending.levels.every(level=>level===1)))return f;
+ if(used!==5)f.factor=Math.min(2.2,f.factor+.18);
  f.rollBonus=Math.max(3,f.rollBonus);
  return f;
 }
@@ -323,13 +328,13 @@ fusedInstance=function(g,instances,levels){
  const result={...newInstance(g,template.id),card:{level:template.level,...best},
   fusion:true,materialBonus:bonus,qualityRolls:rolls,pattern:f.name,
   ...(f.resonancePct?{resonanceFusion:{bonusPct:f.resonancePct,materials:f.resonanceMaterials,charges:f.resonanceCharges}}:{}),
-  materialsUsed:instances.length,rollTrace:trace,
+  materialsUsed:template.lv1Exclusive&&g.pending?.kind==='fusion'&&g.pending?.card?.uid===instances[0]?.uid?levels.length:instances.length,rollTrace:trace,
   rollMath:{base:{atk:round10(baseline.atk),def:round10(baseline.def)},
    winnerIndex:bestIndex,winner,bonus:{...bonus},penalty,final:{...best},
    role,roleWeights,quality:f.factor,
    resonancePct:f.resonancePct||0,
     combo:{name:f.name,qualityPct:Math.round(f.qualityBonus*1000)/10,
-     rollBonus:f.rollBonus,materialCount:instances.length}},
+     rollBonus:f.rollBonus,materialCount:template.lv1Exclusive&&g.pending?.kind==='fusion'&&g.pending?.card?.uid===instances[0]?.uid?levels.length:instances.length}},
   attacked:instances.some(c=>c.attacked)};
  if(f.resonancePct)logEvent(g,'Materialresonanz: +'+f.resonancePct+' % Fusionsqualität durch '+f.resonanceMaterials+' Resonanz-Materialien.');
  if(imprint){
@@ -372,7 +377,7 @@ fusedInstance=function(g,instances,levels){
    logEvent(g,'Seelen-Erbe der Feldfusion: '+stored+' eingesetzte Seelenenergie → +'+defGain+' DEF'+(carried?' und '+carried+' gespeicherte Seelenessenz':'')+'.');
   }
  }
- logEvent(g,template.name+': '+instances.length+' Materialien · '+f.name+' · '+rolls+
+ logEvent(g,template.name+': '+(result.materialsUsed||instances.length)+' Materialien · '+f.name+' · '+rolls+
   ' Rollenwürfe · final ATK '+best.atk+' / DEF '+best.def+'.');
  return result;
 };
