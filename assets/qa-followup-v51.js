@@ -112,6 +112,17 @@
    document.getElementById('enemyRow'):document.getElementById('ownRow');
   target?.scrollIntoView({block:'center',behavior:'instant'});
  },true);
+ // The deck must use the same normal-monster formula as a fresh PvE summon.
+ // Keep the separate essence-monster and rolled-fusion previews untouched.
+ const previousProfileCard=profileCard;
+ profileCard=function(card){
+  const result=previousProfileCard(card);
+  if(!card||!result?.card||card.essenceMonster||card.fusionOnly)return result;
+  const loadout={id:0,power:1,enhancements:profile.enhancements,
+   flatBonus:monsterTrainingBonus(profile.upgrades.power)};
+  for(const stat of ['atk','def'])result.card[stat]=round10(baseStat(card,stat,loadout));
+  return result;
+ };
  // A visible shortcut on duel-related menus helps players discover quests early.
  const olderRenderMenu=renderMenu;
  renderMenu=function(...args){
