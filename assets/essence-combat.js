@@ -431,8 +431,11 @@
    ' Seelenessenz (3 eigene Züge Abklingzeit).');
   window.ArcaneDefenderFX?.record(game,{type:'absorb',owner:0,uid:creature.uid,
    index:idx,element:dataOf(creature).element,
-   targets:[{uid:target.uid,index:targetIndex,amount:actual}],gain:gained});
-  saveDuelSnapshot();render();return true;
+   targets:[{uid:target.uid,index:targetIndex,amount:actual}],gain:gained,activeRaid:true});
+  // Active Seelenraub occurs outside end-turn batches: show the arc immediately.
+  saveDuelSnapshot();render();
+  void window.ArcaneDefenderFX?.flush?.(game);
+  return true;
  }
  function predatorMode(idx){
   if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0)return false;
