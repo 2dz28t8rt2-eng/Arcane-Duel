@@ -24,7 +24,7 @@
   }
   if(typeof UPDATE_B_SET!=='undefined')UPDATE_B_SET.add(id);
  }
- const keyOf=c=>c?.lv1Effectless?'':CARDS[c?.id]?.lv1Special||'';
+ const keyOf=c=>c?.lv1Effectless||c?.lv1FanaticSealed?'':CARDS[c?.id]?.lv1Special||'';
  const levelOf=c=>c?dataOf(c).level:0;
  // Klassenfusionen zählen bei Level-1-Schwarmboni als Level 1, lösen aber selbst keine Basiskarten-Echos aus.
  const isLv1=c=>!!c&&levelOf(c)===1&&!c.fate&&(!c.fusion||!!CARDS[c.id]?.lv1Exclusive);
