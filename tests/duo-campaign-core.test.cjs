@@ -93,3 +93,13 @@ test('team LP damage is shared between both allies while decks remain independen
  assert.equal(g.teams[1].lp,before-450);
  assert.equal(g.teams[0].lp,16000);
 });
+
+test('all four seats have seven slots and team LP are doubled',()=>{
+ const g=active();assert.deepEqual(g.players.map(p=>p.field.length),[7,7,7,7]);
+ assert.deepEqual(g.teams.map(t=>t.lp),[16000,16000]);
+});
+test('the highest legal slot index is six',()=>{
+ const g=active();const next=apply(g,0,{type:'summon',slot:6,handIndex:0});
+ assert.equal(next.players[0].field[6].id,10);
+ assert.throws(()=>apply(g,0,{type:'summon',slot:7,handIndex:0}),/Feldplatz/);
+});
