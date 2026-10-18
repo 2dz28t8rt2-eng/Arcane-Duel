@@ -175,9 +175,17 @@
   return deck;
  }
  function fusions(stage){
-  const normal=RPG_FUSIONS.filter(c=>c.rpg&&!c.ace&&!c.lv1Exclusive&&!c.retired&&!c.enemyOnly)
-   .sort((a,b)=>a.level-b.level||a.atk+a.def-b.atk-b.def);
-  const ids=normal.slice(0,stage===5?14:15).map(c=>c.id);
+  const normal=RPG_FUSIONS.filter(c=>c.rpg&&!c.ace&&!c.lv1Exclusive&&!c.retired&&!c.enemyOnly);
+  const min=[0,1,1,3,4,5][stage],max=[0,2,3,5,6,8][stage];
+  const preferred=normal.filter(c=>c.level>=min&&c.level<=max);
+  const byRole=(a,b)=>{
+   const ah=a.role==='predator'||a.essenceSchool==='predator'?1:0;
+   const bh=b.role==='predator'||b.essenceSchool==='predator'?1:0;
+   return stage>=3?bh-ah||b.atk-a.atk||b.level-a.level:
+    a.level-b.level||a.atk+a.def-b.atk-b.def;
+  };
+  const chosen=[...preferred.sort(byRole),...normal.filter(c=>!preferred.includes(c)).sort(byRole)];
+  const ids=chosen.slice(0,stage===5?14:15).map(c=>c.id);
   if(stage===5)ids.push(CORRUPTED_ID);
   return ids;
  }
@@ -323,7 +331,7 @@
     openModal(modalHtml('VERBOTENE FORSCHUNG · '+stage+'/5',STORIES[stage-1].title,'✦',
      STORIES[stage-1].dialog,
      '<p class="lv1-intro-note">Geliehene Karten für Stufe II–V · Der Forscher verändert mit jeder Niederlage sein Deck.</p>'+
-     '<p>Duell-LP: '+game.maxLP.toLocaleString('de-AT')+'</p><p class="lv1-objective"><b>✦ Prüfungsziel:</b> '+escapeHtml(OBJECTIVES[stage-1].description)+'</p>',
+     '<p><b>Strategie des Fanatikers:</b> '+escapeHtml(game.lv1FanaticDeckName)+' · Duell-LP: '+game.maxLP.toLocaleString('de-AT')+'</p><p class="lv1-objective"><b>✦ Prüfungsziel:</b> '+escapeHtml(OBJECTIVES[stage-1].description)+'</p>',
      '<button class="btn primary" id="modalGo">DUELL STARTEN</button>'));
     $('modalGo').onclick=oldGo;
    }
