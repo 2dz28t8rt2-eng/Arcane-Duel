@@ -27,6 +27,27 @@
   preview.classList.remove('ad-inspected');
   renderCardPreview();
  });
+ // Support is currently a contextual passive, not a missing active button.
+ // Its real combat buff applies only when the essence-combat ruleset is active.
+ const previousRules=showRules;
+ showRules=function(...args){
+  const result=previousRules(...args);
+  const root=$('modal');
+  if(root&&!root.querySelector('.ad-qa-support-help')){
+   const info='<section class="ad-qa-support-help"><h3>✦ Unterstützer</h3>'+
+    '<p>Unterstützer besitzen eine eher ausgeglichene ATK-/DEF-Verteilung. '+
+    'In Essenzduellen verstärkt ein Unterstützer in <b>DEF-Position</b> die ATK anderer, '+
+    'nicht fusionierter eigener Angreifer um maximal +160 '+
+    '(Grundbonus +25 sowie +8 je Level des Angreifers). '+
+    '<b>Außerhalb der Essenzregeln haben Unterstützer derzeit keine eigene aktive Spezialfähigkeit.</b></p>'+
+    '<p><b>Allrounder:</b> Als Fusionsmaterial verbessern sie die Fusionsqualität; '+
+    'über mehrere überlebte Züge sammeln sie auf dem Feld zusätzliche Resonanzladungen. '+
+    'Eine rollenlose Fusion wird zum Resonator und erhält eine stärkere Resonanzmechanik.</p></section>';
+   root.insertAdjacentHTML('beforeend',info);
+  }
+  return result;
+ };
+ if($('rulesBtn'))$('rulesBtn').onclick=showRules;
  // Visible, claimable side quests deserve a dedicated prominent entry point.
  function questsBanner(){
   if(uiMode!=='menu'||menuTab!=='challenges')return;
