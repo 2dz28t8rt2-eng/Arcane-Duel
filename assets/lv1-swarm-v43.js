@@ -310,6 +310,20 @@
   syncSwarm(g);
   return result;
  };
+ function station(g,slot,source,index){
+  if(!enabled(g)||g.active!==0||g.winner!==null||g.pending)return false;
+  const support=state(g),p=g.players[0];
+  if(!Number.isInteger(slot)||slot<0||slot>=support.ghostSlots.length||support.ghostSlots[slot]!==null)return false;
+  if(!Number.isInteger(index)||index<0||!['hand','field'].includes(source))return false;
+  if(source==='hand'&&g.summoned)return false;
+  const cards=source==='hand'?p.hand:p.field,c=cards[index];
+  if(!stationable(c))return false;
+  if(source==='hand'){cards.splice(index,1);g.summoned=true;c.summonedTurn=g.turn;}
+  else{cards[index]=null;g.selection=null;}
+  support.ghostSlots[slot]={kind:'card',card:c};support.selectedGhostSlot=null;
+  logFx(g,'ghost',CARDS[c.id].name,slot);syncSwarm(g);
+  return true;
+ }
  function ghostAttack(g,slot,targetIdx=null){
   if(!enabled(g)||g.active!==0||g.winner!==null||g.pending||g.turn<=1)return false;
   const status=state(g),v=status.ghostSlots[slot],c=v?.kind==='card'&&v.card;
@@ -394,6 +408,14 @@
    html+=s.choices.map((v,i)=>'<div class="lv1-offer">✧ '+esc(CARDS[v.id].name)+' ist gegangen: <button class="btn tiny" data-lv1-choice="'+i+'" data-kind="echo">Echo erzeugen</button> <button class="btn tiny" data-lv1-choice="'+i+'" data-kind="deck">Echten Lv1 aus Deck rufen</button></div>').join('');
    html+=s.offers.map((o,i)=>'<div class="lv1-offer">'+(o.echo?'◇ Effektlose Kopie':'✦ Echte Kreatur')+' · '+esc(CARDS[o.id].name)+' <button class="btn tiny" data-lv1-offer="'+i+'">Zur Hand / Fusion</button></div>').join('');
    if(s.ghostSlots.length){
+    if(Number.isInteger(s.selectedGhostSlot)&&s.ghostSlots[s.selectedGhostSlot]===null){
+     const hand=game.players[0].hand.map((c,i)=>({c,i})).filter(o=>stationable(o.c));
+     const field=game.players[0].field.map((c,i)=>({c,i})).filter(o=>stationable(o.c));
+     html+='<div class="lv1-offer"><b>Geisterslot '+(s.selectedGhostSlot+1)+' besetzen:</b>'+
+      (game.summoned?'':hand.map(o=>'<button class="btn tiny" data-lv1-station="hand" data-index="'+o.i+'">Hand: '+esc(CARDS[o.c.id].name)+'</button>').join(' '))+
+      field.map(o=>'<button class="btn tiny" data-lv1-station="field" data-index="'+o.i+'">Feld: '+esc(CARDS[o.c.id].name)+'</button>').join(' ')+
+      '<button class="btn tiny" data-lv1-cancel>Abbrechen</button></div>';
+    }
     html+='<div class="lv1-ghostslots"><b>Geisterslots</b><div class="lv1-ghostgrid">'+s.ghostSlots.map((x,i)=>
      '<button class="lv1-ghostslot" data-lv1-ghost="'+i+'">'+(x?.kind==='card'?'◇ '+esc(CARDS[x.card.id].name):x?'✦ Geist → Lv2-Material':'◇ Frei')+'</button>').join('')+'</div><small>Freier Slot: Level-1-Handkarte stationieren. Geist: als neutralen Stufe-2-Fusionskatalysator in die Hand nehmen. Stationierte Karte: zur Hand zurücknehmen.</small></div>';
     if(game.active===0&&game.turn>1){
@@ -443,10 +465,14 @@
   }
  };
  $('summonStage')?.addEventListener('click',event=>{
-  const b=event.target.closest('[data-lv1-choice],[data-lv1-offer],[data-lv1-ghost],[data-lv1-lock],[data-lv1-ghost-select],[data-lv1-ghost-target]');
+  const b=event.target.closest('[data-lv1-choice],[data-lv1-offer],[data-lv1-ghost],[data-lv1-lock],[data-lv1-ghost-select],[data-lv1-ghost-target],[data-lv1-station],[data-lv1-cancel]');
   if(!b||!game||game.active!==0||game.winner!==null)return;
   event.preventDefault();event.stopImmediatePropagation();
-  if(b.dataset.lv1GhostSelect!==undefined){
+  if(b.dataset.lv1Cancel!==undefined){
+   state(game).selectedGhostSlot=null;
+  }else if(b.dataset.lv1Station!==undefined){
+   if(!station(game,state(game).selectedGhostSlot,b.dataset.lv1Station,Number(b.dataset.index)))toast('Der Geisterslot kann diese Kreatur derzeit nicht aufnehmen.');
+  }else if(b.dataset.lv1GhostSelect!==undefined){
    state(game).selectedGhost=Number(b.dataset.lv1GhostSelect);
   }else if(b.dataset.lv1GhostTarget!==undefined){
    const ix=Number(b.dataset.lv1GhostTarget),s=state(game);
@@ -464,18 +490,22 @@
   }else if(b.dataset.lv1Ghost!==undefined){
    const s=state(game),i=Number(b.dataset.lv1Ghost);
    if(s.ghostSlots[i]===null&&i<s.ghostSlots.length){
-    const p=game.players[0],c=p.hand.find(stationable);
-    if(c){p.hand.splice(p.hand.indexOf(c),1);s.ghostSlots[i]={kind:'card',card:c};logFx(game,'ghost',i);logEvent(game,'Level-1-Monster in Geisterslot '+(i+1)+' stationiert.');syncSwarm(game);}
-    else toast('Für diesen Geisterslot wird eine echte Level-1-Handkarte benötigt.');
+    s.selectedGhostSlot=i;
    }else if(s.ghostSlots[i]?.kind==='ghost'&&game.players[0].hand.length<9){
     const id=RPG_BASE_CARDS.find(c=>c.level===2&&c.role==='combatant'&&!c.fusionOnly&&!c.ace)?.id;
     if(id!==undefined){const catalyst=newInstance(game,id,0);catalyst.lv1Ghost=true;catalyst.lv1Effectless=true;catalyst.card.atk=0;catalyst.card.def=1;game.players[0].hand.push(catalyst);s.ghostSlots[i]=null;logFx(game,'fusion','Stufe 2');logEvent(game,'Ein Geist wird als Stufe-2-Fusionsmaterial bereitgestellt.');}
-   }else if(s.ghostSlots[i]?.kind==='card'&&game.players[0].hand.length<9){
-    game.players[0].hand.push(s.ghostSlots[i].card);s.ghostSlots[i]=null;syncSwarm(game);
+   }else if(s.ghostSlots[i]?.kind==='card'){
+    const c=s.ghostSlots[i].card,p=game.players[0];
+    if(c.fusion){
+     const empty=p.field.findIndex(x=>!x);
+     if(empty<0)toast('Für die Rückkehr der Fusion ist ein normales Kampffeld nötig.');
+     else{p.field[empty]=c;s.ghostSlots[i]=null;c.switched=true;syncSwarm(game);}
+    }else if(p.hand.length<9){p.hand.push(c);s.ghostSlots[i]=null;syncSwarm(game);}
+    else toast('Deine Hand ist voll.');
    }
   }
   render();saveDuelSnapshot();
  },true);
  window.ArcaneLv1Swarm=Object.freeze({version:'4.5.0',ids:IDS,enabled,state,counts,isLv1,isReal,
-  resolveChoice,claimOffer,ghostAttack,offer,exitCard,spirits,syncSwarm,stationable});
+  resolveChoice,claimOffer,ghostAttack,station,offer,exitCard,spirits,syncSwarm,stationable});
 })();
