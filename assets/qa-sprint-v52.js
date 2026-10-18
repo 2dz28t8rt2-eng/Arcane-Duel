@@ -105,7 +105,7 @@
     if(game&&selected.essenceCombat?.lastSoulAction===game.turn&&old!==game.turn)
       selected.arcaneDecaySkipTurn=game.turn;
    });
-  }); 
+  },true); 
  }
  const previousEnd=advanceTurn;
  advanceTurn=function(g,...args){
