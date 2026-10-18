@@ -58,5 +58,5 @@ test('Approved detailed Lv1 fusion art is embedded as valid high resolution loca
   assert.ok(bytes.length>120000);
  }
  const r=boot().run('Object.fromEntries(Object.entries(ArcaneLv1Swarm.ids).map(([k,id])=>[k,CARDS[id].art]))');
- assert.ok(Object.entries(r).every(([k,art])=>art.endsWith('-illustration.webp')));
+ assert.ok(Object.entries(r).every(([k,art])=>k==='ace'?art.endsWith('lumira-angel-v49.webp'):art.endsWith('-illustration.webp')));
 });
