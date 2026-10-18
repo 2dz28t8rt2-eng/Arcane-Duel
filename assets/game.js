@@ -874,23 +874,6 @@ function validateLegacyProfile(raw){if(raw?.version===1)return migrateLegacy(raw
 }
 function markStorageConflict(){storageConflict=true;storageWarning='Ein anderer Tab hat den Spielstand geändert. Speichern und neue Kämpfe sind angehalten. Exportiere bei Bedarf diesen Stand und lade die Seite neu.';}
 function loadProfile(){try{lastStoredProfile=window.localStorage.getItem(SAVE_KEY);if(lastStoredProfile){const raw=JSON.parse(lastStoredProfile);if(raw.evolution&&raw.activeDuel){window.__arcaneEvolutionPendingSave=raw.activeDuel;raw.activeDuel=null;}const loaded=validateProfile(raw);if(raw.evolution)loaded.evolution=raw.evolution;return loaded;}return freshProfile();}catch(e){storageWritable=false;storageWarning='Spielstand konnte nicht geladen werden. Bestehende Daten bleiben erhalten. Exportiere deinen Fortschritt oder importiere eine gültige Sicherung.';return freshProfile();}}
-/* Lv1 saga cards must exist BEFORE loadProfile validates saved inventory IDs.
-   Stable appended IDs keep older saves intact; live ability logic loads later. */
-const LV1_SAGA_CARD_BLUEPRINTS=[
- {key:'hive',name:'Nekro-Hive · Herr der verlorenen Funken',level:3,atk:130,def:610,role:'guardian',art:'assets/custom-art/lv1-necro-hive.svg',desc:'Geisterslots, Reinkarnation, doppelte Floating-Echos und Geisterheilung.'},
- {key:'protector',name:'Violettwacht · Schutz der Kleinen',level:3,atk:60,def:780,role:'guardian',art:'assets/custom-art/lv1-protector.svg',desc:'Lenkt Angriffe um, verwandelt DEF in Leben, heilt und verteilt Schutzorbs.'},
- {key:'attacker',name:'Schwarmklinge · Vielgestaltiger Jäger',level:3,atk:590,def:170,role:'predator',art:'assets/custom-art/lv1-attacker.svg',desc:'Wachsende ATK, zwei Angriffe und Kopien nach Angriffen.'},
- {key:'ace',name:'Urfunke · Der erste Geist',level:1,atk:111,def:111,role:'combatant',art:'assets/custom-art/lv1-urfunke.svg',desc:'Seelenblitz, Lebensverknüpfung und einmalige Rettung.'}
-];
-for(const d of LV1_SAGA_CARD_BLUEPRINTS){
- const id=CARDS.length,ace=d.key==='ace';
- const c={id,level:d.level,name:d.name,kind:'spirit',element:'DUNKEL',color:'#bf79fa',atk:d.atk,def:d.def,
-  rpg:true,source:-1,rarity:ace?'legendary':'rare',fusionOnly:!ace,ace,role:d.role,retired:false,
-  milestoneOnly:ace,lv1Special:d.key,lv1Exclusive:!ace,desc:d.desc,art:d.art,customArt:d.art};
- CARDS.push(c);UPDATE_B_SET.add(id);
- if(ace){RPG_BASE_CARDS.push(c);UPDATE_B_MAIN_IDS.push(id);}
- else{RPG_FUSIONS.push(c);UPDATE_B_FUSION_IDS=Object.freeze([...UPDATE_B_FUSION_IDS,id]);}
-}
 let profile=loadProfile();
 // A one-time starter gift for existing accounts, added AFTER validating the
 // untouched old profile. Never reset progress or equipment.
