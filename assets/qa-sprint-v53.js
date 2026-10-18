@@ -24,9 +24,9 @@
   if(!inputAllowed())return;
   const g=game,chosen=g.selection,target=self().field[idx];
   if(!g.pending&&chosen?.type==='field'&&chosen.idx===idx){
-   // Repeated inspection must not trigger another card flight. Explicit
-   // ESC and the cancel button handle attack cancellation instead.
-   return oldOwn(idx,choice);
+   // Clicking the selected attacker again explicitly cancels the target.
+   // No combat action, fatigue or animation is consumed.
+   cancelTarget();return;
   }
   // A single click on an occupied field cell while a hand creature is chosen
   // is a hand + field fusion, not a change of inspection focus.
@@ -78,7 +78,7 @@
   const note=roleNotes[role];
   if(!note)return result;
   const special=spec?.roleStyle==='defender'&&role==='guardian'?
-   'Diese Karte trägt den Stil „Verteidiger“, gehört regeltechnisch aber zu den Wächtern. „Verteidiger“ ist der Oberbegriff für Wächter und Seelenzehrer, keine zusätzliche Kampffähigkeit.':'';
+   'Spezialisierung: Panzerwächter. Die Kampfrolle bleibt WÄCHTER. „Verteidiger“ bezeichnet die übergeordnete DEF-Strategie aus Wächtern und Seelenzehrern, nicht eine dritte Rolle.':'';
   const box=document.createElement('section');
   box.className='ad53-role-help';
   const head=document.createElement('h4');head.textContent=note.title;box.append(head);
