@@ -1,0 +1,68 @@
+{
+  "wave": "role-wave1+2",
+  "enabled": true,
+  "artworks": 15,
+  "format": "WEBP",
+  "imageFiles": [
+    {
+      "path": "assets/role-wave1/ascheklauen-vyrak.webp",
+      "blobSha": "6bcbeef8e056613f884d3135bd9b3f81d2e07fda"
+    },
+    {
+      "path": "assets/role-wave1/dornenschild-varuk.webp",
+      "blobSha": "d7f98cc0550a6b68f1b5f6d6df34fae3349149b7"
+    },
+    {
+      "path": "assets/role-wave1/eisenbastion-gorrath.webp",
+      "blobSha": "27411f732edfd58a82373820e498bb6a87bedb82"
+    },
+    {
+      "path": "assets/role-wave1/elementsynthese-orin.webp",
+      "blobSha": "87b7f32aab50239dd9f8039a4d71998735380ef0"
+    },
+    {
+      "path": "assets/role-wave1/erdwacht-kolgran.webp",
+      "blobSha": "5d16f3866c258b67d5c1a86fd7912f0b25431214"
+    },
+    {
+      "path": "assets/role-wave1/ewige-wacht-lysar.webp",
+      "blobSha": "98603730d46bc7a197c3fa1ce6299d6252c66412"
+    },
+    {
+      "path": "assets/role-wave1/flammenjaeger-rethar.webp",
+      "blobSha": "09ef3bd36ac94f2468c060c34cb30cbc65e32696"
+    },
+    {
+      "path": "assets/role-wave1/leerenpakt-nythor.webp",
+      "blobSha": "768b848d6aabc96a127e09deca49979bc55e4ab7"
+    },
+    {
+      "path": "assets/role-wave1/lichtseher-auralis.webp",
+      "blobSha": "4ce318a89b7a60c4fafb40491500333e0387538c"
+    },
+    {
+      "path": "assets/role-wave1/nekroschlund-zayth.webp",
+      "blobSha": "9b37896a25fa09d56f6c177a7fbcf3d79516bbed"
+    },
+    {
+      "path": "assets/role-wave1/runenwacht-aegis.webp",
+      "blobSha": "9661cb8cc0f2148f6e6bc72add2bdf13dc23e201"
+    },
+    {
+      "path": "assets/role-wave1/schattenklinge-zyrr.webp",
+      "blobSha": "3fcb0024627ec77b295428306154a373c8ef955a"
+    },
+    {
+      "path": "assets/role-wave1/seelenbrut-malgris.webp",
+      "blobSha": "ade76e34af3f5bf2bc3eb19c30b13639f0a5160a"
+    },
+    {
+      "path": "assets/role-wave1/sturmreiter-zephyx.webp",
+      "blobSha": "538f9c0ed23be4516b3cba6288d2af81df11abba"
+    },
+    {
+      "path": "assets/role-wave1/sturmschmied-kael.webp",
+      "blobSha": "56230b106a38b78e7cf857d1061f69889492d490"
+    }
+  ]
+}

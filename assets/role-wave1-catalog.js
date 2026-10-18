@@ -1,4 +1,4 @@
-/* Arcane Duel — ROLE-WAVE 1+2. Artwork files supplied separately as binary WebP.
+/* Arcane Duel — ROLE-WAVE 1+2. All 15 original WebP assets are installed directly in Git.
  * Enabled only once all 15 final artworks have been installed in GitHub.
  * Install before loadProfile() to retain stable persisted card IDs.
  */
@@ -206,8 +206,8 @@
     "customArt": "assets/role-wave1/sturmreiter-zephyx.webp"
   }
 ].map(c=>Object.freeze(c)));
- // Keep disabled until artwork files actually exist on development.
- const ASSETS_COMPLETE=false;
+ // All fifteen WebP originals have been installed and verified on development.
+ const ASSETS_COMPLETE=true;
  let installedIds=[];
  function install(){
   if(!ASSETS_COMPLETE)return {status:'awaiting-artworks',installed:0};
