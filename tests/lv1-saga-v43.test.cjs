@@ -39,3 +39,14 @@ test('Four violet creature artworks and interaction styles exist',()=>{
  const css=fs.readFileSync(path.resolve(__dirname,'../assets/lv1-saga-v43.css'),'utf8');
  assert.match(css,/lv1Glow/);assert.match(css,/lv1Unlock/);
 });
+
+test('Earned unique ACE survives a full fresh-browser reload without corrupting earlier inventory',()=>{
+ const b=boot();
+ const first=b.run("(()=>{profile=freshProfile();profile.lv1Saga.perk=true;profile.lv1Saga.offered=true;profile.lv1Saga.stage=5;addCard(ArcaneLv1Swarm.ids.ace);profile.coins=1234;saveProfile();return {ace:profile.inventory[ArcaneLv1Swarm.ids.ace],coins:profile.coins};})()");
+ assert.equal(first.ace,1);
+ const key='arcane-duel-rpg-profile-v4-reborn';
+ const raw=b.storage.get(key);
+ assert.ok(raw,'saved inventory should exist');
+ const restored=boot({saved:{[key]:raw}}).run("({ace:profile.inventory[ArcaneLv1Swarm.ids.ace],coins:profile.coins,perk:profile.lv1Saga.perk,stage:profile.lv1Saga.stage})");
+ assert.deepEqual(restored,{ace:1,coins:1234,perk:true,stage:5});
+});
