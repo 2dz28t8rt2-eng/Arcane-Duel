@@ -1,4 +1,4 @@
-# Rollenwelle I – zehn neue Monsterillustrationen
+# Rollenwelle I – 15 neue Monsterillustrationen
 
 **Status: VORBEREITET / NOCH NICHT FREIGESCHALTET.**
 
@@ -13,7 +13,7 @@ Die Bilddateien (10 einzelne WebP, 1122 × 1402 px) existieren als separates Art
 5. Der GitHub-Workflow `Install Role Wave 1 Artworks` prüft sämtliche SHA256-Prüfsummen und die WebP-Signaturen, installiert genau die zehn Einzelbilder, entfernt das ZIP aus dem Git-Branch und aktiviert die Karten.
 6. Die Node-/Artwork-Tests und die beiden regulären Workflows prüfen; erst danach nach `main` übernehmen.
 
-Weder die Bildnamen noch den Archivnamen verändern! `ASSETS_COMPLETE` bleibt bis zum erfolgreichen Import bewusst `false`. Der Importworkflow setzt ihn erst nach erfolgreicher Validierung aller zehn Dateien auf `true`.
+Weder die Bildnamen noch den Archivnamen verändern! `ASSETS_COMPLETE` bleibt bis zum erfolgreichen Import bewusst `false`. Der Importworkflow setzt ihn erst nach erfolgreicher Validierung aller 15 Dateien auf `true`.
 
 Die Registrierung in `assets/game.js` ist absichtlich unmittelbar vor `loadProfile()` vorgesehen, um beständige Karten-IDs nicht zu ändern und gespeicherte neue Karten beim Seitenstart zu validieren. Der vorbereitete Code ist momentan ein No-op.
 
@@ -27,3 +27,13 @@ Die Registrierung in `assets/game.js` ist absichtlich unmittelbar vor `loadProfi
 **Rollenkompatibilität:** Verteidiger und Wächter teilen in der bisherigen Engine den mechanischen Tag `guardian`. `roleStyle` unterscheidet beide Spielstile für zukünftige Fähigkeiten; es existiert hier bewusst noch keine ungetestete neue Kernrolle. Allrounder ist `combatant` und verwendet die bestehende Allrounder-Resonanz.
 
 Die Karten werden nach vollständiger Aktivierung als eigenständige normale Karten in den tierabhängigen Boosterpool aufgenommen, ohne neue seltene Sondermonster und ohne Änderungen an vorhandenen Kartennummern.
+
+## Zweite Welle – fünf Ergänzungen
+
+- Ascheklauen Vyrak – Predator · Lv 5 · FEUER · `ascheklauen-vyrak.webp`
+- Erdwacht Kolgran – Verteidiger · Lv 4 · ERDE · `erdwacht-kolgran.webp`
+- Lichtseher Auralis – Wächter · Lv 6 · LICHT · `lichtseher-auralis.webp`
+- Nekroschlund Zayth – Seelenzehrer · Lv 5 · DUNKEL · `nekroschlund-zayth.webp`
+- Sturmreiter Zephyx – Allrounder · Lv 4 · WIND · `sturmreiter-zephyx.webp`
+
+**Wichtig:** Die ZIP-Datei wurde um die fünf Bilder erweitert. Vor dem Upload unbedingt das NEUE Paket mit **15** Bildern verwenden, nicht die ältere ZIP-Datei mit zehn Bildern.
