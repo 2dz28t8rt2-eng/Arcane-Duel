@@ -40,9 +40,9 @@ Branch: development. Hauptversion main bleibt unberührt.
 
 ## 18. Oktober · nachgezogene Spielintegration v4.4
 - Vier freigegebene hochwertige Illustrationen als eigene WebP-Dateien im GitHub-Repository (768 × 1024 Pixel), eingebunden in die Spezialkarten.
-- **Nekroth · König des Seelenschwarms**: Level 3 · 130 ATK / 610 DEF (zusätzlich +100 DEF bei eigener Spezialfusion). Geisterslots, Wiederbelebung, Floating-Verdopplung und 20 LP pro besetztem Geisterslot.
-- **Aegurion · Hüter der Funken**: Level 3 · 60 ATK / 780 DEF (zusätzlich +200 DEF). Umleitung gegnerischer Einzelangriffe, DEF-Lebensbalken auf Lv1-Kreaturen in beiden Positionen, Heilung und Schutzorbs.
-- **Nyxar · Klinge des Schwarms**: Level 3 · 590 ATK / 170 DEF (zusätzlich +120 ATK). Bis zu zwei Angriffe je Zug, wachsende ATK, effektlose Kopien und halbierter Lv1-Angriffszerfall.
+- **Nekroth · König des Seelenschwarms**: Level 1 · 130 ATK / 610 DEF (zusätzlich +100 DEF bei eigener Spezialfusion). Geisterslots, Wiederbelebung, Floating-Verdopplung und 20 LP pro besetztem Geisterslot.
+- **Aegurion · Hüter der Funken**: Level 1 · 60 ATK / 780 DEF (zusätzlich +200 DEF). Umleitung gegnerischer Einzelangriffe, DEF-Lebensbalken auf Lv1-Kreaturen in beiden Positionen, Heilung und Schutzorbs.
+- **Nyxar · Klinge des Schwarms**: Level 1 · 590 ATK / 170 DEF (zusätzlich +120 ATK). Bis zu zwei Angriffe je Zug, wachsende ATK, effektlose Kopien und halbierter Lv1-Angriffszerfall.
 - **Lumira · Der erste Funke**: Level 1 · exakt 111 ATK / 111 DEF. Automatischer Seelenblitz mit 30 % ATK je eigener Runde, Lebensverknüpfung bei LP- und Monster-Schaden, einmaliges Überleben mit 1 DEF.
 - Effektbeschwörungen aus Floating/Swarm dürfen trotz bereits verwendeter normaler Beschwörung unmittelbar zur Feldplatzierung oder Feldfusion verwendet werden. Leere Warteschlangenplätze werden vor dem Verbrauch einer Deckkarte geprüft.
 - Alle fünf Story-Kapitel sind nicht länger nur Duellsiege: Kapitel II verlangt Floating, Kapitel III Swarm, Kapitel IV eine Klassenfusion und Kapitel V die Kombination aller drei Mechaniken in einem Duell.
@@ -53,3 +53,10 @@ Branch: development. Hauptversion main bleibt unberührt.
 
 ### Abnahmehinweise
 Die automatisierten Regressionen sind Voraussetzung, aber keine Garantie für fehlerfreie lange Spielrunden. Event-Balance (insbesondere der Nekroth/Aegurion-Kombination) und die Benutzerführung bei mehreren gleichzeitigen Floating-Auslösungen sollten nach der Abnahme weiterhin durch einen vollständigen manuellen PvE-Durchlauf kontrolliert werden. Das bestehende PvP wird von der Forschung nicht freigeschaltet.
+
+## 18. Oktober · alle vier Spezialkreaturen Level 1
+- Nekroth, Aegurion und Nyxar sind künftig **Level-1-Klassenfusionen** (ihre Fusionskartenart und die nötigen Materialien bleiben erhalten). Lumira war bereits Level 1.
+- Alle vier werden von der Level-1-Schwarmberechnung, Auren, Buffs und dem allgemeinen Lv1-Zerfall erfasst. Die Klassenfusionen sind keine klonbaren Basismonster: Floating und Swarm erzeugen deshalb keine selbstständig vervielfältigbaren Fusionskopien.
+- Alle vier können in erweiterte Geisterslots stationiert werden. Die Auswahl erlaubt, eine normale Level-1-Handkarte zu beschwören oder eine bereits auf dem Feld gespielte Level-1-Fusion dorthin zu verlegen.
+- Die stationierten Spezialfusionen halten ihre Fähigkeiten aufrecht; Aegurion kann auch aus dem Geisterslot Gegnerangriffe auf sich ziehen. Bei Rückkehr einer Fusion muss ein normaler Feldplatz frei sein.
+- Eine scheidende Level-1-Fusion erteilt übrigen Lv1-Kreaturen den Trauerschwarm-Bonus, löst aber selbst keine Floating-Kopie aus. Gesonderte Regressionstests sichern Status, Geisterslots und Schutzmechanik ab.
