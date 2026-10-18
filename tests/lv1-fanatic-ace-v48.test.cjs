@@ -17,8 +17,8 @@ test('all five research decks are different, 40 legal regular cards, and contain
  assert.equal(reports[4].low,0);
  assert.ok(reports[2].power>reports[1].power&&reports[4].power>reports[3].power);
 });
-test('the fanatic must summon Lumira before any other card, in every stage, triggering the specific once-only dialogue',()=>{
- for(let n=1;n<=5;n++){
+test('the fanatic must summon Lumira first in chapters I–IV, triggering one hopeful dialogue',()=>{
+ for(let n=1;n<=4;n++){
   const r=stage(n).run("(()=>{const g=game,p=g.players[1],a=g.lv1FanaticAce;g.active=1;g.turn=2;g.summoned=false;const order=chooseAiAction(g,'offensive'),selected=order.uid===a.uid;const summoned=applyAiAction(g,order);const placed=placePending(g,0);const effect=placed?.card?.lv1FanaticSealed===true;return {type:order.type,selected,summoned:!!summoned,placed:!!placed,played:a.played,pending:a.dialogPending,shown:a.dialogShown,seal:effect};})()");
   assert.deepEqual(r,{type:'normal',selected:true,summoned:true,placed:true,played:true,pending:true,shown:false,seal:true},'chapter '+n);
  }
@@ -44,9 +44,14 @@ test('every Lumira apparition has a distinct hopeful-to-disillusioned response',
  assert.ok(r.every(s=>s[1].length>70&&s[2].length>45));
 });
 
-test('in stage V the opponent actively fuses and plays the corrupted Predator after his forced Lumira',()=>{
- const r=stage(5).run("(()=>{const g=game,p=g.players[1];g.active=1;g.turn=2;let a=chooseAiAction(g);applyAiAction(g,a);placePending(g,0);g.summoned=false;g.turn=4;g.aiPhase='summon';const next=chooseAiAction(g);const began=next.type==='fusion'?applyAiAction(g,next):false;const prepared=g.pending?.card?.id===ArcaneLv1Saga.corruptedId;const summoned=began?placePending(g,1):null;return {ace:g.lv1FanaticAce.played,type:next.type,materials:next.uids?.length||0,began:!!began,prepared,corrupt:!!summoned&&summoned.card.id===ArcaneLv1Saga.corruptedId,dialog:g.lv1FanaticCorruptDialoguePending===true};})()");
- assert.equal(r.ace,true);assert.equal(r.type,'fusion');
- assert.ok(r.materials>=3&&r.materials<=5);
- assert.equal(r.began,true);assert.equal(r.prepared,true);assert.equal(r.corrupt,true);assert.equal(r.dialog,true);
+test('chapter V fuses Lumira directly from the opening hand into the corrupted Predator',()=>{
+ const r=stage(5).run("(()=>{const g=game,p=g.players[1],a=chooseAiAction(g);g.active=1;const action=chooseAiAction(g),ids=action.uids||[],hadLumira=ids.includes(g.lv1FanaticAce.uid),prepared=applyAiAction(g,action),bossPending=g.pending?.card?.id===ArcaneLv1Saga.corruptedId,lost=p.hand.find(c=>c.id===ArcaneLv1Swarm.ids.ace)===undefined,placed=prepared?placePending(g,0):null;return {type:action.type,hadLumira,amount:ids.length,prepared:!!prepared,bossPending,lost,bossField:placed?.card?.id===ArcaneLv1Saga.corruptedId,preDialog:g.lv1FallPreShown===true,postDialog:g.lv1FanaticCorruptDialoguePending===true,handAcePlayed:g.lv1FanaticAce.played===true};})()");
+ assert.equal(r.type,'fusion');
+ assert.equal(r.hadLumira,true);
+ assert.ok(r.amount>=3&&r.amount<=5);
+ assert.equal(r.prepared,true);assert.equal(r.bossPending,true);
+ assert.equal(r.lost,true);assert.equal(r.bossField,true);
+ assert.equal(r.postDialog,true);assert.equal(r.handAcePlayed,true);
+ // The prologue is a user-controlled GUI dialogue, so its state is tested in Chromium.
+ assert.equal(r.preDialog,false);
 });
