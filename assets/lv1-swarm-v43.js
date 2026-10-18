@@ -338,18 +338,34 @@
   return result;
  };
  function station(g,slot,source,index){
-  if(!enabled(g)||g.active!==0||g.winner!==null||g.pending)return false;
+  if(!enabled(g)||g.active!==0||g.winner!==null||g.pending||source!=='field')return false;
   const support=state(g),p=g.players[0];
   if(!Number.isInteger(slot)||slot<0||slot>=support.ghostSlots.length||support.ghostSlots[slot]!==null)return false;
-  if(!Number.isInteger(index)||index<0||!['hand','field'].includes(source))return false;
-  if(source==='hand'&&g.summoned)return false;
-  const cards=source==='hand'?p.hand:p.field,c=cards[index];
-  if(!stationable(c))return false;
-  if(source==='hand'){cards.splice(index,1);g.summoned=true;c.summonedTurn=g.turn;}
-  else{cards[index]=null;g.selection=null;}
+  if(!Number.isInteger(index)||index<0||index>=p.field.length)return false;
+  const c=p.field[index];
+  if(!stationable(c)||c.attacked||c.switched||c.lv1MovedTurn===g.turn)return false;
+  p.field[index]=null;g.selection=null;
+  c.attacked=true;c.switched=true;c.lv1MovedTurn=g.turn;
   support.ghostSlots[slot]={kind:'card',card:c};support.selectedGhostSlot=null;
-  logFx(g,'ghost',CARDS[c.id].name,slot);syncSwarm(g);
-  return true;
+  logFx(g,'ghost',CARDS[c.id].name,slot);syncSwarm(g);return true;
+ }
+ function returnFromGhost(g,slot,fieldIndex){
+  if(!enabled(g)||g.active!==0||g.winner!==null||g.pending)return false;
+  const s=state(g),entry=s.ghostSlots[slot],field=g.players[0].field;
+  if(entry?.kind!=='card'||!Number.isInteger(fieldIndex)||fieldIndex<0||fieldIndex>=5||field[fieldIndex])return false;
+  const c=entry.card;
+  if(c.attacked||c.switched||c.lv1MovedTurn===g.turn)return false;
+  s.ghostSlots[slot]=null;field[fieldIndex]=c;
+  c.attacked=true;c.switched=true;c.lv1MovedTurn=g.turn;
+  s.selectedGhostSlot=null;s.selectedGhostReturn=null;
+  logFx(g,'ghost','Rückkehr',fieldIndex);syncSwarm(g);return true;
+ }
+ function switchGhostPosition(g,slot){
+  if(!enabled(g)||g.active!==0||g.winner!==null||g.pending)return false;
+  const c=state(g).ghostSlots[slot]?.card;
+  if(!c||c.attacked||c.switched||c.lv1MovedTurn===g.turn)return false;
+  c.mode=c.mode==='atk'?'def':'atk';c.switched=true;
+  logFx(g,'buff',c.mode==='atk'?'ANGRIFF':'VERTEIDIGUNG',slot);return true;
  }
  function ghostAttack(g,slot,targetIdx=null){
   if(!enabled(g)||g.active!==0||g.winner!==null||g.pending||g.turn<=1)return false;
@@ -436,15 +452,21 @@
    html+=s.offers.map((o,i)=>'<div class="lv1-offer">'+(o.echo?'◇ Effektlose Kopie':'✦ Echte Kreatur')+' · '+esc(CARDS[o.id].name)+' <button class="btn tiny" data-lv1-offer="'+i+'">Zur Hand / Fusion</button></div>').join('');
    if(s.ghostSlots.length){
     if(Number.isInteger(s.selectedGhostSlot)&&s.ghostSlots[s.selectedGhostSlot]===null){
-     const hand=game.players[0].hand.map((c,i)=>({c,i})).filter(o=>stationable(o.c));
-     const field=game.players[0].field.map((c,i)=>({c,i})).filter(o=>stationable(o.c));
-     html+='<div class="lv1-offer"><b>Geisterslot '+(s.selectedGhostSlot+1)+' besetzen:</b>'+
-      (game.summoned?'':hand.map(o=>'<button class="btn tiny" data-lv1-station="hand" data-index="'+o.i+'">Hand: '+esc(CARDS[o.c.id].name)+'</button>').join(' '))+
+     const field=game.players[0].field.map((c,i)=>({c,i})).filter(o=>stationable(o.c)&&!o.c.attacked&&!o.c.switched&&o.c.lv1MovedTurn!==game.turn);
+     html+='<div class="lv1-offer"><b>Geisterslot '+(s.selectedGhostSlot+1)+' durch Verschieben besetzen:</b>'+
       field.map(o=>'<button class="btn tiny" data-lv1-station="field" data-index="'+o.i+'">Feld: '+esc(CARDS[o.c.id].name)+'</button>').join(' ')+
+      (!field.length?'Kein Monster mit verfügbarer Aktion auf dem Hauptfeld.':'')+
       '<button class="btn tiny" data-lv1-cancel>Abbrechen</button></div>';
     }
     html+='<div class="lv1-ghostslots"><b>Geisterslots</b><div class="lv1-ghostgrid">'+s.ghostSlots.map((x,i)=>
-     '<button class="lv1-ghostslot" data-lv1-ghost="'+i+'">'+(x?.kind==='card'?'◇ '+esc(CARDS[x.card.id].name):x?'✦ Geist → Lv2-Material':'◇ Frei')+'</button>').join('')+'</div><small>Freier Slot: Level-1-Handkarte stationieren. Geist: als neutralen Stufe-2-Fusionskatalysator in die Hand nehmen. Stationierte Karte: zur Hand zurücknehmen.</small></div>';
+     '<button class="lv1-ghostslot" data-lv1-ghost="'+i+'">'+(x?.kind==='card'?'◇ '+esc(CARDS[x.card.id].name)+' · '+esc(x.card.card?.atk)+' / '+esc(x.card.card?.def)+' · '+(x.card.mode==='atk'?'⚔':'⬡'):'◇ Frei')+'</button>').join('')+'</div><small>Zusätzliche Kampffelder: Nur durch Feldverlegung besetzen; das Monster verbraucht seine Aktion. Nekroth opfert bei Wiederbelebung eine besetzte Zone.</small></div>';
+    html+='<div class="lv1-ghost-actions">'+s.ghostSlots.map((v,i)=>v?.kind==='card'?
+     (game.turn>1&&v.card.mode==='atk'&&!v.card.attacked&&v.card.lv1MovedTurn!==game.turn?'<button class="btn tiny" data-lv1-ghost-select="'+i+'">⚔ '+esc(CARDS[v.card.id].name)+' angreifen lassen</button>':'')+
+     (!v.card.switched&&!v.card.attacked&&v.card.lv1MovedTurn!==game.turn?'<button class="btn tiny" data-lv1-ghost-mode="'+i+'">⇄ '+(v.card.mode==='atk'?'DEF':'ATK')+'</button>':''):'').join(' ')+'</div>';
+    if(Number.isInteger(s.selectedGhostReturn)){
+     const free=game.players[0].field.map((c,i)=>c?'':'<button class="btn tiny" data-lv1-ghost-return-target="'+i+'">Feld '+(i+1)+'</button>').join(' ');
+     html+='<div class="lv1-offer">Rückverlegung auf Hauptfeld: '+free+' <button class="btn tiny" data-lv1-cancel>Abbrechen</button></div>';
+    }
     if(game.active===0&&game.turn>1){
       html+='<div class="lv1-ghost-actions">'+s.ghostSlots.map((v,i)=>v?.kind==='card'&&v.card.mode==='atk'&&!v.card.attacked?
        '<button class="btn tiny" data-lv1-ghost-select="'+i+'">⚔ '+esc(CARDS[v.card.id].name)+' angreifen lassen</button>':'').join(' ')+'</div>';
@@ -492,11 +514,15 @@
   }
  };
  $('summonStage')?.addEventListener('click',event=>{
-  const b=event.target.closest('[data-lv1-choice],[data-lv1-offer],[data-lv1-ghost],[data-lv1-lock],[data-lv1-ghost-select],[data-lv1-ghost-target],[data-lv1-station],[data-lv1-cancel]');
+  const b=event.target.closest('[data-lv1-choice],[data-lv1-offer],[data-lv1-ghost],[data-lv1-lock],[data-lv1-ghost-select],[data-lv1-ghost-target],[data-lv1-ghost-mode],[data-lv1-ghost-return-target],[data-lv1-station],[data-lv1-cancel]');
   if(!b||!game||game.active!==0||game.winner!==null)return;
   event.preventDefault();event.stopImmediatePropagation();
   if(b.dataset.lv1Cancel!==undefined){
-   state(game).selectedGhostSlot=null;
+   state(game).selectedGhostSlot=null;state(game).selectedGhostReturn=null;
+  }else if(b.dataset.lv1GhostReturnTarget!==undefined){
+   if(!returnFromGhost(game,state(game).selectedGhostReturn,Number(b.dataset.lv1GhostReturnTarget)))toast('Die Rückverlegung ist jetzt nicht möglich.');
+  }else if(b.dataset.lv1GhostMode!==undefined){
+   if(!switchGhostPosition(game,Number(b.dataset.lv1GhostMode)))toast('Positionswechsel nicht verfügbar.');
   }else if(b.dataset.lv1Station!==undefined){
    if(!station(game,state(game).selectedGhostSlot,b.dataset.lv1Station,Number(b.dataset.index)))toast('Der Geisterslot kann diese Kreatur derzeit nicht aufnehmen.');
   }else if(b.dataset.lv1GhostSelect!==undefined){
@@ -522,17 +548,13 @@
     const id=RPG_BASE_CARDS.find(c=>c.level===2&&c.role==='combatant'&&!c.fusionOnly&&!c.ace)?.id;
     if(id!==undefined){const catalyst=newInstance(game,id,0);catalyst.lv1Ghost=true;catalyst.lv1Effectless=true;catalyst.card.atk=0;catalyst.card.def=1;game.players[0].hand.push(catalyst);s.ghostSlots[i]=null;logFx(game,'fusion','Stufe 2');logEvent(game,'Ein Geist wird als Stufe-2-Fusionsmaterial bereitgestellt.');}
    }else if(s.ghostSlots[i]?.kind==='card'){
-    const c=s.ghostSlots[i].card,p=game.players[0];
-    if(c.fusion){
-     const empty=p.field.findIndex(x=>!x);
-     if(empty<0)toast('Für die Rückkehr der Fusion ist ein normales Kampffeld nötig.');
-     else{p.field[empty]=c;s.ghostSlots[i]=null;c.switched=true;syncSwarm(game);}
-    }else if(p.hand.length<9){p.hand.push(c);s.ghostSlots[i]=null;syncSwarm(game);}
-    else toast('Deine Hand ist voll.');
+    const c=s.ghostSlots[i].card;
+    if(c.attacked||c.switched||c.lv1MovedTurn===game.turn)toast('Dieses Monster hat seine Aktion bereits verbraucht.');
+    else{s.selectedGhostReturn=i;s.selectedGhostSlot=null;}
    }
   }
   render();saveDuelSnapshot();
  },true);
  window.ArcaneLv1Swarm=Object.freeze({version:'4.5.0',ids:IDS,enabled,state,counts,isLv1,isReal,
-  resolveChoice,claimOffer,ghostAttack,station,offer,exitCard,spirits,syncSwarm,stationable,specialFusionLegal});
+  resolveChoice,claimOffer,ghostAttack,station,returnFromGhost,switchGhostPosition,offer,exitCard,spirits,syncSwarm,stationable,specialFusionLegal});
 })();
