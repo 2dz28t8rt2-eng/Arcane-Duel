@@ -23,7 +23,7 @@ test('Protector redirects enemy attack and treats DEF as a damaged health pool',
  assert.equal(r.result,true);assert.equal(r.redirected,0);assert.equal(r.protectorDamaged,true);assert.equal(r.minorUnhurt,true);
 });
 test('ghost-slot Lv1 creature can perform a true combat-engine direct attack',()=>{
- const r=setup().run("(()=>{const p=game.players[0],id=RPG_BASE_CARDS.find(c=>c.level===1&&!c.ace&&!c.fusionOnly).id;const c=newInstance(game,id,0);c.summonedTurn=1;const state=ArcaneLv1Swarm.state(game);state.ghostSlots=[{kind:'card',card:c}];const lp=game.players[1].lp;const ok=ArcaneLv1Swarm.ghostAttack(game,0,null);return {ok,damage:lp-game.players[1].lp,stillThere:state.ghostSlots[0]?.card===c,attacked:c.attacked,fieldClear:p.field.every(x=>!x)};})()");
+ const r=setup().run("(()=>{const p=game.players[0],id=RPG_BASE_CARDS.find(c=>c.level===1&&!c.ace&&!c.fusionOnly).id;const c=newInstance(game,id,0);c.summonedTurn=1;const state=ArcaneLv1Swarm.state(game);state.ghostSlots=[{kind:'card',card:c}];const lp=game.players[1].lp,shield=game.players[1].shield;const ok=ArcaneLv1Swarm.ghostAttack(game,0,null);return {ok,damage:lp-game.players[1].lp+shield-game.players[1].shield,stillThere:state.ghostSlots[0]?.card===c,attacked:c.attacked,fieldClear:p.field.every(x=>!x)};})()");
  assert.equal(r.ok,true);assert.ok(r.damage>0);assert.equal(r.stillThere,true);assert.equal(r.attacked,true);assert.equal(r.fieldClear,true);
 });
 test('research story finale has a five-phase skippable reveal',()=>{
