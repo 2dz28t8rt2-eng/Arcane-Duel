@@ -878,7 +878,9 @@ function loadProfile(){try{lastStoredProfile=window.localStorage.getItem(SAVE_KE
  // Validate a conservative projection now; restore the original selected IDs
  // once the Lv1 module has registered them after all old catalog audits.
  let forValidation=raw;
- if(raw.lv1Saga&&typeof raw.lv1Saga==='object'){
+ if(raw.lv1Saga&&typeof raw.lv1Saga==='object'&&(
+  Object.keys(raw.inventory||{}).some(id=>Number(id)>=CARDS.length)||
+  raw.activeDuel?.lv1Saga||raw.unlocked?.some(id=>id>=CARDS.length)||raw.fusionOwned?.some(id=>id>=CARDS.length))){
   window.__arcaneLv1SavedProfile=untouchedLv1;
   forValidation=JSON.parse(JSON.stringify(raw));
   const legal=id=>Number.isInteger(id)&&id>=0&&id<CARDS.length;
