@@ -27,7 +27,26 @@
  const oldFresh=freshProfile,oldValidate=validateProfile;
  freshProfile=function(){const p=oldFresh();p.lv1Saga=clean();return p;};
  validateProfile=function(raw){const p=oldValidate(raw);p.lv1Saga=clean(raw?.lv1Saga);return p;};
- profile.lv1Saga=clean(saved||profile.lv1Saga);
+ // Reconcile historical pre-validation snapshots with the latest persisted
+ // and in-memory quest progress. A stale pre-validation snapshot must NEVER
+ // roll back a legitimately completed chapter after reloading the page.
+ const persistedSaga=(()=>{try{return JSON.parse(localStorage.getItem(SAVE_KEY)||'null')?.lv1Saga||null;}catch{return null;}})();
+ const mergeProgress=(...versions)=>{
+  const items=versions.filter(Boolean).map(clean);
+  const result=clean(items.sort((a,b)=>b.stage-a.stage)[0]);
+  for(const version of items){
+   result.stage=Math.max(result.stage,version.stage);
+   result.met||=version.met;result.offered||=version.offered;
+   result.perk||=version.perk;result.aceGranted||=version.aceGranted;
+   result.finalRewards||=version.finalRewards;
+   result.invitationSeen||=version.invitationSeen;
+   result.lumiraDeaths=Math.max(result.lumiraDeaths,version.lumiraDeaths);
+   result.story=[...new Set([...result.story,...version.story])].sort((a,b)=>a-b);
+  }
+  if(result.stage>0){result.met=true;result.offered=true;}
+  return result;
+ };
+ profile.lv1Saga=mergeProgress(profile.lv1Saga,saved,persistedSaga);
  if(saved&&!window.__arcaneLv1SavedProfile)saveProfile();
  // The early engine validates a conservative view of cards it has not registered.
  // Rehydrate ONLY the approved Lv1 IDs after all extensions and validations exist.
