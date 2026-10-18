@@ -315,10 +315,14 @@
    if(p.field[ai]===a){a.attacked=true;a.card.atk=Math.max(0,a.card.atk-30);}
    result={damage:hit,damaged:null,destroyed:dead?['0:'+di]:[],ai,di};
    if(dead&&keyOf(target)==='ace'&&!target.lv1AceSaved){target.lv1AceSaved=true;target.card.def=1;enemy.graveyard.pop();enemy.field[di]=target;result.destroyed=[];logFx(g,'revive','ace',di);}
-   if(dead&&keyOf(target)==='hive'){const s=state(g),j=s.ghostSlots.findIndex(x=>x);if(j>=0){
-    const sacrifice=s.ghostSlots[j];if(sacrifice?.kind==='card')enemy.graveyard.push(sacrifice.card);
-    s.ghostSlots[j]=null;target.card={...target.card,atk:target.lv1Full?.atk||CARDS[target.id].atk,def:target.lv1Full?.def||CARDS[target.id].def};
-    enemy.graveyard.pop();enemy.field[di]=target;result.destroyed=[];logFx(g,'revive','hive',di);
+   if(dead&&keyOf(target)==='hive'){const s=state(g),j=s.ghostSlots.findIndex(x=>x?.kind==='card'&&x.card&&x.card!==target);if(j>=0){
+    const sacrifice=s.ghostSlots[j];
+    s.ghostSlots[j]=null;
+    const graveIndex=enemy.graveyard.indexOf(target);
+    if(graveIndex>=0)enemy.graveyard.splice(graveIndex,1);
+    enemy.graveyard.push(sacrifice.card);
+    target.card={...target.card,atk:target.lv1Full?.atk||CARDS[target.id].atk,def:target.lv1Full?.def||CARDS[target.id].def};
+    enemy.field[di]=target;result.destroyed=[];logFx(g,'revive','hive',di);
    }}
    if(target.card.def>0)logFx(g,'hit',hit,di);
   }else result=previousAttack(g,ai,di);
