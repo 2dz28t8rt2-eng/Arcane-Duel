@@ -27,6 +27,10 @@ test('full runtime artwork inventory and asset coverage report (not all missing 
   biggestSharedArt:duplicates.slice(0,16),
   affectedExamples:generated.slice(0,35).map(c=>({id:c.id,name:c.name,level:c.level}))};
  console.log('ARTWORK_FULL_AUDIT_START',JSON.stringify(report),'ARTWORK_FULL_AUDIT_END');
+ assert.equal(generated.length,0,
+  'Active cards must not display procedural SVG placeholders: '+JSON.stringify(generated.slice(0,15).map(c=>({id:c.id,name:c.name}))));
+ assert.equal(duplicates.filter(x=>x.families>1).length,0,
+  'Artwork must not be reused across unrelated creature families');
  assert.equal(missing.length,0,'Some mapped artwork files are absent/empty');
  assert.equal(rows.length,new Set(rows.map(c=>c.id)).size,'Duplicate card IDs');
 });
