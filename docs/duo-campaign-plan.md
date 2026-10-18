@@ -11,8 +11,8 @@
 - Spielerposition 2: eingeladener Partner (Mensch), Team 0
 - Spielerposition 3: Gegner B (KI), Team 1
 - Reihenfolge: **Du → Gegner A → Partner → Gegner B → Du ...**.
-- Beide Menschen besitzen **unabhängige 40-Karten-Decks, Handkarten und fünf Monsterplätze**. Vier getrennte Felder sind in der Vorschau sichtbar.
-- Beide Verbündeten teilen **12.000 Team-LP**, Gegner A und B teilen 12.000 Team-LP. Das ist **ein testbarer Ausgangswert**, kein endgültiger Balancing-Beschluss.
+- Beide Menschen besitzen **unabhängige 40-Karten-Decks, Handkarten und sieben Monsterplätze**. Vier getrennte Felder sind in der Vorschau sichtbar.
+- Beide Verbündeten teilen **16.000 Team-LP**, Gegner A und B teilen 16.000 Team-LP. Das ist der festgelegte 2v2-Startwert, doppelt so viel wie die normalen 8.000 LP im Einzelduell.
 - Endzug-Aktionen sind sitzplatzgebunden; gegnerische KI-Züge benutzen denselben regelvalidierten Aktionspfad.
 - Prototyp: zunächst normales Beschwören, begrenzte Angriffe und vereinfachter Schaden, **noch keine echten 1v1-Fusionen, Resonanz, aktive Spezialfähigkeiten oder Inventarsynchronisation**.
 
