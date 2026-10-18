@@ -317,10 +317,16 @@
    html+=s.offers.map((o,i)=>'<div class="lv1-offer">'+(o.echo?'◇ Effektlose Kopie':'✦ Echte Kreatur')+' · '+esc(CARDS[o.id].name)+' <button class="btn tiny" data-lv1-offer="'+i+'">Zur Hand / Fusion</button></div>').join('');
    if(s.ghostSlots.length){
     html+='<div class="lv1-ghostslots"><b>Geisterslots</b><div class="lv1-ghostgrid">'+s.ghostSlots.map((x,i)=>
-     '<button class="lv1-ghostslot" data-lv1-ghost="'+i+'">'+(x?.kind==='card'?'◇ '+esc(CARDS[x.card.id].name):x?'✦ Geist':'◇ Frei')+'</button>').join('')+'</div><small>Freien Slot antippen: echte Lv1-Handkarte dort stationieren. Belegte Karten antippen: zurück auf die Hand. Andere Geister werden beim Beschwören und Sterben erzeugt.</small></div>';
+     '<button class="lv1-ghostslot" data-lv1-ghost="'+i+'">'+(x?.kind==='card'?'◇ '+esc(CARDS[x.card.id].name):x?'✦ Geist → Lv2-Material':'◇ Frei')+'</button>').join('')+'</div><small>Freier Slot: Level-1-Handkarte stationieren. Geist: als neutralen Stufe-2-Fusionskatalysator in die Hand nehmen. Stationierte Karte: zur Hand zurücknehmen.</small></div>';
    }
    html+='</section>';
    host.insertAdjacentHTML('beforeend',html);
+  }
+  const fx=s.events.splice(0).slice(-5),arena=$('ownRow');
+  if(arena&&fx.length){arena.style.position='relative';
+   const words={echo:'◇ ECHO',draw:'✦ SEELENWANDERUNG',mourning:'✦ TRAUERSCHWARM',swarm:'✦ SCHWARM',ghost:'✦ GEIST GEBUNDEN',slot:'✧ GEISTZONE',heal:'✦ HEILUNG',shield:'◈ SCHUTZORB',drain:'✦ LEBENSVERKNÜPFUNG',buff:'✦ MACHTZUWACHS',revive:'✦ WIEDERGEBURT',slash:'⚔ DOPPELSCHLAG',fusion:'✧ FUSION'};
+   for(const event of fx){const tag=document.createElement('span');tag.className='lv1-arcanefx';tag.textContent=(words[event.type]||'✦ ARKANER EFFEKT')+(typeof event.value==='number'?' +'+event.value:'');arena.append(tag);setTimeout(()=>tag.remove(),1500);}
+   const orb=document.createElement('span');orb.className='lv1-trail';arena.append(orb);setTimeout(()=>orb.remove(),1100);
   }
   for(const [row,key] of [['ownRow','mine']]){
    $(row)?.querySelectorAll('[data-'+key+']').forEach(node=>{
@@ -348,6 +354,9 @@
     const p=game.players[0],c=p.hand.find(isReal);
     if(c){p.hand.splice(p.hand.indexOf(c),1);s.ghostSlots[i]={kind:'card',card:c};logFx(game,'ghost',i);logEvent(game,'Level-1-Monster in Geisterslot '+(i+1)+' stationiert.');syncSwarm(game);}
     else toast('Für diesen Geisterslot wird eine echte Level-1-Handkarte benötigt.');
+   }else if(s.ghostSlots[i]?.kind==='ghost'&&game.players[0].hand.length<9){
+    const id=RPG_BASE_CARDS.find(c=>c.level===2&&c.role==='combatant'&&!c.fusionOnly&&!c.ace)?.id;
+    if(id!==undefined){const catalyst=newInstance(game,id,0);catalyst.lv1Ghost=true;catalyst.lv1Effectless=true;catalyst.card.atk=0;catalyst.card.def=1;game.players[0].hand.push(catalyst);s.ghostSlots[i]=null;logFx(game,'fusion','Stufe 2');logEvent(game,'Ein Geist wird als Stufe-2-Fusionsmaterial bereitgestellt.');}
    }else if(s.ghostSlots[i]?.kind==='card'&&game.players[0].hand.length<9){
     game.players[0].hand.push(s.ghostSlots[i].card);s.ghostSlots[i]=null;syncSwarm(game);
    }
