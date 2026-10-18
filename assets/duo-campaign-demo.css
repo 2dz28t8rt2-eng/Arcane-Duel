@@ -24,9 +24,11 @@ button.primary{background:linear-gradient(#826d3b,#4e3b2d)}
 .turn-seat.enemy{border-color:#70485b}.four-seats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .seat{background:#0c1728;padding:13px;border:1px solid #5c71836b;border-radius:10px;min-width:0}
 .seat.active{box-shadow:0 0 0 2px #e7ca8088}.seat h3{font:700 15px system-ui;margin:0 0 4px}
-.seat small{color:#bac3db}.field{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin-top:10px}
+.seat small{color:#bac3db}.field{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-top:10px}
 .field-cell{min-width:0;height:65px;border-radius:5px;border:1px dashed #6b6c8c;color:#dfd3ba;display:flex;align-items:center;justify-content:center;font-size:11px;text-align:center;padding:3px}
 .field-cell.filled{border-style:solid;border-color:#b9934c;background:linear-gradient(#342d3a,#2e2927)}.action-dock{padding:13px 0;border-top:1px solid #78634c}
 .duo-log{border-top:1px solid #65544a}.duo-log ol{max-height:150px;overflow:auto;color:#c6c5d1;padding-left:25px;font-size:12px}
 @media(max-width:830px){.duo-layout{grid-template-columns:1fr}.duo-header{align-items:start;flex-direction:column}}
 @media(max-width:530px){.four-seats{grid-template-columns:1fr}.turn-track{grid-template-columns:repeat(2,1fr)}.duo-wrap{padding:14px}}
+
+[hidden]{display:none!important}#duoInvite{width:100%;font-size:12px}.field-cell{height:65px;font-size:10px;overflow-wrap:anywhere}.duo-panel button:focus-visible{outline:2px solid #ffe9a0;outline-offset:3px}
