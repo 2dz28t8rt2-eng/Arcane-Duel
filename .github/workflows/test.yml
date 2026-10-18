@@ -241,3 +241,14 @@ jobs:
             sed -n '/<pre id="result"/,/<\/pre>/p' /tmp/arcane-cinematics42-reduced.html | head -125 || true
             exit 1
           fi
+
+          echo "Checking isolated 2v2 turn order and simulated partner join in Chrome..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=9000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-duo-campaign.html >"/tmp/arcane-duo-${size}.html" 2>/tmp/arcane-duo-chrome.log
+            if ! grep -q 'data-duo-browser="pass"' "/tmp/arcane-duo-${size}.html"; then
+              echo "2v2 browser prototype FAILED at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/arcane-duo-${size}.html" | head -65 || true
+              tail -25 /tmp/arcane-duo-chrome.log || true
+              exit 1
+            fi
+          done
