@@ -125,7 +125,7 @@
    for(const k of ['lv1Echo','lv1Effectless','lv1FromOffer','lv1AceSaved']){
     if(from[k]===true)to[k]=true;
    }
-   for(const k of ['lv1SwarmApplied','lv1Mourn','lv1MournUntil','lv1Shield','lv1MaxDef','lv1Attacks','lv1Growth']){
+   for(const k of ['lv1SwarmApplied','lv1Mourn','lv1MournUntil','lv1Shield','lv1MaxDef','lv1Attacks','lv1Growth','lv1LockedUntil']){
     if(Number.isInteger(from[k])&&from[k]>=0&&from[k]<=10000)to[k]=from[k];
    }
    if(from.lv1Full&&Number.isInteger(from.lv1Full.atk)&&Number.isInteger(from.lv1Full.def))
@@ -149,6 +149,7 @@
  };
  const previousFusion=fusedInstance;
  fusedInstance=function(g,material,levels){
+  if(enabled(g)&&g.active===0&&material.some(c=>c.lv1LockedUntil>g.turn))return null;
   const done=previousFusion(g,material,levels);if(!done||!enabled(g)||g.active!==0)return done;
   const t=keyOf(done),special=!!t&&t!=='ace';
   if(special){
@@ -187,6 +188,7 @@
  };
  const previousCan=canAttack;
  canAttack=function(g,c){
+  if(enabled(g)&&g.active===0&&c?.lv1LockedUntil>g.turn)return false;
   if(enabled(g)&&c&&keyOf(c)==='attacker'&&g.active===0)
    return g.winner===null&&!g.pending&&c.mode==='atk'&&g.turn!==1&&(c.lv1Attacks||0)<2;
   return previousCan(g,c);
@@ -319,6 +321,10 @@
     html+='<div class="lv1-ghostslots"><b>Geisterslots</b><div class="lv1-ghostgrid">'+s.ghostSlots.map((x,i)=>
      '<button class="lv1-ghostslot" data-lv1-ghost="'+i+'">'+(x?.kind==='card'?'◇ '+esc(CARDS[x.card.id].name):x?'✦ Geist → Lv2-Material':'◇ Frei')+'</button>').join('')+'</div><small>Freier Slot: Level-1-Handkarte stationieren. Geist: als neutralen Stufe-2-Fusionskatalysator in die Hand nehmen. Stationierte Karte: zur Hand zurücknehmen.</small></div>';
    }
+   if(stageAllowed(game,3)){
+    html+='<div class="lv1-offer"><b>✦ Locken</b> · Angriff aufgeben, um eine effektlose Kopie zu rufen.</div>';
+    html+=game.players[0].field.map((c,i)=>isReal(c)&&c.lv1LockedUntil<=game.turn||isReal(c)&&!c.lv1LockedUntil?'<button class="btn tiny" data-lv1-lock="'+i+'">'+esc(dataOf(c).name)+' locken</button>':'').join(' ');
+   }
    html+='</section>';
    host.insertAdjacentHTML('beforeend',html);
   }
@@ -341,13 +347,18 @@
   }
  };
  $('summonStage')?.addEventListener('click',event=>{
-  const b=event.target.closest('[data-lv1-choice],[data-lv1-offer],[data-lv1-ghost]');
+  const b=event.target.closest('[data-lv1-choice],[data-lv1-offer],[data-lv1-ghost],[data-lv1-lock]');
   if(!b||!game||game.active!==0||game.winner!==null)return;
   event.preventDefault();event.stopImmediatePropagation();
   if(b.dataset.lv1Choice!==undefined){
    if(!resolveChoice(game,Number(b.dataset.lv1Choice),b.dataset.kind))toast('Kein freies Angebot oder kein Level-1-Monster mehr im Deck.');
   }else if(b.dataset.lv1Offer!==undefined){
    if(!claimOffer(game,Number(b.dataset.lv1Offer)))toast('Beschwörungsauswahl voll.');
+  }else if(b.dataset.lv1Lock!==undefined){
+   const c=game.players[0].field[Number(b.dataset.lv1Lock)];
+   if(stageAllowed(game,3)&&isReal(c)&&!c.attacked&&!(c.lv1LockedUntil>game.turn)&&state(game).offers.length<5){
+    c.lv1LockedUntil=game.turn+2;c.attacked=true;c.switched=true;offer(game,c.id,true);logFx(game,'swarm','Locken');
+   }else toast('Locken ist für dieses Monster derzeit nicht verfügbar.');
   }else if(b.dataset.lv1Ghost!==undefined){
    const s=state(game),i=Number(b.dataset.lv1Ghost);
    if(s.ghostSlots[i]===null&&i<s.ghostSlots.length){
