@@ -38,3 +38,12 @@ test('all specialist fusions are genuine Lv1, contribute to Swarm and may occupy
  assert.equal(r.avoidsCopy,true);
  assert.equal(r.aceLv,1);
 });
+
+test('a Level-1 class fusion can be relocated from the ordinary field into a ghost slot',()=>{
+ const r=setup().run("(()=>{const id=ArcaneLv1Swarm.ids.hive,c=newInstance(game,id,0),p=game.players[0],s=ArcaneLv1Swarm.state(game);c.fusion=true;p.field[0]=c;s.ghostSlots=[null];const moved=ArcaneLv1Swarm.station(game,0,'field',0);const canGrow=ArcaneLv1Swarm.counts(game)>0;return {moved,cleared:p.field[0]===null,card:s.ghostSlots[0]?.card?.id,canGrow};})()");
+ assert.deepEqual(r,{moved:true,cleared:true,card:setup().run("ArcaneLv1Swarm.ids.hive"),canGrow:true});
+});
+test('Aegurion still redirects enemy attacks while occupying a ghost slot',()=>{
+ const r=setup().run("(()=>{const ids=ArcaneLv1Swarm.ids,p=game.players[0],e=game.players[1],a=newInstance(game,ids.protector,0),little=newInstance(game,RPG_BASE_CARDS.find(c=>c.level===1&&!c.ace&&!c.fusionOnly).id,0),enemy=newInstance(game,RPG_BASE_CARDS.find(c=>c.level===4&&!c.fusionOnly).id,1),s=ArcaneLv1Swarm.state(game);a.fusion=true;a.card.def=1800;enemy.card.atk=210;enemy.mode='atk';enemy.summonedTurn=1;p.field[1]=little;e.field[0]=enemy;s.ghostSlots=[{kind:'card',card:a}];game.active=1;const before=a.card.def;const result=attack(game,0,1);return {hit:!!result,guardLostDef:a.card.def<before,guardStayed:s.ghostSlots[0]?.card===a,otherStayed:p.field[1]===little};})()");
+ assert.equal(r.hit,true);assert.equal(r.guardLostDef,true);assert.equal(r.guardStayed,true);assert.equal(r.otherStayed,true);
+});
