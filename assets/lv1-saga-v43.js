@@ -66,6 +66,21 @@
   if(forced()||randomInt(g,100)<chance){s.offered=true;saveProfile();return true;}
   return false;
  }
+ const ACE_SCENES=[
+  {mood:'EUPHORIE',text:'Da ist sie! Lumira! Der erste Funke! Meine kostbarste Karte! Gleich wird sie ihre wahre Macht offenbaren. Ich WEISS es!',response:'Violette Flammen umkreisen Lumira. Doch der ersehnte Seelenblitz bleibt aus.'},
+  {mood:'HOFFNUNG',text:'Lumira, ich vertraue dir. Diesmal muss es funktionieren! Ich habe die alten Glyphen entschlüsselt. Bitte ... zeig ihm, was in dir steckt!',response:'Ihr Siegel pulsiert. Ohne den Auserwählten antwortet die Karte nicht.'},
+  {mood:'ZWEIFEL',text:'Wieder du, Lumira? Ich habe ALLES versucht. Warum hört diese Kreatur auf meinen Gegner, aber nicht auf mich?! Na los, enttäusch mich nicht wieder!',response:'Die magische Aura leuchtet, doch ihre Fähigkeiten bleiben versiegelt.'},
+  {mood:'VERZWEIFLUNG',text:'Ich hatte geschworen, nie wieder auf dich zu setzen ... und doch kann ich dich nicht fortwerfen. Hörst du?! TU ENDLICH ETWAS!',response:'Er klammert sich an die Karte, die ihm längst keinen Sieg mehr verspricht.'},
+  {mood:'LETZTE HOFFNUNG',text:'Lumira ... ein letztes Mal. Ich brauche dich nicht! Meine Predatoren werden siegen. Und trotzdem ... wenn du mich jemals erwählen wolltest, DANN JETZT!',response:'Lumiras Licht erlischt. Verzweifelt sucht der Fanatiker nach einer anderen Form von Macht.'}
+ ];
+ const DECK_PROFILES=[
+  null,
+  {name:'Die schwächsten Funken',cap:1,lv1:40,power:.38,lp:2000},
+  {name:'Der unruhige Sammler',cap:2,lv1:32,power:.49,lp:3000},
+  {name:'Der neidische Jäger',cap:4,lv1:14,power:.77,lp:4500},
+  {name:'Die verworfene Lehre',cap:5,lv1:5,power:.73,lp:5200},
+  {name:'Das letzte Aufbäumen',cap:7,lv1:0,power:.93,lp:7000}
+ ];
  const OBJECTIVES=[
   {name:'Einführung',description:'Besiege den Level-1-Fanatiker im 2.000-LP-Duell.',goal:null},
   {name:'Floating',description:'Lass mindestens ein echtes Level-1-Monster das Feld verlassen und löse Floating aus.',goal:'floating'},
@@ -128,6 +143,26 @@
   if(result.length<40)throw Error('Zu wenige zulässige Level-1-Karten für die Herausforderung.');
   return result;
  }
+ function fanaticDeck(stage){
+  const design=DECK_PROFILES[stage];
+  const pool=RPG_BASE_CARDS.filter(c=>c.rpg&&!c.fusionOnly&&!c.ace&&!c.retired&&!c.enemyOnly&&!c.essenceMonster&&c.level<=design.cap);
+  const lv1=pool.filter(c=>c.level===1).sort((a,b)=>a.atk+a.def-b.atk-b.def||a.id-b.id);
+  const hunters=pool.filter(c=>c.level>=2).sort((a,b)=>{
+   const pa=a.role==='predator'?1:0,pb=b.role==='predator'?1:0;
+   return pb-pa||b.atk-a.atk||b.level-a.level||a.id-b.id;
+  });
+  if(stage===1)return forty(1,true,false);
+  const deck=[],count=new Map();
+  const pick=(cards,limit)=>{for(const c of cards){
+   while(deck.length<limit&&(count.get(c.id)||0)<3){deck.push(c.id);count.set(c.id,(count.get(c.id)||0)+1);}
+   if(deck.length>=limit)break;
+  }};
+  pick(stage===2?lv1:[...lv1].reverse(),design.lv1);
+  pick(hunters,40);
+  if(deck.length<40)pick(lv1,40);
+  if(deck.length!==40)throw Error('Fanatiker-Deck unvollständig: Kapitel '+stage);
+  return deck;
+ }
  function fusions(stage){
   const normal=RPG_FUSIONS.filter(c=>c.rpg&&!c.ace&&!c.lv1Exclusive&&!c.retired&&!c.enemyOnly)
    .sort((a,b)=>a.level-b.level||a.atk+a.def-b.atk-b.def);
@@ -143,18 +178,25 @@
  }
  createGame=function(options={}){
   if(!stageWanted)return oldCreate(options);
-  const stage=stageWanted,cap=[0,1,1,2,3,4][stage];
-  const enemy={deck:forty(cap,stage===1,stage>=3),fusionDeck:fusions(stage),enhancements:{},
-    power:[0,.38,.55,.62,.68,.78][stage],flatBonus:0};
+  const stage=stageWanted,design=DECK_PROFILES[stage];
+  const enemy={deck:fanaticDeck(stage),fusionDeck:fusions(stage),enhancements:{},
+    power:design.power,flatBonus:0};
   const playerDeck=stage===1?options.deck:forty(1);
   const g=oldCreate({...options,mode:'pve',opponentId:1,context:'challenge',challenge:null,
    enemy,deck:playerDeck,fusionDeck:stage>=4?loanFusion(stage):options.fusionDeck,
    enhancements:stage===1?options.enhancements:{},flatBonus:stage===1?options.flatBonus:0});
-  g.lv1Saga={stage};g.lv1SagaProgress={floating:0,swarm:0,special:0};g.maxLP=[0,2000,3000,4000,5000,6500][stage];
-  g.players.forEach(p=>{p.lp=g.maxLP;p.shield=0;});
+  g.lv1Saga={stage};g.lv1SagaProgress={floating:0,swarm:0,special:0};g.lv1FanaticDeckName=design.name;
+  g.maxLP=design.lp;g.players.forEach(p=>{p.lp=g.maxLP;p.shield=0;});
   if(stage===1)for(const c of g.players[1].hand)if(c.card){
    c.card.atk=Math.max(0,c.card.atk-30);c.card.def=Math.max(1,c.card.def-30);
   }
+  // A special story signature is guaranteed in hand, but NOT part of the 40-card deck.
+  const foe=g.players[1],returned=foe.hand.pop();
+  if(returned)foe.deck.push(returned.id);
+  const ace=newInstance(g,SW.ids.ace,1);
+  ace.lv1FanaticSealed=true;foe.hand.unshift(ace);
+  g.lv1FanaticAce={uid:ace.uid,dialogPending:false,dialogShown:false,played:false};
+  logEvent(g,'Der Forscher beginnt mit seiner Lumira auf der Hand. Ihr Erwachen bleibt ihm verwehrt.');
   return g;
  };
  const oldFuse=fusedInstance;
