@@ -350,9 +350,12 @@
    if(game?.lv1Saga?.stage===stage&&uiMode==='duel'){
     const oldGo=$('modalGo')?.onclick;
     openModal(modalHtml('VERBOTENE FORSCHUNG · '+stage+'/5',STORIES[stage-1].title,'✦',
-     STORIES[stage-1].dialog,
-     '<p class="lv1-intro-note">Für die späteren Forschungsprüfungen erhältst du ein passendes Leihdeck. Deine Sammlung bleibt unverändert.</p>'+
-     '<p><b>Strategie des Fanatikers:</b> '+escapeHtml(game.lv1FanaticDeckName)+' · Duell-LP: '+game.maxLP.toLocaleString('de-AT')+'</p><p class="lv1-objective"><b>✦ Prüfungsziel:</b> '+escapeHtml(OBJECTIVES[stage-1].description)+'</p>',
+     stage===1?'Ein unbekannter Duellant tritt dir entgegen. Noch weißt du nichts von seiner Forschung. Beweise ihm in einem normalen Duell dein Können.':STORIES[stage-1].dialog,
+     (stage===1?'<p>✧ Kein Forschungsziel – euer erstes Duell beginnt.</p>':
+      '<p class="lv1-intro-note"><b>Dein Leihdeck:</b> Jede Forschungsprüfung stellt dir ein passendes Herausforderungsdeck bereit. Dein eigenes Deck bleibt erhalten.</p>'+
+      '<p><b>Hinweis:</b> '+(stage===2?'Wenn ein echtes Level-1-Monster das Feld verlässt, kann sein Echo fortbestehen. Beobachte die Wechselwirkungen.':stage===3?'Kleine Kreaturen können weitere Funken herbeirufen. Nutze freie Plätze und das neue Echo.':stage===4?'Finde heraus, was geschieht, wenn schwache Geister ihre Kräfte in einer ungewöhnlichen Fusion verbinden.':'Nun greifen die Entdeckungen ineinander. Zeige, dass du sie im selben Duell beherrschst.')+'</p>')+
+     '<p><b>Gegnerstrategie:</b> '+escapeHtml(game.lv1FanaticDeckName)+' · '+game.maxLP.toLocaleString('de-AT')+' LP</p>'+
+     (stage===1?'':'<p class="lv1-objective"><b>Für das nächste Kapitel:</b> '+escapeHtml(OBJECTIVES[stage-1].description)+'</p>'),
      '<button class="btn primary" id="modalGo">DUELL STARTEN</button>'));
     $('modalGo').onclick=oldGo;
    }
