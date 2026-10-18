@@ -1,0 +1,11 @@
+.ad-lumira-field{position:relative;isolation:isolate;animation:adLumiraBreath 2.4s ease-in-out infinite alternate!important;--ad-lumira:#ffca9c}
+.ad-lumira-field::after{content:'✧ ✦ ✧';position:absolute;inset:12% -7% auto;z-index:21;pointer-events:none;text-align:center;letter-spacing:1.8rem;font-size:18px;color:#ffe6c2;text-shadow:0 0 11px #ffa8f3,0 0 23px #ffdc84;animation:adLumiraStars 3.2s ease-in-out infinite}
+@keyframes adLumiraBreath{from{filter:drop-shadow(0 0 6px #ffda95)}to{filter:drop-shadow(0 0 22px #f7b6ff) brightness(1.13)}}
+@keyframes adLumiraStars{0%,100%{opacity:.35;transform:translateY(6px) scale(.96)}50%{opacity:1;transform:translateY(-7px) scale(1.06)}}
+.ad-shield-actions{padding:13px;border:1px solid #a5b7ce99;border-radius:12px;background:#121e30;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.ad-shield-actions strong,.ad-shield-actions p{width:100%;margin:0}.ad-shield-actions strong{color:#d7eafe}.ad-shield-actions p{font-size:12px;color:#b5c8dd;line-height:1.5}
+.ad-shield-actions button{white-space:normal;text-align:center}
+.ad-fate-persistent .ad-fate-close{display:block;position:relative;z-index:32100;margin:20px auto 0;border:1px solid #e3ca84;border-radius:9px;background:#3d305c;color:#ffe3af;padding:12px 30px;cursor:pointer;letter-spacing:.12em;font-weight:800}
+.lv1-first-meeting{margin:15px 0;padding:20px;border:1px solid #ae8ade;border-radius:14px;background:radial-gradient(circle at top left,#63408044,#181729);}
+.lv1-first-meeting p{color:#decaf6;line-height:1.7}.lv1-first-meeting button{margin-top:12px}
+@media(prefers-reduced-motion:reduce){.ad-lumira-field,.ad-lumira-field::after{animation:none!important}}
