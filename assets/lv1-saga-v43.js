@@ -11,7 +11,7 @@
  const clean=x=>({offered:x?.offered===true,stage:Number.isInteger(x?.stage)?Math.min(5,Math.max(0,x.stage)):0,
   perk:x?.perk===true,aceGranted:x?.aceGranted===true,finalRewards:x?.finalRewards===true,
   story:Array.isArray(x?.story)?[...new Set(x.story.filter(n=>Number.isInteger(n)&&n>=1&&n<=5))]:[]});
- const saved=(()=>{try{return JSON.parse(localStorage.getItem(SAVE_KEY)||'null')?.lv1Saga||null;}catch{return null;}})();
+ const saved=(()=>{try{return window.__arcaneLv1SavedProfile?.lv1Saga||JSON.parse(localStorage.getItem(SAVE_KEY)||'null')?.lv1Saga||null;}catch{return null;}})();
  const oldFresh=freshProfile,oldValidate=validateProfile;
  freshProfile=function(){const p=oldFresh();p.lv1Saga=clean();return p;};
  validateProfile=function(raw){const p=oldValidate(raw);p.lv1Saga=clean(raw?.lv1Saga);return p;};
