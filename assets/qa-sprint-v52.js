@@ -51,6 +51,9 @@
     if(other>=0)a={type:'place',idx:other};
    }
   }
+  // Old Chapter-V logic may have raised the scripted fusion intent while
+  // evaluating a candidate. Clear it after protecting Lumira.
+  g.lv1FanaticCorruptIntent=false;
   return a;
  };
  // Extra guard for old/saved pending fusions: chosen Lumira is never consumed.
