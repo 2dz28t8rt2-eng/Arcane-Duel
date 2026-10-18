@@ -37,3 +37,19 @@ Branch: development. Hauptversion main bleibt unberührt.
 3. Protector-Hive-Loop gegen starke Gegner; ACE Selbstheilung gegen Angriff und Verteidigung.
 4. Exklusive Karten und Belohnungswahrscheinlichkeiten verifizieren.
 5. Geisterslots zu vollwertigen interaktiven Kampffeldern ausbauen, falls nach Test gewünscht.
+
+## 18. Oktober · nachgezogene Spielintegration v4.4
+- Vier freigegebene hochwertige Illustrationen als eigene WebP-Dateien im GitHub-Repository (768 × 1024 Pixel), eingebunden in die Spezialkarten.
+- **Nekroth · König des Seelenschwarms**: Level 3 · 130 ATK / 610 DEF (zusätzlich +100 DEF bei eigener Spezialfusion). Geisterslots, Wiederbelebung, Floating-Verdopplung und 20 LP pro besetztem Geisterslot.
+- **Aegurion · Hüter der Funken**: Level 3 · 60 ATK / 780 DEF (zusätzlich +200 DEF). Umleitung gegnerischer Einzelangriffe, DEF-Lebensbalken auf Lv1-Kreaturen in beiden Positionen, Heilung und Schutzorbs.
+- **Nyxar · Klinge des Schwarms**: Level 3 · 590 ATK / 170 DEF (zusätzlich +120 ATK). Bis zu zwei Angriffe je Zug, wachsende ATK, effektlose Kopien und halbierter Lv1-Angriffszerfall.
+- **Lumira · Der erste Funke**: Level 1 · exakt 111 ATK / 111 DEF. Automatischer Seelenblitz mit 30 % ATK je eigener Runde, Lebensverknüpfung bei LP- und Monster-Schaden, einmaliges Überleben mit 1 DEF.
+- Effektbeschwörungen aus Floating/Swarm dürfen trotz bereits verwendeter normaler Beschwörung unmittelbar zur Feldplatzierung oder Feldfusion verwendet werden. Leere Warteschlangenplätze werden vor dem Verbrauch einer Deckkarte geprüft.
+- Alle fünf Story-Kapitel sind nicht länger nur Duellsiege: Kapitel II verlangt Floating, Kapitel III Swarm, Kapitel IV eine Klassenfusion und Kapitel V die Kombination aller drei Mechaniken in einem Duell.
+- Finale in fünf eigens animierten, einzeln weiterklickbaren Szenen mit Artworks, Runen, Perk-Enthüllung, ACE und Boosterresultat.
+- Geisterslots nehmen Level-1-Karten als spielbare Unterstützung auf; sie können von dort angreifen und bei leerem Hauptfeld direkte Angriffe abfangen. Ein besetzter Geisterslot bleibt alternativ Wiederbelebungs-, Heilungs- oder Stufe-2-Materialressource.
+- Violette Effekte für Buffs, Wiederbelebungen, Schild- und Heilungsorbs sowie sichtbare Seelenprojektil-Flugbahn.
+- Neue Tests: research events, Spezialkarten-Artworks, Effektbeschwörungen, Ghost-Slot-Angriffe und Zielumleitung. Bestehende Spielregel-, Strategie- und Browser-Smoke-Tests bleiben erhalten.
+
+### Abnahmehinweise
+Die automatisierten Regressionen sind Voraussetzung, aber keine Garantie für fehlerfreie lange Spielrunden. Event-Balance (insbesondere der Nekroth/Aegurion-Kombination) und die Benutzerführung bei mehreren gleichzeitigen Floating-Auslösungen sollten nach der Abnahme weiterhin durch einen vollständigen manuellen PvE-Durchlauf kontrolliert werden. Das bestehende PvP wird von der Forschung nicht freigeschaltet.
