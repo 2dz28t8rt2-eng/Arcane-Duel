@@ -16,6 +16,37 @@
  freshProfile=function(){const p=oldFresh();p.lv1Saga=clean();return p;};
  validateProfile=function(raw){const p=oldValidate(raw);p.lv1Saga=clean(raw?.lv1Saga);return p;};
  profile.lv1Saga=clean(saved||profile.lv1Saga);
+ // The early engine validates a conservative view of cards it has not registered.
+ // Rehydrate ONLY the approved Lv1 IDs after all extensions and validations exist.
+ const storedFull=window.__arcaneLv1SavedProfile;
+ if(storedFull){
+  const legalNew=new Set(Object.values(SW.ids));
+  const own=id=>Number.isInteger(storedFull.inventory?.[id])&&storedFull.inventory[id]>0&&storedFull.inventory[id]<=999999;
+  for(const id of legalNew)if(own(id)){
+   profile.inventory[id]=storedFull.inventory[id];
+   const k=CARDS[id].fusionOnly?'fusionOwned':'unlocked';
+   if(!profile[k].includes(id))profile[k].push(id);
+   if(storedFull.unseen?.includes(id)&&!profile.unseen.includes(id))profile.unseen.push(id);
+   if(storedFull.favorites?.includes(id)&&!profile.favorites.includes(id))profile.favorites.push(id);
+   const rank=storedFull.enhancements?.[id];
+   if(Number.isInteger(rank)&&rank>=0&&rank<=5)profile.enhancements[id]=rank;
+  }
+  const validMain=deck=>Array.isArray(deck)&&!mainDeckError(deck,profile.unlocked)&&!inventoryError(deck,profile.inventory);
+  const validFusion=deck=>Array.isArray(deck)&&!fusionDeckError(deck)&&!inventoryError(deck,profile.inventory)&&deck.every(id=>profile.fusionOwned.includes(id));
+  if(validMain(storedFull.activeDeck))profile.activeDeck=[...storedFull.activeDeck];
+  if(validFusion(storedFull.fusionDeck))profile.fusionDeck=[...storedFull.fusionDeck];
+  if(Array.isArray(storedFull.slots)&&storedFull.slots.length===3){
+   const restored=storedFull.slots.map(slot=>({
+    name:typeof slot.name==='string'&&slot.name.length<=50?slot.name:'Deck',
+    main:validMain(slot.main)?[...slot.main]:[...profile.activeDeck],
+    fusion:validFusion(slot.fusion)?[...slot.fusion]:[...profile.fusionDeck]
+   }));
+   profile.slots=restored;
+  }
+  if(storedFull.activeDuel){try{profile.activeDuel=validateDuelSnapshot(storedFull.activeDuel);}catch(e){console.warn('Lv1 Duell konnte nicht wiederhergestellt werden:',e.message);}}
+  delete window.__arcaneLv1SavedProfile;
+  saveProfile();
+ }
  const state=()=>profile.lv1Saga||(profile.lv1Saga=clean());
  function eligible(){
   return RPG_BASE_CARDS.filter(c=>c.rpg&&c.level===1&&!c.retired&&!c.enemyOnly&&!c.essenceMonster&&!c.ace&&!c.fusionOnly&&!c.milestoneOnly);
