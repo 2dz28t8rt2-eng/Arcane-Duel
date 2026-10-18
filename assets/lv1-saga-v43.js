@@ -20,7 +20,7 @@
   {title:'Der letzte Funke',dialog:'ICH HABE JAHRE AN DIESE NUTZLOSEN KREATUREN VERSCHWENDET! Du hast meine Forschung gestohlen! Jetzt werde ich dir zeigen, was WAHRE MACHT bedeutet!',after:'Vielleicht war ich niemals derjenige, auf den sie gewartet haben. Nimm diese Karte. Ich werde nicht mehr duellieren. Aber meine Forschung ... die gebe ich nicht auf.'}
  ];
  const clean=x=>({offered:x?.offered===true,stage:Number.isInteger(x?.stage)?Math.min(5,Math.max(0,x.stage)):0,
-  perk:x?.perk===true,aceGranted:x?.aceGranted===true,finalRewards:x?.finalRewards===true,
+  perk:x?.perk===true,aceGranted:x?.aceGranted===true,finalRewards:x?.finalRewards===true,invitationSeen:x?.invitationSeen===true,
   story:Array.isArray(x?.story)?[...new Set(x.story.filter(n=>Number.isInteger(n)&&n>=1&&n<=5))]:[]});
  const saved=(()=>{try{return window.__arcaneLv1SavedProfile?.lv1Saga||window.__arcaneLv1OriginalSaga||JSON.parse(localStorage.getItem(SAVE_KEY)||'null')?.lv1Saga||null;}catch{return null;}})();
  const oldFresh=freshProfile,oldValidate=validateProfile;
