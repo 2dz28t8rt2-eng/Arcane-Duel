@@ -29,3 +29,21 @@
 @keyframes lv1Trail{0%{opacity:0;transform:scale(.15)}42%{opacity:1}100%{opacity:0;transform:scale(1.6)}}
 @media(max-width:800px){.lv1-saga-road{grid-template-columns:repeat(2,minmax(0,1fr))}.lv1-stage{min-height:100px}.lv1-saga-panel{padding:13px!important}.lv1-dialogue{font-size:.94rem}}
 @media(prefers-reduced-motion:reduce){.lv1-stage,.lv1-ghostslot,.lv1-unlock,.lv1-legendary-glow:after,.lv1-saga-panel:before,.lv1-arcanefx,.lv1-trail{animation:none!important}}
+
+/* V4.4: five-phase Lv1 awakening, reusable spell effects and mobile cinematics */
+.lv1-ritual{position:relative;overflow:hidden;border:2px solid #cc8dff;border-radius:18px;margin:18px 0;padding:18px;background:radial-gradient(circle at 50% 40%,#7430aa70,#110b22 75%);box-shadow:0 0 36px #af53fa88,inset 0 0 45px #a15ada3b}
+.lv1-ritual-runes{position:absolute;inset:4% 0 auto;text-align:center;color:#d1a6ff9f;font-size:2rem;letter-spacing:1em;pointer-events:none;text-shadow:0 0 22px #ad5cff;animation:lv1RitualRings 11s linear infinite}
+@keyframes lv1RitualRings{50%{transform:translateY(14px) scale(1.1);opacity:.5}}
+.lv1-ritual-scene{position:relative;min-height:310px;display:flex;align-items:center;gap:24px;padding:12px}
+.lv1-ritual-animate{animation:lv1RitualEnter .9s cubic-bezier(.16,.8,.2,1) both}
+@keyframes lv1RitualEnter{0%{opacity:0;transform:scale(.83);filter:blur(16px) brightness(2)}50%{filter:brightness(1.7)}100%{opacity:1;transform:scale(1);filter:none}}
+.lv1-ritual-card-art{max-width:37%;width:200px;height:280px;object-fit:cover;border-radius:10px;box-shadow:0 0 20px #d3a0ffb3,0 0 75px #a03fff77;border:2px solid #e8baff;animation:lv1GlowImage 3.2s ease-in-out infinite alternate}
+@keyframes lv1GlowImage{to{box-shadow:0 0 40px #dfb5ff,0 0 95px #bd58ffbb;filter:brightness(1.12)}}
+.lv1-ritual-narration{flex:1;text-shadow:0 0 12px #ad54ff5d;color:#f6ebff}
+.lv1-ritual-narration small{letter-spacing:.24em;color:#d5a8ff;font-weight:900}.lv1-ritual-narration h2{font:700 clamp(1.3rem,3vw,2rem) Georgia,serif;color:#eecbff;margin:12px 0;text-shadow:0 0 23px #b866ff}.lv1-ritual-narration p{font:1rem/1.65 Georgia,serif}
+.lv1-ritual-burst{position:absolute;left:15%;top:50%;font-size:3rem;color:#d6adff;z-index:3;pointer-events:none;text-shadow:0 0 22px #c67bff;animation:lv1OrbBurst 1.8s ease-out both}
+@keyframes lv1OrbBurst{0%{transform:translate(-50%,-50%) scale(.1);opacity:0}40%{opacity:1}100%{transform:translate(-50%,-50%) scale(4);opacity:0}}
+.lv1-ritual-progress{text-align:center;font-size:1.1rem;letter-spacing:.7em;color:#ddbbff;padding:10px}.lv1-ritual-buttons{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.lv1-ritual-packs{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;width:100%;margin-top:12px}
+.lv1-ritual-packs span{padding:6px;border:1px solid #9466bb;background:#221833;border-radius:7px;font-size:.65rem;text-align:center}.lv1-ritual-packs .earned{background:#813eae5e;color:#f2d1ff;border-color:#dba1ff;box-shadow:0 0 15px #be65ff80}.lv1-ritual-done{opacity:.8}.lv1-objective{border-left:3px solid #c587ff;padding:9px 12px;background:#9b4abc22;color:#f8eaff}
+@media(max-width:700px){.lv1-ritual-scene{flex-direction:column;text-align:center;gap:10px;min-height:unset}.lv1-ritual-card-art{max-width:75%;height:215px;width:170px}.lv1-ritual-runes{letter-spacing:.3em}.lv1-ritual-narration h2{font-size:1.3rem}}
+@media(prefers-reduced-motion:reduce){.lv1-ritual-runes,.lv1-ritual-card-art,.lv1-ritual-burst,.lv1-ritual-animate{animation:none!important}}
