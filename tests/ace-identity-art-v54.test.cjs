@@ -8,7 +8,7 @@ test('all 10 purchasable ACEs use their named monster signatures, no generic ACE
  assert.equal(r.improvements.length,10);
  for(const c of r.ace){
   assert.equal(c.art,c.baseArt,c.name+' no longer matches original signature');
-  assert.match(c.art,/^assets\\/.*\\.(?:webp|png|jpg)$/i);
+  assert.ok(c.art.startsWith('assets/')&&['.webp','.png','.jpg'].some(ext=>c.art.endsWith(ext)),c.art);
   assert.ok(fs.existsSync(path.join(repo,c.art)),c.art);
  }
  assert.equal(new Set(r.ace.map(x=>x.art)).size,10,'Each ACE signature requires independent imagery');
