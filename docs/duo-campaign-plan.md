@@ -1,3 +1,14 @@
+# Online-Update · 2026-10-18
+
+**Supabase-Projekt:** `cvmtmvruutdneyblumgf` · Edge Function `arcane-duo` (aktiv) · private RLS-Tabelle `public.arcane_duo_rooms` (Migration ausgeführt).
+
+**Online-MVP implementiert:** 1 Einladungslink je Raum (Fragmenttoken), Gast kann einen offenen Sitzplatz belegen, danach serverseitige Zugberechtigung 0 oder 2. Beide Clients poll-en den Spielstand alle 2,5 s. Alle gesendeten Aktionen werden gegen aktive Position und Server-Spielstand geprüft; konkurrierende Aktionen werden mittels Revisionsvergleich zurückgewiesen. Die KI führt eigene Züge serverseitig aus. 7 Zonen je Spieler, 16.000 LP pro Team, vier Sitze in der Reihenfolge Host → KI A → Partner → KI B.
+
+**Grenzen:** Weiterhin vereinfachtes Demo-Kampfsystem mit nur acht Demo-Monstern, ohne echte Einzelspieler-Deckimports/Fusionsregeln; noch kein abgeschlossener, geräteübergreifender Live-E2E-Test. Serverfunktion ist deployed und Browser-GitHub-Dateien sind verbunden; ein Live-CORS-/Invite-Test ist noch nötig. Zugangstoken nur im URL-Fragment; aus Sicherheitsgründen den Link nicht öffentlich teilen. Raum verfällt nach 48 h; Zugriff auf denselben Browser-Tab per `sessionStorage` (neuer Tab erfordert erneute Identifizierung).
+
+**Zu verbessern:** Serverautorisierte echte Deckvalidierung und verteilte private Hände, Wiederaufnahme über Geräte-Login oder sicheres persistentes Tokenmanagement, Benutzeridentitäten, zusätzliche Missbrauchsbegrenzung, Bild/Animationen, 1v1-Fusionskompatibilität, Online-Kampagnenfortschritt.
+
+---
 # Arcane Duel – 2v2-Kampagne: technische Grundlage
 
 **Stand:** lokaler, bewusst isolierter Prototyp auf `development`.
