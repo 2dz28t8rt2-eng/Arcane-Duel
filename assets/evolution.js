@@ -127,7 +127,7 @@ function fusionPattern(levels,elements=[]){const count=new Map();for(const level
  if(groups[0]===5){name='Fünfling';rollBonus=3;levelBonus=2;qualityBonus=.18;}
  else if(groups[0]===4){name='Vierling';rollBonus=2;levelBonus=1;qualityBonus=.13;}
  else if(groups[0]===3&&groups[1]===2){name='Full House';rollBonus=2;levelBonus=2;qualityBonus=.14;}
- else if(chain&&levels.length>=4){name='Große Straße';rollBonus=levels.length===5?3:2;levelBonus=levels.length===5?2:1;qualityBonus=levels.length===5?.26:.22;}
+ else if(chain&&levels.length>=4){name='Große Straße';rollBonus=levels.length===5?4:3;levelBonus=levels.length===5?3:2;qualityBonus=levels.length===5?.36:.30;}
  else if(chain&&levels.length===3){name='Kleine Straße';rollBonus=1;levelBonus=1;qualityBonus=.20;}
  else if(groups[0]===3){name='Drilling';rollBonus=1;levelBonus=1;qualityBonus=.08;}
  else if(groups[0]===2&&groups[1]===2){name='Zwei Paare';rollBonus=1;levelBonus=1;qualityBonus=.12+(hasLevelOnePair ? .05 : 0);}
@@ -167,6 +167,16 @@ function tunedFusionQuality(g,levels,elements=[],materials=[]){
  if(g?.mode==='pve'&&g.active===0&&levels.length>=3&&f.hasCombo)
   f.factor=Math.min(1.48,f.factor+.015*(profile?.upgrades?.fusionPrecision||0));
  if(f.resonancePct)f.factor=Math.min(2.2,f.factor+f.resonancePct/100);
+ // All materials being of one specialist role should be slightly stronger than a
+ // mixed-role fusion. The final role still comes exclusively from those materials.
+ if(g?.mode==='pve'&&materials.length>=2&&materials.length===levels.length){
+  const roleOf=c=>c?.fusion?(c.roleOverride||'resonator'):CARDS[c?.id]?.role;
+  const roles=materials.map(roleOf);
+  if(['predator','guardian','soul'].includes(roles[0])&&roles.every(r=>r===roles[0])){
+   f.factor=Math.min(2.2,f.factor+.05);
+   f.pureRoleBonusPct=5;
+  }
+ }
  if(g?.active===0&&levels.length===5&&levels.every(l=>l===1)&&window.ArcaneLv1Swarm?.enabled?.(g))f.factor=Math.min(2.2,f.factor+.05);
  return f;
 }
