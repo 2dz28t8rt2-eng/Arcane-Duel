@@ -26,7 +26,7 @@ test('Soul energy, cooldown chips and floats present no new gameplay mutations',
  assert.match(js,/ad-soul-field-indicator/);
  assert.match(js,/raidCooldown/);
  assert.match(actions,/e\.raidCooldown\?' · ⌛ '/);
- assert.match(fx,/Wächter \+'/);assert.match(fx,/\+' Seele · Entzug'/);
+ assert.match(fx,/Wächter \+'/);assert.match(fx,/Seele · /);assert.match(fx,/SEELENRAUB/);
  assert.doesNotMatch(js,/\.card\.(?:atk|def)\s*=|randomInt|Math\.random/);
  const index=read('index.html');
  assert.match(index,/assets\/battle-clarity-v41\.css\?v=roles-scale-status-20261017-1/);
