@@ -43,3 +43,10 @@ test('every Lumira apparition has a distinct hopeful-to-disillusioned response',
  assert.equal(new Set(r.map(s=>s[1])).size,5);
  assert.ok(r.every(s=>s[1].length>70&&s[2].length>45));
 });
+
+test('in stage V the opponent actively fuses and plays the corrupted Predator after his forced Lumira',()=>{
+ const r=stage(5).run("(()=>{const g=game,p=g.players[1];g.active=1;g.turn=2;let a=chooseAiAction(g);applyAiAction(g,a);placePending(g,0);g.summoned=false;g.turn=4;g.aiPhase='summon';const next=chooseAiAction(g);const began=next.type==='fusion'?applyAiAction(g,next):false;const prepared=g.pending?.card?.id===ArcaneLv1Saga.corruptedId;const summoned=began?placePending(g,1):null;return {ace:g.lv1FanaticAce.played,type:next.type,materials:next.uids?.length||0,began:!!began,prepared,corrupt:!!summoned&&summoned.card.id===ArcaneLv1Saga.corruptedId,dialog:g.lv1FanaticCorruptDialoguePending===true};})()");
+ assert.equal(r.ace,true);assert.equal(r.type,'fusion');
+ assert.ok(r.materials>=3&&r.materials<=5);
+ assert.equal(r.began,true);assert.equal(r.prepared,true);assert.equal(r.corrupt,true);assert.equal(r.dialog,true);
+});
