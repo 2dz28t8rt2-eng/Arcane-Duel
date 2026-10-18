@@ -1,0 +1,14 @@
+/* Focused QA follow-up: readable quest entry and uninterrupted card inspection. */
+#adQuestEntrance.ad-quest-entrance{
+ display:flex;align-items:center;justify-content:space-between;gap:16px;
+ border:1px solid #b5956299;border-radius:14px;padding:15px 20px;
+ margin:0 0 18px;background:linear-gradient(115deg,#332b37,#152137);
+ box-shadow:inset 0 0 23px #e0b36318,0 5px 22px #080c1b66;
+}
+#adQuestEntrance strong{font:800 16px Georgia,serif;color:#ffe4a4;letter-spacing:.06em}
+#adQuestEntrance p{color:#e1d7c2;line-height:1.5;margin:6px 0 0}
+#adQuestEntrance button{flex-shrink:0}
+@media(max-width:700px){
+ #adQuestEntrance{flex-direction:column;align-items:stretch!important}
+ #adQuestEntrance button{width:100%}
+}
