@@ -24,7 +24,7 @@ test('All Lv1 five-of-a-kind gains 5% quality after perk',()=>{
  assert.ok(Math.abs(r.after-r.before-.05)<.0001);
 });
 test('Five-story research awards unique ACE and does not duplicate final prizes',()=>{
- const r=boot().run("(()=>{profile=freshProfile();profile.lv1Saga.offered=true;profile.lv1Saga.stage=4;startDuel('pve',1,'lv1-saga','easy',5);game.winner=0;const g=game;const one=rewardMatch(g),two=rewardMatch(g);return {completed:profile.lv1Saga.stage,perk:profile.lv1Saga.perk,ace:profile.inventory[ArcaneLv1Swarm.ids.ace],rolls:one.lv1BonusPacks.length,twice:two===null};})()");
+ const r=boot().run("(()=>{profile=freshProfile();profile.lv1Saga.offered=true;profile.lv1Saga.stage=4;startDuel('pve',1,'lv1-saga','easy',5);game.lv1SagaProgress={floating:1,swarm:1,special:1};game.winner=0;const g=game;const one=rewardMatch(g),two=rewardMatch(g);return {completed:profile.lv1Saga.stage,perk:profile.lv1Saga.perk,ace:profile.inventory[ArcaneLv1Swarm.ids.ace],rolls:one.lv1BonusPacks.length,twice:two===null};})()");
  assert.equal(r.completed,5);assert.equal(r.perk,true);assert.equal(r.ace,1);assert.ok(r.rolls>=0&&r.rolls<=10);assert.equal(r.twice,true);
 });
 test('Lv1-only class fusion is a selectable target with signed custom values',()=>{
@@ -49,4 +49,14 @@ test('Earned unique ACE survives a full fresh-browser reload without corrupting 
  assert.ok(raw,'saved inventory should exist');
  const restored=boot({saved:{[key]:raw}}).run("({ace:profile.inventory[ArcaneLv1Swarm.ids.ace],coins:profile.coins,perk:profile.lv1Saga.perk,stage:profile.lv1Saga.stage})");
  assert.deepEqual(restored,{ace:1,coins:1234,perk:true,stage:5});
+});
+
+test('Approved detailed Lv1 fusion art is embedded as valid high resolution local WebP',()=>{
+ for(const [key,name] of Object.entries({hive:'lv1-necro-hive-illustration.webp',protector:'lv1-protector-illustration.webp',attacker:'lv1-attacker-illustration.webp',ace:'lv1-urfunke-illustration.webp'})){
+  const bytes=fs.readFileSync(path.resolve(__dirname,'../assets/custom-art',name));
+  assert.equal(bytes.subarray(0,4).toString('ascii'),'RIFF');assert.equal(bytes.subarray(8,12).toString('ascii'),'WEBP');
+  assert.ok(bytes.length>120000);
+ }
+ const r=boot().run('Object.fromEntries(Object.entries(ArcaneLv1Swarm.ids).map(([k,id])=>[k,CARDS[id].art]))');
+ assert.ok(Object.entries(r).every(([k,art])=>art.endsWith('-illustration.webp')));
 });
