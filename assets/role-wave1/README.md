@@ -4,12 +4,16 @@
 
 Die Bilddateien (10 einzelne WebP, 1122 × 1402 px) existieren als separates Artwork-Installationspaket außerhalb dieses Repositories. Es darf kein generisches Ersatzbild automatisch an deren Stelle treten.
 
-Zum Aktivieren:
-1. Das ZIP `arcane_duel_role_wave1_artworks.zip` entpacken.
-2. Den Inhalt von `assets/role-wave1/` über GitHubs »Add file → Upload files« in exakt diesen Ordner auf **development** hochladen.
-3. Verifizieren, dass **alle zehn** Dateien exakt benannt vorhanden sind.
-4. `const ASSETS_COMPLETE=false` in `assets/role-wave1-catalog.js` auf `true` ändern. Vorher NICHT aktivieren!
-5. Beide CI-Workflows abwarten, Spielstands-/Booster-Tests und Kunstzuordnung kontrollieren; dann auf main.
+## Aktivierung mit einem einzigen ZIP-Upload
+
+1. Das von ChatGPT erhaltene `arcane_duel_role_wave1_artworks.zip` **nicht entpacken**.
+2. GitHub-Branch `development` auswählen.
+3. Zum bestehenden Ordner `assets/role-wave1/` navigieren; `Add file → Upload files`.
+4. Die ZIP-Datei hier hochladen und committen (genauer Pfad: `assets/role-wave1/arcane_duel_role_wave1_artworks.zip`).
+5. Der GitHub-Workflow `Install Role Wave 1 Artworks` prüft sämtliche SHA256-Prüfsummen und die WebP-Signaturen, installiert genau die zehn Einzelbilder, entfernt das ZIP aus dem Git-Branch und aktiviert die Karten.
+6. Die Node-/Artwork-Tests und die beiden regulären Workflows prüfen; erst danach nach `main` übernehmen.
+
+Weder die Bildnamen noch den Archivnamen verändern! `ASSETS_COMPLETE` bleibt bis zum erfolgreichen Import bewusst `false`. Der Importworkflow setzt ihn erst nach erfolgreicher Validierung aller zehn Dateien auf `true`.
 
 Die Registrierung in `assets/game.js` ist absichtlich unmittelbar vor `loadProfile()` vorgesehen, um beständige Karten-IDs nicht zu ändern und gespeicherte neue Karten beim Seitenstart zu validieren. Der vorbereitete Code ist momentan ein No-op.
 
