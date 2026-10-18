@@ -82,12 +82,23 @@
   const node=creatureNode(g,event.owner,event.uid,event.index),color=colors[event.element]||'#d8b5ff';
   if(event.type==='absorb'){
    const paths=event.targets.map(target=>({from:point(orbs?.get(target.uid)||creatureNode(g,1-event.owner,target.uid,target.index)),to:point(node)}));
-   await Promise.all(paths.map(p=>projectile(p.from,p.to,color,'soul')));if(game===g){flash(node,color);if(event.gain>0)roleStatFloat(node,'+'+event.gain+' Seele · Entzug','soul');}
+   await Promise.all(paths.map(p=>projectile(p.from,p.to,event.activeRaid?'#e155ff':color,'soul')));if(game===g){flash(node,event.activeRaid?'#d978ff':color);if(event.gain>0)roleStatFloat(node,'+'+event.gain+' Seele · '+(event.activeRaid?'SEELENRAUB':'Entzug'),'soul');}
   }else if(event.type==='heal'){
    await projectile(point(creatureNode(g,event.owner,event.fromUid,event.fromIndex)),point(node),'#a9e58d','heal');if(game===g){flash(node,'#a9e58d');if(event.amount>0)roleStatFloat(node,'Wächter +'+event.amount+' DEF','guardian');}
   }else if(event.type==='counter'){
+   // Explicitly harmful: the red projectile travels from defender TO attacker LP.
    const banner=document.getElementById(event.owner===0?'enemyBanner':'myBanner');
-   await projectile(point(node),point(banner),'#ffe5a4','counter');if(game===g)flash(banner,'#ffe5a4');
+   const goal=point(banner),origin=point(node);
+   await projectile(origin,goal,'#ff214c','counter');
+   if(game===g){
+    flash(banner,'#ff214c');
+    banner?.classList.add('ad-counter-damage');
+    if(event.amount>0)roleStatFloat(banner,'−'+event.amount+' LP · GEGENSCHLAG','counter-damage');
+    const shock=document.createElement('div');
+    shock.className='ad-counter-impact';shock.setAttribute('aria-hidden','true');
+    if(goal){shock.style.left=goal.x+'px';shock.style.top=goal.y+'px';document.body.append(shock);setTimeout(()=>shock.remove(),940);}
+    setTimeout(()=>banner?.classList.remove('ad-counter-damage'),820);
+   }
   }
  }
  async function playBatch(g,batch){
