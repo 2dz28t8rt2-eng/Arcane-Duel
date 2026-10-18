@@ -29,3 +29,16 @@ test('reward art retains boxed ATK and DEF and hides only duplicate top-of-card 
  assert.match(css,/\.hand-stats\s*\{/);
  assert.match(css,/\.hand-stats \.stat/);
 });
+
+test('Eiman Huel invitation expires after one other PvE duel, whether won lost or surrendered',()=>{
+ for(const [winner,surrendered] of [[0,false],[1,false],[1,true]]){
+  const b=boot({seed:730});
+  const r=b.run("(()=>{profile.showcase.seen=true;profile.showcase.offered=true;profile.showcase.streak=2;const g={mode:'pve',showcase:false,context:'free',winner:"+winner+",surrendered:"+surrendered+"};showcaseTrackDuel(g);return {offered:profile.showcase.offered,streak:profile.showcase.streak};})()");
+  assert.deepEqual(r,{offered:false,streak:0});
+ }
+});
+test('ACE field previews expose element-specific breathing aura without altering ordinary card stats',()=>{
+ const b=boot({seed:720});
+ const r=b.run("(()=>{const ace=CARDS.find(c=>c.ace),id=CARDS.find(c=>c.rpg&&!c.ace&&!c.fusionOnly).id;const g=createGame({mode:'pve',opponentId:1,context:'free'});game=g;const special=cardHtml(newInstance(g,ace.id,0),'mine'),ordinary=cardHtml(newInstance(g,id,0),'mine');return {element:special.includes('data-element=\\\"'),ordinary:ordinary.includes('data-element=\\\"')};})()");
+ assert.deepEqual(r,{element:true,ordinary:false});
+});
