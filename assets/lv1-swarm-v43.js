@@ -1,9 +1,9 @@
 (function arcaneLv1Swarm(){
  'use strict';
  const defs=[
-  {key:'hive',name:'Nekroth · König des Seelenschwarms',level:3,atk:130,def:610,role:'guardian',desc:'Je eigenem Zug +1 Geisterslot (maximal 5); echte Level-1-Monster erzeugen Geister bei Beschwörung und Tod. Doppelte Floating-Todeseffekte. Je belegtem Geisterslot +20 Spieler-LP pro Runde. Stirbt Nekroth, opfert er einen belegten Slot und kehrt mit voller ATK/DEF zurück. Geister können als Stufe-2-Fusionsmaterial dienen.',art:'assets/custom-art/lv1-necro-hive-illustration.webp'},
-  {key:'protector',name:'Aegurion · Hüter der Funken',level:3,atk:60,def:780,role:'guardian',desc:'Alle gegnerischen Einzelangriffe werden auf Aegurion umgeleitet. Für eigene Level-1-Monster gilt DEF als Lebensbalken, auch in Angriffsposition. Heilt je eigener Runde 50 % des fehlenden DEF und verteilt bei voller DEF einen Schutzorb (25 % des aktuellen DEF, maximal 50 %).',art:'assets/custom-art/lv1-protector-illustration.webp'},
-  {key:'attacker',name:'Nyxar · Klinge des Schwarms',level:3,atk:590,def:170,role:'predator',desc:'Erhält jede eigene Runde +20 ATK pro eigenem Level-1-Monster; bis zu zwei Angriffe je Zug. Nach jedem Angriff kann bei freiem Feldplatz eine effektlose Level-1-Kopie bereitgestellt werden. Halbiert die Angriffsabnutzung verbündeter Level-1-Monster.',art:'assets/custom-art/lv1-attacker-illustration.webp'},
+  {key:'hive',name:'Nekroth · König des Seelenschwarms',level:1,atk:130,def:610,role:'guardian',desc:'Je eigenem Zug +1 Geisterslot (maximal 5); echte Level-1-Monster erzeugen Geister bei Beschwörung und Tod. Doppelte Floating-Todeseffekte. Je belegtem Geisterslot +20 Spieler-LP pro Runde. Stirbt Nekroth, opfert er einen belegten Slot und kehrt mit voller ATK/DEF zurück. Geister können als Stufe-2-Fusionsmaterial dienen.',art:'assets/custom-art/lv1-necro-hive-illustration.webp'},
+  {key:'protector',name:'Aegurion · Hüter der Funken',level:1,atk:60,def:780,role:'guardian',desc:'Alle gegnerischen Einzelangriffe werden auf Aegurion umgeleitet. Für eigene Level-1-Monster gilt DEF als Lebensbalken, auch in Angriffsposition. Heilt je eigener Runde 50 % des fehlenden DEF und verteilt bei voller DEF einen Schutzorb (25 % des aktuellen DEF, maximal 50 %).',art:'assets/custom-art/lv1-protector-illustration.webp'},
+  {key:'attacker',name:'Nyxar · Klinge des Schwarms',level:1,atk:590,def:170,role:'predator',desc:'Erhält jede eigene Runde +20 ATK pro eigenem Level-1-Monster; bis zu zwei Angriffe je Zug. Nach jedem Angriff kann bei freiem Feldplatz eine effektlose Level-1-Kopie bereitgestellt werden. Halbiert die Angriffsabnutzung verbündeter Level-1-Monster.',art:'assets/custom-art/lv1-attacker-illustration.webp'},
   {key:'ace',name:'Lumira · Der erste Funke',level:1,atk:111,def:111,role:'combatant',desc:'Exakt 111 ATK und 111 DEF. Fügt je eigener Runde automatisch 30 % seiner ATK als LP-Schaden zu. Verursachter Schaden durch Fähigkeiten und Angriffe heilt Spieler-LP und seine eigene DEF. Überlebt einmalig die Zerstörung mit 1 DEF; verliert DEF auch in Angriffsposition.',art:'assets/custom-art/lv1-urfunke-illustration.webp'}
  ];
  const IDS={};
@@ -26,10 +26,12 @@
  }
  const keyOf=c=>c?.lv1Effectless?'':CARDS[c?.id]?.lv1Special||'';
  const levelOf=c=>c?dataOf(c).level:0;
- const isLv1=c=>!!c&&levelOf(c)===1&&!c.fusion&&!c.fate;
- const isReal=c=>isLv1(c)&&!c.lv1Echo&&!c.lv1Ghost;
+ // Klassenfusionen zählen bei Level-1-Schwarmboni als Level 1, lösen aber selbst keine Basiskarten-Echos aus.
+ const isLv1=c=>!!c&&levelOf(c)===1&&!c.fate&&(!c.fusion||!!CARDS[c.id]?.lv1Exclusive);
+ const isReal=c=>isLv1(c)&&!c.fusion&&!c.lv1Echo&&!c.lv1Ghost&&!CARDS[c.id]?.fusionOnly;
+ const stationable=c=>isLv1(c)&&!c.lv1Ghost&&!c.lv1Echo&&!c.lv1Effectless;
  const enabled=g=>!!g&&g.mode==='pve'&&g.active!==undefined&&(profile?.lv1Saga?.perk===true||g.lv1Saga?.stage>=2);
- const has=g=>enabled(g)&&g.players[0].field.some(c=>keyOf(c)==='hive');
+ const has=g=>enabled(g)&&troops(g).some(c=>keyOf(c)==='hive');
  const maxTurns=5;
  function state(g){
   if(!g.lv1State)g.lv1State={choices:[],offers:[],ghostSlots:[],tick:-1,float:0,swarm:0,events:[]};
@@ -41,12 +43,13 @@
  function owned(g){return g?.players?.[0]?.field?.filter(Boolean)||[];}
  function availableSlots(g){return Math.min(5,Math.max(0,state(g).ghostSlots.length));}
  function spirits(g){return state(g).ghostSlots.filter(x=>x&&(x.kind==='ghost'||x.kind==='card'));}
+ function troops(g){return [...owned(g),...spirits(g).filter(x=>x.kind==='card').map(x=>x.card)];}
  function grantGhost(g){const s=state(g),i=s.ghostSlots.findIndex(x=>x===null);if(i<0)return false;s.ghostSlots[i]={kind:'ghost'};logFx(g,'ghost',i);return true;}
- function counts(g){return owned(g).filter(isLv1).length+spirits(g).filter(x=>x.kind==='card').length;}
+ function counts(g){return troops(g).filter(isLv1).length;}
  function syncSwarm(g){
   if(!stageAllowed(g,3))return;
   const n=counts(g);
-  const list=[...owned(g),...spirits(g).filter(x=>x.kind==='card').map(x=>x.card)].filter(isLv1);
+  const list=troops(g).filter(isLv1);
   for(const c of list){
    const target=Math.max(0,n-1)*10,prev=c.lv1SwarmApplied||0,delta=target-prev;
    if(delta&&c.card){c.card.atk=Math.max(0,c.card.atk+delta);c.card.def=Math.max(1,c.card.def+delta);}
@@ -62,7 +65,7 @@
   const s=current(g);if(s.float>=maxTurns)return;
   s.float++;
   s.choices.push({id:c.id});
-  for(const other of owned(g).filter(x=>x!==c&&isLv1(x))){
+  for(const other of troops(g).filter(x=>x!==c&&isLv1(x))){
    other.lv1Mourn=(other.lv1Mourn||0)+8;
    other.lv1MournUntil=g.turn+3;
    if(other.card){other.card.atk+=8;other.card.def+=8;}
@@ -262,13 +265,14 @@
    if(c&&!g.players[0].field.includes(c))exitCard(g,c);
   }
   if(g.active===0&&a.card){
-   if(owned(g).some(c=>keyOf(c)==='attacker')&&isLv1(a)&&oldAtk>a.card.atk){
+   if(troops(g).some(c=>keyOf(c)==='attacker')&&isLv1(a)&&oldAtk>a.card.atk){
     a.card.atk+=Math.floor((oldAtk-a.card.atk)*.5);
    }
    if(keyOf(a)==='attacker'){
     a.lv1Attacks=(a.lv1Attacks||0)+1;
     if(a.lv1Attacks<2)a.attacked=false;
-    if(owned(g).length<5)offer(g,IDS.ace===a.id?IDS.ace:owned(g).find(isLv1)?.id||CARDS.find(c=>c.level===1&&c.rpg&&!c.ace)?.id,true);
+    if(owned(g).length<5){const pool=RPG_BASE_CARDS.filter(c=>c.level===1&&!c.ace&&!c.fusionOnly&&!c.retired);const source=troops(g).find(isReal)?.id??pool[0]?.id;
+     if(source!==undefined)offer(g,source,true);}
     logFx(g,'slash','',ai);
    }
    if(keyOf(a)==='ace'){
@@ -321,7 +325,7 @@
    }
   }
   if(g.active===0&&g.winner===null){
-   const hive=owned(g).find(c=>keyOf(c)==='hive');
+   const hive=troops(g).find(c=>keyOf(c)==='hive');
    const s=state(g);
    for(const o of s.ghostSlots)if(o?.kind==='card'){o.card.attacked=false;o.card.switched=false;
     if(o.card.card){o.card.card.atk=Math.max(0,o.card.card.atk-21);o.card.card.def=Math.max(1,o.card.card.def-21);}}
@@ -331,7 +335,7 @@
     g.players[0].lp=Math.min(g.maxLP,g.players[0].lp+heal);
     if(heal)logFx(g,'heal',heal);
    }
-   const protector=owned(g).find(c=>keyOf(c)==='protector');
+   const protector=troops(g).find(c=>keyOf(c)==='protector');
    if(protector){
     for(const c of [...owned(g),...spirits(g).filter(x=>x.kind==='card').map(x=>x.card)].filter(isLv1)){
      const max=Math.max(c.lv1MaxDef||0,c.card.def);
@@ -342,13 +346,13 @@
      logFx(g,need>0?'heal':'shield',need>0?Math.ceil(need*.5):c.lv1Shield,g.players[0].field.indexOf(c));
     }
    }
-   const attacker=owned(g).find(c=>keyOf(c)==='attacker');
+   const attacker=troops(g).find(c=>keyOf(c)==='attacker');
    if(attacker){attacker.lv1Growth=(attacker.lv1Growth||0)+Math.min(5,counts(g))*20;
     attacker.card.atk=Math.min(10000,attacker.card.atk+Math.min(5,counts(g))*20);
     logFx(g,'buff',attacker.lv1Growth,g.players[0].field.indexOf(attacker));
    }
-   for(const c of owned(g))if(keyOf(c)==='attacker')c.lv1Attacks=0;
-   const ace=owned(g).find(c=>keyOf(c)==='ace');
+   for(const c of troops(g))if(keyOf(c)==='attacker')c.lv1Attacks=0;
+   const ace=troops(g).find(c=>keyOf(c)==='ace');
    if(ace){const amount=Math.floor(ace.card.atk*.30),real=damagePlayer(g,1,amount);
     ace.card.def=Math.min(111,ace.card.def+real);g.players[0].lp=Math.min(g.maxLP,g.players[0].lp+real);
     logFx(g,'drain',real,g.players[0].field.indexOf(ace));
@@ -439,7 +443,7 @@
   }else if(b.dataset.lv1Ghost!==undefined){
    const s=state(game),i=Number(b.dataset.lv1Ghost);
    if(s.ghostSlots[i]===null&&i<s.ghostSlots.length){
-    const p=game.players[0],c=p.hand.find(isReal);
+    const p=game.players[0],c=p.hand.find(stationable);
     if(c){p.hand.splice(p.hand.indexOf(c),1);s.ghostSlots[i]={kind:'card',card:c};logFx(game,'ghost',i);logEvent(game,'Level-1-Monster in Geisterslot '+(i+1)+' stationiert.');syncSwarm(game);}
     else toast('Für diesen Geisterslot wird eine echte Level-1-Handkarte benötigt.');
    }else if(s.ghostSlots[i]?.kind==='ghost'&&game.players[0].hand.length<9){
@@ -451,6 +455,6 @@
   }
   render();saveDuelSnapshot();
  },true);
- window.ArcaneLv1Swarm=Object.freeze({version:'4.3.0',ids:IDS,enabled,state,counts,isLv1,isReal,
-  resolveChoice,claimOffer,ghostAttack,offer,exitCard,spirits,syncSwarm});
+ window.ArcaneLv1Swarm=Object.freeze({version:'4.5.0',ids:IDS,enabled,state,counts,isLv1,isReal,
+  resolveChoice,claimOffer,ghostAttack,offer,exitCard,spirits,syncSwarm,stationable});
 })();
