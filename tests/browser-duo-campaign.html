@@ -1,0 +1,30 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>2v2 browser QA</title></head><body>
+<pre id="result">Lädt...</pre><iframe id="duo" src="../duo-campaign.html" width="1000" height="900"></iframe>
+<script>
+const frame=document.getElementById('duo');
+frame.addEventListener('load',()=>{
+ const output=document.getElementById('result'),d=frame.contentDocument,notes=[];
+ let good=true;
+ const check=(value,msg)=>{notes.push((value?'OK ':'FAIL ')+msg);if(!value)good=false;output.textContent=notes.join('\n');};
+ try{
+  check(!!d.getElementById('duoChapter').options.length,'Four campaign chapters are loaded');
+  check(!!d.querySelector('.notice')?.textContent.includes('noch kein Online-Multiplayer'),'Offline limitations are visible');
+  d.getElementById('duoCreate').click();
+  check(d.getElementById('duoRoomId').textContent.length>=12,'Secure local code is created');
+  check(!d.getElementById('duoJoin').disabled,'Partner can join simulation');
+  d.getElementById('duoJoin').click();
+  check(d.getElementById('duoTurnName').textContent.includes('Duellant A'),'Host is first');
+  check(d.querySelectorAll('#duoSeats .seat').length===4,'Four distinct boards exist');
+  const end=Array.from(d.querySelectorAll('#duoActions button')).find(x=>x.textContent.includes('Zug beenden'));
+  check(!!end,'Host end-turn control available');
+  end?.click();
+  check(d.getElementById('duoTurnName').textContent.includes('Gegner A'),'AI opponent A is second');
+  const ai=Array.from(d.querySelectorAll('#duoActions button')).find(x=>x.textContent.includes('KI-Zug'));
+  check(!!ai,'AI turn action available');
+  ai?.click();
+  check(d.getElementById('duoTurnName').textContent.includes('Duellant B'),'Invited partner third');
+  check(d.querySelectorAll('#duoSeats .field').length===4,'Every seat retains its own field');
+  document.documentElement.dataset.duoBrowser=good?'pass':'fail';
+ }catch(e){check(false,e.stack||e.message);document.documentElement.dataset.duoBrowser='fail';}
+});
+</script></body></html>
