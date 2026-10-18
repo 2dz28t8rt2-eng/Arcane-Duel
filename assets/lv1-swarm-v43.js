@@ -69,6 +69,7 @@
   }
   logFx(g,'mourning',CARDS[c.id].name);
   if(has(g))grantGhost(g);
+  if(g.lv1Saga)g.lv1SagaProgress={...(g.lv1SagaProgress||{}),floating:(g.lv1SagaProgress?.floating||0)+1};
   if(has(g)&&s.float<maxTurns){
    s.float++;s.choices.push({id:c.id});
   }
@@ -89,11 +90,14 @@
  }
  function claimOffer(g,index){
   if(!enabled(g)||g.active!==0)return false;
-  const s=state(g),p=g.players[0],o=s.offers[index];if(!o||p.hand.length>=9)return false;
+  const s=state(g),p=g.players[0],o=s.offers[index];if(!o||p.hand.length>=9||g.pending)return false;
   const c=newInstance(g,o.id,0);
   if(o.echo){c.lv1Echo=true;c.lv1Effectless=true;}
   c.lv1FromOffer=true;
-  p.hand.push(c);s.offers.splice(index,1);logEvent(g,(o.echo?'Effektloses Echo':'Wandernder Geist')+' zur Beschwörung/Fusion bereit.');
+  p.hand.push(c);s.offers.splice(index,1);
+  g.pending={kind:'normal',card:c,levels:[1],lv1Effect:true};
+  g.selection=null;g.materials=[];
+  logEvent(g,(o.echo?'Effektloses Echo':'Wandernder Geist')+' als kostenlose Effektbeschwörung bereit. Wähle einen Feldplatz oder eine Feldfusion.');
   return true;
  }
  const previousNewInstance=newInstance;
@@ -162,6 +166,7 @@
    done.lv1Special=true;
    if(done.rollMath){for(const k of ['atk','def']){done.rollMath.bonus[k]+=extra[k];done.rollMath.final[k]+=extra[k];}}
    logFx(g,'fusion',t);
+   if(g.lv1Saga)g.lv1SagaProgress={...(g.lv1SagaProgress||{}),special:(g.lv1SagaProgress?.special||0)+1};
   }
   for(const c of material)if(owned(g).includes(c))exitCard(g,c);
   return done;
@@ -176,12 +181,16 @@
  const previousPlace=placePending;
  placePending=function(g,idx,choice){
   const before=g?.pending?.card;
-  const result=previousPlace(g,idx,choice);
+  const bonusSummon=!!g?.pending?.lv1Effect,previousSummoned=g?.summoned;
+  if(bonusSummon)g.summoned=false;
+  let result;
+  try{result=previousPlace(g,idx,choice);}finally{if(bonusSummon)g.summoned=previousSummoned||!!result;}
   if(result&&enabled(g)&&g.active===0){
    const spawned=result.card;
    if(isReal(spawned)&&!result.fused&&stageAllowed(g,3)){
     const s=current(g);
-    if(s.swarm<maxTurns){s.swarm++;offer(g,spawned.id,true);logFx(g,'swarm',dataOf(spawned).name,idx);}
+    if(s.swarm<maxTurns){s.swarm++;offer(g,spawned.id,true);logFx(g,'swarm',dataOf(spawned).name,idx);
+      if(g.lv1Saga)g.lv1SagaProgress={...(g.lv1SagaProgress||{}),swarm:(g.lv1SagaProgress?.swarm||0)+1};}
     if(has(g))grantGhost(g);
    }
    syncSwarm(g);
@@ -198,13 +207,14 @@
  const previousAttack=attack;
  attack=function(g,ai,di){
   if(!enabled(g))return previousAttack(g,ai,di);
-  const p=g.players[g.active],enemy=g.players[1-g.active],a=p.field[ai],target=di===null?null:enemy.field[di];
+  const p=g.players[g.active],enemy=g.players[1-g.active],a=p.field[ai];
+  let target=di===null?null:enemy.field[di];
   if(!a)return previousAttack(g,ai,di);
   const beforeField=g.players.map(p=>[...p.field]);
   const oldLP=[g.players[0].lp,g.players[1].lp];
   const oldDef=target?.card?.def||0;
   const oldAtk=a.card?.atk||0;
-  if(g.active===1&&target&&owned(g).some(x=>keyOf(x)==='protector')){
+  if(g.active===1&&owned(g).some(x=>keyOf(x)==='protector')){
    const protect=g.players[0].field.findIndex(x=>keyOf(x)==='protector');
    if(protect>=0){di=protect;target=enemy.field[protect];}
   }
