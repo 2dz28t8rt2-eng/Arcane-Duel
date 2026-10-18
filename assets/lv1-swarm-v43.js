@@ -273,9 +273,12 @@
    }
    if(keyOf(a)==='ace'){
     const enemyLost=Math.max(0,oldLP[1]-g.players[1].lp);
-    const monsterLost=Math.max(0,oldDef-(target?.card?.def||0));
+    const wasDestroyed=di!==null&&result.destroyed?.includes((1-g.active)+':'+di);
+    const monsterLost=wasDestroyed?Math.min(Math.max(0,oldAtk),oldDef):
+     Math.max(0,oldDef-(target?.card?.def||0));
     const healed=enemyLost+monsterLost;
-    a.card.def=Math.min(111,Math.max(0,a.card.def+healed));
+    a.lv1MaxDef=Math.max(111,a.lv1MaxDef||0,a.card.def);
+    a.card.def=Math.min(a.lv1MaxDef,Math.max(0,a.card.def+healed));
     p.lp=Math.min(g.maxLP,p.lp+healed);if(healed)logFx(g,'drain',healed,ai);
    }
   }
