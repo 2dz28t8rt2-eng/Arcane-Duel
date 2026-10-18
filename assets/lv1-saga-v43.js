@@ -196,6 +196,38 @@
    return value;
   }finally{stageWanted=0;}
  };
+ function ritual(g){
+  return '<section class="lv1-ritual" id="lv1Ritual"><div class="lv1-ritual-runes" aria-hidden="true">✧ ✦ ◇ ✧ ✴</div>'+
+   '<div id="lv1RitualScene" class="lv1-ritual-scene"></div><div id="lv1RitualProgress" class="lv1-ritual-progress"></div>'+
+   '<div class="lv1-ritual-buttons"><button class="btn primary" id="lv1RitualNext">NÄCHSTE PHASE</button>'+
+   '<button class="btn" id="lv1RitualSkip">EVENT ABSCHLIESSEN</button></div></section>';
+ }
+ function playRitual(g){
+  const scene=$('lv1RitualScene');if(!scene)return;
+  const arts=[SW.ids.attacker,SW.ids.hive,SW.ids.protector,SW.ids.ace].map(id=>CARDS[id]);
+  const moments=[
+   ['DER ZUSAMMENBRUCH','Die letzte Predator-Fusion zerbricht. Die Arena fällt in Stille.',arts[0]],
+   ['DER RUF DER GEISTER','Die kleinen Kreaturen vereinen sich. Nicht der Größte, sondern der Auserwählte hat ihre Stimmen gehört.',arts[1]],
+   ['DAS VERGESSENE SIEGEL','Fünf Fragmente verschmelzen zu einem uralten Siegel. PERK: ERWACHEN DES SCHWARMS.',arts[2]],
+   ['DAS VERMÄCHTNIS','Der Fanatiker überlässt dir Lumira – den ersten Funken. Seine Forschung endet nicht, aber sein Weg als Duellant.',arts[3]],
+   ['DIE GABE DES SCHWARMS','Die einzigartige ACE-Karte und die gewonnenen Booster sind deiner Sammlung bereits gutgeschrieben.',arts[3]]
+  ];
+  let phase=0;
+  const esc=escapeHtml;
+  function draw(){
+   const [name,body,art]=moments[phase];
+   scene.innerHTML='<div class="lv1-ritual-burst" aria-hidden="true">✧ ✦ ✧ ✦ ◇ ✧</div>'+
+    '<img class="lv1-ritual-card-art" src="'+esc(art.art)+'" alt="'+esc(art.name)+'">'+
+    '<div class="lv1-ritual-narration"><small>KAPITEL '+(phase+1)+'/5</small><h2>'+esc(name)+'</h2><p>'+esc(body)+'</p></div>'+
+    (phase===4?'<div class="lv1-ritual-packs">'+Array.from({length:10},(_,i)=>'<span class="'+(i<(g.lv1BonusPacks?.length||0)?'earned':'empty')+'">'+(i<(g.lv1BonusPacks?.length||0)?'✦ 3 KARTEN':'◇')+'</span>').join('')+'</div>':'');
+   const bar=$('lv1RitualProgress');if(bar)bar.textContent='✦ '.repeat(phase+1)+'◇ '.repeat(4-phase);
+   const button=$('lv1RitualNext');if(button)button.textContent=phase===4?'VERMÄCHTNIS ANSEHEN':'NÄCHSTE PHASE';
+   scene.classList.remove('lv1-ritual-animate');void scene.offsetWidth;scene.classList.add('lv1-ritual-animate');
+  }
+  draw();
+  const next=$('lv1RitualNext');if(next)next.onclick=()=>{if(phase<4){phase++;draw();}else{$('lv1Ritual')?.classList.add('lv1-ritual-done');next.disabled=true;}};
+  const skip=$('lv1RitualSkip');if(skip)skip.onclick=()=>{phase=4;draw();if(next)next.textContent='EVENT ABSCHLIESSEN';};
+ }
  const oldShow=showFinished;
  showFinished=function(){
   const g=game,show=g?.lv1Saga&&g.winner!==null&&!g.finishShown;
@@ -213,10 +245,11 @@
   const scene='<section class="lv1-story-result"><h3>✦ '+escapeHtml(STORIES[stage-1].title)+'</h3>'+
     '<p class="lv1-dialogue">„'+escapeHtml(success?after:failedGoal?'Ein Sieg allein genügt nicht. Du hast die besondere Forschungstechnik noch nicht angewendet.':'Du bist noch nicht bereit. Kehre zurück, wenn du die Geister verstehst.')+'“</p>'+
     (failedGoal?'<p class="lv1-objective"><b>Noch offen:</b> '+escapeHtml(OBJECTIVES[stage-1].description)+'</p>':'')+(success?'<p>Fragment '+stage+' von 5 entdeckt. '+(stage===5?'Das Vermächtnis ist erwacht.':'Nächste Forschung freigeschaltet.')+'</p>':'<p>Diese Stufe kann erneut versucht werden.</p>')+
-    (stage===5&&success?'<div class="lv1-unlock"><h3>✦ DAS ERWACHEN DES SCHWARMS ✦</h3><p>Schwarmperk dauerhaft freigeschaltet · ACE: Urfunke erhalten</p>'+
+    (stage===5&&success?ritual(g)+'<div class="lv1-unlock"><h3>✦ DAS ERWACHEN DES SCHWARMS ✦</h3><p>Schwarmperk dauerhaft freigeschaltet · ACE: Lumira erhalten</p>'+
       '<div class="lv1-booster-reveal">'+(g.lv1BonusPacks||[]).map((p,i)=>'<span>✧ Pack '+(i+1)+' · 3 Karten</span>').join('')+'</div>'+
       '<p>10 unabhängige Boosterwürfe à 50 %, 3 Level-1-Karten je gewonnenem Pack.</p></div>':'')+'</section>';
   $('modal').insertAdjacentHTML('beforeend',scene);
+  if(stage===5&&success)playRitual(g);
   if($('modalAgain'))$('modalAgain').onclick=()=>{hideModal();game=null;startDuel('pve',1,'lv1-saga','easy',stage);};
  };
  const oldRenderMenu=renderMenu;
