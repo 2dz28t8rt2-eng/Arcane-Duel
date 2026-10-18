@@ -37,5 +37,5 @@ test('Fusion cinema uses real material artwork, with reduced-motion and instant 
 
 test('Large straight quality compensates for its wider level spread',()=>{
  const run=boot();const r=run(`({small:window.ArcaneEvolution.fusionQuality([1,2,3]).factor,large:window.ArcaneEvolution.fusionQuality([1,2,3,4,5]).factor,largeRolls:window.ArcaneEvolution.fusionPattern([1,2,3,4,5]).rollBonus})`);
- assert.ok(r.large>=r.small-1e-9,JSON.stringify(r));assert.equal(r.largeRolls,3);
+ assert.ok(r.large>=r.small-1e-9,JSON.stringify(r));assert.equal(r.largeRolls,4);
 });
