@@ -243,6 +243,22 @@
  const previousAttack=attack;
  attack=function(g,ai,di){
   if(!enabled(g))return previousAttack(g,ai,di);
+  // Reserve field coordinates 5–9 address the five additional combat zones.
+  if(g.active===1&&Number.isInteger(di)&&di>=5&&di<10){
+   const slot=di-5,slots=state(g).ghostSlots,defender=slots[slot]?.card;
+   if(!defender)return null;
+   const field=g.players[0].field,free=field.findIndex(x=>!x),ix=free>=0?free:4,saved=field[ix];
+   slots[slot]=null;field[ix]=defender;
+   let result=null,remaining=null;
+   g.lv1GhostDefenseRouting=true;
+   try{result=attack(g,ai,ix);remaining=field[ix];}
+   finally{
+    g.lv1GhostDefenseRouting=false;field[ix]=saved;
+    if(remaining===defender||!result)slots[slot]={kind:'card',card:defender};
+    syncSwarm(g);
+   }
+   return result;
+  }
   // Aegurion's attack redirection remains active inside a ghost slot.
   if(g.active===1&&!g.lv1GhostDefenseRouting){
    const slots=state(g).ghostSlots;
@@ -336,6 +352,27 @@
   }
   syncSwarm(g);
   return result;
+ };
+ // Enemy AI chooses among the main five zones AND occupied ghost combat zones.
+ // A normal targeting decision wins when appropriate, but an undefended reserve
+ // is never mistaken for an empty battlefield permitting a direct attack.
+ const previousAttackPlan=attackPlan;
+ attackPlan=function(g){
+  const ordinary=previousAttackPlan(g);
+  if(!enabled(g)||g.active!==1)return ordinary;
+  const slots=state(g).ghostSlots;
+  const live=slots.map((v,i)=>({c:v?.kind==='card'?v.card:null,i})).filter(x=>x.c);
+  if(!live.length)return ordinary;
+  const attackers=g.players[1].field.map((c,i)=>({c,i})).filter(x=>canAttack(g,x.c));
+  if(!attackers.length)return ordinary;
+  const guard=live.find(x=>keyOf(x.c)==='protector');
+  if(guard){const a=attackers[0];return {ai:a.i,di:5+guard.i};}
+  if(ordinary?.di!==null&&ordinary?.di!==undefined)return ordinary;
+  const kill=attackers.flatMap(a=>live.map(t=>({a,t,power:effectiveAttack(g,a.c,t.c),guard:t.c.mode==='def'?dataOf(t.c).def:dataOf(t.c).atk})))
+   .find(x=>x.power>=x.guard);
+  if(kill)return {ai:kill.a.i,di:5+kill.t.i};
+  const a=attackers[0],t=live[0];
+  return {ai:a.i,di:5+t.i};
  };
  function station(g,slot,source,index){
   if(!enabled(g)||g.active!==0||g.winner!==null||g.pending||source!=='field')return false;
