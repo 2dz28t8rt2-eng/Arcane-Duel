@@ -93,7 +93,7 @@
   saveProfile();
   openModal(modalHtml('✦ DER FANATIKER IST DA','Die vergessenen Funken','✦',
    'Du hast die Voraussetzungen für den Level-1-Forscher erfüllt. Er wartet mit einer ungewöhnlichen Forschungsreihe auf dich.',
-   '<p>Fünf Herausforderungen · Floating · Schwarm · drei Spezialfusionen · einzigartiges ACE und Booster-Belohnungen.</p>',
+   '<p>Ein unbekannter Forscher fordert dich heraus. Hinter seinen Experimenten verbergen sich ein einzigartiger Skill und geheimnisvolle Belohnungen.</p>',
    '<button class="btn primary" id="adFanaticVisit">ZUM FORSCHER</button><button class="btn" id="adFanaticLater">SPÄTER</button>'));
   $('adFanaticVisit').onclick=()=>{hideModal();menuTab='challenges';renderMenu();$('lv1Saga')?.scrollIntoView({block:'start'});};
   $('adFanaticLater').onclick=()=>hideModal();
