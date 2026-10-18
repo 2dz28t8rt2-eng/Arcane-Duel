@@ -29,12 +29,12 @@
  // Klassenfusionen zählen bei Level-1-Schwarmboni als Level 1, lösen aber selbst keine Basiskarten-Echos aus.
  const isLv1=c=>!!c&&levelOf(c)===1&&!c.fate&&(!c.fusion||!!CARDS[c.id]?.lv1Exclusive);
  const isReal=c=>isLv1(c)&&!c.fusion&&!c.lv1Echo&&!c.lv1Ghost&&!CARDS[c.id]?.fusionOnly;
- const stationable=c=>isLv1(c)&&!c.lv1Ghost&&!c.lv1Echo&&!c.lv1Effectless;
+ const stationable=c=>!!c&&!c.fate&&!c.lv1Ghost&&!!CARDS[c.id]&&!CARDS[c.id].fateOnly;
  const enabled=g=>!!g&&g.mode==='pve'&&g.active!==undefined&&(profile?.lv1Saga?.perk===true||g.lv1Saga?.stage>=2);
  const has=g=>enabled(g)&&troops(g).some(c=>keyOf(c)==='hive');
  const maxTurns=5;
  function state(g){
-  if(!g.lv1State)g.lv1State={choices:[],offers:[],ghostSlots:[],tick:-1,float:0,swarm:0,events:[]};
+  if(!g.lv1State)g.lv1State={choices:[],offers:[],ghostSlots:[],spiritCharges:0,tick:-1,float:0,swarm:0,events:[]};
   return g.lv1State;
  }
  function logFx(g,type,value='',zone=0){const s=state(g);s.events.push({type,value,zone,id:g.turn});s.events=s.events.slice(-12);}
@@ -42,9 +42,9 @@
  function stageAllowed(g,minimum){return enabled(g)&&(profile?.lv1Saga?.perk||g.lv1Saga?.stage>=minimum);}
  function owned(g){return g?.players?.[0]?.field?.filter(Boolean)||[];}
  function availableSlots(g){return Math.min(5,Math.max(0,state(g).ghostSlots.length));}
- function spirits(g){return state(g).ghostSlots.filter(x=>x&&(x.kind==='ghost'||x.kind==='card'));}
+ function spirits(g){return state(g).ghostSlots.filter(x=>x?.kind==='card');}
  function troops(g){return [...owned(g),...spirits(g).filter(x=>x.kind==='card').map(x=>x.card)];}
- function grantGhost(g){const s=state(g),i=s.ghostSlots.findIndex(x=>x===null);if(i<0)return false;s.ghostSlots[i]={kind:'ghost'};logFx(g,'ghost',i);return true;}
+ function grantGhost(g){const s=state(g);if((s.spiritCharges||0)>=5)return false;s.spiritCharges=(s.spiritCharges||0)+1;logFx(g,'ghost',s.spiritCharges);return true;}
  function counts(g){return troops(g).filter(isLv1).length;}
  function syncSwarm(g){
   if(!stageAllowed(g,3))return;
@@ -127,7 +127,17 @@
   const validId=id=>Number.isInteger(id)&&!!CARDS[id]&&CARDS[id].level===1&&!CARDS[id].fusionOnly;
   if(s.choices.length>5||s.offers.length>5||s.choices.some(x=>!validId(x.id))||s.offers.some(x=>!validId(x.id)||typeof x.echo!=='boolean'))throw Error('Ungültige Schwarmwarteschlange.');
   g.lv1State={choices:s.choices.map(x=>({id:x.id})),offers:s.offers.map(x=>({id:x.id,echo:x.echo})),
-   ghostSlots:s.ghostSlots.map(x=>x&&x.kind==='ghost'?{kind:'ghost'}:x?.kind==='card'&&validId(x.card?.id)&&Number.isInteger(x.card?.uid)?{kind:'card',card:{id:x.card.id,uid:x.card.uid,mode:'atk',attacked:false,switched:false,card:{level:1,atk:Math.max(0,Math.min(10000,x.card.card?.atk||0)),def:Math.max(1,Math.min(10000,x.card.card?.def||1))}}}:null),
+   ghostSlots:s.ghostSlots.map(x=>{
+    if(!x)return null;
+    if(x.kind==='ghost')return null; // obsolete marker; its energy is migrated into charges
+    const c=x.card;
+    if(x.kind!=='card'||!c||!CARDS[c.id]||!Number.isInteger(c.uid)||c.uid<1||
+       c.card?.level!==CARDS[c.id].level||!Number.isInteger(c.card?.atk)||
+       !Number.isInteger(c.card?.def)||c.card.atk<0||c.card.def<0||
+       c.card.atk>10000||c.card.def>10000||!['atk','def'].includes(c.mode))throw Error('Ungültige Geisterfeldkarte.');
+    return {kind:'card',card:{...c,card:{...c.card},attacked:!!c.attacked,switched:!!c.switched}};
+   }),
+   spiritCharges:Math.min(5,Math.max(0,(Number.isInteger(s.spiritCharges)?s.spiritCharges:0)+s.ghostSlots.filter(x=>x?.kind==='ghost').length)),
    tick:Number.isInteger(s.tick)?s.tick:-1,float:Math.max(0,Math.min(5,s.float||0)),
    swarm:Math.max(0,Math.min(5,s.swarm||0)),events:[]};
   if(Number.isInteger(raw.lv1Saga?.stage)&&raw.lv1Saga.stage>=1&&raw.lv1Saga.stage<=5)
