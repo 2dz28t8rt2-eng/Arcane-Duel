@@ -1,0 +1,47 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const {boot}=require('./helpers/game-runtime.cjs');
+function setup(chapter=5){
+ const b=boot({seed:500+chapter});
+ b.exec("profile=freshProfile();profile.lv1Saga={offered:true,stage:"+(chapter-1)+",perk:false,aceGranted:false,finalRewards:false,story:[]};profile.activeDuel=null;startDuel('pve',1,'lv1-saga','easy',"+chapter+");game.active=1;game.turn=1;game.summoned=false;");
+ return b;
+}
+test('both approved 768x1024 angel and eclipse artworks are bound to the existing card IDs',()=>{
+ const r=setup().run("({pure:CARDS[ArcaneLv1Swarm.ids.ace].art,fallen:CARDS[ArcaneLv1Saga.corruptedId].art})");
+ assert.equal(r.pure,'assets/custom-art/lumira-angel-v49.webp');
+ assert.equal(r.fallen,'assets/custom-art/lumira-fallen-v49.webp');
+ for(const filename of [r.pure,r.fallen]){
+  const data=fs.readFileSync(path.resolve(__dirname,'..',filename));
+  assert.equal(data.subarray(0,4).toString('ascii'),'RIFF');
+  assert.equal(data.subarray(8,12).toString('ascii'),'WEBP');
+  assert.ok(data.length>100000);
+ }
+});
+test('corrupted fusion recipe allows exactly Lumira plus 2-4 free hand monsters',()=>{
+ const r=setup().run("(()=>{const g=game,h=g.players[1].hand,ace=h.find(c=>c.id===ArcaneLv1Swarm.ids.ace),extra=h.filter(c=>c.uid!==ace.uid),recipe=ArcaneLumiraCorruption.recipe;return {onlyTwo:recipe(g,[ace,extra[0]]),three:recipe(g,[ace,...extra.slice(0,2)]),five:recipe(g,[ace,...extra]),without:recipe(g,extra.slice(0,3)),duplicate:recipe(g,[ace,extra[0],extra[0]]),unique:recipe(g,[ace,extra[0],extra[1]])};})()");
+ assert.deepEqual(r,{onlyTwo:false,three:true,five:true,without:false,duplicate:false,unique:true});
+});
+test('chapter V opponent performs one first-turn mandatory fusion, consumes Lumira and sets post dialogue',()=>{
+ const r=setup().run("(()=>{const g=game,p=g.players[1],a=chooseAiAction(g,'offensive'),id=ArcaneLv1Saga.corruptedId;const begins=a.type==='fusion'&&a.uids.includes(g.lv1FanaticAce.uid),ok=applyAiAction(g,a),pending=g.pending?.card?.id===id,lumiraConsumed=p.graveyard.some(c=>c.id===ArcaneLv1Swarm.ids.ace);const pos=chooseAiAction(g,'offensive'),placed=pos.type==='place'?applyAiAction(g,pos):null;return {begins,ok:!!ok,pending,lumiraConsumed,placed:placed?.card?.id===id,played:g.lv1FanaticCorruptPlayed===true,dialog:g.lv1FanaticCorruptDialoguePending===true,hand:p.hand.length};})()");
+ assert.equal(r.begins,true);assert.equal(r.ok,true);assert.equal(r.pending,true);
+ assert.equal(r.lumiraConsumed,true);assert.equal(r.placed,true);assert.equal(r.played,true);
+ assert.equal(r.dialog,true);assert.ok(r.hand<=2);
+});
+test('the boss fusion is never legal without Lumira or outside chapter V',()=>{
+ const fifth=setup().run("(()=>{const g=game,p=g.players[1],id=ArcaneLv1Saga.corruptedId,others=p.hand.filter(c=>c.id!==ArcaneLv1Swarm.ids.ace).slice(0,3);g.fusionChoice=id;const r=fusedInstance(g,others,others.map(c=>dataOf(c).level));delete g.fusionChoice;return {r:r===null};})()");
+ const fourth=setup(4).run("(()=>{const g=game,p=g.players[1],id=ArcaneLv1Saga.corruptedId,hand=p.hand.slice(0,3);return {has:ArcaneLumiraCorruption.recipe(g,hand),offer:fusionOptions(g,hand.map(c=>dataOf(c).level),hand).some(c=>c.id===id)};})()");
+ assert.equal(fifth.r,true);assert.equal(fourth.has,false);assert.equal(fourth.offer,false);
+});
+test('dialogue and seven animation phases are hooked in order around the game action',()=>{
+ const ai=fs.readFileSync(path.resolve(__dirname,'../assets/game.js'),'utf8');
+ const script=fs.readFileSync(path.resolve(__dirname,'../assets/lumira-corruption-v49.js'),'utf8');
+ const css=fs.readFileSync(path.resolve(__dirname,'../assets/lumira-corruption-v49.css'),'utf8');
+ assert.ok(ai.indexOf("beforeAiAction?.(g,a)")<ai.indexOf("result=applyAiAction(g,a)"));
+ assert.match(ai,/if\(lumiraFall\)await window\.ArcaneLumiraCorruption\.play\(g,result\.card\)/);
+ for(const phase of ['angel','fracture','spiral','orb','burst','fallen','land']){
+  assert.match(script,new RegExp("lumira-stage-"+phase));
+  assert.match(css,new RegExp("lumira-stage-"+phase));
+ }
+ assert.match(script,/lumira-corruption-skip/);
+ assert.match(script,/fullCardHtml/);
+});
