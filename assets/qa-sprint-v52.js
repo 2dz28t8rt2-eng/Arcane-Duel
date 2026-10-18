@@ -215,6 +215,33 @@
   });
   layer.remove();if(g.fateEvent===evt)g.fateEvent=null;
  };
- window.ArcaneQaSprint52=Object.freeze({version:'5.2',improvedAces:improved,shieldBash});
+ // Force enemy card inspection to stay in the LEFT battlefield inspector.
+ // Capture phase runs before legacy click handlers that opened full-screen modals.
+ document.getElementById('enemyRow')?.addEventListener('click',event=>{
+  const node=event.target.closest('[data-enemy]');
+  if(!node||!game||uiMode!=='duel')return;
+  if(game.selection?.type==='field'&&inputAllowed())return; // genuine attack
+  const idx=Number(node.dataset.enemy);
+  const owner=game.mode==='pve'?1:1-game.active;
+  if(!game.players[owner]?.field[idx])return;
+  event.preventDefault();event.stopImmediatePropagation();
+  enemyPreviewIndex=idx;game.selection=null;
+  renderCardPreview();
+  document.getElementById('largeCardPreview')?.classList.add('ad-inspected');
+ },true);
+ // Full House takes precedence over Drilling (3 + 2 materials).
+ // Verify and normalize the roll's displayed combination, never invent a bonus.
+ const previousFuse=fusedInstance;
+ fusedInstance=function(g,materials,levels){
+  const result=previousFuse(g,materials,levels);
+  if(!result||g?.mode!=='pve'||g.active!==0||levels?.length!==5)return result;
+  const frequencies=[...new Set(levels)].map(l=>levels.filter(x=>x===l).length).sort((a,b)=>b-a);
+  if(frequencies[0]!==3||frequencies[1]!==2)return result;
+  const suffix=result.pattern?.includes('Elementharmonie')?' · Elementharmonie':'';
+  result.pattern='Full House'+suffix;
+  if(result.rollMath?.combo)result.rollMath.combo.name=result.pattern;
+  return result;
+ };
+  window.ArcaneQaSprint52=Object.freeze({version:'5.2',improvedAces:improved,shieldBash});
  if(uiMode==='menu')renderMenu();else if(uiMode==='duel')render();
 })();
