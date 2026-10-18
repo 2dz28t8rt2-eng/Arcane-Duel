@@ -1,3 +1,20 @@
+# Kampagnenstart und Kapitelpakete – 18. Oktober 2026
+
+**Standard:** Ohne jede Kapitelauswahl beginnt »Neue Kampagne« automatisch in **Kapitel I**. Ein optionales Feld »Kapitel direkt auswählen« erlaubt Einstieg in Kapitel I–IV.
+
+| Kapitel | Kapitelstart-Level der Bonuskarten | Kartenpaket (je 3 Karten pro Verbündetem) |
+|---|---:|---|
+| I – Der Pakt am zerbrochenen Tor | 2 | Wurzelwacht, Glutspäher, Sternenfalter |
+| II – Die Zwillinge der Asche | 4 | Runenjäger, Felsbastion, Frostgreif |
+| III – Das verlorene Siegel | 6 | Donnerkoloss, Schattenhüter, Himmelsdrache |
+| IV – Krone der Vier | 8 | Aetherarchon, Leviathan der Tiefe, Klingenseraph |
+
+**Spielregeln:** Drei Kapitelkarten ersetzen je drei Basiskarten im 40-Karten-Deck, sodass das Deck nicht größer wird; sie stehen in der ersten Hand zur Verfügung. Beide Menschen erhalten dieselbe Kartenmenge, getrennt in eigenen Decks. Die Gegner erhalten eine vergleichbare Kapitelanpassung im Demo-Kampfsystem. Nach einem Sieg darf nur der Gastgeber das nächste Kapitel freischalten. Server setzt dann Spielfeld und 16.000 LP je Team für das nächste Kapitel zurück und verteilt das nächste Paket. Keine Belohnung für ein Kapitel ohne tatsächlichen Sieg; ein einzelner Wechsel darf nicht mehrfach ausgeführt werden.
+
+**Hinweis zum Entwicklungsstand:** Alle Bonuskarten und Kapitelwechsel gelten für den **abgeschlossenen 2v2-Raum**. Sie verändern weder das globale Einzelspielerinventar noch die dauerhafte Sammlung. Die Online-Edge-Funktion ist in Git unter `supabase/functions/arcane-duo/index.ts` dokumentiert und als Version 2 in Supabase aktiv. Für die langfristige Kampagne planen wir künftig echte Deckimports und eine persistente, servergeprüfte Spielersammlung.
+
+---
+
 # Online-Update · 2026-10-18
 
 **Supabase-Projekt:** `cvmtmvruutdneyblumgf` · Edge Function `arcane-duo` (aktiv) · private RLS-Tabelle `public.arcane_duo_rooms` (Migration ausgeführt).
