@@ -85,3 +85,39 @@ html body :is(.pool-grid,.pack-grid,.arcane-reward-showcase,.ad-card-reward-pane
 html body .ad-card-reward-panel .hand-card.tc-card .ad-level-medallion{z-index:18!important}
 @media(max-width:700px){html body :is(.pool-grid,.pack-grid,.arcane-reward-showcase,.ad-card-reward-panel)
  .hand-card.tc-card .hand-stats .stat-value{font-size:12px!important}}
+
+/* Eiman Huel appears as a temporary shimmering challenger, not an ordinary panel. */
+html body #menuContent .ad-eiman-encounter{
+ position:relative;border:2px solid #c9baff!important;overflow:hidden;
+ background:radial-gradient(circle at 30% 15%,#745ba640,#151b2a 72%)!important;
+ box-shadow:0 0 19px #a58cff88,inset 0 0 31px #ba8aff32!important;
+ animation:adEimanGlow 2.7s ease-in-out infinite alternate;
+}
+html body #menuContent .ad-eiman-encounter::before{
+ content:'';position:absolute;inset:-80%;pointer-events:none;
+ background:linear-gradient(115deg,transparent 38%,#f4e2ff00 48%,#edd8ff45 50%,#f4e2ff00 53%,transparent 64%);
+ transform:translateX(-35%) rotate(8deg);animation:adEimanSweep 4.4s linear infinite;
+}
+html body #menuContent .ad-eiman-encounter>*{position:relative;z-index:2}
+@keyframes adEimanGlow{to{box-shadow:0 0 40px #d5b2ffbf,inset 0 0 50px #deabff55}}
+@keyframes adEimanSweep{to{transform:translateX(38%) rotate(8deg)}}
+/* Each ACE emanates its ELEMENT color; ordinary cards keep the usual frame.
+   The field version receives data-element via the late presentation-only wrapper. */
+html body :is(.hand-card.tc-ace,.board-creature.tc-ace){--ad-ace-glow:#d19aff}
+html body :is(.hand-card.tc-ace,.board-creature.tc-ace)[data-element="FEUER"]{--ad-ace-glow:#ff5b35}
+html body :is(.hand-card.tc-ace,.board-creature.tc-ace)[data-element="WASSER"]{--ad-ace-glow:#59d4ff}
+html body :is(.hand-card.tc-ace,.board-creature.tc-ace)[data-element="ERDE"]{--ad-ace-glow:#8dde6f}
+html body :is(.hand-card.tc-ace,.board-creature.tc-ace)[data-element="WIND"]{--ad-ace-glow:#a7ffe6}
+html body :is(.hand-card.tc-ace,.board-creature.tc-ace)[data-element="LICHT"]{--ad-ace-glow:#ffe09c}
+html body :is(.hand-card.tc-ace,.board-creature.tc-ace)[data-element="DUNKEL"]{--ad-ace-glow:#c28cff}
+html body :is(.hand-card.tc-ace,.board-creature.tc-ace){
+ animation:adAceElementBreath 3s ease-in-out infinite alternate;
+}
+@keyframes adAceElementBreath{
+ from{filter:drop-shadow(0 0 4px var(--ad-ace-glow))}
+ to{filter:drop-shadow(0 0 13px var(--ad-ace-glow)) brightness(1.12)}
+}
+@media(prefers-reduced-motion:reduce){
+ html body .ad-eiman-encounter,html body .ad-eiman-encounter::before,
+ html body :is(.hand-card.tc-ace,.board-creature.tc-ace){animation:none!important}
+}
