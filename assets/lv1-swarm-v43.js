@@ -22,7 +22,7 @@
   }
   if(typeof UPDATE_B_SET!=='undefined')UPDATE_B_SET.add(id);
  }
- const keyOf=c=>CARDS[c?.id]?.lv1Special||'';
+ const keyOf=c=>c?.lv1Effectless?'':CARDS[c?.id]?.lv1Special||'';
  const levelOf=c=>c?dataOf(c).level:0;
  const isLv1=c=>!!c&&levelOf(c)===1&&!c.fusion&&!c.fate;
  const isReal=c=>isLv1(c)&&!c.lv1Echo&&!c.lv1Ghost;
@@ -94,6 +94,12 @@
   p.hand.push(c);s.offers.splice(index,1);logEvent(g,(o.echo?'Effektloses Echo':'Wandernder Geist')+' zur Beschwörung/Fusion bereit.');
   return true;
  }
+ const previousNewInstance=newInstance;
+ newInstance=function(g,id,owner=g.active){
+  const card=previousNewInstance(g,id,owner);
+  if(id===IDS.ace&&card.card){card.card.atk=111;card.card.def=111;}
+  return card;
+ };
  const previousCreate=createGame;
  createGame=function(opts={}){
   const g=previousCreate(opts);
