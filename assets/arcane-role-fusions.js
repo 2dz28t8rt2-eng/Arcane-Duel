@@ -6,7 +6,7 @@
 (()=>{
  const escape=s=>escapeHtml(String(s));
  const roleOf=c=>c?.fusion?(c.roleOverride||'resonator'):CARDS[c?.id]?.fusionOnly?'unassigned':(c?.roleOverride||CARDS[c?.id]?.role||'combatant');
- const roleName={predator:'Predator',guardian:'Verteidiger',soul:'Seelenzehrer',resonator:'Resonator',unassigned:'Rollenfrei'};
+ const roleName={predator:'Predator',guardian:'Wächter',soul:'Seelenzehrer',resonator:'Resonator',unassigned:'Rollenfrei'};
  const r10=n=>Math.max(10,Math.round(n/10)*10);
  function inheritance(materials){
   // Equal roles (including two soul eaters) must win over an unrelated template tag.
