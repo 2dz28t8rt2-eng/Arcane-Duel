@@ -7,8 +7,8 @@
 (()=>{
  const esc=v=>escapeHtml(String(v));
  const roleName={predator:'PREDATOR',guardian:'WÄCHTER',soul:'SEELENZEHRER',
-  support:'UNTERSTÜTZER',weaver:'RUNENWEBER',hunter:'JÄGER',combatant:'ALLROUNDER'};
- const roleOf=c=>c?.roleOverride||CARDS[c?.id]?.role||'combatant';
+  support:'UNTERSTÜTZER',weaver:'RUNENWEBER',hunter:'JÄGER',combatant:'ALLROUNDER',unassigned:'ROLLENFREI',resonator:'RESONATOR'};
+ const roleOf=c=>c?.fusion?(c.roleOverride||'resonator'):CARDS[c?.id]?.fusionOnly?'unassigned':(c?.roleOverride||CARDS[c?.id]?.role||'combatant');
  const previousCard=fullCardHtml;
  fullCardHtml=function(c,attrs='',classes='',badge=''){
   let html=previousCard(c,attrs,classes,badge);
