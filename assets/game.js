@@ -906,6 +906,9 @@ function loadProfile(){try{lastStoredProfile=window.localStorage.getItem(SAVE_KE
   forValidation.activeDuel=null;
  }
  const loaded=validateProfile(forValidation);if(raw.evolution)loaded.evolution=raw.evolution;return loaded;}return freshProfile();}catch(e){storageWritable=false;storageWarning='Spielstand konnte nicht geladen werden. Bestehende Daten bleiben erhalten. Exportiere deinen Fortschritt oder importiere eine gültige Sicherung.';return freshProfile();}}
+// Role-specialist additions must be registered BEFORE reading stored card IDs.
+// The module remains a no-op until its ten approved WebP artworks are present.
+window.ArcaneRoleWave1?.install?.();
 let profile=loadProfile();
 // A one-time starter gift for existing accounts, added AFTER validating the
 // untouched old profile. Never reset progress or equipment.

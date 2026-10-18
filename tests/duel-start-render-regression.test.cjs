@@ -5,7 +5,9 @@ test('Duel hand role rendering works without optional combat roleOf',()=>{
  const clarity=read('assets/duel-card-clarity-v41.js'),progress=read('assets/essence-progression.js');
  assert.doesNotMatch(clarity,/window\.ArcaneEssenceCombat\.roleOf/);
  assert.doesNotMatch(progress,/C\.roleOf/);
- assert.match(clarity,/const roleOf=c=>c\?\.roleOverride\|\|CARDS\[c\?\.id\]\?\.role\|\|'combatant'/);
+ assert.match(clarity,/const roleOf=c=>c\?\.roleOverride/);
+ assert.match(clarity,/CARDS\[c\?\.id\]\?\.role\|\|'combatant'/);
+ assert.match(clarity,/roleStyle/);
  assert.match(progress,/const CARB=roleOf/);
 });
 test('Invalidate combat and both role renderer caches on the deployed page',()=>{

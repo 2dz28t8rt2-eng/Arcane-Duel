@@ -1,10 +1,10 @@
 /* Small duel cards keep the artwork and numbers free of role overlays. */
 'use strict';
 (()=>{
- const names={guardian:'Wächter',soul:'Seelenzehrer',predator:'Predator',combatant:'Allrounder',resonator:'Resonator',hunter:'Jäger',support:'Unterstützer',weaver:'Runenweber'};
+ const names={guardian:'Wächter',defender:'Verteidiger',allrounder:'Allrounder',soul:'Seelenzehrer',predator:'Predator',combatant:'Allrounder',resonator:'Resonator',hunter:'Jäger',support:'Unterstützer',weaver:'Runenweber'};
  const oldCard=fullCardHtml,oldBoard=cardHtml;
  // Visual metadata is authoritative in the catalog; an optional combat API cannot crash the hand.
- const roleOf=c=>c?.roleOverride||CARDS[c?.id]?.role||'combatant';
+ const roleOf=c=>c?.roleOverride||(CARDS[c?.id]?.artWave==='role-wave1'?CARDS[c.id].roleStyle:null)||CARDS[c?.id]?.role||'combatant';
  const strip=html=>html.replace(/<span class="(?:essence-role-chip|arcane-card-role|arcane-board-role)[^"]*"[^>]*>[^<]*<\/span>/g,'');
  fullCardHtml=function(c,attrs='',classes='',badge=''){
   let html=oldCard(c,attrs,classes,badge);
