@@ -120,7 +120,12 @@
   logEvent(g,dataOf(creature).name+' zehrt '+drainedAtk+' ATK / '+drainedDef+' DEF; +'+gain+' Seelenessenz.');
  }
  function soulDecay(g,c,owner){
-  const s=statLayer(c);
+   const s=statLayer(c);
+   if(owner===0&&c.arcaneDecaySkipTurn===g.turn-1){
+    if(s.cooldown>0)s.cooldown--;
+    if(s.raidCooldown>0)s.raidCooldown--;
+    return; // Seelenraub pauses decay; cooldowns still progress.
+   }
   if(s.soul>0){
    const amount=Math.min(s.soul,Math.max(10,Math.ceil(s.soul*.32)));
    s.soul-=amount;
