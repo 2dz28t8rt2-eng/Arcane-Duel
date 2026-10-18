@@ -387,6 +387,18 @@
    const words={echo:'◇ ECHO',draw:'✦ SEELENWANDERUNG',mourning:'✦ TRAUERSCHWARM',swarm:'✦ SCHWARM',ghost:'✦ GEIST GEBUNDEN',slot:'✧ GEISTZONE',heal:'✦ HEILUNG',shield:'◈ SCHUTZORB',drain:'✦ LEBENSVERKNÜPFUNG',buff:'✦ MACHTZUWACHS',revive:'✦ WIEDERGEBURT',slash:'⚔ DOPPELSCHLAG',fusion:'✧ FUSION'};
    for(const event of fx){const tag=document.createElement('span');tag.className='lv1-arcanefx';tag.textContent=(words[event.type]||'✦ ARKANER EFFEKT')+(typeof event.value==='number'?' +'+event.value:'');arena.append(tag);setTimeout(()=>tag.remove(),1500);}
    const orb=document.createElement('span');orb.className='lv1-trail';arena.append(orb);setTimeout(()=>orb.remove(),1100);
+   if(fx.some(e=>e.type==='drain'||e.type==='shield'||e.type==='heal')){
+    const enemy=$('enemyRow'),home=$('ownRow'),origin=enemy?.getBoundingClientRect?.(),dest=home?.getBoundingClientRect?.();
+    if(origin&&dest){
+     const effect=fx.some(e=>e.type==='drain')?'lv1-drain-orb':'lv1-shield-orb';
+     const particle=document.createElement('span');particle.className=effect;
+     const fromX=origin.left+origin.width*.5,fromY=origin.top+origin.height*.5;
+     particle.style.left=fromX+'px';particle.style.top=fromY+'px';
+     particle.style.setProperty('--lv1dx',(dest.left+dest.width*.5-fromX)+'px');
+     particle.style.setProperty('--lv1dy',(dest.top+dest.height*.5-fromY)+'px');
+     document.body.append(particle);setTimeout(()=>particle.remove(),1350);
+    }
+   }
   }
   for(const [row,key] of [['ownRow','mine']]){
    $(row)?.querySelectorAll('[data-'+key+']').forEach(node=>{
