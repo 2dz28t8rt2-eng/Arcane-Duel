@@ -15,10 +15,10 @@
   CARDS.push(c);
   if(c.fusionOnly){
    RPG_FUSIONS.push(c);
-   if(typeof UPDATE_B_FUSION_IDS!=='undefined')UPDATE_B_FUSION_IDS.push(id);
+   if(typeof UPDATE_B_FUSION_IDS!=='undefined'&&Object.isExtensible(UPDATE_B_FUSION_IDS))UPDATE_B_FUSION_IDS.push(id);
   }else {
    RPG_BASE_CARDS.push(c);
-   if(typeof UPDATE_B_MAIN_IDS!=='undefined')UPDATE_B_MAIN_IDS.push(id);
+   if(typeof UPDATE_B_MAIN_IDS!=='undefined'&&Object.isExtensible(UPDATE_B_MAIN_IDS))UPDATE_B_MAIN_IDS.push(id);
   }
   if(typeof UPDATE_B_SET!=='undefined')UPDATE_B_SET.add(id);
  }
