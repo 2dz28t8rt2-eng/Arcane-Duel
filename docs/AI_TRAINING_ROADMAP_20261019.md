@@ -117,3 +117,16 @@ Diese **KI-/Progressions-Roadmap** ersetzt nicht `docs/QA_BACKLOG_20261018.md` (
 **Abnahme vor `main`:** `tests/perk-card-sense-v76.test.cjs` (Rang-/Save-Migration, alle Boostergrößen, Source-/ACE-Gating, Stat-Gleichheit) und CI `perk-card-sense-v76.yml`; zusätzlich Abgleich tatsächlicher I–VIII-Karriereprogression. Durch den Wegfall des alten Flat-Stats können frühe Startmonster-Decks schwächer werden: Das ist **keine bereits bestätigte Balanceverbesserung**. Falls Karriere-Simulationen regressieren, als Versionierungs- und Tuningproblem behandeln und nicht ungeprüft freigeben.
 
 **Noch offen:** Splitter als sinnvolle Wahlwährung, mehr stufengerechte Drops und der weitere Rollen-Skill-Rework; siehe `PROGRESSION_SHARDS_SKILLS_REVAMP_V76.md`.
+
+
+## Sprint v7.7 – Splitterwirtschaft implementiert (nur `development`)
+
+Der abgestimmte nächste Progressionsschritt ist **im tatsächlichen Gameplay-Code und Shop** umgesetzt:
+- **Gezieltes Normalkarten-Crafting** aus nach Stufen gruppierten, auch nicht besessenen aber bereits freigeschalteten Rezepten. Ausschließlich 10/18/28/40 Splitter nach Level 1–3/4–6/7–8/9–10, keine zusätzliche Essenz; Fusionen behalten vorerst 30 Splitter plus Essenz, ACE-/Quest-/Exklusivkarten bleiben gesperrt.
+- **Booster-Neuwurf**, maximal einmal je bezahltem Boosterbeleg: 5 Splitter verbrauchen **eine nicht reservierte** originale Startkarte und ersetzen sie durch genau eine legal zugängliche zufällige Normalkarte. Quelle, Seltenheit und tatsächlich ausgegebenes Inventar werden validiert; bezahlte Quittung bleibt nach Neustart mit verbrauchtem Tausch gespeichert.
+- **Rollenforschung**: 12 Splitter für drei verschiedene legale normale Predator-/Wächter-/Seelenzehrer-/Allrounder-Angebote; **eine** Karte auswählen, keine zweifache Belohnung. Forschung und bezahltes Angebot über Neustarts fortsetzbar.
+
+**Implementationsbericht:** [SPLITTER_ECONOMY_V77.md](SPLITTER_ECONOMY_V77.md).  
+**QA:** `tests/shard-rework-v77.test.cjs` / Workflow `shard-rework-v77.yml`, plus allgemeine Code-/Chromium-Regression. **CI war beim Einchecken noch in der GitHub-Warteschlange; nicht ohne grünen Lauf als vollständig getestet bezeichnen.** 
+
+**Folgende Designarbeiten bleiben offen:** tatsächliche Karriereschwierigkeit nach Wegfall des Startmonster-Flachbonus, Splitterzuwachs und neue Endgame-Karten über mehrere unabhängige Spielstände; Tests auf zu günstige Rollenforschung in hohen Turnierstufen; die geplanten Rollenperk-Reworks (Jagdinstinkt, Schildwall, Fusionskunde und Runenpräzision). Keine Produktions-KI-Aktivierung, kein Merge nach `main`.
