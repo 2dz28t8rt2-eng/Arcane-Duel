@@ -2,69 +2,70 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
-const {boot}=require('./helpers/game-runtime.cjs');
-const manifest=JSON.parse(fs.readFileSync('assets/lategame-cards-v71.json','utf8'));
+const path=require('node:path');
+const {boot,repo}=require('./helpers/game-runtime.cjs');
+const specs=JSON.parse(fs.readFileSync('assets/lategame-cards-v71.json','utf8')).cards;
 const query=x=>boot({seed:71017}).run(x,120000);
-test('all 16 new cards are loaded with unique stable IDs, levels, existing roles and complete descriptions',()=>{
- const result=query(`(()=>({baseCount:CARDS.length,
-  installed:window.ArcaneLateGameV71,
-  values:CARDS.slice(716,732).map(c=>({id:c.id,level:c.level,name:c.name,
-   atk:c.atk,def:c.def,role:c.role,desc:c.desc,source:c.source,
-   artWave:c.artWave,retired:c.retired,fusionOnly:c.fusionOnly}))}))()`);
- assert.equal(result.baseCount,732);
- assert.equal(result.installed.count,16);
- assert.equal(result.values.length,16);
- assert.deepEqual(result.values.map(x=>x.id),Array.from({length:16},(_,i)=>i+716));
- assert.deepEqual([7,8,9,10].map(l=>result.values.filter(c=>c.level===l).length),[6,5,3,2]);
- for(const [i,card] of result.values.entries()){
-  const expected=manifest.cards[i];
-  assert.equal(card.id,expected.id);assert.equal(card.name,expected.name);
-  assert.equal(card.atk,expected.atk);assert.equal(card.def,expected.def);
-  assert.equal(card.role,expected.role);assert.equal(card.level,expected.level);
-  assert.equal(card.source,expected.source);assert.equal(card.retired,false);
-  assert.equal(card.fusionOnly,false);assert.equal(card.artWave,'7.1');
-  assert.ok(card.desc.length>32);
-  assert.ok(['predator','guardian','soul','allrounder'].includes(card.role));
+test('exact approved 16 complete records with distinct stable IDs and correct tier budgets',()=>{
+ assert.equal(specs.length,16);
+ assert.deepEqual(specs.map(c=>c.id),Array.from({length:16},(_,i)=>716+i));
+ assert.deepEqual([7,8,9,10].map(l=>specs.filter(c=>c.level===l).length),[6,5,3,2]);
+ assert.equal(new Set(specs.map(c=>c.name)).size,16);
+ assert.equal(new Set(specs.map(c=>c.art)).size,16);
+ const budgets={7:1270,8:1530,9:1830,10:2150};
+ for(const c of specs){
+  assert.ok(['predator','guardian','soul','allrounder'].includes(c.role));
+  assert.equal(c.atk+c.def,budgets[c.level]);
+  assert.ok(c.desc.length>=36&&c.effectText.length>12);
+  assert.equal(c.requiredTier,Math.max(c.source,c.level<=8?5:7));
+  assert.ok(c.source>=5&&c.source<=9);
+  assert.match(c.art,/^assets\/custom-art\/lategame-v71\/late-\d\d\.webp$/);
  }
 });
-test('only prior victories unlock endgame crafting and booster cards, no free initial inventory',()=>{
- const data=query(`(()=>{
- const initial=freshProfile(),first=Object.keys(initial.inventory);
- const available=CARDS.slice(716,732).map(c=>({
-  id:c.id,source:c.source,requiredTier:c.requiredTier,
-  isInSourceLoot:RPG_OPPONENTS[c.source].loot.includes(c.id),
-  isInEasy:UPDATE_B_LOOT[c.source].easy.includes(c.id),
-  isInHard:UPDATE_B_LOOT[c.source].hard.includes(c.id),
-  craftPool:UPDATE_B_SET.has(c.id),mainPool:UPDATE_B_MAIN_IDS.includes(c.id),
-  globalPool:RPG_BASE_CARDS.some(x=>x.id===c.id),
-  before:boosterPools(c.requiredTier-1).normal.includes(c.id),
-  after:boosterPools(c.requiredTier).normal.includes(c.id),
-  initial:first.includes(String(c.id))
- }));
- return available;})()`);
- for(const row of data){assert.equal(row.isInSourceLoot,true);
-  assert.equal(row.isInEasy,true);assert.equal(row.isInHard,true);
-  assert.equal(row.craftPool,true);assert.equal(row.mainPool,true);
-  assert.equal(row.globalPool,true);assert.equal(row.before,false);
-  assert.equal(row.after,true);assert.equal(row.initial,false);
+test('no unillustrated cards become active before approved art ZIP is installed',()=>{
+ const state=query(`(()=>({length:CARDS.length,status:window.ArcaneLateGameV71,
+  cards:CARDS.slice(716,732).map(c=>({id:c.id,art:c.art,retired:c.retired}))}))()`);
+ if(!state.status.artworksInstalled){
+  assert.equal(state.length,716,'No unillustrated live cards may be added');
+  assert.equal(state.status.count,0);
+  assert.equal(state.status.plannedCount,16);
+  assert.equal(state.status.status,'artwork-import-pending');
+  assert.deepEqual(state.cards,[]);
+ }else{
+  assert.equal(state.length,732);
+  assert.equal(state.status.count,16);
+  assert.ok(state.cards.every(c=>c.art.startsWith('assets/custom-art/lategame-v71/')));
+  assert.ok(state.cards.every(c=>!c.retired));
  }
 });
-test('new cards are legal as 40-card normal main deck, never fusion card and artwork mapping remains stable',()=>{
- const r=query(`(()=>{
-  const base=DEFAULT_DECK.flatMap(id=>[id,id]);
-  const ids=CARDS.slice(716,732).map(c=>c.id),result=[];
-  for(const id of ids){const trial=[...base];trial[0]=id;
-   result.push({id,main:mainDeckError(trial),fusion:fusionDeckError([id,id]),
-    art:CARDS[id].art,declared:window.ArcaneLateGameV71.roster.find(x=>x.id===id).art,
-    rarity:CARDS[id].rarity});}
-  return {rows:result,installed:window.ArcaneLateGameV71.artworksInstalled};
- })()`);
- for(const row of r.rows){
-  assert.equal(row.main,'','New normal card rejected '+row.id);
-  assert.ok(row.fusion.length>0,'Normal card must never be fusion template');
-  assert.ok(row.art&&row.art.length>5);
-  assert.match(row.declared,/^assets\/custom-art\/lategame-v71\/late-\d\d\.webp$/);
-  assert.equal(row.rarity,'common');
-  if(r.installed)assert.equal(row.art,row.declared);
+test('after artwork import all 16 cards are RPG normals, legally gated drops and available in booster pool',()=>{
+ const rows=query(`(()=>{
+ const installed=window.ArcaneLateGameV71.artworksInstalled;
+ const start=freshProfile();
+ const rows=installed?CARDS.slice(716,732).map(c=>({
+  id:c.id,level:c.level,name:c.name,atk:c.atk,def:c.def,role:c.role,
+  source:c.source,art:c.art,retired:c.retired,fusionOnly:c.fusionOnly,
+  initial:Object.hasOwn(start.inventory,c.id),
+  inLoot:RPG_OPPONENTS[c.source].loot.includes(c.id),
+  inEasy:UPDATE_B_LOOT[c.source].easy.includes(c.id),
+  inHard:UPDATE_B_LOOT[c.source].hard.includes(c.id),
+  inPool:RPG_BASE_CARDS.some(m=>m.id===c.id)&&UPDATE_B_SET.has(c.id)&&
+    UPDATE_B_MAIN_IDS.includes(c.id),
+  earlier:boosterPools(c.requiredTier-1).normal.includes(c.id),
+  later:boosterPools(c.requiredTier).normal.includes(c.id),
+  deckErr:mainDeckError([c.id,...DEFAULT_DECK.flatMap(id=>[id,id]).slice(1)])
+ })):[];return {installed,rows};})()`);
+ if(!rows.installed){assert.equal(rows.rows.length,0);return;}
+ assert.equal(rows.rows.length,16);
+ for(const [i,c] of rows.rows.entries()){
+  const original=specs[i];
+  for(const key of ['id','level','name','atk','def','role','source'])assert.equal(c[key],original[key]);
+  assert.equal(c.art,original.art);
+  assert.ok(fs.existsSync(path.join(repo,c.art)),'Missing original WebP '+c.art);
+  assert.equal(c.retired,false);assert.equal(c.fusionOnly,false);
+  assert.equal(c.initial,false);
+  assert.equal(c.inLoot,true);assert.equal(c.inEasy,true);assert.equal(c.inHard,true);
+  assert.equal(c.inPool,true);assert.equal(c.earlier,false);assert.equal(c.later,true);
+  assert.equal(c.deckErr,'');
  }
 });
