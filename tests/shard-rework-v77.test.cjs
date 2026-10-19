@@ -5,7 +5,9 @@ test('Normal craft prices are level-based and have no Essence charge; Fusion kee
  const rows=boot({seed:7701}).run(`(()=>{profile.trainingWins=3;profile.cleared=[1,2,3,4,5,6,7,8,9,10];profile.shards[0]=800;profile.coins=100000;
   const normal=[2,4,7,9].map(level=>{
    const c=CARDS.find(c=>c.rpg&&!c.fusionOnly&&!c.ace&&!c.trainingReward&&
-    !c.milestoneOnly&&!c.hard&&c.level===level&&cardAvailable(c.id));
+    !c.milestoneOnly&&!c.hard&&!c.essenceMonster&&!c.enemyOnly&&
+    !c.questOnly&&!c.lv1Exclusive&&!c.fateOnly&&!c.workshopOnly&&
+    c.level===level&&cardAvailable(c.id));
    if(!c)throw Error('Missing normal at level '+level);
    const before=sharedShards(),coins=profile.coins,n=profile.inventory[c.id]||0;
    return {level,cost:cardCraftShardCost(c.id),ok:craftCard(c.id),
@@ -13,7 +15,8 @@ test('Normal craft prices are level-based and have no Essence charge; Fusion kee
     copies:(profile.inventory[c.id]||0)-n};
   });
   const c=CARDS.find(c=>c.rpg&&c.fusionOnly&&!c.ace&&!c.essenceMonster&&
-   !c.milestoneOnly&&!c.trainingReward&&!c.workshopOnly&&!c.hard&&cardAvailable(c.id));
+   !c.milestoneOnly&&!c.trainingReward&&!c.workshopOnly&&!c.hard&&
+   !c.enemyOnly&&!c.questOnly&&!c.lv1Exclusive&&!c.fateOnly&&cardAvailable(c.id));
   if(!c)throw Error('No craftable fusion');
   const prior=sharedShards(),coins=profile.coins,price=cardCost(c.id);
   const fusion={ok:craftCard(c.id),cost:cardCraftShardCost(c.id),
