@@ -173,6 +173,15 @@ for(const tier of stages){
    avgNpcLP:x.result.avgNpcLP,changedMatches:x.result.changedMatches}))},
   selected:best,
   holdout:{baseline,candidate,allCandidates,playerWinGain:winGain,playerLPImprovement:lpGain,improved}});
+ console.log('ARCANE_V84_DETAILED '+JSON.stringify({
+  tier,trainingBaseline:baseTrain,
+  trainingVariants:sorted.map(x=>({type:x.type,playerWins:x.result.playerWins,
+   games:x.result.games,avgNpcLP:x.result.avgNpcLP,
+   actualFusions:x.result.realFusionCount,changedMatches:x.result.changedMatches,
+   changedFusion:x.result.fusionChangedMatches})),
+  holdoutBaseline:baseline,holdoutVariants:allCandidates.map(x=>({type:x.type,...x.result})),
+  selected:best,holdoutQualified:improved
+ }));
  console.log('ARCANE_FUSION_DECKBUILDER_STAGE_V84 '+JSON.stringify({tier,
   snapshots:snapshots.filter(s=>s.tier===tier).length,selected:best,
   playerWinGain:winGain,lpGain,changed:candidate.changedMatches,improved}));
