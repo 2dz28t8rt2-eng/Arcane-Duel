@@ -108,3 +108,12 @@ Diese **KI-/Progressions-Roadmap** ersetzt nicht `docs/QA_BACKLOG_20261018.md` (
 4. **Spielstand- und Karriere-Abnahme**: bestehende Ränge, bezahlte Essenz und Splitterbestände erhalten. Vor Einführung jeder neuen Perk-Logik 12 unabhängige Karriereseeds, echte Inventare und VIII-/X-Fairness mitspielen. Alte `main` unangetastet.
 
 **Status:** Entscheidungen als Entwurf festgehalten; noch **keine** Revision der tatsächlichen Skill-Effekte und keine aktiven wirtschaftlichen Buffs. Erst Ergebnisse prüfen, dann konkret integrieren. 
+
+
+## Sprint v7.6 – erster Skill-Rework tatsächlich umgesetzt auf `development`
+
+**Starterperk `Grundausbildung` → `Kartenspürsinn` (Kartenverfügbarkeit statt generischer Startmonster-Rohwerte).** Der persistierte interne Upgrade-Key `starter` und alle 8 Ränge bleiben erhalten. Ein Upgrade-Rang verschiebt die Startkarten-Chance in Boostern um 5 Prozentpunkte zu bereits freigeschalteten Normalmonstern, ohne den seltenen Fusionsanteil oder die Kartenzahl zu erhöhen. 5er-Pack: erwartete Starter **4,0 ohne Perk → 2,0 auf Rang 8**. Bestehender Startmonster-ATK-/DEF-Flachbonus aus Kampfbasiswerten und Vorschau entfernt; keine Gratis-Karten oder Skillpunkte vergeben.
+
+**Abnahme vor `main`:** `tests/perk-card-sense-v76.test.cjs` (Rang-/Save-Migration, alle Boostergrößen, Source-/ACE-Gating, Stat-Gleichheit) und CI `perk-card-sense-v76.yml`; zusätzlich Abgleich tatsächlicher I–VIII-Karriereprogression. Durch den Wegfall des alten Flat-Stats können frühe Startmonster-Decks schwächer werden: Das ist **keine bereits bestätigte Balanceverbesserung**. Falls Karriere-Simulationen regressieren, als Versionierungs- und Tuningproblem behandeln und nicht ungeprüft freigeben.
+
+**Noch offen:** Splitter als sinnvolle Wahlwährung, mehr stufengerechte Drops und der weitere Rollen-Skill-Rework; siehe `PROGRESSION_SHARDS_SKILLS_REVAMP_V76.md`.
