@@ -1,0 +1,58 @@
+name: Arcane Duel – Earned Shard AI Training v7.8
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-earned-shard-training-v78.cjs'
+      - '.github/workflows/ai-earned-shard-v78.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  earned-viii-shard-research-holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax-check shard economy and independent AI evaluations
+        run: |
+          node --check assets/game.js
+          node --check tests/shard-rework-v77.test.cjs
+          node --check tests/ai-earned-shard-training-v78.cjs
+      - name: Gate AI training on real shard-economy and save compatibility checks
+        run: |
+          node --test tests/shard-rework-v77.test.cjs tests/perk-card-sense-v76.test.cjs tests/lategame-monsters-v71.test.cjs
+      - name: Earn real tournament progress from zero through stage VI
+        env:
+          ARCANE_CAREER_RUNS: '8'
+          ARCANE_CAREER_TIER_ATTEMPTS: '16'
+        run: node tests/ai-career-soul-bridge-v67.cjs
+      - name: Qualify genuine seventh-stage test inventories
+        env:
+          ARCANE_PILOT_TRAIN_SEEDS: '8'
+          ARCANE_PILOT_HOLDOUT_SEEDS: '18'
+        run: node tests/ai-stage-vi-pilot-v68.cjs
+      - name: Qualify eighth-stage test inventories with actual VII first-win rewards
+        env:
+          ARCANE_V74_TRAIN_SEEDS: '4'
+          ARCANE_V74_HOLD_SEEDS: '9'
+        run: node tests/ai-earned-stage-vii-v74.cjs
+      - name: Train real earned-vs-spent shard strategies; compare independently held-out VIII NPC
+        env:
+          ARCANE_V78_TRAIN_SEEDS: '1'
+          ARCANE_V78_HOLD_SEEDS: '3'
+        run: node tests/ai-earned-shard-training-v78.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-earned-shards-ai-v78
+          path: |
+            artifacts/ai-career-soul-bridge-v67.json
+            artifacts/ai-pilot-stage-vi-v68.json
+            artifacts/ai-earned-stage-vii-v74.json
+            artifacts/ai-earned-shard-training-v78.json
+          if-no-files-found: warn
+          retention-days: 30
