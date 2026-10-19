@@ -146,6 +146,10 @@
  const oldChoose=chooseAiAction;
  chooseAiAction=function(g,policy='balanced'){
   if(!sandbox||!isOwnTurn(g))return oldChoose(g,policy);
+  // Keep the original tournament boss's lawful ACE preparation, otherwise
+  // sandboxed training silently bypasses the very strategy it should test.
+  if(g.aiPhase==='summon'&&!g.summoned&&!g.pending)
+   window.ArcaneAiRevamp55?.prepareAce?.(g);
   if(g.aiPhase==='attacks'){
    const safe=rankAttacks(g);
    if(safe.length)return safe[0].action;
