@@ -3,7 +3,7 @@
 (()=>{
 const entries=[
  {name:'Sternenrichter',primary:'#e6d5ff',accent:'#8c6af3',deep:'#140b34',symbol:'✧',motto:'Das Urteil der Sterne',kind:'Sternenstaub'},
- {name:'Goldener Phönix',primary:'#ffe7a0',accent:'#ff872d',deep:'#45161a',symbol:'✺',motto:'Wiedergeburt im Feuer',kind:'Glut'},
+ {name:'Himmlischer Löwenwächter',primary:'#ffe7a0',accent:'#ff872d',deep:'#45161a',symbol:'✺',motto:'Der goldene Eid des Himmels',kind:'Sonnenlicht'},
  {name:'Schicksalsdrache',primary:'#b0f0ff',accent:'#4f8be5',deep:'#0b203d',symbol:'◇',motto:'Hüter der Zeitströme',kind:'Kristalle'},
  {name:'Ewigkeitswächter',primary:'#f7dca8',accent:'#72cfc1',deep:'#123a37',symbol:'⌛',motto:'Der unbewegliche Eid',kind:'Zeitstaub'},
  {name:'Sonnenseraph',primary:'#fff9c4',accent:'#efb648',deep:'#47331a',symbol:'☼',motto:'Sechs Flügel des Morgens',kind:'Federn'},
