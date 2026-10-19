@@ -84,3 +84,7 @@
 - [x] Runengeist der Schwelle, Fusions-ID 695: SVG durch echtes WebP ersetzt.
 - [ ] Weitere neun Schicksalsmonster als einzelne originäre WebP-Illustrationen erstellen und integrieren.
 - [ ] Visuelle Stil-/Crop-Abnahme aller drei neuen Motive, weitere fünf ursprüngliche QA-Artworkfälle (Eibenwächter usw.) offen.
+
+## 19.10.2026 · zehn Fate-Artworks integriert
+- [x] Die zehn Schicksalsmonster erhalten jeweils ein individuelles lokales WebP; `ArcaneFateVisuals.artFor()` und `dataOf(fate)` sowie das Fate-Kino greifen auf **dieselben** zehn Quellen zu. Mit Leerenorakel und Runengeist sind damit alle zwölf konkreten v5.5-Bildfälle als Dateien integriert.
+- [ ] Manueller visueller Crop und Stilvergleich auf Smartphone und Desktop. Die zusätzlichen fünf älteren QA-Artworks und Eiman-Deckgrafiken bleiben offen.

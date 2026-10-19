@@ -87,3 +87,20 @@ Im **development**-Repository liegen jetzt drei neue Originalillustrationen als 
 - `assets/custom-art/flagship/runengeist-der-schwelle.webp` – Runengeist der Schwelle, **bestehende** Fusions-ID 695.
 
 Die neuen Motive ersetzen konkrete frühere generische Grafiken; Namen, Level, Werte, Fusionen, Decks und alte Spielstände bleiben unverändert. Ein einzelner GitHub-Actions-Import validierte Eingabeauflösung (mindestens 900 × 1200), WebP-Format und Dateigröße. Die übrigen **neun** Schicksalsmonster benötigen weiterhin eigene Rasterillustrationen; die ursprünglichen SVG-Darstellungen bleiben dort vorläufig erhalten. Eine manuelle künstlerische Abnahme ist unabhängig von bestandenen Code-Tests sinnvoll.
+
+## Artwork: vollständiges Zehnerpaket Schicksalsmonster (19.10.2026)
+Die bislang zehn prozeduralen `data:image/svg+xml`-Artworks wurden **alle** durch zehn verschiedene hochwertige eigenständige WebP-Illustrationen unter `assets/custom-art/fate/` ersetzt:
+- 1. `sternenrichter.webp`
+- 2. `goldener-phoenix.webp`
+- 3. `schicksalsdrache.webp`
+- 4. `ewigkeitswaechter.webp`
+- 5. `sonnenseraph.webp`
+- 6. `astralgreif.webp`
+- 7. `nebelkaiser.webp`
+- 8. `kometenbestie.webp`
+- 9. `himmelsarchon.webp`
+- 10. `kosmischer-titan.webp`
+
+`ArcaneFateVisuals.artFor(i)` liefert jetzt für jeden Index 0–9 die lokale Rasterdatei. Die identische Bildquelle wird auch von `dataOf(... fate:true)` in normalen Kartenansichten und vom Fate-Schicksalszug-Kino verwendet. Keine Änderung an Fate-Karten-IDs, Stats, Ziehregeln oder Kampfmechanik. Die Dateien sind mit der Bildimport-Pipeline einzeln geprüft (Hochformat, Mindestauflösung, echtes WebP). Das ursprüngliche SVG-Fallback bleibt im Quellcode nur als nicht aktiv verwendete Reserve erhalten.
+
+**Ergebnis der Artwork-Bereinigung v5.6:** Leerenorakel, Runengeist der Schwelle und alle zehn Schicksalsmonster = 12/12 der im v5.5-Status konkret als offen benannten Bildfälle mit lokalen neuen Einzelmotiven. Die fünf zusätzlich im QA-Backlog genannten Karten (Eibenwächter, Rubin-Seraph, Waldgeist Veyra, Bastion Ferrus, Eisenzahn) und etwaige Eiman-Bossgrafiken sind weiterhin gesondert zu prüfen.
