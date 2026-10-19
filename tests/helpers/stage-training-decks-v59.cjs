@@ -24,7 +24,7 @@ function makeTrainingDeck(catalogue,tier,style,variant='normal'){
   if(!c||c.retired||c.hard||c.ace||c.enemyOnly||c.essenceMonster||
    c.lv1Exclusive||c.workshopOnly||c.fateOnly||c.level<1||c.level>levelCap)
    return false;
-  if(starters.has(c.id))return true;
+  if(starters.has(c.id)||startFusions.includes(c.id))return true;
   return Number.isInteger(c.source)&&c.source>=0&&c.source<=maxSource;
  };
  const role=c=>c.role||c.roleOverride||'';
