@@ -34,3 +34,13 @@ test('sandboxed scoring completes legal full AI turns across all 10 opponents',(
  const r=run(`(()=>{const outcomes=[];ArcaneAiLearning56.setSandbox(ArcaneAiLearning56.PRESETS.alchemist,true);for(let tier=1;tier<=10;tier++){const g=createGame({mode:'pve',context:'tournament',opponentId:tier,seed:1093+tier});let failure=null,actions=0;try{for(let i=0;i<8&&g.winner===null;i++){aiTurn(g,'balanced');actions++;}}catch(e){failure=String(e)}outcomes.push({tier,actions,failure});}ArcaneAiLearning56.setSandbox(null);return outcomes;})()`,180000);
  assert.equal(r.length,10);for(const x of r){assert.equal(x.failure,null,'tier '+x.tier+': '+x.failure);assert.ok(x.actions>0);}
 });
+
+test('attack phase offers safe, actually attackable public targets, not hidden information',()=>{
+ const r=run(`(()=>{const g=createGame({mode:'pve',context:'tournament',opponentId:9,seed:6409}),p=g.players[1],e=g.players[0];g.active=1;g.turn=9;g.aiPhase='attacks';g.pending=null;g.summoned=true;p.field.fill(null);e.field.fill(null);const a=newInstance(g,p.originalDeck[0],1),d=newInstance(g,e.originalDeck[0],0);a.mode='atk';a.attacked=false;a.switched=false;a.card.atk=5000;d.mode='def';d.card.def=100;p.field[0]=a;e.field[2]=d;const candidates=ArcaneAiLearning56.legalAttacks(g);return {count:candidates.length,target:candidates[0]?.action.di,attacker:candidates[0]?.action.ai,type:candidates[0]?.action.type};})()`);
+ assert.ok(r.count>0,'One clearly stronger attacker must have a legal attack');
+ assert.equal(r.target,2);assert.equal(r.attacker,0);assert.equal(r.type,'attack');
+});
+test('a defensive wall cannot be targeted with an unsafe suicidal attack',()=>{
+ const r=run(`(()=>{const g=createGame({mode:'pve',context:'tournament',opponentId:9,seed:6410}),p=g.players[1],e=g.players[0];g.active=1;g.turn=9;g.aiPhase='attacks';g.pending=null;p.field.fill(null);e.field.fill(null);const a=newInstance(g,p.originalDeck[0],1),d=newInstance(g,e.originalDeck[0],0);a.mode='atk';a.attacked=false;a.switched=false;a.card.atk=100;d.mode='def';d.card.def=5000;p.field[0]=a;e.field[2]=d;return ArcaneAiLearning56.legalAttacks(g).length;})()`);
+ assert.equal(r,0);
+});
