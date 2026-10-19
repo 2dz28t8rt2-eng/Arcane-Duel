@@ -63,12 +63,30 @@
   combatant:'Runenblick: Zieht sofort eine zusätzliche Karte oder erzeugt Schildpunkte.',
   resonator:'Runenblick: Zieht sofort eine zusätzliche Karte oder erzeugt Schildpunkte.'
  };
- for(const c of RPG_FUSIONS){
-  if(!c?.rpg||!c.fusionOnly||c.ace||c.lv1Exclusive||c.essenceMonster||
-     c.retired||c.level<3||c.level>5)continue;
-  const desc=rules[c.role]||rules.combatant;
-  if(!String(c.desc||'').includes('Niedrigstufige Fusion:'))
-   c.desc=String(c.desc||'')+' Niedrigstufige Fusion: '+desc;
- }
+ // Keep the authored card descriptions unchanged. Show the extra tactical
+ // ability separately in the expanded inspector, including deck previews.
+ const previousPreview=renderCardPreview;
+ renderCardPreview=function(...args){
+  const response=previousPreview(...args);
+  const host=$('largeCardPreview'),g=game;
+  host?.querySelector('.ad55-utility-help')?.remove();
+  if(!host||!g||uiMode!=='duel')return response;
+  const p=g.players[g.active],sel=g.selection;
+  const c=g.pending?.card||
+   (sel?.type==='field'?p.field[sel.idx]:
+    sel?.type==='hand'?p.hand.find(x=>x.uid===sel.uid):null)||
+   (enemyPreviewIndex!==null?g.players[1-g.active].field[enemyPreviewIndex]:null);
+  const d=c&&dataOf(c);
+  if(!d?.fusionOnly||d.ace||d.lv1Exclusive||d.essenceMonster||
+     d.level<3||d.level>5)return response;
+  const r=type(c),section=document.createElement('section');
+  section.className='ad53-role-help ad55-utility-help';
+  const header=document.createElement('h4');header.textContent='✦ TAKTISCHER FUSIONSEFFEKT';section.append(header);
+  const paragraph=document.createElement('p');
+  paragraph.textContent=rules[r]||rules.combatant;
+  section.append(paragraph);
+  host.append(section);
+  return response;
+ };
  window.ArcaneFusionUtility55=Object.freeze({version:'5.5.0',eligible,grant,rules});
 })();
