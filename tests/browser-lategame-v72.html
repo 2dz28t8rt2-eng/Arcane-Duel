@@ -1,0 +1,40 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Arcane Duel · v7.2 16-Artworks Browser QA</title></head>
+<body data-lategame-art-test="running">
+<h1>16 Endgame-Artworks · echte Browser-Dekodierung und Monsterlexikon</h1><pre id="result">Prüfung läuft…</pre>
+<iframe id="game" src="../index.html" title="Spiel"></iframe>
+<iframe id="lexicon" src="../collection-v3.html" title="Monsterlexikon"></iframe>
+<script>
+(async()=>{
+ const errors=[],details=[];
+ const check=(condition,description)=>{details.push((condition?'OK: ':'FEHLER: ')+description);if(!condition)errors.push(description);};
+ const untilLoaded=id=>new Promise((resolve,reject)=>{
+  const frame=document.getElementById(id);
+  frame.addEventListener('load',()=>resolve(frame.contentWindow),{once:true});
+  frame.addEventListener('error',()=>reject(new Error(id+' could not load')),{once:true});
+ });
+ try{
+  const [game,lex]=await Promise.all([untilLoaded('game'),untilLoaded('lexicon')]);
+  const data=game.eval("CARDS.slice(716,732).map(c=>({id:c.id,level:c.level,name:c.name,art:c.art,customArt:c.customArt}))");
+  check(data.length===16,'Genau 16 registrierte Endgame-Monster');
+  check(data.every((c,i)=>c.id===716+i),'Stabile IDs 716 bis 731');
+  check(data.every(c=>c.art===c.customArt),'Jedes Originalbild ersetzt den Generator');
+  const gallery=[...lex.document.querySelectorAll('#cards article.monster')];
+  check(gallery.length===376,'Das aktuelle Lexikon rendert 376 Einträge');
+  const galleryNames=new Set(gallery.map(el=>el.querySelector('h3')?.textContent));
+  check(data.every(c=>galleryNames.has(c.name)),'Alle 16 Namen in der Monsterkollektion gefunden');
+  const results=await Promise.all(data.map(c=>new Promise(resolve=>{
+   const img=new Image();img.onload=()=>resolve({id:c.id,ok:img.naturalWidth>500&&img.naturalHeight>500,w:img.naturalWidth,h:img.naturalHeight});
+   img.onerror=()=>resolve({id:c.id,ok:false,w:0,h:0});img.src='../'+c.art;
+  })));
+  check(results.every(r=>r.ok),'16 Original-WebPs im echten Chromium dekodiert: '+results.filter(r=>!r.ok).map(r=>r.id).join(','));
+  const layouts=game.eval("CARDS.slice(716,732).map(c=>({id:c.id,html:fullCardHtml({id:c.id}),frame:ArcaneLevelFrames.resolve(c)}))");
+  check(layouts.every(x=>x.html.includes('ad-level-normal-'+String(x.frame.level).padStart(2,'0'))),'Echte Kartenrenderer verwenden die individuellen Level-Rahmen 7–10');
+  check(layouts.every(x=>x.html.includes('src=\"assets/custom-art/lategame-v71/')),'Handkarten zeigen die hochgeladenen Original-Artworks');
+  check(data.every(c=>gallery.find(el=>el.querySelector('h3')?.textContent===c.name)?.querySelector('img')?.getAttribute('src')===c.art),
+   'Alle 16 Monsterlexikon-Bildpfade stimmen mit dem Spielkatalog überein');
+ }catch(e){check(false,String(e.stack||e));}
+ const ok=errors.length===0;document.getElementById('result').textContent=details.join('\n');
+ document.body.dataset.lategameArtTest=ok?'pass':'fail';
+})();
+</script>
+</body></html>
