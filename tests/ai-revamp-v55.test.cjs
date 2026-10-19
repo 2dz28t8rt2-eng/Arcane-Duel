@@ -67,3 +67,8 @@ test('every tournament opponent AI completes repeated turns without an invalid a
  for(const x of summary)assert.equal(x.error,null,'tier '+x.tier+': '+x.error);
  assert.ok(summary.every(x=>x.actions>0));
 });
+
+test('final boss switches strategy to counter public board threats without reading the player's hand',()=>{
+ const rows=audit("(()=>{const p=ArcaneAiRevamp55.profileFor(10);const g={players:[{field:Array(5).fill(null),hand:[{id:99999}]},{field:Array(5).fill(null)}]};const mode=()=>ArcaneAiRevamp55.counterMode(g,p);const open=mode();g.players[0].field[0]={id:1,roleOverride:'predator',fusion:false};g.players[0].field[1]={id:1,roleOverride:'predator',fusion:false};g.players[0].field[2]={id:1,roleOverride:'predator',fusion:false};const swarm=mode();g.players[0].field.fill(null);g.players[0].field[0]={id:1,roleOverride:'guardian',mode:'def'};g.players[0].field[1]={id:1,roleOverride:'soul',mode:'def'};const wall=mode();return {open,swarm,wall};})()");
+ assert.deepEqual(rows,{open:'attack',swarm:'defense',wall:'fusion'});
+});
