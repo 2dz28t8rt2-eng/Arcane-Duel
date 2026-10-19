@@ -21,7 +21,8 @@ const playerStyles=[
  {name:'predator',policy:'offensive'},
  {name:'guardian',policy:'guardian'},
  {name:'fusion',policy:'economy'},
- {name:'balanced',policy:'balanced'}
+ {name:'balanced',policy:'balanced'},
+ {name:'soul',policy:'guardian'}
 ];
 const variants=['normal','invested'];
 const OPTIONS=[
