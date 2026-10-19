@@ -33,7 +33,7 @@ for(const initial of origins)for(const farm of farmBudgets){
  }
  legal();
  for(let i=0;i<farm;i++){
-  const g=createGame({mode:'pve',context:'free',opponentId:7,
+  const g=createGame({mode:'pve',context:'free',opponentId:6,
    seed:740123+i*9413+farm*3181,starter:i%2,difficulty:'easy',
    deck:[...profile.activeDeck],fusionDeck:[...profile.fusionDeck],
    enhancements:profile.enhancements});
@@ -92,7 +92,7 @@ function match(s,policy,seed,starter,recordPromotion=false){
   if(!profile.cleared.includes(6)||profile.cleared.includes(7)||
    mainDeckError(player)||fusionDeckError(fusion)||!legal(player)||!legal(fusion))
    throw Error('Invalid stage VI arrival snapshot');
-  const g=createGame({mode:'pve',context:'tournament',opponentId:6,
+  const g=createGame({mode:'pve',context:'tournament',opponentId:7,
    id:'pilot-v74-${seed}-${starter}',seed:${seed},starter:${starter},
    deck:[...player],fusionDeck:[...fusion],enhancements:profile.enhancements,
    difficulty:'easy'});
@@ -134,7 +134,7 @@ function evaluate(policyMode,seeds,phase,promote=false){
   legitimateStageVIIIWins:rows.filter(x=>x.reachedVIII).length,
   perCareer:tiers.map(s=>({careerId:s.sourceCareer,farm:s.farm,original:s.policy,
    wins:rows.filter(x=>x.careerId===s.sourceCareer&&x.farm===s.farm&&x.winner===0).length,
-   games:rows.filter(x=>x.careerId===s.careerId).length})),
+   games:rows.filter(x=>x.careerId===s.sourceCareer&&x.farm===s.farm).length})),
   stageVIIISnapshots:promote?rows.filter(x=>x.stageVIII).slice(0,16).map(r=>({
    sourceCareer:r.careerId,seed:r.seed,starter:r.starter,
    policy:r.policy,profile:r.stageVIII})):[]
@@ -153,7 +153,7 @@ const winGain=candidate.playerWins-base.playerWins;
 const lpGain=candidate.avgLP-base.avgLP;
 const qualified=chosen!=='original'&&winGain>=4&&lpGain>=0;
 const report={schema:'real-earned-stage-vii-player-and-economy-v74',
- realEarnedInventories:tiers.length,policyCandidates:options,
+ realEarnedInventories:origins.length,policyCandidates:options,
  trainPerInventory:train,holdPerInventory:hold,
  selectedBeforeHoldout:chosen,trainingBaseline:baselineTrain,
  rankedTraining:ranked.map(r=>({style:r.style,score:r.fitness,
