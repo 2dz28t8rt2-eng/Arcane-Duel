@@ -1,15 +1,17 @@
 # Arcane Duel · 16 Endgame-Normalmonster · v7.1
 
-**Status:** Fertige Daten im Branch `development`, alle 16 hochauflösenden Originalillustrationen liegen im einmaligen Import-ZIP vor. Solange das ZIP nicht in GitHub hochgeladen ist, bleiben die 16 neuen Monster bewusst **nicht aktiv**: Das Spiel verbietet aktive SVG-/Platzhalterartworks.
+**Status: Die 16 Originalartworks sind erfolgreich auf `development` importiert und die 16 Karten sind im Spiel aktiviert.** Der vorherige Hinweis auf einen ausstehenden ZIP-Upload ist erledigt.
 
-## Automatischer 1-Datei-Import der Originalillustrationen
+## Verifizierter Import und Anzeige
 
-1. Öffne [artwork-import auf development](https://github.com/2dz28t8rt2-eng/Arcane-Duel/tree/development/artwork-import).
-2. Wähle **Add file → Upload files**.
-3. Lade exakt die Datei **`lategame16-v71.zip`** an diesem Ort hoch (im Download findest du dieselbe Datei zunächst als `Arcane_Duel_Lategame_v71_Artwork_Import.zip`, benenne sie vorher in `lategame16-v71.zip` um).
-4. Commit **auf development**, nicht auf main. Der Workflow [Install Approved Lategame 16 Art v7.1](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/workflows/import-lategame-art-v71.yml) validiert alle 16 SHA256-Checksummen und WebP-Dateien, schreibt die Dateien nach `assets/custom-art/lategame-v71/`, schaltet danach die Karten frei und führt den Engine-Test aus.
+- Quellarchiv: `artwork-import/lategame16-v71.zip`; das GitHub-Importprogramm hat **alle 16 Dateien mit SHA-256 überprüft** und nach `assets/custom-art/lategame-v71/late-01.webp` bis `late-16.webp` installiert.
+- Laufzeitkatalog: `assets/lategame-monsters-v71.js` setzt jetzt `ARTWORK_INSTALLED=true`, erzeugt **16 spielbare Normalmonster mit festen IDs 716–731** und hinterlegt das jeweilige Original-WebP sowohl als `art` als auch als `customArt`. Der vollständige Katalog enthält nun 732 Kartendefinitionen.
+- Vorlagen: Das Spiel verwendet die bestehenden Standard-Rahmen `normal-04` für Level 7–8 und `normal-05` für Level 9–10, plus die eigenen Stufenornamente `normal-lv07.svg` bis `normal-lv10.svg`. Keine neuen generischen Ersatzbilder.
+- Die normalen Spielansichten (**Hand, Spielfeld, große Kartenansicht**) verweisen auf das Originalbild der jeweiligen Monster-ID. Der Browser lädt den v7.1-Katalog mit aktualisiertem Versionsparameter, um einen veralteten Cache nach dem Import zu vermeiden.
+- Auch die separate [Monsterkollektion](../collection-v3.html) enthält jetzt die 16 Endgame-Monster mit Original-Artworks. Ihr Bestand wurde von 360 auf **376** Einträge erweitert.
+- **GitHub CI:** Der Workflow `Arcane Duel – Lategame 16 Card QA v7.1` prüft Kartenwerte, Rollen, Source-/Drop-Freischaltungen, Bilddateien, echte Card-HTML-Ausgabe, Rahmen, Bildpfade und die separate Monsterkollektion. [Integrationsprüfungen erfolgreich](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39267810672).
 
-**Achtung:** Lade das ZIP als einzelnes Dateiobjekt hoch. Nicht zuerst entpacken oder die Bilddateinamen verändern. Nach dem Import müssen **16 Karten ab ID 716 bis ID 731** geladen werden und `window.ArcaneLateGameV71.artworksInstalled === true` gelten.
+**Zuordnung:** `late-01.webp` entspricht Monster **716**, danach aufsteigend bis `late-16.webp` = **731**. Es gibt **16 unterschiedliche WebP-Dateien**; keine Bilddatei wird für zwei der neuen Karten wiederverwendet. Die ZIP-Checksummen bestätigen die Integrität der gelieferten Dateien. Eine künstlerische Motivbewertung lässt sich von den Strukturtests allein nicht ableiten.
 
 ## Werte und Progression
 
@@ -43,7 +45,7 @@ Jede Karte wird im Pool des zugehörigen besiegten Turniergegners, dessen Charak
 - `assets/lategame-monsters-v71.js`: fertige 16 Kartenobjekte mit Quellen und Mechaniken.
 - `assets/lategame-cards-v71.json`: editierbarer Datenkatalog.
 - `tests/lategame-monsters-v71.test.cjs`: Daten-, Deck-, Quellen- und Artwork-Tests.
-- `artwork-import/lategame16-v71.zip`: einmalig durch Nutzer im GitHub-Repo hochzuladendes Quellarchiv.
+- `artwork-import/lategame16-v71.zip`: erfolgreich hochgeladenes und validiertes Originalarchiv.
 - `tools/install-lategame-art-v71.py`: sicheres Importprogramm.
 - `.github/workflows/import-lategame-art-v71.yml`: automatischer Artwork-Import.
 
