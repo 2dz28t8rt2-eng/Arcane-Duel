@@ -162,7 +162,7 @@ for(let tier=1;tier<=maxTier;tier++){
  const challenger=stats(pairs(tier,holdN,selected.weights,'hold'));
  const winGain=challenger.npcWins-baseline.npcWins;
  const lpGain=challenger.meanLPMargin-baseline.meanLPMargin;
- const robust=winGain>0&&challenger.byStyle.every((s,i)=>
+ const robust=winGain>=2&&lpGain>=0&&challenger.byStyle.every((s,i)=>
   s.npcWins>=baseline.byStyle[i].npcWins-2);
  const deckInfo=STYLES.map(style=>variants.map(variant=>{
   const d=deckPairs.get(`${tier}:${style}:${variant}`);
