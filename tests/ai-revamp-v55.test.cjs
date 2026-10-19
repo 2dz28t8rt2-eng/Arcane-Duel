@@ -10,12 +10,14 @@ test('all ten tournament opponents follow the intended strategy rotation',()=>{
   ['leicht','leicht','leicht','mittel','mittel','mittel','schwer','schwer','schwer','finale']);
 });
 test('tournament decks are legal, contain ACE and final opponent has no Lv3 filler',()=>{
- const rows=audit("Array.from({length:10},(_,i)=>{const tier=i+1,g=createGame({mode:'pve',context:'tournament',opponentId:tier,difficulty:'easy'}),p=g.players[1],ace=ACE_CARD_IDS[tier],copies=p.originalDeck.filter(x=>x===ace).length;return {tier,count:p.originalDeck.length,valid:!mainDeckError(p.originalDeck,RPG_BASE_CARDS.map(c=>c.id)),min:Math.min(...p.originalDeck.map(x=>CARDS[x].level)),aceInMain:copies,aceInFusion:p.fusionDeck.includes(ace),fusionAce:CARDS[ace].fusionOnly,distinct:new Set(p.originalDeck).size,power:p.power};})");
+ const rows=audit("Array.from({length:10},(_,i)=>{const tier=i+1,g=createGame({mode:'pve',context:'tournament',opponentId:tier,difficulty:'easy'}),p=g.players[1],ace=ACE_CARD_IDS[tier],copies=p.originalDeck.filter(x=>x===ace).length;return {tier,count:p.originalDeck.length,valid:!mainDeckError(p.originalDeck,RPG_BASE_CARDS.map(c=>c.id)),min:Math.min(...p.originalDeck.map(x=>CARDS[x].level)),max:Math.max(...p.originalDeck.map(x=>CARDS[x].level)),cap:ArcaneAiRevamp55.profileFor(tier).cap,aceInMain:copies,aceInFusion:p.fusionDeck.includes(ace),fusionAce:CARDS[ace].fusionOnly,distinct:new Set(p.originalDeck).size,power:p.power};})");
  for(const r of rows){
   assert.equal(r.count,40,'tier '+r.tier+' needs 40 cards');
   assert.equal(r.valid,true,'tier '+r.tier+' invalid deck '+JSON.stringify(r));
   assert.ok(r.aceInMain>0||r.aceInFusion,'tier '+r.tier+' missing ACE');
   assert.ok(r.distinct>=10,'tier '+r.tier+' has too little variety');
+  assert.ok(r.max<=r.cap,
+   'tier '+r.tier+' contains a card above its difficulty ceiling: '+JSON.stringify(r));
  }
  assert.ok(rows[9].min>=7,'Final boss must never bring Lv3 filler: '+JSON.stringify(rows[9]));
  console.log('AI_DECK_AUDIT',JSON.stringify(rows));
