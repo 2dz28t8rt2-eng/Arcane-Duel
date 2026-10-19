@@ -1,0 +1,32 @@
+name: Arcane Duel – Evolving Opponent AI v5.7
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-evolutionary-training-v57.cjs'
+      - '.github/workflows/ai-evolutionary-training-v57.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  learn-action-weights:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify combat legal-action and secrecy properties
+        run: node --test tests/ai-learning-v56.test.cjs
+      - name: Evolve candidate weights over 10 tournaments then evaluate disjoint holdout
+        env:
+          ARCANE_EVOLUTION_TRAIN_SEEDS: '5'
+          ARCANE_EVOLUTION_HOLDOUT_SEEDS: '8'
+          ARCANE_EVOLUTION_TIERS: '10'
+        run: node tests/ai-evolutionary-training-v57.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arcane-ai-evolved-weights-v57
+          path: artifacts/arcane-ai-evolution-v57.json
+          retention-days: 30
