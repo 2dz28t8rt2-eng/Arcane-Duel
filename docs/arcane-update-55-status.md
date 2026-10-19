@@ -5,18 +5,20 @@ Stand: 2026-10-19 · **nur development**, main unverändert.
 ## Implementiert
 
 ### Strategische KI: Gegner I bis X
-| Gegner | Grundstrategie | Stufe | Mindestlevel normaler Deckkarten |
+| Gegner | Grundstrategie | Stufe | Zulässige Basiskartenlevel |
 |---|---|---|---|
-| I | Angriff / Predator | leicht | 1 (effektive Auswahl im Test: mindestens 3) |
-| II | Verteidigung (Wächter + Seelenzehrer) | leicht | 1 (effektiv mindestens 4) |
-| III | Fusion / Resonanz | leicht | 2 (effektiv mindestens 7) |
-| IV | Angriff | mittel | 3 (effektiv mindestens 9) |
-| V | Verteidigung | mittel | 4 (effektiv mindestens 6) |
-| VI | Fusion | mittel | 4 (effektiv mindestens 7) |
-| VII | Angriff | schwer | 5 (effektiv mindestens 9) |
-| VIII | Verteidigung | schwer | 6 |
-| IX | Fusion | schwer | 7 |
-| X | adaptiver Mix | Finale | 8 (effektiv 10) |
+| I | Angriff / Predator | leicht | 1–4 |
+| II | Verteidigung (Wächter + Seelenzehrer) | leicht | 1–5 |
+| III | Fusion / Resonanz | leicht | 2–6 |
+| IV | Angriff | mittel | 3–7 |
+| V | Verteidigung | mittel | 4–8 |
+| VI | Fusion | mittel | 4–8 |
+| VII | Angriff | schwer | 5–9 |
+| VIII | Verteidigung | schwer | 6–9 |
+| IX | Fusion | schwer | 7–10 |
+| X | adaptiver Mix | Finale | 8–10 |
+
+Die Kartenlevel-Tabelle beschreibt die zulässigen Pools, nicht die erforderliche Mindeststufe jedes tatsächlich gezogenen Monsters. Es gibt sowohl eine Leveluntergrenze als auch eine Obergrenze. **Die ersten drei Gegner dürfen keine Endgame-Karten besitzen.**
 
 - Vollständige, regelkonforme 40er-Decks mit höchstens drei Exemplaren derselben Karte, ohne schwache Lv3-Füllkarten im Finale.
 - ACE-Fokus: Normale ACEs werden bis zu drei Mal im Hauptdeck angeboten; Fusions-ACEs sind sicher im Fusionsdeck. Erlaubte ACE-Fusionen werden mit Vorrang gewählt.
