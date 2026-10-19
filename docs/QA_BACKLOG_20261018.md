@@ -77,3 +77,10 @@
 - **Verteidiger-KI:** Die Heilreichweite von Wächtern beträgt jetzt exakt einen Feldplatz nach links oder rechts. Globale Wächterheilung war ein Balancefehler und wurde in Plan- und Aktionsprüfung korrigiert.
 - **C – weiterhin offen:** Drei Monsterillustrationen (Nebelkaiser, Leerenorakel, Runengeist der Schwelle) als externe Originalentwürfe erzeugt; **keines dieser Bilder ist bisher als lokale WebP-Kartengrafik integriert**. Kein C-Eintrag als abgeschlossen markieren.
 - **Regression:** Commit `f9bea3c` grün in Code-/Strategietests und Chrome-Smoke. `main` bleibt unangetastet.
+
+## Artwork: drei konkrete Quellen integriert (5.6)
+- [x] Nebelkaiser: echte individuelle hochformatige WebP-Illustration; im Schicksalszug und in Kartenansichten gleicher lokaler Pfad.
+- [x] Leerenorakel, Fusions-ACE-ID 322: neues eigenständiges WebP, Kollektion/Spiel-IDs bleiben erhalten.
+- [x] Runengeist der Schwelle, Fusions-ID 695: SVG durch echtes WebP ersetzt.
+- [ ] Weitere neun Schicksalsmonster als einzelne originäre WebP-Illustrationen erstellen und integrieren.
+- [ ] Visuelle Stil-/Crop-Abnahme aller drei neuen Motive, weitere fünf ursprüngliche QA-Artworkfälle (Eibenwächter usw.) offen.

@@ -79,3 +79,11 @@ Erst nach erfolgreichen Node- und Headless-Chromium-Tests auf dem aktuellen **de
 **Bildstand (nicht als integriert markiert):** Drei eigenständige Illustrationen zu *Nebelkaiser*, *Leerenorakel* und *Runengeist der Schwelle* wurden im verbundenen externen Bild-Workspace erzeugt, konnten aber in diesem Update noch nicht als lokale WebP-Dateien in das Repository übertragen und getestet werden. Im Spiel bleiben ihre bisherigen Motive. Auch die restlichen neun Schicksalsmonster und weitere offene Artworkfälle brauchen originale Einzelbilder und Bildabnahme.
 
 **Noch offen:** Realer manueller Karriere- und Quest-Durchlauf, Feinbalance, vollständige grafische Prüfung der neuen Beschwörungszentrale, Bildintegration und verbleibende Artworkfälle. Keine Änderungen an `main`.
+
+## Artwork-Integration 5.6: drei echte WebP-Motive
+Im **development**-Repository liegen jetzt drei neue Originalillustrationen als **lokale WebP-Dateien**:
+- `assets/custom-art/fate/nebelkaiser.webp` – Nebelkaiser, Schicksalsmonster Nr. 7 (Index 6). `ArcaneFateVisuals.artFor(6)` verwendet dieselbe neue Datei für große und kleine Fate-Karten sowie die Schicksalszug-Animation.
+- `assets/custom-art/flagship/leerenorakel.webp` – Leerenorakel, **bestehende** Fusions-ACE-ID 322; Karte und Kollektion konsistent.
+- `assets/custom-art/flagship/runengeist-der-schwelle.webp` – Runengeist der Schwelle, **bestehende** Fusions-ID 695.
+
+Die neuen Motive ersetzen konkrete frühere generische Grafiken; Namen, Level, Werte, Fusionen, Decks und alte Spielstände bleiben unverändert. Ein einzelner GitHub-Actions-Import validierte Eingabeauflösung (mindestens 900 × 1200), WebP-Format und Dateigröße. Die übrigen **neun** Schicksalsmonster benötigen weiterhin eigene Rasterillustrationen; die ursprünglichen SVG-Darstellungen bleiben dort vorläufig erhalten. Eine manuelle künstlerische Abnahme ist unabhängig von bestandenen Code-Tests sinnvoll.

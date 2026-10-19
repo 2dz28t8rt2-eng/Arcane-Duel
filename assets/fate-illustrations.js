@@ -35,9 +35,12 @@ const figures=[
  // Cosmic titan: four arms, open celestial heart and gravity rings.
  '<path d="M134 747Q91 546 173 424L281 390 384 390 495 423Q555 563 508 748Z" fill="url(#stone)" stroke="#eccbff" stroke-width="18"/><path d="M184 455Q80 450 71 601M465 450Q580 457 572 606M207 512Q97 601 133 732M444 514Q554 604 511 734" stroke="#a873f7" stroke-width="36" fill="none" opacity=".67"/><path d="M270 391L248 257 326 185 398 257 380 393Z" fill="url(#armor)" stroke="#e9c1ff" stroke-width="14"/><path d="M268 282L223 192 306 217 326 126 357 213 425 183 383 286Z" fill="url(#gold)" stroke="#fff1fc" stroke-width="10"/><path d="M272 335L310 331M343 330L382 336" stroke="#fff" stroke-width="15"/><circle cx="323" cy="532" r="95" fill="#13072e" stroke="#efd1ff" stroke-width="18"/><circle cx="323" cy="532" r="65" fill="url(#cosmos)" stroke="#fff" stroke-width="8"/><ellipse cx="323" cy="532" rx="107" ry="45" transform="rotate(-28 323 532)" fill="none" stroke="#daa5ff" stroke-width="9"/><path d="M201 651L182 760M446 650L460 756" stroke="#dec0ff" stroke-width="34"/>'
 ];
+const approvedRaster=Object.freeze({6:'assets/custom-art/fate/nebelkaiser.webp'});
 const cache=new Map();
 function artFor(i){
  if(!Number.isInteger(i)||i<0||i>=entries.length)return null;
+ // The new portrait is shared by the card, field preview and Fate cinematic.
+ if(approvedRaster[i])return approvedRaster[i];
  if(cache.has(i))return cache.get(i);
  const x=entries[i],p=x.primary,a=x.accent,d=x.deep;
  const particles=Array.from({length:70},(_,k)=>{const angle=(k*137.508+i*31)*Math.PI/180,rad=65+(k*71)%310;const px=320+Math.cos(angle)*rad,py=455+Math.sin(angle)*rad*1.45;return '<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+(k%8===0?3.5:1.5)+'" fill="'+(k%3===0?p:'#fff')+'" opacity="'+(.24+(k%5)*.14)+'"/>';}).join('');
@@ -59,5 +62,5 @@ function artFor(i){
  '<path d="M320 26L340 48 320 70 300 48Z" fill="'+p+'"/></svg>';
  const url='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);cache.set(i,url);return url;
 }
-window.ArcaneFateVisuals={version:'royal-1',entries,artFor};
+window.ArcaneFateVisuals={version:'royal-2',entries,artFor,approvedRaster};
 })();
