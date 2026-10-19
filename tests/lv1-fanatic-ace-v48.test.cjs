@@ -44,7 +44,7 @@ test('every Lumira apparition has a distinct hopeful-to-disillusioned response',
  assert.ok(r.every(s=>s[1].length>70&&s[2].length>45));
 });
 
-test('chapter V keeps Lumira on the battlefield and does not sacrifice her on turn one',()=>{
- const r=stage(5).run("(()=>{const g=game,p=g.players[1],uid=g.lv1FanaticAce.uid;g.active=1;const action=chooseAiAction(g),prepared=applyAiAction(g,action),placed=prepared?applyAiAction(g,chooseAiAction(g)):null;return {type:action.type,lumiraChosen:action.uid===uid,prepared:!!prepared,lumiraOnField:p.field.some(c=>c?.uid===uid),sacrificed:p.graveyard.some(c=>c.uid===uid),placed:!!placed};})()");
- assert.deepEqual(r,{type:'normal',lumiraChosen:true,prepared:true,lumiraOnField:true,sacrificed:false,placed:true});
+test('chapter V sacrifices the sealed Lumira into her mandatory Level-5 corruption',()=>{
+ const r=stage(5).run("(()=>{const g=game,p=g.players[1],uid=g.lv1FanaticAce.uid;g.active=1;const action=chooseAiAction(g),prepared=applyAiAction(g,action),placed=prepared?applyAiAction(g,chooseAiAction(g)):null;return {type:action.type,lumiraChosen:action.uids?.includes(uid)===true,prepared:!!prepared,lumiraOnField:p.field.some(c=>c?.uid===uid),sacrificed:p.graveyard.some(c=>c.uid===uid),fallOnField:p.field.some(c=>c?.id===ArcaneLv1Saga.corruptedId),placed:!!placed};})()");
+ assert.deepEqual(r,{type:'fusion',lumiraChosen:true,prepared:true,lumiraOnField:false,sacrificed:true,fallOnField:true,placed:true});
 });
