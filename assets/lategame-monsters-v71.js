@@ -267,6 +267,13 @@
     "art": "assets/custom-art/lategame-v71/late-16.webp"
   }
 ];
+ if(!ARTWORK_INSTALLED){
+  window.ArcaneLateGameV71=Object.freeze({version:'7.1.0',count:0,
+   plannedCount:specs.length,status:'artwork-import-pending',
+   artworksInstalled:false,roster:Object.freeze([]),
+   proposed:Object.freeze(specs)});
+  return; // No active unillustrated cards: existing gameplay stays intact.
+ }
  const roster=[];
  for(const spec of specs){
   const {id,art,element,kind,color,name,level,role,atk,def,source,requiredTier,desc,effectText}=spec;
