@@ -29,14 +29,14 @@ function mutate(parent,level){
  return weights;
 }
 let played=0,changed=0;
-function match(tier,weights,seed){
+function match(tier,weights,seed,humanPolicy='balanced'){
  const mode=weights?JSON.stringify(weights):'null';
  const result=vm.run(`(()=>{
   ArcaneAiLearning56.setSandbox(${mode},${!!weights});
   const g=createGame({mode:'pve',context:'tournament',opponentId:${tier},
    seed:${seed},difficulty:'easy'});
   let error=null;
-  try{simulateGame(g,'balanced','balanced');}catch(e){error=String(e);}
+  try{simulateGame(g,'${humanPolicy}','balanced');}catch(e){error=String(e);}
   ArcaneAiLearning56.setSandbox(null);
   return {win:g.winner===1,loss:g.winner===0,turns:g.turn,
    ownLP:g.players[1].lp,enemyLP:g.players[0].lp,error};
@@ -45,19 +45,21 @@ function match(tier,weights,seed){
  if(result.error)throw Error('Tournament '+tier+', seed '+seed+': '+result.error);
  return result;
 }
-const scoreResults=(g,tier,seeds)=>{
+const scoreResults=(g,tier,seeds,policies=['balanced'])=>{
  let wins=0,delta=0,turns=0;
- for(const seed of seeds){
-  const r=match(tier,g,seed);
+ for(const humanPolicy of policies)for(const seed of seeds){
+  const r=match(tier,g,seed,humanPolicy);
   wins+=r.win?1:0;
   delta+=r.ownLP-r.enemyLP;
   turns+=r.turns;
  }
- return {wins,margin:Math.round(delta/seeds.length),avgTurns:Math.round(10*turns/seeds.length)/10};
+ const count=seeds.length*policies.length;
+ return {wins,margin:Math.round(delta/count),avgTurns:Math.round(10*turns/count)/10,
+  testedHumanPolicies:policies.length};
 };
 const fingerprint=w=>dimensions.map(k=>String(w[k])).join(':');
-const report={schema:'arcane-ai-evolutionary-learning-v57',kind:'offline-evolutionary-weight-search',
- trainingSeedsPerTier:trainN,holdoutSeedsPerTier:holdN,generations:2,
+const report={schema:'arcane-ai-evolutionary-learning-v57b',kind:'offline-evolutionary-weight-search',
+ trainingSeedsPerTier:trainN,holdoutSeedsPerTier:holdN,holdoutPlayerStyles:['balanced','offensive','guardian','economy'],generations:2,
  populationParents:5,offspringPerGeneration:8,
  tierRows:[],totalMatches:0,activatedInProduction:false,cautions:[
   'Optimizes heuristics, not a neural language model',
@@ -69,7 +71,12 @@ for(let tier=1;tier<=maxTier;tier++){
  const trainSeeds=Array.from({length:trainN},(_,i)=>100270+tier*13703+i*2711);
  const holdSeeds=Array.from({length:holdN},(_,i)=>880131+tier*39007+i*9419);
  const baselineTraining=scoreResults(null,tier,trainSeeds);
- let seen=new Set(),candidates=Object.values(presets).map(w=>({...w}));
+ const archetype=['attack','defense','fusion'][(tier-1)%3]||'hybrid';
+ const allowed=archetype==='attack'?['predator','tempo','balanced']:
+   archetype==='defense'?['bastion','balanced']:
+   archetype==='fusion'?['alchemist','balanced']:
+   Object.keys(presets);
+ let seen=new Set(),candidates=allowed.map(name=>({...presets[name]}));
  let history=[];
  for(let gen=0;gen<3;gen++){
   const samples=candidates.filter(w=>!seen.has(fingerprint(w)));
@@ -91,12 +98,13 @@ for(let tier=1;tier<=maxTier;tier++){
   if(gen===2)break;
   candidates=[champion.weights,...Array.from({length:8},()=>mutate(champion.weights,gen===0?2:1))];
  }
- const candidate=scoreResults(champion.weights,tier,holdSeeds);
- const baseline=scoreResults(null,tier,holdSeeds);
+ const playerStyles=['balanced','offensive','guardian','economy'];
+ const candidate=scoreResults(champion.weights,tier,holdSeeds,playerStyles);
+ const baseline=scoreResults(null,tier,holdSeeds,playerStyles);
  const gain=candidate.wins-baseline.wins;
  const improved=gain>0||gain===0&&candidate.margin>baseline.margin;
  // Never automatically switch on a new AI as a result of this small holdout.
- report.tierRows.push({tier,trainBaseline:baselineTraining,history,
+ report.tierRows.push({tier,archetype,trainBaseline:baselineTraining,history,
   selectedWeights:champion.weights,selectedTrain:champion.metrics,
   holdout:{candidate,baseline,winGain:gain,
    marginGain:candidate.margin-baseline.margin,improved},
