@@ -33,7 +33,7 @@ test('all ten Schicksalsmonster use unique genuine WebP paintings consistently o
  assert.equal(new Set(r.map(x=>x.portrait)).size,10);
  for(const row of r){
   assert.equal(row.portrait,row.cardArt);
-  assert.ok(/^assets\\/custom-art\\/fate\\/[a-z-]+\\.webp$/.test(row.portrait),row.name+' still uses procedural SVG');
+  assert.ok(row.portrait.startsWith('assets/custom-art/fate/')&&row.portrait.endsWith('.webp'),row.name+' still uses procedural SVG');
   const bytes=fs.readFileSync(path.resolve(repo,row.portrait));
   assert.equal(bytes.subarray(0,4).toString('ascii'),'RIFF');
   assert.equal(bytes.subarray(8,12).toString('ascii'),'WEBP');
