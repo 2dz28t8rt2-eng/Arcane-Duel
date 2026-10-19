@@ -10,7 +10,7 @@
  const STANDARD=Object.freeze({material:.8,board:1.45,tempo:1.1,risk:1.2,support:1.1,future:.6,ace:10});
  const LIMIT=Object.freeze({1:2,2:2,3:3,4:4,5:5,6:6,7:8,8:9,9:11,10:15});
  const SAMPLES=Object.freeze({1:1,2:1,3:1,4:1,5:1,6:1,7:2,8:2,9:2,10:2});
- let sandbox=false,weights=STANDARD,counters={evaluated:0,replies:0,invalid:0};
+ let sandbox=false,weights=STANDARD,counters={evaluated:0,replies:0,invalid:0},guard={enabled:false,margin:0};
  const ours=g=>g?.mode==='pve'&&g.context==='tournament'&&g.active===1&&
   g.winner===null&&!g.lv1Saga&&!g.showcase&&g.opponentId>=1&&g.opponentId<=10;
  const copy=x=>JSON.parse(JSON.stringify(x));
@@ -182,7 +182,21 @@
   }
   const ranked=options.slice(0,limit).map(c=>branch(g,c))
    .filter(Boolean).sort((a,b)=>b.score-a.score);
-  return ranked[0]||null;
+  const best=ranked[0]||null;
+  if(guard.enabled){
+   // Do not override the proven v5.6 scorer on phases where single-ply
+   // public reply simulation is insufficient to model support/defense.
+   if(g.aiPhase!=='summon'||!best)return null;
+   const fallback=ArcaneAiLearning56.rank(g);
+   const baseline=fallback.find(c=>c.isAce)||fallback[0];
+   if(!baseline)return null;
+   // If the proposed action is the same, preserve all baseline side effects.
+   if(JSON.stringify(best.action)===JSON.stringify(baseline.action))return null;
+   const baselineProjected=branch(g,baseline);
+   if(!baselineProjected||best.score<baselineProjected.score+guard.margin)
+    return null; // keep the baseline when the brancher's advantage is weak
+  }
+  return best;
  }
  chooseAiAction=function(g,policy='balanced'){
   if(!sandbox||!ours(g))return oldChoose(g,policy);
@@ -197,15 +211,20 @@
   }
   return oldChoose(g,policy);
  };
- function setSandbox(next,active=true){
-  if(next===null){sandbox=false;weights=STANDARD;pendingSlot=new WeakMap();return;}
+ function setSandbox(next,active=true,options=null){
+  if(next===null){sandbox=false;weights=STANDARD;pendingSlot=new WeakMap();
+   guard={enabled:false,margin:0};return;}
   if(!next||PARAMS.some(k=>!Number.isFinite(next[k])||next[k]<0||next[k]>15))
    throw Error('Invalid action branch policy');
+  const margin=options?.margin??0;
+  if(!Number.isFinite(margin)||margin<0||margin>25)
+   throw Error('Invalid confidence-gate margin');
   weights=Object.freeze(Object.fromEntries(PARAMS.map(k=>[k,next[k]])));
+  guard={enabled:options?.guarded===true,margin};
   sandbox=active===true;
  }
  function resetCounters(){counters={evaluated:0,replies:0,invalid:0};}
- window.ArcaneAiBranches59=Object.freeze({version:'5.9.1',STANDARD,
+ window.ArcaneAiBranches59=Object.freeze({version:'5.9.2',STANDARD,
   publicState,features,slotFor,branch,aceReservationPenalty,candidates,choose,
-  setSandbox,active:()=>sandbox,stats:()=>({...counters}),resetCounters});
+  setSandbox,active:()=>sandbox,guard:()=>({...guard}),stats:()=>({...counters}),resetCounters});
 })();
