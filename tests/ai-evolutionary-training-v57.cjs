@@ -71,7 +71,7 @@ for(let tier=1;tier<=maxTier;tier++){
  const trainSeeds=Array.from({length:trainN},(_,i)=>100270+tier*13703+i*2711);
  const holdSeeds=Array.from({length:holdN},(_,i)=>880131+tier*39007+i*9419);
  const baselineTraining=scoreResults(null,tier,trainSeeds);
- const archetype=['attack','defense','fusion'][(tier-1)%3]||'hybrid';
+ const archetype=tier===10?'hybrid':['attack','defense','fusion'][(tier-1)%3];
  const allowed=archetype==='attack'?['predator','tempo','balanced']:
    archetype==='defense'?['bastion','balanced']:
    archetype==='fusion'?['alchemist','balanced']:
