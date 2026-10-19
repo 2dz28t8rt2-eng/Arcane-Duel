@@ -17,7 +17,7 @@ const qa=[
 ];
 const installed=fs.existsSync(path.join(repo,'assets/custom-art/qa/eibenwaechter.webp'));
 test('15 approved new images map to real, distinct cards in the runtime and collection', {skip:!installed},()=>{
- const r=boot().run("({fate:FATE_NAMES.map((name,i)=>({name,art:ArcaneFateVisuals.artFor(i),card:dataOf({id:FATE_CARD_IDS[i],fate:true}).art})),qa:[46,49,50,54,58].map(id=>({id,name:CARDS[id].name,art:CARDS[id].art,custom:CARDS[id].customArt})),installed:ArcaneApprovedArt56.count})");
+ const r=boot().run("({fate:FATE_NAMES.map((name,i)=>({name,art:ArcaneFateVisuals.artFor(i),card:dataOf({id:FATE_CARD_IDS[i],fate:true,card:{level:10,atk:500,def:500}}).art})),qa:[46,49,50,54,58].map(id=>({id,name:CARDS[id].name,art:CARDS[id].art,custom:CARDS[id].customArt})),installed:ArcaneApprovedArt56.count})");
  assert.equal(r.installed,5);
  assert.equal(r.fate.length,10);
  assert.equal(r.fate[1].name,'Himmlischer Löwenwächter');
