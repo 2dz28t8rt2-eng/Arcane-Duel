@@ -24,18 +24,20 @@ jobs:
           node --test tests/stage-owned-decks-v60.test.cjs
       - name: Play real career duels and record earned deck snapshots
         env:
-          ARCANE_CAREER_RUNS: '2'
-          ARCANE_CAREER_TIER_ATTEMPTS: '8'
+          ARCANE_CAREER_RUNS: '6'
+          ARCANE_CAREER_TIER_ATTEMPTS: '12'
         run: node tests/ai-real-career-snapshots-v63.cjs
       - name: Test AI against actual earned inventory snapshots
-        run: |
-          if test -f tests/ai-career-policy-holdout-v63.cjs; then
-            node tests/ai-career-policy-holdout-v63.cjs
-          fi
+        env:
+          ARCANE_CAREER_TRAIN_SEEDS: '4'
+          ARCANE_CAREER_HOLDOUT_SEEDS: '8'
+        run: node tests/ai-career-policy-holdout-v63.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: arcane-earned-career-training-v63
-          path: artifacts/ai-real-careers-v63.json
+          path: |
+            artifacts/ai-real-careers-v63.json
+            artifacts/ai-earned-policy-holdout-v63.json
           if-no-files-found: warn
           retention-days: 30
