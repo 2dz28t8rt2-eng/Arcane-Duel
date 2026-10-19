@@ -4,6 +4,9 @@ on:
     branches: [development]
     paths:
       - 'artwork-import/arcane-approved-15.zip'
+      - 'tests/approved-art-v56.test.cjs'
+      - 'tools/import-approved-art-v56.py'
+      - '.github/workflows/import-approved-art-v56.yml'
   workflow_dispatch:
 permissions:
   contents: write
