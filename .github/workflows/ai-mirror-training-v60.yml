@@ -6,6 +6,8 @@ on:
       - 'tests/helpers/stage-owned-decks-v60.cjs'
       - 'tests/stage-owned-decks-v60.test.cjs'
       - 'tests/ai-mirror-training-v60.cjs'
+      - 'tests/ai-fusion-choice-v61.test.cjs'
+      - 'assets/game.js'
       - '.github/workflows/ai-mirror-training-v60.yml'
   workflow_dispatch:
 permissions:
@@ -21,6 +23,8 @@ jobs:
           node-version: '22'
       - name: Validate authentic starter inventory and stage-source constraints
         run: node --test tests/stage-owned-decks-v60.test.cjs
+      - name: Verify chosen fusion dispatcher and invalid fusion rejection
+        run: node --test tests/ai-fusion-choice-v61.test.cjs
       - name: Run exact 40-card and fusion-deck mirror comparisons
         env:
           ARCANE_MIRROR_TRAIN_SEEDS: '3'
