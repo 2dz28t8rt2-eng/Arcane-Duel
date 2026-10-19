@@ -1172,6 +1172,7 @@ function rerollBoosterStarter(index){
   return entry&&entry.rpg&&!entry.fusionOnly&&!entry.ace&&!entry.essenceMonster&&
    !entry.workshopOnly&&!entry.milestoneOnly&&!entry.questOnly&&
    !entry.fateOnly&&!entry.enemyOnly&&!entry.trainingReward&&
+   (entry.source<0||entry.source<=receipt.tier)&&
    (entry.requiredTier==null||entry.requiredTier<=receipt.tier);
  });
  if(!normal.length)return false;
