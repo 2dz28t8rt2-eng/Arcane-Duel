@@ -89,8 +89,14 @@ document.getElementById('app').addEventListener('load',async()=>{
   check(!!d.querySelector('.ad-sparks-dust'),'Staub erscheint zeitgleich mit dem Aufprall');
   await pause(100);
   check(!d.querySelector('.ad-titan-impact')&&!d.querySelector('.ad-impact-shake'),'Der Aufprall endet ohne zurückspringende Karte oder hängenbleibenden Effekt');
-  w.eval(`window.__flightBounds=null;window.__ritualAnimate=Element.prototype.animate;
-   Element.prototype.animate=function(...args){const anim=window.__ritualAnimate.apply(this,args);if(this.classList.contains('ad-summon-ghost')){
+  // The earlier real summon may still be finishing its cinematic. The
+  // next manual replay was intermittently dropped by play()'s running guard.
+  // Do not mistake that legitimate re-entrancy prevention for a bad landing.
+  for(let n=0;n<65&&d.querySelector('.ritual-overlay');n++)await pause(100);
+  check(!d.querySelector('.ritual-overlay'),
+   'Das vorige echte Fusionsritual ist vollständig abgeschlossen, bevor der Flug erneut gemessen wird');
+  w.eval(`window.__flightBounds=null;window.__flightCalls=0;window.__ritualAnimate=Element.prototype.animate;
+   Element.prototype.animate=function(...args){const anim=window.__ritualAnimate.apply(this,args);if(this.classList.contains('ad-summon-ghost')){window.__flightCalls++;
     const actor=this,capture=()=>{if(!actor.isConnected)return;const a=(actor.querySelector('.board-creature')||actor).getBoundingClientRect(),b=document.querySelector('[data-mine="2"] .board-creature').getBoundingClientRect();window.__flightBounds={left:a.left-b.left,top:a.top-b.top,width:a.width-b.width,height:a.height-b.height};};
     anim.addEventListener('finish',capture);
     // Sample the endpoint while the landing ghost is STILL in the DOM.
@@ -110,7 +116,7 @@ document.getElementById('app').addEventListener('load',async()=>{
    window.__actualLanding=ArcaneFusionCinema.play({instance:c,materials:game.players[0].hand.slice(0,3).map(c=>({art:dataOf(c).art,level:dataOf(c).level})),battle:game,card:dataOf(c),level:dataOf(c).level,variant:'field',wait:()=>Promise.resolve(),playSound:()=>{}});`);
   await w.__actualLanding;
   w.Element.prototype.animate=w.__ritualAnimate;
-  check(!!w.__flightBounds&&Object.values(w.__flightBounds).every(n=>Math.abs(n)<2),'Der echte Ritualflug endet in Position und Größe exakt an der Karte statt am äußeren Zonenfeld · '+JSON.stringify(w.__flightBounds));
+  check(w.__flightCalls>0&&!!w.__flightBounds&&Object.values(w.__flightBounds).every(n=>Math.abs(n)<2),'Der echte Ritualflug endet in Position und Größe exakt an der Karte statt am äußeren Zonenfeld · Aufrufe '+w.__flightCalls+' · '+JSON.stringify(w.__flightBounds));
   check(w.eval('ArcaneFusionCinema.landed(game,game.players[0].field[2].uid)'),'Eine bereits gelandete Ritualkarte erhält keinen zweiten Aufprall');
  }catch(error){check(false,error.stack||String(error));}
  document.body.dataset.progressionTest=pass?'pass':'fail';
