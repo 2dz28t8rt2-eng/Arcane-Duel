@@ -18,7 +18,7 @@
 - Der KI-Kern ist ein **offline optimierter heuristischer Planer**, kein online weiterlernendes neuronales Netz. Die Gewichte verändern sich nicht in Spielerpartien und keine privaten Spielerdaten werden gespeichert.
 
 ## Kunst-Import
-Das freigegebene `Arcane_Duel_15_freigegebene_Artworks.zip` umfasst zehn Schicksalsmonster und fünf Fusionsmonster als individuelle 1086×1448-WebP-Dateien. Binärtransfer aus der ChatGPT-Containerumgebung über die installierte GitHub-Schnittstelle ist weiterhin nicht verfügbar; **diese neu freigegebenen Pixeldateien sind noch NICHT im Repository**.
+**Abgeschlossen und überprüft:** Das freigegebene ZIP (`artwork-import/arcane-approved-15.zip`) enthält zehn Schicksalsmonster und fünf Fusionsmonster als individuelle 1086×1448-WebP-Dateien. Der Nutzer hat es am 19.10.2026 hochgeladen. Das ZIP wurde im Repository ohne Änderung des Dateiinhalts auf den erwarteten Pfad umbenannt; der erfolgreiche Import hat alle 15 Bilddateien als lokale Assets angelegt. Dateigrößen und Git-Blob-SHAs wurden für alle 15 Bilder bytegenau mit dem freigegebenen Originalarchiv verglichen.
 
 Folgende vorbereitete Dateien sind nach GitHub committed:
 - `tools/import-approved-art-v56.py` prüft und installiert alle 15 Dateien mit genauen Kartenidentitäten und aktualisiert Fate-Cinema, Game und Sammlung.
@@ -26,10 +26,10 @@ Folgende vorbereitete Dateien sind nach GitHub committed:
 - `tests/approved-art-v56.test.cjs` prüft den korrekten Runtime-/Sammlungsbezug nach dem Import.
 - `artwork-import/README.md` beschreibt den benötigten Upload.
 
-**Noch notwendiger manueller Schritt:** einmalig ZIP unter `artwork-import/arcane-approved-15.zip` in `development` hochladen. Danach läuft der automatische Import. Das ist keine abgeschlossene GitHub-Bildübertragung, sondern eine wartende Einbindung.
+**Erfolgreicher Import:** [GitHub Actions, Run 39233437669](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39233437669) – exakte Paketprüfung, acht bestehende Artwork-/Sammlungstests und ein neuer 15-Karten-Zuordnungstest bestanden (9/9). Automatischer Commit [`01c3f0b`](https://github.com/2dz28t8rt2-eng/Arcane-Duel/commit/01c3f0b63b1885134a90956c35791b69770546a6). Der zweite Schicksals-Slot heißt in Fate-, Spiel- und Kinoansicht **Himmlischer Löwenwächter**. Die fünf zusätzlich ersetzten Fusionen behalten ihre IDs 46, 49, 50, 54 und 58.
 
 ## Noch offene technische Abnahme
-1. Freigegebene Originalbilder tatsächlich in das Repository importieren; Stil und Crop im Browser prüfen.
+1. Die nun importierten Originalbilder auf reale Spielkarten und mobilem Browser nach Sicht, Ausschnitt und Lesbarkeit prüfen.
 2. Trainierte KI gegen manuell gespielte Karriere-/Fusionsstrategien und Lv1-Quest antreten lassen; Archetypen I–X bewahren. Danach selektive Aktivierung für bestätigte Gegner statt unkontrollierter Freigabe.
 3. ACE-Häufigkeit, schwierige Lv1-Quest-Übergänge, Spielstandsicherheit und Karriere-Balancing manuell sowie in CI prüfen.
 4. Optional `development` nach `main` erst nach ausdrücklicher Freigabe.

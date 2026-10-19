@@ -18,7 +18,4 @@ automatisch folgende Schritte durch:
 - Validierte Änderungen als separaten Commit nach `development` pushen,
   niemals nach `main`.
 
-**Status:** Der Installer ist eingecheckt. Das 9,2-MB-Archiv selbst konnte aus
-der isolierten ChatGPT-Umgebung bisher nicht über den GitHub-Connector
-übertragen werden; der Workflow wird erst nach dem ZIP-Upload ausgelöst.
-Die alten Bilddateien bleiben bis dahin unverändert.
+**Status (19.10.2026): vollständig installiert.** Nach dem Upload wurde das Archiv auf den erwarteten Namen gesetzt. Workflow [39233437669](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39233437669) hat erfolgreich sämtliche 15 WebP-Dateien samt Art-Zuordnung importiert und die Tests bestanden. Commit: [01c3f0b](https://github.com/2dz28t8rt2-eng/Arcane-Duel/commit/01c3f0b63b1885134a90956c35791b69770546a6). Keine weitere Aktion erforderlich. Die vorhandene ZIP-Datei bleibt als Quellarchiv erhalten; die alten Einzelbilder sind für diesen Kartensatz nicht mehr aktiv referenziert.
