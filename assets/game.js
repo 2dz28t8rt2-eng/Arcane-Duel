@@ -1172,6 +1172,8 @@ function rerollBoosterStarter(index){
   return entry&&entry.rpg&&!entry.fusionOnly&&!entry.ace&&!entry.essenceMonster&&
    !entry.workshopOnly&&!entry.milestoneOnly&&!entry.questOnly&&
    !entry.fateOnly&&!entry.enemyOnly&&!entry.trainingReward&&
+   !entry.hard&&!entry.lv1Exclusive&&
+   (!entry.manifestOf||ownsProfileCard(profile,entry.manifestOf))&&
    (entry.source<0||entry.source<=receipt.tier)&&
    (entry.requiredTier==null||entry.requiredTier<=receipt.tier);
  });
@@ -1203,8 +1205,15 @@ function takeShardResearchCard(index){
  const pending=profile.shardResearch;
  if(storageConflict||!pending||!Number.isInteger(index)||index<0||index>=3||
   profile.rewardQueue.length||profile.openPack)return false;
- const id=pending.offers[index];
- if(!shardResearchPool(pending.role).some(c=>c.id===id))return false;
+ const id=pending.offers[index],c=CARDS[id];
+ // The player already PAID for these offered cards. Source eligibility is
+ // frozen at purchase, so selling a prerequisite afterwards cannot strand
+ // their paid selection. Keep strict type and tier validation.
+ if(!c||c.role!==pending.role||!c.rpg||c.fusionOnly||c.ace||
+  c.essenceMonster||c.milestoneOnly||c.workshopOnly||c.enemyOnly||
+  c.trainingReward||c.hard||c.questOnly||c.lv1Exclusive||
+  c.fateOnly||(c.requiredTier!=null&&c.requiredTier>highestCleared())||
+  (c.source>=0&&!profile.cleared.includes(c.source)))return false;
  addCard(id);profile.shardResearch=null;saveProfile();return id;
 }
 function milestoneOffers(tier){const pool=[...MILESTONE_FORMS[tier]],g={seed:rng(0xffffffff)||1};for(let i=pool.length-1;i>0;i--){const j=randomInt(g,i+1);[pool[i],pool[j]]=[pool[j],pool[i]];}return pool.slice(0,3);}
