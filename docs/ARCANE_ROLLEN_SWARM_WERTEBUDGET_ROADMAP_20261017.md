@@ -99,3 +99,10 @@ Diese Punkte nacheinander abstimmen und implementieren; main bleibt bis zur Frei
 **Unverändert:** Die aktuell spielbare Gegner-KI lernt nicht autonom aus Live-Duellen; aktive Gewichte sind unverändert. Experimentelle Scorer werden nicht automatisch übernommen. `main` bleibt ohne Nutzerfreigabe unangetastet.
 
 **Konkreter nächster Schritt:** `v7.6 – Real-inventory progression & deckbuilding audit`; messbarer Erwerb/Ausrüstung und drei legale Spieler-Deckbuilder gegen bestehende Strategien vergleichen, bevor Drop-/Level-/KI-Balance angepasst wird. 
+
+
+### Nachtrag v7.6 – Startmonster-Skill in Kartensammlungs-Perk verwandelt
+
+Auf `development` **technisch geändert, finale Karriereregression noch offen**: `Grundausbildung` (+35 ATK/DEF je Rang ausschließlich auf 20 Startmonster) heißt jetzt **Kartenspürsinn**. Interne Save-ID `upgrades.starter` und max. acht zuvor erworbene Ränge bleiben identisch. Pro Rang −5 Prozentpunkte Startkarten-Wahrscheinlichkeit in Boostern, stattdessen reguläre Monster aus bereits legal freigeschalteten Pools; Fusions-/ACE-Wahrscheinlichkeiten und Kartenanzahl unverändert. Rechnerisch im 5er-Paket: statt 4,0 Startkarten im Erwartungswert nur 2,0 bei acht Rängen. Kampfwerte der Startmonster erhalten keinen gesonderten Flat-Buff mehr.
+
+**Offenes Freigabegate:** Wegfall früher Startmonster-Stats kann I–IV-Karrieren verschlechtern; `tests/perk-card-sense-v76.test.cjs` überprüft Spielstände/Shop-Regeln, unabhängige komplette Karrieren sind zur Freigabe erforderlich. Keine automatisch aktivierte VIII-/X-KI und keine Änderung an `main`. Die übrigen Skills und neue Splitter-Sinks bleiben Entwürfe in [PROGRESSION_SHARDS_SKILLS_REVAMP_V76.md](PROGRESSION_SHARDS_SKILLS_REVAMP_V76.md).
