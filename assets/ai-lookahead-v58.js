@@ -158,7 +158,11 @@
  chooseAiAction=function(g,policy='balanced'){
   if(enabled&&isMatch(g)&&ArcaneAiLearning56.active()){
    const options=plan(g);
-   if(options.length)return options[0].action;
+   if(options.length){
+    // Never trade away an already LEGAL signature ACE for a tiny heuristic gain.
+    const signature=g.aiPhase==='summon'?options.find(x=>x.isAce):null;
+    return (signature||options[0]).action;
+   }
   }
   return original(g,policy);
  };
