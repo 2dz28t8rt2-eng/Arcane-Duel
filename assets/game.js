@@ -1243,7 +1243,7 @@ if(!Array.isArray(raw.encounters)||raw.encounters.length>3)throw Error('Ungülti
      c.fusionOnly||c.ace||c.essenceMonster||c.enemyOnly||c.questOnly||
      c.lv1Exclusive||c.fateOnly||c.milestoneOnly||c.workshopOnly||
      c.trainingReward||c.hard||c.requiredTier>highestCleared(p)||
-     (c.source>=0&&!p.cleared.includes(c.source));
+     (c.source>0&&!p.cleared.includes(c.source));
    }))throw Error('Ungültige Splitter-Forschung.');
   p.shardResearch={role:research.role,offers:[...research.offers]};
  }
