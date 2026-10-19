@@ -1,5 +1,5 @@
 # Arcane Duel – Kartenbelohnungen, Splitter und Skills · Rework-Entwurf v7.6
-**Stand:** 19. Oktober 2026 · **Gameplay-Teilumsetzung auf `development`: alter Startmonster-Perk ersetzt.** Weitere Skills, Splitter-Sinks und Loot-Reformen sind **Designvorschläge, nicht implementiert**.
+**Stand:** 19. Oktober 2026 · **Gameplay-Teilumsetzung auf `development`: Kartenspürsinn v7.6 plus Splitterwirtschaft v7.7 implementiert.** Die übrigen Skill-Reworks sind weiterhin Entwürfe, nicht aktiv.
 
 ## Nutzerentscheidung
 
@@ -81,3 +81,12 @@ Die Tabelle ist ein bewusst **noch nicht balancierter Mechanikentwurf**. Insbeso
 - **Phase 4**: volle unabhängige Karrieren (mindestens 12 Startseeds) und mobile Nutzertests; erst danach stabile KI und Skills auf Produktionszweig zur Freigabe vorlegen.
 
 **`main`, bestehende Skillränge, Bosse und die noch offenen Splitter-/Loot-Systeme bleiben unverändert.** Kartenspürsinn ist zunächst nur auf `development` geändert und muss die Regressions- und Karrieretests bestehen. Die Level-1-Saga, die separat vorgeschlagene Levelreform (Basis 1–5, effektive Levels 7–10), die Allrounder-/Resonator-Synergie und alle Spezialquests bleiben eigenständige Systeme.
+
+## Umsetzung nach dem Entwurf: Splitter v7.7
+
+Die drei vom Nutzer freigegebenen Splitter-Funktionen sind auf `development` **tatsächlich implementiert**: gezielte normale Kartenherstellung nur für 10/18/28/40 Splitter ohne Essenz; einmaliger 5-Splitter-Tausch pro gekauftem Booster unter Abzug der alten nicht reservierten Startkarte; und rollenbezogene 12-Splitter-Forschung mit genau einer auswählbaren Karte aus drei verschiedenen bereits freigeschalteten Karten.
+
+**Vollständige Implementationsnotiz:** [SPLITTER_ECONOMY_V77.md](SPLITTER_ECONOMY_V77.md).  
+**Test:** `tests/shard-rework-v77.test.cjs` / `.github/workflows/shard-rework-v77.yml`; **CI vor Freigabe prüfen**. Balance- und echte Karriere-Regression bleiben als separates Freigabe-Gate bestehen.
+
+Die übrigen Revamps der regulären Kampfskills sind nicht umgesetzt; es gibt keine freigegebene KI-Übernahme und keinen Merge nach `main`.
