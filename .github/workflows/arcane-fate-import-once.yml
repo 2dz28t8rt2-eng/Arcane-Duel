@@ -1,0 +1,53 @@
+name: Arcane Fate Import – temporary
+on:
+  push:
+    branches: [development]
+    paths:
+      - ".github/workflows/arcane-fate-import-once.yml"
+permissions:
+  contents: write
+jobs:
+  import-nine-fate-paintings:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: development
+      - name: Install WebP image encoder
+        run: python -m pip install --quiet pillow
+      - name: Convert nine generated monster portraits into checked local WebP
+        shell: bash
+        run: |
+          python - <<'ARCANE_PYTHON'
+          import io, pathlib, urllib.request
+          from PIL import Image
+          ASSETS = [{"path":"assets/custom-art/fate/sternenrichter.webp","url":"https://dnznrvs05pmza.cloudfront.net/1b6fa03d-3c79-408a-9926-ccab8ed1ef64.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMGNhNTRhNmQyYjIyMWJmZSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjUwMTQ4NX0.umNsQhugeqJM6cIJfK3JCKF_1Igo5dqKHe4vQ33l9UY"},{"path":"assets/custom-art/fate/goldener-phoenix.webp","url":"https://dnznrvs05pmza.cloudfront.net/4eddc8df-4535-4042-b20c-108ce89abc16.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYTk3M2VkNjk2ODJlMzUyNyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjQ5NTcyMX0.DOvkgUy9ruBDjZjZdXqqz1ftv7JVD4UDDxkyzxif-1I"},{"path":"assets/custom-art/fate/schicksalsdrache.webp","url":"https://dnznrvs05pmza.cloudfront.net/bdb5b6f6-29ad-40fb-b7da-b6aa017653fd.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNTBkN2M1ZjM2ZmQxZjk0MCIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjU1MTc5NX0.irryyTdeOsiBk2jU9XoMytPLbNQd7KqJJcUCUgBJpBQ"},{"path":"assets/custom-art/fate/ewigkeitswaechter.webp","url":"https://dnznrvs05pmza.cloudfront.net/dda098b3-5006-4deb-8537-da38d685f734.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMGIyMjMzZTk0ZWQwZTJmZCIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjUzNDg4OX0.93e7vnSB9_aXQlcNCe8sBQtr8wFctVghvTAiGGhMp7A"},{"path":"assets/custom-art/fate/sonnenseraph.webp","url":"https://dnznrvs05pmza.cloudfront.net/f45bf469-e925-4d07-9fbd-ef1e6bf02fc2.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiOThjM2QxYzU0NTBiMWFhZSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjU0MTI1M30.gFyl9TJ-rRrxz2us6bAdkTJ0Pbg1W9cqywFHWWMv_Ho"},{"path":"assets/custom-art/fate/astralgreif.webp","url":"https://dnznrvs05pmza.cloudfront.net/d0c98e97-05c1-4980-81b8-5cdf9cc6b126.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiOGM1ODMzYzI1ZjRkM2E5MiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjU1ODY1OH0.dryz2svs3_cX_8GrisAOOwOUiPWa0NrIPhGtPYA1DwM"},{"path":"assets/custom-art/fate/kometenbestie.webp","url":"https://dnznrvs05pmza.cloudfront.net/87ed7817-1ffb-47bc-9643-3617a2ad24f8.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYmQ5M2Y5OGE3NGU2NWRhOSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjQ4OTA5OH0.fEBTriP7pk6-rLI3Mgj1bS6rGdMGs1oBAccs2kick7Q"},{"path":"assets/custom-art/fate/himmelsarchon.webp","url":"https://dnznrvs05pmza.cloudfront.net/bba3c0f8-7cf9-427d-b579-52027c533ba7.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiOTNjNjIyZDk4Njk1MzFkNCIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjUyODYwMX0.0pDJVHaURkIofBVr7M6mphEbEN4xV4e_3lR3lSZ0rDg"},{"path":"assets/custom-art/fate/kosmischer-titan.webp","url":"https://dnznrvs05pmza.cloudfront.net/63388517-8107-48de-b8be-718b33e7f45a.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMWNjZDFkODRlOGJiY2E1YiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjUxMDA4NH0.TvHqJ4mEi79m1gf_aL8xy4nqRcI_xFHtlQJP5kL_Uw8"}]
+          for entry in ASSETS:
+              url = entry["url"]
+              dest = pathlib.Path(entry["path"])
+              assert url.startswith("https://dnznrvs05pmza.cloudfront.net/"), "Untrusted host"
+              with urllib.request.urlopen(urllib.request.Request(url,headers={"User-Agent":"ArcaneDuelFateImport/1.0"}),timeout=75) as source:
+                  content=source.read(16_000_000)
+              assert len(content)>50000, "Generated image too small"
+              with Image.open(io.BytesIO(content)) as pic:
+                  pic.load()
+                  assert pic.width >= 900 and pic.height >= 1200
+                  assert .7 < pic.width / pic.height < .85
+                  dest.parent.mkdir(parents=True,exist_ok=True)
+                  pic.convert("RGB").save(dest,format="WEBP",quality=91,method=6)
+              encoded=dest.read_bytes()
+              assert encoded[:4]==b"RIFF" and encoded[8:12]==b"WEBP"
+              assert len(encoded)>80000,"Raster image implausibly small"
+              print("VALIDATED",dest,len(encoded),"bytes")
+          
+          ARCANE_PYTHON
+      - name: Save nine new Schicksalsmonster illustrations
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/custom-art/fate/
+          git commit -m "art: nine unique original Fate monster portraits in WebP"
+          git pull --rebase origin development
+          git push origin HEAD:development
