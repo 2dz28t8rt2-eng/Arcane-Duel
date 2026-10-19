@@ -1,0 +1,35 @@
+name: Arcane Duel – Early Shard Career AI v8.0
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-early-shard-careers-v80.cjs'
+      - '.github/workflows/ai-early-shard-v80.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  early-shards-vs-late-shards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check economy integrity and test syntax
+        run: |
+          node --check tests/ai-early-shard-careers-v80.cjs
+          node --test tests/shard-rework-v77.test.cjs tests/perk-card-sense-v76.test.cjs tests/monster-roles-forge.test.cjs
+      - name: Simulate 12 paired careers comparing real paid shard spending after tier II versus IV
+        env:
+          ARCANE_V80_CAREERS: '12'
+          ARCANE_V80_TIER_ATTEMPTS: '16'
+        run: node tests/ai-early-shard-careers-v80.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-early-shard-careers-v80
+          path: artifacts/ai-shard-timing-careers-v80.json
+          if-no-files-found: warn
+          retention-days: 30
