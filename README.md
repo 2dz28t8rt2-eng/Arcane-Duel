@@ -2,9 +2,20 @@
 
 Die stabile Version liegt auf Branch `main`; der aktuelle Entwicklungsstand wird auf `development` geprüft. **Das reguläre Turnier I–X ist auf LV 10 begrenzt.** Level 11/12 bleiben für eine spätere Post-Turnier-Erweiterung zurückgehalten und sind in den derzeitigen aktiven Karten- und Werkstattpools nicht zugänglich. Technische ID-Reservierungen bleiben zur Konsistenz bestehen. Vor großen Updates empfiehlt sich ein JSON-Spielstandexport.
 
-**Aktuelle Qualitätssicherung (15.10.2026):** 227 automatisierte Node-Tests grün, beide GitHub-Workflows erfolgreich und 216 synthetische Level-10-Vergleichsduelle gegen VIII–X. Die gesonderte reale Progressions-/Balancestudie und vollständige mobile Touch-Abnahme sind weiterhin offen.
+**Historischer QA-Stand (15.10.2026):** 227 automatisierte Node-Tests grün, beide GitHub-Workflows erfolgreich und 216 synthetische Level-10-Vergleichsduelle gegen VIII–X. Dieser ältere Prüfstand ist kein aktueller KI-/Progressionsbericht. Die vollständige mobile Touch-Abnahme ist weiterhin separat zu prüfen.
 
 Siehe [Turnier-LV10- und QA-Bericht](tests/TOURNAMENT_LEVEL10_QA_20261015.md) für Änderungen, Testmethodik, Siege nach Spielweise und verbleibende Aufgaben.
+
+
+## Aktueller KI-Lernstand und nächste Schritte (19.10.2026)
+
+Der KI-Trainingsstand **v7.5**, die offenen Fairnessfragen bei Gegner VIII/X und die geplanten nächsten Arbeiten sind versioniert dokumentiert:
+
+- **[Priorisierte KI- und Progressions-Roadmap](docs/AI_TRAINING_ROADMAP_20261019.md)** – v7.5-Lernstand, Messwerte, rechtmäßig erspielte Karrieren, Voraussetzungen für weiteres Training und Auftrag für v7.6.
+- [Gesamte Arcane-Duel-Roadmap](docs/ARCANE_ROLLEN_SWARM_WERTEBUDGET_ROADMAP_20261017.md) – inklusive P0–P4 KI-Prioritäten.
+- [Designentwurf zur Levelreform](docs/progression-rework-design-20261019.md) – **Konzept, nicht aktiv**, Entscheidung globaler Levelaufstieg versus individuelle Erfahrung offen.
+
+**Nächste Priorität:** tatsächlich erworbene Karten von legal freigeschalteten und ausgerüsteten Karten unterscheiden, danach bessere, vollständig eigentumslegale Karriere-Deckbuilder und mehrere unabhängige Karrieren trainieren. Die experimentelle stärkere VIII-KI ist aus Fairnessgründen **nicht freigegeben**; die Gegner-KI lernt nicht automatisch aus Live-Matches. `main` wird ohne Abnahme nicht verändert.
 
 ---
 
