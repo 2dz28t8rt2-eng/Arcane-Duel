@@ -148,3 +148,18 @@ Der abgestimmte nächste Progressionsschritt ist **im tatsächlichen Gameplay-Co
 **Nächste Entscheidung nach grünem Lauf:** Wenn bezahlte Splitterausgaben erstmals signifikant stärkere VII/VIII-Spielerdecks ergeben, anschließende vollständige unabhängige Karrieren mit v7.7 durchlaufen und erst danach VIII/X-Policy wieder ernsthaft optimieren. Bei weiterhin zu schwachen Decks zuerst Erwerbsmengen, Source-Locks und Deckausrüstung diagnostizieren, nicht NPC-Bosswerte erhöhen.
 
 **Derzeit unverändert:** Live-Gegner-KI, Kartenwerte, `main`. Die Workflows sind gepusht, das eigentliche Ergebnis noch ausständig.
+
+
+## Erfolg nach dem v7.8-Reparaturlauf · 19. Oktober 2026
+
+**[Ergebnisbericht](AI_V78_TRAINING_SUCCESS_REPORT_20261019.md) · [Vorgängiger Fehlerbericht](AI_V78_FAILED_RUN_REPORT_20261019.md).**
+
+Die ursprüngliche Action `39285652755` war **vor Beginn des KI-Trainings** am QA-Gate gescheitert. Die echten Ursachen – ACE-Shop überschreibt Kartenspürsinn, Forschung Quelle 0/Save-Validierung, veraltete Shard-/Flat-Buff-Testannahmen – wurden auf `development` behoben.
+
+**Die korrigierte Action [39293814588](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39293814588) ist erfolgreich:** 58/58 vorgeschaltete Tests und **1.280 real simulierte Engine-Duelle**. Fünf rechtmäßig erreichte VIII-Snapshots aus nur **zwei unabhängigen Karriereherkünften**; vier Economy-Arme, echte Inventare und bezahlte Splitter.
+
+Die im Training ausgewählte **Hybrid-Strategie** (gezieltes Crafting + Rollenforschung + vorhandener Booster-Neuwurf) verbesserte im unabhängigen Holdout gegen den echten bisher trainierten VIII-Boss Spielererfolge von **0/120** auf **20/120** und den mittleren Boss-LP-Vorsprung **6.247 → 4.417**. Level-4-Testdecks bekamen bei vorhandenen 80 tatsächlich erwirtschafteten Splittern legal Level-9-Karten. Gegen die experimentelle, bislang nicht aktivierte **Fusion-Precision-VIII-KI** gelangen lediglich **3/120** Spielersiege.
+
+**Verbindlicher Folgeschritt:** keine zusätzliche VIII-Boss-Buffierung; mindestens zwölf unterschiedliche komplette Ausgangskarrieren mit echtem Splitterverdienst, eigenen Deckbauentscheidungen und Vergleich bei VIII–X. Benötigt werden mehrere wirklich eigenständige Karriereherkünfte, da derzeit fünf Snapshots nur zwei ursprüngliche Karrieren abbilden. 12-Splitter-Rollenforschung in hohen Stufen auf potenzielle Übermacht prüfen, aber **Preise nicht ohne belastbare Karriere-Daten verändern**.
+
+**Unabhängige QA:** Code-/Strategietests der Trainings-Commit-Reihe bestanden; ein allgemeiner Chromium-Mobile-Canonical-Card-Shell-Test meldete noch einen separaten Fehler bei 410 px. Bis zur sauberen vollständigen Browserabnahme `main` unverändert lassen. Auch aktive Boss-KI bleibt auf der bisherigen Strategie.
