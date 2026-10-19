@@ -1725,11 +1725,74 @@ function startEncounter(id){if(storageConflict||busy||aiRunning||profile.rewardQ
   finally{if(game===opening&&game.active===1&&game.winner===null)runAi();}
  };
 }
-function shopMarkup(){const tier=highestCleared();return `<section class="menu-panel"><h2>Booster-Shop</h2><p>Wähle deine Packgröße. Du kannst klein einsteigen oder sparen: Je größer das Pack, desto weniger Essenz zahlst du pro Karte. Im Zehnerbooster haben die letzten beiden Plätze bessere Chancen auf wertvolle Karten. Alle gezogenen Karten gehören dir und Duplikate können für Kartenaufstiege verwendet werden.</p><div class="booster-choices">${[1,3,5,10].map(n=>`<article class="booster-choice"><h3>${n} ${n===1?'Karte':'Karten'}</h3><p><b>${fmt(boosterPrice(tier,n))} Essenz</b><br><small>≈ ${Math.ceil(boosterPrice(tier,n)/n)} Essenz/Karte</small></p>${menuButton(n+' Karten kaufen','booster','data-count="'+n+'"',profile.coins<boosterPrice(tier,n))}</article>`).join('')}</div><p><b>Neu – Update B:</b> 22 normale Familien besitzen je vier Stufen mit demselben Artwork. Diese eigenständigen Karten erscheinen nach freigeschalteten Turnierstufen in Boostern und sind dann auch herstellbar. Fusionen und ACEs bleiben einzigartig.</p><p><b>Ziehchancen:</b> Kleine Packs haben überwiegend Startkarten, aber auch die Chance auf gewöhnliche und seltene Karten. Der Fünferbooster hat einen verbesserten letzten Platz. Beim Zehner sind Platz 9 und 10 deutlich wertvoller.</p><p>Seltenes Material richtet sich nach deiner höchsten besiegten Turnierstufe (${tier}). Gekaufte Booster verwenden nicht den XP-Dropbonus.</p></section>${profile.lastBooster?'<section class="menu-panel"><h3>Zuletzt geöffnet · '+profile.lastBooster.cards.length+' Karten</h3><div class="pool-grid">'+profile.lastBooster.cards.map(id=>fullCardHtml(profileCard(CARDS[id]))).join('')+'</div></section>':''}`;}
-
+function shopMarkup(){
+ const tier=highestCleared(),pending=profile.shardResearch,receipt=profile.lastBooster;
+ const roles=[['predator','Predator · Angriff'],['guardian','Wächter · Schutz'],
+  ['soul','Seelenzehrer · Druck'],['allrounder','Allrounder · Resonanz']];
+ const shop='<section class="menu-panel"><h2>Booster-Shop</h2>'+
+ '<p>Wähle deine Packgröße. Kartenspürsinn erhöht die Chance auf reguläre Monster. Alle erhaltenen Karten werden sofort deiner Sammlung gutgeschrieben.</p>'+
+ '<div class="booster-choices">'+[1,3,5,10].map(n=>
+  '<article class="booster-choice"><h3>'+n+' '+(n===1?'Karte':'Karten')+'</h3><p><b>'+
+   fmt(boosterPrice(tier,n))+' Essenz</b><br><small>≈ '+Math.ceil(boosterPrice(tier,n)/n)+
+   ' Essenz/Karte</small></p>'+menuButton(n+' Karten kaufen','booster',
+   'data-count="'+n+'"',profile.coins<boosterPrice(tier,n)||!!pending||!!profile.rewardQueue.length)+
+  '</article>').join('')+'</div>'+
+ '<p>Seltenheits- und Stufengrenzen bleiben bestehen. Im 10er-Booster sind die letzten beiden Ziehungen besser. Splitter sind eine zusätzliche Wahlwährung – keine zusätzliche Pflichtgebühr für gekaufte Booster.</p></section>';
+ const swap=receipt?'<section class="menu-panel"><h3>Zuletzt gekauft · '+receipt.cards.length+
+ ' Karten</h3><p>◆ Einmaliger Tausch einer noch freien Startkarte gegen ein zufälliges, bereits für Turnierstufe '+
+ receipt.tier+' freigeschaltetes Normalmonster: <b>'+SHARD_REROLL_COST+' Splitter</b>. Keine zusätzliche Karte, keine ACE-Chance.</p>'+
+ '<div class="pool-grid">'+receipt.cards.map((id,index)=>{
+  const c=CARDS[id],can=!receipt.rerolled&&!pending&&DEFAULT_DECK.includes(id)&&
+   (profile.inventory[id]||0)>Math.max(1,reservedCopies(id))&&!profile.favorites.includes(id)&&
+   sharedShards()>=SHARD_REROLL_COST;
+  return '<div class="booster-choice">'+fullCardHtml(profileCard(c))+
+   (DEFAULT_DECK.includes(id)?menuButton(receipt.rerolled?'Tausch verbraucht':'Für '+SHARD_REROLL_COST+' ◆ tauschen',
+    'shard-reroll','data-index="'+index+'"',!can):'')+'</div>';
+ }).join('')+'</div>'+(receipt.rerolled?'<p>✓ Neuwurf dieses Boosters verwendet.</p>':'')+
+ '</section>':'';
+ const research=pending?'<section class="menu-panel"><h2>◆ Rollenforschung · Auswahl ausstehend</h2>'+
+ '<p>Deine '+SHARD_RESEARCH_COST+' Splitter wurden bereits bezahlt. Wähle eine der drei Karten. Die anderen beiden verschwinden; beim Neuladen bleibt deine Auswahl erhalten.</p>'+
+ '<div class="pool-grid">'+pending.offers.map((id,index)=>'<div class="booster-choice">'+
+  fullCardHtml(profileCard(CARDS[id]))+
+  menuButton('Diese Karte nehmen','shard-choose','data-index="'+index+'"')+
+  '</div>').join('')+'</div></section>':
+ '<section class="menu-panel"><h2>◆ Rollenforschung</h2><p>Für <b>'+SHARD_RESEARCH_COST+
+ ' Splitter</b> erhältst du drei unterschiedliche, zufällig ausgewählte Normalmonster einer gewählten Rolle zur Auswahl. Du behältst <b>genau eine Karte</b>. Angeboten werden ausschließlich rechtmäßig freigeschaltete Karten; ACEs, Questkarten und besondere Monster sind ausgeschlossen.</p>'+
+ '<div class="booster-choices">'+roles.map(([role,title])=>{
+  const count=shardResearchPool(role).length;
+  return '<article class="booster-choice"><h3>'+title+'</h3><p>'+count+
+   ' mögliche Karten im aktuellen Forschungsfundus</p>'+
+   menuButton('12 ◆ · 3 Karten erforschen','shard-research','data-role="'+role+'"',
+   sharedShards()<SHARD_RESEARCH_COST||count<3||!!profile.openPack||!!profile.rewardQueue.length)+
+   '</article>';
+ }).join('')+'</div></section>';
+ const craft='<section class="menu-panel"><h2>◆ Gezielte Kartenherstellung</h2>'+
+ '<p>Normale Monster aus bereits freigeschalteten Quellen kosten ausschließlich Splitter: '+
+ 'Level 1–3 <b>10 ◆</b>, Level 4–6 <b>18 ◆</b>, Level 7–8 <b>28 ◆</b>, Level 9–10 <b>40 ◆</b>. '+
+ 'Eine bestimmte Karte wählst du in deiner Sammlung bzw. im Deckeditor aus. '+
+ 'Bestehende seltene Fusionsrezepte kosten weiterhin 30 ◆ plus Essenz.</p>'+
+ '<p>Dein gemeinsamer Vorrat: <b>'+fmt(sharedShards())+' ◆</b></p></section>';
+ return shop+craft+research+swap;
+}
 function xpMarkup(){const level=playerLevel(profile);return `<section class="menu-panel"><h2>Spielerstufe ${level}</h2>${menuButton('? Levelsystem einfach erklärt','xphelp')}<p>Die nächste Belohnung erscheint automatisch, sobald du ihre Stufe erreichst. Wie stark die Karten darin sind, richtet sich nach deiner <b>höchsten besiegten Turnierstufe ${highestCleared()}</b>. Es ist nicht möglich, Belohnungen für später zurückzuhalten.</p><p><b>Dein Seltenheitsbonus:</b> +${((rarityMultiplier()-1)*100).toFixed(2)} % <em>relativ</em>. Er verbessert die Gewichtung seltener Karten bei Beute und Charakter-Boosterpacks, nicht die Chance auf eine Karte überhaupt. Jede Spielerstufe verändert diesen Bonus ein wenig.</p><div class="table-scroll"><table class="history-table"><thead><tr><th>Stufe</th><th>Deine Belohnung</th><th>Seltenheitsbonus bis dahin*</th><th>Status</th></tr></thead><tbody>${XP_MILESTONES.map(l=>`<tr><td><b>${l}</b></td><td>${[20,40].includes(l)?'Wähle 1 aus 3 unterschiedlichen seltenen Gestalten':[15,30,45].includes(l)?'Essenz + 10 Splitter':[10,25,50].includes(l)?'10 Karten + 1 Platz für Dropladungen':'10 Karten sofort'}</td><td>+${((rarityMultiplier(l)-1)*100).toFixed(2)} % relativ</td><td>${profile.milestones.includes(l)?'✓ Erreicht':'Offen'}</td></tr>`).join('')}</tbody></table></div><p class="pool-note">* Der angegebene Wert ist der gesamte Seltenheitsbonus beim Erreichen der Stufe, nicht der zusätzliche Bonus durch die einzelne Belohnung. Dropladungen sind getrennt von Automatikenergie. Alle Splitter bilden einen gemeinsamen Vorrat. Normale Monster werden für 10–40 Splitter ohne Essenz hergestellt; Fusionsvorlagen benötigen weiterhin 30 Splitter plus Essenz.</p></section>`;}
 
 function renderMenu(){renderMenu16();if(menuTab==='free')$('menuContent').innerHTML+=showcasePanel()+encounterMarkup();if(menuTab==='shop')$('menuContent').innerHTML=shopMarkup();if(menuTab==='xp')$('menuContent').innerHTML=xpMarkup();$('menuHero').innerHTML+='<button class="btn tiny" id="alwaysXPHelp" aria-label="Levelbelohnungen erklären">? Level & Belohnungen</button>';$('alwaysXPHelp').onclick=showXPHelp;bindMenu();if($('showcaseOptional'))$('showcaseOptional').onclick=()=>startShowcaseDuel(false);if(profile.rewardQueue.length)showMilestone();else if(profile.openPack)showPack();else if(profile.showcase.pending)showShowcaseIntro();}
-function menuAction(d){if(profile.rewardQueue.length){showMilestone();return;}if(d.action==='xphelp'){showXPHelp();return;}if(d.action==='booster'){if(buyBooster(Number(d.count)||10))renderMenu();else toast('Nicht genug Essenz für diesen Booster.');return;}if(d.action==='encounter'){startEncounter(d.enc);return;}menuAction16(d);}
+function menuAction(d){if(profile.rewardQueue.length){showMilestone();return;}if(d.action==='xphelp'){showXPHelp();return;}
+ if(d.action==='shard-reroll'){
+  const id=rerollBoosterStarter(Number(d.index));
+  toast(id!==false?'◆ Karten-Neuwurf: '+CARDS[id].name:'Tausch nicht verfügbar: Splitter, Karte oder freie Kopie prüfen.');
+  renderMenu();return;
+ }
+ if(d.action==='shard-research'){
+  const ok=beginShardResearch(d.role);
+  toast(ok?'◆ Rollenforschung eröffnet. Wähle eine von drei Karten.':'Forschung nicht möglich: zu wenige Splitter oder keine drei freigeschalteten Rollenmonster.');
+  renderMenu();return;
+ }
+ if(d.action==='shard-choose'){
+  const id=takeShardResearchCard(Number(d.index));
+  toast(id!==false?'◆ Neue Karte erforscht: '+CARDS[id].name:'Bitte eine gültige Forschungs-Karte wählen.');
+  renderMenu();return;
+ }
+ if(d.action==='booster'{if(buyBooster(Number(d.count)||10))renderMenu();else toast('Booster nicht verfügbar: Essenz prüfen oder offene Rollenforschung abschließen.');return;}if(d.action==='encounter'){startEncounter(d.enc);return;}menuAction16(d);}
 function showIphoneHelp(){openModal(modalHtml('MOBIL SPIELEN','Arcane Duel auf dem iPhone','📱','Spiele möglichst in Safari als Webseite. Die iOS-Dateivorschau führt JavaScript möglicherweise nicht vollständig aus.',`<ol class="rulelist"><li><b>Karten:</b> Tippe eine Handkarte an, dann auf „Beschwören“ und anschließend auf ein eigenes Feld.</li><li><b>Fusion:</b> Aktiviere „Touch-Fusion“, tippe mindestens zwei Handkarten nacheinander an und drücke „Fusionieren“. Wähle die Fusionsvorlage und dann ein eigenes Feld.</li><li><b>Angriff:</b> Tippe auf dein Monster und dann auf das gegnerische Ziel. Bei freiem Gegnerfeld nutze „Direkter Angriff“.</li><li><b>Speichern:</b> Im Menü unter „Spielstand“ regelmäßig als JSON exportieren. Ein HTML-Dateiwechsel oder Browserwechsel kann ein anderes lokales Speichergebiet verwenden.</li><li><b>Zum Home-Bildschirm:</b> Sobald das Spiel unter einer HTTPS-Webadresse in Safari läuft: Teilen → „Zum Home-Bildschirm“.</li></ol>`, '<button class="btn primary" id="iphoneHelpClose">VERSTANDEN</button>'));$('iphoneHelpClose').onclick=hideModal;}
 if(profile.rewardQueue.length)showMilestone();
