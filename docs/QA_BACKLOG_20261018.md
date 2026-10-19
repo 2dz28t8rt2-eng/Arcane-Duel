@@ -71,3 +71,9 @@
 - QA-Werteparität: automatischer Test für gewöhnliche RPG-Monster mit mehreren Upgrade-/Rollen-Spezialisierungen zeigt Deck-Startwerte identisch mit unbeschädigten Startwerten frisch erzeugter Duellkarten. **Weiter offen:** Abweichungen nach Zerfall, Spezialfähigkeiten, Fusionsrunden und Überladung; erst nach reproduziertem Gegenbeispiel spielmechanisch ändern.
 
 **Nicht abgeschlossen:** Komplettes Redesign der Beschwörungsauswahl (nur erste CSS-Reparatur), neue Monsterartworks, Eiman-Deckgrafiken, individuell größere ACE-Rituale, dezidierte Tests sämtlicher Booster-/ACE-Layouts auf mobilen Geräten sowie Level-/DEF-abhängiger Balancezerfall (bewusst nicht ohne vorherige Tests geändert).
+
+## Nachtrag 19.10.2026 · Update 5.6
+- **B2 / E1 – technisch umgesetzt, visuelle Spielabnahme offen:** neue gegliederte Beschwörungszentrale statt überfülltem Fließtext; große Vorschau, Fusionsmaterial, Qualitätsinformation und Feldzone separat. Browser-Smoke einschließlich Fusionskino und Node-Tests grün. Noch echte Nutzerinteraktionen auf Handy und Desktop prüfen.
+- **Verteidiger-KI:** Die Heilreichweite von Wächtern beträgt jetzt exakt einen Feldplatz nach links oder rechts. Globale Wächterheilung war ein Balancefehler und wurde in Plan- und Aktionsprüfung korrigiert.
+- **C – weiterhin offen:** Drei Monsterillustrationen (Nebelkaiser, Leerenorakel, Runengeist der Schwelle) als externe Originalentwürfe erzeugt; **keines dieser Bilder ist bisher als lokale WebP-Kartengrafik integriert**. Kein C-Eintrag als abgeschlossen markieren.
+- **Regression:** Commit `f9bea3c` grün in Code-/Strategietests und Chrome-Smoke. `main` bleibt unangetastet.

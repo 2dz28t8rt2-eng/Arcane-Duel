@@ -22,7 +22,7 @@ Die Kartenlevel-Tabelle beschreibt die zulässigen Pools, nicht die erforderlich
 
 - Vollständige, regelkonforme 40er-Decks mit höchstens drei Exemplaren derselben Karte, ohne schwache Lv3-Füllkarten im Finale.
 - ACE-Fokus: Normale ACEs werden bis zu drei Mal im Hauptdeck angeboten; Fusions-ACEs sind sicher im Fusionsdeck. Erlaubte ACE-Fusionen werden mit Vorrang gewählt.
-- Sichtbar angekündigte ACE-Vorbereitung sortiert **eine tatsächlich vorhandene** Deckkarte nach vorne; es wird keine zusätzliche Karte erzeugt.
+- Sichtbar angekündigte ACE-Vorbereitung sortiert **eine tatsächlich vorhandene** Deckkarte an das Ziehende (der Spielmotor zieht mit `pop()`); es wird keine zusätzliche Karte erzeugt.
 - KI-Bewertung von Beschwörungen nach Angriff/Schutz/Fusion mit angepasster Schwierigkeit, Rollen- und Positionspriorisierung sowie begrenzter Vorausplanung.
 - Wächter heilen benachbarte Seelenzehrer in DEF, Seelenzehrer können aktiv Gegnerwerte entziehen, Predator-Schwarm erhält +2 % ATK je weiterem normalem Predator (maximal +8 %).
 - Rollenstrategie und Schwierigkeitsgrad stehen in den Gegnerbeschreibungen.
@@ -65,3 +65,17 @@ Die Bestandsprüfung zeigt diese konkreten offenen Fälle:
 
 ## Freigabe
 Erst nach erfolgreichen Node- und Headless-Chromium-Tests auf dem aktuellen **development**-Head; `main` bleibt bis zur ausdrücklichen Freigabe unberührt.
+
+## Fortsetzung: Update 5.6 (19.10.2026)
+
+**In development implementiert:**
+- `assets/summon-stage-v56.js/.css`: gegliederte Beschwörungszentrale mit separaten Bereichen für Vorschau, einzeln entfernbare Fusionsmaterialien, Qualitätsinformation und fünf Feldzonen. Responsives Layout für Desktop und schmale Displays; Kernregeln unverändert.
+- Fusionswerte bleiben vor Ende des Fusionskinos verborgen und werden **nach** dem Ritual, aber **vor** der Zonewahl als echte Karte samt Werten sichtbar; der Headless-Chrome-Regressionsfall bestätigt diese Reihenfolge.
+- Wächter-KI darf Seelenzehrer nur noch auf **direkt benachbarten Zonen** heilen; Aktionsausführung validiert den Abstand erneut. Regressionstest vorhanden.
+- Beide CI-Workflows erfolgreich auf Commit `f9bea3cb9a18ff8e9055adce213a4aa3bcfa2369`:
+  - https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39216937659
+  - https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39216937734
+
+**Bildstand (nicht als integriert markiert):** Drei eigenständige Illustrationen zu *Nebelkaiser*, *Leerenorakel* und *Runengeist der Schwelle* wurden im verbundenen externen Bild-Workspace erzeugt, konnten aber in diesem Update noch nicht als lokale WebP-Dateien in das Repository übertragen und getestet werden. Im Spiel bleiben ihre bisherigen Motive. Auch die restlichen neun Schicksalsmonster und weitere offene Artworkfälle brauchen originale Einzelbilder und Bildabnahme.
+
+**Noch offen:** Realer manueller Karriere- und Quest-Durchlauf, Feinbalance, vollständige grafische Prüfung der neuen Beschwörungszentrale, Bildintegration und verbleibende Artworkfälle. Keine Änderungen an `main`.
