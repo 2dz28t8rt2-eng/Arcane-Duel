@@ -176,3 +176,16 @@ Die im Training ausgewählte **Hybrid-Strategie** (gezieltes Crafting + Rollenfo
 **Skript:** `tests/ai-independent-shard-careers-v79.cjs`, Workflow `.github/workflows/ai-independent-shard-v79.yml`, Ergebnisdatei `artifacts/ai-independent-shard-careers-v79.json` als CI-Artefakt. Vor dem Spieltraining müssen die aktuellen Splitter-/Kartenspürsinn-/Rollenregressionen erfolgreich bestehen. Keine KI-Parameter, Bosswerte oder `main`-Änderungen.
 
 **Freigabegate:** Keine neue Gegner-KI aktivieren, solange nicht genügend unterschiedliche tatsächlich erspielte VIII–X-Spielstände mit fairem Sieg-/Fortschrittsverlauf getestet wurden. Nach erfolgreicher v7.9-Analyse als nächstes den Rollenperk-Revamp Jagdinstinkt/Schildwall getrennt entwickeln.
+
+
+## Abgeschlossene Folgeexperimente v7.9 / v8.0 – 19.10.2026
+
+**[Vollständiger Bericht mit den Erfolgs-/Fehlversuchen](AI_V79_V80_INDEPENDENT_CAREER_FINDINGS_20261019.md)** · GitHub Actions [v7.9 SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39296549100) und [v8.0 SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39296938808).
+
+- **v7.9:** 12 wirklich unabhängige Karriere-Startseeds, je ein Paar (24 vollständige Versuche), nach IV Splitter-Hybrid versus bisheriger Deckbau: durchschnittlich tatsächlich gewonnene Turnierstufe **3,92 → 4,08**, zwei zusätzliche Karrieren gewannen VI, aber noch **keine** VII. **Sechs von zwölf** schon bei IV gescheitert und damit vor der erstmaligen Hybridinvestition.
+- **v8.0:** dieselben 12 Ausgangsseeds, vollständig gepaart, früher Splittereinsatz nach Sieg über **II** versus erst nach **IV**. Verbrauch **1.521 gegen 465 Splitter**, durchschnittliche gewonnene Stufe **3,75 gegen 4,08**: einfaches sehr frühes und häufiges Kaufen ist **keine belastbare Verbesserung**. Die Änderungen halfen in drei Karrieren, schadeten in vier anderen, in fünf blieb die gewonnene Stufe unverändert.
+- Beide Experimente bestanden ihre tatsächlichen Engine-, Ressourcen-, Besitz-, Qualifikations- und QA-Gates. **Keine** Bosswerte, normalen Kartenwerte, aktiven KI-Entscheidungsgewichte, Splitterpreise oder `main` geändert.
+
+**Neue Priorität v8.1:** Den **Kaufentscheidungsalgorithmus** der Spieler-KI trainieren, nicht bloß die Kaufrate: nur kaufen, wenn eine regulär verfügbare Karte gegenüber dem tatsächlichen 40er-Deck und passenden Fusionen einen klaren qualitativen Zugewinn bietet; Splitterbudget und spätere Freischaltungen mitbewerten. Besonders die erste große Hürde bei Turnierstufe IV prüfen. Neue KI-Gegner-Verbesserungen erst nach fairer, wirklich erspielter VIII–X-Progression aktivieren.
+
+**Status der ursprünglichen Fehler:** v7.8 QA-Gate bereits repariert, v7.8-Trainingslauf 39293814588 erfolgreich (1.280 Duelle), v7.9 und v8.0 sind zusätzliche bestätigte Folgeexperimente. Dieser Abschnitt ersetzt frühere Roadmap-Notizen, die v7.8 noch als ausständig bezeichneten.
