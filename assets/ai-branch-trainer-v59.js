@@ -198,6 +198,45 @@
   }
   return best;
  }
+ // Bounded training-only decision explanation. Never reads opponent's
+ // hand/deck or any unseen draws; does not modify the live duel.
+ function diagnose(g,max=5){
+  if(!sandbox||!ours(g)||g.aiPhase!=='summon'||g.pending||g.summoned)
+   return {available:false};
+  if(!Number.isInteger(max)||max<1||max>15)throw Error('Invalid audit budget');
+  const hand=g.players[1].hand,raw=candidates(g).slice(0,Math.min(LIMIT[g.opponentId],max));
+  const ranked=raw.map(c=>{
+   const result=branch(g,c);
+   const materials=c.action.type==='fusion'?
+    hand.filter(x=>c.action.uids?.includes(x.uid)).map(x=>({
+     id:x.id,level:dataOf(x).level,role:x.roleOverride||CARDS[x.id]?.role||'combatant'
+    })):c.action.type==='normal'?
+    hand.filter(x=>x.uid===c.action.uid).map(x=>({
+     id:x.id,level:dataOf(x).level,role:x.roleOverride||CARDS[x.id]?.role||'combatant'
+    })):[];
+   return {type:c.action.type,template:c.template?.id??null,
+    role:c.role,isAce:!!c.isAce,materials,
+    score:result?.score??null,rejected:!result,
+    materialPenalty:aceReservationPenalty(g,c),slot:result?.slot??null};
+  }).sort((a,b)=>(b.score??-Infinity)-(a.score??-Infinity));
+  const baseline=ArcaneAiLearning56.rank(g);
+  const selectedBaseline=baseline.find(x=>x.isAce)||baseline[0]||null;
+  const selectedScore=selectedBaseline?branch(g,selectedBaseline)?.score??null:null;
+  const ace=CARDS[ACE_CARD_IDS[g.opponentId]];
+  const nearAce=!!ace?.fusionOnly&&g.players[1].remainingFusion?.includes(ace.id);
+  const baseSignature=selectedBaseline?.action??null;
+  const best=ranked.find(x=>!x.rejected)||null;
+  return {available:true,tier:g.opponentId,turn:g.turn,
+   strategy:window.ArcaneAiRevamp55?.profileFor?.(g.opponentId)?.style||null,
+   ownHandCount:hand.length,ownBoard:g.players[1].field.filter(Boolean).length,
+   enemyVisibleBoard:g.players[0].field.filter(Boolean).length,
+   hasRemainingSignatureFusion:nearAce,
+   baseline:{type:baseSignature?.type||null,
+    template:selectedBaseline?.template?.id??null,
+    materialCount:selectedBaseline?.materialCount??null,score:selectedScore},
+   best,margin:best&&selectedScore!==null?+(best.score-selectedScore).toFixed(3):null,
+   alternatives:ranked};
+ }
  chooseAiAction=function(g,policy='balanced'){
   if(!sandbox||!ours(g))return oldChoose(g,policy);
   if(g.aiPhase==='summon'&&!g.summoned&&!g.pending)
@@ -226,7 +265,7 @@
   sandbox=active===true;
  }
  function resetCounters(){counters={evaluated:0,replies:0,invalid:0};}
- window.ArcaneAiBranches59=Object.freeze({version:'5.9.2',STANDARD,
-  publicState,features,slotFor,branch,aceReservationPenalty,candidates,choose,
+ window.ArcaneAiBranches59=Object.freeze({version:'5.9.3',STANDARD,
+  publicState,features,slotFor,branch,aceReservationPenalty,candidates,choose,diagnose,
   setSandbox,active:()=>sandbox,guard:()=>({...guard}),stats:()=>({...counters}),resetCounters});
 })();
