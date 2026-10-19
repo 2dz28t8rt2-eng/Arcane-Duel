@@ -35,11 +35,11 @@
   if(!p)return original;
   // A late opponent NEVER receives weak level-3 filler merely to reach 40.
   // Prefer legal high-level normal cards; keep the three-copies-per-ID limit.
-  let pool=normalPool().filter(c=>c.level>=p.floor);
+  let floor=p.floor,pool=normalPool().filter(c=>c.level>=floor);
   // Never lower the finale below Lv7 even if the authored pool is short.
-  const absoluteFloor=id===10?7:p.floor;
-  while(pool.length<14&&p.floor>absoluteFloor){
-   p.floor--;pool=normalPool().filter(c=>c.level>=p.floor);
+  const absoluteFloor=id===10?7:floor;
+  while(pool.length<14&&floor>absoluteFloor){
+   floor--;pool=normalPool().filter(c=>c.level>=floor);
   }
   if(pool.length<14)return original; // Do not crash old saves on a smaller catalogue.
   pool.sort((a,b)=>score(b,p.style)-score(a,p.style)||b.level-a.level||a.id-b.id);
