@@ -1,0 +1,39 @@
+name: Arcane Duel - Independent Economy AI Training v8.2
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-economy-isolation-v82.cjs'
+      - '.github/workflows/ai-economy-isolation-v82.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  five-isolated-career-arms:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and economy save validation
+        run: |
+          node --check assets/game.js
+          node --check tests/ai-economy-isolation-v82.cjs
+          node --test tests/shard-rework-v77.test.cjs tests/perk-card-sense-v76.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: Independently earn all progression in twenty paired careers per arm
+        env:
+          ARCANE_V82_CAREERS: '20'
+          ARCANE_V82_TIER_ATTEMPTS: '16'
+        run: node tests/ai-economy-isolation-v82.cjs
+      - name: Run broad strategy regression tests
+        run: |
+          node --test tests/ai-revamp-v55.test.cjs tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/ai-decision-diagnostics-v62.test.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-economy-isolated-v82
+          path: artifacts/ai-economy-isolation-v82.json
+          if-no-files-found: warn
+          retention-days: 30
