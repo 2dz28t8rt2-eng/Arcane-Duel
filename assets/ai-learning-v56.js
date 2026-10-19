@@ -130,7 +130,7 @@
   const options=legalAttacks(g).slice(0,Math.max(0,budget));
   return options.map(x=>{
    const a=dataOf(x.attacker),t=x.target?dataOf(x.target):null;
-   const threat=t?(t.atk/1000+(x.target.fusion?.8:0)):0;
+   const threat=t?(t.atk/1000+(x.target.fusion ? 0.8 : 0)):0;
    const gain=x.target?Math.max(0,x.damage):x.damage;
    const attrition=x.target&&x.target.mode==='atk'?
      Math.max(0,t.atk-a.atk)/1000:0;
