@@ -33,7 +33,7 @@ for(const initial of origins)for(const farm of farmBudgets){
  }
  legal();
  for(let i=0;i<farm;i++){
-  const g=createGame({mode:'pve',context:'free',opponentId:6,
+  const g=createGame({id:'v74-rewarded-VI-'+farm+'-'+i,mode:'pve',context:'free',opponentId:6,
    seed:740123+i*9413+farm*3181,starter:i%2,difficulty:'easy',
    deck:[...profile.activeDeck],fusionDeck:[...profile.fusionDeck],
    enhancements:profile.enhancements});
