@@ -209,3 +209,15 @@ Die im Training ausgewählte **Hybrid-Strategie** (gezieltes Crafting + Rollenfo
 Das value-gated Kaufexperiment mit **12 unabhängigen Startkarrieren je Arm** und legalen bezahlten Craftings/Forschungen wurde erfolgreich ausgeführt. Die streng selektive Methode sparte Splitter (204 statt 465), senkte die durchschnittlich gewonnene Stufe jedoch von **4,08 auf 3,67**. In der unabhängigen zweiten Hälfte der Karriereursprünge **3,17 statt 3,67**. Keine Variante gewann VII. Die übervorsichtige policy wurde **nicht** übernommen; schon gar kein neuer Gegner-Buff.
 
 **Nächste Priorität v8.2:** Die isolierte Wirkung von Deck-Score-Schwelle, Reserve und Booster-Neuwurf in eigenen Testarmen untersuchen, vor allem das **tatsächlich besessene/ausgerüstete 40-Karten-Deck und mögliche legale Fusionsmaterialien** vor Gegner IV. Nicht mehrere Hebel gemeinsam verändern und danach eine Einzelursache unterstellen. Mindestens zwölf eigene Karriereherkünfte und ein separater Holdout als Freigabegate. **main, Boss-KI, Kartenwerte und Splitterpreise unverändert.**
+
+
+## Trainingsfortsetzung v8.3 — abgeschlossen: frische Seeds, kombinierte Wirtschaft und früher Soul-Bridge
+
+**Action:** [v8.3 SUCCESS (39312236368)](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39312236368), [vollständiger Bericht](AI_V83_EARLY_FUSION_ECONOMY_RESULTS_20261019.md); auch [Code-/Strategie-QA](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39312236274) und [Browser-Smoke](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39312236297) **SUCCESS**. 24 völlig neue Karriereursprünge × 7 gepaarte Varianten = **168 vollständig simulierte Karriereverläufe**, 12 Train-/12 Holdout-Ursprünge.
+
+**Wichtigster Gegenbefund:** Vor Turnier IV erzwungener Soul-Bridge ist **keine** Verbesserung: `early-bridge-shard` 3,38 statt 3,92 mittlere gewonnene Stufen (`early-shard`); IV gewonnen 6 von 22 statt 11 von 23 erreichten Karrieren; tatsächlich 937 frühe Hauptdeck-, aber nur 19 Fusionsdeckänderungen. Kombinierte Reserve/Neuwurf-Verzicht/Früh-Bridge 3,79. `late-shard` bleibt bei **4,54** führend und hatte als einzige Variante einen Spieler, der X erreichte (ohne X-Sieg; nur eine Karriere, **keine** repräsentative Endgame-Evidenz).
+
+**Wirtschaftsbefund:** v8.2 zeigte starkes Holdout-Signal für `no-reroll`, aber dieses reproduzierte sich nicht auf den neuen v8.3-Ursprüngen (v8.3 Holdout 3,25 gegen `early-shard` 3,83). Deshalb **keine** Produktivempfehlung, Splitterneuwürfe global zu streichen oder den frühen Deckbuilder zu aktivieren.
+
+**Nächste Roadmap-Priorität v8.4:** [Issue #12](https://github.com/2dz28t8rt2-eng/Arcane-Duel/issues/12) — unabhängig gepaarter Vergleich mehrerer rollenangepasster **Hauptdeck + Fusionsdeck**-Builder auf **identisch tatsächlich verdienten Vor-IV-Inventaren**, fairen Combat-Seeds und echter Materialspielbarkeit. Danach auf neuen unabhängigen echten Karrieren IV/VI bestätigen. Erst dann wieder VIII–X und mögliche Boss-KI-Änderungen prüfen. `main`, Live-Gegner-KI, Karten- und Splitterpreise bleiben unverändert.
+
