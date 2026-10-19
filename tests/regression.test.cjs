@@ -104,9 +104,11 @@ test('Kleine Booster werden im Spielstand akzeptiert',()=>{
  }
 });
 
-test('Grundausbildung verstärkt nur Startmonster und migriert alte Spielstände',()=>{
- const b=boot(),r=b.run("(()=>{const p=validateProfile(JSON.parse(JSON.stringify(profile))),old=JSON.parse(JSON.stringify(p));delete old.upgrades.starter;const migrated=validateProfile(old);profile.coins=999999;const before=baseStat(CARDS[0],'atk',{id:0,enhancements:{},power:1}),normal=baseStat(CARDS[RPG_DEFAULT_DECK.find(id=>id>=20)]||CARDS[20],'atk',{id:0,enhancements:{},power:1});if(!buyUpgrade('starter'))throw Error('upgrade failed');const after=baseStat(CARDS[0],'atk',{id:0,enhancements:{},power:1}),ordinary=baseStat(CARDS[RPG_DEFAULT_DECK.find(id=>id>=20)]||CARDS[20],'atk',{id:0,enhancements:{},power:1});return {migrated:migrated.upgrades.starter,delta:after-before,normal:ordinary-normal};})()");
- assert.equal(r.migrated,0);assert.equal(r.delta,35);assert.equal(r.normal,0);
+test('Kartenspürsinn übernimmt alte Skillränge und verbessert Booster statt Kampfbasiswerte',()=>{
+ const b=boot(),r=b.run("(()=>{const p=validateProfile(JSON.parse(JSON.stringify(profile))),old=JSON.parse(JSON.stringify(p));delete old.upgrades.starter;const migrated=validateProfile(old);profile.coins=999999;const stats=[baseStat(CARDS[0],'atk',{id:0,enhancements:{},power:1}),baseStat(CARDS[RPG_DEFAULT_DECK.find(id=>id>=20)]||CARDS[20],'atk',{id:0,enhancements:{},power:1})];const before=cardSenseStarterCut(85);if(!buyUpgrade('starter'))throw Error('upgrade failed');const after=cardSenseStarterCut(85);return {migrated:migrated.upgrades.starter,delta:baseStat(CARDS[0],'atk',{id:0,enhancements:{},power:1})-stats[0],normal:baseStat(CARDS[RPG_DEFAULT_DECK.find(id=>id>=20)]||CARDS[20],'atk',{id:0,enhancements:{},power:1})-stats[1],rank:profile.upgrades.starter,starterChanceBefore:before,starterChanceAfter:after};})()");
+ assert.equal(r.migrated,0);assert.equal(r.rank,1);
+ assert.equal(r.delta,0);assert.equal(r.normal,0);
+ assert.equal(r.starterChanceBefore-r.starterChanceAfter,5);
 });
 
 test('Fusionsregel: höchstens eine Handfusion/Beschwörung pro Zug',()=>{
