@@ -23,8 +23,8 @@ jobs:
         run: node --test tests/stage-owned-decks-v60.test.cjs
       - name: Run exact 40-card and fusion-deck mirror comparisons
         env:
-          ARCANE_MIRROR_TRAIN_SEEDS: '2'
-          ARCANE_MIRROR_HOLDOUT_SEEDS: '3'
+          ARCANE_MIRROR_TRAIN_SEEDS: '3'
+          ARCANE_MIRROR_HOLDOUT_SEEDS: '5'
           ARCANE_MIRROR_TIERS: '10'
         run: |
           if test -f tests/ai-mirror-training-v60.cjs; then
