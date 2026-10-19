@@ -167,7 +167,8 @@ for(const tier of focus){
  const ranked=train.map(x=>({...x,
   fitness:(x.performance.npcWins-trainingBase.npcWins)*10000+
   x.performance.meanLPMargin-trainingBase.meanLPMargin}))
-  .sort((a,b)=>b.fitness-a.fitness||train.indexOf(a)-train.indexOf(b));
+  .sort((a,b)=>b.fitness-a.fitness||
+  (a.name==='baseline-v61'?-1:b.name==='baseline-v61'?1:a.name.localeCompare(b.name)));
  const selected=ranked[0];
  const baseline=stats(pairs(tier,holdN,original,'hold'));
  const challenger=stats(pairs(tier,holdN,selected.weights,'hold'));
