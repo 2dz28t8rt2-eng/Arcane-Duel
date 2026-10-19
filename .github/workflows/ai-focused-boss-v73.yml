@@ -1,0 +1,35 @@
+name: Arcane Duel – Focused Boss AI v7.3
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-focused-boss-training-v73.cjs'
+      - '.github/workflows/ai-focused-boss-v73.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  boss-eighth-tenth-holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify v7.3 search syntax and real imported late cards
+        run: |
+          node --check tests/ai-focused-boss-training-v73.cjs
+          node --test tests/lategame-monsters-v71.test.cjs tests/ai-learning-v56.test.cjs tests/ai-branch-trainer-v59.test.cjs
+      - name: Search VIII tactical scorer and diagnose X via balanced decks and actual ACE boss
+        env:
+          ARCANE_V73_TRAIN_SEEDS: '3'
+          ARCANE_V73_HOLD_SEEDS: '6'
+        run: node tests/ai-focused-boss-training-v73.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-focused-boss-ai-v73
+          path: artifacts/ai-focused-boss-v73.json
+          if-no-files-found: warn
+          retention-days: 30
