@@ -1,0 +1,38 @@
+name: Arcane Duel – Install Approved Lategame 16 Art v7.1
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'artwork-import/lategame16-v71.zip'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  install-user-artwork:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: development
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify exact user-approved ZIP and map all 16 artworks
+        run: python3 tools/install-lategame-art-v71.py
+      - name: Validate registered cards with real game runtime
+        run: |
+          node --check assets/lategame-monsters-v71.js
+          node --test tests/lategame-monsters-v71.test.cjs
+      - name: Commit only verified artworks to development
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/custom-art/lategame-v71/late-*.webp assets/lategame-monsters-v71.js
+          if git diff --cached --quiet; then
+            echo "Verified artworks already installed"
+          else
+            git commit -m "art(cards): install all 16 approved lategame portraits (v7.1)"
+            git push origin HEAD:development
+          fi
