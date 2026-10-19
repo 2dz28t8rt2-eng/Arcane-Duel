@@ -58,6 +58,15 @@ for(const tier of focus)for(const style of Object.keys(styles))
    const authentic=!!ace&&!!(ace.fusionOnly?p.remainingFusion.includes(aceId):
     p.originalDeck.includes(aceId));
    let aceActions=0,normalActions=0,fusionActions=0,prepped=false,err=null;
+   const committedAceUIDs=new Set();
+   const previousApply=applyAiAction;
+   applyAiAction=function(battle,action){
+    const applied=previousApply(battle,action);
+    if(battle===g&&applied)for(const card of g.players[1].field){
+     if(card&&card.id===aceId)committedAceUIDs.add(card.uid);
+    }
+    return applied;
+   };
    const previous=chooseAiAction;
    chooseAiAction=function(duel,policy){
     const a=previous(duel,policy);
@@ -71,10 +80,10 @@ for(const tier of focus)for(const style of Object.keys(styles))
     return a;
    };
    try{simulateGame(g,'${styles[style]}','balanced');}catch(e){err=String(e);}
-   chooseAiAction=previous;
+   chooseAiAction=previous;applyAiAction=previousApply;
    const counters=ArcaneAiBranches59.stats();
    ArcaneAiBranches59.setSandbox(null);ArcaneAiLearning56.setSandbox(null);
-   return {authentic,aceId,prepped,aceActions,normalActions,fusionActions,
+   return {authentic,aceId,prepped,aceActions,confirmedAceSummons:committedAceUIDs.size,normalActions,fusionActions,
     win:g.winner===1,lpMargin:p.lp-g.players[0].lp,turns:g.turn,
     valid:[0,1].includes(g.winner),error:err,branches:counters.evaluated};
   })()`;
@@ -90,12 +99,15 @@ const data={schema:'arcane-authentic-ace-boss-holdout-v62',
  notes:['Boss uses real curated tournament loadout with real ACE',
   'Player uses conservative synthetic stage-owned deck, not boss mirror',
   'Compared policies use same seed/deck; limited scripted human strategies',
+  'ACE attempted actions are not the same as confirmed summons; both metrics recorded.',
   'No training weights automatically promoted into development gameplay'],
  groups:focus.map(tier=>({tier,byPolicy:modes.map(mode=>{
   const sample=rows.filter(x=>x.tier===tier&&x.mode===mode),N=sample.length;
   return {mode,games:N,npcWins:sample.filter(x=>x.win).length,
    meanLP:Math.round(sample.reduce((s,x)=>s+x.lpMargin,0)/N),
-   aceUsed:sample.reduce((s,x)=>s+x.aceActions,0),
+   aceAttempted:sample.reduce((s,x)=>s+x.aceActions,0),
+   aceConfirmed:sample.reduce((s,x)=>s+x.confirmedAceSummons,0),
+   gamesWithConfirmedAce:sample.filter(x=>x.confirmedAceSummons>0).length,
    acePrepared:sample.filter(x=>x.prepped).length,
    fusions:sample.reduce((s,x)=>s+x.fusionActions,0),
    simulations:sample.reduce((s,x)=>s+x.branches,0)};
