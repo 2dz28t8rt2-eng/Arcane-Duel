@@ -1,0 +1,39 @@
+name: Arcane Duel – Fusion Policy Training v6.2
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/ai-branch-trainer-v59.js'
+      - 'tests/ai-fusion-preservation-v62.cjs'
+      - 'tests/ai-fusion-preservation-v62.test.cjs'
+      - '.github/workflows/ai-fusion-preservation-v62.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  specialist-fusion-training:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate role-aware policy and unchanged live play
+        run: |
+          node --check tests/ai-fusion-preservation-v62.cjs
+          node --test tests/ai-fusion-preservation-v62.test.cjs
+          node --test tests/ai-confidence-gate-v61.test.cjs
+      - name: Train signature-fusion preservation against previous gated profiles
+        env:
+          ARCANE_MIRROR_TIERS: '10'
+          ARCANE_MIRROR_TRAIN_SEEDS: '3'
+          ARCANE_MIRROR_HOLDOUT_SEEDS: '5'
+        run: node tests/ai-fusion-preservation-v62.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-fusion-preservation-v62
+          path: artifacts/ai-fusion-preservation-v62.json
+          if-no-files-found: warn
+          retention-days: 30
