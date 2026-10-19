@@ -5,16 +5,16 @@
 'use strict';
 (()=>{
  const PROFILES=Object.freeze({
-  1:{style:'attack',difficulty:'leicht',floor:1,cap:4,aceTurn:8},
-  2:{style:'defense',difficulty:'leicht',floor:1,cap:5,aceTurn:8},
-  3:{style:'fusion',difficulty:'leicht',floor:2,cap:6,aceTurn:8},
-  4:{style:'attack',difficulty:'mittel',floor:3,cap:7,aceTurn:6},
-  5:{style:'defense',difficulty:'mittel',floor:4,cap:8,aceTurn:6},
-  6:{style:'fusion',difficulty:'mittel',floor:4,cap:8,aceTurn:6},
-  7:{style:'attack',difficulty:'schwer',floor:5,cap:9,aceTurn:4},
-  8:{style:'defense',difficulty:'schwer',floor:6,cap:9,aceTurn:4},
-  9:{style:'fusion',difficulty:'schwer',floor:7,cap:10,aceTurn:4},
-  10:{style:'hybrid',difficulty:'finale',floor:8,cap:10,aceTurn:4}
+  1:{style:'attack',difficulty:'leicht',floor:1,cap:4,normalCap:2,powerFactor:.78,aceTurn:8},
+  2:{style:'defense',difficulty:'leicht',floor:1,cap:5,normalCap:3,powerFactor:.84,aceTurn:8},
+  3:{style:'fusion',difficulty:'leicht',floor:2,cap:6,normalCap:4,powerFactor:.90,aceTurn:8},
+  4:{style:'attack',difficulty:'mittel',floor:3,cap:7,normalCap:5,powerFactor:.95,aceTurn:6},
+  5:{style:'defense',difficulty:'mittel',floor:4,cap:8,normalCap:6,powerFactor:.98,aceTurn:6},
+  6:{style:'fusion',difficulty:'mittel',floor:4,cap:8,normalCap:7,powerFactor:1.02,aceTurn:6},
+  7:{style:'attack',difficulty:'schwer',floor:5,cap:9,normalCap:8,powerFactor:1.08,aceTurn:4},
+  8:{style:'defense',difficulty:'schwer',floor:6,cap:9,normalCap:9,powerFactor:1.10,aceTurn:4},
+  9:{style:'fusion',difficulty:'schwer',floor:7,cap:10,normalCap:10,powerFactor:1.13,aceTurn:4},
+  10:{style:'hybrid',difficulty:'finale',floor:8,cap:10,normalCap:10,powerFactor:1.15,aceTurn:4}
  });
  const profileFor=id=>PROFILES[id]||null;
  const LABELS={attack:'ANGRIFF · Schwarm und Tempo',defense:'VERTEIDIGUNG · Wächter heilen Seelenzehrer',
@@ -47,11 +47,11 @@
   if(!p)return original;
   // A late opponent NEVER receives weak level-3 filler merely to reach 40.
   // Prefer legal high-level normal cards; keep the three-copies-per-ID limit.
-  let floor=p.floor,pool=normalPool().filter(c=>c.level>=floor&&c.level<=p.cap);
+  let floor=p.floor,pool=normalPool().filter(c=>c.level>=floor&&c.level<=p.normalCap);
   // Never lower the finale below Lv7 even if the authored pool is short.
   const absoluteFloor=id===10?7:floor;
   while(pool.length<14&&floor>absoluteFloor){
-   floor--;pool=normalPool().filter(c=>c.level>=floor&&c.level<=p.cap);
+   floor--;pool=normalPool().filter(c=>c.level>=floor&&c.level<=p.normalCap);
   }
   if(pool.length<14)return original; // Do not crash old saves on a smaller catalogue.
   pool.sort((a,b)=>score(b,p.style)-score(a,p.style)||b.level-a.level||a.id-b.id);
@@ -83,7 +83,7 @@
    if(!fusionDeck.includes(aceId))throw Error('KI-ACE fehlt im Fusionsdeck von Gegner '+id);
   }
   return {...original,deck:selected,fusionDeck,
-   power:Math.min(1.75,(original.power||1)*(id>=7?1.14:id>=4?1.07:1)),
+   power:Math.min(1.75,(original.power||1)*p.powerFactor),
    arcaneAiProfile:p.style};
  }
  const prevLoad=rpgEnemyLoadout;
@@ -139,7 +139,8 @@
  function drainPlan(g,p){
   const soul=p.field.findIndex(c=>c&&role(c)==='soul'&&c.mode==='def'&&!c.attacked&&!c.switched);
   if(soul<0)return null;
-  const targets=g.players[0].field.map((c,i)=>({c,i})).filter(x=>x.c);
+  const targets=g.players[0].field.map((c,i)=>({c,i})).filter(x=>
+   x.c&&x.c.card?.[x.c.mode==='def'?'def':'atk']>0);
   if(!targets.length)return null;
   targets.sort((a,b)=>dataOf(b.c).atk-dataOf(a.c).atk);
   return {type:'arcane-soul-extract',slot:soul,target:targets[0].i};
@@ -172,8 +173,12 @@
  }
  const previousAction=applyAiAction;
  applyAiAction=function(g,a){
-  if(a?.type==='arcane-guardian-heal'||a?.type==='arcane-soul-extract')
-   return actSupport(g,a);
+  if(a?.type==='arcane-guardian-heal'||a?.type==='arcane-soul-extract'){
+   if(actSupport(g,a))return true;
+   // A target can be invalidated by combat reactions or active soul decay.
+   // Move to the closing phase rather than crashing a running AI turn.
+   g.aiPhase='guard';return true;
+  }
   if(a?.type==='fusion'&&a.choice!==undefined){
    return prepareHandFusion(g,a.uids,a.choice);
   }
