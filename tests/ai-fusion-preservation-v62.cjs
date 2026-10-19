@@ -184,13 +184,13 @@ for(const tier of focus){
   return {style,variant,sha256:fingerprint,sourceLimit:d.meta.priorLootMaxSource,
    maxLevel:d.meta.mainHighest,ownedCopyLimit:true};
  })).flat();
- report.trainingMatches+=trainingBase.games+train.reduce((s,x)=>s+x.performance.games,0);
+ report.trainingMatches+=train.reduce((s,x)=>s+x.performance.games,0);
  report.holdoutMatches+=baseline.games+challenger.games;
  report.tiers.push({tier,stageLegalDecks:deckInfo,
   baselineTrain:trainingBase,candidates:ranked.map(x=>({name:x.name,training:x.performance,
    fitness:x.fitness})),selected:selected.name,selectedWeights:selected.weights,
   holdout:{baseline,challenger,winGain,lpGain,robust},activateLive:false});
- console.log('FUSION_STAGE_V62 '+JSON.stringify({tier,trainGames:trainingBase.games+train.reduce((s,x)=>s+x.performance.games,0),
+ console.log('FUSION_STAGE_V62 '+JSON.stringify({tier,trainGames:train.reduce((s,x)=>s+x.performance.games,0),
   holdoutGames:baseline.games+challenger.games,selected:selected.name,winGain,lpGain,
   robust,starterWins:challenger.winsByStarter}));
 }
