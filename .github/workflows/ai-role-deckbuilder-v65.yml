@@ -1,0 +1,40 @@
+name: Arcane Duel – Owned Deckbuilder Training v6.5
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-role-deckbuilder-v65.cjs'
+      - '.github/workflows/ai-role-deckbuilder-v65.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  optimize-legal-role-decks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Recreate real inventories from paid economy and legally won duels
+        env:
+          ARCANE_CAREER_RUNS: '8'
+          ARCANE_CAREER_TIER_ATTEMPTS: '16'
+        run: node tests/ai-career-optimized-v64.cjs
+      - name: Learn role-aware deck selections and run disjoint unseen seeded evaluation
+        env:
+          ARCANE_BUILDER_TRAIN_SEEDS: '2'
+          ARCANE_BUILDER_HOLD_SEEDS: '4'
+        run: |
+          node --check tests/ai-role-deckbuilder-v65.cjs
+          node tests/ai-role-deckbuilder-v65.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-role-aware-deckbuilder-v65
+          path: |
+            artifacts/ai-real-careers-v64.json
+            artifacts/ai-role-deckbuilder-v65.json
+          if-no-files-found: warn
+          retention-days: 30
