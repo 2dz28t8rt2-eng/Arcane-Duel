@@ -390,6 +390,7 @@
      stage===1?'Ein unbekannter Duellant tritt dir entgegen. Noch weißt du nichts von seiner Forschung. Beweise ihm in einem normalen Duell dein Können.':STORIES[stage-1].dialog,
      (stage===1?'<p>✧ Kein Forschungsziel – euer erstes Duell beginnt.</p>':
       '<p class="lv1-intro-note"><b>Dein Leihdeck:</b> Jede Forschungsprüfung stellt dir ein passendes Herausforderungsdeck bereit. Dein eigenes Deck bleibt erhalten.</p>'+
+      '<p class="lv1-intro-note"><b>Temporäre Forschung:</b> '+(stage===2?'Floating ist für diesen Versuch aktiviert.':stage===3?'Floating und Swarm sind für diesen Versuch aktiviert.':'Floating, Swarm und die exklusiven Lv1-Fusionen sind für diesen Versuch aktiviert.')+' Nach dem Finale verwaltet der dauerhafte Skill „Verbotene Forschung“ alle Fähigkeiten.</p>'+
       '<p><b>Hinweis:</b> '+(stage===2?'Wenn ein echtes Level-1-Monster das Feld verlässt, kann sein Echo fortbestehen. Beobachte die Wechselwirkungen.':stage===3?'Kleine Kreaturen können weitere Funken herbeirufen. Nutze freie Plätze und das neue Echo.':stage===4?'Finde heraus, was geschieht, wenn schwache Geister ihre Kräfte in einer ungewöhnlichen Fusion verbinden.':'Nun greifen die Entdeckungen ineinander. Zeige, dass du sie im selben Duell beherrschst.')+'</p>')+
      '<p><b>Gegnerstrategie:</b> '+escapeHtml(game.lv1FanaticDeckName)+' · '+game.maxLP.toLocaleString('de-AT')+' LP</p>'+
      (stage===1?'':'<p class="lv1-objective"><b>Für das nächste Kapitel:</b> '+escapeHtml(OBJECTIVES[stage-1].description)+'</p>'),
@@ -411,7 +412,7 @@
   const moments=[
    ['DER ZUSAMMENBRUCH','Die letzte Predator-Fusion zerbricht. Die Arena fällt in Stille.',arts[0]],
    ['DER RUF DER GEISTER','Die kleinen Kreaturen vereinen sich. Nicht der Größte, sondern der Auserwählte hat ihre Stimmen gehört.',arts[1]],
-   ['DAS VERGESSENE SIEGEL','Fünf Fragmente verschmelzen zu einem uralten Siegel. PERK: ERWACHEN DES SCHWARMS.',arts[2]],
+   ['DAS VERGESSENE SIEGEL','Fünf Fragmente verschmelzen zu einem uralten Siegel. SKILL: VERBOTENE FORSCHUNG – Floating, Swarm und Spezialfusionen werden dauerhaft verfügbar.',arts[2]],
    ['DAS VERMÄCHTNIS','Der Fanatiker überlässt dir Lumira – den ersten Funken. Seine Forschung endet nicht, aber sein Weg als Duellant.',arts[3]],
    ['DIE GABE DES SCHWARMS','Die einzigartige ACE-Karte und die gewonnenen Booster sind deiner Sammlung bereits gutgeschrieben.',arts[3]]
   ];
@@ -461,7 +462,7 @@
   const scene='<section class="lv1-story-result"><h3>✦ '+escapeHtml(STORIES[stage-1].title)+'</h3>'+
     '<p class="lv1-dialogue">„'+escapeHtml(success?after:failedGoal?'Ein Sieg allein genügt nicht. Du hast die besondere Forschungstechnik noch nicht angewendet.':'Du bist noch nicht bereit. Kehre zurück, wenn du die Geister verstehst.')+'“</p>'+
     (failedGoal?'<p class="lv1-objective"><b>Noch offen:</b> '+escapeHtml(OBJECTIVES[stage-1].description)+'</p>':'')+(success?'<p>Fragment '+stage+' von 5 entdeckt. '+(stage===5?'Das Vermächtnis ist erwacht.':'Nächste Forschung freigeschaltet.')+'</p>':'<p>Diese Stufe kann erneut versucht werden.</p>')+
-    (stage===5&&success?ritual(g)+'<div class="lv1-unlock"><h3>✦ DAS ERWACHEN DES SCHWARMS ✦</h3><p>Schwarmperk dauerhaft freigeschaltet · ACE: Lumira erhalten</p>'+
+    (stage===5&&success?ritual(g)+'<div class="lv1-unlock"><h3>✦ VERBOTENE FORSCHUNG ✦</h3><p>Floating, Swarm und Lv1-Spezialfusionen dauerhaft freigeschaltet · Passiver Rang 1: +5 ATK/DEF auf gewöhnliche Lv1-Monster · Lumira als ACE erhalten</p>'+
       '<div class="lv1-booster-reveal">'+(g.lv1BonusPacks||[]).map((p,i)=>'<span>✧ Pack '+(i+1)+' · 3 Karten</span>').join('')+'</div>'+
       '<p>10 unabhängige Boosterwürfe à 50 %, 3 Level-1-Karten je gewonnenem Pack.</p></div>':'')+'</section>';
   $('modal').insertAdjacentHTML('beforeend',scene);
