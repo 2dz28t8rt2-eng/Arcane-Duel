@@ -9,7 +9,7 @@
 - Anschließend wurden echte Karriere-Spielstände durch normale Simulator-Duelle und `rewardMatch` bis zur Turnierstufe VIII aufgebaut – **ohne Gratis-Karten, Gratis-Splitter oder künstlichen Turnierfortschritt**.
 - Unter den gültigen Testresultaten waren fünf unterschiedliche VIII-Spielstand-Snapshots aus **nur zwei voneinander unabhängigen Ausgangskarrieren**. Die fünf Snapshots sind korreliert, keinesfalls fünf unabhängige Spieler.
 - Jedes echte Ausgangsinventar wurde in vier Zuständen wiederholt: `existing` (nicht investieren), `craft` (bezahlte normale Karten herstellen), `research` (12-Splitter-Rollenforschung und bei verfügbaren echten Boosterbelegen ein 5-Splitter-Tausch), `hybrid` (kombinieren).
-- Drei von vier Spieler-Kampfstilen werden explizit berücksichtigt? Im Skript gelten die **vier** Piloten `balanced`, `offensive`, `guardian`, `economy`; pro Startseed beide Startspielerpositionen. Acht Wirtschaftsprofile waren innerhalb der Testsetzung stärker, einige hatten nicht genügend Ressourcen für alle geplanten Käufe.
+- Das Skript prüft alle **vier** Spieler-Kampfstile `balanced`, `offensive`, `guardian` und `economy`; pro Startseed werden beide Startspielerpositionen berücksichtigt. Acht Wirtschaftsprofile waren innerhalb der Testsetzung stärker, einige hatten nicht genügend Ressourcen für alle geplanten Käufe.
 - Ziel: echter Turniergegner VIII mit seiner kuratierten Signatur-ACE-Karte; bisherige v5.7-Bossgewichte und separat die eingefrorene experimentelle v7.3-`fusion-precision`-KI, **beide nicht geändert/aktiviert**.
 - **1.280 Duellsimulationen** v7.8. Trainings-Samen wurden zur Vorauswahl eines Wirtschaftsplans verwendet, der unabhängige Holdout-Samensatz nur zur Kontrolle.
 
@@ -32,7 +32,7 @@ Vor der Investition gegen den echten v5.7-Boss betrug der gemessene mittlere NPC
 
 - Es wurden insgesamt **20 Wirtschaftsvarianten** getestet (fünf reale VIII-Snapshots × vier Strategien).
 - Zwei frühe VIII-Snapshots hatten zuvor nur **Level-4-Normalmonster** und keine der 16 neuen Endgame-Monster. Bezahlt mit **80 Splittern** erhielten sie jeweils zwei hergestellte Kopien einer Level-9-Karte; mit weiteren bezahlten **17 Splittern** in der Hybridvariante (Forschung + Neuwurf) erreichten diese Decks **Level 9** und teils **zwei verschiedene neue Endgame-Monster** im Inventar.
-- Bei weiteren Spielständen war schon vor Investition ein Level-7-Karte verfügbar, die mit **28 Splittern** auf Level-8-Varianten erweitert wurde.
+- Bei weiteren Spielständen war schon vor Investition eine Level-7-Karte verfügbar, die mit **28 Splittern** auf Level-8-Varianten erweitert wurde.
 - Wo weniger Splitter vorhanden waren, waren Forschung und Crafting entsprechend begrenzt; die Simulation hat keine Ressourcen hinzugefügt.
 - Forschung allein war weniger wirksam als gezieltes Crafting, wenn die vorhandene RNG-Auswahl keinen großen Stufensprung ermöglichte. Das ist ein Hinweis, nach dem ersten Update die Rollenforschung auf *Nützlichkeit statt nur Zufallsvielfalt* zu überprüfen.
 
