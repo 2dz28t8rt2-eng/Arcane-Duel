@@ -90,3 +90,21 @@ Vor Entwicklung: Designentscheidung, Migration ohne Karten-/Spielstandverlust, k
 ## 5. Andere Projektprioritäten bleiben bestehen
 
 Diese **KI-/Progressions-Roadmap** ersetzt nicht `docs/QA_BACKLOG_20261018.md` (Duell-UX/Fusionsfehler/Lv1-Quest) oder die allgemeine Rollen- und Spiel-Roadmap. Insbesondere reproduzierbare Feldfusion-/Questprogressionsfehler haben unabhängig vom KI-Training hohe Priorität.
+
+---
+
+## Ergänzung 19.10.2026 · v7.6: Kartenbelohnung, Splitternutzen, bestehende Perks erneuern
+
+**Aktuelle Nutzerentscheidung:** Lieber vorhandene Skills sinnvoll **revampen**, statt die Liste um weitere generische ATK-/DEF-Perks zu verlängern. Dieser Punkt wurde ausdrücklich nach dem letzten Progressionsplan ergänzt.
+
+**Verbindliches Arbeitsdokument:** [PROGRESSION_SHARDS_SKILLS_REVAMP_V76.md](PROGRESSION_SHARDS_SKILLS_REVAMP_V76.md). Dort sind die aktuell real implementierten zwölf Upgrades, Kartenerwerb, Boostergewichte, Splitterpreise und konkrete mechanische Rework-Ideen samt Gegenmaßnahmen gegen Stapel-/Speicherstandsfehler festgehalten.
+
+**Warum P0 für Belohnungen zusätzlich relevant ist:** Der vorhandene **5er-Booster hat rechnerisch 4,0 Startkarten im Erwartungswert**; die restlichen durchschnittlich 0,8 Normalkarten und 0,2 Fusionen sind weder garantiert neu noch garantiert stufengerecht. Gewöhnliches Kartenzerlegen ergibt nur 2 Splitter, während der gezielte Einzelkauf 30 Splitter **plus** Essenz benötigt. Das bestätigt einen plausiblen Design-Engpass – aber noch keine pauschal gemessene Kartenrate für menschliche Spieler.
+
+**Neue Reihenfolge innerhalb des P0/P1-Auftrags:**
+1. **v7.6-Audit** `tests/ai-real-economy-audit-v76.cjs`: echte Stufenabhängigkeit, erwartete Karten-Neuheit, normal/Starter/Fusionen, Anteil Karten 716–731, realer Drop-/Shop-Crafting-Pfad, Splitter als Rohstoff prüfen. Die neue CI arbeitet ohne Veränderung an Dropquoten, Profilen oder aktiven Perks.
+2. **Ein gezielter Splitter- und Booster-Prototyp** *offline*: weniger reiner Starterkartenüberschuss, mehr Auswahl zwischen echten, zuvor freigeschalteten Karten; Splitter als Wahl-/Reroll- oder gezielte-Crafting-Währung. Preise/Deckveränderung durch mehrere echte Karrieren balancieren.
+3. **Vorhandene Skills mit Rollenmechanik statt Rohwerten**: zuerst Jagdinstinkt und Schildwall als offensive/defensive Spielstilprägen, dann Fusionskunde und Runenpräzision mit bewusstem Fusionsentscheid; Schutz vor Looping, freiem Material und unendlichem DEF-Aufbau. Die anderen acht bestehenden Verbesserungen in ihrer Rolle überarbeiten statt weitere generische Skills ergänzen.
+4. **Spielstand- und Karriere-Abnahme**: bestehende Ränge, bezahlte Essenz und Splitterbestände erhalten. Vor Einführung jeder neuen Perk-Logik 12 unabhängige Karriereseeds, echte Inventare und VIII-/X-Fairness mitspielen. Alte `main` unangetastet.
+
+**Status:** Entscheidungen als Entwurf festgehalten; noch **keine** Revision der tatsächlichen Skill-Effekte und keine aktiven wirtschaftlichen Buffs. Erst Ergebnisse prüfen, dann konkret integrieren. 
