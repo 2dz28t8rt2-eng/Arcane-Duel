@@ -111,6 +111,22 @@
    params.risk*Math.max(0,(before.myLP-after.myLP)/850)-
    params.future*followupLoss+(isAce?params.ace:0);
  }
+ function aceReservationPenalty(g,candidate,params=weights){
+  const signature=ACE_CARD_IDS[g.opponentId],ace=CARDS[signature];
+  const spec=window.ArcaneAiRevamp55?.profileFor?.(g.opponentId);
+  if(!ace?.fusionOnly||!g.players[1].remainingFusion?.includes(signature)||
+   candidate.isAce||g.turn<Math.max(2,(spec?.aceTurn||5)-2))return 0;
+  const threshold=Math.max(1,ace.level-2);
+  const capable=g.players[1].hand.filter(c=>!c.fate&&dataOf(c).level>=threshold);
+  if(!capable.length)return 0;
+  const action=candidate.action||{},consumed=
+    action.type==='fusion'?capable.filter(c=>action.uids?.includes(c.uid)).length:
+    action.type==='normal'?capable.filter(c=>action.uid===c.uid).length:0;
+  // A material kept in hand can still be used for the legal signature fusion.
+  // The extra cost is meaningful only near the declared ACE preparation turn.
+  return consumed*(capable.length>=2?Math.min(7,params.ace*.65):
+    Math.min(3,params.ace*.28));
+ }
  function branch(g,candidate,params=weights){
   if(!ours(g)||!candidate?.action)return null;
   const baseline=features(g);
@@ -139,7 +155,7 @@
   }
   if(!ok)return null;
   counters.evaluated++;
-  return {action:candidate.action,score:Math.round(total/ok*1000)/1000,slot:chosenSlot,
+  return {action:candidate.action,score:Math.round((total/ok-aceReservationPenalty(g,candidate,params))*1000)/1000,slot:chosenSlot,
    simulationSamples:ok};
  }
  const oldChoose=chooseAiAction;
@@ -189,7 +205,7 @@
   sandbox=active===true;
  }
  function resetCounters(){counters={evaluated:0,replies:0,invalid:0};}
- window.ArcaneAiBranches59=Object.freeze({version:'5.9.0',STANDARD,
-  publicState,features,slotFor,branch,candidates,choose,
+ window.ArcaneAiBranches59=Object.freeze({version:'5.9.1',STANDARD,
+  publicState,features,slotFor,branch,aceReservationPenalty,candidates,choose,
   setSandbox,active:()=>sandbox,stats:()=>({...counters}),resetCounters});
 })();
