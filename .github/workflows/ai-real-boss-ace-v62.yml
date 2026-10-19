@@ -1,0 +1,32 @@
+name: Arcane Duel – Real Boss ACE Evaluation v6.2
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-real-boss-ace-v62.cjs'
+      - '.github/workflows/ai-real-boss-ace-v62.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  authentic-boss-ace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify actual boss deck creation, ACE cues and policy comparisons
+        env:
+          ARCANE_ACE_BOSS_SEEDS: '4'
+        run: |
+          node --check tests/ai-real-boss-ace-v62.cjs
+          node tests/ai-real-boss-ace-v62.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-real-boss-ace-v62
+          path: artifacts/ai-real-boss-ace-v62.json
+          if-no-files-found: warn
+          retention-days: 30
