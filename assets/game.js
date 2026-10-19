@@ -491,7 +491,7 @@ const MILESTONE_FORMS=[];
 for(const o of RPG_OPPONENTS){const forms=[];for(let k=0;k<6;k++){const l=o.level,atk=round10(FUSION_POWER[l]*(.92+k*.04)),def=round10(FUSION_POWER[l]*(.82-k*.04));const original=addRpgCard({name:o.theme+['licht','flamme','schwinge','klinge','wacht','glanz'][k],source:o.id,level:l,atk,def,kind:['spirit','dragon','bird'][k%3],element:o.element,color:o.color,fusionOnly:true,rarity:'rare',milestoneOnly:true,ability:['guard','pierce','hunt'][k%3],desc:'Seltene Meilenstein-Vorlage · als Gestalt über Spielerstufe 20 oder 40.'});const form=addRpgCard({...CARDS[original],name:CARDS[original].name+' · Gestalt',fusionOnly:false,manifestOf:original,desc:'Seltene Meilenstein-Gestalt · normal beschwörbar.'});forms.push(form);}MILESTONE_FORMS.push(forms);}
 RPG_BASE_CARDS.splice(0,RPG_BASE_CARDS.length,...CARDS.filter(c=>c.id<20||c.rpg&&!c.fusionOnly));RPG_FUSIONS.splice(0,RPG_FUSIONS.length,...CARDS.filter(c=>c.rpg&&c.fusionOnly));
 /* Hidden fate pool: 10 temporary templates, never collectible, craftable or droppable. */
-const FATE_NAMES=['Sternenrichter','Goldener Phönix','Schicksalsdrache','Ewigkeitswächter','Sonnenseraph','Astralgreif','Nebelkaiser','Kometenbestie','Himmelsarchon','Kosmischer Titan'];
+const FATE_NAMES=['Sternenrichter','Himmlischer Löwenwächter','Schicksalsdrache','Ewigkeitswächter','Sonnenseraph','Astralgreif','Nebelkaiser','Kometenbestie','Himmelsarchon','Kosmischer Titan'];
 const FATE_ART_IDS=[9,12,14,15,17,20,22,26,29,7];
 const FATE_CARD_IDS=CARDS.filter(c=>c.rpg&&!c.fusionOnly&&!c.ace&&c.level===10).slice(0,10).map(c=>c.id);
 function isFateCard(c){return !!c&&typeof c==='object'&&c.fate===true;}
