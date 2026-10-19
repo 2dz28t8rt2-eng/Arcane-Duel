@@ -5,7 +5,7 @@
  */
 'use strict';
 (()=>{
- const ARTWORK_INSTALLED=false; // AUTO-ENABLED by verified artwork-import workflow
+ const ARTWORK_INSTALLED=true; // AUTO-ENABLED by verified artwork-import workflow
  const EXPECTED_FIRST_ID=716;
  if(CARDS.length!==EXPECTED_FIRST_ID)
   throw Error('LateGame v7.1: Karten-ID-Konflikt – bestehender Katalog hat '+CARDS.length+' Karten statt 716.');
