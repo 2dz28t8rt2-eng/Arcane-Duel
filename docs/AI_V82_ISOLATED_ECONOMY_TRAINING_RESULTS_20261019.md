@@ -45,6 +45,8 @@ Die Gesamt-Ausgaben sind **nicht pro gewonnenem Level normiert**: Ein Arm kann m
 
 Vor dem Versuch gegen IV lagen die **durchschnittlichen Level der 40 ausgerüsteten Karten** je nach Strategie lediglich zwischen **2,48 und 2,73**. Die tatsächlich gespeicherten Fusionsdecks umfassten durchschnittlich etwa **9,9–11,3 Karten**; ihre bloße Anzahl beweist aber **nicht**, dass zum richtigen Zeitpunkt spielbare Materialkombinationen oder günstige Fusionen verfügbar sind. Durchschnittlich verfügbare Splitter vor IV: spät 28,6; früh 3,8; Wert 3,8; Reserve 20,2; kein Neuwurf 5,4.
 
+**Zusätzlicher Codebefund (hohe Priorität):** Im **Offline-Karrieresimulator** wird der bereits vorhandene `soulBridge`-Deckbuilder erst bei `highestCleared() >= 4` aufgerufen. Die problematische **Turnierstufe IV** wird folglich noch mit `equipBest()` statt mit diesem fusionsorientierten Builder vorbereitet. Das ist keine bewiesene Störung der produktiven Spieloberfläche, sondern eine konkret lokalisierte Einschränkung des bisherigen Testpiloten. **Nächste isolierte Hypothese:** den gleichen legalen Soul-/Fusions-Deckbau bereits vor IV anwenden und bei identischer Ökonomie in neuen Karrieren gegen die bisherige Vorbereitung antreten lassen. Erst danach an Gegner-/Kartenwerten drehen.
+
 **Karriereprogressionsbefund:** IV bleibt die erste große Schranke, VI die nächste. Zwei no-reroll-Ursprungskarrieren gewannen VII und erreichten VIII, doch **keine** Variante gewann VIII. Gegner IX/X lassen sich daher weiterhin nicht seriös aus genügend *tatsächlich erspielten* Karriere-Endgame-Decks bewerten.
 
 ## 3. Qualitätssicherung
