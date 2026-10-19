@@ -1,0 +1,48 @@
+name: Arcane Duel – Earned VII Career Training v7.4
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-earned-stage-vii-v74.cjs'
+      - '.github/workflows/ai-earned-vii-v74.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-earned-vii-reward-training:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate career source and legitimate reward rules
+        run: |
+          node --check tests/ai-earned-stage-vii-v74.cjs
+          node --test tests/lategame-monsters-v71.test.cjs tests/stage-owned-decks-v60.test.cjs
+      - name: Generate genuinely earned stage-VI player inventories
+        env:
+          ARCANE_CAREER_RUNS: '8'
+          ARCANE_CAREER_TIER_ATTEMPTS: '16'
+        run: node tests/ai-career-soul-bridge-v67.cjs
+      - name: Obtain actual stage-VII unlocks with normal VI rewards
+        env:
+          ARCANE_PILOT_TRAIN_SEEDS: '8'
+          ARCANE_PILOT_HOLDOUT_SEEDS: '18'
+        run: node tests/ai-stage-vi-pilot-v68.cjs
+      - name: Paid VI farming, optimize genuine VII pilots and test legal VIII unlocks
+        env:
+          ARCANE_V74_TRAIN_SEEDS: '4'
+          ARCANE_V74_HOLD_SEEDS: '9'
+        run: node tests/ai-earned-stage-vii-v74.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-genuine-stage-vii-v74
+          path: |
+            artifacts/ai-career-soul-bridge-v67.json
+            artifacts/ai-pilot-stage-vi-v68.json
+            artifacts/ai-earned-stage-vii-v74.json
+          if-no-files-found: warn
+          retention-days: 30
