@@ -1,0 +1,174 @@
+{
+  "schema": "arcane-ai-evolved-weights-v57b",
+  "source": "GitHub Actions run 39231686016",
+  "date": "2026-10-19",
+  "releaseEnabled": false,
+  "holdoutHumanStrategies": [
+    "balanced",
+    "offensive",
+    "guardian",
+    "economy"
+  ],
+  "holdoutMatchesPerTier": 64,
+  "trainingMatchesTotal": 1620,
+  "holdoutNetWins": 12,
+  "meanHoldoutLPMarginGain": 464,
+  "profileLimitation": "Existing in-game per-tier alternative budgets remain unchanged; no weights activated until further in-game QA",
+  "caveats": [
+    "Synthetic simulations are not human win rates",
+    "Only legal normal, fusion and safe attack candidates currently use scored weights",
+    "Opponent special skills remain authoritative in existing engine"
+  ],
+  "profiles": [
+    {
+      "tier": 1,
+      "style": "attack",
+      "winGain": 1,
+      "lpMarginGain": 887,
+      "weights": {
+        "attack": 1.39,
+        "defense": 0.72,
+        "tempo": 0.5,
+        "quality": 0,
+        "ace": 9,
+        "cost": 0,
+        "counter": 0.86
+      }
+    },
+    {
+      "tier": 2,
+      "style": "defense",
+      "winGain": 6,
+      "lpMarginGain": 996,
+      "weights": {
+        "attack": 0.65,
+        "defense": 1.8,
+        "tempo": 0.6,
+        "quality": 0.4,
+        "ace": 9,
+        "cost": 0.34,
+        "counter": 1.1
+      }
+    },
+    {
+      "tier": 3,
+      "style": "fusion",
+      "winGain": 0,
+      "lpMarginGain": 67,
+      "weights": {
+        "attack": 1,
+        "defense": 1.05,
+        "tempo": 0.3,
+        "quality": 1.3,
+        "ace": 9,
+        "cost": 0.18,
+        "counter": 0.7
+      }
+    },
+    {
+      "tier": 4,
+      "style": "attack",
+      "winGain": -1,
+      "lpMarginGain": -193,
+      "weights": {
+        "attack": 1.9,
+        "defense": 0.25,
+        "tempo": 1.35,
+        "quality": 0.25,
+        "ace": 9,
+        "cost": 0.18,
+        "counter": 0.5
+      }
+    },
+    {
+      "tier": 5,
+      "style": "defense",
+      "winGain": 3,
+      "lpMarginGain": 1839,
+      "weights": {
+        "attack": 0,
+        "defense": 0.9,
+        "tempo": 1.35,
+        "quality": 0.5,
+        "ace": 9,
+        "cost": 0,
+        "counter": 0.99
+      }
+    },
+    {
+      "tier": 6,
+      "style": "fusion",
+      "winGain": 0,
+      "lpMarginGain": 3,
+      "weights": {
+        "attack": 1,
+        "defense": 1.05,
+        "tempo": 0.3,
+        "quality": 1.3,
+        "ace": 9,
+        "cost": 0.18,
+        "counter": 0.7
+      }
+    },
+    {
+      "tier": 7,
+      "style": "attack",
+      "winGain": 3,
+      "lpMarginGain": 862,
+      "weights": {
+        "attack": 1.9,
+        "defense": 0.25,
+        "tempo": 1.35,
+        "quality": 0.25,
+        "ace": 9,
+        "cost": 0.18,
+        "counter": 0.5
+      }
+    },
+    {
+      "tier": 8,
+      "style": "defense",
+      "winGain": 0,
+      "lpMarginGain": 176,
+      "weights": {
+        "attack": 0.54,
+        "defense": 1.32,
+        "tempo": 0.97,
+        "quality": 0.13,
+        "ace": 9,
+        "cost": 0.48,
+        "counter": 0
+      }
+    },
+    {
+      "tier": 9,
+      "style": "fusion",
+      "winGain": 0,
+      "lpMarginGain": 0,
+      "weights": {
+        "attack": 1,
+        "defense": 1.05,
+        "tempo": 0.3,
+        "quality": 1.3,
+        "ace": 9,
+        "cost": 0.18,
+        "counter": 0.7
+      }
+    },
+    {
+      "tier": 10,
+      "style": "hybrid",
+      "winGain": 0,
+      "lpMarginGain": 0,
+      "weights": {
+        "attack": 1.9,
+        "defense": 0.25,
+        "tempo": 1.35,
+        "quality": 0.25,
+        "ace": 9,
+        "cost": 0.18,
+        "counter": 0.5
+      }
+    }
+  ]
+}
