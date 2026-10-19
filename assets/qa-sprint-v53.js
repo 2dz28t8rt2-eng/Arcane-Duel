@@ -53,7 +53,7 @@
  };
  const previousPreview=renderCardPreview;
  const roleNotes={
-  predator:{title:'PREDATOR · Offensive',body:'Angriffsorientierte Kreatur. Predatoren erzeugen Druck durch hohe ATK und ihre verfügbaren Predator-Spezialfähigkeiten.'},
+  predator:{title:'PREDATOR · Offensive',body:'Angriffsorientierte Kreatur. Viele normale Predatoren auf dem Feld erzeugen gemeinsam Druck: +2 % ATK je weiterem normalen Predator (maximal +8 %). Dieser Schwarmbonus ist von den bisherigen Predator-Fähigkeiten getrennt.'},
   guardian:{title:'WÄCHTER · Verteidigerfamilie',body:'Im DEF-Modus: 35 % weniger eingehender Verteidigerschaden, bei geeigneten Angriffen Gegenschlag mit 50 % eigener ATK als LP-Schaden. Wächter können andere verteidigende Verbündete heilen. Aktiver Schildstoß: einmal pro Zug, 30 % ATK als Schaden am ATK-/DEF-Wert eines gegnerischen Monsters; verbraucht die Angriffsaktion und verursacht keine direkten LP-Schäden.'},
   soul:{title:'SEELENZEHRER · Verteidigerfamilie',body:'Teilt den DEF-Schutz und Gegenschlag der Wächter. In DEF kann Seelenenergie passiv aus gegnerischen Monsterwerten absorbiert und für Burn oder Schutz gespeichert werden. Verfügbare aktive Fähigkeiten: Seelenraub (ein Ziel, drei eigene Züge Abklingzeit), Seelenstoß/Entladen (verbraucht Seelenessenz für direkten Schaden), Verdichten (Seelenenergie in stabile DEF, drei eigene Züge Abklingzeit).'},
   combatant:{title:'ALLROUNDER · Resonanz',body:'Ausgewogene ATK und DEF. Die bisherige Materialresonanz bleibt bei 4 %, 8 %, 12 % und 16 % mit steigender Feldpräsenz. Aus gemischten Fusionen kann stattdessen ein Resonator entstehen.'},
