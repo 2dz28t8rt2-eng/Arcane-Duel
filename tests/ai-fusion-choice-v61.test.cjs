@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const {boot}=require('./helpers/game-runtime.cjs');
 const vm=boot({seed:610111});
 test('fusion dispatch forwards the selected exact template and chosen material UIDs',()=>{
- const result=vm.run(`(()=>{const g={winner:null},old=prepareHandFusion,events=[];
+ const result=vm.run(`(()=>{const g=createGame({mode:'pve',context:'tournament',opponentId:6,seed:61025}),old=prepareHandFusion,events=[];
   prepareHandFusion=function(game,uids,choice){events.push({same:game===g,uids,choice});return true;};
   try {
    const first=applyAiAction(g,{type:'fusion',uids:[11,22],choice:513});
