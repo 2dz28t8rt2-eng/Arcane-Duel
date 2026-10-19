@@ -1,0 +1,48 @@
+/* Arcane Duel 5.6 · summon cockpit · preserves all existing card and zone controls */
+#duelScreen #summonStage{display:block!important;min-width:0;max-width:100%;overflow:visible}
+#duelScreen #summonStage .ad56-cockpit{display:grid;gap:12px;min-width:0;width:100%;box-sizing:border-box}
+#duelScreen #summonStage .ad56-topline{display:flex;gap:9px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+#duelScreen #summonStage .ad56-kicker{letter-spacing:.14em;font-size:11px;font-weight:850;color:#c4a6eb}
+#duelScreen #summonStage .ad56-topline strong{font-size:13px;color:#fbe6bd}
+#duelScreen #summonStage .ad56-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+#duelScreen #summonStage .ad56-steps span{padding:9px 7px;text-align:center;border-radius:8px;border:1px solid #726c8080;color:#abb7c8;background:#151e30;font-size:11px}
+#duelScreen #summonStage .ad56-steps span.active{color:#ffe5ab;background:#382b35;border-color:#d5a760;box-shadow:inset 0 0 14px #e0b06325}
+#duelScreen #summonStage .ad56-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:12px;align-items:stretch}
+#duelScreen #summonStage .ad56-block{box-sizing:border-box;min-width:0;margin:0;padding:13px;border:1px solid #806e8c99;border-radius:11px;background:linear-gradient(145deg,#19243a,#171827);overflow-wrap:anywhere}
+#duelScreen #summonStage .ad56-block h3{margin:0 0 12px;font:700 14px Georgia,serif;color:#ffdc9d;letter-spacing:.04em}
+#duelScreen #summonStage .ad56-block h3 small{display:block;font:400 11px system-ui,sans-serif;color:#b7c7dc;letter-spacing:0;margin-top:5px}
+#duelScreen #summonStage .ad56-empty,#duelScreen #summonStage .ad56-hint{margin:9px 0 0;font-size:12px;line-height:1.5;color:#c4c9d8}
+#duelScreen #summonStage .ad56-hint{border-top:1px solid #8794b52f;padding-top:9px}
+#duelScreen #summonStage .ad56-card-detail{display:grid;grid-template-columns:78px minmax(0,1fr);gap:10px;align-items:start}
+#duelScreen #summonStage .ad56-card-detail>img{width:78px;height:102px;object-fit:cover;border:1px solid #cfac70;border-radius:7px;background:#10182c}
+#duelScreen #summonStage .ad56-card-meta{display:grid;gap:8px;font-size:12px;min-width:0;color:#b8c9e0}
+#duelScreen #summonStage .ad56-card-meta strong{color:#fbe7c6;font-size:13px}
+#duelScreen #summonStage .ad56-stats{display:flex;gap:10px;flex-wrap:wrap;color:#bdf2ff}
+#duelScreen #summonStage .ad56-stats b:first-child{color:#ffddad}
+#duelScreen #summonStage .ad56-stage-card{max-width:155px!important;justify-self:center}
+#duelScreen #summonStage .ad56-stage-card .hand-card{max-width:155px!important}
+#duelScreen #summonStage .ad56-mat-list{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+#duelScreen #summonStage .ad56-mat-chip{width:100%;display:flex;align-items:center;gap:9px;border:1px solid #84729b;border-radius:7px;background:#26223c;color:#f8e9c7;padding:8px 9px;cursor:pointer;text-align:left;font:600 12px system-ui,sans-serif}
+#duelScreen #summonStage .ad56-mat-chip:hover:not(:disabled),#duelScreen #summonStage .ad56-mat-chip:focus-visible{outline:2px solid #d3b98e;background:#3c2c50}
+#duelScreen #summonStage .ad56-mat-chip:disabled{opacity:.6;cursor:not-allowed}
+#duelScreen #summonStage .ad56-mat-chip span:nth-child(2){flex:1;min-width:0}
+#duelScreen #summonStage .ad56-mat-chip small{flex-shrink:0;color:#c0defa}
+#duelScreen #summonStage .ad56-mat-order{flex-shrink:0;border-radius:50%;background:#8b71ad;color:white;padding:3px 7px}
+#duelScreen #summonStage .ad56-material-status{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+#duelScreen #summonStage .ad56-material-status>*{padding:5px 8px;border-radius:5px;background:#182a3f;color:#d9e7f8;font-size:11px}
+#duelScreen #summonStage .ad56-material-status .ad56-warning{color:#ffbdbd;background:#4c2439}
+#duelScreen #summonStage .ad56-zones{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+#duelScreen #summonStage .ad56-zone{min-width:0;display:grid;gap:4px;padding:10px 5px;border:1px dashed #7c8395;border-radius:7px;text-align:center;background:#111c30;font-size:11px}
+#duelScreen #summonStage .ad56-zone strong{font-size:17px;color:#f0dcaf}
+#duelScreen #summonStage .ad56-zone span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e0e5ef}
+#duelScreen #summonStage .ad56-zone small{color:#b5c6d9}
+#duelScreen #summonStage .ad56-zone.eligible{border:1px solid #dfb567;background:#2c293a;box-shadow:inset 0 0 10px #f2c06e22}
+@media(max-width:900px){#duelScreen #summonStage .ad56-columns{grid-template-columns:1fr}}
+@media(max-width:560px){
+ #duelScreen #summonStage .ad56-steps span{font-size:10px;min-height:34px}
+ #duelScreen #summonStage .ad56-block{padding:10px}
+ #duelScreen #summonStage .ad56-zones{gap:3px}
+ #duelScreen #summonStage .ad56-zone{padding:9px 2px;font-size:10px}
+ #duelScreen #summonStage .ad56-zone span{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){#duelScreen #summonStage .ad56-cockpit *{animation:none!important;transition:none!important}}
