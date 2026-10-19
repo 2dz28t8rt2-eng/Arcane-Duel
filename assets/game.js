@@ -166,7 +166,7 @@ function coreChooseAiAction(g,policy='balanced'){
  }
  return {type:'end'};
 }
-function applyAiAction(g,a){if(g.winner!==null)return null;switch(a.type){case 'normal':return prepareNormal(g,a.uid);case 'fusion':return prepareHandFusion(g,a.uids);case 'place':return placePending(g,a.idx);case 'switch':return switchPosition(g,a.idx);case 'attack':return attack(g,a.ai,a.di);case 'end':return advanceTurn(g);default:throw Error('Unbekannte KI-Aktion.');}}
+function applyAiAction(g,a){if(g.winner!==null)return null;switch(a.type){case 'normal':return prepareNormal(g,a.uid);case 'fusion':return prepareHandFusion(g,a.uids,a.choice);case 'place':return placePending(g,a.idx);case 'switch':return switchPosition(g,a.idx);case 'attack':return attack(g,a.ai,a.di);case 'end':return advanceTurn(g);default:throw Error('Unbekannte KI-Aktion.');}}
 function aiTurn(g,policy='balanced'){const turn=g.turn;for(let i=0;i<40&&g.winner===null&&g.turn===turn;i++){const a=chooseAiAction(g,policy);if(!applyAiAction(g,a))throw Error('KI konnte ihre Aktion nicht ausführen: '+a.type);}if(g.winner===null&&g.turn===turn)throw Error('KI-Zug konnte nicht beendet werden.');}
 function simulateGame(g,playerPolicy='balanced',enemyPolicy='balanced'){for(let i=0;i<32&&g.winner===null;i++)aiTurn(g,g.active===0?playerPolicy:enemyPolicy);if(g.winner===null)throw Error('Duell konnte nicht abgeschlossen werden.');return g;}
 
