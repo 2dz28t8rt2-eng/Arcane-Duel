@@ -65,3 +65,19 @@ test('sandbox chooses valid first steps for every opponent and preserves player 
  for(const t of x.rows){assert.equal(t.error,null,'tier '+t.tier+' '+t.error);assert.ok([0,1].includes(t.winner))}
  assert.equal(x.active,false);assert.ok(x.stats.evaluated>0);
 });
+
+test('ACE reservation penalizes burning near-ready signature materials but not legal ACE itself',()=>{
+ const x=run(`(()=>{const tier=Array.from({length:10},(_,i)=>i+1).find(t=>CARDS[ACE_CARD_IDS[t]]?.fusionOnly);
+  const aceId=ACE_CARD_IDS[tier],g=createGame({mode:'pve',context:'tournament',opponentId:tier,seed:59111});
+  g.active=1;g.turn=25;g.aiPhase='summon';g.summoned=false;
+  const minLevel=Math.max(1,CARDS[aceId].level-2),materials=CARDS.filter(c=>c.rpg&&!c.fusionOnly&&c.level>=minLevel).slice(0,2);
+  if(materials.length<2)throw Error('No real ACE materials exist');
+  g.players[1].hand=materials.map(c=>newInstance(g,c.id));
+  if(!g.players[1].remainingFusion.includes(aceId))g.players[1].remainingFusion.push(aceId);
+  const uids=g.players[1].hand.map(x=>x.uid);
+  const choice={action:{type:'fusion',uids},isAce:false};
+  const sig={...choice,isAce:true};
+  return {tier,penalty:ArcaneAiBranches59.aceReservationPenalty(g,choice),
+    exempt:ArcaneAiBranches59.aceReservationPenalty(g,sig)};})()`);
+ assert.ok(x.tier>=1);assert.ok(x.penalty>0);assert.equal(x.exempt,0);
+});
