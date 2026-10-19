@@ -1213,7 +1213,7 @@ function takeShardResearchCard(index){
   c.essenceMonster||c.milestoneOnly||c.workshopOnly||c.enemyOnly||
   c.trainingReward||c.hard||c.questOnly||c.lv1Exclusive||
   c.fateOnly||(c.requiredTier!=null&&c.requiredTier>highestCleared())||
-  (c.source>=0&&!profile.cleared.includes(c.source)))return false;
+  (c.source>0&&!profile.cleared.includes(c.source)))return false;
  addCard(id);profile.shardResearch=null;saveProfile();return id;
 }
 function milestoneOffers(tier){const pool=[...MILESTONE_FORMS[tier]],g={seed:rng(0xffffffff)||1};for(let i=pool.length-1;i>0;i--){const j=randomInt(g,i+1);[pool[i],pool[j]]=[pool[j],pool[i]];}return pool.slice(0,3);}
