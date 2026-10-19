@@ -60,7 +60,10 @@ rollBooster=function(tier,g={seed:rng(0xffffffff)||1},count=10){
  const eligible=profile.acePurchased.filter(t=>t<=tier);
  for(let slot=0;slot<count;slot++){
   const roll=randomInt(g,100),cut=count===10?(slot<8?[85,98]:slot===8?[40,75]:[15,50]):count===5&&slot===4?[60,88]:[85,98];
-  const pool=roll<cut[0]?pools.starter:roll<cut[1]?pools.normal:rareCommon;
+  // Preserve Kartenspürsinn even though this ACE-shop extension overrides rollBooster.
+  // Only starter→normal odds shift; eligible ACE side-roll remains unchanged.
+  const starterCut=cardSenseStarterCut(cut[0]);
+  const pool=roll<starterCut?pools.starter:roll<cut[1]?pools.normal:rareCommon;
   const picked=pool.length?pool[randomInt(g,pool.length)]:pools.starter[randomInt(g,pools.starter.length)];
   const rareAce=eligible.length&&randomInt(g,10000)<35; // 0.35 % each slot
   cards.push(rareAce?aceIds[eligible[randomInt(g,eligible.length)]]:picked);
