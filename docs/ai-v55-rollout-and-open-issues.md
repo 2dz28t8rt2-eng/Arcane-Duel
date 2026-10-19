@@ -39,3 +39,7 @@ Keine automatische Levelmigration bestehender Karten: Karten behalten ihre feste
 ## CI-Nachprüfung · Kapitel-V-Blockade
 - Das ältere QA-Modul `assets/qa-sprint-v52.js` hob die priorisierte Lumira-Finalentscheidung ungewollt auf, indem es Lumira auch in Kapitel V zur normalen Beschwörung zwang und die Karte generell als Fusionsmaterial ausschloss. Der Schutz bleibt in Kapiteln I–IV erhalten; Kapitel V überlässt die Entscheidung bewusst dem speziellen Korruptionsmodul.
 - Der Speichertest berücksichtigt, dass das gerade gestartete Forschungsspiel sofort einen **neuen** aktiven Duell-Snapshot erzeugt. Das verworfene fremde Duell darf nicht zurückkehren.
+
+## Kapitel-V-Regressionskorrektur
+- Eine zweite, separat implementierte pauschale `prepareHandFusion`-Sperre im QA-Sprint v5.2 untersagte die Verwendung von Lumira selbst dann, wenn die finale KI ihre Sonderfusion korrekt auswählte. Sie schützt weiterhin die Kapitel I–IV, aber nicht mehr die Pflichtfusion in Kapitel V.
+- Frühere Tests mit der inzwischen abgelösten Vorschrift „Lumira normal ausspielen“ wurden auf die final beschlossene Pflichtfusion mit Lumira als Material aktualisiert. Das vollständige CI-Prüfergebnis ist gesondert zu kontrollieren.
