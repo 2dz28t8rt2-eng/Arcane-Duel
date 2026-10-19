@@ -95,7 +95,26 @@ const marginGain=experimental.meanNPCMargin-baseline.meanNPCMargin;
 const independentOrigins=new Set(snapshots.map(x=>x.sourceCareer)).size;
 const suitable=independentOrigins>=4&&experimental.playerWins>=Math.ceil(experimental.games*.2)&&
  experimental.bossACEGames>=baseline.bossACEGames&&winGain>=3&&marginGain>=0;
+// Distinguish rare tactical unlocks from cards genuinely obtained.
+const catalogue=vm.run('CARDS.map(c=>c?({id:c.id,level:c.level,role:c.role,source:c.source,fusion:c.fusionOnly}):null)');
+const inventoryAudit=snapshots.map((x,index)=>{
+ const p=x.profile,main=p.activeDeck;
+ const stats=main.map(id=>catalogue[id]).filter(Boolean);
+ const high=stats.filter(c=>c.level>=7);
+ const newIds=Array.from({length:16},(_,i)=>716+i);
+ const acquired=newIds.filter(id=>(p.inventory[id]||0)>0);
+ return {index,originCareer:x.sourceCareer,cleared:[...p.cleared],
+  playerCoins:p.coins,mainDeckSize:main.length,
+  maxNormalLevel:Math.max(...stats.map(c=>c.level)),
+  totalHighLevelNormalCopies:high.length,
+  uniqueHighLevelNormals:new Set(high.map(c=>c.id)).size,
+  newLategameCardsOwned:acquired.map(id=>({id,copies:p.inventory[id]})),
+  newLategameCopiesEquipped:main.filter(id=>newIds.includes(id)).length,
+  distinctMain:new Set(main).size,
+  distinctFusion:new Set(p.fusionDeck).size};
+});
 const report={schema:'real-earned-tier8-balance-check-v75',
+ inventoryAudit,
  genuineEarnedVIIIProfiles:snapshots.length,independentOriginalCareers:independentOrigins,
  seedFamily:'7513301-third-party-holdout',seedCount:budget,
  playerPilots:policyNames,
@@ -112,5 +131,5 @@ fs.mkdirSync('artifacts',{recursive:true});
 fs.writeFileSync('artifacts/ai-earned-VIII-fairness-v75.json',JSON.stringify(report,null,2)+'\n');
 console.log('ARCANE_EARNED_VIII_FAIRNESS_V75 '+JSON.stringify({
  genuineEarnedVIIIProfiles:snapshots.length,independentOriginalCareers:independentOrigins,
- matches:duels,baseline,experimental,winGain,marginGain,
+ matches:duels,inventoryAudit,baseline,experimental,winGain,marginGain,
  realIXUnlocks:earnedIX.length,suitable}));
