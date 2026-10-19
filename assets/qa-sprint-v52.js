@@ -26,11 +26,12 @@
   if(isResearch(g))return false;
   return priorFate(g,id);
  };
- // In the research story, Lumira must remain a genuine card. Never use her as
- // a fusion ingredient, including the old Chapter V "Lumira's Fall" recipe.
+ // Lumira is protected from being consumed in research chapters I-IV.
+ // Chapter V MUST allow the dedicated Lumira's Fall hand-fusion ritual.
  const priorChoice=chooseAiAction;
  chooseAiAction=function(g,policy='balanced'){
   if(!isResearch(g)||g.active!==1||g.winner!==null)return priorChoice(g,policy);
+  if(g.lv1Saga?.stage===5)return priorChoice(g,policy);
   const foe=g.players[1],ace=lumiraId(),lumira=foe.hand.find(c=>c.id===ace);
   if(!g.pending&&!g.summoned&&lumira&&foe.field.some(c=>!c))
    return {type:'normal',uid:lumira.uid};

@@ -35,3 +35,7 @@ Keine automatische Levelmigration bestehender Karten: Karten behalten ihre feste
 - **Lumiras Fall:** Die ausdrücklich aus der Hand erlaubte Pflichtfusion wird auch im inneren Fusionsgenerator als Sonderrezept akzeptiert, aber nur während einer vorher erfolgreich geprüften Materialliste.
 - Neue Tests prüfen Deck-Erhaltung, tatsächlich folgende Ziehphase, den gespeicherten Kapitelwechsel und das Fusionsergebnis der fünften Prüfung.
 - **Weiter offen:** Hochwertige eigenständige Schicksals- und Sonderartworks sowie reale manuelle Karriere-Durchläufe und visuelles Browser-QA.
+
+## CI-Nachprüfung · Kapitel-V-Blockade
+- Das ältere QA-Modul `assets/qa-sprint-v52.js` hob die priorisierte Lumira-Finalentscheidung ungewollt auf, indem es Lumira auch in Kapitel V zur normalen Beschwörung zwang und die Karte generell als Fusionsmaterial ausschloss. Der Schutz bleibt in Kapiteln I–IV erhalten; Kapitel V überlässt die Entscheidung bewusst dem speziellen Korruptionsmodul.
+- Der Speichertest berücksichtigt, dass das gerade gestartete Forschungsspiel sofort einen **neuen** aktiven Duell-Snapshot erzeugt. Das verworfene fremde Duell darf nicht zurückkehren.
