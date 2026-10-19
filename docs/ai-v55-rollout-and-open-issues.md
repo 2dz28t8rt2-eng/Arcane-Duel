@@ -43,3 +43,7 @@ Keine automatische Levelmigration bestehender Karten: Karten behalten ihre feste
 ## Kapitel-V-Regressionskorrektur
 - Eine zweite, separat implementierte pauschale `prepareHandFusion`-Sperre im QA-Sprint v5.2 untersagte die Verwendung von Lumira selbst dann, wenn die finale KI ihre Sonderfusion korrekt auswählte. Sie schützt weiterhin die Kapitel I–IV, aber nicht mehr die Pflichtfusion in Kapitel V.
 - Frühere Tests mit der inzwischen abgelösten Vorschrift „Lumira normal ausspielen“ wurden auf die final beschlossene Pflichtfusion mit Lumira als Material aktualisiert. Das vollständige CI-Prüfergebnis ist gesondert zu kontrollieren.
+
+## KI-Korrektur: angrenzender Wächter (v5.5.3)
+- Eine Wächter-Heilaktion darf einen Seelenzehrer **nur aus einer unmittelbar benachbarten Monsterzone** unterstützen (Abstand exakt 1). Vorher wählte die KI Wächter auf beliebigen Feldpositionen, obwohl die Kampfstrategie von Nachbarschaft sprach.
+- Aktionsausführung prüft diese Legalität ein zweites Mal. Bei veränderter Situation beendet die KI kontrolliert die Aktion, statt einen unberechtigten Defensivbonus zu vergeben. Regressionstest: benachbart versus entfernt.

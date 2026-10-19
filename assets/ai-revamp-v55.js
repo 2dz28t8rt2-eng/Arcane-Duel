@@ -150,7 +150,10 @@
   for(const ally of soul){
    const base=baseStat(CARDS[ally.c.id],'def',p);
    if(ally.c.card.def>=base-50)continue;
-   const guard=p.field.findIndex(c=>c&&role(c)==='guardian'&&c.mode==='def'&&!c.attacked&&!c.switched);
+   // A guardian may channel DEF only into an adjacent Soul Drainer.
+   // Global off-field healing contradicts the archetype and trivializes walls.
+   const guard=p.field.findIndex((c,i)=>Math.abs(i-ally.i)===1&&c&&
+    role(c)==='guardian'&&c.mode==='def'&&!c.attacked&&!c.switched);
    if(guard>=0)return {type:'arcane-guardian-heal',guardian:guard,ally:ally.i};
   }
   return null;
@@ -168,7 +171,8 @@
   const p=g.players[g.active],enemy=g.players[1-g.active];
   if(a.type==='arcane-guardian-heal'){
    const guard=p.field[a.guardian],patient=p.field[a.ally];
-   if(!guard||!patient||role(guard)!=='guardian'||role(patient)!=='soul'||
+   if(!guard||!patient||Math.abs(a.guardian-a.ally)!==1||
+     role(guard)!=='guardian'||role(patient)!=='soul'||
      guard.mode!=='def'||guard.attacked||guard.switched)return false;
    const cap=baseStat(CARDS[patient.id],'def',p),missing=Math.max(0,cap-patient.card.def);
    if(missing<20)return false;
@@ -277,7 +281,7 @@
      c.level!==1||!['atk','def'].includes(stat))return current;
   return current+5*Math.max(1,Math.min(5,skill.skillRank||1));
  };
- window.ArcaneAiRevamp55=Object.freeze({version:'5.5.2',PROFILES,profileFor,counterMode,
+ window.ArcaneAiRevamp55=Object.freeze({version:'5.5.3',PROFILES,profileFor,counterMode,
   getScenario:g=>opponent(g)||null,
   predatorSwarm:(g,c)=>c&&g?effectiveAttack(g,c,null)-oldEffective(g,c,null):0});
 })();

@@ -82,3 +82,12 @@ test('fusion ACE uses real material cards at the pop() end and preserves the dec
  assert.equal(r.fusion,true);assert.equal(r.cue,true);assert.equal(r.queued,true);
  assert.ok(r.drawn>=2);assert.equal(r.preserved,true);
 });
+
+test('AI guardian healing requires an adjacent Soul Drainer on the actual field',()=>{
+ const r=audit("(()=>{const g=createGame({mode:'pve',context:'tournament',opponentId:8}),p=g.players[1];game=g;g.active=1;g.aiPhase='attacks';g.summoned=true;g.turn=8;p.field.fill(null);g.players[0].field.fill(null);const soul=newInstance(g,p.originalDeck[0],1),guard=newInstance(g,p.originalDeck[1],1);soul.roleOverride='soul';soul.mode='def';soul.card.def=Math.max(1,baseStat(CARDS[soul.id],'def',p)-300);guard.roleOverride='guardian';guard.mode='def';p.field[1]=soul;p.field[0]=guard;const adjacent=chooseAiAction(g).type;p.field[0]=null;p.field[4]=guard;g.aiPhase='attacks';const distant=chooseAiAction(g).type;const blocked=applyAiAction(g,{type:'arcane-guardian-heal',guardian:4,ally:1});return {adjacent,distant,guardNotSpent:!guard.attacked,defAfter:soul.card.def,blocked:!!blocked};})()");
+ assert.equal(r.adjacent,'arcane-guardian-heal');
+ assert.notEqual(r.distant,'arcane-guardian-heal');
+ assert.equal(r.guardNotSpent,true);
+ // An invalid delayed support action is safely skipped rather than applied.
+ assert.equal(r.blocked,true);
+});
