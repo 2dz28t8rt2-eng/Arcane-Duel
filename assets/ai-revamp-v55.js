@@ -17,6 +17,18 @@
   10:{style:'hybrid',difficulty:'finale',floor:8,aceTurn:4}
  });
  const profileFor=id=>PROFILES[id]||null;
+ const LABELS={attack:'ANGRIFF · Schwarm und Tempo',defense:'VERTEIDIGUNG · Wächter heilen Seelenzehrer',
+  fusion:'FUSION · Allrounder und Resonatoren',hybrid:'MEISTER · alle drei Strategien'};
+ for(const [id,profile] of Object.entries(PROFILES)){
+  const enemy=RPG_OPPONENTS[Number(id)];
+  if(!enemy)continue;
+  enemy.policy=profile.style==='attack'?'offensive':profile.style==='defense'?'guardian':
+   profile.style==='fusion'?'economy':'balanced';
+  enemy.aiArchetype=profile.style;
+  enemy.aiDifficulty=profile.difficulty;
+  enemy.desc='Strategie: '+LABELS[profile.style]+' · Schwierigkeit: '+profile.difficulty+
+   '. Signatur-ACE wird gezielt vorbereitet und, wenn legal, bevorzugt gespielt.';
+ }
  const role=c=>c?.roleOverride||CARDS[c?.id]?.role||c?.role||'combatant';
  const opponent=g=>g?.mode==='pve'&&g.context==='tournament'&&g.active===1&&
    !g.lv1Saga&&!g.showcase&&profileFor(g.opponentId);
