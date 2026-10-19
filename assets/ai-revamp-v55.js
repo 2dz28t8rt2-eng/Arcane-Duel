@@ -171,6 +171,17 @@
   }
   return false;
  }
+ // Counter logic inspects PUBLIC board state only, never the player's hand.
+ function counterMode(g,profile){
+  if(profile.style!=='hybrid')return profile.style;
+  const cards=g.players[0].field.filter(Boolean);
+  const swarm=cards.filter(c=>!c.fusion).length,
+        defense=cards.filter(c=>['guardian','soul'].includes(role(c))&&c.mode==='def').length,
+        fusion=cards.filter(c=>c.fusion).length;
+  if(defense>=2)return 'fusion'; // Build a superior unit to break their wall.
+  if(swarm>=3||fusion>=2)return 'defense'; // Trade attacks for control and drain.
+  return 'attack'; // Exploit small or unprepared fields.
+ }
  const previousAction=applyAiAction;
  applyAiAction=function(g,a){
   if(a?.type==='arcane-guardian-heal'||a?.type==='arcane-soul-extract'){
@@ -188,19 +199,23 @@
  chooseAiAction=function(g,policy='balanced'){
   const strategy=opponent(g);
   if(!strategy)return oldAi(g,policy);
-  const p=g.players[1];
+  const p=g.players[1],style=counterMode(g,strategy);
+  if(strategy.style==='hybrid'&&style!==g.arcaneCounterStyle){
+   g.arcaneCounterStyle=style;
+   logEvent(g,'✦ Der Finalgegner reagiert auf dein Feld: '+LABELS[style]+'.');
+  }
   cueAce(g,p,strategy);
   if(!g.pending&&g.aiPhase==='summon'&&!g.summoned){
    const ace=ACE_CARD_IDS[g.opponentId],normalAce=p.hand.find(c=>c.id===ace);
    if(normalAce&&p.field.some(c=>!c))return {type:'normal',uid:normalAce.uid};
    const candidate=fusionCandidate(g,p,strategy);
-   if(candidate?.isAce||candidate&&(['fusion','hybrid'].includes(strategy.style)))
+   if(candidate?.isAce||candidate&&(['fusion','hybrid'].includes(style)))
     return {type:'fusion',uids:candidate.uids,choice:candidate.choice};
    const empty=p.field.findIndex(c=>!c);
    if(empty>=0&&p.hand.length){
     const hand=[...p.hand].sort((a,b)=>{
      const ta=dataOf(a),tb=dataOf(b);
-     return score(tb,strategy.style)-score(ta,strategy.style);
+     return score(tb,style)-score(ta,style);
     });
     return {type:'normal',uid:hand[0].uid};
    }
@@ -212,16 +227,16 @@
    if(guard>=0)return {type:'switch',idx:guard};
    // Never switch an 800 DEF guardian with 200 ATK to attack for its
    // insignificant damage. Defence uses support and absorb actions.
-   if(strategy.style==='defense')g.aiPhase='attacks';
+   if(style==='defense')g.aiPhase='attacks';
   }
-  if(!g.pending&&g.aiPhase==='attacks'&&['defense','hybrid'].includes(strategy.style)){
+  if(!g.pending&&g.aiPhase==='attacks'&&['defense','hybrid'].includes(style)){
    if(strategy.difficulty!=='leicht'){
     const heal=healPlan(g,p);if(heal)return heal;
     const drain=drainPlan(g,p);if(drain)return drain;
    }
   }
-  return oldAi(g,strategy.style==='attack'?'offensive':
-    strategy.style==='fusion'?'economy':strategy.style==='defense'?'guardian':policy);
+  return oldAi(g,style==='attack'?'offensive':
+    style==='fusion'?'economy':style==='defense'?'guardian':policy);
  };
  // Swarm bonus counts NORMAL Predator creatures. Existing fusion bonuses and
  // passive Allrounder/Resonator values are unchanged.
@@ -243,7 +258,7 @@
      c.level!==1||!['atk','def'].includes(stat))return current;
   return current+5*Math.max(1,Math.min(5,skill.skillRank||1));
  };
- window.ArcaneAiRevamp55=Object.freeze({version:'5.5.0',PROFILES,profileFor,
+ window.ArcaneAiRevamp55=Object.freeze({version:'5.5.1',PROFILES,profileFor,counterMode,
   getScenario:g=>opponent(g)||null,
   predatorSwarm:(g,c)=>c&&g?effectiveAttack(g,c,null)-oldEffective(g,c,null):0});
 })();
