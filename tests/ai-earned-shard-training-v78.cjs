@@ -152,7 +152,7 @@ const selected=ranked[0].winGain>0||ranked[0].marginGain>0?
 // Holdout is evaluated with pre-frozen economic modes, the training choice
 // is not adjusted after inspecting these results.
 const hold=evaluate('hold',holdSeeds);
-const old=hold.find(x=>x.config==='trained-v57'&&x.arm==='existing');
+const baselineHoldout=hold.find(x=>x.config==='trained-v57'&&x.arm==='existing');
 const challenger=hold.find(x=>x.config==='trained-v57'&&x.arm===selected);
 const experimental=hold.find(x=>x.config==='frozen-fusion-precision'&&x.arm===selected);
 const independentOrigins=new Set(prepared.map(x=>x.sourceCareer)).size;
@@ -162,9 +162,9 @@ const report={schema:'earned-shard-player-economy-and-viii-AI-v78',
  profilesCompared:prepared.length,duels,trainSeeds,holdSeeds,
  trainingRanked:ranked,selectedBeforeHoldout:selected,
  train,hold,prepared:prepared.map(({profile,...rest})=>rest),
- holdout:{baseline:old,selected:challenger,fusionBoss:experimental,
-  playerWinGain:challenger.playerWins-old.playerWins,
-  npcMarginImprovement:old.avgNPCMargin-challenger.avgNPCMargin},
+ holdout:{baseline:baselineHoldout,selected:challenger,fusionBoss:experimental,
+  playerWinGain:challenger.playerWins-baselineHoldout.playerWins,
+  npcMarginImprovement:baselineHoldout.avgNPCMargin-challenger.avgNPCMargin},
  limitations:[
  'The saved stage-VIII profiles may share one original career; do NOT interpret repeats as independent human careers.',
  'No artificial shard / Essence / card grants; all acquired cards use real paid crafting or research.',
