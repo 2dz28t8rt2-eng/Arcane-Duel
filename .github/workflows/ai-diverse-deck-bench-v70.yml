@@ -1,0 +1,35 @@
+name: Arcane Duel – Diverse AI Test Decks v7.0
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/helpers/diverse-benchmark-decks-v70.cjs'
+      - 'tests/ai-diverse-deck-bench-v70.cjs'
+      - '.github/workflows/ai-diverse-deck-bench-v70.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  construct-and-stress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate constructed deck generator and scenario runner
+        run: |
+          node --check tests/helpers/diverse-benchmark-decks-v70.cjs
+          node --check tests/ai-diverse-deck-bench-v70.cjs
+      - name: Produce source-legal decks and compare old vs guarded AI
+        env:
+          ARCANE_DIVERSE_TRIALS_PER_DECK: '2'
+        run: node tests/ai-diverse-deck-bench-v70.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-112-diverse-testdecks-v70
+          path: artifacts/ai-constructed-training-decks-v70.json
+          if-no-files-found: warn
+          retention-days: 30
