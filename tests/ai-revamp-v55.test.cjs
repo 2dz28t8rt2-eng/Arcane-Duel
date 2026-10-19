@@ -50,3 +50,18 @@ test('temporary Lv1 mechanics unlock per trial; passive only after final researc
  const r=audit("(()=>{profile.lv1Saga={offered:true,met:true,stage:2,perk:false};const g=createGame({mode:'pve',opponentId:1,context:'challenge'});g.lv1Saga={stage:2};const float=ArcaneLv1Swarm.enabled(g);g.lv1Saga.stage=3;const swarm=ArcaneLv1Swarm.enabled(g);g.lv1Saga.stage=4;const fusion=ArcaneLv1Swarm.enabled(g);delete g.lv1Saga;const outside=ArcaneLv1Swarm.enabled(g);profile.lv1Saga.perk=true;profile.lv1Saga.skillRank=1;const after=ArcaneLv1Swarm.enabled(g);return {float,swarm,fusion,outside,after};})()");
  assert.deepEqual(r,{float:true,swarm:true,fusion:true,outside:false,after:true});
 });
+
+test('guardian AI keeps a 200 ATK / 800 DEF protector in defensive position',()=>{
+ const r=audit("(()=>{const g=createGame({mode:'pve',context:'tournament',opponentId:8});game=g;g.active=1;g.turn=8;g.pending=null;g.aiPhase='positions';g.summoned=true;const p=g.players[1],c=p.field[0]=newInstance(g,p.originalDeck[0],1);c.roleOverride='guardian';c.mode='atk';c.attacked=false;c.switched=false;c.card.atk=200;c.card.def=800;const command=chooseAiAction(g);const ok=command.type==='switch'?applyAiAction(g,command):false;const next=chooseAiAction(g);return {command:command.type,success:!!ok,mode:c.mode,next:next.type};})()");
+ assert.equal(r.command,'switch');assert.equal(r.success,true);assert.equal(r.mode,'def');assert.notEqual(r.next,'switch');
+});
+test('two regular Predators grant a small pack attack bonus, no bonus to a solitary attacker',()=>{
+ const r=audit("(()=>{const g=createGame({mode:'pve',opponentId:3,context:'free'});g.active=0;const p=g.players[0],a=newInstance(g,RPG_BASE_CARDS.find(c=>c.level===3&&!c.retired&&!c.ace).id,0),b=newInstance(g,RPG_BASE_CARDS.find(c=>c.level===3&&!c.retired&&!c.ace).id,0);a.roleOverride='predator';b.roleOverride='predator';p.field[0]=a;const before=effectiveAttack(g,a,null);p.field[1]=b;const after=effectiveAttack(g,a,null);return {before,after};})()");
+ assert.ok(r.after>r.before&&r.after<=Math.ceil(r.before*1.03));
+});
+test('every tournament opponent AI completes repeated turns without an invalid action or stalled phase',()=>{
+ const summary=audit("Array.from({length:10},(_,i)=>{const g=createGame({mode:'pve',opponentId:i+1,context:'tournament',seed:104+i});let actions=0;let error=null;try{for(let n=0;n<14&&g.winner===null;n++){aiTurn(g,g.active===0?'balanced':OPPONENTS[g.opponentId].policy);actions++;}}catch(e){error=String(e)}return {tier:i+1,actions,winner:g.winner,error};})");
+ console.log('CAREER_AI_SIMULATION',JSON.stringify(summary));
+ for(const x of summary)assert.equal(x.error,null,'tier '+x.tier+': '+x.error);
+ assert.ok(summary.every(x=>x.actions>0));
+});
