@@ -200,3 +200,12 @@ Die im Training ausgewählte **Hybrid-Strategie** (gezieltes Crafting + Rollenfo
 **Offene Beweisfrage:** Gegenüber dem bloßen Frühkaufen aus v8.0 tatsächlich mehr unterschiedliche Karrieren bis IV, VI und VII bringen, ohne hohen Splitterverbrauch. Beide Arme beginnen mit identischem Startseed und regulären Duellen. Als Erfolg zählt die erreichte Turnierstufe, nicht nur dass viele Karten gekauft wurden. Keine direkten Profil-Eingriffe, keine Boss-Buffs und kein Merge auf `main`.
 
 **Voraussetzung für einen KI-Rollout:** Ein gewonnener Testlauf bedeutet nur, dass das neue *Offline-Spielermodell* validiert wurde. Gegner VIII/X werden erst neu trainiert, wenn genügend eigenständige, legal erspielte Endgame-Decks entstanden sind.
+
+
+### Abschluss v8.1 · Experiment bestanden, selektive Kauflogik nicht verbessert
+
+[Ausführlicher v8.1-Bericht](AI_V81_VALUE_GATED_ECONOMY_RESULTS_20261019.md) · [GitHub Action 39303077605: SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39303077605).
+
+Das value-gated Kaufexperiment mit **12 unabhängigen Startkarrieren je Arm** und legalen bezahlten Craftings/Forschungen wurde erfolgreich ausgeführt. Die streng selektive Methode sparte Splitter (204 statt 465), senkte die durchschnittlich gewonnene Stufe jedoch von **4,08 auf 3,67**. In der unabhängigen zweiten Hälfte der Karriereursprünge **3,17 statt 3,67**. Keine Variante gewann VII. Die übervorsichtige policy wurde **nicht** übernommen; schon gar kein neuer Gegner-Buff.
+
+**Nächste Priorität v8.2:** Die isolierte Wirkung von Deck-Score-Schwelle, Reserve und Booster-Neuwurf in eigenen Testarmen untersuchen, vor allem das **tatsächlich besessene/ausgerüstete 40-Karten-Deck und mögliche legale Fusionsmaterialien** vor Gegner IV. Nicht mehrere Hebel gemeinsam verändern und danach eine Einzelursache unterstellen. Mindestens zwölf eigene Karriereherkünfte und ein separater Holdout als Freigabegate. **main, Boss-KI, Kartenwerte und Splitterpreise unverändert.**
