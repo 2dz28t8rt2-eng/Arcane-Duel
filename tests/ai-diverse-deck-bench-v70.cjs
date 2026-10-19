@@ -19,6 +19,30 @@ const catalogue=runtime.run(`(()=>{const p=freshProfile();return {
  defaultDeck:[...DEFAULT_DECK],startFusions:[...RPG_START_FUSIONS],
  opponents:RPG_OPPONENTS.map(o=>({level:o.level,loot:[...o.loot]})),
  starterOwned:p.inventory};})()`);
+// Catalogue audit: separate "not in this reward pool" from "not in game".
+const nonSpecial=c=>c&&Number.isInteger(c.id)&&!c.fusionOnly&&
+ !c.retired&&!c.hard&&!c.ace&&!c.enemyOnly&&!c.essenceMonster&&
+ !c.lv1Exclusive&&!c.workshopOnly&&!c.fateOnly&&!c.milestoneOnly&&
+ !c.eventOnly&&!c.questOnly&&!c.legendaryOnly&&!c.fate&&
+ (c.manifestOf===null||c.manifestOf===undefined);
+const regularNormals=catalogue.cards.filter(nonSpecial);
+const allSeenDrops=new Set(catalogue.opponents.flatMap(o=>o.loot));
+const topRoster=roster(catalogue,10);
+const audit={
+ totalCardDefinitions:catalogue.cards.filter(Boolean).length,
+ nonSpecialNormalCards:regularNormals.length,
+ nonSpecialNormalByLevel:Object.fromEntries(Array.from({length:10},(_,i)=>[
+  i+1,regularNormals.filter(c=>c.level===i+1).length])),
+ highLevelRegularNormals:regularNormals.filter(c=>c.level>=7).length,
+ highLevelExamples:regularNormals.filter(c=>c.level>=7).slice(0,15)
+  .map(c=>({id:c.id,level:c.level,name:c.name,source:c.source,
+    includedInAnyOpponentLoot:allSeenDrops.has(c.id)})),
+ lateStagePreviousLootNormalCount:topRoster.normals.length,
+ lateStagePreviousLootMaxNormalLevel:Math.max(...topRoster.normals.map(c=>c.level)),
+ lateStagePreviousLootFusionTemplates:topRoster.fusions.length,
+ normalCardsNotInPreviousOpponentRewardSet:regularNormals.filter(
+  c=>!topRoster.allowed(c)).length
+};
 const all=[];
 for(const tier of levels)for(const style of STYLES)for(const variant of VARIANTS)
  all.push(makeBenchmarkDeck(catalogue,tier,style,variant,7));
@@ -123,6 +147,7 @@ const summary=coverage.map(c=>{
   npcMarginChange:(next.averageNPCMinusPlayerLP??0)-(old.averageNPCMinusPlayerLP??0)};
 });
 const report={schema:'arcane-constructed-diverse-tournament-decks-v70',
+ catalogueAudit:audit,
  label:'SYNTHETIC_CONSTRUCTED_NOT_EARNED',
  noCardsAdded:true,mainBranchUnchanged:true,actualCareerData:false,
  userInventoriesUntouched:true,decks:all.length,
@@ -139,4 +164,5 @@ fs.mkdirSync('artifacts',{recursive:true});
 fs.writeFileSync('artifacts/ai-constructed-training-decks-v70.json',
  JSON.stringify(report,null,2)+'\n');
 console.log('ARCANE_CONSTRUCTED_V70_SUMMARY '+JSON.stringify({decks:report.decks,
- unique:report.decksUnique,matches:report.matchCount,stages:summary}));
+ unique:report.decksUnique,matches:report.matchCount,
+ catalogueAudit:audit,stages:summary}));
