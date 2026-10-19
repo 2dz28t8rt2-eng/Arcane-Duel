@@ -98,19 +98,16 @@ document.getElementById('app').addEventListener('load',async()=>{
   w.eval(`window.__flightBounds=null;window.__flightCalls=0;window.__ritualAnimate=Element.prototype.animate;
    Element.prototype.animate=function(...args){const anim=window.__ritualAnimate.apply(this,args);if(this.classList.contains('ad-summon-ghost')){window.__flightCalls++;
     const actor=this,capture=()=>{if(!actor.isConnected)return;const a=(actor.querySelector('.board-creature')||actor).getBoundingClientRect(),b=document.querySelector('[data-mine="2"] .board-creature').getBoundingClientRect();window.__flightBounds={left:a.left-b.left,top:a.top-b.top,width:a.width-b.width,height:a.height-b.height};};
-    anim.addEventListener('finish',capture);
-    // Sample the endpoint while the landing ghost is STILL in the DOM.
-    // A finish event / duration-ms timer runs after phase.animate() removes it
-    // on some Chromium builds, producing a false null even for a correct flight.
-    // Seek the REAL animation to its endpoint, capture real rendered bounds,
-    // and restore playback rather than forging or skipping the landing.
-    setTimeout(()=>{
-     if(!actor.isConnected)return;
-     const current=anim.currentTime;
-     anim.pause();anim.currentTime=args[1].duration;capture();
-     if(current!==null)anim.currentTime=current;
-     anim.play();
-    },Math.min(35,args[1].duration/4));
+    // The phase controller can finish and delete the ghost before even a
+    // zero-delay timer is delivered by virtual-time Chromium. Capture the
+    // browser-calculated final transform SYNCHRONOUSLY during animate(),
+    // while the real ghost still exists. Then resume the real animation.
+    const current=anim.currentTime;
+    anim.pause();
+    anim.currentTime=args[1].duration;
+    capture();
+    anim.currentTime=current===null?0:current;
+    anim.play();
    }return anim;};
    const c=game.players[0].field[2];c.roleOverride='predator';c.materialsUsed=3;c.pattern='Paar';c.rollTrace=[{atk:c.card.atk,def:c.card.def}];c.rollMath={base:{atk:c.card.atk,def:c.card.def},winnerIndex:0,winner:{atk:c.card.atk,def:c.card.def},final:{atk:c.card.atk,def:c.card.def},bonus:{atk:0,def:0},penalty:0,combo:{name:'Paar',qualityPct:5.5,materialCount:3}};
    window.__actualLanding=ArcaneFusionCinema.play({instance:c,materials:game.players[0].hand.slice(0,3).map(c=>({art:dataOf(c).art,level:dataOf(c).level})),battle:game,card:dataOf(c),level:dataOf(c).level,variant:'field',wait:()=>Promise.resolve(),playSound:()=>{}});`);
