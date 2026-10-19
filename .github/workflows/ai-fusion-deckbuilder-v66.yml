@@ -1,0 +1,40 @@
+name: Arcane Duel – Fusion Deckbuilder Training v6.6
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-fusion-deckbuilder-v66.cjs'
+      - '.github/workflows/ai-fusion-deckbuilder-v66.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  train-legal-fusion-bridges:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Recreate truly earned inventories by paid resource gameplay
+        env:
+          ARCANE_CAREER_RUNS: '8'
+          ARCANE_CAREER_TIER_ATTEMPTS: '16'
+        run: node tests/ai-career-optimized-v64.cjs
+      - name: Train and holdout-test main and fusion-deck strategies
+        env:
+          ARCANE_BUILDER_TRAIN_SEEDS: '3'
+          ARCANE_BUILDER_HOLD_SEEDS: '6'
+        run: |
+          node --check tests/ai-fusion-deckbuilder-v66.cjs
+          node tests/ai-fusion-deckbuilder-v66.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-fusion-deckbuilder-v66
+          path: |
+            artifacts/ai-real-careers-v64.json
+            artifacts/ai-fusion-deckbuilder-v66.json
+          if-no-files-found: warn
+          retention-days: 30
