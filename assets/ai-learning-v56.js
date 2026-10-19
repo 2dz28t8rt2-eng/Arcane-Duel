@@ -99,9 +99,58 @@
    .sort((a,b)=>b.score-a.score||b.template.level-a.template.level||
     a.materialCount-b.materialCount||a.template.id-b.template.id);
  }
+ // Follow-up learning stage: safe combat decisions on the *visible field*.
+ // Defenses, counterstrikes and all restrictions remain enforced by the engine.
+ function legalAttacks(g){
+  if(!isOwnTurn(g)||g.winner!==null||g.pending||g.aiPhase!=='attacks')return [];
+  const attackers=g.players[1].field.map((c,i)=>({c,i})).filter(x=>x.c&&canAttack(g,x.c));
+  const enemy=g.players[0],targets=enemy.field.map((c,i)=>({c,i})).filter(x=>x.c);
+  const results=[];
+  for(const {c:a,i} of attackers){
+   if(!targets.length){
+    results.push({action:{type:'attack',ai:i,di:null},damage:effectiveAttack(g,a,null),
+     target:null,attacker:a,lethal:effectiveAttack(g,a,null)>=enemy.lp+enemy.shield});
+    continue;
+   }
+   for(const {c:t,i:j} of targets){
+    const attack=effectiveAttack(g,a,t);
+    const defense=t.mode==='def'?dataOf(t).def:dataOf(t).atk;
+    // No sacrifice into an invulnerable wall; attack-mode equality is a
+    // legal double knockout, but only against an equally high-level target.
+    if(attack<defense||attack===defense&&t.mode==='def')continue;
+    if(attack===defense&&dataOf(t).level<dataOf(a).level)continue;
+    results.push({action:{type:'attack',ai:i,di:j},damage:Math.max(0,attack-defense),
+     target:t,attacker:a,lethal:false});
+   }
+  }
+  return results;
+ }
+ function rankAttacks(g,policy=weights){
+  const budget=limits[g.opponentId]?.alternatives||0;
+  const options=legalAttacks(g).slice(0,Math.max(0,budget));
+  return options.map(x=>{
+   const a=dataOf(x.attacker),t=x.target?dataOf(x.target):null;
+   const threat=t?(t.atk/1000+(x.target.fusion?.8:0)):0;
+   const gain=x.target?Math.max(0,x.damage):x.damage;
+   const attrition=x.target&&x.target.mode==='atk'?
+     Math.max(0,t.atk-a.atk)/1000:0;
+   const priority=(x.lethal?1000:0)+
+    policy.attack*(gain/900)+policy.counter*threat+
+    policy.tempo*(x.target?1:2)+
+    policy.defense*(x.target?.mode==='def'?t.def/1800:0)-
+    policy.cost*attrition;
+   return {...x,score:Math.round(priority*1000)/1000};
+  }).sort((a,b)=>b.score-a.score||
+    a.action.ai-b.action.ai||(a.action.di??-1)-(b.action.di??-1));
+ }
  const oldChoose=chooseAiAction;
  chooseAiAction=function(g,policy='balanced'){
   if(!sandbox||!isOwnTurn(g))return oldChoose(g,policy);
+  if(g.aiPhase==='attacks'){
+   const safe=rankAttacks(g);
+   if(safe.length)return safe[0].action;
+   return oldChoose(g,policy);
+  }
   const possible=rank(g);
   if(possible.length){
    const ace=possible.find(x=>x.isAce);
@@ -117,6 +166,6 @@
   weights=Object.freeze(Object.fromEntries(KEYS.map(k=>[k,input[k]])));
   sandbox=active===true;
  }
- window.ArcaneAiLearning56=Object.freeze({version:'5.6.0',PRESETS,limits,
-  featureVector,legalCandidates,score,rank,setSandbox,active:()=>sandbox});
+ window.ArcaneAiLearning56=Object.freeze({version:'5.6.1',PRESETS,limits,
+  featureVector,legalCandidates,legalAttacks,rankAttacks,score,rank,setSandbox,active:()=>sandbox});
 })();
