@@ -1,5 +1,5 @@
 # Arcane Duel – Kartenbelohnungen, Splitter und Skills · Rework-Entwurf v7.6
-**Stand:** 19. Oktober 2026 · **Entwurf / Testplan, KEINE Live-Spielmechanik umgestellt.** Auf `development` dokumentiert.
+**Stand:** 19. Oktober 2026 · **Gameplay-Teilumsetzung auf `development`: alter Startmonster-Perk ersetzt.** Weitere Skills, Splitter-Sinks und Loot-Reformen sind **Designvorschläge, nicht implementiert**.
 
 ## Nutzerentscheidung
 
@@ -22,6 +22,18 @@ Statt immer mehr generische Skills oder Perks einzubauen, sollen **bestehende Up
 
 **Aktuelle Beutekarten:** manueller gewonnener Freikampf erzeugt *vor Farm-Softcap* einen Wurf mit 40 % Kartenchance, plus weitere Packfortschritte. Dropgewichte für neue Monster, boosterbedingte Verwässerung und reale Upgrades müssen mit einem eigenen Katalogaudit quantifiziert werden: `tests/ai-real-economy-audit-v76.cjs` und Workflow `ai-economy-audit-v76.yml`.
 
+## Bereits umgesetzt: Starterperk ersetzt durch **Kartenspürsinn**
+
+**Technik:** `assets/game.js` verwendet weiterhin den gespeicherten Rang `profile.upgrades.starter` (0–8), damit bestehende Spielstände und Investitionen ihren Rang behalten. Nur **Name und Wirkung** ändern sich, keine zusätzlichen Skills.
+
+- Bei Rang 0 dieselben Boosterwahrscheinlichkeiten wie zuvor.
+- Pro Rang werden 5 Prozentpunkte der Startkarten-Quote eines jeden Booster-Slots zum Pool regulärer, aktuell freigeschalteter Normalmonster verlagert, nie zu seltenen ACEs oder nicht freigeschalteten Monstern. Absolute Kartenzahl und Preis ändern sich nicht.
+- Beispiel 5er-Booster: erwartete Startkarten **4,0 → 2,0** auf Rang 8. Erwartete reguläre Normalmonster **0,8 → 2,8**. Seltene Fusionskarten bleiben rechnerisch **0,2**.
+- Der bisherige `starter`-ATK-/DEF-Flachbonus wurde aus `baseStat` und der Kartenübersicht `profileCard` entfernt. Die 20 Ursprungsmonster sind nicht mehr wegen eines gesonderten Flat-Stat-Skills Pflicht.
+- **Kein Garant auf ein unbesessenes Monster:** Auch im normalen Pool können Duplikate gezogen werden. Dieses Upgrade löst nicht allein das gezielte Karten-/Splitter-Craftingproblem.
+- **Qualitätsprüfung:** `tests/perk-card-sense-v76.test.cjs` und `.github/workflows/perk-card-sense-v76.yml` testen Speicherstände mit Rang 0–8, Kartenstatistiken, Boostergrößen, Freischaltungen und relative Start-/Rare-Anteile. **GitHub-CI-Ergebnis erst nach Workflow-Abschluss als bestanden melden.**
+- **Ein Risiko für das Midgame:** Der entfallene alte +35/+35-Wertebonus kann frühere, stark von Startmonstern abhängige Decks schwächen. Vor einem Merge auf `main` die echte Karriereprogression als A/B-Simulation prüfen und gegebenenfalls den Ersatzskill neu abstimmen. Keine versteckte Entschädigung oder Gratis-Karte wurde vergeben.
+
 ## 2. Spielerisches Ziel statt statischer Prozentwerte
 
 Jeder relevante Perk soll **einen erkennbaren Auslöser, ein taktisches Ziel, sichtbares Feedback und klare Limits** haben. Keine unbeschränkten Endlosschleifen, unsterblichen DEF-Felder oder permanente Werteskalierung.
@@ -34,7 +46,7 @@ Jeder relevante Perk soll **einen erkennbaren Auslöser, ein taktisches Ziel, si
 | **Runenpräzision** | +1,5 Prozentpunkte Qualität pro Stufe ab 3 Materialien | **Gezieltes Nachwürfeln:** bei einer komplexen Fusion darf genau ein schlechter Qualitäts-/Statwurf einmal gezielt neu gewürfelt werden, mit echtem Auswahlmoment und einem klaren Verbrauchslimit. Kein rückwirkendes Verändern gespeicherter Werte. |
 | **Standhaftigkeit** | universell −3/−6 Zugzerfall | **Haltungstreue:** reduzierte Abnutzung nur beim konsequenten Halten einer ATK-/DEF-Position über mehrere Runden. Positionswechsel setzt den Rhythmus zurück. Werteboni gegen flache Bonuslast prüfen. |
 | **Kampfdisziplin** | lediglich −2 ATK-Angriffsmüdigkeit je Rang | **Kampfkombo:** einmal pro Runde einen Teil der Angriffsmüdigkeit des nächsten eigenen Angreifers reduzieren, nachdem ein anderes Monster erfolgreich Schaden verursacht hat; keine freie zweite Attacke, keine mehrfache Auslösung durch Gegenangriff. |
-| **Grundausbildung** | fester +35/+35-Bonus auf alte Startmonster | **Ausbildungsrolle:** Starter können im Midgame verlässliche Fusionsmaterialien bilden; gezielte Material-/Resonanz-Hilfe mit klarer Leistungsobergrenze statt permanente Pflicht-Stats für 20 Altmonster. |
+| **Kartenspürsinn** (interner Save-Key weiterhin `starter`) | früher `Grundausbildung`: +35/+35 pro Rang nur für Startmonster | **Jetzt auf `development` implementiert:** Pro erhaltenem Rang −5 Prozentpunkte Startkarten-Chance bei jedem Booster-Slot; genau diese Chance wandert zu regulären, bereits für die Turnierstufe verfügbaren Normalmonstern. Max. 8 Ränge, rare/ACE-Anteil bleibt gleich. Das alte Kampfwerte-Upgrade wurde entfernt. |
 | **Vorhut-Schutz** | +25 Schild beim Start je Stufe | **Frontlinie:** einmaliger frühzeitiger Schutzimpuls auf die erste eigenständig platzierte Karte, mit gut sichtbarem Signal; stärkt Entwicklung im Feld statt nur unsichtbare Start-LP. |
 | **Monstertraining** | lineare ATK/DEF-Verbesserung über 10 Ränge | **Universeller Einstieg** darf absichtlich einfach bleiben, aber später nicht bessere Rollenperks verdrängen. Optional auf niedrigere Stufen konzentrieren, nicht heimlich schwächen. |
 | **Beutestudien** | +5 % Essenz nach Kampf | **Fundkenntnis:** erkennbare Wahl-/Duplikatschutzmechanik bei bestimmten *rechtmäßig freigeschalteten* Belohnungen, statt nur mehr Essenz. Keine unbegrenzte Kartenproduktion. |
@@ -68,4 +80,4 @@ Die Tabelle ist ein bewusst **noch nicht balancierter Mechanikentwurf**. Insbeso
 - **Phase 3**: selektiver Splittershop und überarbeitete Booster nur nach Balance-/Kostenprobe; keine Pity-/Loot-Migration ohne Prüfung bestehender Spielstände.
 - **Phase 4**: volle unabhängige Karrieren (mindestens 12 Startseeds) und mobile Nutzertests; erst danach stabile KI und Skills auf Produktionszweig zur Freigabe vorlegen.
 
-**Keine Änderung an `main`, bestehenden Kartendaten, Skill-Rängen, Bossgewichtungen oder Live-Belohnungen ohne getestete Implementierung und ausdrückliche Zustimmung.** Die Level-1-Saga, die separat vorgeschlagene Levelreform (Basis 1–5, effektive Levels 7–10), die Allrounder-/Resonator-Synergie und alle Spezialquests bleiben eigenständige Systeme.
+**`main`, bestehende Skillränge, Bosse und die noch offenen Splitter-/Loot-Systeme bleiben unverändert.** Kartenspürsinn ist zunächst nur auf `development` geändert und muss die Regressions- und Karrieretests bestehen. Die Level-1-Saga, die separat vorgeschlagene Levelreform (Basis 1–5, effektive Levels 7–10), die Allrounder-/Resonator-Synergie und alle Spezialquests bleiben eigenständige Systeme.
