@@ -3,11 +3,11 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const {boot}=require('./helpers/game-runtime.cjs');
 const inspect=(code)=>boot({seed:5601}).run(code);
 test('summon cockpit separates selection, materials and zones without changing game actions',()=>{
- const r=inspect("(()=>{profile=freshProfile();game=createGame({mode:'pve',opponentId:1});game.active=0;uiMode='duel';game.selection={type:'hand',uid:game.players[0].hand[0].uid};render();const html=$('summonStage').innerHTML;return {selection:html.includes('ad56-selection'),materials:html.includes('ad56-material'),placement:html.includes('ad56-placement'),zones:(html.match(/class=\"ad56-zone/g)||[]).length,card:html.includes('ad56-card-detail'),button:!$('summonBtn').disabled};})()");
+ const r=inspect("(()=>{profile=freshProfile();game=createGame({mode:'pve',opponentId:1});game.active=0;uiMode='duel';game.selection={type:'hand',uid:game.players[0].hand[0].uid};render();const html=$('summonStage').innerHTML;return {selection:html.includes('ad56-selection'),materials:html.includes('ad56-material'),placement:html.includes('ad56-placement'),zones:(html.match(/class=\"ad56-zone (?:frei|occupied)/g)||[]).length,card:html.includes('ad56-card-detail'),button:!$('summonBtn').disabled};})()");
  assert.equal(r.selection,true);assert.equal(r.materials,true);assert.equal(r.placement,true);assert.equal(r.zones,5);assert.equal(r.card,true);assert.equal(r.button,true);
 });
 test('material list displays exact saved UID and legal fusion counters',()=>{
- const r=inspect("(()=>{profile=freshProfile();game=createGame({mode:'pve',opponentId:1});game.active=0;uiMode='duel';game.materials=game.players[0].hand.slice(0,3).map(c=>c.uid);render();const html=$('summonStage').innerHTML;return {chips:(html.match(/data-ad56-remove/g)||[]).length,uid:html.includes('data-ad56-remove=\"'+game.materials[0]+'\"'),levels:html.includes('3 / 5 Materialien'),zones:(html.match(/class=\"ad56-zone/g)||[]).length};})()");
+ const r=inspect("(()=>{profile=freshProfile();game=createGame({mode:'pve',opponentId:1});game.active=0;uiMode='duel';game.materials=game.players[0].hand.slice(0,3).map(c=>c.uid);render();const html=$('summonStage').innerHTML;return {chips:(html.match(/data-ad56-remove/g)||[]).length,uid:html.includes('data-ad56-remove=\"'+game.materials[0]+'\"'),levels:html.includes('3 / 5 Materialien'),zones:(html.match(/class=\"ad56-zone (?:frei|occupied)/g)||[]).length};})()");
  assert.equal(r.chips,3);assert.equal(r.uid,true);assert.equal(r.levels,true);assert.equal(r.zones,5);
 });
 test('fusion preview never reveals generated stats before placement',()=>{
