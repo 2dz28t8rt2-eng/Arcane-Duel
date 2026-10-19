@@ -4,6 +4,11 @@ on:
     branches: [development]
     paths:
       - 'tests/ai-earned-shard-training-v78.cjs'
+      - 'assets/game.js'
+      - 'tests/shard-rework-v77.test.cjs'
+      - 'tests/perk-card-sense-v76.test.cjs'
+      - 'tests/regression.test.cjs'
+      - 'tests/monster-roles-forge.test.cjs'
       - '.github/workflows/ai-earned-shard-v78.yml'
   workflow_dispatch:
 permissions:
@@ -24,7 +29,7 @@ jobs:
           node --check tests/ai-earned-shard-training-v78.cjs
       - name: Gate AI training on real shard-economy and save compatibility checks
         run: |
-          node --test tests/shard-rework-v77.test.cjs tests/perk-card-sense-v76.test.cjs tests/lategame-monsters-v71.test.cjs
+          node --test tests/shard-rework-v77.test.cjs tests/perk-card-sense-v76.test.cjs tests/lategame-monsters-v71.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
       - name: Earn real tournament progress from zero through stage VI
         env:
           ARCANE_CAREER_RUNS: '8'
