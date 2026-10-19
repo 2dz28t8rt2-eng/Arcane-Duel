@@ -99,12 +99,31 @@
   const ace=ACE_CARD_IDS[g.opponentId],c=CARDS[ace];
   if(!c)return;
   const visible=[...p.hand,...p.field.filter(Boolean),...p.graveyard].some(x=>x.id===ace);
+  if(c.fusionOnly){
+   // ACE fusion templates are not in the main deck. Move existing high-level
+   // materials to the REAL draw end without creating cards or peeking at the enemy.
+   if(!p.remainingFusion?.includes(ace)){g.arcaneAceCue=true;return;}
+   const threshold=Math.max(1,c.level-2);
+   const ready=p.hand.filter(x=>!x.fate&&dataOf(x).level>=threshold);
+   if(ready.length>=2){g.arcaneAceCue=true;return;}
+   const need=2-ready.length;
+   const found=p.deck.map((id,index)=>({index,level:CARDS[id]?.level||0}))
+    .filter(x=>x.level>=threshold).sort((a,b)=>b.level-a.level||a.index-b.index);
+   if(found.length<need)return;
+   const slots=found.slice(0,need).map(x=>x.index),queued=slots.map(i=>p.deck[i]);
+   for(const i of [...slots].sort((a,b)=>b-a))p.deck.splice(i,1);
+   p.deck.push(...queued);g.arcaneAceCue=true;
+   logEvent(g,'✦ '+RPG_OPPONENTS[g.opponentId].name+
+    ' bereitet eine ACE-Fusion vor! Vorhandene Fusionsmaterialien rücken in die nächsten Ziehphasen.');
+   return;
+  }
   if(visible){g.arcaneAceCue=true;return;}
   const index=p.deck.indexOf(ace);
   if(index<0){g.arcaneAceCue=true;return;}
-  p.deck.splice(index,1);p.deck.unshift(ace);g.arcaneAceCue=true;
+  // drawToFive removes the last element (deck.pop), not the first.
+  p.deck.splice(index,1);p.deck.push(ace);g.arcaneAceCue=true;
   logEvent(g,'✦ '+RPG_OPPONENTS[g.opponentId].name+
-    ' bereitet sein ACE vor! Die Signaturkarte wird bei der nächsten Ziehphase verfügbar.');
+    ' bereitet sein ACE vor! Die vorhandene Signaturkarte wird bei der nächsten Ziehphase verfügbar.');
  }
  function fusionCandidate(g,p,profile){
   const hand=p.hand.filter(c=>!c.fate),cards=p.remainingFusion||[];
@@ -258,7 +277,7 @@
      c.level!==1||!['atk','def'].includes(stat))return current;
   return current+5*Math.max(1,Math.min(5,skill.skillRank||1));
  };
- window.ArcaneAiRevamp55=Object.freeze({version:'5.5.1',PROFILES,profileFor,counterMode,
+ window.ArcaneAiRevamp55=Object.freeze({version:'5.5.2',PROFILES,profileFor,counterMode,
   getScenario:g=>opponent(g)||null,
   predatorSwarm:(g,c)=>c&&g?effectiveAttack(g,c,null)-oldEffective(g,c,null):0});
 })();

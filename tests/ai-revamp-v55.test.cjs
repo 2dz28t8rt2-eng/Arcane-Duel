@@ -27,8 +27,8 @@ test('a drawn ordinary ACE outranks weaker summons in NPC tournament',()=>{
  if(!result.fusion){assert.equal(result.type,'normal');assert.equal(result.chosen,true);}
 });
 test('ace preparation shifts an existing card in the actual deck rather than creating one',()=>{
- const result=audit("(()=>{const g=createGame({mode:'pve',context:'tournament',opponentId:10});game=g;g.active=1;g.aiPhase='summon';g.turn=9;g.summoned=false;const ace=ACE_CARD_IDS[10],p=g.players[1];const amountBefore=p.deck.filter(x=>x===ace).length;p.hand=p.hand.filter(c=>c.id!==ace);p.graveyard=[];p.field.fill(null);if(!amountBefore)return {skip:true};chooseAiAction(g);return {skip:false,flag:g.arcaneAceCue,first:p.deck[0]===ace,remaining:p.deck.filter(x=>x===ace).length,amountBefore};})()");
- if(!result.skip){assert.equal(result.flag,true);assert.equal(result.first,true);assert.equal(result.remaining,result.amountBefore);}
+ const result=audit("(()=>{const g=createGame({mode:'pve',context:'tournament',opponentId:10});game=g;g.active=1;g.aiPhase='summon';g.turn=9;g.summoned=false;const ace=ACE_CARD_IDS[10],p=g.players[1];const amountBefore=p.deck.filter(x=>x===ace).length;p.hand=p.hand.filter(c=>c.id!==ace);p.graveyard=[];p.field.fill(null);if(!amountBefore)return {skip:true};chooseAiAction(g);return {skip:false,flag:g.arcaneAceCue,next:p.deck.at(-1)===ace,remaining:p.deck.filter(x=>x===ace).length,amountBefore};})()");
+ if(!result.skip){assert.equal(result.flag,true);assert.equal(result.next,true);assert.equal(result.remaining,result.amountBefore);}
 });
 test('Forbidden Research unlock and upgrade rank are validated and persist after a save roundtrip',()=>{
  const result=audit("(()=>{profile.lv1Saga={offered:true,met:true,stage:5,perk:true,skillRank:3,story:[1,2,3,4,5]};const normal=RPG_BASE_CARDS.find(c=>c.level===1&&!c.fusionOnly&&!c.ace&&!c.retired);const bonus=normalRoleBonus(normal,'atk',0,profile.upgrades);const enemy=normalRoleBonus(normal,'atk',1,profile.upgrades);saveProfile();const saved=JSON.parse(localStorage.getItem(SAVE_KEY));const validated=validateProfile(saved);return {bonus:bonus-enemy,rank:saved.lv1Saga.skillRank,validated:validated.lv1Saga.skillRank};})()");
@@ -71,4 +71,14 @@ test('every tournament opponent AI completes repeated turns without an invalid a
 test("final boss switches strategy to counter public board threats without reading the player\'s hand",()=>{
  const rows=audit("(()=>{const p=ArcaneAiRevamp55.profileFor(10);const g={players:[{field:Array(5).fill(null),hand:[{id:99999}]},{field:Array(5).fill(null)}]};const mode=()=>ArcaneAiRevamp55.counterMode(g,p);const open=mode();g.players[0].field[0]={id:1,roleOverride:'predator',fusion:false};g.players[0].field[1]={id:1,roleOverride:'predator',fusion:false};g.players[0].field[2]={id:1,roleOverride:'predator',fusion:false};const swarm=mode();g.players[0].field.fill(null);g.players[0].field[0]={id:1,roleOverride:'guardian',mode:'def'};g.players[0].field[1]={id:1,roleOverride:'soul',mode:'def'};const wall=mode();return {open,swarm,wall};})()");
  assert.deepEqual(rows,{open:'attack',swarm:'defense',wall:'fusion'});
+});
+
+test('ordinary ACE is the next real drawn card, with no duplicate',()=>{
+ const r=audit("(()=>{const g=createGame({mode:'pve',context:'tournament',opponentId:1}),p=g.players[1],ace=ACE_CARD_IDS[1];game=g;g.active=1;g.aiPhase='summon';g.summoned=false;g.turn=12;p.deck=[...p.originalDeck];p.hand=[];const before=p.deck.filter(id=>id===ace).length;chooseAiAction(g);const queued=p.deck.at(-1)===ace;drawToFive(g,p);return {queued,drawn:p.hand.some(c=>c.id===ace),before,after:p.deck.filter(id=>id===ace).length+p.hand.filter(c=>c.id===ace).length};})()");
+ assert.equal(r.queued,true);assert.equal(r.drawn,true);assert.equal(r.after,r.before);
+});
+test('fusion ACE uses real material cards at the pop() end and preserves the deck',()=>{
+ const r=audit("(()=>{const g=createGame({mode:'pve',context:'tournament',opponentId:8}),p=g.players[1],ace=ACE_CARD_IDS[8],min=Math.max(1,CARDS[ace].level-2);game=g;g.active=1;g.aiPhase='summon';g.summoned=false;g.turn=12;p.deck=[...p.originalDeck];p.hand=[];const before=p.deck.slice();chooseAiAction(g);const queued=p.deck.slice(-2).every(id=>CARDS[id].level>=min);drawToFive(g,p);return {fusion:CARDS[ace].fusionOnly,cue:g.arcaneAceCue===true,queued,drawn:p.hand.filter(c=>CARDS[c.id].level>=min).length,preserved:JSON.stringify(before.slice().sort((a,b)=>a-b))===JSON.stringify([...p.deck,...p.hand.map(c=>c.id)].sort((a,b)=>a-b))};})()");
+ assert.equal(r.fusion,true);assert.equal(r.cue,true);assert.equal(r.queued,true);
+ assert.ok(r.drawn>=2);assert.equal(r.preserved,true);
 });

@@ -70,3 +70,13 @@ test('chapter II no longer hard-locks a legitimate victory if Floating instrumen
  const r=boot().run("(()=>{profile=freshProfile();profile.lv1Saga.offered=true;profile.lv1Saga.met=true;profile.lv1Saga.stage=1;startDuel('pve',1,'lv1-saga','easy',2);const g=game;g.lv1SagaProgress={floating:0,swarm:0,special:0};g.winner=0;const prize=rewardMatch(g);return {stage:profile.lv1Saga.stage,next:prize?.lv1StageNew,win:prize?.lv1Saga===2};})()");
  assert.deepEqual(r,{stage:2,next:true,win:true});
 });
+
+test('discarding an old paused duel keeps the selected Level-1 research chapter',()=>{
+ const r=boot().run("(()=>{profile=freshProfile();profile.lv1Saga.offered=true;profile.lv1Saga.met=true;profile.lv1Saga.stage=1;profile.activeDuel={id:'unrelated-pause',rulesVersion:5};startDuel('pve',1,'lv1-saga','easy',2);const offered=typeof $('discardSaved').onclick==='function';$('discardSaved').onclick();return {offered,chapter:game?.lv1Saga?.stage,context:game?.context,paused:profile.activeDuel};})()");
+ assert.equal(r.offered,true);assert.equal(r.chapter,2);assert.equal(r.context,'challenge');assert.equal(r.paused,null);
+});
+test('Lumiras Fall is built directly from the fanatic hand during chapter V',()=>{
+ const r=boot().run("(()=>{profile=freshProfile();profile.lv1Saga={offered:true,met:true,stage:4,perk:false,skillRank:0};startDuel('pve',1,'lv1-saga','easy',5);const g=game;g.active=1;g.aiPhase='summon';g.summoned=false;g.pending=null;const ace=g.players[1].hand.find(c=>c.id===ArcaneLv1Swarm.ids.ace),action=chooseAiAction(g);const made=action.type==='fusion'?applyAiAction(g,action):false;return {ace:!!ace,action:action.type,used:action.uids?.includes(ace?.uid)===true,made:!!made,fall:g.pending?.card?.id===ArcaneLv1Saga.corruptedId,summoned:g.lv1FanaticAce?.played===true};})()");
+ assert.equal(r.ace,true);assert.equal(r.action,'fusion');assert.equal(r.used,true);
+ assert.equal(r.made,true);assert.equal(r.fall,true);assert.equal(r.summoned,false);
+});

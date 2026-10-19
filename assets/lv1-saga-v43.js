@@ -380,6 +380,17 @@
   const intro=challenge==='prologue',stage=intro?1:Number(challenge)||1,s=state();
   if(mode!=='pve'||stage<1||stage>5||stage>s.stage+1||!s.offered||
     (intro&&s.met)||(!intro&&!s.met)){toast('Dieser Forschungsabschnitt ist noch nicht freigeschaltet.');return;}
+  // The generic saved-duel discard handler restarts context='challenge' and
+  // forgets the chosen Lv1 research stage. Keep the quest route on discard.
+  if(profile.activeDuel&&!busy&&!aiRunning&&!storageConflict&&!profile.rewardQueue.length){
+   openModal(modalHtml('GESPEICHERTES DUELL','Partie fortsetzen?','↶',
+    'Du hast eine gespeicherte Einzelspielerpartie. Du kannst sie fortsetzen oder für die gewählte Forschungsprüfung verwerfen.','',
+    '<button class="btn primary" id="resumeSaved">FORTSETZEN</button><button class="btn" id="discardSaved">VERWERFEN & FORSCHUNG STARTEN</button>'));
+   $('resumeSaved').onclick=resumeDuel;
+   $('discardSaved').onclick=()=>{profile.activeDuel=null;saveProfile();hideModal();
+    startDuel('pve',1,'lv1-saga','easy',intro?'prologue':stage);};
+   return;
+  }
   stageWanted=stage;prologueWanted=intro;
   try{
    const originalUnlock=opponentUnlocked;opponentUnlocked=function(i){return i===1||originalUnlock(i);};
@@ -514,6 +525,6 @@
   const b=e.target.closest('[data-lv1-stage]');if(!b)return;
   const stage=b.dataset.lv1Stage==='prologue'?'prologue':Number(b.dataset.lv1Stage);startDuel('pve',1,'lv1-saga','easy',stage);
  });
- window.ArcaneLv1Saga=Object.freeze({version:'5.5.0',stories:STORIES,objectives:OBJECTIVES,aceScenes:ACE_SCENES,deckProfiles:DECK_PROFILES,corruptedId:CORRUPTED_ID,fanaticDeck,flushFanaticDialogue,mastered,state,maybeOffer,fraction,forced,forty,loanFusion});
+ window.ArcaneLv1Saga=Object.freeze({version:'5.5.1',stories:STORIES,objectives:OBJECTIVES,aceScenes:ACE_SCENES,deckProfiles:DECK_PROFILES,corruptedId:CORRUPTED_ID,fanaticDeck,flushFanaticDialogue,mastered,state,maybeOffer,fraction,forced,forty,loanFusion});
  if(uiMode==='menu')renderMenu();
 })();

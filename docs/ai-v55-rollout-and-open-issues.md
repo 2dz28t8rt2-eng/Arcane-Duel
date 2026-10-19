@@ -27,3 +27,11 @@
 - Niedrig-/hochrangige Fusionseffekte in echten Matches gegeneinander balancieren.
 
 Keine automatische Levelmigration bestehender Karten: Karten behalten ihre feste Stufe.
+
+## Technische Nachbesserung · 19.10.2026
+- **ACE-Ziehende repariert:** `drawToFive` verwendet `deck.pop()`. Normale ACEs werden nun an das echte Ziehende sortiert und beim nächsten Ziehen erreicht, ohne zusätzliche Karten zu erzeugen.
+- **Fusions-ACE-Fokus:** Gegner mit Fusions-ACEs kuratieren stattdessen tatsächlich vorhandene hochstufige Hauptdeck-Materialien. Das garantiert keinen Erfolg: Die übrigen regulären Fusionseinschränkungen gelten weiterhin.
+- **Forschungsprüfungen:** Beim Verwerfen eines pausierten Duells bleibt die gewählte Lv1-Prüfung einschließlich Prolog erhalten; der frühere generische Discard-Callback verlor den Kontext.
+- **Lumiras Fall:** Die ausdrücklich aus der Hand erlaubte Pflichtfusion wird auch im inneren Fusionsgenerator als Sonderrezept akzeptiert, aber nur während einer vorher erfolgreich geprüften Materialliste.
+- Neue Tests prüfen Deck-Erhaltung, tatsächlich folgende Ziehphase, den gespeicherten Kapitelwechsel und das Fusionsergebnis der fünften Prüfung.
+- **Weiter offen:** Hochwertige eigenständige Schicksals- und Sonderartworks sowie reale manuelle Karriere-Durchläufe und visuelles Browser-QA.

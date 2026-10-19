@@ -22,14 +22,21 @@
  const oldOptions=fusionOptions;
  fusionOptions=function(g,levels,materials=[]){
   const normal=oldOptions(g,levels,materials).filter(c=>c.id!==FALL);
-  if(recipe(g,materials)&&g.players[1].remainingFusion?.includes(FALL))
+  // The engine validates the real hand recipe with materials, but its inner
+  // fusedInstance16() calls fusionOptions(g, levels) without passing them.
+  // Permit that inner lookup ONLY during an already verified boss recipe.
+  if((recipe(g,materials)||g?.lv1FallRecipeValidated===true)&&
+     g.players[1].remainingFusion?.includes(FALL))
    normal.push(CARDS[FALL]);
   return normal;
  };
  const oldFuse=fusedInstance;
  fusedInstance=function(g,materials,levels){
-  if(g?.fusionChoice===FALL&&!recipe(g,materials))return null;
-  return oldFuse(g,materials,levels);
+  if(g?.fusionChoice!==FALL)return oldFuse(g,materials,levels);
+  if(!recipe(g,materials))return null;
+  g.lv1FallRecipeValidated=true;
+  try{return oldFuse(g,materials,levels);}
+  finally{delete g.lv1FallRecipeValidated;}
  };
  const oldAiChoice=chooseAiAction;
  chooseAiAction=function(g,policy='balanced'){
@@ -134,5 +141,5 @@
    }
   }finally{layer.remove();}
  }
- window.ArcaneLumiraCorruption=Object.freeze({version:'4.9',id:FALL,pureId:PURE,recipe,beforeAiAction,play});
+ window.ArcaneLumiraCorruption=Object.freeze({version:'4.9.1',id:FALL,pureId:PURE,recipe,beforeAiAction,play});
 })();
