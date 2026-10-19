@@ -130,3 +130,21 @@ Der abgestimmte nächste Progressionsschritt ist **im tatsächlichen Gameplay-Co
 **QA:** `tests/shard-rework-v77.test.cjs` / Workflow `shard-rework-v77.yml`, plus allgemeine Code-/Chromium-Regression. **CI war beim Einchecken noch in der GitHub-Warteschlange; nicht ohne grünen Lauf als vollständig getestet bezeichnen.** 
 
 **Folgende Designarbeiten bleiben offen:** tatsächliche Karriereschwierigkeit nach Wegfall des Startmonster-Flachbonus, Splitterzuwachs und neue Endgame-Karten über mehrere unabhängige Spielstände; Tests auf zu günstige Rollenforschung in hohen Turnierstufen; die geplanten Rollenperk-Reworks (Jagdinstinkt, Schildwall, Fusionskunde und Runenpräzision). Keine Produktions-KI-Aktivierung, kein Merge nach `main`.
+
+
+## KI-Runde v7.8 – Spielertraining mit **real erspielten** Splittern gestartet
+
+**Status 19.10.2026:** Trainingsskript `tests/ai-earned-shard-training-v78.cjs` und Workflow `.github/workflows/ai-earned-shard-v78.yml` auf `development` eingecheckt. Die GitHub Actions befanden sich beim letzten Abruf **noch in der Warteschlange**. Deshalb gibt es noch **keine belastbaren neuen Siegquoten**.
+
+**Neue Trainingsfrage:** Wie verändert die wirklich bezahlte Splitterwirtschaft v7.7 die aus echten VII-Siegen hervorgegangenen Spieler-Decks bei VIII?
+
+- Vier getrennte **Spieler-Ökonomiearme** auf denselben verdienten Ausgangsinventaren: `existing` (bisherige Ressourcen nicht verwenden), `craft` (bis zu zwei gezielt bezahlte Normalmonster), `research` (12-Splitter-Rollenforschung und gegebenenfalls ein tatsächlich bezahlter Booster-Tausch), `hybrid` (Crafting plus Forschung/Tausch).
+- Keine geschenkten Karten, Splitter, Essenz, Turniersiege oder freien Freischaltungen: jede Karte stammt entweder aus dem Ursprungsprofil oder aus `craftCard`, `beginShardResearch`/`takeShardResearchCard`, `rerollBoosterStarter`. Vor jedem Kampftest werden **40-Karten-Deck, Fusionsdeck, Inventar und Profilvalidierung** geprüft.
+- Pro Vorbereitung dokumentiert: Splitterverbrauch, Münzverbrauch, tatsächlich erzeugte Karten, höchstes Hauptdeck-Level, Level-7+-Karten sowie Besitz und Ausrüstung der 16 neuen Endgame-Monster.
+- Gegen **die echte VIII-Gegnerliste mit Signatur-ACE** werden die alten trainierten Gewichte v5.7 und die experimentelle, weiterhin deaktivierte v7.3-Fusionspolicy getrennt evaluiert; Spielermodi `balanced`, `offensive`, `guardian`; übereinstimmende Kampfsamen je Herkunft und Spielerstil.
+- Spieler-Ökonomievarianten werden zuerst auf Trainings-Samen verglichen, Auswahl vor den **getrennten Holdout-Samen** fixiert. Unabhängige Startkarrieren weiterhin separat zählen: zwei VIII-Profile aus derselben ursprünglichen Karriere gelten nicht als zwei unabhängige Belege.
+- **CI-Gate:** Vor den Simulationen müssen die echten Splitterfunktionen, die Skill-/Booster-Kompatibilität und die Kartenquelle-Tests erfolgreich sein. Bei Fehlern weder neue KI-Gewichte aktivieren noch Balanceaussagen ausgeben.
+
+**Nächste Entscheidung nach grünem Lauf:** Wenn bezahlte Splitterausgaben erstmals signifikant stärkere VII/VIII-Spielerdecks ergeben, anschließende vollständige unabhängige Karrieren mit v7.7 durchlaufen und erst danach VIII/X-Policy wieder ernsthaft optimieren. Bei weiterhin zu schwachen Decks zuerst Erwerbsmengen, Source-Locks und Deckausrüstung diagnostizieren, nicht NPC-Bosswerte erhöhen.
+
+**Derzeit unverändert:** Live-Gegner-KI, Kartenwerte, `main`. Die Workflows sind gepusht, das eigentliche Ergebnis noch ausständig.
