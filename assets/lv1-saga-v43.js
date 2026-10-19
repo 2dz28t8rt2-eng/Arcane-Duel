@@ -22,6 +22,7 @@
  const clean=x=>({offered:x?.offered===true,met:x?.met===true||x?.stage>=1,stage:Number.isInteger(x?.stage)?Math.min(5,Math.max(0,x.stage)):0,
   perk:x?.perk===true,aceGranted:x?.aceGranted===true,finalRewards:x?.finalRewards===true,invitationSeen:x?.invitationSeen===true,
   lumiraDeaths:Number.isInteger(x?.lumiraDeaths)?Math.min(99,Math.max(0,x.lumiraDeaths)):0,
+  skillRank:x?.perk===true?Math.max(1,Math.min(5,Number.isInteger(x?.skillRank)?x.skillRank:1)):0,
   story:Array.isArray(x?.story)?[...new Set(x.story.filter(n=>Number.isInteger(n)&&n>=1&&n<=5))]:[]});
  const saved=(()=>{try{return window.__arcaneLv1SavedProfile?.lv1Saga||window.__arcaneLv1OriginalSaga||JSON.parse(localStorage.getItem(SAVE_KEY)||'null')?.lv1Saga||null;}catch{return null;}})();
  const oldFresh=freshProfile,oldValidate=validateProfile;
@@ -41,9 +42,11 @@
    result.finalRewards||=version.finalRewards;
    result.invitationSeen||=version.invitationSeen;
    result.lumiraDeaths=Math.max(result.lumiraDeaths,version.lumiraDeaths);
+   result.skillRank=Math.max(result.skillRank,version.skillRank||0);
    result.story=[...new Set([...result.story,...version.story])].sort((a,b)=>a-b);
   }
   if(result.stage>0){result.met=true;result.offered=true;}
+  if(result.perk)result.skillRank=Math.max(1,result.skillRank);
   return result;
  };
  profile.lv1Saga=mergeProgress(profile.lv1Saga,saved,persistedSaga);
@@ -162,7 +165,7 @@
    s.stage=stage;s.offered=true;if(!s.story.includes(stage))s.story.push(stage);
    profile.coins=Math.min(1e9,profile.coins+coins);profile.xp=Math.min(1e9,profile.xp+xp);
    if(stage===5&&!s.finalRewards){
-    s.perk=true;s.finalRewards=true;
+    s.perk=true;s.skillRank=Math.max(1,s.skillRank||0);s.finalRewards=true;
     if(!s.aceGranted){addCard(SW.ids.ace);s.aceGranted=true;}
     const normal=eligible().map(c=>c.id);
     const special=[SW.ids.hive,SW.ids.protector,SW.ids.attacker];
@@ -486,7 +489,10 @@
   return '<section class="menu-panel lv1-saga-panel" id="lv1Saga"><div class="lv1-saga-kicker">'+(s.stage===0&&!s.met?'✦ EIN FREMDER FORDERT DICH HERAUS':'✦ VERBOTENE FORSCHUNG · '+s.stage+'/5')+'</div>'+
    '<h2>'+(s.stage===0&&!s.met?'Der unbekannte Forscher':'Die vergessenen Funken')+'</h2><p>'+(s.stage===0&&!s.met?'Ein ungewöhnlicher Duellant fordert dich heraus. Ihr erstes Duell ist ein ganz normaler Kampf. Sein wahres Anliegen erfährst du erst danach.':'Ein Forscher glaubt, dass die schwächsten Monster ein großes Geheimnis bergen. In fünf Kapiteln erhältst du abgestimmte Herausforderungsdecks und kannst einen einzigartigen, bislang unbekannten Skill entdecken.')+'</p>'+
    (s.stage===0&&!s.met?'<div class="lv1-first-meeting"><p>✦ Ein fremder Duellant fordert dich heraus. Erst nach dieser Begegnung erfährst du, was hinter seinen Experimenten steckt.</p><button type="button" class="btn primary" data-lv1-stage="prologue">DEM FORSCHER BEGEGNEN →</button></div>':'<div class="lv1-saga-road">'+STORIES.map((ch,i)=>'<button class="lv1-stage '+(i<s.stage?'done':i===s.stage?'next':'locked')+'" data-lv1-stage="'+(i+1)+'" '+(i>s.stage?'disabled':'')+'><span>'+(i<s.stage?'✓':i+1)+'</span><strong>'+esc(ch.title)+'</strong><small>'+(i<s.stage?'Geschichte entdeckt':i===s.stage?'Bereit zur Prüfung':'Noch gesperrt')+'</small></button>').join('')+'</div>')+
-   (s.perk?'<div class="lv1-perk-label">✦ Das verborgene Vermächtnis wurde erweckt.</div>':'<div class="lv1-perk-label">✦ Ein einzigartiger Skill und geheimnisvolle Belohnungen erwarten dich.</div>')+
+   (s.perk?'<div class="lv1-perk-label">✦ VERBOTENE FORSCHUNG · Rang '+Math.max(1,s.skillRank||1)+'/5 · Floating, Swarm und Lv1-Spezialfusionen dauerhaft aktiv.</div>'+
+    '<p class="lv1-saga-mini">Passiver Forschungsbonus: +'+Math.max(1,s.skillRank||1)*5+' ATK/DEF auf gewöhnliche Lv1-Monster. Lv1-Spezial-ACE Lumira behält ihre festen 111/111 Grundwerte.</p>'+
+    (s.skillRank<5?'<button type="button" class="btn primary" data-lv1-skill-upgrade>Forschung verbessern · '+(120+180*Math.max(1,s.skillRank||1))+' Münzen</button>':'<p class="lv1-saga-mini">Maximaler Forschungsrang erreicht.</p>'):
+   '<div class="lv1-perk-label">✦ Ein einzigartiger Skill und geheimnisvolle Belohnungen erwarten dich.</div>')+
    (s.stage?'<p class="lv1-saga-mini">Gesammelte Lv1-Kartenarten: '+fraction().n+' / '+fraction().total+'</p>':'')+'</section>';
  }
  renderMenu=function(){
@@ -495,9 +501,18 @@
   const host=$('menuContent');if(host&&!host.querySelector('#lv1Saga'))host.insertAdjacentHTML('afterbegin',panel());
  };
  $('menuContent')?.addEventListener('click',e=>{
+  const upgrade=e.target.closest('[data-lv1-skill-upgrade]');
+  if(upgrade){
+   const current=state(),rank=current.skillRank||1,cost=120+180*rank;
+   if(!current.perk||rank>=5||storageConflict)return;
+   if(profile.coins<cost){toast('Für die nächste Forschungsstufe fehlen Münzen.');return;}
+   profile.coins-=cost;current.skillRank=rank+1;
+   saveProfile();renderMenu();toast('Verbotene Forschung auf Rang '+current.skillRank+' verbessert.');
+   return;
+  }
   const b=e.target.closest('[data-lv1-stage]');if(!b)return;
   const stage=b.dataset.lv1Stage==='prologue'?'prologue':Number(b.dataset.lv1Stage);startDuel('pve',1,'lv1-saga','easy',stage);
  });
- window.ArcaneLv1Saga=Object.freeze({version:'4.6.0',stories:STORIES,objectives:OBJECTIVES,aceScenes:ACE_SCENES,deckProfiles:DECK_PROFILES,corruptedId:CORRUPTED_ID,fanaticDeck,flushFanaticDialogue,mastered,state,maybeOffer,fraction,forced,forty,loanFusion});
+ window.ArcaneLv1Saga=Object.freeze({version:'5.5.0',stories:STORIES,objectives:OBJECTIVES,aceScenes:ACE_SCENES,deckProfiles:DECK_PROFILES,corruptedId:CORRUPTED_ID,fanaticDeck,flushFanaticDialogue,mastered,state,maybeOffer,fraction,forced,forty,loanFusion});
  if(uiMode==='menu')renderMenu();
 })();
