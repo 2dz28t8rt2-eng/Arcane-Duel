@@ -197,11 +197,12 @@ test('Grand straight is awarded for Lv1+2+3+4, with greater reward for five card
 test('Common shards can be spent across formerly separate opponent banks',()=>{
  const {g}=setup();
  g.profile.shards=Array(11).fill(0);
+ g.profile.cleared=[1]; // Open a genuinely ordinary recipe; tier-0 cards are training-only.
  g.profile.shards[1]=6;g.profile.shards[2]=4;g.profile.coins=999999;
- const c=g.CARDS.find(c=>!c.fusionOnly&&!c.essenceMonster&&!c.ace&&
+ const c=g.CARDS.find(c=>c.rpg&&!c.fusionOnly&&!c.essenceMonster&&!c.ace&&
   !c.trainingReward&&!c.workshopOnly&&!c.questOnly&&!c.lv1Exclusive&&
-  !c.fateOnly&&!c.milestoneOnly&&!c.enemyOnly&&g.cardAvailable(c.id)&&
-  g.cardCraftShardCost(c.id)===10);
+  !c.fateOnly&&!c.milestoneOnly&&!c.enemyOnly&&c.source===1&&c.level<=3&&
+  g.cardAvailable(c.id));
  assert.ok(c,'requires an obtainable level-1-to-3 normal card');
  const before=g.profile.inventory[c.id]||0;
  assert.equal(g.sharedShards(),10);
