@@ -221,3 +221,19 @@ Das value-gated Kaufexperiment mit **12 unabhängigen Startkarrieren je Arm** un
 
 **Nächste Roadmap-Priorität v8.4:** [Issue #12](https://github.com/2dz28t8rt2-eng/Arcane-Duel/issues/12) — unabhängig gepaarter Vergleich mehrerer rollenangepasster **Hauptdeck + Fusionsdeck**-Builder auf **identisch tatsächlich verdienten Vor-IV-Inventaren**, fairen Combat-Seeds und echter Materialspielbarkeit. Danach auf neuen unabhängigen echten Karrieren IV/VI bestätigen. Erst dann wieder VIII–X und mögliche Boss-KI-Änderungen prüfen. `main`, Live-Gegner-KI, Karten- und Splitterpreise bleiben unverändert.
 
+
+## Abgeschlossenes KI-Training v8.4 — gepaarter Deckbuilder-Vergleich vor IV
+
+**GitHub Actions:** [v8.4 SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39315082432). [Vollständiger Bericht](AI_V84_MATCHED_DECKBUILDER_RESULTS_20261019.md), [Issue #12](https://github.com/2dz28t8rt2-eng/Arcane-Duel/issues/12).
+
+24 neue legal erspielte und voneinander unabhängig gestartete Karriereursprünge (1.153 echte Karriere-Duelle); 24 Profil-Snapshots vor IV und 384 fair gepaarte Testduelle mit vier Offline-Deckbuildern. Training/Holdout strikt nach je 12 unabhängigen Ursprungskarrieren getrennt; beide Starter und zwei Kampfseeds pro Inventar/Variante.
+
+| Holdout-Ergebnis vor Turniergegner IV | Standard | Soul-Bridge | Role-aware | Fusion-aware |
+|---|---:|---:|---:|---:|
+| Spielersiege aus 48 Duellen | 2 | 2 | 2 | 2 |
+| Mittlerer Boss-LP-Vorsprung | 5.494 | 5.476 | 5.499 | 5.498 |
+| Tatsächlich ausgeführte Fusionen | 225 | 223 | 224 | 224 |
+
+**Fazit:** Keine Variante steigert die Siegzahl. Die 18-LP-Verbesserung durch Soul-Bridge hat keine ausreichende praktische Evidenz. Die neuen Decksortierstrategien sind **nicht** für die Live-KI freigegeben. Tests und Vor-IV-Inventare bleiben auf `development`, `main` sowie Live-Gegner-KI/-Balance unverändert.
+
+**Neue Priorität v8.5:** [Issue #13](https://github.com/2dz28t8rt2-eng/Arcane-Duel/issues/13). Auf realen Vor-IV-Inventaren **tatsächliche Material-, Fusions- und Zugentscheidungen** erfassen, darunter 2–5 reale Hand-/Feldmaterialien, Fusionstarget, Quality Roll, Folgeschaden, Verteidigung/Seelenverzehr/ACE, Priorisierung sinnvoller Angriffe und Lookahead. Getrennte faire Trainings- und Holdout-Matches; erfolgreiche Kandidaten danach mit vollständig gespielten neuen Karrieren gegen IV/VI bestätigen. Keine Boss-/Kartenbuffs, Loot-/Preisänderungen oder Merge auf `main` ohne ausdrückliche Prüfung.
