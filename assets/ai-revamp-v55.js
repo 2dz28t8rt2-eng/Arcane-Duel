@@ -5,16 +5,16 @@
 'use strict';
 (()=>{
  const PROFILES=Object.freeze({
-  1:{style:'attack',difficulty:'leicht',floor:1,aceTurn:8},
-  2:{style:'defense',difficulty:'leicht',floor:1,aceTurn:8},
-  3:{style:'fusion',difficulty:'leicht',floor:2,aceTurn:8},
-  4:{style:'attack',difficulty:'mittel',floor:3,aceTurn:6},
-  5:{style:'defense',difficulty:'mittel',floor:4,aceTurn:6},
-  6:{style:'fusion',difficulty:'mittel',floor:4,aceTurn:6},
-  7:{style:'attack',difficulty:'schwer',floor:5,aceTurn:4},
-  8:{style:'defense',difficulty:'schwer',floor:6,aceTurn:4},
-  9:{style:'fusion',difficulty:'schwer',floor:7,aceTurn:4},
-  10:{style:'hybrid',difficulty:'finale',floor:8,aceTurn:4}
+  1:{style:'attack',difficulty:'leicht',floor:1,cap:4,aceTurn:8},
+  2:{style:'defense',difficulty:'leicht',floor:1,cap:5,aceTurn:8},
+  3:{style:'fusion',difficulty:'leicht',floor:2,cap:6,aceTurn:8},
+  4:{style:'attack',difficulty:'mittel',floor:3,cap:7,aceTurn:6},
+  5:{style:'defense',difficulty:'mittel',floor:4,cap:8,aceTurn:6},
+  6:{style:'fusion',difficulty:'mittel',floor:4,cap:8,aceTurn:6},
+  7:{style:'attack',difficulty:'schwer',floor:5,cap:9,aceTurn:4},
+  8:{style:'defense',difficulty:'schwer',floor:6,cap:9,aceTurn:4},
+  9:{style:'fusion',difficulty:'schwer',floor:7,cap:10,aceTurn:4},
+  10:{style:'hybrid',difficulty:'finale',floor:8,cap:10,aceTurn:4}
  });
  const profileFor=id=>PROFILES[id]||null;
  const LABELS={attack:'ANGRIFF · Schwarm und Tempo',defense:'VERTEIDIGUNG · Wächter heilen Seelenzehrer',
@@ -47,11 +47,11 @@
   if(!p)return original;
   // A late opponent NEVER receives weak level-3 filler merely to reach 40.
   // Prefer legal high-level normal cards; keep the three-copies-per-ID limit.
-  let floor=p.floor,pool=normalPool().filter(c=>c.level>=floor);
+  let floor=p.floor,pool=normalPool().filter(c=>c.level>=floor&&c.level<=p.cap);
   // Never lower the finale below Lv7 even if the authored pool is short.
   const absoluteFloor=id===10?7:floor;
   while(pool.length<14&&floor>absoluteFloor){
-   floor--;pool=normalPool().filter(c=>c.level>=floor);
+   floor--;pool=normalPool().filter(c=>c.level>=floor&&c.level<=p.cap);
   }
   if(pool.length<14)return original; // Do not crash old saves on a smaller catalogue.
   pool.sort((a,b)=>score(b,p.style)-score(a,p.style)||b.level-a.level||a.id-b.id);
