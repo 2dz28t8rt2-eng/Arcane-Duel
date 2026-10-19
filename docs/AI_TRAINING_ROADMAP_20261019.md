@@ -189,3 +189,14 @@ Die im Training ausgewählte **Hybrid-Strategie** (gezieltes Crafting + Rollenfo
 **Neue Priorität v8.1:** Den **Kaufentscheidungsalgorithmus** der Spieler-KI trainieren, nicht bloß die Kaufrate: nur kaufen, wenn eine regulär verfügbare Karte gegenüber dem tatsächlichen 40er-Deck und passenden Fusionen einen klaren qualitativen Zugewinn bietet; Splitterbudget und spätere Freischaltungen mitbewerten. Besonders die erste große Hürde bei Turnierstufe IV prüfen. Neue KI-Gegner-Verbesserungen erst nach fairer, wirklich erspielter VIII–X-Progression aktivieren.
 
 **Status der ursprünglichen Fehler:** v7.8 QA-Gate bereits repariert, v7.8-Trainingslauf 39293814588 erfolgreich (1.280 Duelle), v7.9 und v8.0 sind zusätzliche bestätigte Folgeexperimente. Dieser Abschnitt ersetzt frühere Roadmap-Notizen, die v7.8 noch als ausständig bezeichneten.
+
+
+## Trainingsfortsetzung v8.1 – gezielte Deckverbesserung vor Splitterausgaben
+
+**Status 19.10.2026:** Neues Offline-Trainingsskript `tests/ai-deck-value-shards-v81.cjs`, Workflow `.github/workflows/ai-deck-value-shards-v81.yml` auf `development`. [GitHub Actions – v8.1](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39303077605) prüft zwölf unabhängige, gepaarte Karriere-Startseeds; Ergebnis erst nach Abschluss als gemessen bezeichnen. Ein anfänglicher YAML-Fehler im Workflownamen wurde behoben und der Job läuft inzwischen durch sein QA-Gate.
+
+**Gegenüberstellung:** Vorhandene v8.0-`late-shard`-Kontrolle (einfaches Kaufen ab geschlagenem IV) versus `selective-shard` (potenziell ab geschlagenem II), die Kaufabsichten gegen das tatsächlich besessene 40-Karten-Deck **vorab** prüft. Nur Karten, die in einer möglichen legalen Deckaufstellung einen messbaren Werte-/Rollenbeitrag leisten, rechtfertigen Kauf; maximal 1 früher bzw. 2 spätere Craftings pro erreichte Turnierstufe, 20–30 Splitter Rücklage, erwartete Verbesserung als Kaufschwelle. Forschung ab IV nur dann, wenn mehrere der real angebotstauglichen Rollenkarten eine potenzielle Verstärkung sind. Unter dieser Strategie werden keine blinden 5-Splitter-Neuwürfe ausgeführt. Früh investierte Karten kosten unverändert die realen Spielressourcen.
+
+**Offene Beweisfrage:** Gegenüber dem bloßen Frühkaufen aus v8.0 tatsächlich mehr unterschiedliche Karrieren bis IV, VI und VII bringen, ohne hohen Splitterverbrauch. Beide Arme beginnen mit identischem Startseed und regulären Duellen. Als Erfolg zählt die erreichte Turnierstufe, nicht nur dass viele Karten gekauft wurden. Keine direkten Profil-Eingriffe, keine Boss-Buffs und kein Merge auf `main`.
+
+**Voraussetzung für einen KI-Rollout:** Ein gewonnener Testlauf bedeutet nur, dass das neue *Offline-Spielermodell* validiert wurde. Gegner VIII/X werden erst neu trainiert, wenn genügend eigenständige, legal erspielte Endgame-Decks entstanden sind.
