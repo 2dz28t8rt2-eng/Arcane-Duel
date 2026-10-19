@@ -75,16 +75,27 @@
   return Math.round(total*1000)/1000;
  }
  function rank(g,policy=weights){
-  const p=limits[g.opponentId],candidates=legalCandidates(g);
-  const evaluated=candidates.map(c=>({...c,score:score(g,c,policy)}))
-   .sort((a,b)=>b.score-a.score||b.template.level-a.template.level||
-    a.materialCount-b.materialCount||a.template.id-b.template.id);
-  // Limitation based on actual candidate evaluation budget: novice NPCs see
-  // only a small fixed set; masters may inspect more.
-  if(!p)return [];
-  const budget=p.alternatives;
-  const visible=candidates.slice(0,budget);
-  return visible.map(c=>({...c,score:score(g,c,policy)}))
+  const cap=limits[g.opponentId],candidates=legalCandidates(g);
+  if(!cap||!candidates.length)return [];
+  // Inspect fewer meaningful alternatives for beginners, not merely the first
+  // two hand entries. Every budget receives at least one distinct play style.
+  const normals=candidates.filter(c=>c.action.type==='normal')
+    .sort((a,b)=>(b.template.atk+b.template.def)-(a.template.atk+a.template.def));
+  const fusions=candidates.filter(c=>c.action.type==='fusion')
+    .sort((a,b)=>b.template.level-a.template.level||b.quality-a.quality||
+      (b.template.atk+b.template.def)-(a.template.atk+a.template.def));
+  const selected=[],keys=new Set(),budget=cap.alternatives;
+  const add=c=>{
+   if(!c||selected.length>=budget)return;
+   const action=c.action,key=action.type+':'+(action.choice??action.uid)+':'+(action.uids?.join(',')||'');
+   if(keys.has(key))return;keys.add(key);selected.push(c);
+  };
+  add(candidates.find(c=>c.isAce)); // Never ignore a legal signature ACE.
+  add(normals.shift());add(fusions.shift());
+  while(selected.length<budget&&(normals.length||fusions.length)){
+   add(normals.shift());add(fusions.shift());
+  }
+  return selected.map(c=>({...c,score:score(g,c,policy)}))
    .sort((a,b)=>b.score-a.score||b.template.level-a.template.level||
     a.materialCount-b.materialCount||a.template.id-b.template.id);
  }
