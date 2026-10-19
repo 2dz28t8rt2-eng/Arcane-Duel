@@ -1,0 +1,32 @@
+name: Arcane Duel – True Action Scoring Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-weight-training-v56.cjs'
+      - 'assets/ai-learning-v56.js'
+      - '.github/workflows/ai-action-training-v56.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  train-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Assert real-action scoring safety and legal moves
+        run: node --test tests/ai-learning-v56.test.cjs
+      - name: Train scoring on seeded actual match outcomes, then test unseen seeds
+        env:
+          ARCANE_WEIGHT_TRAIN_SAMPLES: '4'
+          ARCANE_WEIGHT_TIERS: '10'
+        run: node tests/ai-weight-training-v56.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arcane-true-action-training-v56
+          path: artifacts/arcane-ai-action-training-v56.json
+          retention-days: 30
