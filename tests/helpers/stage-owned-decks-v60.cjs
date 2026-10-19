@@ -18,9 +18,9 @@ function legalCard(c,tier,catalogue){
  return starter.has(c.id)||Number.isInteger(c.source)&&c.source>=0&&
    c.source<tier&&catalogue.opponents.slice(0,tier).some(o=>o.loot.includes(c.id));
 }
-function availableInventory(data,tier,variant){
+function availableInventory(data,tier,variant,style='balanced'){
  if(!Number.isInteger(tier)||tier<1||tier>10)throw Error('Tier 1–10');
- if(!VARIANTS.includes(variant))throw Error('Unknown inventory variant');
+ if(!VARIANTS.includes(variant)||!STYLES.includes(style))throw Error('Unknown inventory variant/style');
  const {cards,opponents,initialInventory,defaultDeck,startFusions}=data;
  if(!Array.isArray(cards)||!Array.isArray(opponents)||!initialInventory)
   throw Error('Incomplete real catalogue/inventory');
@@ -31,24 +31,39 @@ function availableInventory(data,tier,variant){
      legalCard(cards[id],tier,data))
    baseCount.set(id,Math.min(3,amount));
  }
- // Only PREVIOUS cleared opponents. Free training is 0; tier 1 has NOT
- // beaten opponent 1. An invested variant represents more repeatable
- // previous-stage farming, never free future cards.
- const multiplier=variant==='invested'?2:1;
+ // Every victory grants AT MOST ONE selected card in this model:
+ // NEVER take the whole previous enemy loot pool for free.
+ // Tournament 0 is the three-win introduction; later stages require
+ // a prior win before a player could enter the current tournament.
+ // "invested" means a bounded number of additional simulated replays,
+ // not a claim that the user actually obtained these exact drops.
+ const role=c=>c.role||c.roleOverride||'';
+ const score=c=>{
+  const attack=Number(c.atk)||0,def=Number(c.def)||0,lv=c.level||1,r=role(c);
+  return style==='predator'?attack*1.8+def*.25+(r==='predator'?500:0):
+   style==='guardian'?def*1.8+attack*.2+(r==='guardian'?550:0):
+   style==='soul'?def*1.4+attack*.25+(r==='soul'?720:0)+(r==='guardian'?400:0):
+   style==='fusion'?(attack+def)*.65+lv*145+(c.fusionOnly?700:0):
+   attack+def;
+ };
  for(let stage=0;stage<tier;stage++){
   const o=opponents[stage];if(!o)continue;
-  for(const id of new Set(o.loot)){
-   const c=cards[id];
-   if(!legalCard(c,tier,data))continue;
-   const previous=baseCount.get(id)||0;
-   baseCount.set(id,Math.min(3,previous+multiplier));
+  const pool=[...new Set(o.loot)].map(id=>cards[id]).filter(c=>legalCard(c,tier,data))
+   .sort((a,b)=>score(b)-score(a)||a.id-b.id);
+  if(!pool.length)continue;
+  const rewards=stage===0?(variant==='invested'?4:2):
+   (variant==='invested'?3:1);
+  // Rotate among ordinary reward choices; do not force a rare or ACE drop.
+  for(let replay=0;replay<rewards;replay++){
+   const choice=pool[replay%pool.length],was=baseCount.get(choice.id)||0;
+   if(was<3)baseCount.set(choice.id,was+1);
   }
  }
  return baseCount;
 }
 function makeStageOwnedDeck(data,tier,style,variant='normal'){
  if(!STYLES.includes(style)||!VARIANTS.includes(variant))throw Error('Invalid deck style');
- const cards=data.cards,own=availableInventory(data,tier,variant);
+ const cards=data.cards,own=availableInventory(data,tier,variant,style);
  // The tournament before the currently challenged stage bounds collection
  // quality. Do not use a high-level milestone monster just because its
  // source number is low.
@@ -104,6 +119,8 @@ function makeStageOwnedDeck(data,tier,style,variant='normal'){
    deck.reduce((s,id)=>s+cards[id].level,0)/40*100)/100,
    mainDistinct:new Set(deck).size,fusionDistinct:new Set(fusionDeck).size,
    priorLootMaxSource:tier-1,
+   rewardBudgetPerPriorBoss:variant==='invested'?3:1,
+   stageZeroRewardBudget:variant==='invested'?4:2,
    initialCount:[...Object.values(data.initialInventory)].reduce((s,v)=>s+Number(v),0),
    newLootCards:deck.filter(id=>!starters.has(id)).length,
    maxOwnedCopies:Math.max(...[...own.values()])}};
