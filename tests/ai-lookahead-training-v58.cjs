@@ -110,7 +110,7 @@ for(let tier=1;tier<=tierCount;tier++){
  const weight=trained.weights;
  const trSeeds=seedsFor(tier,'train',trainN),hoSeeds=seedsFor(tier,'hold',holdN);
  const baseline=measure(tier,weight,null,trSeeds,TRAIN_STYLES);
- const seen=new Set(),pool=sampleConfig(tier);
+ const seen=new Set();let pool=sampleConfig(tier);
  let leader=null;const progress=[];
  for(let generation=0;generation<3;generation++){
   const population=pool.filter(p=>!seen.has(fingerprint(p)));
