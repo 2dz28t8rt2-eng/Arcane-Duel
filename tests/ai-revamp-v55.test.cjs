@@ -37,3 +37,16 @@ test('no permanent Lv1 research passive without clearing finale',()=>{
  // Other player-only progression bonuses may exist: compare against baseline.
  assert.equal(result,0);
 });
+
+test('fusion-oriented opponents can plan their ACE directly from legal hand materials',()=>{
+ const result=audit("Array.from({length:3},(_,i)=>{const tier=[6,9,10][i],g=createGame({mode:'pve',context:'tournament',opponentId:tier}),p=g.players[1];g.active=1;g.aiPhase='summon';g.summoned=false;g.pending=null;p.field.fill(null);const ace=ACE_CARD_IDS[tier];let legal=null;for(let a=0;a<p.hand.length&&!legal;a++)for(let b=a+1;b<p.hand.length;b++){const x=[p.hand[a],p.hand[b]],levels=x.map(c=>dataOf(c).level);if(fusionOptions(g,levels,x).some(c=>c.id===ace)&&canCompleteHandFusion(g,levels,ace))legal=x;}if(!legal)return {tier,legal:false};p.hand=[...legal,...p.hand.filter(c=>!legal.includes(c))];const a=chooseAiAction(g);return {tier,legal:true,chosen:a.choice===ace,action:a.type};})");
+ for(const x of result)if(x.legal){
+  assert.equal(x.action,'fusion','tier '+x.tier+' should fuse available ACE');
+  assert.equal(x.chosen,true,'tier '+x.tier+' should choose ACE template');
+ }
+ console.log('ACE_FUSION_PLAN_AUDIT',JSON.stringify(result));
+});
+test('temporary Lv1 mechanics unlock per trial; passive only after final research',()=>{
+ const r=audit("(()=>{profile.lv1Saga={offered:true,met:true,stage:2,perk:false};const g=createGame({mode:'pve',opponentId:1,context:'challenge'});g.lv1Saga={stage:2};const float=ArcaneLv1Swarm.enabled(g);g.lv1Saga.stage=3;const swarm=ArcaneLv1Swarm.enabled(g);g.lv1Saga.stage=4;const fusion=ArcaneLv1Swarm.enabled(g);delete g.lv1Saga;const outside=ArcaneLv1Swarm.enabled(g);profile.lv1Saga.perk=true;profile.lv1Saga.skillRank=1;const after=ArcaneLv1Swarm.enabled(g);return {float,swarm,fusion,outside,after};})()");
+ assert.deepEqual(r,{float:true,swarm:true,fusion:true,outside:false,after:true});
+});
