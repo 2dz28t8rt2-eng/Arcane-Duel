@@ -1,0 +1,24 @@
+name: Arcane Duel – Kartenkunde Perk v7.6
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/game.js'
+      - 'tests/perk-card-sense-v76.test.cjs'
+      - '.github/workflows/perk-card-sense-v76.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-card-sense:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify current card-sense and existing progression tests
+        run: |
+          node --check assets/game.js
+          node --test tests/perk-card-sense-v76.test.cjs tests/lategame-monsters-v71.test.cjs tests/progression-audit.test.cjs
