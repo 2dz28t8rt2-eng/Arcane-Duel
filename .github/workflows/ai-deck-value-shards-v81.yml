@@ -21,7 +21,7 @@ jobs:
         run: |
           node --check tests/ai-deck-value-shards-v81.cjs
           node --test tests/shard-rework-v77.test.cjs tests/perk-card-sense-v76.test.cjs tests/monster-roles-forge.test.cjs
-      - name: Twelve genuine paired careers: value-gated after II versus late shard spending after IV
+      - name: 'Twelve genuine paired careers - value-gated after II versus late shard spending after IV'
         env:
           ARCANE_V81_CAREERS: '12'
           ARCANE_V81_TIER_ATTEMPTS: '16'
