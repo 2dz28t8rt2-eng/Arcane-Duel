@@ -2,15 +2,15 @@
 
 ## Nachweisbarer Stand
 - **Development**, produktive Turnier-KI bleibt unverändert. `main` ist unberührt.
-- [Erfolgreicher GitHub-Actions-Trainingslauf](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39237152916)
-- **2000 echte Simulationsduelle** mit der aktuellen Engine: 1200 Trainings- und 800 Holdout-Duelle auf disjunkten Zufallsseeds.
+- [Erfolgreicher GitHub-Actions-Trainingslauf](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39237507378)
+- **2500 echte Simulationsduelle** mit der aktuellen Engine: 1500 Trainings- und 1000 Holdout-Duelle auf disjunkten Zufallsseeds.
 - **19/19 Tests** (4 Decktests, 7 Branching-/Sicherheitsprüfungen inklusive ACE-Materialschutz, 8 ältere KI-Tests) bestanden. Separat die Code- und Strategieregressionen ebenfalls grün.
 - Die **Stage-Baseline** verwendet die zuletzt trainierten **v5.7-Aktionsgewichte**, NICHT die unveränderte Live-Turnier-KI. Daraus bitte keine falschen Aussagen über die reale Schwierigkeit ableiten.
-- Gegen diese **trainierte** Baseline: **+13 Siege** und im Mittel **+237 LP-Differenz** (ungewichteter Mittelwert der zehn Turnierstufen).
+- Gegen diese **trainierte** Baseline: **+10 Siege** und im Mittel **+187 LP-Differenz** (ungewichteter Mittelwert der zehn Turnierstufen).
 - Die per-Stage-Kandidaten wurden nur in Sandboxpartien trainiert und getestet. **Es gab keinen automatischen Rollout**.
 
 ## Stufengerechte Testdecks (Wunsch des Nutzers)
-Die Decks werden deterministisch durch `tests/helpers/stage-training-decks-v59.cjs` erstellt. Pro Stufe gibt es die Archetypen **Predator/Angriff**, **Wächter/Verteidigung**, **Fusion**, **Allrounder/balanced**, jeweils in **normal** und **investiert**.
+Die Decks werden deterministisch durch `tests/helpers/stage-training-decks-v59.cjs` erstellt. Pro Stufe gibt es die fünf Archetypen **Predator/Angriff**, **Wächter/Verteidigung**, **Fusion**, **Allrounder/balanced** und **Seelenzehrer/Soul**, jeweils in **normal** und **investiert**.
 
 Jedes Hauptdeck enthält **exakt 40 Karten** und höchstens **3 Exemplare je ID**. Jedes Fusionsdeck enthält **2 bis 15** legale Fusionskarten. Die Auswahl enthält nur freigeschaltete Starterkarten und Karten von bereits besiegbaren/vorherigen Turnierstufen: `source <= tier-1`. Levelgrenze entspricht der Stufe des **vorherigen Gegners** (bei Turnier I der Trainingsgegner); kein Hardmode, keine ACEs oder spezielle Questkarten.
 
@@ -27,21 +27,21 @@ Je nach Gegner werden nur **2–15 Alternativen** in Betracht gezogen, für VII�
 
 | Gegner | Neue Siege | LP-Differenz | ACE-Aktionsdifferenz | streng freigabefähiger Testkandidat? |
 |---|---:|---:|---:|---|
-| I | 0 | −30 | −24 | Nein |
-| II | +10 | +1642 | −18 | Nein – Signatur-Strategie rückläufig |
-| III | −9 | −1416 | 0 | **Nein – große Verschlechterung** |
-| IV | +3 | +421 | 0 | Ja, nur für weitere QA |
-| V | +7 | +1472 | +20 | Ja, nur für weitere QA |
-| VI | +1 | −168 | −15 | Nein – ACE-Nutzung schlechter |
-| VII | 0 | 0 | −9 | Nein |
-| VIII | 0 | +190 | +40 | Ja, nur für weitere QA |
-| IX | +1 | +261 | 0 | Ja, nur für weitere QA |
-| X | 0 | 0 | 0 | Nein – keine Verbesserung |
-| **Summe** | **+13** | – | – | **4 Kandidaten** |
+| I | 0 | −79 | −30 | Nein |
+| II | +13 | +1743 | −22 | Nein – Signatur-Strategie rückläufig |
+| III | −16 | −1617 | 0 | **Nein – große Verschlechterung** |
+| IV | +3 | +331 | 0 | Ja, nur für weitere QA |
+| V | +8 | +1211 | +22 | Ja, nur für weitere QA |
+| VI | +1 | −170 | −19 | Nein – ACE-Nutzung schlechter |
+| VII | 0 | 0 | −10 | Nein |
+| VIII | 0 | +246 | +50 | Ja, nur für weitere QA |
+| IX | +1 | +208 | 0 | Ja, nur für weitere QA |
+| X | 0 | +1 | 0 | Nein – keine bedeutsame Verbesserung |
+| **Summe** | **+10** | – | – | **4 Kandidaten** |
 
 Die LP-Differenz ist die Veränderung des durchschnittlichen NPC-minus-Spieler-LP-Abstands gegenüber der trainierten Baseline, **nicht** die tatsächliche Lebenspunktezahl der Karten.
 
-**Nicht live aktivieren:** IV, V, VIII, IX sind nur Kandidaten für **größere unabhängige Kontrollgruppen und reale Karriere-Decks**. Insbesondere Gegner III darf nicht geschwächt werden. Gegner II gewinnt zwar mehr, verletzt aber den gewünschten ACE-Schwerpunkt; mehr Siege alleine genügen hier nicht.
+**Nicht live aktivieren:** Nach Erweiterung auf fünf Testdeck-Archetypen ist Gegner III noch deutlich schlechter als im ersten Durchlauf. IV, V, VIII, IX sind nur Kandidaten für **größere unabhängige Kontrollgruppen und reale Karriere-Decks**. Insbesondere Gegner III darf nicht geschwächt werden. Gegner II gewinnt zwar mehr, verletzt aber den gewünschten ACE-Schwerpunkt; mehr Siege alleine genügen hier nicht.
 
 ## Nächster sinnvoller Entwicklungsschritt
 1. Getrennte realistisch **erspielte** Inventarschnappschüsse aus echter Karriereprogression beschaffen und als härtere Testdecks verwenden, inklusive verschiedener Booster-, Quest- und Ausrüstungspfade.
