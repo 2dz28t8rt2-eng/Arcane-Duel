@@ -149,7 +149,7 @@
   if(!candidates.length)return [];
   return candidates.slice(0,budget+5).map(c=>{
    const future=forecast(g,c);
-   const score=one(c.score)*config.blend+(future?.total??-10000);
+   const score=(Number.isFinite(c.score)?c.score:0)*config.blend+(future?.total??-10000);
    return {...c,future,plannedScore:Math.round(score*1000)/1000};
   }).sort((a,b)=>b.plannedScore-a.plannedScore||
     (b.isAce?1:0)-(a.isAce?1:0));
