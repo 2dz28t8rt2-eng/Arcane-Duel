@@ -46,3 +46,7 @@
  #duelScreen #summonStage .ad56-zone span{font-size:9px}
 }
 @media(prefers-reduced-motion:reduce){#duelScreen #summonStage .ad56-cockpit *{animation:none!important;transition:none!important}}
+
+/* After the actual fusion cinema has finished, its real roll results must remain visible. */
+#duelScreen #summonStage .ad56-revealed-card{width:155px;max-width:100%;margin-inline:auto}
+#duelScreen #summonStage .ad56-revealed-card .hand-card{max-width:100%!important;min-width:0}

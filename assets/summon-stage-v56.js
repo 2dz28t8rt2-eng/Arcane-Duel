@@ -30,10 +30,13 @@
   const phase=!human?'Gegnerzug':pending?'Feldplatz wählen':g.summoned?'Beschwörung verbraucht':material.length>=2?'Fusion vorbereiten':chosen?'Normale Beschwörung':'Karte wählen';
   const phaseId=!human?'opponent':pending?'placement':g.summoned?'spent':material.length>=2?'fusion':chosen?'summon':'select';
   const label=pending?.kind==='fusion'?'Fusionskarte':pending?'Ausgewählte Beschwörung':chosen?'Ausgewählte Handkarte':'Kartenvorschau';
-  const showStats=pending?.kind!=='fusion';
+  const fusionReady=pending?.kind==='fusion'&&pending.revealed===true;
+  const showStats=pending?.kind!=='fusion'||fusionReady;
   const selectedHtml=current?(
    pending?.kind==='normal'?
     '<div class="stage-card ad56-stage-card" title="Karte erneut anklicken, um die Beschwörung zurückzunehmen">'+fullCardHtml(current)+'</div>':
+   fusionReady?
+    '<div class="arcane-fusion-ready-card ad56-revealed-card" aria-label="Fusionsergebnis sichtbar – Feldzone wählen">'+fullCardHtml(current)+'</div>':
    summarizeCard(current,showStats)
   ):'<p class="ad56-empty">Wähle eine Handkarte oder markiere bis zu fünf Fusionsmaterialien.</p>';
   const materialHtml=material.length?
@@ -90,6 +93,6 @@
   if(!control||!game||!inputAllowed()||game.summoned||game.pending)return;
   markMaterial(Number(control.dataset.ad56Remove));
  });
- window.ArcaneSummonStage56=Object.freeze({version:'5.6.0',renderStage});
+ window.ArcaneSummonStage56=Object.freeze({version:'5.6.1',renderStage});
  if(game&&uiMode==='duel')renderStage();
 })();
