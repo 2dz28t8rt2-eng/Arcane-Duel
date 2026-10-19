@@ -10,7 +10,7 @@
  const STANDARD=Object.freeze({material:.8,board:1.45,tempo:1.1,risk:1.2,support:1.1,future:.6,ace:10});
  const LIMIT=Object.freeze({1:2,2:2,3:3,4:4,5:5,6:6,7:8,8:9,9:11,10:15});
  const SAMPLES=Object.freeze({1:1,2:1,3:1,4:1,5:1,6:1,7:2,8:2,9:2,10:2});
- let sandbox=false,weights=STANDARD,counters={evaluated:0,replies:0,invalid:0},guard={enabled:false,margin:0};
+ let sandbox=false,weights=STANDARD,counters={evaluated:0,replies:0,invalid:0},guard={enabled:false,margin:0,fusionPremium:0};
  const ours=g=>g?.mode==='pve'&&g.context==='tournament'&&g.active===1&&
   g.winner===null&&!g.lv1Saga&&!g.showcase&&g.opponentId>=1&&g.opponentId<=10;
  const copy=x=>JSON.parse(JSON.stringify(x));
@@ -193,8 +193,11 @@
    // If the proposed action is the same, preserve all baseline side effects.
    if(JSON.stringify(best.action)===JSON.stringify(baseline.action))return null;
    const baselineProjected=branch(g,baseline);
-   if(!baselineProjected||best.score<baselineProjected.score+guard.margin)
-    return null; // keep the baseline when the brancher's advantage is weak
+   const fusionPremium=baseline.action.type==='fusion'&&best.action.type==='normal'&&
+    window.ArcaneAiRevamp55?.profileFor?.(g.opponentId)?.style==='fusion'?
+    guard.fusionPremium:0;
+   if(!baselineProjected||best.score<baselineProjected.score+guard.margin+fusionPremium)
+    return null; // retain a strong *legal* fusion rather than losing long-term ACE tempo
   }
   return best;
  }
@@ -254,18 +257,22 @@
  };
  function setSandbox(next,active=true,options=null){
   if(next===null){sandbox=false;weights=STANDARD;pendingSlot=new WeakMap();
-   guard={enabled:false,margin:0};return;}
+   guard={enabled:false,margin:0,fusionPremium:0};return;}
   if(!next||PARAMS.some(k=>!Number.isFinite(next[k])||next[k]<0||next[k]>15))
    throw Error('Invalid action branch policy');
   const margin=options?.margin??0;
   if(!Number.isFinite(margin)||margin<0||margin>25)
    throw Error('Invalid confidence-gate margin');
+  const fusionPremium=options?.fusionPremium??0;
+  if(!Number.isFinite(fusionPremium)||fusionPremium<0||fusionPremium>12)
+   throw Error('Invalid fusion-strategy confidence margin');
   weights=Object.freeze(Object.fromEntries(PARAMS.map(k=>[k,next[k]])));
-  guard={enabled:options?.guarded===true,margin};
+  guard={enabled:options?.guarded===true,margin,fusionPremium};
   sandbox=active===true;
  }
  function resetCounters(){counters={evaluated:0,replies:0,invalid:0};}
- window.ArcaneAiBranches59=Object.freeze({version:'5.9.3',STANDARD,
+ window.ArcaneAiBranches59=Object.freeze({version:'5.9.4',STANDARD,
   publicState,features,slotFor,branch,aceReservationPenalty,candidates,choose,diagnose,
-  setSandbox,active:()=>sandbox,guard:()=>({...guard}),stats:()=>({...counters}),resetCounters});
+  setSandbox,active:()=>sandbox,guard:()=>({enabled:guard.enabled,margin:guard.margin}),
+  strategyGate:()=>({fusionPremium:guard.fusionPremium}),stats:()=>({...counters}),resetCounters});
 })();
