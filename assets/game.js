@@ -1767,12 +1767,29 @@ function shopMarkup(){
    sharedShards()<SHARD_RESEARCH_COST||count<3||!!profile.openPack||!!profile.rewardQueue.length)+
    '</article>';
  }).join('')+'</div></section>';
+ const recipes=CARDS.filter(c=>c&&c.rpg&&!c.fusionOnly&&!c.ace&&
+  !c.essenceMonster&&!c.enemyOnly&&!c.questOnly&&!c.lv1Exclusive&&
+  !c.fateOnly&&!c.milestoneOnly&&!c.workshopOnly&&!c.trainingReward&&
+  cardAvailable(c.id)).sort((a,b)=>b.level-a.level||a.name.localeCompare(b.name));
+ const groups=[[7,10,'Level 7–10 · Endgame'],[4,6,'Level 4–6 · Aufbau'],[1,3,'Level 1–3 · Einstieg']];
  const craft='<section class="menu-panel"><h2>◆ Gezielte Kartenherstellung</h2>'+
  '<p>Normale Monster aus bereits freigeschalteten Quellen kosten ausschließlich Splitter: '+
  'Level 1–3 <b>10 ◆</b>, Level 4–6 <b>18 ◆</b>, Level 7–8 <b>28 ◆</b>, Level 9–10 <b>40 ◆</b>. '+
- 'Eine bestimmte Karte wählst du in deiner Sammlung bzw. im Deckeditor aus. '+
  'Bestehende seltene Fusionsrezepte kosten weiterhin 30 ◆ plus Essenz.</p>'+
- '<p>Dein gemeinsamer Vorrat: <b>'+fmt(sharedShards())+' ◆</b></p></section>';
+ '<p>Dein gemeinsamer Vorrat: <b>'+fmt(sharedShards())+' ◆</b>. '+
+ 'Wähle unten eine Kartenstufe, um auch noch nicht besessene freigeschaltete Monster herzustellen.</p>'+
+ groups.map(([min,max,title])=>{
+  const choices=recipes.filter(c=>c.level>=min&&c.level<=max);
+  return '<details class="shard-recipe-list"><summary>'+title+' · '+choices.length+
+   ' Rezepte</summary><div class="booster-choices">'+
+   (choices.length?choices.map(c=>'<article class="booster-choice"><h3>'+escapeHtml(c.name)+
+    '</h3><p>Level '+c.level+' · '+escapeHtml(c.role||'Normal')+
+    ' · Besitz: '+(profile.inventory[c.id]||0)+'</p>'+
+    menuButton('Für '+cardCraftShardCost(c.id)+' ◆ herstellen',
+     'craft','data-id="'+c.id+'"',sharedShards()<cardCraftShardCost(c.id))+
+    '</article>').join(''):'<p>In dieser Stufe ist noch keine Karte freigeschaltet.</p>')+
+   '</div></details>';
+ }).join('')+'</section>';
  return shop+craft+research+swap;
 }
 function xpMarkup(){const level=playerLevel(profile);return `<section class="menu-panel"><h2>Spielerstufe ${level}</h2>${menuButton('? Levelsystem einfach erklärt','xphelp')}<p>Die nächste Belohnung erscheint automatisch, sobald du ihre Stufe erreichst. Wie stark die Karten darin sind, richtet sich nach deiner <b>höchsten besiegten Turnierstufe ${highestCleared()}</b>. Es ist nicht möglich, Belohnungen für später zurückzuhalten.</p><p><b>Dein Seltenheitsbonus:</b> +${((rarityMultiplier()-1)*100).toFixed(2)} % <em>relativ</em>. Er verbessert die Gewichtung seltener Karten bei Beute und Charakter-Boosterpacks, nicht die Chance auf eine Karte überhaupt. Jede Spielerstufe verändert diesen Bonus ein wenig.</p><div class="table-scroll"><table class="history-table"><thead><tr><th>Stufe</th><th>Deine Belohnung</th><th>Seltenheitsbonus bis dahin*</th><th>Status</th></tr></thead><tbody>${XP_MILESTONES.map(l=>`<tr><td><b>${l}</b></td><td>${[20,40].includes(l)?'Wähle 1 aus 3 unterschiedlichen seltenen Gestalten':[15,30,45].includes(l)?'Essenz + 10 Splitter':[10,25,50].includes(l)?'10 Karten + 1 Platz für Dropladungen':'10 Karten sofort'}</td><td>+${((rarityMultiplier(l)-1)*100).toFixed(2)} % relativ</td><td>${profile.milestones.includes(l)?'✓ Erreicht':'Offen'}</td></tr>`).join('')}</tbody></table></div><p class="pool-note">* Der angegebene Wert ist der gesamte Seltenheitsbonus beim Erreichen der Stufe, nicht der zusätzliche Bonus durch die einzelne Belohnung. Dropladungen sind getrennt von Automatikenergie. Alle Splitter bilden einen gemeinsamen Vorrat. Normale Monster werden für 10–40 Splitter ohne Essenz hergestellt; Fusionsvorlagen benötigen weiterhin 30 Splitter plus Essenz.</p></section>`;}
