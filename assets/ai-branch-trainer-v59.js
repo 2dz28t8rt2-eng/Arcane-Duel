@@ -200,6 +200,8 @@
  }
  chooseAiAction=function(g,policy='balanced'){
   if(!sandbox||!ours(g))return oldChoose(g,policy);
+  if(g.aiPhase==='summon'&&!g.summoned&&!g.pending)
+   window.ArcaneAiRevamp55?.prepareAce?.(g);
   if(g.pending&&pendingSlot.has(g)){
    const idx=pendingSlot.get(g);pendingSlot.delete(g);
    if(!g.players[1].field[idx]&&Number.isInteger(idx))return {type:'place',idx};
