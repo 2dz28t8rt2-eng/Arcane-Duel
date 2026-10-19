@@ -6,7 +6,7 @@
 'use strict';
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const {boot}=require('./helpers/game-runtime.cjs');
-const src=JSON.parse(fs.readFileSync('artifacts/ai-career-soul-bridge-v67.json','utf8'));
+const src=JSON.parse(fs.readFileSync('artifacts/ai-pilot-stage-vi-v68.json','utf8'));
 const origins=Array.from(new Map((src.legitimateVIIProfiles||[])
  .map(x=>[x.sourceCareer+':'+x.seed+':'+x.starter,x])).values());
 if(origins.length<1)throw Error('No real rewarded win over VI; cannot invent VII progress');
