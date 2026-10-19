@@ -1,0 +1,34 @@
+name: Arcane Duel – X Adversarial AI Training v7.4
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-x-adversarial-v74.cjs'
+      - '.github/workflows/ai-x-adversarial-v74.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  stronger-legal-decks-vs-real-boss-x:
+    runs-on: ubuntu-latest
+    timeout-minutes: 23
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate enhanced X AI stress test
+        run: |
+          node --check tests/ai-x-adversarial-v74.cjs
+          node --test tests/lategame-monsters-v71.test.cjs tests/ai-learning-v56.test.cjs
+      - name: Test harder scripted player pilots on real X boss with authentic ACE
+        env:
+          ARCANE_V74_X_HOLD_SEEDS: '4'
+        run: node tests/ai-x-adversarial-v74.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-X-real-boss-adversarial-v74
+          path: artifacts/ai-x-adversarial-v74.json
+          if-no-files-found: warn
+          retention-days: 30
