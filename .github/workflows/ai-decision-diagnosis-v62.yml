@@ -1,0 +1,39 @@
+name: Arcane Duel – AI Decision Diagnosis v6.2
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/ai-revamp-v55.js'
+      - 'assets/ai-learning-v56.js'
+      - 'assets/ai-branch-trainer-v59.js'
+      - 'tests/ai-decision-diagnostics-v62.test.cjs'
+      - 'tests/ai-decision-audit-v62.cjs'
+      - '.github/workflows/ai-decision-diagnosis-v62.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  examine-fusion-and-ace-decisions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 19
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify public-only diagnostics and original ACE queue
+        run: |
+          node --check assets/ai-branch-trainer-v59.js
+          node --check tests/ai-decision-audit-v62.cjs
+          node --test tests/ai-decision-diagnostics-v62.test.cjs tests/ai-branch-trainer-v59.test.cjs tests/ai-confidence-gate-v61.test.cjs
+      - name: Collect tactical disagreement diagnostics for III VI IX
+        env:
+          ARCANE_DIAGNOSTIC_SEEDS: '2'
+        run: node tests/ai-decision-audit-v62.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-public-decision-audit-v62
+          path: artifacts/ai-decision-audit-v62.json
+          if-no-files-found: warn
+          retention-days: 30
