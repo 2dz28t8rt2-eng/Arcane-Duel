@@ -130,8 +130,10 @@ for(let tier=1;tier<=T;tier++){
  const resultHold=suite(tier,weights,selected.params,testSeeds);
  const deltaWins=resultHold.wins-baselineHold.wins;
  const deltaLP=resultHold.avgLP-baselineHold.avgLP;
- const qualified=deltaWins>0||(deltaWins===0&&deltaLP>75&&
-  resultHold.rejectedSimBranches<baselineHold.games*1.5);
+ const aceGain=resultHold.aces-baselineHold.aces;
+ const qualified=aceGain>=0&&
+  (deltaWins>0||deltaWins===0&&deltaLP>75)&&
+  resultHold.rejectedSimBranches<baselineHold.games*1.5;
  r.trainMatches+=baselineTrain.games+options.reduce((s,o)=>s+o.training.games,0);
  r.holdoutMatches+=baselineHold.games+resultHold.games;
  r.entries.push({tier,gameLevelCap:meta.opponents[tier-1].level,
@@ -143,7 +145,7 @@ for(let tier=1;tier<=T;tier++){
    wins:x.training.wins,avgLP:x.training.avgLP,aces:x.training.aces})),
   chosen:selected.name,chosenParams:selected.params,
   holdout:{baseline:baselineHold,candidate:resultHold,winGain:deltaWins,
-   lpGain:deltaLP,aceGain:resultHold.aces-baselineHold.aces,qualified},
+   lpGain:deltaLP,aceGain,qualified},
   deployed:false});
  console.log('ARCANE_STAGE_V59_PROGRESS '+JSON.stringify({tier,
   trainingMatches:baselineTrain.games+options.reduce((s,o)=>s+o.training.games,0),
