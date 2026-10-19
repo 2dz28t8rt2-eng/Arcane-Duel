@@ -163,3 +163,16 @@ Die im Training ausgewählte **Hybrid-Strategie** (gezieltes Crafting + Rollenfo
 **Verbindlicher Folgeschritt:** keine zusätzliche VIII-Boss-Buffierung; mindestens zwölf unterschiedliche komplette Ausgangskarrieren mit echtem Splitterverdienst, eigenen Deckbauentscheidungen und Vergleich bei VIII–X. Benötigt werden mehrere wirklich eigenständige Karriereherkünfte, da derzeit fünf Snapshots nur zwei ursprüngliche Karrieren abbilden. 12-Splitter-Rollenforschung in hohen Stufen auf potenzielle Übermacht prüfen, aber **Preise nicht ohne belastbare Karriere-Daten verändern**.
 
 **Unabhängige QA:** Code-/Strategietests der Trainings-Commit-Reihe bestanden; ein allgemeiner Chromium-Mobile-Canonical-Card-Shell-Test meldete noch einen separaten Fehler bei 410 px. Bis zur sauberen vollständigen Browserabnahme `main` unverändert lassen. Auch aktive Boss-KI bleibt auf der bisherigen Strategie.
+
+
+## Folgeschritt v7.9 – unabhängige reale Karrieren (gestartet)
+
+**Status:** Als eigenständiges Offline-Training auf `development` gestartet: [GitHub Actions v7.9](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39296549100). Das Training prüft **12 verschiedene Startseeds**, je zwei gepaarte Karriereverläufe (24 vollständige Karriereversuche), statt fünf korrelierte VIII-Snapshots. Nur tatsächliche Siege und normale `rewardMatch`-Belohnungen werden anerkannt.
+
+**Kontrollierte Varianten:** `soul-bridge` bleibt der bereits erprobte Deckbau; `shard-hybrid` nutzt denselben Deckbau und **ab legitimem Sieg über IV** ergänzend kostenpflichtiges normales Karten-Crafting, 12-Splitter-Rollenforschung und, falls tatsächlich im Inventar vorhanden, den 5-Splitter-Booster-Neuwurf. Jeder Kauf läuft über die echten Spiel-Funktionen und geht aus dem wirklichen Splitter-/Inventarkonto ab.
+
+**Sicherheits- und Beweisregeln:** Beide Varianten starten mit demselben Seed und identischen Bedingungen und müssen vor Eingriff (Turnier I–IV) exakt gleiche Snapshots erzeugen. Zwölf ursprüngliche Startseeds sind zwölf unabhängige Karriereherkünfte, unabhängig von der Anzahl ihrer Duelle. Für jede Herkunft werden erreichte Gegnerstufe, Karte/Level/Deck, bezahlte Splitter, reguläre Belohnungen und der Grund eines eventuellen Karriereendes protokolliert. Die letzte Hälfte der Karriere-Startseeds wird im Report gesondert ausgewiesen; keine Strategie wird anhand dieser Hälfte angepasst.
+
+**Skript:** `tests/ai-independent-shard-careers-v79.cjs`, Workflow `.github/workflows/ai-independent-shard-v79.yml`, Ergebnisdatei `artifacts/ai-independent-shard-careers-v79.json` als CI-Artefakt. Vor dem Spieltraining müssen die aktuellen Splitter-/Kartenspürsinn-/Rollenregressionen erfolgreich bestehen. Keine KI-Parameter, Bosswerte oder `main`-Änderungen.
+
+**Freigabegate:** Keine neue Gegner-KI aktivieren, solange nicht genügend unterschiedliche tatsächlich erspielte VIII–X-Spielstände mit fairem Sieg-/Fortschrittsverlauf getestet wurden. Nach erfolgreicher v7.9-Analyse als nächstes den Rollenperk-Revamp Jagdinstinkt/Schildwall getrennt entwickeln.
