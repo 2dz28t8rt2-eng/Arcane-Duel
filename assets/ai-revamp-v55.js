@@ -281,7 +281,9 @@
      c.level!==1||!['atk','def'].includes(stat))return current;
   return current+5*Math.max(1,Math.min(5,skill.skillRank||1));
  };
- window.ArcaneAiRevamp55=Object.freeze({version:'5.5.3',PROFILES,profileFor,counterMode,
+ window.ArcaneAiRevamp55=Object.freeze({version:'5.5.4',PROFILES,profileFor,counterMode,
+  prepareAce:g=>{const o=opponent(g);if(!o)return false;
+   cueAce(g,g.players[1],o);return !!g.arcaneAceCue;},
   getScenario:g=>opponent(g)||null,
   predatorSwarm:(g,c)=>c&&g?effectiveAttack(g,c,null)-oldEffective(g,c,null):0});
 })();
