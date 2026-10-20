@@ -11,6 +11,7 @@
   'Full House':{title:'FULL HOUSE',tier:4},
   'Vierling':{title:'VIERLING',tier:4},
   'Große Straße':{title:'GROSSE STRASSE',tier:4},
+  'Gigantische Straße':{title:'GIGANTISCHE STRASSE',tier:5},
   'Fünfling':{title:'FÜNFLING',tier:5}
  };
  const reduced=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
