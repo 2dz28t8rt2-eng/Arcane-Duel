@@ -32,3 +32,4 @@ jobs:
           path: artifacts/ai-progressive-career-v108.json
           if-no-files-found: warn
           retention-days: 7
+# Smoke rerun following pre-VI identical-controller fix
