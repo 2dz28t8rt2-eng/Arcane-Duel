@@ -180,6 +180,17 @@ function tunedFusionQuality(g,levels,elements=[],materials=[]){
  if(g?.active===0&&levels.length===5&&levels.every(l=>l===1)&&window.ArcaneLv1Swarm?.enabled?.(g))f.factor=Math.min(2.2,f.factor+.05);
  return f;
 }
+// Narrow extension hook: the v11.3 rules replace these local calculators
+// without duplicating the role-stamping, resonance or real dice-roll pipeline.
+window.ArcaneFusionMath=Object.freeze({
+ getPattern:()=>fusionPattern,getQuality:()=>fusionQuality,getTuned:()=>tunedFusionQuality,
+ setPattern:fn=>{if(typeof fn!=='function')throw Error('invalid pattern');fusionPattern=fn;},
+ setQuality:fn=>{if(typeof fn!=='function')throw Error('invalid quality');fusionQuality=fn;},
+ setTuned:fn=>{if(typeof fn!=='function')throw Error('invalid tuned quality');tunedFusionQuality=fn;},
+ pattern:(...args)=>fusionPattern(...args),
+ quality:(...args)=>fusionQuality(...args),
+ tuned:(...args)=>tunedFusionQuality(...args)
+});
 fusionBudget=function(levels,g,materials=[]){
  if(!levels.length||levels.length>5)return 0;
  if(g?.mode!=='pve')return previous.fusionBudget(levels,g);
