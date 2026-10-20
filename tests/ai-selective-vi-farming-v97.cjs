@@ -355,7 +355,11 @@ const pairs=Array.from({length:careers},(_,i)=>{
  // including actual earned cards and shop transactions.
  for(const key of ['vi-focused','vi-efficient']){
   const a=variants['fixed-farm'],b=variants[key];
-  const early=run=>run.events.filter(x=>x.tier<6);
+  const early=run=>{
+   const idx=run.events.findIndex(e=>e.tier===6&&e.context==='tournament');
+   // Tier-V free duels during VI preparation occur AFTER the VI start.
+   return idx>=0?run.events.slice(0,idx):run.events;
+  };
   assert.equal(JSON.stringify(early(a)),JSON.stringify(early(b)),
    'Early-stage farming/control was not strictly identical: '+i+' '+key);
   assert.equal(a.snapshots.some(x=>x.tier===6),
