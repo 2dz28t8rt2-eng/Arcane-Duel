@@ -121,6 +121,7 @@ function buyFusionPack(count=1){
  profile.lastBooster={tier,cards,rerolled:false};
  saveProfile();return true;
 }
+window.ArcaneFusionPackV109={rollFusionPack,buyFusionPack,fusionPackPrice,fusionPackPool};
 shopMarkup=function(){
  const tier=highestCleared(),pools=fusionPackPool(tier),valid=!!pools.fusion.length&&!!pools.normal.length;
  return stored.shopMarkup()+'<section class="menu-panel fusion-market"><h2>✧ Gemischte Fusionsbooster</h2>'+
