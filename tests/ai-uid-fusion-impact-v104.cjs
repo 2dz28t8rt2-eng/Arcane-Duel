@@ -46,7 +46,9 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
    realVIHandFusions=0,realVIFieldFusions=0,realVIPlacedFusions=0,
    realVIFusionMaterialCount=0,realVIFusionAtkSum=0,realVIFusionDefSum=0,
    realVIWallBreaks=0,realVIAttackDamage=0,realVIKills=0,
-   impactSmallWaves=0,impactIntensiveWaves=0,recentVICombat=[];
+   impactSmallWaves=0,impactIntensiveWaves=0,recentVICombat=[],
+    uidFusionInstances=0,uidFusionAttacks=0,uidFusionDamage=0,
+    uidFusionKills=0,uidFusionTurns=0,uidFusionMaterials=0;
   const controller={summonObservations:0,normalOffered:0,legalFusionOffers:0,
    fusionAvailableTurns:0,freeSlotObservations:0,fullBoardObservations:0,
    noNormalHand:0,enemyAheadAtSummon:0,attackerOnBoardAtSummon:0,
@@ -275,9 +277,54 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
     }
     return initialApply(game,action);
    };
+   // Second decorator: exact field instance ID, not all-player attacks.
+   const observedApply=applyAiAction,trackedUIDs=new Map();
+   let incomingMaterials=0;
+   const impact={instances:0,attacks:0,damage:0,kills:0,turns:0,materials:0};
+   applyAiAction=function(game,action){
+    if(game!==g||game.active!==0)return observedApply(game,action);
+    const p=game.players[0],e=game.players[1];
+    const old=action?.type==='place'?p.field[action.idx]:null,
+     wasFusion=action?.type==='place'&&game.pending?.kind==='fusion',
+     oldTrace=old?trackedUIDs.get(old.uid):null,
+     attacker=action?.type==='attack'?p.field[action.ai]:null,
+     attackingTrace=attacker?trackedUIDs.get(attacker.uid):null,
+     beforeLP=e.lp;
+    const result=observedApply(game,action);
+    if(result&&action?.type==='fusion'&&game.pending?.kind==='fusion')
+     incomingMaterials=action.uids?.length||0;
+    if(result&&action?.type==='place'){
+     if(wasFusion||result.fused){
+      const consumed=(wasFusion?incomingMaterials:1)+
+        (result.fused?(oldTrace?.materials||1):0);
+      if(old)trackedUIDs.delete(old.uid);
+      trackedUIDs.set(result.card.uid,{materials:consumed,turns:0});
+      impact.instances++;impact.materials+=consumed;
+     }
+     incomingMaterials=0;
+    }
+    if(result&&action?.type==='attack'&&attackingTrace){
+     impact.attacks++;
+     impact.damage+=Math.max(0,beforeLP-e.lp);
+     impact.kills+=(result.destroyed||[]).filter(x=>String(x).startsWith('1:')).length;
+    }
+    if(action?.type==='end'){
+     for(const c of p.field.filter(Boolean)){
+      const found=trackedUIDs.get(c.uid);
+      if(found){found.turns++;impact.turns++;}
+     }
+    }
+    return result;
+   };
    try{simulateGame(g,policy);}
    finally{chooseAiAction=initialChoose;applyAiAction=initialApply;}
    if(isVIPhase){
+    uidFusionInstances+=impact.instances;
+    uidFusionAttacks+=impact.attacks;
+    uidFusionDamage+=impact.damage;
+    uidFusionKills+=impact.kills;
+    uidFusionTurns+=impact.turns;
+    uidFusionMaterials+=impact.materials;
     realVIHandFusions+=combat.fusionPrepared;
     realVIPlacedFusions+=combat.fusionPlaced;
     realVIFieldFusions+=combat.fieldFusions;
@@ -290,12 +337,14 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
     if(context==='tournament'&&tier===6){
      // Count actual executed monster and damage outcomes, not options
      // merely being possible in a hypothetical or actual hand.
-     const meaningful=combat.fusionPlaced>0&&
-      (combat.wallBreaks>0||combat.playerDamage>=300||combat.enemyKills>=1);
+     const meaningful=impact.instances>0&&
+      (impact.damage>=300||impact.kills>=1||impact.turns>=2);
      recentVICombat.push({fusions:combat.fusionPlaced,
       fieldFusions:combat.fieldFusions,wallBreaks:combat.wallBreaks,
       realDamage:combat.playerDamage,enemyKills:combat.enemyKills,
-      meaningful,win:g.winner===0});
+      uidDamage:impact.damage,uidKills:impact.kills,
+      uidAttacks:impact.attacks,uidTurns:impact.turns,
+      uidMaterials:impact.materials,meaningful,win:g.winner===0});
      if(recentVICombat.length>4)recentVICombat.shift();
     }
     viRealHandChecks+=handMeasure.observations;
@@ -430,8 +479,9 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
        impactIntensiveWaves+=Number(!tangible);
        readinessCheckTrace.push({afterAttempts:attempt+1,
         lastTwoVICombat:recent.map(x=>({fusions:x.fusions,
-         wallBreaks:x.wallBreaks,realDamage:x.realDamage,enemyKills:x.enemyKills,
-         meaningful:x.meaningful})),requested,batch});
+         uidDamage:x.uidDamage,uidKills:x.uidKills,
+         uidAttacks:x.uidAttacks,uidTurns:x.uidTurns,
+         uidMaterials:x.uidMaterials,meaningful:x.meaningful})),requested,batch});
       }
       const prior={
        level:playerLevel(profile),
@@ -517,6 +567,8 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
    viPhaseMatches,readinessFarmWaves,readinessRetrySkippedWaves,
    viRealHandChecks,viFusionReadyChecks,viPlayableChoices,
    viMaxFusionLevel,viZeroChoiceHands,readinessCheckTrace,
+   uidFusionInstances,uidFusionAttacks,uidFusionDamage,
+   uidFusionKills,uidFusionTurns,uidFusionMaterials,
    realVIHandFusions,realVIFieldFusions,realVIPlacedFusions,
    realVIFusionMaterialCount,realVIFusionAtkSum,realVIFusionDefSum,
    realVIWallBreaks,realVIAttackDamage,realVIKills,
@@ -589,6 +641,16 @@ function stats(rows,name){
   usefulBatches:total('yieldUseful'),weakBatches:total('yieldWeak'),
   actualFarmXp:total('actualFarmXp'),actualFarmLoot:total('actualFarmLoot'),
   VIPhaseDuels:total('viPhaseMatches'),
+  uidFusionInstances:total('uidFusionInstances'),
+  uidFusionAttacks:total('uidFusionAttacks'),
+  uidFusionDamage:total('uidFusionDamage'),
+  uidFusionKills:total('uidFusionKills'),
+  uidFusionFieldTurns:total('uidFusionTurns'),
+  uidFusionMaterials:total('uidFusionMaterials'),
+  uidDamagePerMaterial:+(total('uidFusionDamage')/
+    Math.max(1,total('uidFusionMaterials'))).toFixed(3),
+  uidKillsPer100Materials:+(100*total('uidFusionKills')/
+    Math.max(1,total('uidFusionMaterials'))).toFixed(3),
   actualHandFusionsPrepared:total('realVIHandFusions'),
   actualHandFusionsPlaced:total('realVIPlacedFusions'),
   actualFieldFusions:total('realVIFieldFusions'),
