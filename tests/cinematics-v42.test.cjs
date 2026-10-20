@@ -15,8 +15,8 @@ function setup(){
  return b;
 }
 test('All active monsters and the reported legacy wolf have original, distinct motifs',()=>{
- const b=boot(),r=b.run('({audit:ArcaneArtworkCoverage.audit(),count:ArcaneArtworkCompletion.motifs,late:window.ArcaneLateGameV71?.count||0,wolf:[CARDS[113].art,CARDS[159].art]})');
- assert.equal(r.audit.active,370+5+b.run('ArcaneRoleWave1?.installedIds.length||0')+r.late); // Include optional new role-wave cards.
+ const b=boot(),r=b.run('({audit:ArcaneArtworkCoverage.audit(),count:ArcaneArtworkCompletion.motifs,late:window.ArcaneLateGameV71?.count||0,newLate:window.ArcaneLateGameV117?.count||0,wolf:[CARDS[113].art,CARDS[159].art]})');
+ assert.equal(r.audit.active,370+5+b.run('ArcaneRoleWave1?.installedIds.length||0')+r.late+r.newLate); // Include the additional ten level 7–10 monsters.
  assert.equal(r.audit.missingCards,0);assert.equal(r.count,17);assert.equal(r.wolf[0],r.wolf[1]);
  const m=JSON.parse(fs.readFileSync(path.join(repo,'assets/custom-art/generated-4-2/manifest.json')));
  assert.equal(m.assets.length,17);assert.equal(new Set(m.assets.map(a=>a.sha256)).size,17);
