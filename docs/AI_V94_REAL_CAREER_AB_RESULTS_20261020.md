@@ -2,7 +2,7 @@
 
 **Datum:** 20. Oktober 2026 · **Branch:** `development` · **Experiment:** [GitHub Actions #39368041630 — SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39368041630). **Version des Testcontrollers:** die zuvor in v9.2 ausgewählte unveränderte `tempo-board`-Fusionsstrategie aus `tests/helpers/ai-pre-attack-v92.cjs`. **Produktive KI, `main`, Game Engine, Gegnerwerte, Karten, Loot und Economy:** unverändert.
 
-**Zusätzliches QA:** Code-/Strategieprüfungen [#39368041570 — SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39368041570); separat ausgelöster Browser-Smoke [#39368041596](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39368041596) war zum Zeitpunkt der Erstfassung noch im Abschluss und wird separat final geprüft.
+**Zusätzliches QA:** Code-/Strategieprüfungen [#39368041570 — SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39368041570); separat ausgelöster Browser-Smoke [#39368041596 — SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39368041596) wurde ebenfalls erfolgreich abgeschlossen.
 
 **Artefakt:** `arcane-real-career-ab-v94`, GitHub Actions Artifact-ID **12240082378**, bis **19. November 2026**. Enthält alle 32 source-gepaarten realen Karriereergebnisse, tatsächliche Rewards/Turnierduelle, Fusions-/Shop-Wirtschaft, Einzelsiege und Verlaufskontexte.
 
@@ -77,6 +77,6 @@ Es wurden **32 neue unabhängige Startkarrieren** mit Seed-Offset **48000** und 
 - V9.4 [Karriere-CI SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39368041630).
 - **56/56** Legalitäts-/Fusion-/Save-/Economy-Regressionen und **20/20** AI-Regressionsprüfungen bestanden.
 - [Allgemeine Code-/Strategieprüfungen #39368041570 — SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39368041570).
-- [Browser-Smoke #39368041596](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39368041596) ist separat als grün zu verifizieren.
+- [Browser-Smoke #39368041596 — SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39368041596) vollständig bestanden.
 
 **Fazit:** `tempo-board` ist erstmals **in unabhängigen vollständigen Karriereverläufen bis VI erfolgreich validiert**, nicht nur im Einzelduell; die vorab festgelegte Offline-Promotion wurde erreicht. Mit echten belohnten Karrieren auf zwei unabhängigen Quellenhälften belegt der Versuch einen erheblichen Progressionsvorteil. Produktions-/NPC-Übernahme bleibt eine **separate, nicht erfolgte Entscheidung**.
