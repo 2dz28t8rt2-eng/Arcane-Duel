@@ -1,0 +1,41 @@
+name: Arcane Duel - v11.1 Progressive Farming Career Holdout
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-progressive-farming-v111.cjs'
+      - '.github/workflows/ai-progressive-farming-v111.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  stage-scaled-earned-farming:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify earned career simulation and game economy
+        run: |
+          node --check tests/ai-progressive-farming-v111.cjs
+          node --test tests/balance-economy-v109.test.cjs tests/ai-fusion-choice-v61.test.cjs tests/shard-rework-v77.test.cjs
+      - name: Pilot baseline vs progressive on two matched origins
+        env:
+          ARCANE_V111_CAREERS: '2'
+          ARCANE_V111_TIER_ATTEMPTS: '8'
+        run: node tests/ai-progressive-farming-v111.cjs
+      - name: Play 32 matched origin career comparisons with earned tier-scaled farming
+        env:
+          ARCANE_V111_CAREERS: '32'
+          ARCANE_V111_TIER_ATTEMPTS: '30'
+        run: node tests/ai-progressive-farming-v111.cjs
+      - name: Archive stage-by-stage legal farm yield, actual deck quality, careers and holdout
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v111-progressive-farming-careers
+          path: artifacts/ai-progressive-farming-v111.json
+          if-no-files-found: warn
+          retention-days: 30
