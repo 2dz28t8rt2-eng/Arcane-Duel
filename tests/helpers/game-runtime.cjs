@@ -4,7 +4,7 @@ const repo=process.env.ARCANE_AUDIT_REPO?path.resolve(process.env.ARCANE_AUDIT_R
 const index=fs.readFileSync(path.join(repo,'index.html'),'utf8');
 const scripts=[...index.matchAll(/<script\b[^>]*\bsrc="([^"]+)"[^>]*>/g)].map(m=>m[1].split('?')[0]);
 const source=new Map(scripts.map(file=>[file,fs.readFileSync(path.join(repo,file),'utf8')]));
-function boot({seed=1,withoutArmor=false,saved=null}={}){
+function boot({seed=1,withoutArmor=false,withoutFusionRework=false,saved=null}={}){
  const nodes=new Map(),storage=new Map(saved?Object.entries(saved):[]);
  function el(id=''){
   const attributes=new Map(),classes=new Set();
@@ -33,6 +33,9 @@ function boot({seed=1,withoutArmor=false,saved=null}={}){
  ctx.window=ctx;ctx.self=ctx;ctx.globalThis=ctx;
  vm.createContext(ctx);
  for(const file of scripts){
+  // Control arm uses the same current game and economy, only the v11.3 fusion
+  // calculator and its dependent interactive tutorial are switched off.
+  if(withoutFusionRework&&['assets/fusion-rework-v113.js','assets/fusion-tutorial-v113.js'].includes(file))continue;
   let code=source.get(file);
   if(withoutArmor&&file==='assets/essence-combat.js'){
    const needle='const mitigation=isDefender(d)?.35:0;';if(!code.includes(needle))throw Error('Armor control hook changed');
