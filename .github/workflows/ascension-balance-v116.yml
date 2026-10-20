@@ -10,6 +10,7 @@ on:
       - 'assets/ascension-forge-v116.js'
       - 'assets/ascension-forge-v116.css'
       - 'tests/ascension-balance-v116.test.cjs'
+      - 'tests/browser-ascension-v116.html'
       - 'index.html'
       - '.github/workflows/ascension-balance-v116.yml'
   workflow_dispatch:
@@ -35,3 +36,18 @@ jobs:
           node --test tests/ascension-balance-v116.test.cjs tests/fusion-rework-v113.test.cjs tests/fusion-save-stress-v113.test.cjs tests/balance-economy-v109.test.cjs tests/player-feedback-v112.test.cjs tests/ai-vii-actor-mask-v115.test.cjs tests/qa-user-demo-20261019.test.cjs
       - name: Deterministic tier VII guardian tactic smoke test
         run: node --test tests/qa-tactical-defender-parity.cjs
+      - name: Verify V-unlock modal and actual forge transaction in desktop Chrome
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          if [ -z "$CHROME" ]; then echo 'Chrome unavailable' >&2; exit 1; fi
+          python3 -m http.server 8774 --bind 127.0.0.1 >/tmp/ascension-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          for n in $(seq 1 40); do curl -fsS http://127.0.0.1:8774/index.html >/dev/null && break || sleep .2; done
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=14000 --window-size="1200,980" --dump-dom http://127.0.0.1:8774/tests/browser-ascension-v116.html > /tmp/ascension-v116-ui.html 2>/tmp/ascension-v116-ui-errors.log
+          if ! grep -q 'data-arcane116="pass"' /tmp/ascension-v116-ui.html; then
+            grep -o 'FAIL [^<]*' /tmp/ascension-v116-ui.html | head -20 || true
+            tail -30 /tmp/ascension-v116-ui-errors.log || true
+            exit 1
+          fi
