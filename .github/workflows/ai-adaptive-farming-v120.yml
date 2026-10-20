@@ -1,0 +1,42 @@
+name: Arcane Duel - v12.0 Adaptive Farming and Forge Careers
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-adaptive-farming-training-v120.cjs'
+      - '.github/workflows/ai-adaptive-farming-v120.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  paired-adaptive-careers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate 40-card reserve, fusion output, boss rosters and adaptive runner
+        run: |
+          node --check tests/ai-adaptive-farming-training-v120.cjs
+          node --check assets/ascension-forge-v116.js
+          node --test tests/ascension-balance-v116.test.cjs tests/handbook-lexicon-v119.test.cjs tests/opponent-roster-v118.test.cjs
+      - name: Pilot two matched origins with real earned farming and forging
+        env:
+          ARCANE_V120_CAREERS: '2'
+          ARCANE_V120_TIER_ATTEMPTS: '8'
+        run: node tests/ai-adaptive-farming-training-v120.cjs
+      - name: Run 32 paired origins with legal farming and investments
+        env:
+          ARCANE_V120_CAREERS: '32'
+          ARCANE_V120_TIER_ATTEMPTS: '30'
+        run: node tests/ai-adaptive-farming-training-v120.cjs
+      - name: Keep all tier decisions, forge purchases and career results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v120-adaptive-farming-careers
+          path: artifacts/ai-adaptive-farming-training-v120.json
+          retention-days: 30
+          if-no-files-found: warn
