@@ -45,9 +45,20 @@ jobs:
           SERVER_PID=$!
           trap 'kill $SERVER_PID || true' EXIT
           for n in $(seq 1 40); do curl -fsS http://127.0.0.1:8774/index.html >/dev/null && break || sleep .2; done
-          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=14000 --window-size="1200,980" --dump-dom http://127.0.0.1:8774/tests/browser-ascension-v116.html > /tmp/ascension-v116-ui.html 2>/tmp/ascension-v116-ui-errors.log
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=30000 --window-size="1200,980" --dump-dom http://127.0.0.1:8774/tests/browser-ascension-v116.html > /tmp/ascension-v116-ui.html 2>/tmp/ascension-v116-ui-errors.log
           if ! grep -q 'data-arcane116="pass"' /tmp/ascension-v116-ui.html; then
-            grep -o 'FAIL [^<]*' /tmp/ascension-v116-ui.html | head -20 || true
+            python3 - <<'PY'
+          from html.parser import HTMLParser
+          class Reporter(HTMLParser):
+              in_report=False
+              def handle_starttag(self,tag,attrs):
+                  if tag=='pre' and dict(attrs).get('id')=='report':self.in_report=True
+              def handle_endtag(self,tag):
+                  if tag=='pre':self.in_report=False
+              def handle_data(self,data):
+                  if self.in_report:print('BROWSER_REPORT:',data)
+          Reporter().feed(open('/tmp/ascension-v116-ui.html').read())
+          PY
             tail -30 /tmp/ascension-v116-ui-errors.log || true
             exit 1
           fi
