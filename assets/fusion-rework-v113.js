@@ -9,6 +9,15 @@
  const old={budget:fusionBudget,options:fusionOptions,fuse:fusedInstance,
    quality:math.getQuality(),pattern:math.getPattern(),preview:math.getTuned(),
    validate:validateDuelSnapshot};
+ // The optional audit mask exists only in the offline test harness.
+ // Normal gameplay has no mask and continues to apply v11.3 to both sides.
+ const enabled=g=>!g||g.mode!=='pve'||!(window.__arcaneFusionAuditMask)
+   ||(g.active===0?window.__arcaneFusionAuditMask.player:window.__arcaneFusionAuditMask.npc);
+ let legacyQualityDepth=0;
+ const withLegacyQuality=fn=>{
+   legacyQualityDepth++;
+   try{return fn();}finally{legacyQualityDepth--;}
+ };
  const clamp=(n,low,high)=>Math.min(high,Math.max(low,n));
  const levelsOf=cards=>cards.map(c=>dataOf(c).level);
  const isStreet=lv=>lv.length>=3&&new Set(lv).size===lv.length&&
@@ -88,7 +97,7 @@
  }
  // Change only the PvE level eligibility, not acquired templates.
  fusionBudget=function(levels,g,materials=[]){
-  if(g?.mode!=='pve')return old.budget(levels,g,materials);
+  if(g?.mode!=='pve'||!enabled(g))return withLegacyQuality(()=>old.budget(levels,g,materials));
   const actual=flattenPending(g,levels,materials);
   if(specialLv1(g,levels))return old.budget(levels,g,materials);
   const used=contextMaterial(g,actual,materials);
@@ -96,7 +105,7 @@
  };
  // Unique source of truth for previews, selected template validation and NPC placements.
  fusionOptions=function(g,levels,materials=[]){
-  if(g?.mode!=='pve'||specialLv1(g,levels))return old.options(g,levels,materials);
+  if(g?.mode!=='pve'||!enabled(g)||specialLv1(g,levels))return old.options(g,levels,materials);
   const normalized=flattenPending(g,levels,materials);
   return old.options(g,normalized,contextMaterial(g,normalized,materials));
  };
@@ -107,6 +116,7 @@
  });
  math.setQuality(function(levels,elements=[]){
   const oldQuality=old.quality(levels,elements);
+  if(legacyQualityDepth>0)return oldQuality;
   const rule=calculate(levels,null,[]);
   if(rule.level===0)return oldQuality;
   // Keep original poker combination rewards; replace the indiscriminate range
@@ -120,6 +130,7 @@
  // Insert inherited earned quality into the existing tuned calculation BEFORE
  // all role weights and the real 88-112% rolls. Never stack past the 15% cap.
  math.setTuned(function(g,levels,elements=[],materials=[]){
+  if(!enabled(g))return withLegacyQuality(()=>old.preview(g,levels,elements,materials));
   const value=old.preview(g,levels,elements,materials);
   if(g?.mode!=='pve'||!materials.length)return value;
   const inherited=materials.reduce((sum,c)=>{
@@ -135,6 +146,7 @@
  });
  const oldFused=fusedInstance;
  fusedInstance=function(g,instances,levels){
+  if(!enabled(g))return withLegacyQuality(()=>oldFused(g,instances,levels));
   let actual=levels;
   if(g?.mode==='pve'&&g.pending?.kind==='fusion'&&instances.length===2&&
      levels.length>instances.length&&!specialLv1(g,levels))
@@ -162,7 +174,7 @@
  // Legal post-chain zone previews when a first hand fusion is awaiting placement.
  const oldCan=canCompleteHandFusion;
  canCompleteHandFusion=function(g,levels,choice){
-  if(g?.mode!=='pve'||specialLv1(g,levels))return oldCan(g,levels,choice);
+  if(g?.mode!=='pve'||!enabled(g)||specialLv1(g,levels))return oldCan(g,levels,choice);
   const p=g.players[g.active];if(p.field.some(c=>!c))return true;
   const remaining=p.remainingFusion.slice(),index=remaining.indexOf(choice);
   if(index<0)return false;remaining.splice(index,1);
