@@ -51,5 +51,6 @@ window.addEventListener('DOMContentLoaded',()=>{
  $('sort').addEventListener('change',e=>{state.sort=e.target.value;render();});
  $('totalCount').textContent=cards.length;
  $('counter').textContent=cards.length+' Kartenvorlagen';
+ window.addEventListener('arcane-lategame-art-ready',render);
  render();
 });
