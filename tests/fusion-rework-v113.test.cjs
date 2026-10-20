@@ -8,7 +8,7 @@ test('strict Lv2 early-game ceiling, Lv6 pair and all five cards matter',()=>{
  assert.deepEqual(a,{tiny:2,balanced:8,quality:9,filler:8});
 });
 test('street definition, level and quality independent of input order, giant street has distinct name',()=>{
- const r=inspect("(()=>{const g=createGame({mode:'pve',opponentId:2}),f=window.ArcaneFusionRework113;const a=[2,3,4,5,6],b=[6,5,4,3,2];return {a:f.calculate(a,g),b:f.calculate(b,g),comboA:fusionPattern(a).name,comboB:fusionPattern(b).name,fa:fusionQuality(a).factor,fb:fusionQuality(b).factor,small:fusionPattern([2,3,4]).name,large:fusionPattern([2,3,4,5]).name};})()");
+ const r=inspect("(()=>{const g=createGame({mode:'pve',opponentId:2}),f=window.ArcaneFusionRework113;const a=[2,3,4,5,6],b=[6,5,4,3,2];return {a:f.calculate(a,g),b:f.calculate(b,g),comboA:window.ArcaneFusionMath.pattern(a).name,comboB:window.ArcaneFusionMath.pattern(b).name,fa:window.ArcaneFusionMath.quality(a).factor,fb:window.ArcaneFusionMath.quality(b).factor,small:window.ArcaneFusionMath.pattern([2,3,4]).name,large:window.ArcaneFusionMath.pattern([2,3,4,5]).name};})()");
  assert.equal(r.a.level,9);assert.equal(r.b.level,9);
  assert.equal(r.comboA,'Gigantische Straße');assert.equal(r.comboB,'Gigantische Straße');
  assert.equal(r.small,'Kleine Straße');assert.equal(r.large,'Große Straße');
@@ -26,7 +26,7 @@ test('real chain Lv6 hand fusion + Lv5 field material can advance to Lv8 and spe
  assert.equal(r.hand,0);assert.equal(r.validSnapshot,true);
 });
 test('chain fusion inherits earned quality with strict cap and no recycled inherited component',()=>{
- const r=inspect("(()=>{const g=createGame({mode:'pve',opponentId:3,seed:1813});const k=RPG_BASE_CARDS.find(c=>c.level===6&&!c.retired&&!c.fusionOnly),v=RPG_FUSIONS.find(c=>c.level===6&&!c.retired);const a=newInstance(g,v.id,0);a.fusion=true;a.fusionHeritage={earnedPct:30,carriedPct:15};const b=newInstance(g,k.id,0);const f=tunedFusionQuality(g,[6,6],[dataOf(a).element,dataOf(b).element],[a,b]);const c={...a,fusionHeritage:{earnedPct:0,carriedPct:15}};const next=tunedFusionQuality(g,[6,6],[dataOf(c).element,dataOf(b).element],[c,b]);return {first:f.heritagePct,second:next.heritagePct,factor:f.factor};})()");
+ const r=inspect("(()=>{const g=createGame({mode:'pve',opponentId:3,seed:1813});const k=RPG_BASE_CARDS.find(c=>c.level===6&&!c.retired&&!c.fusionOnly),v=RPG_FUSIONS.find(c=>c.level===6&&!c.retired);const a=newInstance(g,v.id,0);a.fusion=true;a.fusionHeritage={earnedPct:30,carriedPct:15};const b=newInstance(g,k.id,0);const f=window.ArcaneFusionMath.tuned(g,[6,6],[dataOf(a).element,dataOf(b).element],[a,b]);const c={...a,fusionHeritage:{earnedPct:0,carriedPct:15}};const next=window.ArcaneFusionMath.tuned(g,[6,6],[dataOf(c).element,dataOf(b).element],[c,b]);return {first:f.heritagePct,second:next.heritagePct,factor:f.factor};})()");
  assert.equal(r.first,10.5);assert.equal(r.second,0);assert.ok(r.factor>1);
 });
 test('original PvP fusion budgeting remains unchanged',()=>{
