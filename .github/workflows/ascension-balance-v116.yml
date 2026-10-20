@@ -1,0 +1,37 @@
+name: Arcane Duel - v11.6 Ascension and Decay Regression
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/game.js'
+      - 'assets/fusion-rework-v113.js'
+      - 'assets/evolution.js'
+      - 'assets/ai-revamp-v55.js'
+      - 'assets/ascension-forge-v116.js'
+      - 'assets/ascension-forge-v116.css'
+      - 'tests/ascension-balance-v116.test.cjs'
+      - 'index.html'
+      - '.github/workflows/ascension-balance-v116.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-ascension-v116:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax validation
+        run: |
+          node --check assets/game.js
+          node --check assets/ai-revamp-v55.js
+          node --check assets/fusion-rework-v113.js
+          node --check assets/ascension-forge-v116.js
+      - name: V11.6 focused mechanics, live career compatibility and prior regressions
+        run: |
+          node --test tests/ascension-balance-v116.test.cjs tests/fusion-rework-v113.test.cjs tests/fusion-save-stress-v113.test.cjs tests/balance-economy-v109.test.cjs tests/player-feedback-v112.test.cjs tests/ai-vii-actor-mask-v115.test.cjs tests/qa-user-demo-20261019.test.cjs
+      - name: Deterministic tier VII guardian tactic smoke test
+        run: node --test tests/qa-tactical-defender-parity.cjs
