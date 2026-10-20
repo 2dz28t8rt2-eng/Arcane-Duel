@@ -5,6 +5,12 @@
 'use strict';
 (()=>{
  const esc=x=>escapeHtml(String(x??''));
+ // The game engine already uses the v11.6 percentages; these old tooltips
+ // were left behind by a late-loaded perk definition. Correct display only.
+ if(UPGRADES.resilience)UPGRADES.resilience.desc='Verringert den levelabhängigen Kreaturenzerfall deiner Monster um 10 % pro Rang (maximal 20 %). Angriffsverschleiß bleibt unverändert.';
+ if(UPGRADES.fusionLore)UPGRADES.fusionLore.desc='Die erste Fusion pro Duell erhält +1 echten Wertewurf. Die erste Kettenfusion kann zusätzlich einmalig +3 % Qualität erhalten.';
+ if(UPGRADES.fusionPrecision)UPGRADES.fusionPrecision.desc='Verbessert die Qualität von Spezialfusionen. Vollständige Pokerstraßen profitieren besonders; auf Rang 3 erhalten Große und Gigantische Straßen einen zusätzlichen Wurf (innerhalb der Obergrenzen).';
+
  const labels={predator:'Predator',guardian:'Wächter',soul:'Seelenzehrer',resonator:'Resonator',allrounder:'Allrounder',combatant:'Allrounder'};
  const types={normal:'Normales Monster',fusion:'Fusionsvorlage',ace:'ACE-Karte',essence:'Essenzwesen',special:'Sondermonster'};
  const roleOf=c=>c.role||rpgRole?.(c.id)?.role||'combatant';
