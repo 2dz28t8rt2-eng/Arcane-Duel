@@ -11,6 +11,7 @@ on:
       - 'assets/ascension-forge-v116.css'
       - 'tests/ascension-balance-v116.test.cjs'
       - 'tests/browser-ascension-v116.html'
+      - 'tests/browser-ascension-v116.js'
       - 'index.html'
       - '.github/workflows/ascension-balance-v116.yml'
   workflow_dispatch:
@@ -31,6 +32,7 @@ jobs:
           node --check assets/ai-revamp-v55.js
           node --check assets/fusion-rework-v113.js
           node --check assets/ascension-forge-v116.js
+          node --check tests/browser-ascension-v116.js
       - name: V11.6 focused mechanics, live career compatibility and prior regressions
         run: |
           node --test tests/ascension-balance-v116.test.cjs tests/fusion-rework-v113.test.cjs tests/fusion-save-stress-v113.test.cjs tests/balance-economy-v109.test.cjs tests/player-feedback-v112.test.cjs tests/ai-vii-actor-mask-v115.test.cjs tests/qa-user-demo-20261019.test.cjs
