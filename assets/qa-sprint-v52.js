@@ -50,7 +50,7 @@
    else{
     const other=foe.field.findIndex((c,i)=>
       i!==a.idx&&c?.id!==ace&&pending?.levels?.length&&
-      fusionOptions(g,[dataOf(pending.card).level,dataOf(c).level],[pending.card,c])
+      fusionOptions(g,[...pending.levels,dataOf(c).level],[pending.card,c])
        .some(template=>foe.remainingFusion.includes(template.id)));
     if(other>=0)a={...a,idx:other};
     else a={type:'arcane-recover-pending'};
