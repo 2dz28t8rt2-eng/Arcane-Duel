@@ -219,7 +219,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
     const highest=Math.max(0,...[...choices].map(id=>CARDS[id]?.level||0));
     return {legalCombos,optionCount:choices.size,highest};
    }
-   if(['fixed-farm','vi-focused','vi-uid-impact'].includes(treatment)){
+   if(['fixed-farm','tier-progressive'].includes(treatment)){
     chooseAiAction=function(game,requested){
      if(game!==g||game.active!==0)return initialChoose(game,requested);
      if(isVIPhase&&!game.pending&&!game.summoned&&
