@@ -1,0 +1,47 @@
+name: Arcane Duel - Independent Tempo Fusion Confirmation v9.3
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-earned-preiv-v93.cjs'
+      - 'tests/ai-pre-attack-v93.cjs'
+      - '.github/workflows/ai-pre-attack-v93.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preregistered-tempo-board-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Source syntax and legality gates
+        run: |
+          node --check tests/ai-earned-preiv-v93.cjs
+          node --check tests/ai-pre-attack-v93.cjs
+          node --check tests/helpers/ai-pre-attack-v92.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/shard-rework-v77.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: Earn 32 entirely new natural inventory profiles
+        env:
+          ARCANE_V93_CAREERS: '32'
+          ARCANE_V93_TIER_ATTEMPTS: '16'
+        run: node tests/ai-earned-preiv-v93.cjs
+      - name: Preregistered same-engine baseline vs original tempo-board
+        env:
+          ARCANE_V93_CAREERS: '32'
+          ARCANE_V93_MATCH_SEEDS: '2'
+        run: node tests/ai-pre-attack-v93.cjs
+      - name: AI strategy regression
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-decision-diagnostics-v62.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-tempo-confirmation-v93
+          path: |
+            artifacts/ai-earned-preiv-v93.json
+            artifacts/ai-pre-attack-v93.json
+          if-no-files-found: warn
+          retention-days: 30
