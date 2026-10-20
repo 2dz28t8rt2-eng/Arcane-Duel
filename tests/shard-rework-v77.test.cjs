@@ -74,7 +74,7 @@ test('Role research save rejects forged ACE offer and no role can bypass legal p
  assert.equal(r.rejected,true);assert.equal(r.legitimate,true);
 });
 test('Receipt reroll exchanges a genuinely unreserved starter: once, for 5 shards, no extra cards',()=>{
- const r=boot({seed:7705}).run(`(()=>{profile.trainingWins=3;profile.cleared=[1,2,3,4,5,6,7,8,9,10];profile.shards[0]=800;profile.coins=100000;
+ const r=boot({seed:7705}).run(`(()=>{profile.trainingWins=3;profile.cleared=[1,2,3,4,5,6,7,8,9,10];profile.shards[0]=800;profile.coins=100000;profile.boosterSeals=100000;
  profile.upgrades.starter=0;
  let index=-1;
  for(let trial=0;trial<12;trial++){
