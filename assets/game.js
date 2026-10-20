@@ -1743,9 +1743,9 @@ function shopMarkup(){
  '<p>Wähle deine Packgröße. Kartenspürsinn erhöht die Chance auf reguläre Monster. Alle erhaltenen Karten werden sofort deiner Sammlung gutgeschrieben.</p>'+
  '<div class="booster-choices">'+[1,3,5,10].map(n=>
   '<article class="booster-choice"><h3>'+n+' '+(n===1?'Karte':'Karten')+'</h3><p><b>'+
-   fmt(boosterPrice(tier,n))+' Essenz</b><br><small>≈ '+Math.ceil(boosterPrice(tier,n)/n)+
-   ' Essenz/Karte</small></p>'+menuButton(n+' Karten kaufen','booster',
-   'data-count="'+n+'"',profile.coins<boosterPrice(tier,n)||!!pending||!!profile.rewardQueue.length)+
+   fmt(boosterPrice(tier,n))+' Siegel</b><br><small>≈ '+Math.ceil(boosterPrice(tier,n)/n)+
+   ' Siegel/Karte</small></p>'+menuButton(n+' Karten kaufen','booster',
+   'data-count="'+n+'"',(profile.boosterSeals||0)<boosterPrice(tier,n)||!!pending||!!profile.rewardQueue.length)+
   '</article>').join('')+'</div>'+
  '<p>Seltenheits- und Stufengrenzen bleiben bestehen. Im 10er-Booster sind die letzten beiden Ziehungen besser. Splitter sind eine zusätzliche Wahlwährung – keine zusätzliche Pflichtgebühr für gekaufte Booster.</p></section>';
  const swap=receipt?'<section class="menu-panel"><h3>Zuletzt gekauft · '+receipt.cards.length+
