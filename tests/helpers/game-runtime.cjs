@@ -4,7 +4,7 @@ const repo=process.env.ARCANE_AUDIT_REPO?path.resolve(process.env.ARCANE_AUDIT_R
 const index=fs.readFileSync(path.join(repo,'index.html'),'utf8');
 const scripts=[...index.matchAll(/<script\b[^>]*\bsrc="([^"]+)"[^>]*>/g)].map(m=>m[1].split('?')[0]);
 const source=new Map(scripts.map(file=>[file,fs.readFileSync(path.join(repo,file),'utf8')]));
-function boot({seed=1,withoutArmor=false,withoutFusionRework=false,saved=null}={}){
+function boot({seed=1,withoutArmor=false,withoutFusionRework=false,fusionReworkSides='both',saved=null}={}){
  const nodes=new Map(),storage=new Map(saved?Object.entries(saved):[]);
  function el(id=''){
   const attributes=new Map(),classes=new Set();
@@ -31,6 +31,9 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,saved=null}={
   fetch:async url=>{const file=path.join(repo,String(url).split('?')[0]);return {ok:fs.existsSync(file),json:async()=>JSON.parse(fs.readFileSync(file,'utf8')),text:async()=>fs.readFileSync(file,'utf8')};}
  };
  ctx.window=ctx;ctx.self=ctx;ctx.globalThis=ctx;
+ // Per-actor fusion rules are a simulation-only audit switch. Production never sets this.
+ if(!['both','player','npc'].includes(fusionReworkSides))throw Error('Invalid fusionReworkSides');
+ ctx.__arcaneFusionAuditMask={player:fusionReworkSides!=='npc',npc:fusionReworkSides!=='player'};
  vm.createContext(ctx);
  for(const file of scripts){
   // Control arm uses the same current game and economy, only the v11.3 fusion
