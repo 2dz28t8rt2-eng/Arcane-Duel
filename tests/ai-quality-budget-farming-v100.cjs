@@ -327,7 +327,12 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
        atk:profile.activeDeck.reduce((v,id)=>v+CARDS[id].atk,0)/profile.activeDeck.length,
        avgLevel:profile.activeDeck.reduce((v,id)=>v+CARDS[id].level,0)/profile.activeDeck.length,
        copies:Object.values(profile.inventory).reduce((v,n)=>v+Number(n||0),0),
-       fusions:profile.fusionDeck.length,shards:sharedShards(),coins:profile.coins
+       fusions:profile.fusionDeck.length,
+       deckDef:profile.activeDeck.reduce((v,id)=>v+CARDS[id].def,0)/profile.activeDeck.length,
+       materialsL4:profile.activeDeck.filter(id=>CARDS[id].level>=4).length,
+       ownedFusionTemplates:profile.fusionDeck.filter(id=>
+        (profile.inventory[id]||0)>0&&!!CARDS[id]).length,
+       shards:sharedShards(),coins:profile.coins
       };
       let batchXp=0,batchLoot=0;
       adaptiveBatches++;
@@ -350,19 +355,36 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
       const atkGain=atkNow-prior.atk,deckLevelGain=lvlNow-prior.avgLevel,
        levelGain=playerLevel(profile)-prior.level,
        copyGain=copyNow-prior.copies,
-       fusionGain=profile.fusionDeck.length-prior.fusions;
+       fusionGain=profile.fusionDeck.length-prior.fusions,
+       defGain=profile.activeDeck.reduce((v,id)=>v+CARDS[id].def,0)/
+         profile.activeDeck.length-prior.deckDef,
+       level4MaterialGain=profile.activeDeck.filter(id=>CARDS[id].level>=4).length-
+         prior.materialsL4,
+       ownedFusionTemplateGain=profile.fusionDeck.filter(id=>
+        (profile.inventory[id]||0)>0&&!!CARDS[id]).length-prior.ownedFusionTemplates;
       // Observable, realized progress only. XP and coins are audited
       // separately because they do not automatically strengthen a deck.
       const useful=atkGain>=10||deckLevelGain>=.08||
        levelGain>0||fusionGain>0||copyGain>=2;
       measuredBatches++;yieldUseful+=Number(useful);yieldWeak+=Number(!useful);
-      roiLastBatch=(atkGain>=10?6:0)+(deckLevelGain>=.08?6:0)+
-       (levelGain>0?4:0)+(fusionGain>0?4:0)+(copyGain>=2?2:0);
-      actualFarmXp+=batchXp;actualFarmLoot+=batchLoot;lastFarmWeak=!useful;
+      // This signal explicitly excludes inventory-only and XP-only gains;
+      // it uses genuine equipped-card and actually owned fusion-template gains.
+      const qualitySignal=atkGain>=15||defGain>=20||deckLevelGain>=.10||
+       level4MaterialGain>=1||ownedFusionTemplateGain>0||
+       (levelGain>0&&(atkGain>0||defGain>0));
+      meaningfulDeckWaves+=Number(qualitySignal);
+      weakQualityWaves+=Number(!qualitySignal);
+      qualityGainTotal+=Math.max(0,atkGain)+Math.max(0,defGain)/2;
+      legitFusionGainTotal+=Math.max(0,ownedFusionTemplateGain);
+      roiLastBatch=(atkGain>=15?8:0)+(defGain>=20?6:0)+
+       (deckLevelGain>=.10?7:0)+(level4MaterialGain>=1?6:0)+
+       (ownedFusionTemplateGain>0?7:0)+(levelGain>0?2:0);
+      actualFarmXp+=batchXp;actualFarmLoot+=batchLoot;lastFarmWeak=!qualitySignal;
       tierFarmDecisions[tierFarmDecisions.length-1].realYield={
        xp:batchXp,loot:batchLoot,
        atkGain:+atkGain.toFixed(2),deckLevelGain:+deckLevelGain.toFixed(3),
-       levelGain,copyGain,fusionGain,
+       levelGain,copyGain,fusionGain,defGain:+defGain.toFixed(2),
+       level4MaterialGain,ownedFusionTemplateGain,qualitySignal,roiLastBatch,
        netShards:sharedShards()-prior.shards,netCoins:profile.coins-prior.coins,
        useful
       };
@@ -381,7 +403,8 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
   return {policy,plan,strategy,treatment,controller,training,snapshots,events,
    adaptiveBatches,adaptiveFarmMatches,adaptiveFarmWins,tierFarmDecisions,
    yieldSkipped,measuredBatches,yieldUseful,yieldWeak,actualFarmXp,actualFarmLoot,
-   viPhaseMatches,
+   viPhaseMatches,meaningfulDeckWaves,weakQualityWaves,
+   qualityGainTotal,legitFusionGainTotal,
    farmMatchesByTier,farmXpByTier,farmLootByTier,tierAttempts,tierWinAtAttempt,
    bridgeRebuilds,bridgeMains,bridgeFusions,
    earlyBridgeCalls,earlyBridgeChanges,earlyBridgeMainChanges,earlyBridgeFusionChanges,
@@ -448,6 +471,9 @@ function stats(rows,name){
   usefulBatches:total('yieldUseful'),weakBatches:total('yieldWeak'),
   actualFarmXp:total('actualFarmXp'),actualFarmLoot:total('actualFarmLoot'),
   VIPhaseDuels:total('viPhaseMatches'),
+  meaningfulDeckWaves:total('meaningfulDeckWaves'),weakQualityWaves:total('weakQualityWaves'),
+  qualityGainTotal:+sample.reduce((v,r)=>v+r.qualityGainTotal,0).toFixed(2),
+  legitFusionGainTotal:total('legitFusionGainTotal'),
   tierIVAttempts:calls(4),tierVAttempts:calls(5),tierVIAttempts:calls(6),
   freeDuelsVsV: farm(5),freeDuelsVsIV:farm(4),
   XPFromFreeVsV:earn(5),
@@ -525,7 +551,7 @@ const report={schema:'arcane-quality-budget-vi-farming-v100',
   'No card, XP, ACE, win or resource is fabricated; each match uses rewardMatch.',
   'The tournament-attempt and farming cap are experimental only; no production rule changes.',
   'The fixed-farming baseline already receives 2–5 free duels after three tournament losses.',
-  'ROI strategy uses measured equipped ATK, levels and owned fusion availability with 32-farm cap. All arms share 72-fight VI phase cap.',
+  'The new quality controller reacts to measured equipped ATK/DEF, four-plus level materials and owned fusion templates; no hidden hands. Same 75-fight VI budget for every arm.',
   'Only realized legal XP, loot, level, equipped-card, fusion-deck, shards and coin changes are audited.',
   'A gain in VI wins at much greater time/currency costs is a trade-off, not a universal improvement.',
   'Main, live NPC policies and user progression are untouched.']};
