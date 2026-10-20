@@ -9,6 +9,7 @@ on:
       - 'assets/attack-impact-v113.js'
       - 'assets/attack-impact-v113.css'
       - 'tests/fusion-rework-v113.test.cjs'
+      - 'tests/fusion-save-stress-v113.test.cjs'
       - 'index.html'
       - '.github/workflows/fusion-rework-v113.yml'
   workflow_dispatch:
@@ -31,4 +32,4 @@ jobs:
           if test -f assets/attack-impact-v113.js; then node --check assets/attack-impact-v113.js; fi
       - name: Regression matrix - fusion levels, poker, roles, save, UI and AI
         run: |
-          node --test tests/fusion-rework-v113.test.cjs tests/player-feedback-v112.test.cjs tests/qa-user-demo-20261019.test.cjs tests/qa-charged-field-fusion-matches.cjs tests/ai-fusion-choice-v61.test.cjs tests/balance-economy-v109.test.cjs tests/summon-stage-v56.test.cjs
+          node --test tests/fusion-save-stress-v113.test.cjs tests/fusion-rework-v113.test.cjs tests/player-feedback-v112.test.cjs tests/qa-user-demo-20261019.test.cjs tests/qa-charged-field-fusion-matches.cjs tests/ai-fusion-choice-v61.test.cjs tests/balance-economy-v109.test.cjs tests/summon-stage-v56.test.cjs
