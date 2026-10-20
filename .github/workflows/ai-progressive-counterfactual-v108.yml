@@ -1,0 +1,44 @@
+name: Arcane Duel - Progressive Career + NPC Counterfactual v10.8
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-progressive-career-v108.cjs'
+      - 'tests/ai-npc-counterfactual-v108.cjs'
+      - '.github/workflows/ai-progressive-counterfactual-v108.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tier-progressive-earned-careers-and-real-counterfactuals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and genuine game economy regression tests
+        run: |
+          node --check tests/ai-progressive-career-v108.cjs
+          node --check tests/ai-npc-counterfactual-v108.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: Play 64 real I-to-X career arms, 32 paired origins and scaled legal farming
+        env:
+          ARCANE_V108_CAREERS: '32'
+          ARCANE_V108_TIER_ATTEMPTS: '30'
+        run: node tests/ai-progressive-career-v108.cjs
+      - name: Evaluate actual ACE vs non-ACE vs normal on copied legal game snapshots
+        run: node tests/ai-npc-counterfactual-v108.cjs
+      - name: Preserve current AI / fusion / positions
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-decision-diagnostics-v62.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - name: Upload raw careers and every separate rolled counterfactual
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-progressive-counterfactual-v108
+          path: |
+            artifacts/ai-progressive-career-v108.json
+            artifacts/ai-npc-counterfactual-v108.json
+          if-no-files-found: warn
+          retention-days: 30
