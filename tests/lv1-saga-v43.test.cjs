@@ -2,9 +2,9 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {boot}=require('./helpers/game-runtime.cjs');
 test('Lv1 research registers four cards and allows original PvE and PvP to boot',()=>{
- const r=boot().run("({ids:ArcaneLv1Swarm.ids,cards:CARDS.length,late:window.ArcaneLateGameV71?.count||0,duel:createGame({mode:'pvp',seed:123}).mode})");
+ const r=boot().run("({ids:ArcaneLv1Swarm.ids,cards:CARDS.length,late:window.ArcaneLateGameV71?.count||0,newLate:window.ArcaneLateGameV117?.count||0,duel:createGame({mode:'pvp',seed:123}).mode})");
  assert.equal(new Set(Object.values(r.ids)).size,4);
- assert.equal(r.cards,Math.max(...Object.values(r.ids))+2+r.late);
+ assert.equal(r.cards,Math.max(...Object.values(r.ids))+2+r.late+r.newLate);
  assert.equal(r.duel,'pvp');
 });
 test('Encounter uses independent OR conditions and recognizes exact unique Lv1 collection',()=>{
