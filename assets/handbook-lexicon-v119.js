@@ -207,9 +207,11 @@
    '<b>Aufstiegsschmiede:</b> Drei freie Karten <em>desselben Levels</em> und etwas Essenz werden dauerhaft '+
    'zu einer zufälligen Karte genau eines Levels darüber. Das sind zwei getrennte Funktionen.</p>'+
    '<p>Die Aufstiegsschmiede öffnet nach Gegner V (bis Lv9), und der Weg zu Lv10 nach Gegner VI. '+
-   '60 % der Ergebnisse sind normale Monster, 40 % Fusionen, sofern beide Arten im erlaubten Pool liegen. '+
+   'Drei Fusionsvorlagen als Material ergeben garantiert eine höhere Fusionsvorlage. Bei anderen Mischungen gilt: '+
+   '60 % normale Monster und 40 % Fusionen, sofern beide Arten erhältlich sind. '+
    'Nach zwei normalen Ergebnissen derselben Zielstufe ist die nächste Fusion garantiert. '+
-   'Du verlierst die drei verwendeten Karten wirklich, nicht aber deine geschützten Deckkarten oder Favoriten.</p>'));
+   'Es müssen nach dem Schmieden mindestens 40 normale Karten für dein Hauptdeck vorhanden bleiben. '+
+   'Die drei verwendeten Karten werden dauerhaft verbraucht, Deckkarten und Favoriten sind geschützt.</p>'));
   insert(6,block('Welche Einkäufe bringen dir wirklich etwas?',
    '<p>Mit <b>Essenz</b> kaufst du unter anderem Upgrades und Kartenangebote. '+
    '<b>Booster-Siegel</b> erleichtern den Zugang zu Kartenpacks, auch zu Fusionspacks. '+
