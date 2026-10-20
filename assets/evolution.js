@@ -164,8 +164,15 @@ function tunedFusionQuality(g,levels,elements=[],materials=[]){
 
  // NPCs can fuse normally, but do not receive the player's poker-pattern quality or extra rolls.
  if(g?.mode==='pve'&&g.active===1){f.factor=Math.max(.72,Math.min(1.48,1+.045*(levels.length-2)-.075*f.spread));f.rollBonus=0;f.levelBonus=0;f.qualityBonus=0;f.lowLevelBonus=0;f.hasCombo=false;f.name='Freie Fusion';}
- if(g?.mode==='pve'&&g.active===0&&levels.length>=3&&f.hasCombo)
-  f.factor=Math.min(1.48,f.factor+.015*(profile?.upgrades?.fusionPrecision||0));
+ if(g?.mode==='pve'&&g.active===0&&levels.length>=3&&f.hasCombo){
+  const rank=profile?.upgrades?.fusionPrecision||0;
+  const street=levels.length>=3&&new Set(levels).size===levels.length&&
+   [...levels].sort((a,b)=>a-b).every((n,i,x)=>i===0||n===x[i-1]+1);
+  f.factor=Math.min(1.48,f.factor+(street?.02:.015)*rank);
+  // Rank 3 earns a single extra actual roll for a complete 4/5-card
+  // straight (existing 7-roll cap remains). Not an arbitrary stat buff.
+  if(street&&levels.length>=4&&rank>=3)f.rollBonus=(f.rollBonus||0)+1;
+ }
  if(f.resonancePct)f.factor=Math.min(2.2,f.factor+f.resonancePct/100);
  // All materials being of one specialist role should be slightly stronger than a
  // mixed-role fusion. The final role still comes exclusively from those materials.
