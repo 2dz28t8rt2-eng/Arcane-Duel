@@ -15,12 +15,6 @@
   const c={id:first+i,name:s.name,desc:s.desc,level:s.level,kind:s.kind,
    element:s.element,fusion:false,manifestOf:null,variantOf:null,art:s.art};
   collection.push(c);
-  if(typeof Image==='function'){
-   const img=new Image();
-   img.onload=()=>{c.art=s.art;window.dispatchEvent(new Event('arcane-lategame-art-ready'));};
-   img.onerror=()=>{};
-   img.src=s.art;
-  }
  });
  window.ArcaneCollectionLateGameV117=Object.freeze({firstId:first,count:entries.length});
 })();

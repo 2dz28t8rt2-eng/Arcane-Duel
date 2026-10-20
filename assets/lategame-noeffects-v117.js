@@ -17,13 +17,7 @@
  if(!window.ArcaneLevelBudget||typeof addRpgCard!=='function'||!Array.isArray(CARDS)||CARDS.length!==FIRST_ID)
   throw Error('LateGame 11.7: unexpected card catalog, missing level budget, or changed IDs');
  const rule=window.ArcaneLevelBudget,round10=n=>Math.round(n/10)*10;
- const roster=[];let loadedImages=0,queued=false;
- function redraw(){if(queued||typeof requestAnimationFrame!=='function')return;queued=true;
-  requestAnimationFrame(()=>{queued=false;if(typeof uiMode!=='undefined'){
-   if(uiMode==='menu'&&typeof renderMenu==='function')renderMenu();
-   if(uiMode==='duel'&&typeof render==='function')render();
-  }});
- }
+ const roster=[];
  for(const s of specs){
   if(!RPG_OPPONENTS[s.source]||!UPDATE_B_LOOT[s.source])throw Error('Invalid endgame loot source: '+s.name);
   // 'combatant' activates the actual Allrounder system; 'resonator'
@@ -43,16 +37,10 @@
   RPG_OPPONENTS[s.source].loot.push(id);
   UPDATE_B_LOOT[s.source].easy.push(id);UPDATE_B_LOOT[s.source].hard.push(id);
   roster.push({id,name:s.name,level:s.level,role:s.role,atk,def,art:s.art});
-  if(typeof Image==='function'){
-   const img=new Image();
-   img.onload=()=>{c.art=s.art;c.customArt=s.art;loadedImages++;redraw();};
-   img.onerror=()=>{}; // Fallback illustration stays usable until binaries are installed.
-   img.src=s.art;
-  }
  }
  window.ArcaneLateGameV117=Object.freeze({version:'11.7.0',count:roster.length,
   ids:Object.freeze(roster.map(c=>c.id)),roster:Object.freeze(roster),
-  get loadedImages(){return loadedImages;},
+  artworksInstalled:true,
   audit:()=>roster.map(r=>{const c=CARDS[r.id];return {...r,atk:c.atk,def:c.def,
    effectFree:c.ability==null&&!c.effectText,activeArt:c.art};})});
 })();
