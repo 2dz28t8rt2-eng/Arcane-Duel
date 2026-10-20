@@ -35,7 +35,9 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
    buysAttempted=0,farmsSinceTier=0,adaptiveBatches=0,adaptiveFarmMatches=0,
    adaptiveFarmWins=0,streak=0,beforeFirstTierBossFarms=0,
    farmMatchesByTier={},farmXpByTier={},farmLootByTier={},tierAttempts={},
-   tierWinAtAttempt={},tierFarmDecisions=[];
+   tierWinAtAttempt={},tierFarmDecisions=[],yieldSkipped=0,measuredBatches=0,
+   yieldUseful=0,yieldWeak=0,actualFarmXp=0,actualFarmLoot=0,
+   lastFarmWeak=false;
   const controller={summonObservations:0,normalOffered:0,legalFusionOffers:0,
    fusionAvailableTurns:0,freeSlotObservations:0,fullBoardObservations:0,
    noNormalHand:0,enemyAheadAtSummon:0,attackerOnBoardAtSummon:0,
@@ -290,6 +292,13 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
       duel(farmTier,'free');farmsSinceTier++;prepare();
      }
     }else if(streak>=2&&farmedForThisBoss<cap){
+     if(treatment==='vi-yield-stop'&&lastFarmWeak){
+      // Last earned batch improved no useful deck, card count or level;
+      // make the next legal boss attempt instead of repeating the grind.
+      yieldSkipped++;lastFarmWeak=false;streak=0;
+      tierFarmDecisions.push({tier,afterAttempts:attempt+1,skippedDueToYield:true});
+      continue;
+     }
      const farmTier=Math.max(0,tier-1),
       average=profile.activeDeck.reduce((v,id)=>v+CARDS[id].atk,0)/
        profile.activeDeck.length,
@@ -301,6 +310,14 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
      const requested=6+(gap?2:0)+(xpFactor<.2?-2:0);
      const batch=Math.min(Math.max(2,requested),cap-farmedForThisBoss);
      if(batch>0){
+      const prior={
+       level:playerLevel(profile),
+       atk:profile.activeDeck.reduce((v,id)=>v+CARDS[id].atk,0)/profile.activeDeck.length,
+       avgLevel:profile.activeDeck.reduce((v,id)=>v+CARDS[id].level,0)/profile.activeDeck.length,
+       copies:Object.values(profile.inventory).reduce((v,n)=>v+Number(n||0),0),
+       fusions:profile.fusionDeck.length,shards:sharedShards(),coins:profile.coins
+      };
+      let batchXp=0,batchLoot=0;
       adaptiveBatches++;
       tierFarmDecisions.push({tier,afterAttempts:attempt+1,
        source:farmTier,avgDeckAtk:Math.round(average),
