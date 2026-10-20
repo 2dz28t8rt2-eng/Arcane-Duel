@@ -1,0 +1,50 @@
+/* Arcane Duel v11.9 — readable beginner handbook & spoiler-safe bestiary */
+.ad119-lexicon{border:1px solid #a9c2de4d!important;background:linear-gradient(165deg,#151d2c,#20283a)!important}
+.ad119-lexicon-intro{display:flex;justify-content:space-between;align-items:start;gap:16px;flex-wrap:wrap}
+.ad119-lexicon-intro h2{margin:.15em 0 .4em;line-height:1.15}
+.ad119-lexicon-intro p{max-width:65ch;line-height:1.6}
+.ad119-eyebrow{color:#dfc695!important;font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:800}
+.ad119-count{display:grid;gap:2px;min-width:110px;text-align:center;padding:12px 15px;border:1px solid #9cb6ce55;border-radius:12px;background:#111b2b}
+.ad119-count strong{font-size:28px;color:#f6deae;line-height:1}
+.ad119-count span{font-size:11px;line-height:1.4;color:#ccd8e9}
+.ad119-lexicon-tip,.ad119-guide-note{border:1px solid #b7a0c254;background:#27263c88;border-radius:11px;padding:13px 15px;line-height:1.6}
+.ad119-filters{display:grid;grid-template-columns:minmax(190px,2fr) repeat(5,minmax(112px,1fr));gap:9px;margin:15px 0}
+.ad119-filters label{display:flex;flex-direction:column;gap:5px;font-size:11px;color:#e5d6f0;font-weight:700}
+.ad119-filters :is(input,select){min-width:0;width:100%;color:#f6f2ff;background:#121d2d;border:1px solid #849db277;border-radius:8px;padding:10px;font:inherit;min-height:40px}
+.ad119-filters :is(input,select):focus-visible,.ad119-card:focus-visible{outline:2px solid #f6d796;outline-offset:2px}
+.ad119-results{font-size:12px;color:#becfe0;margin:10px 0}
+.ad119-monster-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(156px,1fr));gap:12px}
+.ad119-card{text-align:left;display:flex;flex-direction:column;gap:5px;padding:9px;border:1px solid #8b9fb567;border-radius:12px;background:#172335;color:#f5eefb;cursor:pointer;font:inherit;transition:border-color .15s ease,transform .15s ease}
+.ad119-card:hover{transform:translateY(-2px);border-color:#f5d48c}
+.ad119-art{aspect-ratio:4/3;display:block;border-radius:7px;overflow:hidden;background:radial-gradient(circle at 50% 45%,#39405a,#121b29);width:100%}
+.ad119-art img{width:100%;height:100%;object-fit:cover}
+.ad119-card strong{font-size:13px;line-height:1.3}
+.ad119-card small{font-size:11px;color:#cedbef;line-height:1.4}
+.ad119-role{font-size:11px;color:#dcc9fa}
+.ad119-stats{display:flex;justify-content:space-between;gap:4px;color:#f8d79c;font-weight:800;font-size:12px}
+.ad119-stats span{color:#9ed9f3}
+.ad119-inventory{font-size:10px;color:#a9baac}
+.ad119-pages{display:flex;align-items:center;justify-content:center;gap:14px;padding:16px 4px}
+.ad119-pages span{font-size:12px;color:#e3e3f5}
+.ad119-pages button:disabled{opacity:.45;cursor:not-allowed}
+.ad119-empty{grid-column:1/-1;border:1px dashed #88a9c16b;border-radius:10px;padding:22px;line-height:1.6}
+.ad119-lexicon-roles{margin-top:9px;border-top:1px solid #adc4d044;padding-top:12px}
+.ad119-lexicon-roles summary{cursor:pointer;font-weight:800;color:#ffe3aa}
+.ad119-lexicon-roles p{line-height:1.65}
+.ad119-detail{display:grid;grid-template-columns:minmax(120px,220px) 1fr;gap:20px;text-align:left}
+.ad119-detail-art{border:1px solid #e2b6776b;border-radius:12px;overflow:hidden;background:#1e2333;align-self:start}
+.ad119-detail-art img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover}
+.ad119-detail p{line-height:1.58}
+.ad119-detail-stats{display:flex;flex-wrap:wrap;gap:10px;padding:10px 0;color:#f9daa7}
+.ad119-detail-stats strong+strong{color:#99dbec}
+.ad119-flavor{opacity:.78;font-style:italic}
+.ad119-stock{padding:10px;border-radius:8px;background:#152237;border:1px solid #a2a7c544}
+.ad119-guide-note{margin:14px 0}
+.ad119-guide-note strong{display:block;color:#ffdea3}
+.ad119-guide-note p{margin:5px 0 0;font-size:13px}
+.arcane-rule-body .ad119-rule-section{margin:16px 0 7px;padding:12px 15px;border-left:3px solid #c6a7e2;background:#2930435c;border-radius:0 10px 10px 0}
+.arcane-rule-body .ad119-rule-section h3{margin:0 0 7px;color:#fae2b6;font-size:15px}
+.arcane-rule-body .ad119-rule-section p{line-height:1.65;margin:6px 0 8px}
+@media(max-width:900px){.ad119-filters{grid-template-columns:repeat(3,minmax(0,1fr))}.ad119-filters label:first-child{grid-column:span 3}}
+@media(max-width:570px){.ad119-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.ad119-filters label:first-child{grid-column:span 2}.ad119-detail{grid-template-columns:1fr}.ad119-detail-art{max-width:200px}.ad119-monster-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.ad119-card{padding:7px}}
+@media(prefers-reduced-motion:reduce){.ad119-card{transition:none}.ad119-card:hover{transform:none}}
