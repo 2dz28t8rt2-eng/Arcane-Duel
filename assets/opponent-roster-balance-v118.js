@@ -100,7 +100,7 @@
      load.fusionDeck.some(cid=>!CARDS[cid]?.fusionOnly)||
      [...new Set(load.deck)].some(cid=>copies(load.deck,cid)>3)||
      [...new Set(load.fusionDeck)].some(cid=>copies(load.fusionDeck,cid)>3)||
-     (ACE[id]&&copies(load.fusionDeck,ACE[id])!==1))
+     (ACE[id]&&copies(load.fusionDeck,ACE[id])!==(id===7?1:copies(source.fusionDeck,ACE[id]))))
    throw Error('v11.8 tournament deck constraints violated for NPC '+id);
   return {...load,roster118:modifications};
  };
