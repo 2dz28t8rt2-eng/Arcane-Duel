@@ -2,7 +2,10 @@
 <h1>Arcane Duel v11.6 UI test</h1><pre id="report">Browserprüfung läuft …</pre><iframe src="../index.html" id="arcane" style="width:1200px;height:800px"></iframe>
 <script>
 const f=document.getElementById('arcane'),report=document.getElementById('report');
-f.addEventListener('load',async()=>{
+let started=false;
+const run=async()=>{
+ if(started||!f.contentWindow?.ArcaneAscensionForge116)return;
+ started=true;
  const w=f.contentWindow,d=f.contentDocument,notes=[];let ok=true;
  const check=(v,s)=>{notes.push((v?'OK ':'FAIL ')+s);if(!v)ok=false;report.textContent=notes.join('\n')};
  try{
@@ -29,5 +32,7 @@ f.addEventListener('load',async()=>{
   check(!d.getElementById('modal').textContent.includes('Neue Funktion nach Turniergegner V'),'Freischaltungs-Popup wird nicht erneut angezeigt');
  }catch(e){check(false,String(e.stack||e));}
  document.body.dataset.arcane116=ok?'pass':'fail';
-});
+};
+f.addEventListener('load',run);
+const poll=setInterval(()=>{if(started)clearInterval(poll);else run();},120);
 </script></html>
