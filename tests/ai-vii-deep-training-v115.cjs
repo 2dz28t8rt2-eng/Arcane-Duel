@@ -763,6 +763,42 @@ const realFusionSummary=xs=>Object.fromEntries(arms.map(arm=>{
   inheritedQuality:sum(r=>r.allFusionHeritage),roleMismatches:sum(r=>r.allRoleMismatches),
   rejectedFusions:sum(r=>r.rejectedFuseChoices),rejectedPlacements:sum(r=>r.rejectedFusionPlacements)}];
 }));
+// Every VII result below is grounded in actual successfully applied player/NPC actions.
+const viiDeepSummary=rs=>Object.fromEntries(arms.map(arm=>{
+ const trials=rs.filter(r=>r.treatment===arm).flatMap(r=>r.viiDetails||[]);
+ const sum=fn=>trials.reduce((n,m)=>n+fn(m),0);
+ const mean=fn=>trials.length?+(sum(fn)/trials.length).toFixed(2):null;
+ const perSide=[0,1].map(side=>{
+  const total=k=>sum(m=>m.bySide[side]?.[k]||0);
+  const levelCounts={};for(const m of trials)
+   for(const [lv,n] of Object.entries(m.bySide[side].byFusionLevel||{}))
+    levelCounts[lv]=(levelCounts[lv]||0)+n;
+  return {side:side?'npc':'player',attackAttempts:total('attackAttempts'),
+   successfulAttacks:total('successfulAttacks'),
+   fusionAttacks:total('fusionAttacks'),
+   fusionAttacksWithTrackedUID:total('fusionAttacksWithLiveAttacker'),
+   directAttacks:total('directAttacks'),attacksVsDef:total('attackVsDef'),
+   attacksVsAtk:total('attackVsAtk'),lpDamage:total('lpDamage'),
+   lpRestored:total('lpRestored'),kills:total('destroyedEnemies'),
+   summons:total('fusionPlaced'),chains:total('fieldChains'),
+   fusionAttempts:total('fusionAttempts'),turns:total('turns'),
+   readyFusionAtEnd:total('readyFusionEnds'),
+   readyFusionWithoutAttackTurns:total('readyFusionWithoutAttack'),
+   noPlanDespiteReadyFusion:total('canAttackButNoPlan'),
+   turnsFacingDefender:total('endsWithEnemyDefender'),
+   maxEnemyDef:Math.max(0,...trials.map(m=>m.bySide[side].strongestEnemyDefender)),
+   highestFusion:Math.max(0,...trials.map(m=>m.bySide[side].maxFusionLevel)),
+   fusionsByLevel:levelCounts};
+ });
+ const lossReasons={};
+ for(const m of trials)lossReasons[m.reason]=(lossReasons[m.reason]||0)+1;
+ return [arm,{matches:trials.length,wins:trials.filter(m=>m.winner===0).length,
+  meanPlayerFinalLP:mean(m=>m.finalLP[0]),meanBossFinalLP:mean(m=>m.finalLP[1]),
+  meanRounds:mean(m=>m.rounds),lossReasons,
+  level10TemplateAvailableMatches:trials.filter(m=>m.level10TemplatesInDeck>0).length,
+  avgHighestEquippedFusionTemplate:mean(m=>m.highestOwnedFusionTemplate),
+  sides:perSide,traceSamples:trials.filter(m=>m.timeline).length}];
+}));
 const comparison=ns=>{
  let better=0,worse=0,same=0;
  for(const n of ns){
@@ -772,9 +808,11 @@ const comparison=ns=>{
  }return {better,worse,same};
 };
 const training={byArm:summarise(results.filter(r=>r.run<train)),
+ vii:viiDeepSummary(results.filter(r=>r.run<train)),
  fusion:realFusionSummary(results.filter(r=>r.run<train)),
  comparison:comparison(Array.from({length:train},(_,i)=>i))};
 const holdout={byArm:summarise(results.filter(r=>r.run>=train)),
+ vii:viiDeepSummary(results.filter(r=>r.run>=train)),
  fusion:realFusionSummary(results.filter(r=>r.run>=train)),
  comparison:comparison(Array.from({length:careers-train},(_,i)=>train+i))};
 const report={schema:'arcane-vii-isolation-v115',
@@ -782,7 +820,7 @@ const report={schema:'arcane-vii-isolation-v115',
  control:'old-both / new-player-only / new-npc-only / new-both, isolated offline mask',
  totalCareers:results.length,
  totalRealDuelRewards:results.reduce((n,r)=>n+r.duels,0),
- offset:careerSeedOffset,arms,byArm,training,holdout,overallFusion:realFusionSummary(results),
+ offset:careerSeedOffset,arms,byArm,training,holdout,overallFusion:realFusionSummary(results),overallVII:viiDeepSummary(results),
  farmSchedule:{4:4,5:6,6:8,7:12,8:16,9:20,10:24},
  experiment:'Four actor-specific old/new fusion arms; legal progressive farming, unchanged AI/shop/NPC roster',
  raw:results.map(r=>({run:r.run,treatment:r.treatment,split:r.run<train?'train':'holdout',
@@ -846,4 +884,4 @@ const report={schema:'arcane-vii-isolation-v115',
 fs.mkdirSync('artifacts',{recursive:true});
 fs.writeFileSync('artifacts/ai-vii-deep-training-v115.json',JSON.stringify(report,null,2)+'\n');
 console.log('ARCANE_V115_CAREER_SUMMARY '+JSON.stringify({
- origins:careers,totalMatches:report.totalRealDuelRewards,training,holdout,byArm}));
+ origins:careers,totalMatches:report.totalRealDuelRewards,training,holdout,byArm,overallVII:report.overallVII}));
