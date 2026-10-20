@@ -36,6 +36,7 @@
  }
  function contextMaterial(g,levels,material=[]){
   if(material.length===levels.length)return material;
+  if(g?.arcaneResonatorBudgetMaterials?.length===levels.length)return g.arcaneResonatorBudgetMaterials;
   if(g?.pending?.kind==='fusion'&&levels.length===2){
    const field=g.players[g.active].field.find(x=>x&&dataOf(x).level===levels[1]);
    if(field)return [g.pending.card,field];
@@ -64,6 +65,19 @@
   if(difference===3)return Math.min(base,1);
   return difference>=5?-2:-1;
  }
+ // Explicit lineage: only actual resonator fusion instances count. Any existing
+ // paid bonus blocks a second one even after two chains merge.
+ function resonatorLineage(materials){
+  let count=0,used=false;
+  for(const card of materials){
+   if(!card)continue;
+   const prior=card.fusionResonatorLineage;
+   if(prior&&Number.isInteger(prior.count)){count+=Math.min(2,Math.max(0,prior.count));used=used||prior.used===true;}
+   else if(card.fusion&&card.roleOverride==='resonator')count++;
+  }
+  count=Math.min(2,count);
+  return {count,used,granted:!used&&count>=2};
+ }
  function calculate(levels,g,materials=[]){
   if(!Array.isArray(levels)||levels.length<2||levels.length>5||
      levels.some(x=>!Number.isInteger(x)||x<1||x>12))
@@ -83,14 +97,18 @@
   // For a 5-card straight the missing lower links are a reward, not a spread penalty.
   // A four-card straight already gets its substantial poker rolls and quality.
   const startPair=core===1&&levels.length===2&&levels.every(l=>l===1)?2:base+bonus;
-  const result=clamp(Math.min(levels.reduce((a,b)=>a+b,0),startPair),1,10);
+  const lineage=materials.length===levels.length?resonatorLineage(materials):{count:0,used:false,granted:false};
+  // Rank from 2 actual Resonators is supernatural: it is not cancelled by
+  // the ordinary total-material-level cap. Still obey absolute Lv10 cap.
+  const natural=clamp(Math.min(levels.reduce((a,b)=>a+b,0),startPair),1,10);
+  const result=clamp(natural+(lineage.granted?1:0),1,10);
   const weights=[1,.75,.55,.40];
   const weighted=other.reduce((sum,lv,i)=>sum+Math.max(0,Math.abs(core-lv)-1)*weights[i],0);
   const weightedMax=other.reduce((sum,_,i)=>sum+weights[i],0);
   const distance=weightedMax?weighted/weightedMax:0;
   const penalty=street?0:Math.min(.22,distance*.055);
   return {level:result,core,coreIndex:coreI,coreIsFusion:chain,first,floor,
-   gain,bonus,street,streetName:street?(levels.length===5?'Gigantische Straße':
+   gain,bonus,resonatorBonus:lineage.granted?1:0,resonatorLineage:lineage,street,streetName:street?(levels.length===5?'Gigantische Straße':
       levels.length===4?'Große Straße':'Kleine Straße'):null,
    distance,penalty,weights:weights.slice(0,other.length),others:other,
    materialCount:levels.length,reason:'Kernlevel, Materialabstände und Kombination'};
@@ -151,7 +169,11 @@
   if(g?.mode==='pve'&&g.pending?.kind==='fusion'&&instances.length===2&&
      levels.length>instances.length&&!specialLv1(g,levels))
    actual=levelsOf(instances);
-  const result=oldFused(g,instances,actual);
+  const before=g.arcaneResonatorBudgetMaterials;
+  g.arcaneResonatorBudgetMaterials=instances.length===actual.length?instances:null;
+  let result;
+  try{result=oldFused(g,instances,actual);}
+  finally{g.arcaneResonatorBudgetMaterials=before;}
   if(!result?.fusion||g.mode!=='pve')return result;
   const rule=calculate(actual,g,instances.length===actual.length?instances:[]);
   const carried=Math.max(0,Math.min(15,instances.reduce((sum,c)=>{
@@ -165,6 +187,11 @@
   const earned=Math.max(0,Math.min(30,(totalQuality-1)*100-carried));
   result.fusionHeritage={earnedPct:+earned.toFixed(2),carriedPct:+carried.toFixed(2)};
   result.fusionCoreLevel=rule.core;
+  result.fusionResonatorLineage={
+   count:rule.resonatorLineage.count,
+   used:rule.resonatorLineage.used||rule.resonatorLineage.granted
+  };
+  if(rule.resonatorBonus)logEvent(g,'✦ Resonator-Aufstieg: zwei Resonatoren ermöglichen einmalig +1 Fusionslevel in dieser Kette.');
   if(rule.streetName&&result.pattern?.includes('Straße'))
    result.pattern=result.pattern.replace('Große Straße',rule.streetName);
   if(result.rollMath?.combo&&rule.streetName)
@@ -194,6 +221,10 @@
    if(h&&Number.isFinite(h.earnedPct)&&h.earnedPct>=0&&h.earnedPct<=30&&
        Number.isFinite(h.carriedPct)&&h.carriedPct>=0&&h.carriedPct<=15)
     to.fusionHeritage={earnedPct:h.earnedPct,carriedPct:h.carriedPct};
+   if(from.fusionResonatorLineage&&Number.isInteger(from.fusionResonatorLineage.count)&&
+       from.fusionResonatorLineage.count>=0&&from.fusionResonatorLineage.count<=2&&
+       typeof from.fusionResonatorLineage.used==='boolean')
+    to.fusionResonatorLineage={count:from.fusionResonatorLineage.count,used:from.fusionResonatorLineage.used};
    if(Number.isInteger(from.fusionCoreLevel)&&from.fusionCoreLevel>=1&&from.fusionCoreLevel<=12)
     to.fusionCoreLevel=from.fusionCoreLevel;
   };
@@ -207,5 +238,5 @@
   resume(raw.pending?.card,restored.pending?.card);
   return restored;
  };
- window.ArcaneFusionRework113=Object.freeze({version:'11.3.0',calculate,flattenPending,isStreet});
+ window.ArcaneFusionRework113=Object.freeze({version:'11.6.0',calculate,flattenPending,isStreet,resonatorLineage});
 })();
