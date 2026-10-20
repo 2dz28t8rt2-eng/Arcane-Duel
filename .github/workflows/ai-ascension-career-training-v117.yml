@@ -1,0 +1,41 @@
+name: Arcane Duel - v11.7 Earned Farming and Ascension Career Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-ascension-career-training-v117.cjs'
+      - '.github/workflows/ai-ascension-career-training-v117.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  earned-ascension-v117:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate the v11.6 engine and v11.7 trainer
+        run: |
+          node --check tests/ai-ascension-career-training-v117.cjs
+          node --test tests/ascension-balance-v116.test.cjs tests/fusion-rework-v113.test.cjs tests/ai-vii-actor-mask-v115.test.cjs
+      - name: Pilot two paired origins with real farming
+        env:
+          ARCANE_V117_CAREERS: '2'
+          ARCANE_V117_TIER_ATTEMPTS: '8'
+        run: node tests/ai-ascension-career-training-v117.cjs
+      - name: Run 32 paired origins with inter-tier farming
+        env:
+          ARCANE_V117_CAREERS: '32'
+          ARCANE_V117_TIER_ATTEMPTS: '30'
+        run: node tests/ai-ascension-career-training-v117.cjs
+      - name: Save all earned careers and ascension records
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v117-earned-farming-ascension-careers
+          path: artifacts/ai-ascension-career-training-v117.json
+          retention-days: 30
+          if-no-files-found: warn
