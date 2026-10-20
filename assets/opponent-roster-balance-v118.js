@@ -132,7 +132,7 @@
    modifications.push(soften(id,load.deck,wanted[id].main,difficulty,'main'));
    modifications.push(soften(id,load.fusionDeck,wanted[id].fusions,difficulty,'fusion'));
   }
-  if(load.deck.length!==40||load.fusionDeck.length<2||load.fusionDeck.length>15||
+  if(load.deck.length!==40||load.fusionDeck.length<1||load.fusionDeck.length>15||
      load.deck.some(cid=>!CARDS[cid]||CARDS[cid].fusionOnly)||
      load.fusionDeck.some(cid=>!CARDS[cid]?.fusionOnly)||
      [...new Set(load.deck)].some(cid=>copies(load.deck,cid)>3)||
