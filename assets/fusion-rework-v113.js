@@ -68,7 +68,7 @@
   // A fifth filler cannot be used to force a bonus and be ignored.
   const support=other.slice(1),strong=other.length>=2&&
    other.every(x=>Math.abs(x-core)<=2)&&core>=3;
-  const bonus=strong&&(!street||levels.length===5)?1:0;
+  const bonus=street?(levels.length===5&&core>=4?1:0):(strong?1:0);
   // For a 5-card straight the missing lower links are a reward, not a spread penalty.
   // A four-card straight already gets its substantial poker rolls and quality.
   const result=clamp(Math.min(levels.reduce((a,b)=>a+b,0),base+bonus),1,10);
