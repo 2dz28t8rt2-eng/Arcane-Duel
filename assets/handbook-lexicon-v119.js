@@ -216,11 +216,10 @@
    '<b>Splitter</b> helfen beim gezielten Ausbau. Ein Fusionspack hat je nach Größe nur einen Teil '+
    'garantierter Fusionskarten, die übrigen Karten sind gewöhnliche Monster. '+
    'Wähle nicht nur nach Level: Ein Wächter-Deck braucht andere Karten als ein Predator-Deck.</p>')+
-   block('Bosskarten und die späten Turniere',
-   '<p>Turniergegner I bis X führen jetzt genau <b>eine Kopie ihres eigenen ACE</b>. '+
-   'Der Himmelswächter VII besitzt <b>drei Lv10-Fusionsvorlagen insgesamt</b>, darunter sein ACE. '+
-   'Gegner VI und X haben gezielt auch etwas niedrigere Karten im Deck. '+
-   'Ein verlorener Kampf ist oft ein Hinweis darauf, dass du für diesen Gegner anders bauen solltest.</p>'));
+   block('Schwierige Turnierduelle vorbereiten',
+   '<p>Die späteren Turniergegner verlangen oft eine andere Antwort als die vorherige Prüfung. '+
+   'Beobachte die gegnerischen Rollen im Kampf und passe deine Angriffe, Schutzkarten und Fusionen daran an. '+
+   'Welche Überraschungen ein Gegner im Deck hat, findest du am besten selbst im Duell heraus.</p>'));
   insert(7,block('Fusionspacks statt reinem Zufallsfarming',
    '<p>Je nach Paketgröße kannst du einzelne oder mehrere Fusionsvorlagen erhalten. '+
    'Der übrige Inhalt wird mit normalen Monstern aufgefüllt. '+
@@ -245,12 +244,6 @@
   for(const row of book.querySelectorAll('.arcane-rule-table tbody tr')){
    const cell=row.querySelector('td');if(cell?.textContent.trim()==='Große Straße (5)')cell.textContent='Gigantische Straße (5)';
   }
-  // Correct a now obsolete v11.6 boss explanation without removing its other details.
-  const older=modal.querySelector('.ad116-rulebook');
-  if(older&&older.innerHTML.includes('seine einzige Level-10-Vorlage ist sein ACE'))
-   older.innerHTML=older.innerHTML.replace('Seine gewöhnlichen Fusionsvorlagen enden bei Level 9; '+
-    'seine einzige Level-10-Vorlage ist sein ACE.',
-    'Er besitzt jetzt drei Level-10-Fusionsvorlagen, darunter genau eine Kopie seines eigenen ACE.');
   const summary=book.querySelector('.arcane-rule-chapter summary');
   if(summary)summary.setAttribute('title','Klicke ein Kapitel an, um seine Erklärung auszuklappen.');
  }
