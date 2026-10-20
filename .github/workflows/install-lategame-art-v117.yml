@@ -57,7 +57,7 @@ jobs:
                   out.write_bytes(data)
           game=Path('assets/lategame-noeffects-v117.js')
           content=game.read_text('utf-8')
-          old='const ARTWORKS_COMPLETE=false;',new='const ARTWORKS_COMPLETE=true;'
+          old='const ARTWORKS_COMPLETE=false;';new='const ARTWORKS_COMPLETE=true;'
           if content.count(old)!=1: raise SystemExit('Game activation gate was changed')
           content=content.replace(old,new)
           before='c.art=window.ArcaneArt?.makeArt?.(c)||makeArt(c);'
