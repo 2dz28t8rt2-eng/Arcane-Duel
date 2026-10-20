@@ -41,7 +41,10 @@
      {transform:'translate('+dx*.75+'px,'+dy*.75+'px) scale(1.12)',filter:'brightness(1.6)',offset:.71},
      {transform:'translate('+dx+'px,'+dy+'px) scale(.84)',filter:'brightness(2.35)'}
     ],{duration:480,easing:'cubic-bezier(.19,.72,.16,1)',fill:'forwards'});
-    await motion.finished.catch(()=>{});
+    // Hidden iframes and some browsers do not always settle WAAPI.finished.
+    // Keep this strictly visual; never hold the turn or input indefinitely.
+    await Promise.race([motion.finished.catch(()=>{}),delay(620)]);
+    motion.cancel();
    }else await delay(480);
    const burst=document.createElement('div');
    burst.className='ad113-attack-impact'+(owner===1?' ad113-foe-impact':'');
