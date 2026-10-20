@@ -45,8 +45,8 @@
  const inputPool=level=>CARDS.filter(c=>allowed(c)&&c.level===level&&(profile.inventory[c.id]||0)>0&&freeCopies(c.id)>0)
   .sort((a,b)=>(a.fusionOnly?1:0)-(b.fusionOnly?1:0)||a.atk+a.def-(b.atk+b.def)||a.id-b.id);
  const outputPool=(level,fusion)=>CARDS.filter(c=>allowed(c)&&c.level===level&&!!c.fusionOnly===fusion&&
-  (c.source==null||c.source<0||c.source<=highestCleared()+1)&&
-  (c.requiredTier==null||c.requiredTier<=highestCleared()+1));
+  (c.source==null||c.source<0||c.source<=highestCleared()+(fusion?1:2))&&
+  (c.requiredTier==null||c.requiredTier<=highestCleared()+(fusion?1:2)));
  const safeRecipe=(ids,level)=>Array.isArray(ids)&&ids.length===3&&ids.every(id=>
   Number.isInteger(id)&&allowed(CARDS[id])&&CARDS[id].level===level)&&
   [...new Set(ids)].every(id=>ids.filter(x=>x===id).length<=freeCopies(id));
