@@ -200,9 +200,6 @@
     'Der Bonus wird in der weiteren Fusionslinie als bereits benutzt markiert. '+
     'Eine dritte oder vierte Resonatorkarte löst ihn nicht erneut aus. '+
     'Eine passende freie Vorlage im Fusionsdeck brauchst du trotzdem; maximal Level 10.</p>'+
-    '<h3>Worauf ist beim Himmelswächter VII zu achten?</h3>'+
-    '<p>Er setzt auf Wächter und Seelenzehrer. Seine gewöhnlichen Fusionsvorlagen enden bei Level 9; '+
-    'seine einzige Level-10-Vorlage ist sein ACE. Plane gegen seinen Verteidigungsaufbau und achte auf beschleunigten Zerfall.</p>'+
     '</div></details>');
   return answer;
  };
