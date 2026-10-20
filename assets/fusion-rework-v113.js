@@ -73,7 +73,8 @@
   const bonus=street?(levels.length===5&&core>=4?1:0):(strong?1:0);
   // For a 5-card straight the missing lower links are a reward, not a spread penalty.
   // A four-card straight already gets its substantial poker rolls and quality.
-  const result=clamp(Math.min(levels.reduce((a,b)=>a+b,0),base+bonus),1,10);
+  const startPair=core===1&&levels.length===2&&levels.every(l=>l===1)?2:base+bonus;
+  const result=clamp(Math.min(levels.reduce((a,b)=>a+b,0),startPair),1,10);
   const weights=[1,.75,.55,.40];
   const weighted=other.reduce((sum,lv,i)=>sum+Math.max(0,Math.abs(core-lv)-1)*weights[i],0);
   const weightedMax=other.reduce((sum,_,i)=>sum+weights[i],0);
