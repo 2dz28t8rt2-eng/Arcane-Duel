@@ -2,7 +2,7 @@
 'use strict';
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const {boot}=require('./helpers/game-runtime.cjs');
-const {summonPolicySource}=require('./helpers/ai-pre-attack-v93.cjs');
+const {summonPolicySource}=require('./helpers/ai-pre-attack-v92.cjs');
 const source=JSON.parse(fs.readFileSync('artifacts/ai-earned-preiv-v93.json','utf8'));
 const n=Number(process.env.ARCANE_V93_CAREERS||32),repeats=Number(process.env.ARCANE_V93_MATCH_SEEDS||2);
 assert.ok(Number.isInteger(n)&&n>=24&&n<=40&&n%2===0);
