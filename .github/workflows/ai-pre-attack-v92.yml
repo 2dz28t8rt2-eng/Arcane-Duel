@@ -1,0 +1,48 @@
+name: Arcane Duel - Pre-Attack Field AI Training v9.2
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-earned-preiv-v92.cjs'
+      - 'tests/ai-pre-attack-v92.cjs'
+      - 'tests/helpers/ai-pre-attack-v92.cjs'
+      - '.github/workflows/ai-pre-attack-v92.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  earned-pre-attack-field-training:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and real owned deck legality gates
+        run: |
+          node --check tests/ai-earned-preiv-v92.cjs
+          node --check tests/ai-pre-attack-v92.cjs
+          node --check tests/helpers/ai-pre-attack-v92.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/shard-rework-v77.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: Earn 32 fresh independent tournament IV legal careers
+        env:
+          ARCANE_V92_CAREERS: '32'
+          ARCANE_V92_TIER_ATTEMPTS: '16'
+        run: node tests/ai-earned-preiv-v92.cjs
+      - name: Compare normal summon, hand fusion, preserved materials and tempo
+        env:
+          ARCANE_V92_CAREERS: '32'
+          ARCANE_V92_MATCH_SEEDS: '2'
+        run: node tests/ai-pre-attack-v92.cjs
+      - name: Verify strategy and NPC AI regression tests
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-decision-diagnostics-v62.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-pre-attack-v92
+          path: |
+            artifacts/ai-earned-preiv-v92.json
+            artifacts/ai-pre-attack-v92.json
+          if-no-files-found: warn
+          retention-days: 30
