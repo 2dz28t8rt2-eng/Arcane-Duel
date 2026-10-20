@@ -237,3 +237,15 @@ Das value-gated Kaufexperiment mit **12 unabhängigen Startkarrieren je Arm** un
 **Fazit:** Keine Variante steigert die Siegzahl. Die 18-LP-Verbesserung durch Soul-Bridge hat keine ausreichende praktische Evidenz. Die neuen Decksortierstrategien sind **nicht** für die Live-KI freigegeben. Tests und Vor-IV-Inventare bleiben auf `development`, `main` sowie Live-Gegner-KI/-Balance unverändert.
 
 **Neue Priorität v8.5:** [Issue #13](https://github.com/2dz28t8rt2-eng/Arcane-Duel/issues/13). Auf realen Vor-IV-Inventaren **tatsächliche Material-, Fusions- und Zugentscheidungen** erfassen, darunter 2–5 reale Hand-/Feldmaterialien, Fusionstarget, Quality Roll, Folgeschaden, Verteidigung/Seelenverzehr/ACE, Priorisierung sinnvoller Angriffe und Lookahead. Getrennte faire Trainings- und Holdout-Matches; erfolgreiche Kandidaten danach mit vollständig gespielten neuen Karrieren gegen IV/VI bestätigen. Keine Boss-/Kartenbuffs, Loot-/Preisänderungen oder Merge auf `main` ohne ausdrückliche Prüfung.
+
+
+## KI-Trainingsupdate 20.10.2026 — v8.5 und v8.6 abgeschlossen
+
+**Training:** [v8.5 SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39360036179), [v8.6 SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39360317647). [Vollständiger Analysebericht](AI_V85_V86_TACTICAL_FUSION_RESULTS_20261020.md).
+
+- Zwei strikt getrennte neue Ursprungspopulationen mit **32** unabhängig erspielten Karrieren pro Version, je **16/16** Train/Holdout-Ursprünge; 1.592 + 1.583 = **3.175 legitime Karriereduelle** zum Aufbau der vorhandenen Decks, danach **1.024** gepaarte reale Engine-Diagnoseduelle (keine Gratisbelohnungen).
+- **v8.5 Holdout** (64 Duelle pro Arm): bisherige KI 2 Siege, vermeintlicher Materialerhalt 1, Bedrohungsanalyse 0, Ein-Zug-Vorausschau 1. Alle Experimente teils mit besserer LP-Bilanz, aber ohne Sieggewinn. Materialerhalt löst zudem *mehr* Fusionen aus als die Baseline.
+- **v8.6 Holdout** auf vollständig anderen Seeds: bisherige KI **4/64**, strenger Materialerhalt 0/64, Qualitätsregel 2/64, reaktive Fusion 0/64. Qualitätsregel reduzierte den LP-Rückstand um ca. 431, bevorzugte aber 453 Fusionen bei 470 eigenen Auswahlentscheidungen. Auch der gute Trainings-LP-Wert qualifiziert damit keinen Kandidaten.
+- Alle experimentellen Aktionen waren Match-sandboxed, rechtmäßig und wurden **nicht** in `assets/game.js` oder der produktiven KI übernommen. Ökonomie-, Save-, Rollen-, Gegner- und Browser-Regressionen der jeweiligen Versionen bestanden.
+
+**Folgerung:** Deckbau und Fusionsauswahl allein beheben die IV-Hürde nicht reproduzierbar. Priorität v8.7 ist [Issue #14](https://github.com/2dz28t8rt2-eng/Arcane-Duel/issues/14): Angriffsziel, Gegenschlag, Position, Seelenentzug, ACE und Zugfolge instrumentieren, auf realen Inventaren in unabhängig gepaarten Train-/Holdout-Kämpfen messen und danach mit vollständigen echten Karrieren IV/VI bestätigen. `main`, Live-NPC-KI, Kartenwerte und Splitterpreise bleiben gesperrt.
