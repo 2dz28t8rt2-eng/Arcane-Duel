@@ -598,7 +598,7 @@ const samples=results.map(r=>{
   r.snapshots.find(x=>x.tier===5)||
   r.snapshots.at(-1);
  if(!chosen||chosen.tier<4)return {run:r.run,reached:chosen?.tier||0,
-  earnedDuels:r.rewarded,excluded:'Did not reach tier IV'};
+  earnedDuels:r.duels,excluded:'Did not reach tier IV'};
  const owned=chosen.inventoryOwned;
  const counts=(ids)=>ids.reduce((m,id)=>(m[id]=(m[id]||0)+1,m),{});
  for(const [id,n]of Object.entries(counts(chosen.activeDeck)))
@@ -606,7 +606,7 @@ const samples=results.map(r=>{
  for(const [id,n]of Object.entries(counts(chosen.fusionDeck)))
   assert.ok(n<=(owned[id]||0),'Missing independently earned fusion card');
  assert.equal(chosen.activeDeck.length,40);
- return {run:r.run,reached:chosen.tier,earnedDuels:r.rewarded,
+ return {run:r.run,reached:chosen.tier,earnedDuels:r.duels,
   policy:r.policy,plan:r.plan,cleared:chosen.legitimatelyCleared,
   activeDeck:chosen.activeDeck,fusionDeck:chosen.fusionDeck,
   enhancements:chosen.enhancements,inventoryOwned:owned,
@@ -614,7 +614,7 @@ const samples=results.map(r=>{
   legitimatelyEarned:true};
 });
 const summary={schema:'arcane-earned-player-decks-v106',originOffset:careerSeedOffset,
- total:careers,realEarnedGames:results.reduce((n,r)=>n+r.rewarded,0),
+ total:careers,realEarnedGames:results.reduce((n,r)=>n+r.duels,0),
  reachedTierVI:samples.filter(x=>x.reached===6).length,
  eligible:samples.filter(x=>x.legitimatelyEarned).length,
  samples,caveats:['Each deck built only by original game duels/rewardMatch/shop/craft.',
