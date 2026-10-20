@@ -493,7 +493,7 @@ const report={schema:'arcane-yield-gated-vi-farming-v98',
   'A gain in VI wins at much greater time/currency costs is a trade-off, not a universal improvement.',
   'Main, live NPC policies and user progression are untouched.']};
 fs.mkdirSync('artifacts',{recursive:true});
-fs.writeFileSync('artifacts/ai-selective-vi-farming-v98.json',JSON.stringify(report,null,2)+'\n');
+fs.writeFileSync('artifacts/ai-yield-gated-vi-farming-v98.json',JSON.stringify(report,null,2)+'\n');
 console.log('ARCANE_V98_SUMMARY '+JSON.stringify({
  origins:careers,actualEarnedDuels:Object.values(overall.arms)
   .reduce((a,v)=>a+v.genuineCareerDuels,0),
