@@ -12,7 +12,7 @@ const {summonPolicySource}=require('./helpers/ai-pre-attack-v92.cjs');
 const careers=Number(process.env.ARCANE_V96_CAREERS||32);
 const limit=Number(process.env.ARCANE_V96_TIER_ATTEMPTS||24);
 if(!Number.isInteger(careers)||careers<1||careers>40||
- !Number.isInteger(limit)||limit<3||limit>22)throw Error('Invalid bounded career audit settings');
+ !Number.isInteger(limit)||limit<3||limit>30)throw Error('Invalid bounded career audit settings');
 // Fresh isolated VM per arm, so identical paid resources and PRNG seeds
 // yield a genuine paired progression comparison.
 const choices=['balanced','offensive','guardian','economy','balanced','guardian','offensive','economy'];
