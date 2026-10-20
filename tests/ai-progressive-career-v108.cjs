@@ -630,6 +630,20 @@ const report={schema:'arcane-tier-progressive-careers-v108',
   farmMatchesByTier:r.farmMatchesByTier,expEarnedByFarmTier:r.farmXpByTier,
   lootByFarmTier:r.farmLootByTier,
   actualFarmDecisions:r.tierFarmDecisions,
+  earnedDeck:(()=>{
+   const last=r.snapshots.at(-1);
+   const owned=last.inventoryOwned;
+   const copies=(xs)=>xs.reduce((m,id)=>(m[id]=(m[id]||0)+1,m),{});
+   for(const [id,num] of Object.entries(copies(last.activeDeck)))
+    assert.ok(num<=(owned[id]||0),'Main deck contains unearned cards');
+   for(const [id,num] of Object.entries(copies(last.fusionDeck)))
+    assert.ok(num<=(owned[id]||0),'Fusion deck contains unearned cards');
+   assert.equal(last.activeDeck.length,40);
+   return {legitimatelyEarned:true,reached:last.tier,
+    cleared:last.legitimatelyCleared,activeDeck:last.activeDeck,
+    fusionDeck:last.fusionDeck,enhancements:last.enhancements,
+    inventoryOwned:owned};
+  })(),
   snapshotProgression:r.snapshots.map(x=>({
    tier:x.tier,playerLevel:x.playerLevel,averageMainLevel:x.averageMainLevel,
    coins:x.coins,shardsAvailable:x.shardsAvailable,
