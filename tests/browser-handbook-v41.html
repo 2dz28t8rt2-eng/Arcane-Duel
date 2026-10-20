@@ -53,8 +53,8 @@ frame.addEventListener('load',async()=>{
   expect(!text.includes('endgültigen ATK/DEF zu verraten'),'Old hidden-final-values promise is absent');
   expect(text.includes('Normale Wächter')&&text.includes('Monsterwerkstatt'),'Normal role synergy and permanent workshop are explained');
   expect(book.querySelector('.arcane-rule-table tbody tr').children.length===5,'Pattern table distinguishes recipe, quality, rolls and level budget');
-  expect(text.includes('Gigantische Straße')&&text.includes('Aufstiegsschmiede')&&text.includes('170')&&text.includes('drei Level-10-Fusionsvorlagen'),'Current rulebook explains five-card street, ascension, decay and VII');
-  expect(!text.includes('seine einzige Level-10-Vorlage ist sein ACE'),'Outdated VII lore is removed');
+  expect(text.includes('Gigantische Straße')&&text.includes('Aufstiegsschmiede')&&text.includes('170'),'Current rulebook explains five-card street, ascension and decay');
+  expect(!/Himmelswächter VII|Er besitzt jetzt drei Level-10|drei Lv10-Fusionsvorlagen|seine einzige Level-10-Vorlage/i.test(text),'Opponent VII deck makeup is not spoiled in the player handbook');
   expect(d.getElementById('modal').scrollWidth<=d.getElementById('modal').clientWidth+2,'Full rulebook fits the viewport horizontally');
   w.eval("hideModal();profile.trainingWins=3;uiMode='menu';menuTab='lexicon';renderMenu();");
   const bestiary=d.querySelector('.ad119-lexicon');
