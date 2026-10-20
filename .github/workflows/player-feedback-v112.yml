@@ -1,0 +1,35 @@
+name: Arcane Duel - v11.2 Player Feedback Regression
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/game.js'
+      - 'assets/qa-sprint-v53.js'
+      - 'assets/summon-stage-v56.js'
+      - 'assets/player-feedback-v112.js'
+      - 'assets/player-feedback-v112.css'
+      - 'tests/player-feedback-v112.test.cjs'
+      - 'index.html'
+      - '.github/workflows/player-feedback-v112.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  player-feedback-v112:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check updated game and UI syntax
+        run: |
+          node --check assets/game.js
+          node --check assets/qa-sprint-v53.js
+          node --check assets/summon-stage-v56.js
+          node --check assets/player-feedback-v112.js
+          node --check tests/player-feedback-v112.test.cjs
+      - name: Test chain fusions, tournament rewards, shop and existing duel behavior
+        run: |
+          node --test tests/player-feedback-v112.test.cjs tests/qa-user-demo-20261019.test.cjs tests/qa-sprint-v53-actions.test.cjs tests/summon-stage-v56.test.cjs tests/balance-economy-v109.test.cjs tests/tournament-reward-v24.test.cjs tests/fusion-cinema-ux-regression.test.cjs
