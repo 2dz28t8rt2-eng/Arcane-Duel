@@ -2,31 +2,9 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {boot}=require('./helpers/game-runtime.cjs');
 const run=src=>boot({seed:112220}).run(src);
-test('existing high-level fusion rule is diagnosed without silently consuming an impossible template',()=>{
- const r=run(`(()=>{
-  profile=freshProfile();profile.trainingWins=3;
-  const g=createGame({mode:'pve',context:'free',opponentId:3,seed:55112});
-  game=g;g.active=0;g.turn=3;g.summoned=false;g.pending=null;
-  const p=g.players[0],c4=RPG_BASE_CARDS.find(c=>c.level===4&&!c.retired&&!c.ace&&!c.fusionOnly&&!c.enemyOnly),
-   c3=RPG_BASE_CARDS.find(c=>c.level===3&&!c.retired&&!c.ace&&!c.fusionOnly&&!c.enemyOnly),
-   f6=RPG_FUSIONS.find(c=>c.level===6&&!c.retired&&!c.enemyOnly),
-   f8=RPG_FUSIONS.find(c=>c.level===8&&!c.retired&&!c.enemyOnly);
-  p.hand=[newInstance(g,c4.id,0),newInstance(g,c4.id,0)];
-  p.field=[newInstance(g,c3.id,0),null,null,null,null];
-  p.fusionDeck=[f6.id,f8.id];p.remainingFusion=[f6.id,f8.id];
-  const prepared=prepareHandFusion(g,p.hand.map(c=>c.uid),f6.id);
-  const result=prepared?placePending(g,0,f8.id):null;
-  return {prepared,firstLevel:prepared?dataOf(g.pending.card).level:null,
-   actualBudget:fusionBudget([6,3],g),accepted:!!result,remaining:p.remainingFusion.length,
-   pendingStillPresent:!!g.pending,fieldUnchanged:p.field[0].id===c3.id};
- })()`);
- assert.equal(r.prepared,true);
- assert.equal(r.firstLevel,6);
- assert.equal(r.actualBudget,5);
- assert.equal(r.accepted,false);
- assert.equal(r.remaining,1);
- assert.equal(r.pendingStillPresent,true);
- assert.equal(r.fieldUnchanged,true);
+test('new material formula: Lv4 + Lv4 cannot jump to a Lv6 template',()=>{
+ const r=run("(()=>{const g=createGame({mode:'pve',opponentId:3,seed:55112});const p=g.players[0];const card=RPG_BASE_CARDS.find(c=>c.level===4&&!c.fusionOnly&&!c.retired);const f6=RPG_FUSIONS.find(c=>c.level===6&&!c.retired);p.hand=[newInstance(g,card.id,0),newInstance(g,card.id,0)];p.fusionDeck=[f6.id];p.remainingFusion=[f6.id];return {limit:fusionBudget([4,4],g),accepted:prepareHandFusion(g,p.hand.map(x=>x.uid),f6.id),remain:p.remainingFusion.length};})()");
+ assert.deepEqual(r,{limit:5,accepted:false,remain:1});
 });
 test('existing legal low-level field chain preserves a spent attack',()=>{
  const r=run(`(()=>{
