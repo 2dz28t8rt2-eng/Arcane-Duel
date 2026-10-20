@@ -1,0 +1,41 @@
+name: Arcane Duel - v11.0 Economy Isolation and VII Diagnostics
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-economy-isolation-v110.cjs'
+      - '.github/workflows/ai-economy-isolation-v110.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  paired-four-arm-careers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check isolated training and exact v10.9 balance regressions
+        run: |
+          node --check tests/ai-economy-isolation-v110.cjs
+          node --test tests/balance-economy-v109.test.cjs tests/ai-fusion-choice-v61.test.cjs tests/shard-rework-v77.test.cjs
+      - name: Four-arm pilot on two matched origins (eight legitimate careers)
+        env:
+          ARCANE_V110_CAREERS: '2'
+          ARCANE_V110_TIER_ATTEMPTS: '8'
+        run: node tests/ai-economy-isolation-v110.cjs
+      - name: Four-arm independent 16-train / 16-holdout careers, unchanged NPCs
+        env:
+          ARCANE_V110_CAREERS: '32'
+          ARCANE_V110_TIER_ATTEMPTS: '30'
+        run: node tests/ai-economy-isolation-v110.cjs
+      - name: Preserve matched origin data, economy metrics and VII combat diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v110-economy-isolation-vii
+          path: artifacts/ai-economy-isolation-v110.json
+          if-no-files-found: warn
+          retention-days: 30
