@@ -55,11 +55,11 @@
   overlay.dataset.variant=variant;
   overlay.dataset.soulInherited=soul?'true':'false';
   overlay.setAttribute('role','status');
-  overlay.setAttribute('aria-label','Fusion von '+t.name+': '+rolls.length+' echte Wertewürfe');
+  overlay.setAttribute('aria-label',(variant==='field'?'Feldfusion':'Handfusion')+' von '+t.name+': '+rolls.length+' echte Wertewürfe');
   overlay.innerHTML=
    '<div class="ritual-window">'+
     '<div class="ritual-particles" id="arcane-fusion-motes" aria-hidden="true"></div>'+
-    '<div class="evo-mat-count">✧ '+(c.materialsUsed||materials.length||2)+' MATERIALIEN · '+esc(c.pattern||'FUSION')+' ✧</div>'+
+    '<div class="evo-mat-count">✧ '+(variant==='field'?'FELDFUSION':'HANDFUSION')+' · '+(c.materialsUsed||materials.length||2)+' MATERIALIEN · '+esc(c.pattern||'FUSION')+' ✧</div>'+
     '<div class="evo-visual-stage">'+
      '<div class="ritual-sparks" aria-hidden="true"></div>'+ 
      '<div class="evo-material-layer" aria-hidden="true"></div>'+
