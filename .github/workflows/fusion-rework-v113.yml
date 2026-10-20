@@ -1,0 +1,34 @@
+name: Arcane Duel - v11.3 Fusion Rework QA
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/fusion-rework-v113.js'
+      - 'assets/fusion-tutorial-v113.js'
+      - 'assets/fusion-tutorial-v113.css'
+      - 'assets/attack-impact-v113.js'
+      - 'assets/attack-impact-v113.css'
+      - 'tests/fusion-rework-v113.test.cjs'
+      - 'index.html'
+      - '.github/workflows/fusion-rework-v113.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fusion-rework-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate updated runtime JavaScript
+        run: |
+          node --check assets/fusion-rework-v113.js
+          node --check tests/fusion-rework-v113.test.cjs
+          if test -f assets/fusion-tutorial-v113.js; then node --check assets/fusion-tutorial-v113.js; fi
+          if test -f assets/attack-impact-v113.js; then node --check assets/attack-impact-v113.js; fi
+      - name: Regression matrix - fusion levels, poker, roles, save, UI and AI
+        run: |
+          node --test tests/fusion-rework-v113.test.cjs tests/player-feedback-v112.test.cjs tests/qa-user-demo-20261019.test.cjs tests/qa-charged-field-fusion-matches.cjs tests/ai-fusion-choice-v61.test.cjs tests/balance-economy-v109.test.cjs tests/summon-stage-v56.test.cjs
