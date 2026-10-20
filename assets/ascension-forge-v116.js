@@ -47,20 +47,37 @@
  const outputPool=(level,fusion)=>CARDS.filter(c=>allowed(c)&&c.level===level&&!!c.fusionOnly===fusion&&
   (c.source==null||c.source<0||c.source<=highestCleared()+(fusion?1:2))&&
   (c.requiredTier==null||c.requiredTier<=highestCleared()+(fusion?1:2)));
- const safeRecipe=(ids,level)=>Array.isArray(ids)&&ids.length===3&&ids.every(id=>
-  Number.isInteger(id)&&allowed(CARDS[id])&&CARDS[id].level===level)&&
-  [...new Set(ids)].every(id=>ids.filter(x=>x===id).length<=freeCopies(id));
+ const normalInventory=()=>CARDS.reduce((n,c)=>n+(c?.rpg&&!c.fusionOnly&&!c.enemyOnly&&!c.retired?
+   Math.max(0,profile.inventory[c.id]||0):0),0);
+ const recipeKind=ids=>ids.every(id=>CARDS[id]?.fusionOnly)?'fusion':
+   ids.every(id=>!CARDS[id]?.fusionOnly)?'normal':'mixed';
+ const recipeError=(ids,level)=>{
+   if(!Array.isArray(ids)||ids.length!==3||!ids.every(id=>
+      Number.isInteger(id)&&allowed(CARDS[id])&&CARDS[id].level===level)||
+      ![...new Set(ids)].every(id=>ids.filter(x=>x===id).length<=freeCopies(id)))
+    return 'Es werden genau drei freie, ungeschützte Karten derselben Stufe benötigt.';
+   if(normalInventory()-ids.filter(id=>!CARDS[id].fusionOnly).length<40)
+    return 'Schmieden nicht möglich: Es müssen mindestens 40 normale Monsterkarten für das Hauptdeck übrig bleiben. Sammle zuerst weitere normale Karten.';
+   if(recipeKind(ids)==='fusion'&&!outputPool(level+1,true).length)
+    return 'Für dieses Level ist noch keine passende Fusionsvorlage erhältlich.';
+   return '';
+ };
+ const safeRecipe=(ids,level)=>!recipeError(ids,level);
  function suggested(level){
   const pool=inputPool(level),picked=[];
   for(const c of pool){const take=Math.min(freeCopies(c.id),3-picked.length);for(let n=0;n<take;n++)picked.push(c.id);}
-  return picked.length===3?picked:null;
+  if(picked.length===3&&safeRecipe(picked,level))return picked;
+  const fusions=pool.filter(c=>c.fusionOnly),fusionIds=[];
+  for(const c of fusions)for(let i=0;i<Math.min(freeCopies(c.id),3-fusionIds.length);i++)fusionIds.push(c.id);
+  return fusionIds.length===3&&safeRecipe(fusionIds,level)?fusionIds:null;
  }
  function forge(level,ids,opts={}){
   if(storageConflict||!storageWritable||profile.activeDuel||game&&game.winner===null)
    return {ok:false,message:'Schließe zuerst dein laufendes Duell oder kläre den Speicherkonflikt.'};
   if(!Number.isInteger(level)||level<1||level+1>cap())
    return {ok:false,message:'Aufstieg noch gesperrt. Nach V bis Lv 9, nach VI bis Lv 10.'};
-  if(!safeRecipe(ids,level))return {ok:false,message:'Es werden genau drei freie, ungeschützte Karten derselben Stufe benötigt.'};
+  const invalid=recipeError(ids,level);
+  if(invalid)return {ok:false,message:invalid};
   const target=level+1,cost=price(target);
   if(profile.coins<cost)return {ok:false,message:'Nicht genügend Essenz: '+cost+' erforderlich.'};
   const normals=outputPool(target,false),fusions=outputPool(target,true);
@@ -71,7 +88,7 @@
    history:profile.ascensionHistory.map(x=>({...x}))};
   const pity=profile.ascensionPity[target]||0;
   const g={seed:rng(0xffffffff)||1};
-  const wantFusion=fusions.length>0&&(normals.length===0||pity>=2||randomInt(g,100)<40);
+  const wantFusion=fusions.length>0&&(recipeKind(ids)==='fusion'||normals.length===0||pity>=2||randomInt(g,100)<40);
   const pool=wantFusion?fusions:normals.length?normals:fusions;
   const out=pool[randomInt(g,pool.length)];
   for(const id of ids)profile.inventory[id]--;
@@ -115,12 +132,16 @@
   const goal=pickLevel+1,pity=profile.ascensionPity[goal]||0;
   box.innerHTML='<div class="ad116-ascension-head"><span>✦ AUFSTIEG</span><h2>Aufstiegsschmiede</h2>'+
    '<p>Drei freie Karten desselben Levels verschmelzen zu <b>einer</b> Karte der nächsthöheren Stufe. '+
-   'Normalmonster: 60 %, Fusionsvorlage: 40 %. Nach zwei normalen Ergebnissen ist die dritte Fusion dieser Zielstufe garantiert. '+
+   'Drei Fusionsmaterialien ergeben garantiert eine höhere Fusion. Bei anderen Kombinationen gilt 60 % Normalmonster / 40 % Fusion. '+
+   'Nach zwei normalen Ergebnissen ist die dritte Fusion dieser Zielstufe garantiert. '+
+   'Es müssen immer mindestens 40 normale Hauptdeckkarten übrig bleiben. '+
    'ACE-, Quest- und Lieblingskarten sowie Deckexemplare sind geschützt.</p></div>'+
    '<label>Materiallevel<select id="ad116Level">'+levels.map(l=>'<option value="'+l+'" '+(l===pickLevel?'selected':'')+'>Level '+l+' → '+(l+1)+'</option>').join('')+'</select></label>'+
    '<div class="ad116-materials">'+[0,1,2].map(select).join('')+'</div>'+
    '<p class="ad116-price"><b>Ergebnis: Lv '+goal+'</b> · Kosten: '+price(goal)+' Essenz · Glücksschutz: '+pity+'/2</p>'+
    '<p class="ad116-info">Die Schmiede ist eine eigenständige Aufstiegsmethode. Deine bisherige Monsterwerkstatt mit Levelpunkte-Erhaltung bleibt unverändert.</p>'+
+   (!safeRecipe(selected,pickLevel)&&selected.length===3?
+    '<p class="ad116-info ad116-warning" role="alert">'+esc(recipeError(selected,pickLevel))+'</p>':'')+
    '<button type="button" class="btn primary" data-ad116-forge '+(!safeRecipe(selected,pickLevel)||profile.coins<price(goal)?'disabled':'')+'>✧ Drei Karten verschmelzen</button>';
   target.prepend(box);
  }
@@ -133,12 +154,12 @@
  });
  $('menuScreen')?.addEventListener('click',event=>{
   if(!event.target.closest?.('[data-ad116-forge]'))return;
-  if(!safeRecipe(selected,pickLevel)){toast('Wähle drei freie Karten derselben Stufe.');return;}
+  if(!safeRecipe(selected,pickLevel)){toast(recipeError(selected,pickLevel));return;}
   const ids=[...selected],level=pickLevel,goal=level+1,cost=price(goal);
   openModal(modalHtml('✦ AUFSTIEGSSCHMIEDE','Drei Karten dauerhaft verschmelzen','✧',
-   'Drei echte Karten werden verbraucht. Das Ergebnis ist zufällig; der Glücksschutz gilt pro Zielstufe.',
+   'Drei echte Karten werden verbraucht. Drei Fusionsmaterialien ergeben garantiert eine Fusion; andere Mischungen nutzen den Glücksschutz.',
    '<p>'+ids.map(id=>esc(CARDS[id].name)+' · Lv '+level).join(' + ')+'</p>'+
-   '<p><b>→ Lv '+goal+'</b> · '+cost+' Essenz · 60 % Normal / 40 % Fusion · Schutz: '+
+   '<p><b>→ Lv '+goal+'</b> · '+cost+' Essenz · '+(ids.every(id=>CARDS[id].fusionOnly)?'100 % Fusion':'60 % Normal / 40 % Fusion')+' · Schutz: '+
    (profile.ascensionPity[goal]||0)+'/2</p>',
    '<button id="ad116Cancel" class="btn">ABBRECHEN</button>'+
    '<button id="ad116Confirm" class="btn primary">JETZT SCHMIEDEN</button>'));
@@ -203,6 +224,6 @@
     '</div></details>');
   return answer;
  };
- window.ArcaneAscensionForge116=Object.freeze({version:'11.6.0',cap,price,safeRecipe,
+ window.ArcaneAscensionForge116=Object.freeze({version:'11.9.1',cap,price,safeRecipe,recipeError,recipeKind,normalInventory,
   inputPool,outputPool,suggested,forge,renderForge,hydrate});
 })();
