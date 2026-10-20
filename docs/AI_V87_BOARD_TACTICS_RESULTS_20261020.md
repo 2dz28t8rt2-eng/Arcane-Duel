@@ -2,7 +2,7 @@
 
 **Datum:** 20. Oktober 2026 · **Branch:** `development` · **Commit:** [83e172e](https://github.com/2dz28t8rt2-eng/Arcane-Duel/commit/83e172e1a0be1b901ee79ca1130334a805698155)
 
-**GitHub Actions Training:** [#39363241584 — SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39363241584). **Code-/Strategieprüfungen:** [#39363241547 — SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39363241547). **Separater Browser-Smoke-Lauf:** [#39363241510](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39363241510), zum Zeitpunkt dieser ersten Berichtsfassung noch im Gang. **Artefakt:** `arcane-tactical-board-v87`, ID `12237829822`, verfügbar bis 19. November 2026. Enthält `ai-earned-preiv-v87.json` und `ai-tactical-v87.json`.
+**GitHub Actions Training:** [#39363241584 — SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39363241584). **Code-/Strategieprüfungen:** [#39363241547 — SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39363241547). **Separater Browser-Smoke-Lauf:** [#39363241510 — SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39363241510). **Artefakt:** `arcane-tactical-board-v87`, ID `12237829822`, verfügbar bis 19. November 2026. Enthält `ai-earned-preiv-v87.json` und `ai-tactical-v87.json`.
 
 ## Versuchsdesign
 
@@ -63,7 +63,7 @@ Daher beweist v8.7 **weder**, dass die vorhandenen Support-Fähigkeiten schwach 
 ## QA & Grenzen
 
 - Trainingsworkflow insgesamt **SUCCESS**, Tests: **56/56** initiale Game-/Save-/Fusion-Regressionen sowie **20/20** ergänzende AI-Regressionen grün.
-- Die zusätzlich ausgelösten GitHub Code/Strategie- und Browser-Smoke-Läufe werden separat geprüft.
+- Die getrennten GitHub Code-/Strategie- und Browser-Smoke-Läufe wurden beide **erfolgreich abgeschlossen**.
 - Keine neuronale oder fortlaufend online lernende KI: Diese Versuche vergleichen manuell entworfene und automatisch durchgespielte **Offline-Spieler-Policies** auf echten Game-Engine-Simulationen.
 - Pro Arm werden nur 64 Duelle aus 16 unabhängigen Ursprungsprofilen gewertet, daher sind +1 bis −2 Siege insbesondere bei niedrigen Grundsiegquoten kein robuster Sieg-Beleg.
 - Alle fünf Varianten benutzen dieselben Ausgangsdecks/Startseeds je Profil, aber ihre Aktionen können den weiteren Zufallszahlen-Verlauf beeinflussen.
