@@ -62,7 +62,7 @@ Der trainingselektierte `explicit-support` ist im vorab unabhängigen Holdout ni
 ## Qualitätssicherung / Grenzen
 
 - v9.0 Training GitHub Actions: **SUCCESS**, Legalitäts-, Rollen-, Fusion-, Save- und Wirtschaftstests **56/56 bestanden**, ergänzende KI-Regressionsprüfungen **20/20 bestanden**.
-- Allgemeiner Code-/Strategie-Workflow [#39365570727 — SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39365570727). Separater Browser-Smoke [#39365570876](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39365570876) lief bei der ersten Berichtsfassung noch und muss separat verifiziert werden.
+- Allgemeiner Code-/Strategie-Workflow [#39365570727 — SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39365570727). Separater Browser-Smoke [#39365570876 — SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39365570876) ebenfalls vollständig bestanden.
 - Bei identischen Startseeds können von Policy-Abweichungen verursachte unterschiedliche RNG-Verbräuche spätere Kämpfe beeinflussen.
 - Das ist ein **Offline-Vergleich geskripteter Spieler-KI** gegen bestehende Turniergegner; es ist weder selbstlernende NPC-KI noch ein trainiertes neuronales Modell. Die Stichprobe umfasst pro Kohorte nur **16 statistisch unabhängige Inventarursprünge**, weshalb selbst +1 Siege nicht für eine robuste Freigabe reichen.
 
