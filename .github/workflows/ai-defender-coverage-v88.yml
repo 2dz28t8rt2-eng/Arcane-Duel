@@ -1,0 +1,48 @@
+name: Arcane Duel - Defender & Soul Coverage Training v8.8
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-earned-preiv-v88.cjs'
+      - 'tests/ai-defender-coverage-v88.cjs'
+      - 'tests/helpers/ai-defender-coverage-v88.cjs'
+      - '.github/workflows/ai-defender-coverage-v88.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  defender-coverage-holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and economy/legal fusion regression
+        run: |
+          node --check tests/ai-earned-preiv-v88.cjs
+          node --check tests/ai-defender-coverage-v88.cjs
+          node --check tests/helpers/ai-defender-coverage-v88.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/shard-rework-v77.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: Earn 32 independent legal inventories from real careers
+        env:
+          ARCANE_V88_CAREERS: '32'
+          ARCANE_V88_TIER_ATTEMPTS: '16'
+        run: node tests/ai-earned-preiv-v88.cjs
+      - name: Matched soul defender coverage + tactics 896 actual duels
+        env:
+          ARCANE_V88_CAREERS: '32'
+          ARCANE_V88_MATCH_SEEDS: '2'
+        run: node tests/ai-defender-coverage-v88.cjs
+      - name: Additional real-AI regression
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-decision-diagnostics-v62.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-defender-coverage-v88
+          path: |
+            artifacts/ai-earned-preiv-v88.json
+            artifacts/ai-defender-coverage-v88.json
+          if-no-files-found: warn
+          retention-days: 30
