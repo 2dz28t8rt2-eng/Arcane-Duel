@@ -206,13 +206,13 @@ function resetCurrentProfile(){
 
 function dropHelp(){
  popupHelp('Dropladungen: Woher und wofür?',
- 'Ein abgeschlossenes manuelles Duell gibt eine Dropladung. Beim ersten Sieg über einen neuen Turniergegner wird dein Vorrat komplett aufgefüllt. Aktivierte Dropladungen verstärken deine nächsten Autokämpfe: 50 % statt 30 % Essenz/XP und 20 % statt 12 % Kartenchance. Eine Ladung wird nach jedem abgeschlossenen Autokampf verbraucht, auch bei einer Niederlage. Mehr Platz erhältst du durch Levelbelohnungen.');
+ 'Ein abgeschlossenes manuelles Duell gibt normalerweise eine Dropladung; eine Turnierniederlage gibt keine. Beim ersten Sieg über einen neuen Turniergegner wird dein Vorrat komplett aufgefüllt. Aktivierte Dropladungen verstärken deine nächsten Autokämpfe: 50 % statt 30 % Essenz/XP und 20 % statt 12 % Kartenchance. Eine Ladung wird nach jedem abgeschlossenen Autokampf verbraucht, auch bei einer Niederlage. Mehr Platz erhältst du durch Levelbelohnungen.');
 }
 renderHud=function(){
  stored.renderHud();
  const b=$('hudDropToggle');
  if(b){
-  b.setAttribute('data-help','Automatikbonus: 50 % Essenz/XP und 20 % Kartenchance statt 30 % und 12 %. Verbraucht eine Ladung pro Autokampf, auch bei Niederlage. Manuelle Duelle geben +1; erster Turniersieg füllt alles auf.');
+  b.setAttribute('data-help','Automatikbonus: 50 % Essenz/XP und 20 % Kartenchance statt 30 % und 12 %. Verbraucht eine Ladung pro Autokampf, auch bei Niederlage. Manuelle Duelle geben +1 (außer Turnierniederlagen); erster Turniersieg füllt alles auf.');
   b.setAttribute('aria-label','Dropladungen: '+(profile.useDropCharges?'aktiv':'inaktiv')+'. Zum Ein- oder Ausschalten klicken; Hilfe beim Darüberfahren.');
   b.title='Dropladungen: Manuelle Duelle +1, erster Turniersieg volle Aufladung. Bei Auto 50 % Essenz/XP und 20 % Kartenchance.';
   const oldClick=b.onclick;
