@@ -1,0 +1,39 @@
+name: Arcane Duel - Real-Yield VI Farming v9.8
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-yield-gated-farming-v98.cjs'
+      - '.github/workflows/ai-yield-gated-farming-v98.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-yield-vi-progression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 115
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate scripts, legal cards, saves and economy
+        run: |
+          node --check tests/ai-yield-gated-farming-v98.cjs
+          node --check tests/helpers/ai-pre-attack-v92.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/shard-rework-v77.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: Play 32 fresh earned careers in three matched VI farm arms
+        env:
+          ARCANE_V98_CAREERS: '32'
+          ARCANE_V98_TIER_ATTEMPTS: '24'
+        run: node tests/ai-yield-gated-farming-v98.cjs
+      - name: Verify AI and combat regression
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-decision-diagnostics-v62.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - name: Archive genuine career reward and yield records
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-real-yield-farming-v98
+          path: artifacts/ai-yield-gated-vi-farming-v98.json
+          if-no-files-found: warn
+          retention-days: 30
