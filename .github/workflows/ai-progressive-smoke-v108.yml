@@ -1,6 +1,10 @@
 name: Arcane Duel - Progressive v10.8 Short Smoke
 on:
   workflow_dispatch:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-progressive-smoke-v108.yml'
 permissions:
   contents: read
 jobs:
