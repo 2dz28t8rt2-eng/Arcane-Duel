@@ -140,8 +140,10 @@
    spiritCharges:Math.min(5,Math.max(0,(Number.isInteger(s.spiritCharges)?s.spiritCharges:0)+s.ghostSlots.filter(x=>x?.kind==='ghost').length)),
    tick:Number.isInteger(s.tick)?s.tick:-1,float:Math.max(0,Math.min(5,s.float||0)),
    swarm:Math.max(0,Math.min(5,s.swarm||0)),events:[]};
-  if(Number.isInteger(raw.lv1Saga?.stage)&&raw.lv1Saga.stage>=1&&raw.lv1Saga.stage<=5)
+  if(Number.isInteger(raw.lv1Saga?.stage)&&raw.lv1Saga.stage>=1&&raw.lv1Saga.stage<=5){
    g.lv1Saga={stage:raw.lv1Saga.stage};
+   g.lv1SagaPrologue=raw.lv1SagaPrologue===true;
+  }
   function restoreCard(to,from){
    if(!to||!from||to.uid!==from.uid||to.id!==from.id)return;
    for(const k of ['lv1Echo','lv1Effectless','lv1FromOffer','lv1AceSaved']){

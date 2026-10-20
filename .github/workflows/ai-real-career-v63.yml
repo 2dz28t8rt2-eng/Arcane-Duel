@@ -1,0 +1,43 @@
+name: Arcane Duel – Earned Career AI v6.3
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-real-career-snapshots-v63.cjs'
+      - 'tests/ai-career-policy-holdout-v63.cjs'
+      - '.github/workflows/ai-real-career-v63.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  earn-and-evaluate-inventories:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check career audit script and existing legal inventory constraints
+        run: |
+          node --check tests/ai-real-career-snapshots-v63.cjs
+          node --test tests/stage-owned-decks-v60.test.cjs
+      - name: Play real career duels and record earned deck snapshots
+        env:
+          ARCANE_CAREER_RUNS: '6'
+          ARCANE_CAREER_TIER_ATTEMPTS: '12'
+        run: node tests/ai-real-career-snapshots-v63.cjs
+      - name: Test AI against actual earned inventory snapshots
+        env:
+          ARCANE_CAREER_TRAIN_SEEDS: '4'
+          ARCANE_CAREER_HOLDOUT_SEEDS: '8'
+        run: node tests/ai-career-policy-holdout-v63.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-earned-career-training-v63
+          path: |
+            artifacts/ai-real-careers-v63.json
+            artifacts/ai-earned-policy-holdout-v63.json
+          if-no-files-found: warn
+          retention-days: 30

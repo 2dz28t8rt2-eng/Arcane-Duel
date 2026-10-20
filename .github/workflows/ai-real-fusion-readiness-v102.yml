@@ -1,0 +1,39 @@
+name: Arcane Duel - Actual Hand Fusion Farming v10.2
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-real-fusion-readiness-v102.cjs'
+      - '.github/workflows/ai-real-fusion-readiness-v102.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  legal-fusion-vi-careers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check legal card, economy and scripting invariants
+        run: |
+          node --check tests/ai-real-fusion-readiness-v102.cjs
+          node --check tests/helpers/ai-pre-attack-v92.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/shard-rework-v77.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: Play 32 legally earned career triplets and inspect actual hand fusion options
+        env:
+          ARCANE_V102_CAREERS: '32'
+          ARCANE_V102_TIER_ATTEMPTS: '24'
+        run: node tests/ai-real-fusion-readiness-v102.cjs
+      - name: Existing combat AI and fusion regressions
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-decision-diagnostics-v62.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - name: Archive real cards, hand fusion choices and independent holdout
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-real-fusion-readiness-v102
+          path: artifacts/ai-real-fusion-readiness-v102.json
+          if-no-files-found: warn
+          retention-days: 30

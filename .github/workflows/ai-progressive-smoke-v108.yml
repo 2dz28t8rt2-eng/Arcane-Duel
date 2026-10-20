@@ -1,0 +1,35 @@
+name: Arcane Duel - Progressive v10.8 Short Smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-progressive-smoke-v108.yml'
+permissions:
+  contents: read
+jobs:
+  smoke-earned-scaling:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: development
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Quick full-tier legal progress smoke on four independent origins
+        env:
+          ARCANE_V108_CAREERS: '4'
+          ARCANE_V108_TIER_ATTEMPTS: '8'
+        run: |
+          node --check tests/ai-progressive-career-v108.cjs
+          node tests/ai-progressive-career-v108.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-progressive-smoke-v108
+          path: artifacts/ai-progressive-career-v108.json
+          if-no-files-found: warn
+          retention-days: 7
+# Smoke rerun following pre-VI identical-controller fix

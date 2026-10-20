@@ -1,0 +1,34 @@
+name: Arcane Duel – Boss VIII Confirmation v7.3
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-boss-viii-confirmation-v73.cjs'
+      - '.github/workflows/ai-boss-viii-confirmation-v73.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-frozen-viii-holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate frozen-policy confirmation
+        run: |
+          node --check tests/ai-boss-viii-confirmation-v73.cjs
+          node --test tests/ai-learning-v56.test.cjs tests/lategame-monsters-v71.test.cjs
+      - name: Run third independent seeds across all VII–IX eligible boss VIII deck styles
+        env:
+          ARCANE_V73_CONFIRM_SEEDS: '8'
+        run: node tests/ai-boss-viii-confirmation-v73.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-boss-VIII-independent-v73
+          path: artifacts/ai-frozen-boss-viii-confirmation-v73.json
+          if-no-files-found: warn
+          retention-days: 30

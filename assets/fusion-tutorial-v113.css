@@ -1,0 +1,28 @@
+/* v11.3 Fusion tutorial, core selector and level ceremony */
+.ad113-core{display:inline-flex!important;align-items:center;justify-content:center;letter-spacing:.02em;font-size:10px!important;margin:3px 0 4px 6px;white-space:nowrap;min-height:25px}
+.ad113-core.active{color:#ffedb2!important;border-color:#f5d06f!important;background:linear-gradient(90deg,#634817,#8a612c)!important;box-shadow:0 0 13px #ffcc6480}
+.ad113-prediction{margin-top:9px;padding:9px 11px;background:linear-gradient(110deg,#2b224d,#342c45 70%,#47341a);border:1px solid #c3a6fa91;border-radius:9px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px;color:#f0e8fc;box-shadow:0 0 12px #a786ff38}
+.ad113-prediction span{font-size:12px}
+.ad113-prediction b{font-size:15px;color:#ffe0a0;text-shadow:0 0 11px #f1c1588a}
+.ad113-prediction button{background:#4b3269;color:#ffe9b9;border:1px solid #dbbc75}
+.ad113-help-results{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.ad113-help-results span{padding:9px 11px;border:1px solid #8b74ba80;border-radius:9px;background:#2b294b;color:#f4e9ff}
+.ad113-help-results b{color:#ffde97}
+.ad113-positive{border-left:3px solid #c7aaec;padding:9px 12px;background:#3c2a582f}
+.ad113-next{padding:11px 13px;border:1px solid #d6b571;border-radius:10px;background:linear-gradient(95deg,#51411d54,#41346342)}
+.ad113-next b{color:#ffe7a8}
+.ad113-next p{margin:5px 0 0}
+.ad113-subtle{font-size:12px;opacity:.75}
+.ad113-handbook summary{font-size:1.04em;font-weight:800;color:#e9c885}
+.ad113-handbook .arcane-rule-body{line-height:1.5}
+.ad113-example-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.ad113-example{padding:12px;background:linear-gradient(115deg,#202842,#33254d);border:1px solid #7e6cb26f;border-radius:9px}
+.ad113-example strong{color:#f3d5a1}
+.ad113-example p{margin:6px 0 0;color:#d6deef;font-size:12px}
+.ritual-card-level{position:relative;z-index:5;filter:drop-shadow(0 0 9px #f7cf78);animation:ad113LevelArrival 1.75s cubic-bezier(.19,.79,.25,1) both}
+.ritual-card-level::before,.ritual-card-level::after{content:'✦';position:absolute;top:50%;transform:translateY(-50%);color:#ffeab1;text-shadow:0 0 12px #fff5c1}
+.ritual-card-level::before{left:-24px}.ritual-card-level::after{right:-24px}
+.ritual-overlay[data-variant="field"] .ritual-card-level{filter:drop-shadow(0 0 12px #b999ff)}
+@keyframes ad113LevelArrival{0%{opacity:0;transform:scale(.25) rotate(-8deg);filter:brightness(2.7) drop-shadow(0 0 20px #ffe1a3)}45%{opacity:1;transform:scale(1.32) rotate(2deg);filter:brightness(2.2) drop-shadow(0 0 24px #ffb350)}68%{transform:scale(.95)}100%{opacity:1;transform:scale(1);filter:brightness(1.05) drop-shadow(0 0 8px #eed496)}}
+@media(max-width:740px){.ad113-help-results{flex-direction:column}.ad113-core{font-size:9px!important}.ad113-prediction{flex-direction:column;align-items:stretch}.ad113-example-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.ritual-card-level{animation:none!important}}

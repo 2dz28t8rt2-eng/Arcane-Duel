@@ -1,0 +1,43 @@
+name: Arcane Duel - v11.4 Fusion Rework Career Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-fusion-rework-training-v114.cjs'
+      - 'tests/helpers/game-runtime.cjs'
+      - '.github/workflows/ai-fusion-rework-training-v114.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fusion-rework-earned-careers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify syntax, real fusion rules, legal shops and original gameplay
+        run: |
+          node --check tests/ai-fusion-rework-training-v114.cjs
+          node --check tests/helpers/game-runtime.cjs
+          node --test tests/fusion-rework-v113.test.cjs tests/fusion-save-stress-v113.test.cjs tests/balance-economy-v109.test.cjs tests/player-feedback-v112.test.cjs
+      - name: Pilot two matched origins under both fusion rules
+        env:
+          ARCANE_V114_CAREERS: '2'
+          ARCANE_V114_TIER_ATTEMPTS: '8'
+        run: node tests/ai-fusion-rework-training-v114.cjs
+      - name: Run 16 train and 16 independent holdout paired origins with scaling farming
+        env:
+          ARCANE_V114_CAREERS: '32'
+          ARCANE_V114_TIER_ATTEMPTS: '30'
+        run: node tests/ai-fusion-rework-training-v114.cjs
+      - name: Preserve genuine careers, VII boss combats, real fusion levels and material acquisition
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v114-earned-fusion-rework-careers
+          path: artifacts/ai-fusion-rework-training-v114.json
+          retention-days: 30
+          if-no-files-found: warn

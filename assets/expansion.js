@@ -60,7 +60,10 @@ rollBooster=function(tier,g={seed:rng(0xffffffff)||1},count=10){
  const eligible=profile.acePurchased.filter(t=>t<=tier);
  for(let slot=0;slot<count;slot++){
   const roll=randomInt(g,100),cut=count===10?(slot<8?[85,98]:slot===8?[40,75]:[15,50]):count===5&&slot===4?[60,88]:[85,98];
-  const pool=roll<cut[0]?pools.starter:roll<cut[1]?pools.normal:rareCommon;
+  // Preserve Kartenspürsinn even though this ACE-shop extension overrides rollBooster.
+  // Only starter→normal odds shift; eligible ACE side-roll remains unchanged.
+  const starterCut=cardSenseStarterCut(cut[0]);
+  const pool=roll<starterCut?pools.starter:roll<cut[1]?pools.normal:rareCommon;
   const picked=pool.length?pool[randomInt(g,pool.length)]:pools.starter[randomInt(g,pools.starter.length)];
   const rareAce=eligible.length&&randomInt(g,10000)<35; // 0.35 % each slot
   cards.push(rareAce?aceIds[eligible[randomInt(g,eligible.length)]]:picked);
@@ -77,14 +80,60 @@ const aceShop=()=>'<section class="menu-panel ace-market"><h2>✦ Ace-Monster ·
    menuButton(locked?'Noch gesperrt':done?'✓ Bereits gekauft':'Ace kaufen','buy-ace','data-id="'+o.id+'"',locked||done||profile.coins<aceCost(o.id))+'</article>';
  }).join('')+'</div><p class="pool-note">Noch nicht besiegte Turniergegner und ihre Ace-Karten bleiben verborgen.</p></section>';
 
-function fusionPackPrice(){return Math.ceil(boosterPrice(highestCleared(),10)*1.8/10)*10;}
-function buyFusionPack(){
- const tier=highestCleared(),pool=boosterPools(tier).rare.filter(id=>!CARDS[id].ace&&CARDS[id].fusionOnly&&!CARDS[id].milestoneOnly);
- if(storageConflict||profile.rewardQueue.length||profile.coins<fusionPackPrice()||!pool.length)return false;
- const id=pool[rng(pool.length)];profile.coins-=fusionPackPrice();addCard(id);profile.lastBooster={tier,cards:[id]};saveProfile();return true;
+/* One/triple/five/ten mixed packs. Each guarantees precisely a draw in
+ * the user's requested fusion interval; remaining slots are normal cards.
+ * All slots use only currently owned progression unlocks, never ACEs.
+ */
+const FUSION_PACK_SPECS={1:{price:4,min:1,max:1},
+ 3:{price:10,min:1,max:2},5:{price:16,min:2,max:3},
+ 10:{price:28,min:3,max:5}};
+function fusionPackPrice(count=1){return FUSION_PACK_SPECS[count]?.price??Infinity;}
+function fusionPackPool(tier=highestCleared()){
+ const acceptable=c=>c&&!c.ace&&!c.milestoneOnly&&!c.questOnly&&
+  !c.enemyOnly&&!c.workshopOnly&&!c.trainingReward&&!c.fateOnly&&
+  !c.lv1Exclusive&&!c.essenceMonster&&(c.requiredTier==null||c.requiredTier<=tier)&&
+  (c.source==null||c.source<0||c.source<=tier)&&(!c.hard||hardUnlocked(c.source))&&
+  (c.source==null||c.source<0||opponentUnlocked(c.source));
+ const pools=boosterPools(tier);
+ return {fusion:pools.rare.filter(id=>acceptable(CARDS[id])&&CARDS[id].fusionOnly),
+  normal:pools.normal.filter(id=>acceptable(CARDS[id])&&!CARDS[id].fusionOnly)};
 }
-shopMarkup=function(){const tier=highestCleared(),available=boosterPools(tier).rare.some(id=>CARDS[id].fusionOnly&&!CARDS[id].ace);
- return stored.shopMarkup()+'<section class="menu-panel fusion-market"><h2>✧ Fusionsbooster</h2><p>Eine garantierte Fusionsvorlage aus bereits erreichten Turnierstufen. Keine Ace- oder Meilensteinmonster.</p>'+menuButton('1 Fusion · '+fmt(fusionPackPrice())+' Essenz','fusion-pack','',!available||profile.coins<fusionPackPrice())+'</section>'+aceShop();
+function rollFusionPack(count=1,tier=highestCleared(),g={seed:rng(0xffffffff)||1}){
+ const spec=FUSION_PACK_SPECS[count],pool=fusionPackPool(tier);
+ if(!spec||!pool.fusion.length||!pool.normal.length)return null;
+ const n=spec.min+randomInt(g,1+spec.max-spec.min);
+ const cards=[];
+ for(let i=0;i<n;i++)cards.push(pool.fusion[randomInt(g,pool.fusion.length)]);
+ for(let i=n;i<count;i++)cards.push(pool.normal[randomInt(g,pool.normal.length)]);
+ for(let i=cards.length-1;i>0;i--){
+  const j=randomInt(g,i+1);[cards[i],cards[j]]=[cards[j],cards[i]];
+ }
+ return cards;
+}
+function buyFusionPack(count=1){
+ if(!FUSION_PACK_SPECS[count]||storageConflict||profile.rewardQueue.length||
+  profile.shardResearch||profile.openPack||
+  (profile.boosterSeals||0)<fusionPackPrice(count))return false;
+ const tier=highestCleared(),cards=rollFusionPack(count,tier);
+ if(!cards)return false;
+ profile.boosterSeals-=fusionPackPrice(count);
+ cards.forEach(addCard);
+ profile.lastBooster={tier,cards,rerolled:false};
+ saveProfile();return true;
+}
+window.ArcaneFusionPackV109={rollFusionPack,buyFusionPack,fusionPackPrice,fusionPackPool};
+shopMarkup=function(){
+ const tier=highestCleared(),pools=fusionPackPool(tier),valid=!!pools.fusion.length&&!!pools.normal.length;
+ return stored.shopMarkup()+'<section class="menu-panel fusion-market"><h2>✧ Gemischte Fusionsbooster</h2>'+
+ '<p>Garantierte Fusionskarten plus normale Monster aus bereits freigeschalteten Stufen. Keine ACE-, Quest- oder Meilensteinmonster. ◈ '+fmt(profile.boosterSeals||0)+' Booster-Siegel verfügbar.</p>'+
+ '<div class="booster-choices">'+[1,3,5,10].map(count=>{
+  const spec=FUSION_PACK_SPECS[count],range=spec.min===spec.max?String(spec.min):spec.min+'–'+spec.max;
+  return '<article class="booster-choice"><h3>'+count+' Karten</h3><p><b>'+range+' Fusion'+(spec.max>1?'en':'')+
+   '</b> garantiert<br><small>'+fmt(spec.price)+' Booster-Siegel</small></p>'+
+   menuButton('Pack kaufen','fusion-pack','data-count="'+count+'"',
+    !valid||!!profile.rewardQueue.length||!!profile.shardResearch||
+    (profile.boosterSeals||0)<spec.price)+'</article>';
+ }).join('')+'</div></section>'+aceShop();
 };
 navMarkup=function(){return stored.navMarkup().replace('>Freimodus<','>Freie Duelle<').replace('>Ausbau<','>Skills & Perks<')};
 
@@ -157,13 +206,13 @@ function resetCurrentProfile(){
 
 function dropHelp(){
  popupHelp('Dropladungen: Woher und wofür?',
- 'Ein abgeschlossenes manuelles Duell gibt eine Dropladung. Beim ersten Sieg über einen neuen Turniergegner wird dein Vorrat komplett aufgefüllt. Aktivierte Dropladungen verstärken deine nächsten Autokämpfe: 50 % statt 30 % Essenz/XP und 20 % statt 12 % Kartenchance. Eine Ladung wird nach jedem abgeschlossenen Autokampf verbraucht, auch bei einer Niederlage. Mehr Platz erhältst du durch Levelbelohnungen.');
+ 'Ein abgeschlossenes manuelles Duell gibt normalerweise eine Dropladung; eine Turnierniederlage gibt keine. Beim ersten Sieg über einen neuen Turniergegner wird dein Vorrat komplett aufgefüllt. Aktivierte Dropladungen verstärken deine nächsten Autokämpfe: 50 % statt 30 % Essenz/XP und 20 % statt 12 % Kartenchance. Eine Ladung wird nach jedem abgeschlossenen Autokampf verbraucht, auch bei einer Niederlage. Mehr Platz erhältst du durch Levelbelohnungen.');
 }
 renderHud=function(){
  stored.renderHud();
  const b=$('hudDropToggle');
  if(b){
-  b.setAttribute('data-help','Automatikbonus: 50 % Essenz/XP und 20 % Kartenchance statt 30 % und 12 %. Verbraucht eine Ladung pro Autokampf, auch bei Niederlage. Manuelle Duelle geben +1; erster Turniersieg füllt alles auf.');
+  b.setAttribute('data-help','Automatikbonus: 50 % Essenz/XP und 20 % Kartenchance statt 30 % und 12 %. Verbraucht eine Ladung pro Autokampf, auch bei Niederlage. Manuelle Duelle geben +1 (außer Turnierniederlagen); erster Turniersieg füllt alles auf.');
   b.setAttribute('aria-label','Dropladungen: '+(profile.useDropCharges?'aktiv':'inaktiv')+'. Zum Ein- oder Ausschalten klicken; Hilfe beim Darüberfahren.');
   b.title='Dropladungen: Manuelle Duelle +1, erster Turniersieg volle Aufladung. Bei Auto 50 % Essenz/XP und 20 % Kartenchance.';
   const oldClick=b.onclick;
@@ -219,7 +268,7 @@ menuAction=function(d){
  if(d.action==='monster-index-next'){monsterIndexPage++;renderMenu();return;}
  if(d.action==='monster-index-prev'){monsterIndexPage=Math.max(0,monsterIndexPage-1);renderMenu();return;}
  if(d.action==='auto-report'){showAutoReport();return;}
- if(d.action==='fusion-pack'){if(buyFusionPack()){renderMenu();popupHelp('Fusionsbooster geöffnet','Du hast <b>'+escapeHtml(CARDS[profile.lastBooster.cards[0]].name)+'</b> erhalten.');}else popupHelp('Fusionsbooster','Zu wenig Essenz oder noch keine geeignete Fusion freigeschaltet.');return;}
+ if(d.action==='fusion-pack'){const count=Number(d.count)||1;if(buyFusionPack(count)){renderMenu();const ids=profile.lastBooster.cards;popupHelp('Fusionsbooster geöffnet','Du hast '+ids.length+' Karten erhalten, darunter '+ids.filter(id=>CARDS[id].fusionOnly).length+' Fusion(en):<p>'+ids.map(id=>escapeHtml(CARDS[id].name)).join(' · ')+'</p>');}else popupHelp('Fusionsbooster','Zu wenig Booster-Siegel oder noch keine passenden Fusionsvorlagen und normalen Karten freigeschaltet.');return;}
  if(profile.rewardQueue.length){showMilestone();return;}
  if(d.action==='quick-pack'){const id=Number(d.id);if(openCharacterPack(id,d.mode||'easy'))showPack();else popupHelp('Kein Pack verfügbar','Für diesen Duellanten hast du gerade kein vollständiges Pack. Gewonnene Duelle füllen den Packfortschritt.');return;}
  if(d.action==='buy-ace'){if(buyAce(Number(d.id))){renderMenu();popupHelp('Ace-Monster freigeschaltet!','Deine neue Ace-Karte ist in der Sammlung. Sie kann nun mit einer sehr geringen Chance im Booster-Shop erscheinen.');}else popupHelp('Kauf nicht möglich','Du musst diesen Turniergegner besiegt haben, genug Essenz besitzen und darfst sein einmaliges Ace-Angebot noch nicht gekauft haben.');return;}

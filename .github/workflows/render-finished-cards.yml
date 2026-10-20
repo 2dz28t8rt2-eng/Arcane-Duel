@@ -15,6 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The export commits generated art back to development. Checkout an
+          # actual branch instead of a detached historical push-event SHA.
+          ref: development
       - name: Render Wave 02 cards in Chrome using live monster stats
         shell: bash
         run: |
@@ -100,5 +104,8 @@ jobs:
             echo "Cards already match existing files."
           else
             git commit -m "art(cards): publish 20 Wave 02 production-ready PNG monster cards and contact sheet"
+            # A long-running Chrome export may overlap with a new development
+            # commit. Rebase generated binaries onto the freshest branch tip.
+            git pull --rebase origin development
             git push origin HEAD:development
           fi

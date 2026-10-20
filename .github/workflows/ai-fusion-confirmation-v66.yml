@@ -1,0 +1,39 @@
+name: Arcane Duel – Fusion Deck Confirmation v6.6
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-fusion-confirmation-v66.cjs'
+      - '.github/workflows/ai-fusion-confirmation-v66.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-stage-V-deck-holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reproduce earned resources and stage-legal inventory
+        env:
+          ARCANE_CAREER_RUNS: '8'
+          ARCANE_CAREER_TIER_ATTEMPTS: '16'
+        run: node tests/ai-career-optimized-v64.cjs
+      - name: Confirm fixed stage-V fusion-builder on completely new seeds
+        env:
+          ARCANE_FUSION_CONFIRM_SEEDS: '12'
+        run: |
+          node --check tests/ai-fusion-confirmation-v66.cjs
+          node tests/ai-fusion-confirmation-v66.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-fusion-deck-confirmation-v66
+          path: |
+            artifacts/ai-real-careers-v64.json
+            artifacts/ai-fusion-confirmation-v66.json
+          if-no-files-found: warn
+          retention-days: 30

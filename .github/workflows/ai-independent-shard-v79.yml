@@ -1,0 +1,35 @@
+name: Arcane Duel – Independent Career Economy v7.9
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-independent-shard-careers-v79.cjs'
+      - '.github/workflows/ai-independent-shard-v79.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-earned-careers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify v7.9 independent career simulator and paid-shard QA
+        run: |
+          node --check tests/ai-independent-shard-careers-v79.cjs
+          node --test tests/shard-rework-v77.test.cjs tests/perk-card-sense-v76.test.cjs tests/monster-roles-forge.test.cjs
+      - name: Run 12 independently seeded, paired real-reward careers I–X with and without v7.7 shard planning
+        env:
+          ARCANE_V79_CAREERS: '12'
+          ARCANE_V79_TIER_ATTEMPTS: '16'
+        run: node tests/ai-independent-shard-careers-v79.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-independent-shard-careers-v79
+          path: artifacts/ai-independent-shard-careers-v79.json
+          if-no-files-found: warn
+          retention-days: 30

@@ -25,3 +25,18 @@ test('all eleven tournament opponent decks and fusion decks have real assets',()
  console.log('TOURNAMENT_ARTWORK_AUDIT',JSON.stringify(r.slice(0,60)));
  assert.deepEqual(r,[],'Tournament roster contains procedural artwork or loading errors');
 });
+
+test('all ten Schicksalsmonster use unique genuine WebP paintings consistently on cards and cinematic',()=>{
+ const b=boot();
+ const r=b.run("FATE_NAMES.map((name,i)=>({name,index:i,portrait:ArcaneFateVisuals.artFor(i),cardArt:dataOf({id:FATE_CARD_IDS[i],card:{...CARDS[FATE_CARD_IDS[i]],level:10,atk:700,def:700},fate:true}).art}))");
+ assert.equal(r.length,10);
+ assert.equal(new Set(r.map(x=>x.portrait)).size,10);
+ for(const row of r){
+  assert.equal(row.portrait,row.cardArt);
+  assert.ok(row.portrait.startsWith('assets/custom-art/fate/')&&row.portrait.endsWith('.webp'),row.name+' still uses procedural SVG');
+  const bytes=fs.readFileSync(path.resolve(repo,row.portrait));
+  assert.equal(bytes.subarray(0,4).toString('ascii'),'RIFF');
+  assert.equal(bytes.subarray(8,12).toString('ascii'),'WEBP');
+  assert.ok(bytes.length>120000,row.name+' artwork too small');
+ }
+});

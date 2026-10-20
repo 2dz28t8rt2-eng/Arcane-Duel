@@ -1,0 +1,30 @@
+name: Arcane Duel – Shard Economy v7.7
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/game.js'
+      - 'tests/shard-rework-v77.test.cjs'
+      - 'index.html'
+      - '.github/workflows/shard-rework-v77.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  shard-economy-no-dupes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check for complete application and shard unit tests
+        run: |
+          node --check assets/game.js
+          node --check tests/shard-rework-v77.test.cjs
+      - name: Card ownership, source legality, three-choice research, and one-receipt reroll
+        run: node --test tests/shard-rework-v77.test.cjs
+      - name: Existing card, economy, and save regression suite
+        run: |
+          node --test tests/perk-card-sense-v76.test.cjs tests/lategame-monsters-v71.test.cjs tests/progression-audit.test.cjs tests/progression-real-inventory-audit.test.cjs tests/evolution-v25.test.cjs

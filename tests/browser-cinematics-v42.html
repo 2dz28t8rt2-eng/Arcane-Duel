@@ -70,8 +70,9 @@ document.getElementById('app').addEventListener('load',async()=>{
    await w.__ownSummon;w.eval('__observer.disconnect();');
    check(w.__ghostOwners.includes('0')&&!w.eval('busy'),'Eigene Normalbeschwörung verwendet denselben Flug ohne blockierte Steuerung');
    w.eval(`game.active=0;game.turn=12;game.pending=null;game.players[0].field=[__make('predator',0),null,null,null,null];game.players[0].field[0].mode='atk';game.players[0].field[0].attacked=false;
-    game.players[1].field=[__make('guardian',1),null,null,null,null];render();window.__counter=performAttack(0,0);`);
-   await pause(240);check(!!d.querySelector('.ad-projectile-counter'),'Ein echter Gegenschlag startet sein gebogenes Projektil mit Sternenschweif');
+    game.players[1].field=[__make('guardian',1),null,null,null,null];render();window.__counterSeen=0;window.__counterObserver=new MutationObserver(records=>{for(const record of records)for(const n of record.addedNodes){if(n.classList?.contains('ad-projectile-counter')||n.querySelector?.('.ad-projectile-counter'))__counterSeen++;}});__counterObserver.observe(document.body,{childList:true,subtree:true});window.__counter=performAttack(0,0);`);
+   await pause(240);check(!!d.querySelector('.ad113-attack-ghost'),'Ein angreifendes Monster prescht sichtbar als Karte auf das Ziel zu');
+   await w.__counter;w.eval('__counterObserver.disconnect()');check(w.__counterSeen>0,'Nach dem Karteneinschlag startet der echte Gegenschlag als gebogenes Projektil mit Sternenschweif');
    await w.__counter;check(!d.querySelector('.ad-projectile-counter')&&!w.eval('busy'),'Gegenschlag endet sauber und gibt die Eingabe frei');
    // One persistent enemy orb survives both Soul effects and disappears afterward.
    w.eval(`game.active=1;game.turn=8;game.pending=null;game.players[0].field=[__make('guardian',0),__make('soul',0),__make('soul',0),null,null];game.players[0].field[1].card.def-=80;game.players[1].field=[__make('predator',1),null,null,null,null];game.players[1].field[0].summonedTurn=game.turn;advanceTurn(game);render();window.__effects=ArcaneDefenderFX.flush(game);`);

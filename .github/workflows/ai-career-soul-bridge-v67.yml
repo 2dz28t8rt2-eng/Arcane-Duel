@@ -1,0 +1,37 @@
+name: Arcane Duel – Paired Soul-Bridge Careers v6.7
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/helpers/earned-soul-bridge-v67.cjs'
+      - 'tests/ai-career-soul-bridge-v67.cjs'
+      - '.github/workflows/ai-career-soul-bridge-v67.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  genuine-progression-ab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check scripts and earned deck restrictions
+        run: |
+          node --check tests/helpers/earned-soul-bridge-v67.cjs
+          node --check tests/ai-career-soul-bridge-v67.cjs
+          node --test tests/stage-owned-decks-v60.test.cjs
+      - name: Run paired true-campaign progression with and without confirmed strategy
+        env:
+          ARCANE_CAREER_RUNS: '8'
+          ARCANE_CAREER_TIER_ATTEMPTS: '16'
+        run: node tests/ai-career-soul-bridge-v67.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-paid-career-bridge-v67
+          path: artifacts/ai-career-soul-bridge-v67.json
+          if-no-files-found: warn
+          retention-days: 30

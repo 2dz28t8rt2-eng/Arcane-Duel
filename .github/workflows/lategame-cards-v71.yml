@@ -1,0 +1,31 @@
+name: Arcane Duel – Lategame 16 Card QA v7.1
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/lategame-monsters-v71.js'
+      - 'assets/lategame-cards-v71.json'
+      - 'tests/lategame-monsters-v71.test.cjs'
+      - 'tests/lategame-art-render-v71.test.cjs'
+      - 'assets/collection-v3-lategame-v71.js'
+      - 'collection-v3.html'
+      - 'index.html'
+      - '.github/workflows/lategame-cards-v71.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate-16-normal-monsters:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and genuine game runtime registration
+        run: |
+          node --check assets/lategame-monsters-v71.js
+          node --test tests/lategame-monsters-v71.test.cjs tests/lategame-art-render-v71.test.cjs
+      - name: Original game core regression
+        run: node --test tests/stage-owned-decks-v60.test.cjs tests/ai-confidence-gate-v61.test.cjs

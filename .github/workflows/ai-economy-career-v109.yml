@@ -1,0 +1,43 @@
+name: Arcane Duel - v10.9 Earned Economy Career Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-economy-career-v109.cjs'
+      - '.github/workflows/ai-economy-career-v109.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  matched-economy-careers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate v10.9 training, original rewards and card rules
+        run: |
+          node --check tests/ai-economy-career-v109.cjs
+          node --check assets/balance-economy-v109.js
+          node --check assets/expansion.js
+          node --test tests/balance-economy-v109.test.cjs tests/shard-rework-v77.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - name: Short paired runtime pilot (two matched starts, four earned careers)
+        env:
+          ARCANE_V109_CAREERS: '2'
+          ARCANE_V109_TIER_ATTEMPTS: '8'
+        run: node tests/ai-economy-career-v109.cjs
+      - name: Full 16 train + 16 independent holdout origins in two matched arms
+        env:
+          ARCANE_V109_CAREERS: '32'
+          ARCANE_V109_TIER_ATTEMPTS: '30'
+        run: node tests/ai-economy-career-v109.cjs
+      - name: Upload raw genuine careers, seed pairs, training and holdout
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v109-earned-economy-careers
+          path: artifacts/ai-economy-career-v109.json
+          if-no-files-found: warn
+          retention-days: 30

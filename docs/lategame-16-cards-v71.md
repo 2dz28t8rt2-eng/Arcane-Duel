@@ -1,0 +1,52 @@
+# Arcane Duel · 16 Endgame-Normalmonster · v7.1
+
+**Status: Die 16 Originalartworks sind erfolgreich auf `development` importiert und die 16 Karten sind im Spiel aktiviert.** Der vorherige Hinweis auf einen ausstehenden ZIP-Upload ist erledigt.
+
+## Verifizierter Import und Anzeige
+
+- Quellarchiv: `artwork-import/lategame16-v71.zip`; das GitHub-Importprogramm hat **alle 16 Dateien mit SHA-256 überprüft** und nach `assets/custom-art/lategame-v71/late-01.webp` bis `late-16.webp` installiert.
+- Laufzeitkatalog: `assets/lategame-monsters-v71.js` setzt jetzt `ARTWORK_INSTALLED=true`, erzeugt **16 spielbare Normalmonster mit festen IDs 716–731** und hinterlegt das jeweilige Original-WebP sowohl als `art` als auch als `customArt`. Der vollständige Katalog enthält nun 732 Kartendefinitionen.
+- Vorlagen: Das Spiel verwendet die bestehenden Standard-Rahmen `normal-04` für Level 7–8 und `normal-05` für Level 9–10, plus die eigenen Stufenornamente `normal-lv07.svg` bis `normal-lv10.svg`. Keine neuen generischen Ersatzbilder.
+- Die normalen Spielansichten (**Hand, Spielfeld, große Kartenansicht**) verweisen auf das Originalbild der jeweiligen Monster-ID. Der Browser lädt den v7.1-Katalog mit aktualisiertem Versionsparameter, um einen veralteten Cache nach dem Import zu vermeiden.
+- Auch die separate [Monsterkollektion](../collection-v3.html) enthält jetzt die 16 Endgame-Monster mit Original-Artworks. Ihr Bestand wurde von 360 auf **376** Einträge erweitert.
+- **GitHub CI:** Der Workflow `Arcane Duel – Lategame 16 Card QA v7.1` prüft Kartenwerte, Rollen, Source-/Drop-Freischaltungen, Bilddateien, echte Card-HTML-Ausgabe, Rahmen, Bildpfade und die separate Monsterkollektion. [Integrationsprüfungen erfolgreich](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39267810672).
+
+**Zuordnung:** `late-01.webp` entspricht Monster **716**, danach aufsteigend bis `late-16.webp` = **731**. Es gibt **16 unterschiedliche WebP-Dateien**; keine Bilddatei wird für zwei der neuen Karten wiederverwendet. Die ZIP-Checksummen bestätigen die Integrität der gelieferten Dateien. Eine künstlerische Motivbewertung lässt sich von den Strukturtests allein nicht ableiten.
+
+## Werte und Progression
+
+| ID | Normalmonster | Level | Rolle | ATK | DEF | Nach Sieg gegen |
+|---|---|---:|---|---:|---:|---|
+| 716 | Vulkanbestie des Sturmruinenlands | 7 | Predator | 960 | 310 | V |
+| 717 | Runenwächter der gefallenen Feste | 7 | Wächter | 320 | 950 | V |
+| 718 | Gruftwächter der verlorenen Seelen | 7 | Seelenzehrer | 280 | 990 | V |
+| 719 | Prismenchimäre des Kristalltempels | 7 | Allrounder | 670 | 600 | V |
+| 720 | Blitzwyvern der Himmelsruinen | 7 | Predator | 980 | 290 | VI |
+| 721 | Eisenwurzel-Koloss | 7 | Wächter | 350 | 920 | VI |
+| 722 | Mottenfürst des Mondschleiers | 8 | Seelenzehrer | 340 | 1190 | VI |
+| 723 | Basaltbasilisk des Lavakessels | 8 | Predator | 1150 | 380 | VI |
+| 724 | Kathedralen-Leviathan | 8 | Wächter | 390 | 1140 | VII |
+| 725 | Chimäre des kosmischen Sturms | 8 | Allrounder | 790 | 740 | VII |
+| 726 | Sphinxwächter des Mondlichts | 8 | Wächter | 420 | 1110 | VII |
+| 727 | Obsidian-Drache der Lavaruinen | 9 | Predator | 1390 | 440 | VII |
+| 728 | Astraler Labyrinth-Minotaurus | 9 | Allrounder | 970 | 860 | VIII |
+| 729 | Donnergreif des Himmelsbruchs | 9 | Predator | 1340 | 490 | VIII |
+| 730 | Dornenholz-Hydra | 10 | Seelenzehrer | 460 | 1690 | VIII |
+| 731 | Himmlischer Titan der Wolkenfestung | 10 | Wächter | 520 | 1630 | IX |
+
+Die ATK+DEF-Kartenbudgets betragen für Level 7–10 exakt **1270 / 1530 / 1830 / 2150** und folgen dem bereits im Spiel bestehenden `workshopBudget(level)`.
+
+Die neuen Karten sind **normale** RPG-Monster (keine ACEs, keine Fusionen). Die Rollen `predator`, `guardian`, `soul`, `allrounder` arbeiten mit vorhandenen Spielmechaniken wie Jagdinstinkt, Schildwall, Seelenentzug und Resonanz. Beschreibungen sind **keine erfundenen neuen aktiven Zauber**.
+
+Jede Karte wird im Pool des zugehörigen besiegten Turniergegners, dessen Charakterpacks, in regulären Boostern und über Crafting mit den bestehenden Freischaltbedingungen verfügbar. Kein neues Monster ist automatisch im Starter-Inventar. Bestehende Karten-ID-Zuordnung und vorhandene Spielstände bleiben unverändert.
+
+## Dateien
+
+- `assets/lategame-monsters-v71.js`: fertige 16 Kartenobjekte mit Quellen und Mechaniken.
+- `assets/lategame-cards-v71.json`: editierbarer Datenkatalog.
+- `tests/lategame-monsters-v71.test.cjs`: Daten-, Deck-, Quellen- und Artwork-Tests.
+- `artwork-import/lategame16-v71.zip`: erfolgreich hochgeladenes und validiertes Originalarchiv.
+- `tools/install-lategame-art-v71.py`: sicheres Importprogramm.
+- `.github/workflows/import-lategame-art-v71.yml`: automatischer Artwork-Import.
+
+**Nur `development`. `main` wird weder durch das Import-Skript noch durch diesen Workflow geändert.**

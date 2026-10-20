@@ -27,7 +27,7 @@ test('ghost-slot Lv1 creature can perform a true combat-engine direct attack',()
  assert.equal(r.ok,true);assert.ok(r.damage>0);assert.equal(r.stillThere,true);assert.equal(r.attacked,true);assert.equal(r.fieldClear,true);
 });
 test('research story finale has a five-phase skippable reveal',()=>{
- const r=setup().run("(()=>{profile.lv1Saga={offered:true,stage:4,perk:false,story:[1,2,3,4],finalRewards:false,aceGranted:false};startDuel('pve',1,'lv1-saga','easy',5);game.lv1SagaProgress={floating:1,swarm:1,special:1};game.winner=0;showFinished();return {finished:profile.lv1Saga.stage,perk:profile.lv1Saga.perk,ace:profile.inventory[ArcaneLv1Swarm.ids.ace]};})()");
+ const r=setup().run("(()=>{profile.lv1Saga={offered:true,met:true,stage:4,perk:false,story:[1,2,3,4],finalRewards:false,aceGranted:false};startDuel('pve',1,'lv1-saga','easy',5);game.lv1SagaProgress={floating:1,swarm:1,special:1};game.winner=0;showFinished();return {finished:profile.lv1Saga.stage,perk:profile.lv1Saga.perk,ace:profile.inventory[ArcaneLv1Swarm.ids.ace]};})()");
  assert.equal(r.finished,5);assert.equal(r.perk,true);assert.equal(r.ace,1);
 });
 

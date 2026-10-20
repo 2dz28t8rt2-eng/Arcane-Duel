@@ -1,0 +1,47 @@
+name: Arcane Duel - Matched Pre-IV Deckbuilder v8.4
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-earned-preiv-v84.cjs'
+      - 'tests/ai-matched-preiv-v84.cjs'
+      - '.github/workflows/ai-deckbuilder-v84.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  matched-preiv-deckbuilding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and legal deck regression
+        run: |
+          node --check tests/ai-earned-preiv-v84.cjs
+          node --check tests/ai-matched-preiv-v84.cjs
+          node --test tests/monster-roles-forge.test.cjs tests/regression.test.cjs tests/shard-rework-v77.test.cjs tests/ai-fusion-preservation-v62.test.cjs
+      - name: Earn 24 fresh legal career inventories before tournament IV
+        env:
+          ARCANE_V84_CAREERS: '24'
+          ARCANE_V84_TIER_ATTEMPTS: '16'
+        run: node tests/ai-earned-preiv-v84.cjs
+      - name: Train and compare matched pre-IV role and fusion deckbuilders
+        env:
+          ARCANE_V84_CAREERS: '24'
+          ARCANE_V84_TRAIN_SEEDS: '2'
+          ARCANE_V84_HOLD_SEEDS: '2'
+        run: node tests/ai-matched-preiv-v84.cjs
+      - name: Additional AI regression
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-fusion-choice-v61.test.cjs tests/ai-decision-diagnostics-v62.test.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-v84-owned-decks
+          path: |
+            artifacts/ai-earned-preiv-v84.json
+            artifacts/ai-matched-preiv-v84.json
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,0 +1,40 @@
+name: Arcane Duel – Legitimate Stage VII Pilot v6.8
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-stage-vi-pilot-v68.cjs'
+      - '.github/workflows/ai-stage-vi-pilot-v68.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  train-and-check-real-vii-unlock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Rebuild exact paired genuine career inventories
+        env:
+          ARCANE_CAREER_RUNS: '8'
+          ARCANE_CAREER_TIER_ATTEMPTS: '16'
+        run: node tests/ai-career-soul-bridge-v67.cjs
+      - name: Select combat AI policy using training seeds then test unseen holdout
+        env:
+          ARCANE_PILOT_TRAIN_SEEDS: '8'
+          ARCANE_PILOT_HOLDOUT_SEEDS: '18'
+        run: |
+          node --check tests/ai-stage-vi-pilot-v68.cjs
+          node tests/ai-stage-vi-pilot-v68.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-stage-vi-earned-pilot-v68
+          path: |
+            artifacts/ai-career-soul-bridge-v67.json
+            artifacts/ai-pilot-stage-vi-v68.json
+          if-no-files-found: warn
+          retention-days: 30

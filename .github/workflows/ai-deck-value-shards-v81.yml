@@ -1,0 +1,35 @@
+name: Arcane Duel – Value-Gated Shard Careers v8.1
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-deck-value-shards-v81.cjs'
+      - '.github/workflows/ai-deck-value-shards-v81.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  deck-value-vs-early-overspend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 42
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and economy regression gate
+        run: |
+          node --check tests/ai-deck-value-shards-v81.cjs
+          node --test tests/shard-rework-v77.test.cjs tests/perk-card-sense-v76.test.cjs tests/monster-roles-forge.test.cjs
+      - name: 'Twelve genuine paired careers - value-gated after II versus late shard spending after IV'
+        env:
+          ARCANE_V81_CAREERS: '12'
+          ARCANE_V81_TIER_ATTEMPTS: '16'
+        run: node tests/ai-deck-value-shards-v81.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-deck-value-shard-training-v81
+          path: artifacts/ai-deck-value-gated-shards-v81.json
+          if-no-files-found: warn
+          retention-days: 30

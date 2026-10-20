@@ -1,0 +1,45 @@
+name: Arcane Duel – Career AI Training v6.4
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-career-optimized-v64.cjs'
+      - 'tests/ai-career-optimized-holdout-v64.cjs'
+      - '.github/workflows/ai-career-optimized-v64.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  train-earned-late-tournament:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate scripts and persistent save/real inventory rules
+        run: |
+          node --check tests/ai-career-optimized-v64.cjs
+          node --check tests/ai-career-optimized-holdout-v64.cjs
+          node --test tests/stage-owned-decks-v60.test.cjs
+      - name: Actually earn and equip cards, shards, boosters and upgrades
+        env:
+          ARCANE_CAREER_RUNS: '8'
+          ARCANE_CAREER_TIER_ATTEMPTS: '16'
+        run: node tests/ai-career-optimized-v64.cjs
+      - name: Compare actual opponent AI on higher-tier earned decks
+        env:
+          ARCANE_CAREER_TRAIN_SEEDS: '3'
+          ARCANE_CAREER_HOLDOUT_SEEDS: '5'
+          ARCANE_CAREER_TRAIN_MIN_TIER: '4'
+        run: node tests/ai-career-optimized-holdout-v64.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-earned-optimized-career-v64
+          path: |
+            artifacts/ai-real-careers-v64.json
+            artifacts/ai-optimized-policy-v64.json
+          if-no-files-found: warn
+          retention-days: 30

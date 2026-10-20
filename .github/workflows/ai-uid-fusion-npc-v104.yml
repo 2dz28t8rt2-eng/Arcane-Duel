@@ -1,0 +1,58 @@
+name: Arcane Duel - UID Fusion and NPC Audit v10.4
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-uid-fusion-impact-v104.cjs'
+      - 'tests/ai-real-npc-audit-v104.cjs'
+      - '.github/workflows/ai-uid-fusion-npc-v104.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-fusion-uid-careers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and original game economy/regression suite
+        run: |
+          node --check tests/ai-uid-fusion-impact-v104.cjs
+          node --check tests/ai-real-npc-audit-v104.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/shard-rework-v77.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: 32 real earned career source triplets and independently held-out VI outcomes
+        env:
+          ARCANE_V104_CAREERS: '32'
+          ARCANE_V104_TIER_ATTEMPTS: '24'
+        run: node tests/ai-uid-fusion-impact-v104.cjs
+      - name: Verify unchanged core AI and game rule regressions
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-decision-diagnostics-v62.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-fusion-uid-careers-v104
+          path: artifacts/ai-uid-fusion-impact-v104.json
+          if-no-files-found: warn
+          retention-days: 30
+  unchanged-npc-behavior-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: NPC rules across ten opponent tiers and 120 real games
+        run: |
+          node --check tests/ai-real-npc-audit-v104.cjs
+          node tests/ai-real-npc-audit-v104.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-npc-legal-action-audit-v104
+          path: artifacts/ai-real-npc-audit-v104.json
+          if-no-files-found: warn
+          retention-days: 30

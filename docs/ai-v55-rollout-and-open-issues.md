@@ -1,0 +1,49 @@
+# Arcane Duel 5.5 – KI-, Forschungs- und Karriere-Update (19.10.2026)
+
+## Umgesetzt auf `development`
+- Gegner I–X folgen der vereinbarten Rotation: Predator, Verteidigung, Fusion in leicht/mittel/schwer; Gegner X wählt situationsabhängig anhand der **sichtbaren** Spielerfeldkarten. Kodiert in `assets/ai-revamp-v55.js`.
+- Deckkuratierung beachtet die Schwierigkeit, 40 normale Karten und 3 Kopien je Art. Finale hat keine niedrigen Lv3-Füllkarten. Große ACE-Priorisierung einschließlich normaler Beschwörung, Fusionswahl, nachvollziehbarer ACE-Vorbereitung durch Umordnen **bereits vorhandener** Karten im Gegnerdeck.
+- Predator-Schwarmbonus: +2 % ATK je weitere normale Predator-Kreatur bis +8 %. Allrounder-/Resonator-Resonanzen unverändert.
+- Verteidigungs-KI: Wächter suchen DEF und heilen Seelenzehrer; Seelenzehrer greifen in DEF über drain-ähnliche Fähigkeiten offensiv ein; schwere KI priorisiert das. Keine heimlichen Informationen über die gegnerische Hand.
+- Niedrigstufige Fusionen Level 3–5 erhalten je nach Rolle einen einmaligen Utility-Effekt und bleiben damit neben höheren Fusionen taktisch interessant (`assets/fusion-utility-v55.js`).
+- Fanatiker: freigeschalteter permanenter Skill **Verbotene Forschung**, mit temporärer Verfügbarkeit der Lv1-Techniken in den passenden Forschungsprüfungen. Nach Finale dauerhafte Freischaltung; aufwertbarer Wertebonus Rang 1–5, +5 ATK und DEF je Rang auf gewöhnliche Lv1-Karten. Lv1-ACE Lumira ist davon ausgenommen (`assets/lv1-saga-v43.js`, `assets/lv1-swarm-v43.js`, `assets/ai-revamp-v55.js`).
+
+## Artwork-Status
+- 15 rollenspezifische WebP-Motive sind im GitHub-Repository vorhanden; aktive Monster und Sonderdecks sind durch Artwork-Audit-Tests abgesichert.
+- Die Qualitätsforderung »keine generisch aussehenden Monster« ist **nicht** mit Pfad-/Dateiexistenztests beweisbar. Besonders Leerenorakel und die zehn Schicksalsmonster müssen visuell/künstlerisch anhand der tatsächlichen Renderings bewertet und gegebenenfalls durch neue hochwertige Einzelillustrationen ersetzt werden.
+- Bereits vorhandene SVG-Schicksalsillustrationen oder schematische Designs dürfen nicht als endgültige hochwertige WebP-Artworks ausgegeben werden. Ihre vollständige Neuerstellung erfordert echte neue Bildassets; der reine KI-/Karriere-Release behauptet dies nicht.
+
+## Testnachweise
+- Beide GitHub-Checks erfolgreich auf `631b54203b640fa40aa456ef707b6b65d616b297`:
+  - https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39211298387
+  - https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39211298372
+- `tests/ai-revamp-v55.test.cjs` prüft die Strategierotation, legalen Gegnerdecks, das Lv10-Endgegner-Deck ohne Lv3-Füllkarten, ACE-Vorbereitung, KI-Heilen/DEF-Entscheidungen, Forschungsfreischaltung und KI-Zug-Simulation.
+
+## Noch verifizieren und verbessern
+- Ganzer Karriere-Test als menschlicher Spieler mit realistischen Sammel-/Farmmöglichkeiten: CI kann Nicht-Abstürzen prüfen, aber nicht garantieren, dass die Schwierigkeit als angemessen empfunden wird.
+- ACE-Frequenzen pro Gegner über Hunderte vollständige simulierte Matches messen, ohne illegale Gratis-Züge.
+- **Lv1-Quest-Prolog und besonders Übergang II → III** mit realem Savegame und wiederholtem Laden testen.
+- Schicksals- und ACE-Artworks nach Sichtprüfung neu illustrieren; die bloße Umstellung einer Artwork-URL ist kein Qualitätsersatz.
+- Niedrig-/hochrangige Fusionseffekte in echten Matches gegeneinander balancieren.
+
+Keine automatische Levelmigration bestehender Karten: Karten behalten ihre feste Stufe.
+
+## Technische Nachbesserung · 19.10.2026
+- **ACE-Ziehende repariert:** `drawToFive` verwendet `deck.pop()`. Normale ACEs werden nun an das echte Ziehende sortiert und beim nächsten Ziehen erreicht, ohne zusätzliche Karten zu erzeugen.
+- **Fusions-ACE-Fokus:** Gegner mit Fusions-ACEs kuratieren stattdessen tatsächlich vorhandene hochstufige Hauptdeck-Materialien. Das garantiert keinen Erfolg: Die übrigen regulären Fusionseinschränkungen gelten weiterhin.
+- **Forschungsprüfungen:** Beim Verwerfen eines pausierten Duells bleibt die gewählte Lv1-Prüfung einschließlich Prolog erhalten; der frühere generische Discard-Callback verlor den Kontext.
+- **Lumiras Fall:** Die ausdrücklich aus der Hand erlaubte Pflichtfusion wird auch im inneren Fusionsgenerator als Sonderrezept akzeptiert, aber nur während einer vorher erfolgreich geprüften Materialliste.
+- Neue Tests prüfen Deck-Erhaltung, tatsächlich folgende Ziehphase, den gespeicherten Kapitelwechsel und das Fusionsergebnis der fünften Prüfung.
+- **Weiter offen:** Hochwertige eigenständige Schicksals- und Sonderartworks sowie reale manuelle Karriere-Durchläufe und visuelles Browser-QA.
+
+## CI-Nachprüfung · Kapitel-V-Blockade
+- Das ältere QA-Modul `assets/qa-sprint-v52.js` hob die priorisierte Lumira-Finalentscheidung ungewollt auf, indem es Lumira auch in Kapitel V zur normalen Beschwörung zwang und die Karte generell als Fusionsmaterial ausschloss. Der Schutz bleibt in Kapiteln I–IV erhalten; Kapitel V überlässt die Entscheidung bewusst dem speziellen Korruptionsmodul.
+- Der Speichertest berücksichtigt, dass das gerade gestartete Forschungsspiel sofort einen **neuen** aktiven Duell-Snapshot erzeugt. Das verworfene fremde Duell darf nicht zurückkehren.
+
+## Kapitel-V-Regressionskorrektur
+- Eine zweite, separat implementierte pauschale `prepareHandFusion`-Sperre im QA-Sprint v5.2 untersagte die Verwendung von Lumira selbst dann, wenn die finale KI ihre Sonderfusion korrekt auswählte. Sie schützt weiterhin die Kapitel I–IV, aber nicht mehr die Pflichtfusion in Kapitel V.
+- Frühere Tests mit der inzwischen abgelösten Vorschrift „Lumira normal ausspielen“ wurden auf die final beschlossene Pflichtfusion mit Lumira als Material aktualisiert. Das vollständige CI-Prüfergebnis ist gesondert zu kontrollieren.
+
+## KI-Korrektur: angrenzender Wächter (v5.5.3)
+- Eine Wächter-Heilaktion darf einen Seelenzehrer **nur aus einer unmittelbar benachbarten Monsterzone** unterstützen (Abstand exakt 1). Vorher wählte die KI Wächter auf beliebigen Feldpositionen, obwohl die Kampfstrategie von Nachbarschaft sprach.
+- Aktionsausführung prüft diese Legalität ein zweites Mal. Bei veränderter Situation beendet die KI kontrolliert die Aktion, statt einen unberechtigten Defensivbonus zu vergeben. Regressionstest: benachbart versus entfernt.

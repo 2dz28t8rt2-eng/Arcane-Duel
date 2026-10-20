@@ -1,0 +1,28 @@
+name: Arcane Duel – AI Offline Training v5.6
+on:
+  push:
+    branches: [development]
+    paths:
+      - tests/ai-offline-training-v56.cjs
+      - .github/workflows/ai-offline-training-v56.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-train-and-compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Train and holdout-test the real tournament engine across 10 opponent tiers
+        env:
+          ARCANE_TRAIN_SAMPLES: '6'
+        run: node tests/ai-offline-training-v56.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arcane-ai-offline-training-v56
+          path: artifacts/arcane-ai-training-v56.json
+          retention-days: 30

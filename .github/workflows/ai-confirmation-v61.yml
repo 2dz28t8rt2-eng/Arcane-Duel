@@ -1,0 +1,36 @@
+name: Arcane Duel – AI Confirmation Holdout v6.1
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-confirmation-v61.cjs'
+      - '.github/workflows/ai-confirmation-v61.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-confirmation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate sources and no-cheating rules
+        run: |
+          node --check tests/ai-confirmation-v61.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-confidence-gate-v61.test.cjs
+      - name: Holdout on fresh seeds, fixed preselected confidence profiles
+        env:
+          ARCANE_MIRROR_TIERS: '10'
+          ARCANE_MIRROR_TRAIN_SEEDS: '2'
+          ARCANE_MIRROR_HOLDOUT_SEEDS: '12'
+        run: node tests/ai-confirmation-v61.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-ai-fixed-profile-confirmation-v61
+          path: artifacts/ai-confirmation-v61.json
+          if-no-files-found: warn
+          retention-days: 30

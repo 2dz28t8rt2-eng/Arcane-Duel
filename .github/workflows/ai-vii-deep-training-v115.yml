@@ -1,0 +1,47 @@
+name: Arcane Duel - v11.5 Boss VII Deep Diagnostic Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-vii-deep-training-v115.cjs'
+      - 'tests/ai-vii-actor-mask-v115.test.cjs'
+      - 'tests/helpers/ai-vii-deep-observer-v115.cjs'
+      - 'tests/helpers/game-runtime.cjs'
+      - 'assets/fusion-rework-v113.js'
+      - '.github/workflows/ai-vii-deep-training-v115.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  boss-vii-factorial-training:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate experimental isolation, saved duels and economy
+        run: |
+          node --check tests/ai-vii-deep-training-v115.cjs
+          node --check tests/helpers/ai-vii-deep-observer-v115.cjs
+          node --check assets/fusion-rework-v113.js
+          node --test tests/ai-vii-actor-mask-v115.test.cjs tests/fusion-rework-v113.test.cjs tests/fusion-save-stress-v113.test.cjs tests/balance-economy-v109.test.cjs
+      - name: Pilot four fusion variants on two matched origins (eight legitimate careers)
+        env:
+          ARCANE_V115_CAREERS: '2'
+          ARCANE_V115_TIER_ATTEMPTS: '8'
+        run: node tests/ai-vii-deep-training-v115.cjs
+      - name: Train and holdout four fusion variants on 32 matched origins (128 real careers)
+        env:
+          ARCANE_V115_CAREERS: '32'
+          ARCANE_V115_TIER_ATTEMPTS: '30'
+        run: node tests/ai-vii-deep-training-v115.cjs
+      - name: Preserve every VII match, actor-specific diagnostics, chronological traces and career history
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v115-boss-vii-deep-diagnostics
+          path: artifacts/ai-vii-deep-training-v115.json
+          retention-days: 30
+          if-no-files-found: warn

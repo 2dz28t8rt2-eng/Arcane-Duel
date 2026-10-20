@@ -1,0 +1,28 @@
+name: Arcane Duel - v11.8 Opponent Roster Regression
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/opponent-roster-balance-v118.js'
+      - 'tests/opponent-roster-v118.test.cjs'
+      - 'tests/ascension-balance-v116.test.cjs'
+      - 'index.html'
+      - '.github/workflows/opponent-roster-v118.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  roster-vi-vii-x:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check v11.8 script syntax
+        run: |
+          node --check assets/opponent-roster-balance-v118.js
+          node --check tests/opponent-roster-v118.test.cjs
+      - name: Verify legal NPC decks, ACE, base game and forging
+        run: node --test tests/opponent-roster-v118.test.cjs tests/ascension-balance-v116.test.cjs tests/fusion-rework-v113.test.cjs

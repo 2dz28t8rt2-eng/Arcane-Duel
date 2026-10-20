@@ -1,0 +1,53 @@
+name: Arcane Duel – Real VIII Fairness v7.5
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-earned-viii-fairness-v75.cjs'
+      - '.github/workflows/ai-real-viii-v75.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  earned-player-vs-frozen-VIII-AI:
+    runs-on: ubuntu-latest
+    timeout-minutes: 29
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check compilation and save integrity
+        run: |
+          node --check tests/ai-earned-viii-fairness-v75.cjs
+          node --check tests/ai-earned-stage-vii-v74.cjs
+          node --test tests/lategame-monsters-v71.test.cjs
+      - name: Build initial legitimately earned VI inventories
+        env:
+          ARCANE_CAREER_RUNS: '8'
+          ARCANE_CAREER_TIER_ATTEMPTS: '16'
+        run: node tests/ai-career-soul-bridge-v67.cjs
+      - name: Obtain first legitimate seventh tournament stage
+        env:
+          ARCANE_PILOT_TRAIN_SEEDS: '8'
+          ARCANE_PILOT_HOLDOUT_SEEDS: '18'
+        run: node tests/ai-stage-vi-pilot-v68.cjs
+      - name: Farm earned VI rewards and unlock VIII only by winning VII
+        env:
+          ARCANE_V74_TRAIN_SEEDS: '4'
+          ARCANE_V74_HOLD_SEEDS: '9'
+        run: node tests/ai-earned-stage-vii-v74.cjs
+      - name: Check eighth boss fairness with both genuinely earned VIII decks
+        env:
+          ARCANE_V75_HOLD_SEEDS: '10'
+        run: node tests/ai-earned-viii-fairness-v75.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-actual-carreer-viii-fairness-v75
+          path: |
+            artifacts/ai-pilot-stage-vi-v68.json
+            artifacts/ai-earned-stage-vii-v74.json
+            artifacts/ai-earned-VIII-fairness-v75.json
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,0 +1,41 @@
+name: Arcane Duel - v11.8 VI VII X Career Balancing Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-opponent-roster-training-v118.cjs'
+      - '.github/workflows/ai-opponent-roster-training-v118.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  earned-v118-careers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check legal unique ACE, nerfs, PvE fusion and economy
+        run: |
+          node --check tests/ai-opponent-roster-training-v118.cjs
+          node --test tests/opponent-roster-v118.test.cjs tests/ascension-balance-v116.test.cjs tests/fusion-rework-v113.test.cjs
+      - name: Pilot two matched origins, both farming and forging
+        env:
+          ARCANE_V118_CAREERS: '2'
+          ARCANE_V118_TIER_ATTEMPTS: '8'
+        run: node tests/ai-opponent-roster-training-v118.cjs
+      - name: Compare 32 matched origins, 16 train + 16 holdout, full earned farming
+        env:
+          ARCANE_V118_CAREERS: '32'
+          ARCANE_V118_TIER_ATTEMPTS: '30'
+        run: node tests/ai-opponent-roster-training-v118.cjs
+      - name: Keep full fight data and career progression
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v118-roster-career-comparison
+          path: artifacts/ai-opponent-roster-training-v118.json
+          retention-days: 30
+          if-no-files-found: warn

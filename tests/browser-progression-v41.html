@@ -89,19 +89,31 @@ document.getElementById('app').addEventListener('load',async()=>{
   check(!!d.querySelector('.ad-sparks-dust'),'Staub erscheint zeitgleich mit dem Aufprall');
   await pause(100);
   check(!d.querySelector('.ad-titan-impact')&&!d.querySelector('.ad-impact-shake'),'Der Aufprall endet ohne zurückspringende Karte oder hängenbleibenden Effekt');
-  w.eval(`window.__flightBounds=null;window.__ritualAnimate=Element.prototype.animate;
-   Element.prototype.animate=function(...args){const anim=window.__ritualAnimate.apply(this,args);if(this.classList.contains('ad-summon-ghost')){
+  // The earlier real summon may still be finishing its cinematic. The
+  // next manual replay was intermittently dropped by play()'s running guard.
+  // Do not mistake that legitimate re-entrancy prevention for a bad landing.
+  for(let n=0;n<65&&d.querySelector('.ritual-overlay');n++)await pause(100);
+  check(!d.querySelector('.ritual-overlay'),
+   'Das vorige echte Fusionsritual ist vollständig abgeschlossen, bevor der Flug erneut gemessen wird');
+  w.eval(`window.__flightBounds=null;window.__flightCalls=0;window.__ritualAnimate=Element.prototype.animate;
+   Element.prototype.animate=function(...args){const anim=window.__ritualAnimate.apply(this,args);if(this.classList.contains('ad-summon-ghost')){window.__flightCalls++;
     const actor=this,capture=()=>{if(!actor.isConnected)return;const a=(actor.querySelector('.board-creature')||actor).getBoundingClientRect(),b=document.querySelector('[data-mine="2"] .board-creature').getBoundingClientRect();window.__flightBounds={left:a.left-b.left,top:a.top-b.top,width:a.width-b.width,height:a.height-b.height};};
-    anim.addEventListener('finish',capture);
-    // Sample the actual Web Animation at its endpoint even when headless
-    // rendering has deferred its finish event. CSS still determines the bounds.
-    setTimeout(()=>{if(!actor.isConnected)return;anim.pause();anim.currentTime=args[1].duration;capture();anim.finish();},args[1].duration);
+    // The phase controller can finish and delete the ghost before even a
+    // zero-delay timer is delivered by virtual-time Chromium. Capture the
+    // browser-calculated final transform SYNCHRONOUSLY during animate(),
+    // while the real ghost still exists. Then resume the real animation.
+    const current=anim.currentTime;
+    anim.pause();
+    anim.currentTime=args[1].duration;
+    capture();
+    anim.currentTime=current===null?0:current;
+    anim.play();
    }return anim;};
    const c=game.players[0].field[2];c.roleOverride='predator';c.materialsUsed=3;c.pattern='Paar';c.rollTrace=[{atk:c.card.atk,def:c.card.def}];c.rollMath={base:{atk:c.card.atk,def:c.card.def},winnerIndex:0,winner:{atk:c.card.atk,def:c.card.def},final:{atk:c.card.atk,def:c.card.def},bonus:{atk:0,def:0},penalty:0,combo:{name:'Paar',qualityPct:5.5,materialCount:3}};
    window.__actualLanding=ArcaneFusionCinema.play({instance:c,materials:game.players[0].hand.slice(0,3).map(c=>({art:dataOf(c).art,level:dataOf(c).level})),battle:game,card:dataOf(c),level:dataOf(c).level,variant:'field',wait:()=>Promise.resolve(),playSound:()=>{}});`);
   await w.__actualLanding;
   w.Element.prototype.animate=w.__ritualAnimate;
-  check(!!w.__flightBounds&&Object.values(w.__flightBounds).every(n=>Math.abs(n)<2),'Der echte Ritualflug endet in Position und Größe exakt an der Karte statt am äußeren Zonenfeld · '+JSON.stringify(w.__flightBounds));
+  check(w.__flightCalls>0&&!!w.__flightBounds&&Object.values(w.__flightBounds).every(n=>Math.abs(n)<2),'Der echte Ritualflug endet in Position und Größe exakt an der Karte statt am äußeren Zonenfeld · Aufrufe '+w.__flightCalls+' · '+JSON.stringify(w.__flightBounds));
   check(w.eval('ArcaneFusionCinema.landed(game,game.players[0].field[2].uid)'),'Eine bereits gelandete Ritualkarte erhält keinen zweiten Aufprall');
  }catch(error){check(false,error.stack||String(error));}
  document.body.dataset.progressionTest=pass?'pass':'fail';

@@ -1,0 +1,47 @@
+name: Arcane Duel – Stage-Aware AI Training v5.9
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/helpers/stage-training-decks-v59.cjs'
+      - 'tests/stage-training-decks-v59.test.cjs'
+      - 'assets/ai-branch-trainer-v59.js'
+      - 'tests/ai-branch-trainer-v59.test.cjs'
+      - 'tests/ai-stage-training-v59.cjs'
+      - '.github/workflows/ai-stage-training-v59.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  train-stage-ai:
+    runs-on: ubuntu-latest
+    timeout-minutes: 23
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify stage-legal decks, resource caps and realism limits
+        run: node --test tests/stage-training-decks-v59.test.cjs
+      - name: Test public-only branch rollouts and unchanged user saves
+        run: |
+          if test -f tests/ai-branch-trainer-v59.test.cjs; then node --test tests/ai-branch-trainer-v59.test.cjs; fi
+          node --test tests/ai-learning-v56.test.cjs
+      - name: Train with stage-appropriate opponent decks and separate holdout seeds
+        env:
+          ARCANE_STAGE_TRAIN_SEEDS: '3'
+          ARCANE_STAGE_HOLDOUT_SEEDS: '5'
+          ARCANE_STAGE_TIERS: '10'
+        run: |
+          if test -f tests/ai-stage-training-v59.cjs; then
+            node tests/ai-stage-training-v59.cjs
+          else
+            echo "Stage-deck validation only; trainer installation pending."
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-ai-stage-training-v59
+          path: artifacts/ai-stage-v59.json
+          if-no-files-found: ignore
+          retention-days: 30

@@ -1,0 +1,39 @@
+name: Arcane Duel - Economy and Early Fusion AI Training v8.3
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-economy-and-early-bridge-v83.cjs'
+      - '.github/workflows/ai-economy-and-early-bridge-v83.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  new-seed-fusion-economy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JS and economy / save invariants
+        run: |
+          node --check assets/game.js
+          node --check tests/ai-economy-and-early-bridge-v83.cjs
+          node --test tests/shard-rework-v77.test.cjs tests/perk-card-sense-v76.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: Run fresh paired careers with two 12-origin cohorts
+        env:
+          ARCANE_V83_CAREERS: '24'
+          ARCANE_V83_TIER_ATTEMPTS: '16'
+        run: node tests/ai-economy-and-early-bridge-v83.cjs
+      - name: Verify AI and fusion regressions
+        run: |
+          node --test tests/ai-revamp-v55.test.cjs tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/ai-decision-diagnostics-v62.test.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-economy-early-fusion-v83
+          path: artifacts/ai-economy-and-early-bridge-v83.json
+          if-no-files-found: warn
+          retention-days: 30

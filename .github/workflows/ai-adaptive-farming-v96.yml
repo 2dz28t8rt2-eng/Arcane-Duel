@@ -1,0 +1,39 @@
+name: Arcane Duel - Adaptive Earned Farming v9.6
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-adaptive-farming-v96.cjs'
+      - '.github/workflows/ai-adaptive-farming-v96.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  paired-natural-farm-progression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and economy/legal fusion invariants
+        run: |
+          node --check tests/ai-adaptive-farming-v96.cjs
+          node --check tests/helpers/ai-pre-attack-v92.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/shard-rework-v77.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: Paired natural careers and legal free-duel farming to tier VI
+        env:
+          ARCANE_V96_CAREERS: '32'
+          ARCANE_V96_TIER_ATTEMPTS: '24'
+        run: node tests/ai-adaptive-farming-v96.cjs
+      - name: NPC AI, strategy and saved-game regression
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-decision-diagnostics-v62.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - name: Save full farming/progression proof and paired outcome data
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-adaptive-farming-v96
+          path: artifacts/ai-adaptive-farming-v96.json
+          if-no-files-found: warn
+          retention-days: 30

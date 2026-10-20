@@ -1,0 +1,40 @@
+name: Arcane Duel – Tactical Lookahead Training v5.8
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/ai-lookahead-v58.js'
+      - 'tests/ai-lookahead-v58.test.cjs'
+      - 'tests/ai-lookahead-training-v58.cjs'
+      - '.github/workflows/ai-lookahead-training-v58.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  train-public-lookahead:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate lookahead, secrecy and legal support actions
+        run: |
+          node --check assets/ai-lookahead-v58.js
+          node --check tests/ai-lookahead-training-v58.cjs
+          node --test tests/ai-lookahead-v58.test.cjs
+          node --test tests/ai-learning-v56.test.cjs
+      - name: Train 1-3 turn evaluation on real game engine and unseen holdout seeds
+        env:
+          ARCANE_LOOK_TRAIN_SEEDS: '5'
+          ARCANE_LOOK_HOLD_SEEDS: '8'
+          ARCANE_LOOK_TIERS: '10'
+        run: node tests/ai-lookahead-training-v58.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-ai-lookahead-training-v58
+          path: artifacts/arcane-ai-lookahead-training-v58.json
+          if-no-files-found: warn
+          retention-days: 30

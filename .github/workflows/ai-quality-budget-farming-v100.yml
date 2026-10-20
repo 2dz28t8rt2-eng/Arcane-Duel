@@ -1,0 +1,39 @@
+name: Arcane Duel - Quality-Gated VI Farming v10.0
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-quality-budget-farming-v100.cjs'
+      - '.github/workflows/ai-quality-budget-farming-v100.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  earned-quality-budget-careers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and genuine economy/owned fusion gate
+        run: |
+          node --check tests/ai-quality-budget-farming-v100.cjs
+          node --check tests/helpers/ai-pre-attack-v92.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/shard-rework-v77.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: 32 real earned career triplets with 30/45/60/75 VI fight budgets
+        env:
+          ARCANE_V100_CAREERS: '32'
+          ARCANE_V100_TIER_ATTEMPTS: '24'
+        run: node tests/ai-quality-budget-farming-v100.cjs
+      - name: Combat AI and game strategy regressions
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-decision-diagnostics-v62.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - name: Store complete paired legal career and deck-quality results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-quality-budget-farming-v100
+          path: artifacts/ai-quality-budget-vi-farming-v100.json
+          if-no-files-found: warn
+          retention-days: 30

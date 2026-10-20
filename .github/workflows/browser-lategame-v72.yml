@@ -1,0 +1,40 @@
+name: Arcane Duel – Browser Late-Art QA v7.2
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/browser-lategame-v72.html'
+      - 'assets/collection-v3-lategame-v71.js'
+      - 'assets/lategame-monsters-v71.js'
+      - 'collection-v3.html'
+      - '.github/workflows/browser-lategame-v72.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser-real-art:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decode 16 images in real Chrome and verify gallery and frame rendering
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          test -n "$CHROME"
+          python3 -m http.server 8768 --bind 127.0.0.1 >/tmp/lategame-browser-http.log 2>&1 &
+          SERVER=$!
+          trap 'kill "$SERVER" 2>/dev/null || true' EXIT
+          for i in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:8768/tests/browser-lategame-v72.html >/dev/null; then break; fi
+            sleep .25
+          done
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=25000 --window-size=1200,980 --dump-dom http://127.0.0.1:8768/tests/browser-lategame-v72.html > /tmp/lategame-real-browser.html 2>/tmp/lategame-real-browser.err
+          if ! grep -q 'data-lategame-art-test="pass"' /tmp/lategame-real-browser.html; then
+            echo 'Real browser 16-artwork gallery/frame QA failed' >&2
+            grep -o 'FEHLER:[^<]*' /tmp/lategame-real-browser.html | head -15 || true
+            tail -12 /tmp/lategame-real-browser.err || true
+            exit 1
+          fi
+          echo 'All 16 source images decode and display correctly; live game templates & collection gallery verified.'

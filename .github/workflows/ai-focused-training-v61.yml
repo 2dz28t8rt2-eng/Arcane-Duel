@@ -1,0 +1,40 @@
+name: Arcane Duel – Focused AI Training v6.1
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/ai-branch-trainer-v59.js'
+      - 'tests/ai-focused-mirror-v61.cjs'
+      - 'tests/ai-confidence-gate-v61.test.cjs'
+      - 'tests/ai-fusion-choice-v61.test.cjs'
+      - '.github/workflows/ai-focused-training-v61.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  confidence-and-mirror-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check source and validate action/guard rules
+        run: |
+          node --check assets/ai-branch-trainer-v59.js
+          node --check tests/ai-focused-mirror-v61.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-confidence-gate-v61.test.cjs tests/ai-branch-trainer-v59.test.cjs
+      - name: Train and holdout-test opponents III VI IX with mirrored stage-owned decks
+        env:
+          ARCANE_MIRROR_TIERS: '10'
+          ARCANE_MIRROR_TRAIN_SEEDS: '3'
+          ARCANE_MIRROR_HOLDOUT_SEEDS: '5'
+        run: node tests/ai-focused-mirror-v61.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-focused-opponents-III-VI-IX-v61
+          path: artifacts/ai-focused-mirror-v61.json
+          if-no-files-found: warn
+          retention-days: 30

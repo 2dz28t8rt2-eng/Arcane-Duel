@@ -19,15 +19,37 @@
   {title:'Die verworfene Lehre',dialog:'Genug mit deinem ewigen Geisterspiel! Ich habe Predatoren gezüchtet. Ein echter Duellant setzt auf Stärke – nicht auf kleine, zitternde Funken!',after:'Du wagst es, mich mit MEINER EIGENEN FORSCHUNG zu schlagen?! Ein letztes Duell. Dann wird endgültig klar, wer hier der Meister ist.'},
   {title:'Der letzte Funke',dialog:'ICH HABE JAHRE AN DIESE NUTZLOSEN KREATUREN VERSCHWENDET! Du hast meine Forschung gestohlen! Jetzt werde ich dir zeigen, was WAHRE MACHT bedeutet!',after:'Vielleicht war ich niemals derjenige, auf den sie gewartet haben. Nimm diese Karte. Ich werde nicht mehr duellieren. Aber meine Forschung ... die gebe ich nicht auf.'}
  ];
- const clean=x=>({offered:x?.offered===true,stage:Number.isInteger(x?.stage)?Math.min(5,Math.max(0,x.stage)):0,
+ const clean=x=>({offered:x?.offered===true,met:x?.met===true||x?.stage>=1,stage:Number.isInteger(x?.stage)?Math.min(5,Math.max(0,x.stage)):0,
   perk:x?.perk===true,aceGranted:x?.aceGranted===true,finalRewards:x?.finalRewards===true,invitationSeen:x?.invitationSeen===true,
   lumiraDeaths:Number.isInteger(x?.lumiraDeaths)?Math.min(99,Math.max(0,x.lumiraDeaths)):0,
+  skillRank:x?.perk===true?Math.max(1,Math.min(5,Number.isInteger(x?.skillRank)?x.skillRank:1)):0,
   story:Array.isArray(x?.story)?[...new Set(x.story.filter(n=>Number.isInteger(n)&&n>=1&&n<=5))]:[]});
  const saved=(()=>{try{return window.__arcaneLv1SavedProfile?.lv1Saga||window.__arcaneLv1OriginalSaga||JSON.parse(localStorage.getItem(SAVE_KEY)||'null')?.lv1Saga||null;}catch{return null;}})();
  const oldFresh=freshProfile,oldValidate=validateProfile;
  freshProfile=function(){const p=oldFresh();p.lv1Saga=clean();return p;};
  validateProfile=function(raw){const p=oldValidate(raw);p.lv1Saga=clean(raw?.lv1Saga);return p;};
- profile.lv1Saga=clean(saved||profile.lv1Saga);
+ // Reconcile historical pre-validation snapshots with the latest persisted
+ // and in-memory quest progress. A stale pre-validation snapshot must NEVER
+ // roll back a legitimately completed chapter after reloading the page.
+ const persistedSaga=(()=>{try{return JSON.parse(localStorage.getItem(SAVE_KEY)||'null')?.lv1Saga||null;}catch{return null;}})();
+ const mergeProgress=(...versions)=>{
+  const items=versions.filter(Boolean).map(clean);
+  const result=clean(items.sort((a,b)=>b.stage-a.stage)[0]);
+  for(const version of items){
+   result.stage=Math.max(result.stage,version.stage);
+   result.met||=version.met;result.offered||=version.offered;
+   result.perk||=version.perk;result.aceGranted||=version.aceGranted;
+   result.finalRewards||=version.finalRewards;
+   result.invitationSeen||=version.invitationSeen;
+   result.lumiraDeaths=Math.max(result.lumiraDeaths,version.lumiraDeaths);
+   result.skillRank=Math.max(result.skillRank,version.skillRank||0);
+   result.story=[...new Set([...result.story,...version.story])].sort((a,b)=>a-b);
+  }
+  if(result.stage>0){result.met=true;result.offered=true;}
+  if(result.perk)result.skillRank=Math.max(1,result.skillRank);
+  return result;
+ };
+ profile.lv1Saga=mergeProgress(profile.lv1Saga,saved,persistedSaga);
  if(saved&&!window.__arcaneLv1SavedProfile)saveProfile();
  // The early engine validates a conservative view of cards it has not registered.
  // Rehydrate ONLY the approved Lv1 IDs after all extensions and validations exist.
@@ -95,12 +117,16 @@
  ];
  const OBJECTIVES=[
   {name:'Einführung',description:'Besiege den Level-1-Fanatiker im 2.000-LP-Duell.',goal:null},
-  {name:'Floating',description:'Lass mindestens ein echtes Level-1-Monster das Feld verlassen und löse Floating aus.',goal:'floating'},
+  {name:'Floating',description:'Entdecke den Floating-Effekt, wenn ein Level-1-Monster das Feld verlässt. Ein Sieg schließt die Einführung in diese Mechanik ab.',goal:'floating'},
   {name:'Swarm',description:'Beschwöre ein echtes Level-1-Monster und löse eine Schwarmkopie aus.',goal:'swarm'},
   {name:'Fusion',description:'Erschaffe mindestens eine der drei exklusiven Level-1-Fusionen.',goal:'special'},
   {name:'Die letzte Prüfung',description:'Kombiniere Floating, Swarm und eine Spezialfusion im selben Duell.',goal:'all'}
  ];
  function mastered(g){const st=g?.lv1Saga?.stage||0,p=g?.lv1SagaProgress||{},goal=OBJECTIVES[st-1]?.goal;
+  // Chapter II was a hard-lock even after a clear win when a lifecycle
+  // callback failed to record Floating. Its demonstration is educational,
+  // not a permanent progression blocker; other chapters keep their goals.
+  if(st===2&&g?.winner===0&&!g?.surrendered)return true;
   return !goal||(goal==='all'?(p.floating>0&&p.swarm>0&&p.special>0):p[goal]>0);
  }
  const oldReward=rewardMatch;
@@ -111,6 +137,16 @@
    return reward;
   }
   if(g.rewardClaimed||profile.rewardLedger.includes(g.id))return null;
+  if(g.lv1SagaPrologue){
+   const win=g.winner===0&&!g.surrendered,s=state();
+   g.rewardClaimed=true;
+   profile.rewardLedger.push(g.id);profile.rewardLedger=profile.rewardLedger.slice(-512);
+   if(win){s.met=true;s.offered=true;profile.wins++;profile.coins=Math.min(1e9,profile.coins+15);profile.xp=Math.min(1e9,profile.xp+10);}
+   else profile.losses++;
+   profile.history.unshift({opponent:1,win,turns:g.turn,coins:win?15:0,xp:win?10:0,at:Date.now(),context:'free'});
+   profile.history=profile.history.slice(0,30);saveProfile();
+   return {coins:win?15:0,xp:win?10:0,loot:null,charge:0,lv1Prologue:true,met:win};
+  }
   g.rewardClaimed=true;profile.rewardLedger.push(g.id);profile.rewardLedger=profile.rewardLedger.slice(-512);
   const win=g.winner===0&&!g.surrendered,stage=g.lv1Saga.stage,s=state();
   // Count a genuine Floating exit already recorded in the battle event log
@@ -129,7 +165,7 @@
    s.stage=stage;s.offered=true;if(!s.story.includes(stage))s.story.push(stage);
    profile.coins=Math.min(1e9,profile.coins+coins);profile.xp=Math.min(1e9,profile.xp+xp);
    if(stage===5&&!s.finalRewards){
-    s.perk=true;s.finalRewards=true;
+    s.perk=true;s.skillRank=Math.max(1,s.skillRank||0);s.finalRewards=true;
     if(!s.aceGranted){addCard(SW.ids.ace);s.aceGranted=true;}
     const normal=eligible().map(c=>c.id);
     const special=[SW.ids.hive,SW.ids.protector,SW.ids.attacker];
@@ -155,7 +191,7 @@
    lv1BonusPacks:g.lv1BonusPacks||[]};
  };
  const oldCreate=createGame;
- let stageWanted=0;
+ let stageWanted=0,prologueWanted=false;
  function forty(levelCap=1,weakest=false,predator=false){
   const pool=RPG_BASE_CARDS.filter(c=>c.rpg&&!c.fusionOnly&&!c.ace&&!c.essenceMonster&&!c.retired&&c.level<=levelCap)
    .sort((a,b)=>predator?(a.role==='predator'?-1:0)-(b.role==='predator'?-1:0)||b.atk-a.atk:
@@ -217,7 +253,7 @@
   const g=oldCreate({...options,mode:'pve',opponentId:1,context:'challenge',challenge:null,
    enemy,deck:playerDeck,fusionDeck:stage>=4?loanFusion(stage):options.fusionDeck,
    enhancements:stage===1?options.enhancements:{},flatBonus:stage===1?options.flatBonus:0});
-  g.lv1Saga={stage};g.lv1SagaProgress={floating:0,swarm:0,special:0};g.lv1FanaticDeckName=design.name;
+  g.lv1Saga={stage};g.lv1SagaPrologue=prologueWanted;g.lv1SagaProgress={floating:0,swarm:0,special:0};g.lv1FanaticDeckName=design.name;
   g.maxLP=design.lp;g.players.forEach(p=>{p.lp=g.maxLP;p.shield=0;});
   if(stage===1)for(const c of g.players[1].hand)if(c.card){
    c.card.atk=Math.max(0,c.card.atk-30);c.card.def=Math.max(1,c.card.def-30);
@@ -341,18 +377,31 @@
  const oldStart=startDuel;
  startDuel=function(mode,id=0,context='free',difficulty='easy',challenge=null){
   if(context!=='lv1-saga')return oldStart(mode,id,context,difficulty,challenge);
-  const stage=Number(challenge)||1,s=state();
-  if(mode!=='pve'||stage<1||stage>5||stage>s.stage+1||!s.offered){toast('Dieser Forschungsabschnitt ist noch nicht freigeschaltet.');return;}
-  stageWanted=stage;
+  const intro=challenge==='prologue',stage=intro?1:Number(challenge)||1,s=state();
+  if(mode!=='pve'||stage<1||stage>5||stage>s.stage+1||!s.offered||
+    (intro&&s.met)||(!intro&&!s.met)){toast('Dieser Forschungsabschnitt ist noch nicht freigeschaltet.');return;}
+  // The generic saved-duel discard handler restarts context='challenge' and
+  // forgets the chosen Lv1 research stage. Keep the quest route on discard.
+  if(profile.activeDuel&&!busy&&!aiRunning&&!storageConflict&&!profile.rewardQueue.length){
+   openModal(modalHtml('GESPEICHERTES DUELL','Partie fortsetzen?','↶',
+    'Du hast eine gespeicherte Einzelspielerpartie. Du kannst sie fortsetzen oder für die gewählte Forschungsprüfung verwerfen.','',
+    '<button class="btn primary" id="resumeSaved">FORTSETZEN</button><button class="btn" id="discardSaved">VERWERFEN & FORSCHUNG STARTEN</button>'));
+   $('resumeSaved').onclick=resumeDuel;
+   $('discardSaved').onclick=()=>{profile.activeDuel=null;saveProfile();hideModal();
+    startDuel('pve',1,'lv1-saga','easy',intro?'prologue':stage);};
+   return;
+  }
+  stageWanted=stage;prologueWanted=intro;
   try{
    const originalUnlock=opponentUnlocked;opponentUnlocked=function(i){return i===1||originalUnlock(i);};
    let value;try{value=oldStart('pve',1,'challenge','easy',null);}finally{opponentUnlocked=originalUnlock;}
    if(game?.lv1Saga?.stage===stage&&uiMode==='duel'){
     const oldGo=$('modalGo')?.onclick;
-    openModal(modalHtml('VERBOTENE FORSCHUNG · '+stage+'/5',STORIES[stage-1].title,'✦',
+    openModal(modalHtml(intro?'✦ UNBEKANNTE BEGEGNUNG':'VERBOTENE FORSCHUNG · '+stage+'/5',intro?'Der rätselhafte Duellant':STORIES[stage-1].title,'✦',
      stage===1?'Ein unbekannter Duellant tritt dir entgegen. Noch weißt du nichts von seiner Forschung. Beweise ihm in einem normalen Duell dein Können.':STORIES[stage-1].dialog,
      (stage===1?'<p>✧ Kein Forschungsziel – euer erstes Duell beginnt.</p>':
       '<p class="lv1-intro-note"><b>Dein Leihdeck:</b> Jede Forschungsprüfung stellt dir ein passendes Herausforderungsdeck bereit. Dein eigenes Deck bleibt erhalten.</p>'+
+      '<p class="lv1-intro-note"><b>Temporäre Forschung:</b> '+(stage===2?'Floating ist für diesen Versuch aktiviert.':stage===3?'Floating und Swarm sind für diesen Versuch aktiviert.':'Floating, Swarm und die exklusiven Lv1-Fusionen sind für diesen Versuch aktiviert.')+' Nach dem Finale verwaltet der dauerhafte Skill „Verbotene Forschung“ alle Fähigkeiten.</p>'+
       '<p><b>Hinweis:</b> '+(stage===2?'Wenn ein echtes Level-1-Monster das Feld verlässt, kann sein Echo fortbestehen. Beobachte die Wechselwirkungen.':stage===3?'Kleine Kreaturen können weitere Funken herbeirufen. Nutze freie Plätze und das neue Echo.':stage===4?'Finde heraus, was geschieht, wenn schwache Geister ihre Kräfte in einer ungewöhnlichen Fusion verbinden.':'Nun greifen die Entdeckungen ineinander. Zeige, dass du sie im selben Duell beherrschst.')+'</p>')+
      '<p><b>Gegnerstrategie:</b> '+escapeHtml(game.lv1FanaticDeckName)+' · '+game.maxLP.toLocaleString('de-AT')+' LP</p>'+
      (stage===1?'':'<p class="lv1-objective"><b>Für das nächste Kapitel:</b> '+escapeHtml(OBJECTIVES[stage-1].description)+'</p>'),
@@ -360,7 +409,7 @@
     $('modalGo').onclick=oldGo;
    }
    return value;
-  }finally{stageWanted=0;}
+  }finally{stageWanted=0;prologueWanted=false;}
  };
  function ritual(g){
   return '<section class="lv1-ritual" id="lv1Ritual"><div class="lv1-ritual-runes" aria-hidden="true">✧ ✦ ◇ ✧ ✴</div>'+
@@ -374,7 +423,7 @@
   const moments=[
    ['DER ZUSAMMENBRUCH','Die letzte Predator-Fusion zerbricht. Die Arena fällt in Stille.',arts[0]],
    ['DER RUF DER GEISTER','Die kleinen Kreaturen vereinen sich. Nicht der Größte, sondern der Auserwählte hat ihre Stimmen gehört.',arts[1]],
-   ['DAS VERGESSENE SIEGEL','Fünf Fragmente verschmelzen zu einem uralten Siegel. PERK: ERWACHEN DES SCHWARMS.',arts[2]],
+   ['DAS VERGESSENE SIEGEL','Fünf Fragmente verschmelzen zu einem uralten Siegel. SKILL: VERBOTENE FORSCHUNG – Floating, Swarm und Spezialfusionen werden dauerhaft verfügbar.',arts[2]],
    ['DAS VERMÄCHTNIS','Der Fanatiker überlässt dir Lumira – den ersten Funken. Seine Forschung endet nicht, aber sein Weg als Duellant.',arts[3]],
    ['DIE GABE DES SCHWARMS','Die einzigartige ACE-Karte und die gewonnenen Booster sind deiner Sammlung bereits gutgeschrieben.',arts[3]]
   ];
@@ -405,13 +454,26 @@
    if($('lv1VisitFanatic'))$('lv1VisitFanatic').onclick=()=>{returnToMenu();window.ArcaneRoyalUI?.navigate?.('challenges');};
   }
   if(!show||!$('modal'))return;
+  if(g.lv1SagaPrologue){
+   const won=g.winner===0&&!g.surrendered;
+   $('modal').insertAdjacentHTML('beforeend','<section class="lv1-story-result"><h3>✦ '+(won?'DER FORSCHER HAT DICH BEMERKT':'DER FREMDE WARTET')+'</h3><p>'+
+    (won?'Du hast den unbekannten Duellanten besiegt. Nun offenbart er dir, weshalb er den schwächsten Monstern nachjagt: Die Forschungsreihe „Die vergessenen Funken“ beginnt.':'Der Fremde will ein Wiedersehen. Die verborgene Forschungsreihe bleibt vorerst verschlossen.')+'</p></section>');
+   if($('modalAgain')){
+    $('modalAgain').textContent=won?'ZUR FORSCHUNGSREIHE →':'ERNEUT HERAUSFORDERN';
+    $('modalAgain').onclick=()=>{hideModal();game=null;
+     if(won){menuTab='challenges';uiMode='menu';renderMenu();}
+     else startDuel('pve',1,'lv1-saga','easy','prologue');
+    };
+   }
+   return;
+  }
   const success=g.winner===0&&!g.surrendered&&mastered(g)&&state().stage===stage;
   const after=STORIES[stage-1].after;
   const failedGoal=g.winner===0&&!mastered(g);
   const scene='<section class="lv1-story-result"><h3>✦ '+escapeHtml(STORIES[stage-1].title)+'</h3>'+
     '<p class="lv1-dialogue">„'+escapeHtml(success?after:failedGoal?'Ein Sieg allein genügt nicht. Du hast die besondere Forschungstechnik noch nicht angewendet.':'Du bist noch nicht bereit. Kehre zurück, wenn du die Geister verstehst.')+'“</p>'+
     (failedGoal?'<p class="lv1-objective"><b>Noch offen:</b> '+escapeHtml(OBJECTIVES[stage-1].description)+'</p>':'')+(success?'<p>Fragment '+stage+' von 5 entdeckt. '+(stage===5?'Das Vermächtnis ist erwacht.':'Nächste Forschung freigeschaltet.')+'</p>':'<p>Diese Stufe kann erneut versucht werden.</p>')+
-    (stage===5&&success?ritual(g)+'<div class="lv1-unlock"><h3>✦ DAS ERWACHEN DES SCHWARMS ✦</h3><p>Schwarmperk dauerhaft freigeschaltet · ACE: Lumira erhalten</p>'+
+    (stage===5&&success?ritual(g)+'<div class="lv1-unlock"><h3>✦ VERBOTENE FORSCHUNG ✦</h3><p>Floating, Swarm und Lv1-Spezialfusionen dauerhaft freigeschaltet · Passiver Rang 1: +5 ATK/DEF auf gewöhnliche Lv1-Monster · Lumira als ACE erhalten</p>'+
       '<div class="lv1-booster-reveal">'+(g.lv1BonusPacks||[]).map((p,i)=>'<span>✧ Pack '+(i+1)+' · 3 Karten</span>').join('')+'</div>'+
       '<p>10 unabhängige Boosterwürfe à 50 %, 3 Level-1-Karten je gewonnenem Pack.</p></div>':'')+'</section>';
   $('modal').insertAdjacentHTML('beforeend',scene);
@@ -436,10 +498,13 @@
   const s=state();if(!s.offered&&!forced())return '';
   if(!s.offered&&forced()){s.offered=true;saveProfile();}
   const next=Math.min(5,s.stage+1),esc=escapeHtml;
-  return '<section class="menu-panel lv1-saga-panel" id="lv1Saga"><div class="lv1-saga-kicker">'+(s.stage===0?'✦ EIN FREMDER FORDERT DICH HERAUS':'✦ VERBOTENE FORSCHUNG · '+s.stage+'/5')+'</div>'+
-   '<h2>'+(s.stage===0?'Der unbekannte Forscher':'Die vergessenen Funken')+'</h2><p>'+(s.stage===0?'Ein ungewöhnlicher Duellant fordert dich heraus. Ihr erstes Duell ist ein ganz normaler Kampf. Sein wahres Anliegen erfährst du erst danach.':'Ein Forscher glaubt, dass die schwächsten Monster ein großes Geheimnis bergen. In fünf Kapiteln erhältst du abgestimmte Herausforderungsdecks und kannst einen einzigartigen, bislang unbekannten Skill entdecken.')+'</p>'+
-   (s.stage===0?'<div class="lv1-first-meeting"><p>✦ Ein fremder Duellant fordert dich heraus. Erst nach dieser Begegnung erfährst du, was hinter seinen Experimenten steckt.</p><button type="button" class="btn primary" data-lv1-stage="1">DEM FORSCHER BEGEGNEN →</button></div>':'<div class="lv1-saga-road">'+STORIES.map((ch,i)=>'<button class="lv1-stage '+(i<s.stage?'done':i===s.stage?'next':'locked')+'" data-lv1-stage="'+(i+1)+'" '+(i>s.stage?'disabled':'')+'><span>'+(i<s.stage?'✓':i+1)+'</span><strong>'+esc(ch.title)+'</strong><small>'+(i<s.stage?'Geschichte entdeckt':i===s.stage?'Bereit zur Prüfung':'Noch gesperrt')+'</small></button>').join('')+'</div>')+
-   (s.perk?'<div class="lv1-perk-label">✦ Das verborgene Vermächtnis wurde erweckt.</div>':'<div class="lv1-perk-label">✦ Ein einzigartiger Skill und geheimnisvolle Belohnungen erwarten dich.</div>')+
+  return '<section class="menu-panel lv1-saga-panel" id="lv1Saga"><div class="lv1-saga-kicker">'+(s.stage===0&&!s.met?'✦ EIN FREMDER FORDERT DICH HERAUS':'✦ VERBOTENE FORSCHUNG · '+s.stage+'/5')+'</div>'+
+   '<h2>'+(s.stage===0&&!s.met?'Der unbekannte Forscher':'Die vergessenen Funken')+'</h2><p>'+(s.stage===0&&!s.met?'Ein ungewöhnlicher Duellant fordert dich heraus. Ihr erstes Duell ist ein ganz normaler Kampf. Sein wahres Anliegen erfährst du erst danach.':'Ein Forscher glaubt, dass die schwächsten Monster ein großes Geheimnis bergen. In fünf Kapiteln erhältst du abgestimmte Herausforderungsdecks und kannst einen einzigartigen, bislang unbekannten Skill entdecken.')+'</p>'+
+   (s.stage===0&&!s.met?'<div class="lv1-first-meeting"><p>✦ Ein fremder Duellant fordert dich heraus. Erst nach dieser Begegnung erfährst du, was hinter seinen Experimenten steckt.</p><button type="button" class="btn primary" data-lv1-stage="prologue">DEM FORSCHER BEGEGNEN →</button></div>':'<div class="lv1-saga-road">'+STORIES.map((ch,i)=>'<button class="lv1-stage '+(i<s.stage?'done':i===s.stage?'next':'locked')+'" data-lv1-stage="'+(i+1)+'" '+(i>s.stage?'disabled':'')+'><span>'+(i<s.stage?'✓':i+1)+'</span><strong>'+esc(ch.title)+'</strong><small>'+(i<s.stage?'Geschichte entdeckt':i===s.stage?'Bereit zur Prüfung':'Noch gesperrt')+'</small></button>').join('')+'</div>')+
+   (s.perk?'<div class="lv1-perk-label">✦ VERBOTENE FORSCHUNG · Rang '+Math.max(1,s.skillRank||1)+'/5 · Floating, Swarm und Lv1-Spezialfusionen dauerhaft aktiv.</div>'+
+    '<p class="lv1-saga-mini">Passiver Forschungsbonus: +'+Math.max(1,s.skillRank||1)*5+' ATK/DEF auf gewöhnliche Lv1-Monster. Lv1-Spezial-ACE Lumira behält ihre festen 111/111 Grundwerte.</p>'+
+    (s.skillRank<5?'<button type="button" class="btn primary" data-lv1-skill-upgrade>Forschung verbessern · '+(120+180*Math.max(1,s.skillRank||1))+' Münzen</button>':'<p class="lv1-saga-mini">Maximaler Forschungsrang erreicht.</p>'):
+   '<div class="lv1-perk-label">✦ Ein einzigartiger Skill und geheimnisvolle Belohnungen erwarten dich.</div>')+
    (s.stage?'<p class="lv1-saga-mini">Gesammelte Lv1-Kartenarten: '+fraction().n+' / '+fraction().total+'</p>':'')+'</section>';
  }
  renderMenu=function(){
@@ -448,9 +513,18 @@
   const host=$('menuContent');if(host&&!host.querySelector('#lv1Saga'))host.insertAdjacentHTML('afterbegin',panel());
  };
  $('menuContent')?.addEventListener('click',e=>{
+  const upgrade=e.target.closest('[data-lv1-skill-upgrade]');
+  if(upgrade){
+   const current=state(),rank=current.skillRank||1,cost=120+180*rank;
+   if(!current.perk||rank>=5||storageConflict)return;
+   if(profile.coins<cost){toast('Für die nächste Forschungsstufe fehlen Münzen.');return;}
+   profile.coins-=cost;current.skillRank=rank+1;
+   saveProfile();renderMenu();toast('Verbotene Forschung auf Rang '+current.skillRank+' verbessert.');
+   return;
+  }
   const b=e.target.closest('[data-lv1-stage]');if(!b)return;
-  const stage=Number(b.dataset.lv1Stage);startDuel('pve',1,'lv1-saga','easy',stage);
+  const stage=b.dataset.lv1Stage==='prologue'?'prologue':Number(b.dataset.lv1Stage);startDuel('pve',1,'lv1-saga','easy',stage);
  });
- window.ArcaneLv1Saga=Object.freeze({version:'4.6.0',stories:STORIES,objectives:OBJECTIVES,aceScenes:ACE_SCENES,deckProfiles:DECK_PROFILES,corruptedId:CORRUPTED_ID,fanaticDeck,flushFanaticDialogue,mastered,state,maybeOffer,fraction,forced,forty,loanFusion});
+ window.ArcaneLv1Saga=Object.freeze({version:'5.5.1',stories:STORIES,objectives:OBJECTIVES,aceScenes:ACE_SCENES,deckProfiles:DECK_PROFILES,corruptedId:CORRUPTED_ID,fanaticDeck,flushFanaticDialogue,mastered,state,maybeOffer,fraction,forced,forty,loanFusion});
  if(uiMode==='menu')renderMenu();
 })();

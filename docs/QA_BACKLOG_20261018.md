@@ -71,3 +71,20 @@
 - QA-Werteparität: automatischer Test für gewöhnliche RPG-Monster mit mehreren Upgrade-/Rollen-Spezialisierungen zeigt Deck-Startwerte identisch mit unbeschädigten Startwerten frisch erzeugter Duellkarten. **Weiter offen:** Abweichungen nach Zerfall, Spezialfähigkeiten, Fusionsrunden und Überladung; erst nach reproduziertem Gegenbeispiel spielmechanisch ändern.
 
 **Nicht abgeschlossen:** Komplettes Redesign der Beschwörungsauswahl (nur erste CSS-Reparatur), neue Monsterartworks, Eiman-Deckgrafiken, individuell größere ACE-Rituale, dezidierte Tests sämtlicher Booster-/ACE-Layouts auf mobilen Geräten sowie Level-/DEF-abhängiger Balancezerfall (bewusst nicht ohne vorherige Tests geändert).
+
+## Nachtrag 19.10.2026 · Update 5.6
+- **B2 / E1 – technisch umgesetzt, visuelle Spielabnahme offen:** neue gegliederte Beschwörungszentrale statt überfülltem Fließtext; große Vorschau, Fusionsmaterial, Qualitätsinformation und Feldzone separat. Browser-Smoke einschließlich Fusionskino und Node-Tests grün. Noch echte Nutzerinteraktionen auf Handy und Desktop prüfen.
+- **Verteidiger-KI:** Die Heilreichweite von Wächtern beträgt jetzt exakt einen Feldplatz nach links oder rechts. Globale Wächterheilung war ein Balancefehler und wurde in Plan- und Aktionsprüfung korrigiert.
+- **C – weiterhin offen:** Drei Monsterillustrationen (Nebelkaiser, Leerenorakel, Runengeist der Schwelle) als externe Originalentwürfe erzeugt; **keines dieser Bilder ist bisher als lokale WebP-Kartengrafik integriert**. Kein C-Eintrag als abgeschlossen markieren.
+- **Regression:** Commit `f9bea3c` grün in Code-/Strategietests und Chrome-Smoke. `main` bleibt unangetastet.
+
+## Artwork: drei konkrete Quellen integriert (5.6)
+- [x] Nebelkaiser: echte individuelle hochformatige WebP-Illustration; im Schicksalszug und in Kartenansichten gleicher lokaler Pfad.
+- [x] Leerenorakel, Fusions-ACE-ID 322: neues eigenständiges WebP, Kollektion/Spiel-IDs bleiben erhalten.
+- [x] Runengeist der Schwelle, Fusions-ID 695: SVG durch echtes WebP ersetzt.
+- [ ] Weitere neun Schicksalsmonster als einzelne originäre WebP-Illustrationen erstellen und integrieren.
+- [ ] Visuelle Stil-/Crop-Abnahme aller drei neuen Motive, weitere fünf ursprüngliche QA-Artworkfälle (Eibenwächter usw.) offen.
+
+## 19.10.2026 · zehn Fate-Artworks integriert
+- [x] Die zehn Schicksalsmonster erhalten jeweils ein individuelles lokales WebP; `ArcaneFateVisuals.artFor()` und `dataOf(fate)` sowie das Fate-Kino greifen auf **dieselben** zehn Quellen zu. Mit Leerenorakel und Runengeist sind damit alle zwölf konkreten v5.5-Bildfälle als Dateien integriert.
+- [ ] Manueller visueller Crop und Stilvergleich auf Smartphone und Desktop. Die zusätzlichen fünf älteren QA-Artworks und Eiman-Deckgrafiken bleiben offen.

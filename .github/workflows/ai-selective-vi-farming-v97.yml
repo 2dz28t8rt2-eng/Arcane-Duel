@@ -1,0 +1,39 @@
+name: Arcane Duel - Selective Tier VI Farming v9.7
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-selective-vi-farming-v97.cjs'
+      - '.github/workflows/ai-selective-vi-farming-v97.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  matched-selective-vi-farm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax, legal deck and economy regression gate
+        run: |
+          node --check tests/ai-selective-vi-farming-v97.cjs
+          node --check tests/helpers/ai-pre-attack-v92.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/shard-rework-v77.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: Play 32 new real career triplets to VI on owned cards
+        env:
+          ARCANE_V97_CAREERS: '32'
+          ARCANE_V97_TIER_ATTEMPTS: '24'
+        run: node tests/ai-selective-vi-farming-v97.cjs
+      - name: AI, legality, save and fusion regression checks
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-decision-diagnostics-v62.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - name: Archive earned career progress and farming budgets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-selective-vi-farming-v97
+          path: artifacts/ai-selective-vi-farming-v97.json
+          if-no-files-found: warn
+          retention-days: 30

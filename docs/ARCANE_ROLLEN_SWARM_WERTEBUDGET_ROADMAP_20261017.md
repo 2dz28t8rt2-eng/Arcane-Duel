@@ -73,3 +73,36 @@ Rolle verteilt Grundwerte. Seltene und ACE-Karten erhalten weiterhin bewusst kle
 5. Weitere aktive Rollenfähigkeiten und gezielte Status-/Cooldown-Anzeigen je neuer Mechanik.
 
 Diese Punkte nacheinander abstimmen und implementieren; main bleibt bis zur Freigabe unverändert.
+
+
+---
+
+## Nachtrag 19. Oktober 2026 – KI-Lernstand v7.5 und nächste Prioritäten (aktiv als Plan, NICHT als KI-Buff)
+
+**Dauerhafte Detail-Roadmap:** [AI_TRAINING_ROADMAP_20261019.md](AI_TRAINING_ROADMAP_20261019.md)  
+**Letzte vollständig dokumentierte Trainingsreihe:** [v7.4–v7.5 echte Karriere & Balance](ai-v74-v75-real-career-balance-results.md).
+
+**Bestätigt:**
+- 16 neue echte Normalmonster-Level-7–10-Karten (IDs **716–731**) sind im `development`-Spielkatalog registriert; in getrennten künstlich zusammengestellten Testdecks nutzbar.
+- Der eingefrorene v7.3-Scorer `fusion-precision` verbesserte VIII auf konstruierten Testdecks unabhängig reproduziert um **101 Siege/448**, blieb aber **experimentell**.
+- Die 7.4-Karriere-Engine lieferte zwei legitim freigeschaltete VIII-Spielstände aus nur **einer** ursprünglichen Karriere. Beide enthielten trotz VII-Sieg **keine neuen Endgame-Monster** und im Hauptdeck **maximal normale Level-4-Karten**.
+- Auf diesen echten VIII-Inventaren gewann **bereits die bisherige VIII-KI 160/160**, die stärkere Test-KI ebenfalls 160/160. Ein KI-Buff wäre vor diesem Hintergrund ohne robuste Progressionsevidenz nicht gerechtfertigt.
+- X gewann den neu aufgesetzten echten Boss-Gegentest gegen stärkere konstruierte Endgame-Decks **448/448 sowohl vorher als auch nachher**. Das ist **Sättigung des verwendeten Testspielermodells** und kein Nachweis, dass menschliche Spieler die Karriere nicht schaffen. Ein separater historischer Test hatte vier von sechs Karrieren komplett erfolgreich simuliert.
+
+**Neue verbindliche Reihenfolge für KI-/Progressionsentwicklung:**
+1. **P0 – Erwerbs-/Inventar-/Decklogik untersuchen:** legal verfügbares ≠ tatsächlich durch Loot/Shop/Crafting erworbenes ≠ ausgerüstetes Material. Insbesondere neue Monster 716–731 und Autobuilder `equipBest` vergleichen; zunächst keine willkürlichen Drop- oder Kampfwertaenderungen.
+2. **P1 – Karriere-Testspieler aufwerten:** ökonomisch sinnvolle Ressourceninvestition, reale 40-Karten- und Fusionsdecks, Predator/Wächter/Seelenzehrer/Allrounder sowie echte Fusionsentscheidungen; ausschließlich gespeicherte, rechtmäßig verdiente Karten.
+3. **P2 – unabhängige Karrieren messen:** mindestens 12 voneinander verschiedene Startseeds als erste Stichprobe, alle IV–X-Spikes und reale Stufenfreischaltungen; Training und Holdout getrennt. Mehrfachduelle desselben Inventars gelten nicht als unabhängige Karrieren.
+4. **P3 – umfangreiche Levelreform NUR nach Designentscheidung:** das bereits vorliegende [Progressionskonzept](progression-rework-design-20261019.md) (Basiskarten Lv1–5, effektive Levels bis 10) bleibt **nicht aktiviert**; Frage globaler Aufstieg versus individuelle Familien-XP und vollständige Spielstandmigration vor Implementierung klären.
+5. **P4 – Gegner VIII/X feintrainieren:** Erst wenn echte Inventare faire, aussagekräftige Vergleiche ermöglichen; starke VIII-KI darf nicht die zuvor mögliche Karriereprogression zerstören.
+
+**Unverändert:** Die aktuell spielbare Gegner-KI lernt nicht autonom aus Live-Duellen; aktive Gewichte sind unverändert. Experimentelle Scorer werden nicht automatisch übernommen. `main` bleibt ohne Nutzerfreigabe unangetastet.
+
+**Konkreter nächster Schritt:** `v7.6 – Real-inventory progression & deckbuilding audit`; messbarer Erwerb/Ausrüstung und drei legale Spieler-Deckbuilder gegen bestehende Strategien vergleichen, bevor Drop-/Level-/KI-Balance angepasst wird. 
+
+
+### Nachtrag v7.6 – Startmonster-Skill in Kartensammlungs-Perk verwandelt
+
+Auf `development` **technisch geändert, finale Karriereregression noch offen**: `Grundausbildung` (+35 ATK/DEF je Rang ausschließlich auf 20 Startmonster) heißt jetzt **Kartenspürsinn**. Interne Save-ID `upgrades.starter` und max. acht zuvor erworbene Ränge bleiben identisch. Pro Rang −5 Prozentpunkte Startkarten-Wahrscheinlichkeit in Boostern, stattdessen reguläre Monster aus bereits legal freigeschalteten Pools; Fusions-/ACE-Wahrscheinlichkeiten und Kartenanzahl unverändert. Rechnerisch im 5er-Paket: statt 4,0 Startkarten im Erwartungswert nur 2,0 bei acht Rängen. Kampfwerte der Startmonster erhalten keinen gesonderten Flat-Buff mehr.
+
+**Offenes Freigabegate:** Wegfall früher Startmonster-Stats kann I–IV-Karrieren verschlechtern; `tests/perk-card-sense-v76.test.cjs` überprüft Spielstände/Shop-Regeln, unabhängige komplette Karrieren sind zur Freigabe erforderlich. Keine automatisch aktivierte VIII-/X-KI und keine Änderung an `main`. Die übrigen Skills und neue Splitter-Sinks bleiben Entwürfe in [PROGRESSION_SHARDS_SKILLS_REVAMP_V76.md](PROGRESSION_SHARDS_SKILLS_REVAMP_V76.md).

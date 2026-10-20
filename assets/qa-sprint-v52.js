@@ -26,11 +26,12 @@
   if(isResearch(g))return false;
   return priorFate(g,id);
  };
- // In the research story, Lumira must remain a genuine card. Never use her as
- // a fusion ingredient, including the old Chapter V "Lumira's Fall" recipe.
+ // Lumira is protected from being consumed in research chapters I-IV.
+ // Chapter V MUST allow the dedicated Lumira's Fall hand-fusion ritual.
  const priorChoice=chooseAiAction;
  chooseAiAction=function(g,policy='balanced'){
   if(!isResearch(g)||g.active!==1||g.winner!==null)return priorChoice(g,policy);
+  if(g.lv1Saga?.stage===5)return priorChoice(g,policy);
   const foe=g.players[1],ace=lumiraId(),lumira=foe.hand.find(c=>c.id===ace);
   if(!g.pending&&!g.summoned&&lumira&&foe.field.some(c=>!c))
    return {type:'normal',uid:lumira.uid};
@@ -73,7 +74,7 @@
   g.pending=null;g.summoned=true;g.aiPhase='positions';
   return true;
  };
- // Extra guard for old/saved pending fusions: chosen Lumira is never consumed.
+ // Earlier chapters protect Lumira; in chapter V she must be fusion material.
  const priorPlace=placePending;
  placePending=function(g,idx,...args){
   if(isResearch(g)&&g.active===1&&g.players[1].field[idx]?.id===lumiraId())return null;
@@ -82,10 +83,10 @@
    requestAnimationFrame(()=>requestAnimationFrame(()=>aceAwakening(g,result.card)));
   return result;
  };
- // Counter the special case where old NPC logic still tries a scripted final fusion.
+ // Keep chapters I-IV safe without blocking the mandatory finale hand fusion.
  const priorPrepare=prepareHandFusion;
  prepareHandFusion=function(g,uids,...args){
-  if(isResearch(g)&&g.active===1&&uids?.some(uid=>
+  if(isResearch(g)&&g.active===1&&g.lv1Saga?.stage!==5&&uids?.some(uid=>
     g.players[1].hand.some(c=>c.uid===uid&&c.id===lumiraId())))return false;
   return priorPrepare(g,uids,...args);
  };

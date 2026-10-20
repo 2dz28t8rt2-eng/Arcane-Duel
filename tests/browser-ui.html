@@ -37,7 +37,7 @@ iframe.addEventListener('load',async()=>{
   d.getElementById('guideClose')?.click();
   expect(d.getElementById('modal')?.textContent.includes('Duellantenhandbuch gespeichert'),'Guide explains later Lexicon access');
   d.getElementById('helpDismiss')?.click();
-  w.eval('profile.trainingWins=3;profile.cleared=[1];profile.dropCharges=2;profile.coins=999999;menuTab="free";saveProfile();renderMenu()');
+  w.eval('profile.trainingWins=3;profile.cleared=[1];profile.dropCharges=2;profile.coins=999999;profile.boosterSeals=999999;menuTab="free";saveProfile();renderMenu()');
   expect(d.querySelector('[data-action="quick-pack"][data-id="1"]')!==null,'Free duel has direct character-pack button');
   const button=d.getElementById('hudDropToggle');
   expect(button!==null,'HUD drop charge toggle present');
@@ -59,11 +59,11 @@ iframe.addEventListener('load',async()=>{
   d.getElementById('helpDismiss')?.click();
   w.eval('menuTab="shop";renderMenu()');
   const fusionPack=d.querySelector('[data-action="fusion-pack"]');
-  expect(!!fusionPack&&!fusionPack.disabled,'Guaranteed fusion booster available after first tournament win');
+  expect(!!fusionPack&&!fusionPack.disabled,'1-card fusion booster available with earned-tier unlocks and booster seals');
   const inventoryBefore=w.eval('Object.values(profile.inventory).reduce((a,b)=>a+b,0)');
   fusionPack?.click();
   const inventoryAfter=w.eval('Object.values(profile.inventory).reduce((a,b)=>a+b,0)');
-  expect(inventoryAfter===inventoryBefore+1,'Fusion booster actually grants exactly one card');
+  expect(inventoryAfter===inventoryBefore+1,'1-card fusion booster grants one real fusion reward');
   d.getElementById('helpDismiss')?.click();
   w.eval('menuTab="collection";renderMenu()');
   expect(d.querySelector('#cardSearch')!==null&&d.querySelectorAll('.collection-item').length>0,'Main deck has usable filter toolbar');

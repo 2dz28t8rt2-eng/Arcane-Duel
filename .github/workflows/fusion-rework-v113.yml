@@ -1,0 +1,53 @@
+name: Arcane Duel - v11.3 Fusion Rework QA
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/fusion-rework-v113.js'
+      - 'assets/fusion-tutorial-v113.js'
+      - 'assets/fusion-tutorial-v113.css'
+      - 'assets/attack-impact-v113.js'
+      - 'assets/attack-impact-v113.css'
+      - 'tests/fusion-rework-v113.test.cjs'
+      - 'tests/browser-fusion-tutorial-v113.html'
+      - 'tests/fusion-save-stress-v113.test.cjs'
+      - 'index.html'
+      - '.github/workflows/fusion-rework-v113.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fusion-rework-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate updated runtime JavaScript
+        run: |
+          node --check assets/fusion-rework-v113.js
+          node --check tests/fusion-rework-v113.test.cjs
+          if test -f assets/fusion-tutorial-v113.js; then node --check assets/fusion-tutorial-v113.js; fi
+          if test -f assets/attack-impact-v113.js; then node --check assets/attack-impact-v113.js; fi
+      - name: Regression matrix - fusion levels, poker, roles, save, UI and AI
+        run: |
+          node --test tests/fusion-save-stress-v113.test.cjs tests/fusion-rework-v113.test.cjs tests/player-feedback-v112.test.cjs tests/qa-user-demo-20261019.test.cjs tests/qa-charged-field-fusion-matches.cjs tests/ai-fusion-choice-v61.test.cjs tests/balance-economy-v109.test.cjs tests/summon-stage-v56.test.cjs
+      - name: Verify desktop and mobile fusion core picker / why-level helper in Chrome
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          if [ -z "$CHROME" ]; then echo 'Browser unavailable' >&2; exit 1; fi
+          python3 -m http.server 8763 --bind 127.0.0.1 >/tmp/arcane-v113-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          for n in $(seq 1 40); do curl -fsS http://127.0.0.1:8763/index.html >/dev/null && break || sleep .2; done
+          for width in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=14000 --window-size="$width,980" --dump-dom http://127.0.0.1:8763/tests/browser-fusion-tutorial-v113.html >"/tmp/fusion-113-$width.html" 2>/tmp/fusion-113-chrome.log
+            if ! grep -q 'data-fusion113="pass"' "/tmp/fusion-113-$width.html"; then
+              grep -o 'FAIL [^<]*' "/tmp/fusion-113-$width.html" | head -20 || true
+              tail -30 /tmp/fusion-113-chrome.log || true
+              exit 1
+            fi
+          done

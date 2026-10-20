@@ -1,0 +1,28 @@
+.ad53-role-help{margin-top:10px;padding:10px 12px;border:1px solid #b6a071a8;border-radius:11px;background:linear-gradient(140deg,#17273a,#231e35);color:#dbd5e6;font-size:12px;line-height:1.6}
+.ad53-role-help h4{margin:0 0 7px;color:#f7da9c;font-size:13px;letter-spacing:.04em}
+.ad53-role-help p{margin:6px 0}
+#ad53CancelAttack{border-color:#b8a5a5;color:#f3d5d5;background:#2a2134;}
+
+/* Fate ritual: a calmer but more physical metallic foil and staggered reveal.
+   These effects are independent of future replacement portrait assets. */
+.ad-fate-persistent .fate-reveal-front{overflow:hidden;isolation:isolate;
+ background:radial-gradient(ellipse at 32% 10%,#40375f 0%,#111324 65%,#080c17 100%);
+ border:2px solid #e7c780;
+ box-shadow:0 0 0 1px #fff6c966,inset 0 0 26px #d3a9fc40,0 0 28px #e9cf8c5f;
+ animation:adFateEdge 4.5s ease-in-out 1.4s infinite alternate}
+.ad-fate-persistent .fate-reveal-front::after{content:"";position:absolute;z-index:4;inset:-30%;pointer-events:none;
+ background:linear-gradient(115deg,transparent 30%,#fff2b605 40%,#fff0bd94 49%,#fffce62e 51%,transparent 65%);
+ mix-blend-mode:screen;transform:translateX(-125%) rotate(8deg);
+ animation:adFateFoil 5.7s cubic-bezier(.2,.6,.2,1) 2.2s infinite}
+.ad-fate-persistent .fate-reveal-front img{border-radius:5px;border:1px solid #fce4a19a;
+ box-shadow:inset 0 0 16px #b8a0f5,0 0 8px #d9be8280;filter:saturate(1.12) contrast(1.07)}
+.ad-fate-persistent .fate-reveal-front b{position:relative;z-index:5;color:#fff1c6;
+ text-shadow:0 0 7px #fae5c28c,0 0 16px #d6bcec}
+.ad-fate-persistent .fate-cinema-aura{animation-duration:16s}
+.ad-fate-persistent .fate-reveal{filter:drop-shadow(0 2px 14px #ad80c4a8)}
+@keyframes adFateFoil{0%,12%{transform:translateX(-115%) rotate(8deg);opacity:0}
+ 27%{opacity:.94}58%{opacity:.7}74%,100%{transform:translateX(115%) rotate(8deg);opacity:0}}
+@keyframes adFateEdge{from{box-shadow:0 0 0 1px #fff5b041,inset 0 0 19px #bda6f028,0 0 17px #f6d8a148}
+ to{box-shadow:0 0 0 1px #fff5b0ad,inset 0 0 34px #bda6f055,0 0 34px #f6d8a182}}
+@media(prefers-reduced-motion:reduce){.ad-fate-persistent .fate-reveal-front,
+ .ad-fate-persistent .fate-reveal-front::after,.ad-fate-persistent .fate-cinema-aura{animation:none!important}}

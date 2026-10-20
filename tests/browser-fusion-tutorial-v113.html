@@ -1,0 +1,31 @@
+<!doctype html><html lang="de"><meta charset="utf-8"><title>Arcane Duel v11.3 – Kernkarten und Fusionshilfe</title>
+<style>body{font:14px system-ui;background:#111827;color:#edf0fa;margin:14px}iframe{width:100%;height:900px}pre{white-space:pre-wrap}</style>
+<h1>Fusions-Rework v11.3 · Kernkarte, Hilfe und Lexikon</h1><pre id="result">Prüfung läuft ...</pre><iframe id="app" src="../index.html" title="Arcane Duel"></iframe>
+<script>
+const frame=document.getElementById('app'),out=document.getElementById('result');
+frame.addEventListener('load',async()=>{
+ const d=frame.contentDocument,w=frame.contentWindow,log=[];let passed=true;
+ const check=(ok,label)=>{log.push((ok?'OK ':'FAIL ')+label);if(!ok)passed=false;out.textContent=log.join('\n');};
+ try {
+  w.eval('profile=freshProfile();profile.guideSeen=true;profile.trainingWins=3;hideModal();busy=false;aiRunning=false;game=createGame({mode:"pve",context:"free",opponentId:3,seed:113313});game.active=0;game.turn=3;game.summoned=false;uiMode="duel";const c6=RPG_BASE_CARDS.find(c=>c.level===6&&!c.fusionOnly&&!c.retired),c5=RPG_BASE_CARDS.find(c=>c.level===5&&!c.fusionOnly&&!c.retired);game.players[0].hand=[newInstance(game,c6.id,0),newInstance(game,c5.id,0)];game.materials=game.players[0].hand.map(x=>x.uid);$("menuScreen").hidden=true;$("duelScreen").hidden=false;render();');
+  const stage=d.getElementById('summonStage');
+  check(stage.querySelectorAll('[data-ad113-core]').length===2,'Zwei Materialien lassen sich jeweils als Kernkarte auswählen');
+  check(stage.textContent.includes('FUSION: bis')&&stage.textContent.includes('LV 8'),'Die gemeinsame Fusionsformel zeigt für 6+5 Level 8');
+  const items=[...stage.querySelectorAll('[data-ad113-core]')];
+  const selectedId=Number(items[1].dataset.ad113Core);
+  items[1].click();
+  check(w.eval('game.arcaneFusionCoreUid')===selectedId,'Kernkarte wird durch echten Browserklick umgestellt');
+  check(d.querySelector('#summonStage .ad113-prediction')?.textContent.includes('LV'),'Beschwörungszentrale zeigt die neue Berechnung nach Auswahl');
+  d.querySelector('[data-ad113-explain]')?.click();
+  const modal=d.getElementById('modal');
+  check(modal.textContent.includes('WARUM DIESE FUSIONSSTUFE')&&modal.textContent.includes('Was fehlt'),'Hilfeknopf erklärt aktuelle Fusion und nächste Stufe');
+  check(w.eval('game.players[0].hand.length')===2,'Die Erklärung verbraucht keine Karten');
+  d.getElementById('ad113ExplainClose')?.click();
+  w.eval('showRules()');
+  const handbook=d.querySelector('.ad113-handbook');
+  check(!!handbook&&handbook.textContent.includes('Gigantische Straße')&&handbook.textContent.includes('35 %'),'Einsteiger-Lexikon erklärt Pokerstraßen und Vererbung');
+  check(d.querySelectorAll('.arcane-rule-chapter').length===14,'Ursprüngliche 14 Hauptkapitel und Navigation bleiben erhalten');
+ }catch(error){check(false,String(error.stack||error));}
+ document.body.dataset.fusion113=passed?'pass':'fail';
+});
+</script></html>

@@ -1,0 +1,36 @@
+name: Arcane Duel – New Endgame AI Training v7.2
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/helpers/lategame-ai-decks-v72.cjs'
+      - 'tests/ai-new-lategame-training-v72.cjs'
+      - '.github/workflows/ai-new-lategame-training-v72.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  train-16-new-card-boss-policies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate test implementation and imported 16-game-card sources
+        run: |
+          node --check tests/helpers/lategame-ai-decks-v72.cjs
+          node --check tests/ai-new-lategame-training-v72.cjs
+          node --test tests/lategame-monsters-v71.test.cjs tests/lategame-art-render-v71.test.cjs
+      - name: Train separate AI candidates with old vs new L7-L10 card decks
+        env:
+          ARCANE_NEW_LATE_HOLDOUT_SEEDS: '2'
+        run: node tests/ai-new-lategame-training-v72.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-16-lategame-ai-training-v72
+          path: artifacts/ai-new-16-lategame-training-v72.json
+          if-no-files-found: warn
+          retention-days: 30
