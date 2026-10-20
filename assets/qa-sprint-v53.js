@@ -45,7 +45,7 @@
    return oldOwn(idx,choice);
   }
   if(g.pending&&target&&g.mode==='pve'&&choice===undefined){
-   const levels=[...g.pending.levels,dataOf(target).level];
+   const levels=[dataOf(g.pending.card).level,dataOf(target).level];
    const opts=fusionOptions(g,levels,[g.pending.card,target]);
    if(!opts.length){toast(fusionFailureReason(g,levels));return;}
   }
