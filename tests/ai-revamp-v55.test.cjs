@@ -2,10 +2,10 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {boot}=require('./helpers/game-runtime.cjs');
 const audit=code=>boot({seed:19019}).run(code);
-test('all ten tournament opponents follow the intended strategy rotation',()=>{
+test('all ten tournament opponents follow their planned identities, including VII Guardian',()=>{
  const rows=audit('Array.from({length:10},(_,i)=>({tier:i+1,...ArcaneAiRevamp55.profileFor(i+1)}))');
  assert.deepEqual(rows.map(x=>x.style),
-  ['attack','defense','fusion','attack','defense','fusion','attack','defense','fusion','hybrid']);
+  ['attack','defense','fusion','attack','defense','fusion','defense','defense','fusion','hybrid']);
  assert.deepEqual(rows.map(x=>x.difficulty),
   ['leicht','leicht','leicht','mittel','mittel','mittel','schwer','schwer','schwer','finale']);
 });
