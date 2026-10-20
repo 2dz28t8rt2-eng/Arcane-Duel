@@ -1,0 +1,648 @@
+/* Arcane Duel v10.4 - earn independent tournament IV inventory sources for matched deckbuilder tests.
+ * No invented owned cards: play real training, tournament and farming games;
+ * settle original rewardMatch, choose milestone prizes, buy affordable packs,
+ * equip cards already present in actual profile.inventory.
+ * Stop at unsolved tournament tier rather than gifting progress.
+ */
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const {boot}=require('./helpers/game-runtime.cjs');
+const {soulBridgeCode}=require('./helpers/earned-soul-bridge-v67.cjs');
+const {summonPolicySource}=require('./helpers/ai-pre-attack-v92.cjs');
+const careers=Number(process.env.ARCANE_V108_CAREERS||32);
+const limit=Number(process.env.ARCANE_V108_TIER_ATTEMPTS||24);
+if(!Number.isInteger(careers)||careers<1||careers>40||
+ !Number.isInteger(limit)||limit<3||limit>30)throw Error('Invalid bounded career audit settings');
+// Fresh isolated VM per arm, so identical paid resources and PRNG seeds
+// yield a genuine paired progression comparison.
+const choices=['balanced','offensive','guardian','economy','balanced','guardian','offensive','economy'];
+const arms=['fixed-farm','tier-progressive'];
+const careerSeedOffset=100000;
+const results=[];
+for(let run=0;run<careers;run++)for(const treatment of arms){
+ const vm=boot({seed:670127+(careerSeedOffset+run)*317});
+ const policy=choices[run%choices.length],plan=['investment','specialize','farm','hybrid'][run%4];
+ const expr=`(()=>{
+  profile=freshProfile();profile.guideSeen=true;profile.showcase.pending=false;
+  const seed=${64127+(careerSeedOffset+run)*9301},policy='${policy}',plan='${plan}',
+   strategy='late-shard',treatment='${treatment}',
+   maxAttempts=${limit},snapshots=[],events=[];
+  let serial=0,rewarded=0,training=0,farms=0,tournaments=0,boosters=0,
+   bridgeRebuilds=0,bridgeMains=0,bridgeFusions=0,
+   earlyBridgeCalls=0,earlyBridgeChanges=0,earlyBridgeMainChanges=0,earlyBridgeFusionChanges=0,
+   shardCrafts=0,shardResearches=0,shardRerolls=0,shardsSpent=0,lastPurchaseTier=-1,purchasesOnTier=0,
+   losses=0,winCount=0,packChoice=0,milestones=0,crafts=0,upgrades=0,
+   buysAttempted=0,farmsSinceTier=0,adaptiveBatches=0,adaptiveFarmMatches=0,
+   adaptiveFarmWins=0,streak=0,beforeFirstTierBossFarms=0,
+   farmMatchesByTier={},farmXpByTier={},farmLootByTier={},tierAttempts={},
+   tierWinAtAttempt={},tierFarmDecisions=[],yieldSkipped=0,measuredBatches=0,
+   yieldUseful=0,yieldWeak=0,actualFarmXp=0,actualFarmLoot=0,
+   lastFarmWeak=false,roiLastBatch=0,viPhaseMatches=0,bossTierInProgress=0,
+   meaningfulDeckWaves=0,weakQualityWaves=0,qualityGainTotal=0,legitFusionGainTotal=0,
+   hybridQualityBatches=0,hybridIntenseBatches=0,hybridCrossed45=false,
+   recentViHands=[],viRealHandChecks=0,viFusionReadyChecks=0,
+   viPlayableChoices=0,viMaxFusionLevel=0,viZeroChoiceHands=0,
+   readinessFarmWaves=0,readinessRetrySkippedWaves=0,readinessCheckTrace=[],
+   realVIHandFusions=0,realVIFieldFusions=0,realVIPlacedFusions=0,
+   realVIFusionMaterialCount=0,realVIFusionAtkSum=0,realVIFusionDefSum=0,
+   realVIWallBreaks=0,realVIAttackDamage=0,realVIKills=0,
+   impactSmallWaves=0,impactIntensiveWaves=0,recentVICombat=[],
+    uidFusionInstances=0,uidFusionAttacks=0,uidFusionDamage=0,
+    uidFusionKills=0,uidFusionTurns=0,uidFusionMaterials=0;
+  const controller={summonObservations:0,normalOffered:0,legalFusionOffers:0,
+   fusionAvailableTurns:0,freeSlotObservations:0,fullBoardObservations:0,
+   noNormalHand:0,enemyAheadAtSummon:0,attackerOnBoardAtSummon:0,
+   policyNormalChoices:0,policyFusionChoices:0,fusionMaterialsChosen:0,
+   fusionTargetAtkSum:0,attacks:0,damageNpc:0};
+  const shopBudget=plan==='farm'?8:plan==='specialize'?12:plan==='hybrid'?12:14;
+  const farmAfter=plan==='farm'?5:plan==='hybrid'?4:plan==='specialize'?3:2;
+  const validDeck=(p)=>!mainDeckError(p.activeDeck)&&!fusionDeckError(p.fusionDeck);
+  function settle(){
+   for(let loops=0;loops<15&&profile.rewardQueue.length;loops++){
+    const q=profile.rewardQueue[0];
+    const option=q.cards?.length?[...q.cards].sort((a,b)=>
+     (CARDS[b].atk+CARDS[b].def)-(CARDS[a].atk+CARDS[a].def))[0]:null;
+    if(!finishMilestone(q.kind==='choice'?option:undefined))
+     throw Error('Actual milestone reward could not be settled');
+    milestones++;
+   }
+   if(profile.rewardQueue.length)throw Error('Pending milestone queue remains');
+  }
+  function prepare(allowPurchase=true){
+   settle();
+   for(let source=0;source<=Math.max(0,...profile.cleared);source++){
+    if(profile.packs[packKey(source,'easy')]>0&&openCharacterPack(source,'easy')){
+     const c=[...profile.openPack.cards],best=c.map((id,i)=>({id,i})).sort((a,b)=>
+      (CARDS[b.id].atk+CARDS[b.id].def)-(CARDS[a.id].atk+CARDS[a.id].def))[0];
+     if(best&&takePackCard(best.i)){packChoice++;closeCharacterPack();}
+    }
+   }
+   if(allowPurchase){
+    const tier=highestCleared();
+    // All investments call the actual economy operations and pay their
+    // ordinary costs: no direct inventory/coins/upgrades assignment.
+    if((plan==='specialize'||plan==='hybrid')&&upgrades<8){
+     const order=policy==='offensive'?['jagdinstinkt','power','starter','learning']:
+      policy==='guardian'?['schildwall','power','starter','learning']:
+      ['power','starter','learning','jagdinstinkt'];
+     const available=order.find(k=>UPGRADES[k]&&
+      profile.upgrades[k]<UPGRADES[k].max&&
+      profile.coins>=upgradeCost(k)+(tier>=4?75:110));
+     if(available&&buyUpgrade(available)){upgrades++;buysAttempted++;}
+    }
+    if((plan==='farm'||plan==='specialize'||plan==='hybrid')&&crafts<10&&
+     sharedShards()>=SHARD_CRAFT_COST){
+     const pool=CARDS.filter(c=>c.rpg&&!c.retired&&!c.hard&&
+      !c.workshopOnly&&!c.ace&&!c.essenceMonster&&
+      c.source>=0&&c.source<=tier&&c.level<=10&&
+      cardAvailable(c.id)&&profile.coins>=cardCost(c.id)+(tier>=4?60:120))
+      .sort((a,b)=>b.level-a.level||
+       (b.atk+b.def)-(a.atk+a.def));
+     if(pool.length&&craftCard(pool[0].id)){crafts++;buysAttempted++;}
+    }
+    const count=plan==='investment'?5:plan==='farm'?3:5;
+    if(boosters<shopBudget&&profile.coins>=boosterPrice(tier,count)+90){
+     if(buyBooster(count)){boosters++;buysAttempted++;}
+    }
+   }
+
+   // v8.0: compare early after-II and late after-IV legitimate shard investment.
+   // Every new card comes from craftCard, research choice or paid receipt reroll.
+   // Never mutate inventory/shards, enemy unlocks, ACEs or Essence directly.
+   if((strategy==='late-shard'&&highestCleared()>=4)||
+      (strategy!=='late-shard'&&highestCleared()>=2)){
+    const beforeShards=sharedShards();
+    if(shardCrafts<10){
+     const pool=CARDS.filter(c=>c&&c.rpg&&!c.retired&&
+      !c.fusionOnly&&!c.ace&&!c.essenceMonster&&!c.enemyOnly&&
+      !c.questOnly&&!c.lv1Exclusive&&!c.fateOnly&&
+      !c.milestoneOnly&&!c.workshopOnly&&!c.trainingReward&&!c.hard&&
+      cardAvailable(c.id)&&sharedShards()>=cardCraftShardCost(c.id)+(["reserve-shard","reserve-no-reroll-shard","reserve-no-reroll-early-bridge-shard"].includes(strategy)?20:0))
+      .sort((a,b)=>b.level-a.level||
+       (b.atk+b.def)-(a.atk+a.def));
+     // A cap of 3 owned copies avoids buying arbitrarily deep duplicates.
+     const score=id=>{const c=CARDS[id];return (c.atk+c.def)/2+c.level*250+
+       (policy==='guardian'&&(c.role==='guardian'||c.role==='soul')?120:0)+
+       (policy==='offensive'&&c.role==='predator'?120:0);};
+     const deckScore=ids=>ids.reduce((sum,id)=>sum+score(id),0);
+     const oldScore=deckScore(profile.activeDeck);
+     const best=pool.filter(c=>(profile.inventory[c.id]||0)<3).find(c=>{
+      if(true)return true; // v8.3 fixes the v8.2 early purchase policy across all arms.
+      const owned={...profile.inventory,[c.id]:(profile.inventory[c.id]||0)+1};
+      const preview=strongestMainDeck([...new Set([...profile.unlocked,c.id])],
+        profile.enhancements,owned);
+      const actuallyEquipped=preview.filter(id=>id===c.id).length>
+        profile.activeDeck.filter(id=>id===c.id).length;
+      return actuallyEquipped&&deckScore(preview)-oldScore>=
+        (highestCleared()<4?180:140);
+     });
+     if(best&&craftCard(best.id))shardCrafts++;
+    }
+    if(shardResearches<5&&sharedShards()>=SHARD_RESEARCH_COST+(["reserve-shard","reserve-no-reroll-shard","reserve-no-reroll-early-bridge-shard"].includes(strategy)?20:0)){
+     const roles=SHARD_RESEARCH_ROLES.map(role=>({role,pool:shardResearchPool(role)}))
+      .filter(x=>x.pool.length>=3).sort((a,b)=>
+       Math.max(...b.pool.map(c=>c.level*1000+c.atk+c.def))-
+       Math.max(...a.pool.map(c=>c.level*1000+c.atk+c.def)));
+     if(roles.length&&beginShardResearch(roles[0].role)){
+      const chosen=profile.shardResearch.offers.map((id,i)=>({id,i}))
+       .sort((a,b)=>(CARDS[b.id].level*1000+CARDS[b.id].atk+CARDS[b.id].def)-
+          (CARDS[a.id].level*1000+CARDS[a.id].atk+CARDS[a.id].def))[0];
+      if(!chosen||takeShardResearchCard(chosen.i)!==chosen.id)
+       throw Error('Paid shard research failed in v7.9 career');
+      shardResearches++;
+     }
+    }
+    if(!["no-reroll-shard","reserve-no-reroll-shard","reserve-no-reroll-early-bridge-shard"].includes(strategy)&&shardRerolls<5&&profile.lastBooster&&
+       !profile.lastBooster.rerolled&&sharedShards()>=SHARD_REROLL_COST+(["reserve-shard","reserve-no-reroll-shard","reserve-no-reroll-early-bridge-shard"].includes(strategy)?20:0)){
+     const index=profile.lastBooster.cards.findIndex(id=>
+      DEFAULT_DECK.includes(id)&&(profile.inventory[id]||0)>
+       Math.max(1,reservedCopies(id))&&!profile.favorites.includes(id));
+     if(index>=0&&rerollBoosterStarter(index)!==false)shardRerolls++;
+    }
+    if(sharedShards()>beforeShards)throw Error('Shard purchases minted resources');
+    shardsSpent+=beforeShards-sharedShards();
+   }
+   const oldMain=[...profile.activeDeck],oldFusion=[...profile.fusionDeck];
+   equipBest();
+   // Isolated treatment: bring the *existing*, legal soul-bridge builder
+   // forward to after II, without altering the live AI or fusion rules.
+   const alreadyCleared=highestCleared();
+   const bridgeBeforeIV=alreadyCleared>=2&&alreadyCleared<4&&
+     ["early-bridge-shard","reserve-no-reroll-early-bridge-shard"].includes(strategy);
+   if(alreadyCleared>=4||bridgeBeforeIV){
+    const bridge=(function(){${soulBridgeCode}})();
+    bridgeRebuilds+=Number(bridge.changed);
+    bridgeMains+=Number(bridge.mainChanged);
+    bridgeFusions+=Number(bridge.fusionChanged);
+    if(bridgeBeforeIV){
+     earlyBridgeCalls++;
+     earlyBridgeChanges+=Number(bridge.changed);
+     earlyBridgeMainChanges+=Number(bridge.mainChanged);
+     earlyBridgeFusionChanges+=Number(bridge.fusionChanged);
+    }
+   }
+   if(!validDeck(profile)){
+    profile.activeDeck=oldMain;profile.fusionDeck=oldFusion;
+    if(!validDeck(profile))throw Error('Actual inventory produces illegal deck');
+   }
+  }
+  function duel(tier,context){
+   if(bossTierInProgress===6&&((context==='tournament'&&tier===6)||
+      (context==='free'&&tier===5))){
+    if(viPhaseMatches>=75)throw Error('VI budget crossed');
+    viPhaseMatches++;
+   }
+   const id='real-career-v64-'+seed+'-'+(++serial);
+   const g=createGame({id,mode:'pve',context,opponentId:tier,
+    seed:(seed*179+serial*3307+tier*1021)>>>0||1,
+    starter:serial%2,deck:[...profile.activeDeck],
+    fusionDeck:[...profile.fusionDeck],enhancements:profile.enhancements,
+    difficulty:'easy'});
+   const initialChoose=chooseAiAction,initialApply=applyAiAction;
+   const isVIPhase=bossTierInProgress===6&&((context==='tournament'&&tier===6)||
+    (context==='free'&&tier===5));
+   const inspectedTurns=new Set();
+   const handMeasure={observations:0,playableTurns:0,options:0,maxLvl:0,zeroChoices:0};
+   function inspectLegalOwnFusions(game){
+    const p=game.players[0],cards=p.hand.filter(c=>!isFateCard(c));
+    const cap=Math.min(5,cards.length);
+    const choices=new Set();let legalCombos=0;
+    for(let mask=0;mask<(1<<cap);mask++){
+     const material=[];
+     for(let i=0;i<cap;i++)if(mask&(1<<i))material.push(cards[i]);
+     if(material.length<2||material.length>5)continue;
+     const levels=material.map(c=>dataOf(c).level);
+     const valid=fusionOptions(game,levels,material).filter(c=>
+      canCompleteHandFusion(game,levels,c.id));
+     if(valid.length){legalCombos++;for(const c of valid)choices.add(c.id);}
+    }
+    const highest=Math.max(0,...[...choices].map(id=>CARDS[id]?.level||0));
+    return {legalCombos,optionCount:choices.size,highest};
+   }
+   if(['fixed-farm','vi-focused','vi-uid-impact'].includes(treatment)){
+    chooseAiAction=function(game,requested){
+     if(game!==g||game.active!==0)return initialChoose(game,requested);
+     if(isVIPhase&&!game.pending&&!game.summoned&&
+        (!game.aiPhase||game.aiPhase==='summon')&&
+        !inspectedTurns.has(game.turn)){
+      inspectedTurns.add(game.turn);
+      const f=inspectLegalOwnFusions(game);
+      handMeasure.observations++;
+      handMeasure.playableTurns+=Number(f.optionCount>0);
+      handMeasure.options+=f.optionCount;
+      handMeasure.maxLvl=Math.max(handMeasure.maxLvl,f.highest);
+      handMeasure.zeroChoices+=Number(f.optionCount===0);
+     }
+     return ((${summonPolicySource})(game,'tempo-board',controller))||
+      initialChoose(game,requested);
+    };
+   }
+   const combat={fusionPrepared:0,fusionPlaced:0,fieldFusions:0,
+    materials:0,atkSum:0,defSum:0,wallBreaks:0,
+    playerDamage:0,enemyKills:0,realAttacks:0,strongFusionWithOutcome:0};
+   applyAiAction=function(game,action){
+    if(game!==g||game.active!==0)return initialApply(game,action);
+    if(action?.type==='fusion'){
+     const wall=Math.max(0,...game.players[1].field.filter(Boolean).map(c=>{
+      const x=dataOf(c);return c.mode==='def'?x.def:x.atk;
+     }));
+     const result=initialApply(game,action);
+     if(result&&game.pending?.kind==='fusion'){
+      const t=dataOf(game.pending.card);
+      combat.fusionPrepared++;
+      combat.materials+=action.uids?.length||0;
+      combat.atkSum+=t.atk;combat.defSum+=t.def;
+      combat.wallBreaks+=Number(wall>0&&t.atk>wall);
+     }
+     return result;
+    }
+    if(action?.type==='place'){
+     const fusionPending=game.pending?.kind==='fusion',hasOld=!!game.players[0].field[action.idx];
+     const result=initialApply(game,action);
+     if(result){
+      if(fusionPending)combat.fusionPlaced++;
+      if(result.fused||hasOld)combat.fieldFusions++;
+     }
+     return result;
+    }
+    if(action?.type==='attack'){
+     const before=game.players[1].lp,result=initialApply(game,action);
+     if(result){
+      controller.attacks++;controller.damageNpc+=Math.max(0,before-game.players[1].lp);
+      combat.realAttacks++;
+      combat.playerDamage+=Math.max(0,before-game.players[1].lp);
+      combat.enemyKills+=(result.destroyed||[]).filter(x=>String(x).startsWith('1:')).length;
+     }
+     return result;
+    }
+    return initialApply(game,action);
+   };
+   // Second decorator: exact field instance ID, not all-player attacks.
+   const observedApply=applyAiAction,trackedUIDs=new Map();
+   let incomingMaterials=0;
+   const impact={instances:0,attacks:0,damage:0,kills:0,turns:0,materials:0};
+   applyAiAction=function(game,action){
+    if(game!==g||game.active!==0)return observedApply(game,action);
+    const p=game.players[0],e=game.players[1];
+    const old=action?.type==='place'?p.field[action.idx]:null,
+     wasFusion=action?.type==='place'&&game.pending?.kind==='fusion',
+     oldTrace=old?trackedUIDs.get(old.uid):null,
+     attacker=action?.type==='attack'?p.field[action.ai]:null,
+     attackingTrace=attacker?trackedUIDs.get(attacker.uid):null,
+     beforeLP=e.lp;
+    const result=observedApply(game,action);
+    if(result&&action?.type==='fusion'&&game.pending?.kind==='fusion')
+     incomingMaterials=action.uids?.length||0;
+    if(result&&action?.type==='place'){
+     if(wasFusion||result.fused){
+      const consumed=(wasFusion?incomingMaterials:1)+
+        (result.fused?(oldTrace?.materials||1):0);
+      if(old)trackedUIDs.delete(old.uid);
+      trackedUIDs.set(result.card.uid,{materials:consumed,turns:0});
+      impact.instances++;impact.materials+=consumed;
+     }
+     incomingMaterials=0;
+    }
+    if(result&&action?.type==='attack'&&attackingTrace){
+     impact.attacks++;
+     impact.damage+=Math.max(0,beforeLP-e.lp);
+     impact.kills+=(result.destroyed||[]).filter(x=>String(x).startsWith('1:')).length;
+    }
+    if(action?.type==='end'){
+     for(const c of p.field.filter(Boolean)){
+      const found=trackedUIDs.get(c.uid);
+      if(found){found.turns++;impact.turns++;}
+     }
+    }
+    return result;
+   };
+   try{simulateGame(g,policy);}
+   finally{chooseAiAction=initialChoose;applyAiAction=initialApply;}
+   if(isVIPhase){
+    uidFusionInstances+=impact.instances;
+    uidFusionAttacks+=impact.attacks;
+    uidFusionDamage+=impact.damage;
+    uidFusionKills+=impact.kills;
+    uidFusionTurns+=impact.turns;
+    uidFusionMaterials+=impact.materials;
+    realVIHandFusions+=combat.fusionPrepared;
+    realVIPlacedFusions+=combat.fusionPlaced;
+    realVIFieldFusions+=combat.fieldFusions;
+    realVIFusionMaterialCount+=combat.materials;
+    realVIFusionAtkSum+=combat.atkSum;
+    realVIFusionDefSum+=combat.defSum;
+    realVIWallBreaks+=combat.wallBreaks;
+    realVIAttackDamage+=combat.playerDamage;
+    realVIKills+=combat.enemyKills;
+    if(context==='tournament'&&tier===6){
+     // Count actual executed monster and damage outcomes, not options
+     // merely being possible in a hypothetical or actual hand.
+     const meaningful=impact.instances>0&&
+      (impact.damage>=300||impact.kills>=1||impact.turns>=2);
+     recentVICombat.push({fusions:combat.fusionPlaced,
+      fieldFusions:combat.fieldFusions,wallBreaks:combat.wallBreaks,
+      realDamage:combat.playerDamage,enemyKills:combat.enemyKills,
+      uidDamage:impact.damage,uidKills:impact.kills,
+      uidAttacks:impact.attacks,uidTurns:impact.turns,
+      uidMaterials:impact.materials,meaningful,win:g.winner===0});
+     if(recentVICombat.length>4)recentVICombat.shift();
+    }
+    viRealHandChecks+=handMeasure.observations;
+    viFusionReadyChecks+=handMeasure.playableTurns;
+    viPlayableChoices+=handMeasure.options;
+    viMaxFusionLevel=Math.max(viMaxFusionLevel,handMeasure.maxLvl);
+    viZeroChoiceHands+=handMeasure.zeroChoices;
+    if(context==='tournament'&&tier===6){
+     recentViHands.push({...handMeasure,win:g.winner===0});
+     if(recentViHands.length>4)recentViHands.shift();
+    }
+   }
+   const win=g.winner===0;
+   if(g.winner===null)throw Error('Incomplete career match');
+   const reward=rewardMatch(g);
+   if(!reward)throw Error('Real rewardMatch failed');
+   rewarded++;winCount+=Number(win);losses+=Number(!win);
+   if(context==='free'&&tier>0){
+    farms++;farmMatchesByTier[tier]=(farmMatchesByTier[tier]||0)+1;
+    farmXpByTier[tier]=(farmXpByTier[tier]||0)+(reward.xp||0);
+    farmLootByTier[tier]=(farmLootByTier[tier]||0)+Number(!!reward.loot?.card);
+    if(treatment!=='fixed-farm'&&streak>0){adaptiveFarmMatches++;adaptiveFarmWins+=Number(win);}
+   }
+   if(context==='tournament')tournaments++;
+   events.push({tier,context,won:win,playerLevel:playerLevel(profile),
+    deckAverageLevel:profile.activeDeck.reduce((sum,id)=>sum+CARDS[id].level,0)/profile.activeDeck.length,
+    loot:reward.loot?.card??null,coins:reward.coins,xp:reward.xp});
+   return win;
+  }
+  function snapshot(tier){
+   if(!validDeck(profile))throw Error('Snapshot violates deck rules tier '+tier);
+   const own=profile.inventory;const count=(ids)=>{
+    const m={};for(const id of ids)m[id]=(m[id]||0)+1;
+    return Object.entries(m).every(([id,n])=>n<=(own[id]||0));
+   };
+   if(!count(profile.activeDeck)||!count(profile.fusionDeck))
+    throw Error('Unowned cards in a real-played deck: '+tier);
+   const last=profile.cleared,inventory=JSON.parse(JSON.stringify(profile));
+   const equipped=profile.activeDeck.map(id=>CARDS[id]).filter(Boolean);
+   const fusions=profile.fusionDeck.map(id=>CARDS[id]).filter(Boolean);
+   const levels={};const roles={};
+   for(const c of equipped){levels[c.level]=(levels[c.level]||0)+1;
+    const role=c.role||'other';roles[role]=(roles[role]||0)+1;}
+   const ownedEntries=Object.entries(own).filter(([id,n])=>n>0&&CARDS[Number(id)]);
+   const ownedHighest=ownedEntries.length?
+    Math.max(...ownedEntries.map(([id])=>CARDS[Number(id)].level||0)):0;
+   return {tier,cleared:[...last],trainingWins:profile.trainingWins,
+    mainDeckLevelCounts:levels,mainDeckRoleCounts:roles,
+    averageMainLevel:+(equipped.reduce((a,c)=>a+c.level,0)/Math.max(1,equipped.length)).toFixed(2),
+    level7PlusEquipped:equipped.filter(c=>c.level>=7).length,
+    fusionDeckSize:fusions.length,
+    fusionDeckLevels:fusions.map(c=>c.level),
+    uniqueMainCards:new Set(profile.activeDeck).size,
+    ownedCardCopies:ownedEntries.reduce((sum,[,n])=>sum+n,0),
+    highestOwnedCardLevel:ownedHighest,shardsAvailable:sharedShards(),
+    playerLevel:playerLevel(profile),coins:profile.coins,
+    activeDeck:[...profile.activeDeck],fusionDeck:[...profile.fusionDeck],
+    enhancements:JSON.parse(JSON.stringify(profile.enhancements)),
+    inventoryOwned:JSON.parse(JSON.stringify(own)),
+    boostersPurchased:boosters,packChoices:packChoice,
+    crafts,upgrades,earnedFarms:farms,shopPurchases:buysAttempted,
+    shardCrafts,shardResearches,shardRerolls,shardsSpent,
+    bridgeRebuilds,bridgeMains,bridgeFusions,
+    earlyBridgeCalls,earlyBridgeChanges,earlyBridgeMainChanges,earlyBridgeFusionChanges,
+    achievements:milestones,rewardedMatches:rewarded,
+    sourceMax:Math.max(0,...last),provenance:'snapshot immediately before a REAL tournament attempt',
+    profile:inventory};
+  }
+  for(let i=0;i<20&&profile.trainingWins<3;i++){
+   duel(0,'free');if(i%2===1)prepare();
+  }
+  training=profile.trainingWins;
+  if(training!==3)return {policy,plan,training,snapshots,error:'Could not complete real introduction'};
+  prepare();
+  for(let tier=1;tier<=10;tier++){
+   bossTierInProgress=tier;
+   if(tier>1&&!profile.cleared.includes(tier-1))
+    throw Error('Progress was not legitimately unlocked: '+tier);
+   const snap=snapshot(tier);
+   snapshots.push({tier:snap.tier,playerLevel:snap.playerLevel,
+    coins:snap.coins,shardsAvailable:snap.shardsAvailable,
+    ownedCardCopies:snap.ownedCardCopies,
+    highestOwnedCardLevel:snap.highestOwnedCardLevel,
+    averageMainLevel:snap.averageMainLevel,
+    level7PlusEquipped:snap.level7PlusEquipped,
+    fusionDeckSize:snap.fusionDeckSize,sourceMax:snap.sourceMax,
+    activeDeck:snap.activeDeck,fusionDeck:snap.fusionDeck,
+    enhancements:snap.enhancements,inventoryOwned:snap.inventoryOwned,
+    legitimatelyCleared:snap.cleared});
+   let won=false;streak=0;
+   const cap=tier<6?0:Math.min(128,48+(tier-6)*20);
+   let farmedForThisBoss=0;
+   tierAttempts[tier]=0;
+   for(let attempt=0;attempt<maxAttempts;attempt++){
+    if(tier===6&&viPhaseMatches>=75)break;
+    tierAttempts[tier]++;
+    won=duel(tier,'tournament');prepare();
+    if(won){tierWinAtAttempt[tier]=attempt+1;break;}
+    streak++;
+    // Both strategies must face the actual boss before they farm.
+    // Fixed retains historical batches after every three defeats.
+    // Adaptive uses early recovery after two losses, genuine earned
+    // duel rewards and a per-tier finite experiment farming budget.
+    if(treatment==='fixed-farm'||tier<6){
+     if(attempt%3===2)for(let k=0;k<farmAfter;k++){
+      if(tier===6&&viPhaseMatches>=75)break;
+      const farmTier=Math.max(0,tier-1);
+      duel(farmTier,'free');farmsSinceTier++;prepare();
+     }
+    }else if(streak>=2&&farmedForThisBoss<cap&&(tier!==6||viPhaseMatches<72)){
+     // The impact arm still farms: only batch size changes when a
+     // genuinely executed fusion already fought a relevant visible threat.
+     // Never treat mere legal options as proof of boss readiness.
+     const farmTier=Math.max(0,tier-1),
+      average=profile.activeDeck.reduce((v,id)=>v+CARDS[id].atk,0)/
+       profile.activeDeck.length,
+      visibleBoss=CARDS[OPPONENTS[tier].signature]?.atk||average,
+      gap=average<visibleBoss*.55,
+      xpFactor=farmingXpFactor(farmTier);
+     // Lower remaining XP yield does not grant anything: it only
+     // discourages repeatedly grinding lower, ineffective stages.
+     // Predetermined switch: budget-conscious for first 45 VI-related fights;
+     // after 45, unchanged intensive VI farming with no further skip gate.
+     const qualityPhase=false; // identical validated VI fusion controller on all arms
+     const recent=recentVICombat.slice(-2);
+     const tangible=recent.some(x=>x.meaningful);
+     const intenseRequest=6+Math.max(0,tier-6)*2+(gap?2:0)+(xpFactor<.2?-2:0);
+     const requested=treatment==='vi-uid-impact'&&tangible
+      ? Math.max(2,intenseRequest-3):intenseRequest;
+     const batch=Math.max(0,Math.min(Math.max(2,requested),
+       cap-farmedForThisBoss,tier===6?75-viPhaseMatches:cap));
+     if(batch>0){
+      if(treatment==='vi-uid-impact'){
+       impactSmallWaves+=Number(tangible);
+       impactIntensiveWaves+=Number(!tangible);
+       readinessCheckTrace.push({afterAttempts:attempt+1,
+        lastTwoVICombat:recent.map(x=>({fusions:x.fusions,
+         uidDamage:x.uidDamage,uidKills:x.uidKills,
+         uidAttacks:x.uidAttacks,uidTurns:x.uidTurns,
+         uidMaterials:x.uidMaterials,meaningful:x.meaningful})),requested,batch});
+      }
+      const prior={
+       level:playerLevel(profile),
+       atk:profile.activeDeck.reduce((v,id)=>v+CARDS[id].atk,0)/profile.activeDeck.length,
+       avgLevel:profile.activeDeck.reduce((v,id)=>v+CARDS[id].level,0)/profile.activeDeck.length,
+       copies:Object.values(profile.inventory).reduce((v,n)=>v+Number(n||0),0),
+       fusions:profile.fusionDeck.length,
+       deckDef:profile.activeDeck.reduce((v,id)=>v+CARDS[id].def,0)/profile.activeDeck.length,
+       materialsL4:profile.activeDeck.filter(id=>CARDS[id].level>=4).length,
+       ownedFusionTemplates:profile.fusionDeck.filter(id=>
+        (profile.inventory[id]||0)>0&&!!CARDS[id]).length,
+       shards:sharedShards(),coins:profile.coins
+      };
+      let batchXp=0,batchLoot=0;
+      adaptiveBatches++;
+      tierFarmDecisions.push({tier,afterAttempts:attempt+1,
+       source:farmTier,avgDeckAtk:Math.round(average),
+       bossSignatureAtk:visibleBoss,xpFactor:+xpFactor.toFixed(3),
+       farmCount:batch});
+      for(let k=0;k<batch;k++){
+       const eventIndex=events.length;
+       duel(farmTier,'free');farmsSinceTier++;prepare();
+       farmedForThisBoss++;
+       const earned=events[eventIndex];
+       if(!earned||earned.context!=='free')throw Error('Missing genuine farming reward');
+       batchXp+=Number(earned.xp||0);
+       batchLoot+=Number(earned.loot!==null&&earned.loot!==undefined);
+      }
+      const atkNow=profile.activeDeck.reduce((v,id)=>v+CARDS[id].atk,0)/profile.activeDeck.length,
+       lvlNow=profile.activeDeck.reduce((v,id)=>v+CARDS[id].level,0)/profile.activeDeck.length,
+       copyNow=Object.values(profile.inventory).reduce((v,n)=>v+Number(n||0),0);
+      const atkGain=atkNow-prior.atk,deckLevelGain=lvlNow-prior.avgLevel,
+       levelGain=playerLevel(profile)-prior.level,
+       copyGain=copyNow-prior.copies,
+       fusionGain=profile.fusionDeck.length-prior.fusions,
+       defGain=profile.activeDeck.reduce((v,id)=>v+CARDS[id].def,0)/
+         profile.activeDeck.length-prior.deckDef,
+       level4MaterialGain=profile.activeDeck.filter(id=>CARDS[id].level>=4).length-
+         prior.materialsL4,
+       ownedFusionTemplateGain=profile.fusionDeck.filter(id=>
+        (profile.inventory[id]||0)>0&&!!CARDS[id]).length-prior.ownedFusionTemplates;
+      // Observable, realized progress only. XP and coins are audited
+      // separately because they do not automatically strengthen a deck.
+      const useful=atkGain>=10||deckLevelGain>=.08||
+       levelGain>0||fusionGain>0||copyGain>=2;
+      measuredBatches++;yieldUseful+=Number(useful);yieldWeak+=Number(!useful);
+      // This signal explicitly excludes inventory-only and XP-only gains;
+      // it uses genuine equipped-card and actually owned fusion-template gains.
+      const qualitySignal=atkGain>=15||defGain>=20||deckLevelGain>=.10||
+       level4MaterialGain>=1||ownedFusionTemplateGain>0||
+       (levelGain>0&&(atkGain>0||defGain>0));
+      meaningfulDeckWaves+=Number(qualitySignal);
+      weakQualityWaves+=Number(!qualitySignal);
+      qualityGainTotal+=Math.max(0,atkGain)+Math.max(0,defGain)/2;
+      legitFusionGainTotal+=Math.max(0,ownedFusionTemplateGain);
+      roiLastBatch=(atkGain>=15?8:0)+(defGain>=20?6:0)+
+       (deckLevelGain>=.10?7:0)+(level4MaterialGain>=1?6:0)+
+       (ownedFusionTemplateGain>0?7:0)+(levelGain>0?2:0);
+      actualFarmXp+=batchXp;actualFarmLoot+=batchLoot;lastFarmWeak=!qualitySignal;
+      tierFarmDecisions[tierFarmDecisions.length-1].realYield={
+       xp:batchXp,loot:batchLoot,
+       atkGain:+atkGain.toFixed(2),deckLevelGain:+deckLevelGain.toFixed(3),
+       levelGain,copyGain,fusionGain,defGain:+defGain.toFixed(2),
+       level4MaterialGain,ownedFusionTemplateGain,qualitySignal,roiLastBatch,
+       netShards:sharedShards()-prior.shards,netCoins:profile.coins-prior.coins,
+       useful
+      };
+     }
+     streak=0;
+    }
+   }
+   if(!won)break;
+   streak=0; // Post-victory free duels are baseline farming, not failure recovery.
+   // Replays against a BEATEN opponent improve the owned collection
+   // while respecting drop odds, XP penalties and actual resource costs.
+   for(let k=0;k<farmAfter+(treatment==='tier-progressive'&&tier>=6?Math.min(5,tier-5):0);k++){
+    duel(tier,'free');farmsSinceTier++;prepare();
+   }
+  }
+  return {policy,plan,strategy,treatment,controller,training,snapshots,events,
+   adaptiveBatches,adaptiveFarmMatches,adaptiveFarmWins,tierFarmDecisions,
+   yieldSkipped,measuredBatches,yieldUseful,yieldWeak,actualFarmXp,actualFarmLoot,
+   viPhaseMatches,readinessFarmWaves,readinessRetrySkippedWaves,
+   viRealHandChecks,viFusionReadyChecks,viPlayableChoices,
+   viMaxFusionLevel,viZeroChoiceHands,readinessCheckTrace,
+   uidFusionInstances,uidFusionAttacks,uidFusionDamage,
+   uidFusionKills,uidFusionTurns,uidFusionMaterials,
+   realVIHandFusions,realVIFieldFusions,realVIPlacedFusions,
+   realVIFusionMaterialCount,realVIFusionAtkSum,realVIFusionDefSum,
+   realVIWallBreaks,realVIAttackDamage,realVIKills,
+   impactSmallWaves,impactIntensiveWaves,
+   meaningfulDeckWaves,weakQualityWaves,
+   qualityGainTotal,legitFusionGainTotal,
+   farmMatchesByTier,farmXpByTier,farmLootByTier,tierAttempts,tierWinAtAttempt,
+   bridgeRebuilds,bridgeMains,bridgeFusions,
+   earlyBridgeCalls,earlyBridgeChanges,earlyBridgeMainChanges,earlyBridgeFusionChanges,
+   duels:serial,winCount,losses,farms,tournaments,
+   boosters,packChoice,milestones,crafts,upgrades,buysAttempted,
+   shardCrafts,shardResearches,shardRerolls,shardsSpent,
+   cleared:Math.max(0,...profile.cleared),
+   saveValid:!!validateProfile(JSON.parse(JSON.stringify(profile)))};
+ })()`;
+ const r=vm.run(expr,300000);
+ if(r.error)throw Error('Career failed: '+r.error);
+ assert.equal(r.training,3);assert.ok(r.saveValid);
+ results.push({...r,run,treatment});
+}
+
+
+const byArm={}, train=Math.floor(careers/2);
+for(const arm of arms){
+ const subset=results.filter(r=>r.treatment===arm);
+ const agg={origins:subset.length,duels:subset.reduce((n,r)=>n+r.duels,0),
+  freeDuels:subset.reduce((n,r)=>n+r.farms,0),byTier:{}};
+ for(let tier=1;tier<=10;tier++){
+  const reached=subset.filter(r=>r.snapshots.some(x=>x.tier===tier)),
+   victors=subset.filter(r=>r.tierWinAtAttempt[tier]);
+  agg.byTier[tier]={reached:reached.length,victors:victors.length,
+   bossAttempts:reached.reduce((n,r)=>n+(r.tierAttempts[tier]||0),0),
+   postAndPriorFreeFights:reached.reduce((n,r)=>n+(r.farmMatchesByTier[tier-1]||0),0),
+   attemptsToWin:victors.map(r=>r.tierWinAtAttempt[tier])};
+ }
+ byArm[arm]=agg;
+}
+for(let run=0;run<careers;run++){
+ const base=results.find(r=>r.run===run&&r.treatment==='fixed-farm');
+ const scaled=results.find(r=>r.run===run&&r.treatment==='tier-progressive');
+ assert(base&&scaled);
+ const preVI=r=>r.snapshots.filter(x=>x.tier<=6);
+ assert.deepEqual(preVI(base),preVI(scaled),'Early career differs before tier VI');
+}
+const report={schema:'arcane-tier-progressive-careers-v108',
+ origins:careers,trainOrigins:train,holdoutOrigins:careers-train,
+ totalCareers:results.length,
+ totalRealDuelRewards:results.reduce((n,r)=>n+r.duels,0),
+ offset:careerSeedOffset,arms,byArm,
+ raw:results.map(r=>({run:r.run,treatment:r.treatment,split:r.run<train?'train':'holdout',
+  maxTierReached:Math.max(...r.snapshots.map(x=>x.tier)),
+  highestReallyCleared:r.cleared,
+  totalMatches:r.duels,freeMatches:r.farms,tournamentMatches:r.tournaments,
+  shardsSpent:r.shardsSpent,boosters:r.boosters,
+  tierAttempts:r.tierAttempts,tierWinAtAttempt:r.tierWinAtAttempt,
+  farmMatchesByTier:r.farmMatchesByTier,expEarnedByFarmTier:r.farmXpByTier,
+  lootByFarmTier:r.farmLootByTier,
+  actualFarmDecisions:r.tierFarmDecisions,
+  snapshotProgression:r.snapshots.map(x=>({
+   tier:x.tier,playerLevel:x.playerLevel,averageMainLevel:x.averageMainLevel,
+   coins:x.coins,shardsAvailable:x.shardsAvailable,
+   ownedCardCopies:x.ownedCardCopies,highestOwnedCardLevel:x.highestOwnedCardLevel,
+   fusionDeckSize:x.fusionDeckSize})),saveValid:r.saveValid})),
+ caveats:[
+  'Tier-scaled 6-to-10 farming is intentional, not a flaw to minimize away.',
+  'Boss IX/X fairness cannot be assessed from VI inventory; progression must be earned.',
+  'No invented cards, XP, awards, NPC debuffs or tournament victories.',
+  'Sample of independent origins is 32, not 64 independently random careers; arms paired.',
+  'Tier VI retains a 75-relevant-match offline cap, tiers VII-X progressively allow more farming; these are test budgets, not game rules.'
+ ]};
+fs.mkdirSync('artifacts',{recursive:true});
+fs.writeFileSync('artifacts/ai-progressive-career-v108.json',JSON.stringify(report,null,2)+'\n');
+console.log('ARCANE_V108_CAREER_SUMMARY '+JSON.stringify({
+ origins:careers,totalMatches:report.totalRealDuelRewards,byArm}));
