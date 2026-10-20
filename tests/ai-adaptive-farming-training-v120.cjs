@@ -53,7 +53,8 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
     allFusionPlaced=0,allFieldFusions=0,allFusionHeritage=0,allRoleMismatches=0,
     rejectedFuseChoices=0,rejectedFusionPlacements=0,maxFusionPlacedLevel=0,
     actualFusionLevelHistogram={},actualFusionByTournamentStage={},actualFusionByFarmStage={},giantStreetFusions=0,
-    forgeCount=0,forgeCost=0,forgeFusion=0,forgeNormal=0,forgeLevel10=0,forgeUnavailable=0,forgeLevels={},forgeHistory=[];
+    forgeCount=0,forgeCost=0,forgeFusion=0,forgeNormal=0,forgeLevel10=0,forgeUnavailable=0,forgeLevels={},forgeHistory=[],
+    backtracks=0,smartWaves=0,investmentCycles=0,farmSourceMatches={},farmSourceWins={},farmStrategyHistory=[],forgeStrategyHistory=[];
   const controller={summonObservations:0,normalOffered:0,legalFusionOffers:0,
    fusionAvailableTurns:0,freeSlotObservations:0,fullBoardObservations:0,
    noNormalHand:0,enemyAheadAtSummon:0,attackerOnBoardAtSummon:0,
@@ -207,13 +208,24 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
    if(highestCleared()>=5&&forgeCount<24){
     const forge=window.ArcaneAscensionForge116;
     if(!forge)throw Error('Missing live v11.6 ascension forge');
-    const cap=forge.cap(),candidate=Array.from({length:cap-3},(_,i)=>cap-i-1)
-     .filter(lv=>lv>=3)
-     .find(lv=>forge.suggested(lv)&&forge.safeRecipe(forge.suggested(lv),lv)&&
+    const cap=forge.cap(),choices=Array.from({length:cap-3},(_,i)=>cap-i-1)
+     .filter(lv=>lv>=3&&forge.suggested(lv)&&forge.safeRecipe(forge.suggested(lv),lv)&&
       profile.coins>=forge.price(lv+1)+45&&
       (forge.outputPool(lv+1,false).length+forge.outputPool(lv+1,true).length)>0);
+    const mainLevel=profile.activeDeck.reduce((n,id)=>n+CARDS[id].level,0)/profile.activeDeck.length;
+    const tierGoal=Math.min(10,Math.max(3,highestCleared()+1)),needsMain=mainLevel<tierGoal-.5;
+    if(treatment==='adaptive-source-forge')choices.sort((a,b)=>{
+      const score=lv=>!needsMain?lv*100:
+       (lv+1<=tierGoal?(lv+1)*100:-1000-Math.abs(lv+1-tierGoal)*100);
+      return score(b)-score(a)||b-a;
+    });
+    const candidate=choices[0];
     if(candidate){
      const ids=forge.suggested(candidate),before=profile.coins;
+     if(treatment==='adaptive-source-forge'&&forgeStrategyHistory.length<75)
+      forgeStrategyHistory.push({afterTier:highestCleared(),mainLevel:+mainLevel.toFixed(2),
+       goal:tierGoal,priority:needsMain?'raise-main-level':'highest-tier',materialLevel:candidate,
+       allFusion:ids.every(id=>CARDS[id].fusionOnly)});
      const outcome=forge.forge(candidate,ids);
      if(!outcome.ok)throw Error('Forge rejected a verified real recipe: '+outcome.message);
      forgeCount++;forgeCost+=before-profile.coins;
@@ -457,6 +469,34 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
     loot:reward.loot?.card??null,coins:reward.coins,xp:reward.xp});
    return win;
   }
+  // Every cycle begins at the hardest unlocked source. After five real
+  // battles, a source with fewer than 3 wins out of 5 is considered unsuitable.
+  // Step back one tier. Invest earned resources after each five battles.
+  // Restart the search at the highest source after three samples.
+  function smartFarm(nextBoss,maximum,phase){
+   let total=0,wins=0;
+   while(total<maximum){
+    let source=Math.min(highestCleared(),Math.max(0,nextBoss-1));
+    for(let group=0;group<3&&total<maximum;group++){
+     const size=Math.min(5,maximum-total);
+     let local=0;
+     for(let k=0;k<size;k++){
+      const win=duel(source,'free');
+      local+=Number(win);wins+=Number(win);total++;farmsSinceTier++;
+      farmSourceMatches[source]=(farmSourceMatches[source]||0)+1;
+      farmSourceWins[source]=(farmSourceWins[source]||0)+Number(win);
+     }
+     const downgrade=local/size<.6&&source>0;
+     backtracks+=Number(downgrade);smartWaves++;
+     if(farmStrategyHistory.length<300)farmStrategyHistory.push({
+       forTier:nextBoss,phase,source,fights:size,wins:local,
+       nextSource:downgrade?source-1:source,cycleGroup:group+1});
+     if(downgrade)source--;
+     prepare();investmentCycles++;
+    }
+   }
+   return {matches:total,wins};
+  }
   function snapshot(tier){
    if(!validDeck(profile))throw Error('Snapshot violates deck rules tier '+tier);
    const own=profile.inventory;const count=(ids)=>{
@@ -534,7 +574,10 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
    const priorPrep=snapshot(tier);
    const plannedPrep=progressive?(deepFarm[tier]||0):0;
    let prepDuels=0,prepWins=0;
-   for(let k=0;k<plannedPrep;k++){
+   if(treatment==='adaptive-source-forge'&&plannedPrep){
+    const sample=smartFarm(tier,plannedPrep,'pre-boss');
+    prepDuels=sample.matches;prepWins=sample.wins;
+   }else for(let k=0;k<plannedPrep;k++){
     if(tier===6&&viPhaseMatches>=72)break;
     const previous=tier-1;
     if(!profile.cleared.includes(previous))throw Error('Farm source not cleared: '+previous);
@@ -565,7 +608,9 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
     // Adaptive uses early recovery after two losses, genuine earned
     // duel rewards and a per-tier finite experiment farming budget.
     if(tier<6){
-     if(attempt%3===2)for(let k=0;k<farmAfter;k++){
+     if(attempt%3===2&&treatment==='adaptive-source-forge'){
+      smartFarm(tier,farmAfter,'early-boss-recovery');
+     }else if(attempt%3===2)for(let k=0;k<farmAfter;k++){
       if(tier===6&&viPhaseMatches>=75)break;
       const farmTier=Math.max(0,tier-1);
       duel(farmTier,'free');farmsSinceTier++;prepare();
@@ -619,7 +664,17 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
        source:farmTier,avgDeckAtk:Math.round(average),
        bossSignatureAtk:visibleBoss,xpFactor:+xpFactor.toFixed(3),
        farmCount:batch});
-      for(let k=0;k<batch;k++){
+      if(treatment==='adaptive-source-forge'){
+       const first=events.length,result=smartFarm(tier,batch,'boss-recovery');
+       farmedForThisBoss+=result.matches;
+       const earned=events.slice(first).filter(e=>e.context==='free');
+       if(earned.length!==result.matches)throw Error('Missing actual adaptive farming match');
+       batchXp=earned.reduce((n,e)=>n+Number(e.xp||0),0);
+       batchLoot=earned.filter(e=>e.loot!==null&&e.loot!==undefined).length;
+       tierFarmDecisions[tierFarmDecisions.length-1].sources=
+        farmStrategyHistory.filter(x=>x.forTier===tier&&x.phase==='boss-recovery')
+         .slice(-Math.ceil(batch/5)).map(x=>x.source);
+      }else for(let k=0;k<batch;k++){
        const eventIndex=events.length;
        duel(farmTier,'free');farmsSinceTier++;prepare();
        farmedForThisBoss++;
@@ -675,7 +730,9 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
    streak=0; // Post-victory free duels are baseline farming, not failure recovery.
    // Replays against a BEATEN opponent improve the owned collection
    // while respecting drop odds, XP penalties and actual resource costs.
-   for(let k=0;k<farmAfter+(tier>=6?Math.min(5,tier-5):0)+(progressive&&tier>=4?Math.min(8,tier-3):0);k++){
+   const postCount=farmAfter+(tier>=6?Math.min(5,tier-5):0)+(progressive&&tier>=4?Math.min(8,tier-3):0);
+   if(treatment==='adaptive-source-forge')smartFarm(tier+1,postCount,'post-victory');
+   else for(let k=0;k<postCount;k++){
     duel(tier,'free');farmsSinceTier++;prepare();
    }
   }
@@ -692,6 +749,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
    actualFusionLevelHistogram,actualFusionByTournamentStage,actualFusionByFarmStage,
    giantStreetFusions,
    forgeCount,forgeCost,forgeFusion,forgeNormal,forgeLevel10,forgeUnavailable,forgeLevels,forgeHistory,
+   backtracks,smartWaves,investmentCycles,farmSourceMatches,farmSourceWins,farmStrategyHistory,forgeStrategyHistory,
    realVIHandFusions,realVIFieldFusions,realVIPlacedFusions,
    realVIFusionMaterialCount,realVIFusionAtkSum,realVIFusionDefSum,
    realVIWallBreaks,realVIAttackDamage,realVIKills,
@@ -814,7 +872,9 @@ const report={schema:'arcane-adaptive-farming-and-forge-v120',
   totalMatches:r.duels,freeMatches:r.farms,tournamentMatches:r.tournaments,
   shardsSpent:r.shardsSpent,boosters:r.boosters,
   VIICombat:{attempts:r.v7Attempts,fusions:r.v7Fusions,attacks:r.v7Attacks,damage:r.v7Damage,kills:r.v7Kills,turns:r.v7Turns,totalDamage:r.v7TotalDamage},
-  forge:{crafts:r.forgeCount,cost:r.forgeCost,fusions:r.forgeFusion,normals:r.forgeNormal,level10:r.forgeLevel10,unavailable:r.forgeUnavailable,levels:r.forgeLevels,history:r.forgeHistory},
+  forge:{crafts:r.forgeCount,cost:r.forgeCost,fusions:r.forgeFusion,normals:r.forgeNormal,level10:r.forgeLevel10,unavailable:r.forgeUnavailable,levels:r.forgeLevels,history:r.forgeHistory,priorities:r.forgeStrategyHistory},
+  adaptivePolicy:{tierBacktracks:r.backtracks,measuredWaves:r.smartWaves,investments:r.investmentCycles,
+   farmingMatchesBySource:r.farmSourceMatches,farmingWinsBySource:r.farmSourceWins,history:r.farmStrategyHistory},
   actualFusion:{totalPlaced:r.allFusionPlaced,fieldChains:r.allFieldFusions,
    highestLevel:r.maxFusionPlacedLevel,levels:r.actualFusionLevelHistogram,
    tournamentLevels:r.actualFusionByTournamentStage,farmLevels:r.actualFusionByFarmStage,
