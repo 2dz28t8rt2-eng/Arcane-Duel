@@ -176,6 +176,36 @@
   }
   return r;
  };
+ const earlierRules=showRules;
+ showRules=function(...args){
+  const answer=earlierRules(...args);
+  const host=$('modal')?.querySelector?.('.arcane-handbook')||$('modal');
+  if(host&&!host.querySelector?.('.ad116-rulebook'))
+   host.insertAdjacentHTML('beforeend','<details class="ad116-rulebook" open>'+
+    '<summary>✧ Aufstiegsschmiede, schneller Zerfall und Resonator-Level</summary>'+
+    '<div class="arcane-rule-body"><h3>Die Aufstiegsschmiede</h3>'+
+    '<p>Nach dem ersten Turniersieg über V wird die Aufstiegsschmiede in der Monsterwerkstatt freigeschaltet und durch ein einmaliges Pop-up vorgestellt. '+
+    'Lege drei <b>freie Karten desselben Levels</b> hinein. Drei Lv8 ergeben eine zufällige Lv9-Karte. '+
+    'Nach dem Sieg über VI darfst du auch drei Lv9 in Lv10 verwandeln.</p>'+
+    '<p><b>60 %</b> der Ergebnisse sind normale Monster, <b>40 %</b> Fusionsvorlagen. '+
+    'Zweimal hintereinander ein normales Monster bei derselben Zielstufe? Der nächste Versuch liefert garantiert eine Fusion. '+
+    'Dieser Glücksschutz wird gespeichert. Je Aufstieg zahlst du zusätzlich Essenz; Schmiedekunst reduziert nur diese Kosten. '+
+    'Deckkarten, geschützte Favoriten, ACEs und einzigartige Questkarten werden nicht verbraucht.</p>'+
+    '<h3>Warum halten starke Monster nicht ewig?</h3>'+
+    '<p>Kreaturen verlieren nach ihrem geschützten Beschwörungszug an jedem späteren eigenen Zugende ATK <b>und</b> DEF. '+
+    'Ein Level-3-Monster verliert 30 pro Wert; Level 6 verliert 65, Level 9 verliert 135 und Level 10 verliert 170. '+
+    'Dadurch sind höchste Stufen mächtig, aber vergänglich. Standhaftigkeit reduziert deinen Zerfall um 10 oder 20 Prozent.</p>'+
+    '<h3>Wie hilft ein Resonator beim Aufstieg?</h3>'+
+    '<p>Wenn du zwei echte Resonator-Fusionsmonster als Materialien derselben Kette verwendest, erhältst du <b>einmalig +1 erreichbares Fusionslevel</b>. '+
+    'Der Bonus wird in der weiteren Fusionslinie als bereits benutzt markiert. '+
+    'Eine dritte oder vierte Resonatorkarte löst ihn nicht erneut aus. '+
+    'Eine passende freie Vorlage im Fusionsdeck brauchst du trotzdem; maximal Level 10.</p>'+
+    '<h3>Worauf ist beim Himmelswächter VII zu achten?</h3>'+
+    '<p>Er setzt auf Wächter und Seelenzehrer. Seine gewöhnlichen Fusionsvorlagen enden bei Level 9; '+
+    'seine einzige Level-10-Vorlage ist sein ACE. Plane gegen seinen Verteidigungsaufbau und achte auf beschleunigten Zerfall.</p>'+
+    '</div></details>');
+  return answer;
+ };
  window.ArcaneAscensionForge116=Object.freeze({version:'11.6.0',cap,price,safeRecipe,
   inputPool,outputPool,suggested,forge,renderForge,hydrate});
 })();
