@@ -4,8 +4,10 @@
  */
 'use strict';
 (()=>{
+ const math=window.ArcaneFusionMath;
+ if(!math)throw Error('v11.3 requires the shared Evolution poker calculator');
  const old={budget:fusionBudget,options:fusionOptions,fuse:fusedInstance,
-   quality:fusionQuality,pattern:fusionPattern,preview:tunedFusionQuality,
+   quality:math.getQuality(),pattern:math.getPattern(),preview:math.getTuned(),
    validate:validateDuelSnapshot};
  const clamp=(n,low,high)=>Math.min(high,Math.max(low,n));
  const levelsOf=cards=>cards.map(c=>dataOf(c).level);
@@ -97,13 +99,12 @@
   const normalized=flattenPending(g,levels,materials);
   return old.options(g,normalized,contextMaterial(g,normalized,materials));
  };
- const previousPattern=fusionPattern;
- fusionPattern=function(levels,elements=[]){
-  const out=previousPattern(levels,elements);
+ math.setPattern(function(levels,elements=[]){
+  const out=old.pattern(levels,elements);
   if(isStreet(levels)&&levels.length===5)out.name=out.name.replace('Große Straße','Gigantische Straße');
   return out;
- };
- fusionQuality=function(levels,elements=[]){
+ });
+ math.setQuality(function(levels,elements=[]){
   const oldQuality=old.quality(levels,elements);
   const rule=calculate(levels,null,[]);
   if(rule.level===0)return oldQuality;
@@ -114,10 +115,10 @@
   oldQuality.materialDistance=rule.distance;
   oldQuality.streetProtection=rule.street;
   return oldQuality;
- };
+ });
  // Insert inherited earned quality into the existing tuned calculation BEFORE
  // all role weights and the real 88-112% rolls. Never stack past the 15% cap.
- tunedFusionQuality=function(g,levels,elements=[],materials=[]){
+ math.setTuned(function(g,levels,elements=[],materials=[]){
   const value=old.preview(g,levels,elements,materials);
   if(g?.mode!=='pve'||!materials.length)return value;
   const inherited=materials.reduce((sum,c)=>{
@@ -130,7 +131,7 @@
   value.heritagePct=Math.min(15,inherited);
   value.factor=clamp(value.factor+value.heritagePct/100,.72,2.2);
   return value;
- };
+ });
  const oldFused=fusedInstance;
  fusedInstance=function(g,instances,levels){
   let actual=levels;
