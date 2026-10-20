@@ -34,7 +34,14 @@ function hydrate(p,raw=p){
 }
 const originalFresh=freshProfile,originalValidate=validateProfile,originalAdd=addCard;
 freshProfile=function(){return hydrate(originalFresh());};
-validateProfile=function(raw){return hydrate(originalValidate(raw),raw);};
+validateProfile=function(raw){
+ if(!raw||typeof raw!=='object')return originalValidate(raw);
+ // Core profile compatibility: new upgrade keys were not part of historical
+ // required fields. Provide zero-ranked defaults *only for core validation*.
+ const projected={...raw,upgrades:{...(raw.upgrades||{})}};
+ for(const key of perkRanks)if(projected.upgrades[key]===undefined)projected.upgrades[key]=0;
+ return hydrate(originalValidate(projected),raw);
+};
 try{
  const stored=lastStoredProfile?JSON.parse(lastStoredProfile):{};
  hydrate(profile,stored);
@@ -55,7 +62,6 @@ addCard=function(id){
 // essence, not shards. Keep card-copy/favorite/equipped protection in both UIs.
 const originalSell=sellCard;
 salvageCard=function(id){return originalSell(id);};
-const originalShowSalvage=showSalvage;
 showSalvage=function(id){
  openModal(modalHtml('KARTE IN ESSENZ UMWANDELN',CARDS[id].name,'✦',
   'Dieses überschüssige Exemplar wird aus deiner Sammlung entfernt. Ausgerüstete und geschützte Karten bleiben erhalten.',
