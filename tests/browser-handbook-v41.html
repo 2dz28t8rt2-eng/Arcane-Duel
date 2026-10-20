@@ -28,12 +28,12 @@ frame.addEventListener('load',async()=>{
    if(index===3)expect(text.includes('35 %')&&text.includes('650')&&text.includes('Gegenschlag'),'DEF-HP example includes actual armor and counters');
    if(index===5)expect(text.includes('Wächter und Seelenzehrer')&&text.includes('regenerieren')&&text.includes('Seelenbrand'),'Defender introduction explains protection and pressure as a combined team');
    if(index===6)expect(text.includes('130 %')&&text.includes('175 %'),'Soul example matches released burn and discharge');
-   if(index===10)expect(/Fusionen bei\s*25/.test(text),'Guide uses current fusion decay');
+   if(index===10)expect(text.includes('Level 10')&&text.includes('170')&&text.includes('Level 3')&&text.includes('30'),'Guide explains current level-based decay');
   }
   d.getElementById('guideClose').click();d.getElementById('helpDismiss')?.click();
   w.eval('showRules()');await new Promise(resolve=>w.setTimeout(resolve,0));
   const book=d.querySelector('.arcane-handbook'),chapters=[...book.querySelectorAll('.arcane-rule-chapter')],links=[...book.querySelectorAll('.royal-rule-directory button')];
-  expect(book.textContent.includes('Arcane Duel 4.1'),'Rulebook identifies the current handbook');
+  expect(book.textContent.includes('Arcane Duel 11.8'),'Rulebook identifies current v11.8 rules');
   expect(chapters.length===14,'All fourteen core, learning, perk and Essence chapters are present');
   expect(chapters.every((c,i)=>parseInt(c.querySelector('summary').textContent,10)===i+1),'Chapter order stays complete for a new player');
   expect(links.length===chapters.length,'Directory includes chapters appended by later modules');
@@ -53,7 +53,22 @@ frame.addEventListener('load',async()=>{
   expect(!text.includes('endgültigen ATK/DEF zu verraten'),'Old hidden-final-values promise is absent');
   expect(text.includes('Normale Wächter')&&text.includes('Monsterwerkstatt'),'Normal role synergy and permanent workshop are explained');
   expect(book.querySelector('.arcane-rule-table tbody tr').children.length===5,'Pattern table distinguishes recipe, quality, rolls and level budget');
+  expect(text.includes('Gigantische Straße')&&text.includes('Aufstiegsschmiede')&&text.includes('170')&&text.includes('drei Level-10-Fusionsvorlagen'),'Current rulebook explains five-card street, ascension, decay and VII');
+  expect(!text.includes('seine einzige Level-10-Vorlage ist sein ACE'),'Outdated VII lore is removed');
   expect(d.getElementById('modal').scrollWidth<=d.getElementById('modal').clientWidth+2,'Full rulebook fits the viewport horizontally');
+  w.eval("hideModal();profile.trainingWins=3;uiMode='menu';menuTab='lexicon';renderMenu();");
+  const bestiary=d.querySelector('.ad119-lexicon');
+  expect(!!bestiary&&!!bestiary.querySelector('#ad119Grid'),'Expanded bestiary exists');
+  expect(!!bestiary.querySelector('#ad119Search')&&!!bestiary.querySelector('#ad119Role'),'Search and role controls are available');
+  const type=bestiary.querySelector('#ad119Type');type.value='fusion';type.dispatchEvent(new w.Event('change',{bubbles:true}));
+  expect(bestiary.querySelector('#ad119Count')?.textContent.includes('passende Karten'),'Filtering by fusion works');
+  type.value='';type.dispatchEvent(new w.Event('change',{bubbles:true}));
+  const entry=bestiary.querySelector('[data-ad119-card]');
+  expect(!!entry,'A discovered monster has a clickable entry');
+  entry?.click();
+  expect(!!d.querySelector('.ad119-detail'),'Monster details open');
+  d.getElementById('ad119Return')?.click();
+  expect(!!d.querySelector('.ad119-lexicon'),'Monster details return to bestiary');
   expect(w.eval('JSON.stringify({coins:profile.coins,xp:profile.xp,inventory:profile.inventory,cleared:profile.cleared,deck:profile.activeDeck,upgrades:profile.upgrades})')===before,'Reading and navigating does not alter game progress or deck');
  }catch(error){expect(false,error.stack||String(error));}
  result.textContent=steps.join('\n');document.body.dataset.handbookTest=pass?'pass':'fail';
