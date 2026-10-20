@@ -324,9 +324,34 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
        bossSignatureAtk:visibleBoss,xpFactor:+xpFactor.toFixed(3),
        farmCount:batch});
       for(let k=0;k<batch;k++){
+       const eventIndex=events.length;
        duel(farmTier,'free');farmsSinceTier++;prepare();
        farmedForThisBoss++;
+       const earned=events[eventIndex];
+       if(!earned||earned.context!=='free')throw Error('Missing genuine farming reward');
+       batchXp+=Number(earned.xp||0);
+       batchLoot+=Number(earned.loot!==null&&earned.loot!==undefined);
       }
+      const atkNow=profile.activeDeck.reduce((v,id)=>v+CARDS[id].atk,0)/profile.activeDeck.length,
+       lvlNow=profile.activeDeck.reduce((v,id)=>v+CARDS[id].level,0)/profile.activeDeck.length,
+       copyNow=Object.values(profile.inventory).reduce((v,n)=>v+Number(n||0),0);
+      const atkGain=atkNow-prior.atk,deckLevelGain=lvlNow-prior.avgLevel,
+       levelGain=playerLevel(profile)-prior.level,
+       copyGain=copyNow-prior.copies,
+       fusionGain=profile.fusionDeck.length-prior.fusions;
+      // Observable, realized progress only. XP and coins are audited
+      // separately because they do not automatically strengthen a deck.
+      const useful=atkGain>=10||deckLevelGain>=.08||
+       levelGain>0||fusionGain>0||copyGain>=2;
+      measuredBatches++;yieldUseful+=Number(useful);yieldWeak+=Number(!useful);
+      actualFarmXp+=batchXp;actualFarmLoot+=batchLoot;lastFarmWeak=!useful;
+      tierFarmDecisions[tierFarmDecisions.length-1].realYield={
+       xp:batchXp,loot:batchLoot,
+       atkGain:+atkGain.toFixed(2),deckLevelGain:+deckLevelGain.toFixed(3),
+       levelGain,copyGain,fusionGain,
+       netShards:sharedShards()-prior.shards,netCoins:profile.coins-prior.coins,
+       useful
+      };
      }
      streak=0;
     }
@@ -341,6 +366,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
   }
   return {policy,plan,strategy,treatment,controller,training,snapshots,events,
    adaptiveBatches,adaptiveFarmMatches,adaptiveFarmWins,tierFarmDecisions,
+   yieldSkipped,measuredBatches,yieldUseful,yieldWeak,actualFarmXp,actualFarmLoot,
    farmMatchesByTier,farmXpByTier,farmLootByTier,tierAttempts,tierWinAtAttempt,
    bridgeRebuilds,bridgeMains,bridgeFusions,
    earlyBridgeCalls,earlyBridgeChanges,earlyBridgeMainChanges,earlyBridgeFusionChanges,
@@ -403,6 +429,9 @@ function stats(rows,name){
   adaptiveBatches:total('adaptiveBatches'),
   adaptiveFreeDuels:total('adaptiveFarmMatches'),
   adaptiveFreeWins:total('adaptiveFarmWins'),
+  yieldSkipped:total('yieldSkipped'),measuredBatches:total('measuredBatches'),
+  usefulBatches:total('yieldUseful'),weakBatches:total('yieldWeak'),
+  actualFarmXp:total('actualFarmXp'),actualFarmLoot:total('actualFarmLoot'),
   tierIVAttempts:calls(4),tierVAttempts:calls(5),tierVIAttempts:calls(6),
   freeDuelsVsV: farm(5),freeDuelsVsIV:farm(4),
   XPFromFreeVsV:earn(5),
@@ -459,6 +488,8 @@ const report={schema:'arcane-yield-gated-vi-farming-v98',
   'No card, XP, ACE, win or resource is fabricated; each match uses rewardMatch.',
   'The tournament-attempt and farming cap are experimental only; no production rule changes.',
   'The fixed-farming baseline already receives 2–5 free duels after three tournament losses.',
+  'Yield stop skips one future VI free-duel batch when the previous paid and earned batch produced no meaningful deck/level progress.',
+  'Only realized legal XP, loot, level, equipped-card, fusion-deck, shards and coin changes are audited.',
   'A gain in VI wins at much greater time/currency costs is a trade-off, not a universal improvement.',
   'Main, live NPC policies and user progression are untouched.']};
 fs.mkdirSync('artifacts',{recursive:true});
