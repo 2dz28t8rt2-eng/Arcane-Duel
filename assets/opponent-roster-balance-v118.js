@@ -56,6 +56,43 @@
   }
   return {kind,fromLevel:max,toLevel:max-1,requested:count,changed,details};
  }
+
+ // Exactly ONE instance of each boss's OWN ACE across its two equipped decks.
+ // Existing ACE identities remain unchanged; replacement cards are real and legal.
+ function normalizeACE(id,load,difficulty){
+  const aceId=ACE[id],ace=CARDS[aceId];if(!ace)return {missing:true};
+  const deck=ace.fusionOnly?load.fusionDeck:load.deck;
+  const other=ace.fusionOnly?load.deck:load.fusionDeck;
+  if(other.includes(aceId))throw Error('Boss ACE in the wrong deck: '+id);
+  const before=copies(deck,aceId);
+  if(before===0){
+   const replaceAt=deck.findIndex(cid=>cid!==aceId&&CARDS[cid]?.level<=ace.level);
+   if(replaceAt<0)throw Error('Boss '+id+' has no legal ACE slot');
+   deck[replaceAt]=aceId;
+  }
+  let kept=false,replacements=0;
+  for(let index=0;index<deck.length;index++){
+   if(deck[index]!==aceId)continue;
+   if(!kept){kept=true;continue;}
+   const candidates=pool(id,ace.level,!!ace.fusionOnly,difficulty)
+    .filter(c=>copies(deck,c.id)<3&&c.id!==aceId);
+   // If the exact tier is scarce, use the closest attainable lower-tier card.
+   if(!candidates.length)for(let lv=ace.level-1;lv>=1;lv--){
+    const lower=pool(id,lv,!!ace.fusionOnly,difficulty)
+     .filter(c=>copies(deck,c.id)<3&&c.id!==aceId);
+    if(lower.length){candidates.push(...lower);break;}
+   }
+   if(!candidates.length)throw Error('No replacement for extra ACE of boss '+id);
+   const suitability=c=>100*Number(c.role===ace.role)+
+    30*Number(c.element===ace.element)+10*Number(c.source===id)+c.level*5+
+    Math.round((c.atk+c.def)/150);
+   candidates.sort((a,b)=>suitability(b)-suitability(a)||a.id-b.id);
+   deck[index]=candidates[0].id;replacements++;
+  }
+  if(copies(deck,aceId)!==1)throw Error('ACE uniqueness violated for boss '+id);
+  return {aceBefore:before,aceAfter:1,replaced:replacements,aceIn:ace.fusionOnly?'fusion':'main'};
+ }
+
  function elevateVII(load,difficulty){
   const id=7,aceId=ACE[id],ace=CARDS[aceId];
   if(!ace||!ace.fusionOnly||ace.level!==10)throw Error('VII ACE should be the unique Lv10 template');
@@ -87,11 +124,11 @@
  }
  rpgEnemyLoadout=function(id,difficulty='easy',stage){
   const source=previous(id,difficulty,stage);
-  if(![6,7,10].includes(id))return source;
+  if(!Number.isInteger(id)||id<1||id>10)return source;
   const load={...source,deck:[...source.deck],fusionDeck:[...source.fusionDeck]};
-  const modifications=[];
+  const modifications=[{kind:'ace',...normalizeACE(id,load,difficulty)}];
   if(id===7)modifications.push(elevateVII(load,difficulty));
-  else{
+  else if(id===6||id===10){
    modifications.push(soften(id,load.deck,wanted[id].main,difficulty,'main'));
    modifications.push(soften(id,load.fusionDeck,wanted[id].fusions,difficulty,'fusion'));
   }
@@ -100,12 +137,12 @@
      load.fusionDeck.some(cid=>!CARDS[cid]?.fusionOnly)||
      [...new Set(load.deck)].some(cid=>copies(load.deck,cid)>3)||
      [...new Set(load.fusionDeck)].some(cid=>copies(load.fusionDeck,cid)>3)||
-     (ACE[id]&&copies(load.fusionDeck,ACE[id])!==(id===7?1:copies(source.fusionDeck,ACE[id]))))
+     (ACE[id]&&copies(load.deck,ACE[id])+copies(load.fusionDeck,ACE[id])!==1))
    throw Error('v11.8 tournament deck constraints violated for NPC '+id);
   return {...load,roster118:modifications};
  };
  window.ArcaneRosterBalance118=Object.freeze({
-  version:'11.8.0',
+  version:'11.8.1',
   targets:Object.freeze({
    6:Object.freeze({...wanted[6]}),
    7:Object.freeze({level10:3,ace:1,nonAce:2}),
