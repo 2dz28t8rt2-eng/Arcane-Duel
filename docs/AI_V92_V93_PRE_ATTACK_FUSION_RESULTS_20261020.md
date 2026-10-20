@@ -69,7 +69,7 @@ Die gepaarte v9.3-Auswertung lautet: **+1 Sieg im Training**, **+2 Siege im unab
 ## CI / Reproduzierbarkeit
 
 - v9.2 [Trainingsworkflow](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39366870349) **SUCCESS**, interne Tests **56/56** Legalitäts-/Save-/Ökonomie-/Fusions-Tests und **20/20** zusätzliche KI-Regressionstests bestanden. Separate [Code-/Strategie-Checks SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39366870229) und [Browser-Smokes SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39366870242).
-- v9.3 [Trainingsworkflow](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39367079885) **SUCCESS**, erneut **56/56 + 20/20** Tests bestanden; [Code-/Strategie-Checks SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39367079815). [Browser-Smoke-Lauf](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39367079868) separat abschließend prüfen.
+- v9.3 [Trainingsworkflow](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39367079885) **SUCCESS**, erneut **56/56 + 20/20** Tests bestanden; [Code-/Strategie-Checks SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39367079815). [Browser-Smoke-Lauf – SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39367079868) vollständig bestanden.
 - JSON-Aktionsartefakte v9.2: `arcane-pre-attack-v92` ID `12238994403`; v9.3: `arcane-tempo-confirmation-v93` ID `12240011138`, beide bis **19. November 2026** verfügbar.
 
 **Freigabestatus: Training abgeschlossen, positiver technischer Fortschritt, `main` und Live-KI unverändert. Nach neuer strenger v9.3-Grenze keine volle Produktivqualifikation.**
