@@ -1,0 +1,39 @@
+name: Arcane Duel - Real Hybrid VI Farming v10.1
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-hybrid-vi-farming-v101.cjs'
+      - '.github/workflows/ai-hybrid-vi-farming-v101.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  earned-hybrid-vi-career-holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and real inventory / reward rule regressions
+        run: |
+          node --check tests/ai-hybrid-vi-farming-v101.cjs
+          node --check tests/helpers/ai-pre-attack-v92.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/shard-rework-v77.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: Play 32 independent career triplets; compare 30/45/60/75 VI fight horizons
+        env:
+          ARCANE_V101_CAREERS: '32'
+          ARCANE_V101_TIER_ATTEMPTS: '24'
+        run: node tests/ai-hybrid-vi-farming-v101.cjs
+      - name: Check existing NPC AI / game combat invariants
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-decision-diagnostics-v62.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - name: Upload all earned career source pairs, budgets and hybrid switch data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-hybrid-vi-farming-v101
+          path: artifacts/ai-hybrid-vi-farming-v101.json
+          if-no-files-found: warn
+          retention-days: 30
