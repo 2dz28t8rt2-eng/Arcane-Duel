@@ -275,3 +275,18 @@ Das value-gated Kaufexperiment mit **12 unabhängigen Startkarrieren je Arm** un
 **Nächste Roadmap-Phase v9.0:** [Issue #16](https://github.com/2dz28t8rt2-eng/Arcane-Duel/issues/16) – den KI-Aktionsphasenablauf **rechtmäßig und beobachtbar** zwischen Beschwörung, Position, optionaler Soul-/Guardian-Fähigkeit, Angriff und Zugende aufteilen, dann mit legal verdienten IV-/VI-Karrieren und brandneuen unabhängigen Seeds trainieren. Die Anforderung ist **mehr echte Siege**, nicht nur endlich 2–3 Supportaktionen oder kleine LP-Differenzen.
 
 **Produktions-Lock:** `main`, aktive Live-Gegner-KI, Game Engine, Kartenwerte, Loot/Preise und Questfortschritt unverändert. Alle v8.8/v8.9-Heuristiken befinden sich nur im Offline-Testcode von `development`. Diese Trainingsläufe sind kein selbstlernendes Neuronennetz aus echten Nutzermatches.
+
+
+## Fortsetzung KI v9.0 — 20.10.2026 abgeschlossen
+
+**[Trainings-Workflow erfolgreich](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39365570969).** [Detaillierter Bericht](AI_V90_EXPLICIT_TURN_CONTROLLER_RESULTS_20261020.md), [vorheriger Auftrag #16](https://github.com/2dz28t8rt2-eng/Arcane-Duel/issues/16).
+
+**Methode:** neuer Seed-Offset **32000**, 32 regulär erspielte voneinander unabhängige Karrieren (1.525 echte belohnte Karriereduelle), je 16 Trainings- und Holdout-Quellen; **896** echte Engine-Diagnosekämpfe: 7 Strategiesimulationen × 2 feste Kampfseeds × 2 Startspielerpositionen × 32 Ursprünge. Jeder Arm startet mit exakt denselben rechtmäßig besessenen Profil-/Kartendaten. Der Unterschied kommt allein aus den Match-sandboxed, legalen Spieler-Aktions-Policies und bei ausdrücklich benannten Varianten aus dem legal umsortierten Hauptdeck.
+
+**Ergebnisse Gegner IV (Training/Holdout, Siege aus 64 je Arm):** Baseline **5/3**, reiner expliziter Phasencontroller **5/3** mit **identischen** LP-Bilanzen, phasenbewusste Unterstützung **5/3**, sichere Unterstützung **5/3**, defensive Unterstützung **4/3**, Rollen-Deck+Support **5/2**, Rollen-Deck+defensive Unterstützung **4/2**. Der beste Trainingskandidat `explicit-support` führte 10 legale Supportaktionen in der Trainingshälfte und 2 im ungesehenen Holdout aus (Baseline 0), **ohne Siegsteigerung**; Holdout-LP im Mittel −2,3 schlechter. Defensive Support-Variante senkte im Holdout den LP-Rückstand um 77,5, gewann aber keine weitere Partie.
+
+**QA:** workflowintern **56/56** Legalitäts-/Spiel-/Rollen-/Speicher-/Economy-Tests und **20/20** ergänzende KI-Tests grün. Allgemeine Code-/Strategiechecks auf dem Trainingscommit ebenfalls erfolgreich; Browser-Smoke separat dokumentiert.
+
+**Urteil:** Die als Offline-Test implementierte explizite Zugphasensteuerung kann das normale Verhalten reproduzieren und rechtmäßige Seelenfähigkeiten aktivieren. **Keine** getestete Variante ist auf unabhängigen Ursprüngen reproduzierbar siegfähiger. `qualified=false`; keine Änderung an aktiver KI, Quest, `assets/game.js`, `main`, Preisen oder Monsterwerten.
+
+**Nächste Priorität v9.1:** [Issue #17](https://github.com/2dz28t8rt2-eng/Arcane-Duel/issues/17) — echte individuelle Aktionen auf der Spielengine nach tatsächlicher Angriffs-, LP-, Gegner-/ACE-/Fusion-Wirkung instrumentieren. Sichere Angriffsreihenfolge, Materialerhalt und gegebenenfalls Soul-Heilung gegen Lethal jeweils als isolierte Hypothese auf unabhängigen neuen Karrierequellen prüfen. Nach positiven Erfolgen zusätzlich vollständige Karriere-A/B-Tests bis IV/VI, ansonsten keine Produktivfreigabe.
