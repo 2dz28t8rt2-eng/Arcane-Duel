@@ -1528,7 +1528,7 @@ async function runAi(){
    g.cinemaActive=!!fusion;render();if(g.fateEvent)await fateAnimation(g);
    try{
     if(lumiraFall)await window.ArcaneLumiraCorruption.play(g,result.card);
-    else if(fusion)await fusionAnimation(dataOf(result.card).level,null,result.fused?'field':'full');
+    else if(fusion)await fusionAnimation(dataOf(result.card).level,null,result.fused?'field':'hand');
     else if(a.type==='place')await window.ArcaneSummonFX?.land(g,result.card);
     else await animationWait(a.type==='attack'?120:60);
     await window.ArcaneDefenderFX?.flush(g);
