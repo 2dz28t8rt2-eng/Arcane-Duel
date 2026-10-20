@@ -174,7 +174,7 @@
    if(!guard||!patient||Math.abs(a.guardian-a.ally)!==1||
      role(guard)!=='guardian'||role(patient)!=='soul'||
      guard.mode!=='def'||guard.attacked||guard.switched)return false;
-   const cap=baseStat(CARDS[patient.id],'def',p),missing=Math.max(0,cap-patient.card.def);
+   const cap=Math.floor(baseStat(CARDS[patient.id],'def',p)),missing=Math.max(0,cap-patient.card.def);
    if(missing<20)return false;
    const heal=Math.min(missing,Math.max(45,Math.round(dataOf(guard).def*.22)));
    patient.card.def+=heal;guard.attacked=true;
