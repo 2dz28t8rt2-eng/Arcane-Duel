@@ -39,13 +39,32 @@ function game(s,type,seed,starter){
     soulDefTurns:0,guardianDefTurns:0,soulReadyTurns:0,guardianReadyTurns:0,
     switchedSoulTurns:0,spentSoulTurns:0,adjacentTurns:0,targetTurns:0,
     legalDrainTurns:0,legalHealTurns:0,legalDrainChoices:0,legalHealChoices:0,
-    supportChosen:0,supportApplied:0,supportRejected:0,defenseChosen:0};
-  const observed=new Set(),oldChoose=chooseAiAction,oldApply=applyAiAction;
+    supportChosen:0,supportApplied:0,supportRejected:0,defenseChosen:0,
+    phaseCalls:{},postChoosePhaseCalls:{},soulAnyTurns:0,guardianAnyTurns:0,
+    soulDefAnyTurns:0,guardianDefAnyTurns:0,soulReadyAnyTurns:0,
+    guardianReadyAnyTurns:0,legalDrainAnyCalls:0,legalHealAnyCalls:0,
+    soulAnyCalls:0,guardianAnyCalls:0,attacksPhaseCalls:0};
+  const observed=new Set(),seenSoul=new Set(),seenGuard=new Set(),
+    seenSoulDef=new Set(),seenGuardDef=new Set(),seenSoulReady=new Set(),
+    seenGuardReady=new Set(),oldChoose=chooseAiAction,oldApply=applyAiAction;
   chooseAiAction=function(game,policy){
    if(game!==g||game.active!==0)return oldChoose(game,policy);
    const c=(${src.coverageSource})(game),key=String(game.turn);
    diagnostics.decisionCalls++;
-   if(game.aiPhase==='attacks'&&!observed.has(key)){
+   const phase=String(game.aiPhase);
+   diagnostics.phaseCalls[phase]=(diagnostics.phaseCalls[phase]||0)+1;
+   if(c.soulOnField){diagnostics.soulAnyCalls++;
+    if(!seenSoul.has(key)){seenSoul.add(key);diagnostics.soulAnyTurns++;}}
+   if(c.guardianOnField){diagnostics.guardianAnyCalls++;
+    if(!seenGuard.has(key)){seenGuard.add(key);diagnostics.guardianAnyTurns++;}}
+   if(c.soulDef&&!seenSoulDef.has(key)){seenSoulDef.add(key);diagnostics.soulDefAnyTurns++;}
+   if(c.guardianDef&&!seenGuardDef.has(key)){seenGuardDef.add(key);diagnostics.guardianDefAnyTurns++;}
+   if(c.readySoul&&!seenSoulReady.has(key)){seenSoulReady.add(key);diagnostics.soulReadyAnyTurns++;}
+   if(c.readyGuard&&!seenGuardReady.has(key)){seenGuardReady.add(key);diagnostics.guardianReadyAnyTurns++;}
+   if(c.legalDrain)diagnostics.legalDrainAnyCalls++;
+   if(c.legalHeal)diagnostics.legalHealAnyCalls++;
+   if(phase==='attacks')diagnostics.attacksPhaseCalls++;
+   if(phase==='attacks'&&!observed.has(key)){
     observed.add(key);diagnostics.turnsSeen++;
     for(const [test,dest] of [
      ['soulOnField','soulFieldTurns'],['guardianOnField','guardianFieldTurns'],
@@ -57,7 +76,10 @@ function game(s,type,seed,starter){
       if(c[test])diagnostics[dest]++;
    }
    const chosen=(${src.policySource})(game,type,diagnostics,c);
-   return chosen||oldChoose(game,policy);
+   const action=chosen||oldChoose(game,policy);
+   const finalPhase=String(game.aiPhase);
+   diagnostics.postChoosePhaseCalls[finalPhase]=(diagnostics.postChoosePhaseCalls[finalPhase]||0)+1;
+   return action;
   };
   applyAiAction=function(game,action){
    if(game!==g||game.active!==0||
@@ -113,7 +135,19 @@ for(const s of earned.entries){
    adjacentTurns:metric('adjacentTurns'),targetTurns:metric('targetTurns'),
    legalDrainTurns:metric('legalDrainTurns'),legalHealTurns:metric('legalHealTurns'),
    supportChosen:metric('supportChosen'),supportApplied:metric('supportApplied'),
-   supportRejected:metric('supportRejected'),defenseChosen:metric('defenseChosen')};
+   supportRejected:metric('supportRejected'),defenseChosen:metric('defenseChosen'),
+   soulAnyTurns:metric('soulAnyTurns'),guardianAnyTurns:metric('guardianAnyTurns'),
+   soulDefAnyTurns:metric('soulDefAnyTurns'),guardianDefAnyTurns:metric('guardianDefAnyTurns'),
+   soulReadyAnyTurns:metric('soulReadyAnyTurns'),guardianReadyAnyTurns:metric('guardianReadyAnyTurns'),
+   legalDrainAnyCalls:metric('legalDrainAnyCalls'),legalHealAnyCalls:metric('legalHealAnyCalls'),
+   soulAnyCalls:metric('soulAnyCalls'),guardianAnyCalls:metric('guardianAnyCalls'),
+   attacksPhaseCalls:metric('attacksPhaseCalls'),
+   phaseCalls:rows.reduce((all,r)=>{
+    for(const [p,n] of Object.entries(r.diagnostics.phaseCalls))all[p]=(all[p]||0)+n;
+    return all;},{}),
+   postChoosePhaseCalls:rows.reduce((all,r)=>{
+    for(const [p,n] of Object.entries(r.diagnostics.postChoosePhaseCalls))all[p]=(all[p]||0)+n;
+    return all;},{})};
  }
  results.push({careerId:s.careerId,policy:s.policy,variants});
  console.log('ARCANE_V88_ORIGIN '+JSON.stringify({run:s.careerId,policy:s.policy,
@@ -133,10 +167,22 @@ function summary(rows){
    originsWithGuardian:a.filter(x=>x.roleEquipped.guardian>0).length,
    soulCardsEquipped:sum('roleEquipped.soul')||0,
    soulFieldTurns:sum('soulFieldTurns'),guardianFieldTurns:sum('guardianFieldTurns'),
+   soulAnyTurns:sum('soulAnyTurns'),guardianAnyTurns:sum('guardianAnyTurns'),
+   soulDefAnyTurns:sum('soulDefAnyTurns'),guardianDefAnyTurns:sum('guardianDefAnyTurns'),
+   soulReadyAnyTurns:sum('soulReadyAnyTurns'),guardianReadyAnyTurns:sum('guardianReadyAnyTurns'),
+   legalDrainAnyCalls:sum('legalDrainAnyCalls'),legalHealAnyCalls:sum('legalHealAnyCalls'),
+   soulAnyCalls:sum('soulAnyCalls'),guardianAnyCalls:sum('guardianAnyCalls'),
+   attacksPhaseCalls:sum('attacksPhaseCalls'),
    readySoulTurns:sum('soulReadyTurns'),legalDrainTurns:sum('legalDrainTurns'),
    legalHealTurns:sum('legalHealTurns'),supportChosen:sum('supportChosen'),
    supportApplied:sum('supportApplied'),defenseChosen:sum('defenseChosen'),
-   switchedSoulTurns:sum('switchedSoulTurns')};
+   switchedSoulTurns:sum('switchedSoulTurns'),
+   phaseCalls:a.reduce((all,r)=>{
+    for(const [p,n] of Object.entries(r.phaseCalls))all[p]=(all[p]||0)+n;
+    return all;},{}),
+   postChoosePhaseCalls:a.reduce((all,r)=>{
+    for(const [p,n] of Object.entries(r.postChoosePhaseCalls))all[p]=(all[p]||0)+n;
+    return all;},{})};
   // The nested role equipped fields are aggregated explicitly.
   out[type].soulCardsEquipped=a.reduce((n,x)=>n+x.roleEquipped.soul,0);
   out[type].guardianCardsEquipped=a.reduce((n,x)=>n+x.roleEquipped.guardian,0);
@@ -157,7 +203,7 @@ const selected=ranked[0]?.winsDelta>0||
 const holdoutPairs=Object.fromEntries(arms.filter(x=>x!=='baseline').map(x=>[x,paired(holdout,x)]));
 const qualified=selected!=='baseline'&&holdoutPairs[selected].winsDelta>0&&
  holdoutPairs[selected].better>holdoutPairs[selected].worse;
-const report={schema:'arcane-defender-soul-coverage-v88',origins:num,
+const report={schema:'arcane-defender-soul-coverage-v88.1-phase-audit',origins:num,
  trainOrigins:train.length,holdoutOrigins:holdout.length,
  seedOffset:earned.careerSeedOffset,sourceEarnedMatches:earned.earnedMatches,
  sourceCareerIVWins:earned.completedIV,diagnosticDuels:duels,
