@@ -11,12 +11,13 @@ test('two true Resonators earn exactly +1 rank ONCE in chain, not every recombin
  assert.equal(r.bonus,1);assert.equal(r.repeat,0);assert.equal(r.used,true);
  assert.equal(r.firstLevel-r.repeatLevel,1);
 });
-test('opponent VII has guardian archetype, no Lv10 non-ACE template, and an actual accessible unique ACE',()=>{
+test('opponent VII has guardian archetype, exactly three Lv10 fusions including its unique ACE',()=>{
  const r=execute("(()=>{const o=RPG_OPPONENTS[7],p=rpgEnemyLoadout(7,'easy');const ace=ACE_CARD_IDS[7];const dec=p.fusionDeck.map(id=>({id,level:CARDS[id].level,ace:id===ace}));return {style:o.aiArchetype,policy:o.policy,main:p.deck.length,templates:dec,aceLevel:CARDS[ace].level,normalTags:p.deck.filter(id=>['guardian','soul'].includes(CARDS[id].role)).length};})()");
  assert.equal(r.style,'defense');assert.equal(r.policy,'guardian');
  assert.equal(r.main,40);assert.equal(r.aceLevel,10);
- assert.equal(r.templates.filter(x=>x.level===10).length,1,JSON.stringify(r));
- assert.equal(r.templates.filter(x=>x.level===10&&!x.ace).length,0);
+ assert.equal(r.templates.filter(x=>x.level===10).length,3,JSON.stringify(r));
+ assert.equal(r.templates.filter(x=>x.level===10&&!x.ace).length,2);
+ assert.equal(r.templates.filter(x=>x.level===10&&x.ace).length,1);
  assert.ok(r.normalTags>=5,JSON.stringify(r));
 });
 test('ascending forge is tier V gated, Lv10 unlocks only after VI, and all results are legal real catalogue cards',()=>{
