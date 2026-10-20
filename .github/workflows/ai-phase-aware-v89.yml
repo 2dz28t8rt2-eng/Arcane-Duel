@@ -1,0 +1,48 @@
+name: Arcane Duel - Phase-Aware Soul AI v8.9
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-earned-preiv-v89.cjs'
+      - 'tests/ai-phase-aware-v89.cjs'
+      - 'tests/helpers/ai-phase-aware-v89.cjs'
+      - '.github/workflows/ai-phase-aware-v89.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  legal-phase-support-holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate phase, fusion, save and syntax
+        run: |
+          node --check tests/ai-earned-preiv-v89.cjs
+          node --check tests/ai-phase-aware-v89.cjs
+          node --check tests/helpers/ai-phase-aware-v89.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/shard-rework-v77.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: Earn fresh 32 real career inventories
+        env:
+          ARCANE_V89_CAREERS: '32'
+          ARCANE_V89_TIER_ATTEMPTS: '16'
+        run: node tests/ai-earned-preiv-v89.cjs
+      - name: Independently validate phase-aware legal support versus controls
+        env:
+          ARCANE_V89_CAREERS: '32'
+          ARCANE_V89_MATCH_SEEDS: '2'
+        run: node tests/ai-phase-aware-v89.cjs
+      - name: Additional engine & NPC AI regression
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-decision-diagnostics-v62.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-phase-aware-v89
+          path: |
+            artifacts/ai-earned-preiv-v89.json
+            artifacts/ai-defender-coverage-v89.json
+          if-no-files-found: warn
+          retention-days: 30
