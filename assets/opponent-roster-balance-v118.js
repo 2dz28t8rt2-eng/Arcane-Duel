@@ -138,7 +138,7 @@
      [...new Set(load.deck)].some(cid=>copies(load.deck,cid)>3)||
      [...new Set(load.fusionDeck)].some(cid=>copies(load.fusionDeck,cid)>3)||
      (ACE[id]&&copies(load.deck,ACE[id])+copies(load.fusionDeck,ACE[id])!==1))
-   throw Error('v11.8 tournament deck constraints violated for NPC '+id);
+   throw Error('v11.8 NPC '+id+' invalid deck '+JSON.stringify({main:load.deck.length,fusion:load.fusionDeck.length,ace:ACE[id],aceMain:copies(load.deck,ACE[id]),aceFusion:copies(load.fusionDeck,ACE[id]),maxCopiesMain:Math.max(...[...new Set(load.deck)].map(cid=>copies(load.deck,cid))),maxCopiesFusion:Math.max(...[...new Set(load.fusionDeck)].map(cid=>copies(load.fusionDeck,cid))),invalidMain:load.deck.filter(cid=>!CARDS[cid]||CARDS[cid].fusionOnly),invalidFusion:load.fusionDeck.filter(cid=>!CARDS[cid]?.fusionOnly)}));
   return {...load,roster118:modifications};
  };
  window.ArcaneRosterBalance118=Object.freeze({
