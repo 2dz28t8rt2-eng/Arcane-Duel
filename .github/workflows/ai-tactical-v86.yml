@@ -1,0 +1,48 @@
+name: Arcane Duel - Conservative Fusion AI Verification v8.6
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-earned-preiv-v86.cjs'
+      - 'tests/ai-tactical-training-v86.cjs'
+      - 'tests/helpers/ai-tactical-v86.cjs'
+      - '.github/workflows/ai-tactical-v86.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verified-tactical-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check all rules and test scripts
+        run: |
+          node --check tests/ai-earned-preiv-v86.cjs
+          node --check tests/ai-tactical-training-v86.cjs
+          node --check tests/helpers/ai-tactical-v86.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/shard-rework-v77.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: Earn fresh independent careers for calibration verification
+        env:
+          ARCANE_V86_CAREERS: '32'
+          ARCANE_V86_TIER_ATTEMPTS: '16'
+        run: node tests/ai-earned-preiv-v86.cjs
+      - name: Matched strict material, quality and reactive fusion tests
+        env:
+          ARCANE_V86_CAREERS: '32'
+          ARCANE_V86_MATCH_SEEDS: '2'
+        run: node tests/ai-tactical-training-v86.cjs
+      - name: Additional AI and combat regression
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-decision-diagnostics-v62.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-tactical-ai-v86
+          path: |
+            artifacts/ai-earned-preiv-v86.json
+            artifacts/ai-tactical-v86.json
+          if-no-files-found: warn
+          retention-days: 30
