@@ -1,0 +1,39 @@
+name: Arcane Duel - Equal VI Battle Budget v9.9
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-equal-budget-farming-v99.cjs'
+      - '.github/workflows/ai-equal-budget-farming-v99.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  matched-vi-budget-careers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 115
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and legal economy / deck rules
+        run: |
+          node --check tests/ai-equal-budget-farming-v99.cjs
+          node --check tests/helpers/ai-pre-attack-v92.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/shard-rework-v77.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: Real 32-origin, 3-arm careers with 35, 50 and 72 VI-fight windows
+        env:
+          ARCANE_V99_CAREERS: '32'
+          ARCANE_V99_TIER_ATTEMPTS: '24'
+        run: node tests/ai-equal-budget-farming-v99.cjs
+      - name: Additional AI and fusion regressions
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-decision-diagnostics-v62.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - name: Upload paired career and duel-budget evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-equal-budget-farming-v99
+          path: artifacts/ai-equal-budget-vi-farming-v99.json
+          if-no-files-found: warn
+          retention-days: 30
