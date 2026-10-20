@@ -5,7 +5,7 @@
 - **v8.5:** [GitHub Actions #39360036179 — SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39360036179), Source-Commit `7df5bdca16198a35233636ae0a18ab3330b90917`. Ergebnisartefakt `arcane-tactical-ai-v85` (ID `12236713555`, Aufbewahrung bis 19.11.2026).
 - **v8.6:** [GitHub Actions #39360317647 — SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39360317647), Source-Commit `4bdf15b01cce13a0dbc64e7a94b0bf219d5c719f`. Ergebnisartefakt `arcane-tactical-ai-v86` (ID `12236559429`, Aufbewahrung bis 19.11.2026).
 - **v8.5 Code-/Strategiechecks** [SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39360035805) und [Browser Smoke SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39360035737).
-- **v8.6 Code-/Strategiechecks** [SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39360317530); Browser-Smoke separat über [#39360317498](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39360317498) prüfen (läuft zum Zeitpunkt der Berichterstellung noch).
+- **v8.6 Code-/Strategiechecks** [SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39360317530); [Browser-Smoke SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39360317498).
 
 **Unverändert:** `assets/game.js`, die produktiven NPC-/Spielergewichte, Preise, Monsterwerte, Bossbalance, `main`. Alle neuen Strategien sind **rein offline** in neuen v8.5-/v8.6-Testskripten gekapselt. Keine produktive KI-Aktivierung.
 
