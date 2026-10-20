@@ -7,7 +7,7 @@ test('v11.9 handbook loads after v11.8 mechanics with a read-only current monste
  assert.equal(x.version,'11.9.0');assert.ok(x.count>80,'Catalog should span late game, not only early active IDs');
  assert.ok(x.owned>0);assert.ok(x.types.includes('fusion')&&x.types.includes('normal'));
  assert.deepEqual(x.decay,[20,25,30,40,55,65,80,105,135,170]);
- assert.match(x.pveTitle,/10 % \/ 20 %/);
+ assert.match(x.pveTitle,/10 % pro Rang/);assert.match(x.pveTitle,/maximal 20 %/);
 });
 test('reading rulebook and checking current card catalog does not change saved progress',()=>{
  const vm=boot({seed:121});
