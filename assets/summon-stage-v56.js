@@ -32,6 +32,8 @@
   const label=pending?.kind==='fusion'?'Fusionskarte':pending?'Ausgewählte Beschwörung':chosen?'Ausgewählte Handkarte':'Kartenvorschau';
   const fusionReady=pending?.kind==='fusion'&&pending.revealed===true;
   const showStats=pending?.kind!=='fusion'||fusionReady;
+  const actualBonus=pending?.kind==='fusion'?window.ArcaneFusionBonus?.describe?.(pending.card):null;
+  const bonusHtml=actualBonus?'<div class="ad112-special-bonus" role="status">✦ SPEZIALBONUS · <strong>'+esc(actualBonus.title)+'</strong>'+(actualBonus.percent===null?'':' · +'+esc(actualBonus.percent)+' % Qualität')+'</div>':'';
   const selectedHtml=current?(
    pending?.kind==='normal'?
     '<div class="stage-card ad56-stage-card" title="Karte erneut anklicken, um die Beschwörung zurückzunehmen">'+fullCardHtml(current)+'</div>':
@@ -51,22 +53,12 @@
   if(levels.length>=2){
    const options=fusionOptions(g,levels,material).filter(c=>canCompleteHandFusion(g,levels,c.id));
    limits='<div class="ad56-material-status"><strong>'+levels.length+' / 5 Materialien</strong>'+
-    '<span>Qualität: '+cost+' Würfe</span><span>'+options.length+' mögliche Vorlagen</span>'+
-    (options.length?'<span>Maximale Stufe: '+Math.max(...options.map(c=>c.level))+'</span>':
+    '<span>Qualität: '+cost+' Würfe</span><span>Materialbudget: bis Lv '+fusionBudget(levels,g)+'</span><span>'+options.length+' verfügbare Vorlagen</span>'+
+    (options.length?'<span>Höchste verfügbare Vorlage: Lv '+Math.max(...options.map(c=>c.level))+'</span>':
      '<span class="ad56-warning">Derzeit keine legale Fusionsvorlage</span>')+'</div>';
   }else if(material.length){
    limits='<div class="ad56-material-status"><span>1 / 5 Materialien · mindestens 2 wählen</span></div>';
   }
-  const zones=me.field.map((c,index)=>{
-   let status='frei',title='Freie Monsterzone';
-   if(c){
-    status='occupied';title=dataOf(c).name;
-   }
-   const eligible=!!pending&&(!c||(!isFateCard(c)&&!isFateCard(pending.card)));
-   return '<div class="ad56-zone '+status+(eligible?' eligible':'')+'">'+
-    '<strong>'+String(index+1).padStart(2,'0')+'</strong><span>'+esc(title)+'</span>'+
-    '<small>'+(!c?'Frei':pending&&eligible?'Feldfusion prüfen':'Besetzt')+'</small></div>';
-  }).join('');
   host.innerHTML='<div class="ad56-cockpit" data-stage-phase="'+phaseId+'">'+
    '<div class="ad56-topline"><span class="ad56-kicker">✦ BESCHWÖRUNGSZENTRALE</span><strong>'+esc(phase)+'</strong></div>'+
    '<div class="ad56-steps" aria-label="Beschwörungsablauf">'+
@@ -74,18 +66,13 @@
     '<span class="'+(pending?'active':'')+'">2 · Vorbereiten</span>'+
     '<span class="'+(pending?'active':'')+'">3 · Zone auf dem Feld</span></div>'+
    '<div class="ad56-columns">'+
-    '<section class="ad56-block ad56-selection"><h3>'+esc(label)+'</h3>'+selectedHtml+
+    '<section class="ad56-block ad56-selection"><h3>'+esc(label)+'</h3>'+selectedHtml+bonusHtml+
       '<p class="ad56-hint">'+(pending?'Jetzt auf eine der fünf Zonen deines Feldes klicken.':
        chosen?'„Beschwören“ wählen oder eine andere Handkarte anklicken.':
        material.length?'Weitere Materialien markieren oder „Fusionieren“ drücken.':
        'Du darfst pro Zug eine Karte beschwören oder eine Fusion ausführen.')+'</p></section>'+
     '<section class="ad56-block ad56-material"><h3>Fusionsmaterial</h3>'+materialHtml+limits+'</section></div>'+
-   '<section class="ad56-block ad56-placement"><h3>Monsterzonen <small>Feldzone anklicken – kein zweites Pop-up</small></h3>'+
-    '<div class="ad56-zones">'+zones+'</div>'+
-    '<p class="ad56-hint">'+(pending?
-       'Freier Platz = Beschwörung. Besetzte Zone = mögliche Feldfusion; Kartenstufen und verfügbare Vorlagen gelten weiterhin.':
-       'Die Feldzone wählst du nach „Beschwören“ oder „Fusionieren“. Ein besetzter Platz ist kein garantierter Fusionsplatz.')+
-     '</p></section></div>';
+   '</div>';
  }
  render=function(){const result=previousRender();renderStage();return result;};
  document.getElementById('summonStage')?.addEventListener('click',event=>{
