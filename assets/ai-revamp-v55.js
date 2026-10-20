@@ -11,7 +11,7 @@
   4:{style:'attack',difficulty:'mittel',floor:3,cap:7,normalCap:5,powerFactor:.95,aceTurn:6},
   5:{style:'defense',difficulty:'mittel',floor:4,cap:8,normalCap:6,powerFactor:.98,aceTurn:6},
   6:{style:'fusion',difficulty:'mittel',floor:4,cap:8,normalCap:7,powerFactor:1.02,aceTurn:6},
-  7:{style:'attack',difficulty:'schwer',floor:5,cap:9,normalCap:8,powerFactor:1.08,aceTurn:4},
+  7:{style:'defense',difficulty:'schwer',floor:5,cap:9,normalCap:8,powerFactor:1.08,aceTurn:4},
   8:{style:'defense',difficulty:'schwer',floor:6,cap:9,normalCap:9,powerFactor:1.10,aceTurn:4},
   9:{style:'fusion',difficulty:'schwer',floor:7,cap:10,normalCap:10,powerFactor:1.13,aceTurn:4},
   10:{style:'hybrid',difficulty:'finale',floor:8,cap:10,normalCap:10,powerFactor:1.15,aceTurn:4}
@@ -81,6 +81,22 @@
    }
    // One legal signature is better than an unreachable permanent placeholder.
    if(!fusionDeck.includes(aceId))throw Error('KI-ACE fehlt im Fusionsdeck von Gegner '+id);
+  }
+  if(id===7){
+   // Boss VII: exactly one level-10 card, its existing earned signature ACE.
+   // No rank-10 generic templates (nor replacement high-level filler).
+   fusionDeck=fusionDeck.filter(cid=>CARDS[cid]?.level<=9||cid===aceId);
+   if(ace?.fusionOnly){
+    fusionDeck=fusionDeck.filter(cid=>cid!==aceId);
+    fusionDeck.push(aceId);
+   }
+   // Use guardian/soul templates where they exist; a forced Predator
+   // template cannot overwrite the material-inherited combat role.
+   fusionDeck.sort((a,b)=>{
+    const ra=role(CARDS[a]),rb=role(CARDS[b]);
+    const preferred=x=>x==='guardian'||x==='soul'?1:0;
+    return preferred(rb)-preferred(ra);
+   });
   }
   return {...original,deck:selected,fusionDeck,
    power:Math.min(1.75,(original.power||1)*p.powerFactor),
