@@ -4,7 +4,7 @@
 
 **Trainingslauf:** [GitHub Actions #39366160219 – SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39366160219).
 **Code/Strategie:** [#39366160141 – SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39366160141).
-**Browser-Smoke:** [#39366160181](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39366160181) separat zu prüfen; zum Zeitpunkt der ursprünglichen Berichtserstellung noch aktiv.
+**Browser-Smoke:** [#39366160181 – SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39366160181), erfolgreich abgeschlossen.
 **Ergebnisartefakt:** `arcane-action-utility-v91` (ID `12239935343`; bis 19.11.2026); enthält vollständige Daten, darunter Ursprungspaare, Train-/Holdout-Statistik und Treffer-/Feldtelemetrie.
 
 ## Was tatsächlich ausgeführt wurde
