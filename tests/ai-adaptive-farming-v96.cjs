@@ -316,6 +316,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
     }
    }
    if(!won)break;
+   streak=0; // Post-victory free duels are baseline farming, not failure recovery.
    // Replays against a BEATEN opponent improve the owned collection
    // while respecting drop odds, XP penalties and actual resource costs.
    for(let k=0;k<farmAfter;k++){
