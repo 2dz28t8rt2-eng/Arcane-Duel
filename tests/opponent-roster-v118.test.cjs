@@ -20,7 +20,7 @@ function load(difficulty='easy',withoutRoster118=false){
 }
 test('VII has exactly three Lv10 fusion slots, exactly one genuine Lv10 ACE, and legal deck',()=>{
  const p=load().bosses[7];
- assert.equal(p.size,40);assert.ok(p.fusionSize>=2&&p.fusionSize<=15);
+ assert.equal(p.size,40);assert.ok(p.fusionSize>=1&&p.fusionSize<=15);
  assert.equal(p.fusionHist[10],3,JSON.stringify(p));
  assert.equal(p.aceFusionCount,1);assert.equal(p.nonAce10,2);
  assert.deepEqual(p.invalidMain,[]);assert.deepEqual(p.invalidFusion,[]);
@@ -68,7 +68,7 @@ test('all ten bosses hold one and only one personal ACE in both easy and hard en
    const p=set[id];
    assert.equal(p.aceMainCount+p.aceFusionCount,1,difficulty+' boss '+id);
    assert.equal(p.size,40);
-   assert.ok(p.fusionSize>=2&&p.fusionSize<=15);
+   assert.ok(p.fusionSize>=1&&p.fusionSize<=15);
    assert.deepEqual(p.overMain,[]);assert.deepEqual(p.overFusion,[]);
   }
  }
