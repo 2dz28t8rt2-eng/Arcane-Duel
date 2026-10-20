@@ -52,7 +52,7 @@
   [...new Set(ids)].every(id=>ids.filter(x=>x===id).length<=freeCopies(id));
  function suggested(level){
   const pool=inputPool(level),picked=[];
-  for(const c of pool)for(let n=0;n<Math.min(freeCopies(c.id),3-picked.length);n++)picked.push(c.id);
+  for(const c of pool){const take=Math.min(freeCopies(c.id),3-picked.length);for(let n=0;n<take;n++)picked.push(c.id);}
   return picked.length===3?picked:null;
  }
  function forge(level,ids,opts={}){
