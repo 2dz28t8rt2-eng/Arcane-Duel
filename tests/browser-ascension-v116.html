@@ -2,7 +2,8 @@
 <h1>Arcane Duel v11.6 UI test</h1><pre id="report">Browserprüfung läuft …</pre><iframe src="../index.html" id="arcane" style="width:1200px;height:800px"></iframe>
 <script>
 const f=document.getElementById('arcane'),report=document.getElementById('report');
-let started=false;
+report.textContent='Prüfskript gestartet';
+let started=false,tries=0;
 const run=async()=>{
  if(started||!f.contentWindow?.ArcaneAscensionForge116)return;
  started=true;
@@ -34,5 +35,5 @@ const run=async()=>{
  document.body.dataset.arcane116=ok?'pass':'fail';
 };
 f.addEventListener('load',run);
-const poll=setInterval(()=>{if(started)clearInterval(poll);else run();},120);
+const poll=setInterval(()=>{if(started){clearInterval(poll);return;}run();if(++tries%10===0){let status='unbekannt';try{status='readyState='+f.contentDocument?.readyState+' / module='+!!f.contentWindow?.ArcaneAscensionForge116;}catch(e){status=String(e);}report.textContent='Auf Spiel warten: '+status;}},120);
 </script></html>
