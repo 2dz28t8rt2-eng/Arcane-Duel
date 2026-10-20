@@ -12,12 +12,12 @@ test('fresh and historical saved profiles gain validated seal balance and three 
 });
 test('mixed packs roll the precise fusion count 1, 1-2, 2-3, and 3-5',()=>{
  const b=make();
- const rows=b.run('(()=>{profile.cleared=[1,2,3,4,5,6,7];const out=[];for(const n of [1,3,5,10])for(let i=0;i<60;i++){const cards=rollFusionPack(n,highestCleared(),{seed:1777+n*301+i*311});if(!cards)throw Error("No pack");out.push({n,total:cards.length,fusions:cards.filter(id=>CARDS[id].fusionOnly).length,legal:cards.every(id=>!CARDS[id].ace&&!CARDS[id].milestoneOnly&&!CARDS[id].questOnly&&(CARDS[id].source<0||CARDS[id].source<=7))});}return out})()');
+ const rows=b.run('(()=>{profile.cleared=[1,2,3,4,5,6,7];const out=[];for(const n of [1,3,5,10])for(let i=0;i<60;i++){const cards=window.ArcaneFusionPackV109.rollFusionPack(n,highestCleared(),{seed:1777+n*301+i*311});if(!cards)throw Error("No pack");out.push({n,total:cards.length,fusions:cards.filter(id=>CARDS[id].fusionOnly).length,legal:cards.every(id=>!CARDS[id].ace&&!CARDS[id].milestoneOnly&&!CARDS[id].questOnly&&(CARDS[id].source<0||CARDS[id].source<=7))});}return out})()');
  const bounds={1:[1,1],3:[1,2],5:[2,3],10:[3,5]};
  for(const r of rows){assert.equal(r.total,r.n);assert(r.fusions>=bounds[r.n][0]&&r.fusions<=bounds[r.n][1]);assert(r.legal);}
 });
 test('mixed pack consumes seals, adds exactly ten copies, saves and blocks insufficient funds',()=>{
- const b=make(),v=b.run('(()=>{profile.cleared=[1,2,3,4,5];profile.boosterSeals=90;const before=Object.values(profile.inventory).reduce((a,n)=>a+n,0),success=buyFusionPack(10),cards=[...profile.lastBooster.cards],after=Object.values(profile.inventory).reduce((a,n)=>a+n,0),saved=!!validateProfile(JSON.parse(JSON.stringify(profile))),seals=profile.boosterSeals;profile.boosterSeals=0;const blocked=!buyFusionPack(10);return {success,delta:after-before,cards,seals,saved,blocked}})()');
+ const b=make(),v=b.run('(()=>{profile.cleared=[1,2,3,4,5];profile.boosterSeals=90;const before=Object.values(profile.inventory).reduce((a,n)=>a+n,0),success=window.ArcaneFusionPackV109.buyFusionPack(10),cards=[...profile.lastBooster.cards],after=Object.values(profile.inventory).reduce((a,n)=>a+n,0),saved=!!validateProfile(JSON.parse(JSON.stringify(profile))),seals=profile.boosterSeals;profile.boosterSeals=0;const blocked=!window.ArcaneFusionPackV109.buyFusionPack(10);return {success,delta:after-before,cards,seals,saved,blocked}})()');
  assert(v.success);assert.equal(v.delta,10);assert.equal(v.cards.length,10);assert.equal(v.seals,62);assert(v.saved);assert(v.blocked);
 });
 test('normal booster uses seals; winning one genuine pve match grants seals and small shards once',()=>{
