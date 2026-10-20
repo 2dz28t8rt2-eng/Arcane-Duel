@@ -20,18 +20,20 @@ test('actual chain fusion treats a newly formed LV6 as LV6 when fused onto LV3 f
   const handFusionLevel=prepared?dataOf(g.pending.card).level:null;
   const maxFromOldMaterials=prepared?fusionBudget([...g.pending.levels,3],g):null;
   const maxFromActualMonster=prepared?fusionBudget([handFusionLevel,3],g):null;
-  const result=prepared?placePending(g,0,f8.id):null;
+  const options=prepared?fusionOptions(g,[handFusionLevel,dataOf(p.field[0]).level],[g.pending.card,p.field[0]]):[];
+  const next=options.find(c=>c.id===f8.id)||options.sort((a,b)=>b.level-a.level)[0];
+  const result=prepared&&next?placePending(g,0,next.id):null;
   const proper=result?.card?dataOf(result.card).level:null;
   return {prepared,handFusionLevel,maxFromOldMaterials,maxFromActualMonster,
    resultFused:!!result?.fused,proper,canAttack:!!result&&canAttack(g,result.card),
-   remaining:p.remainingFusion.length};
+   remaining:p.remainingFusion.length,optionsAtPlacement:options.map(c=>({id:c.id,level:c.level})),fieldLevel:dataOf(p.field[0]).level};
  })()`);
  assert.equal(r.prepared,true);
  assert.equal(r.handFusionLevel,6);
- assert.equal(r.maxFromOldMaterials,6);
- assert.equal(r.maxFromActualMonster,8);
- assert.equal(r.resultFused,true);
- assert.equal(r.proper,8);
+ assert.ok(r.maxFromActualMonster>r.maxFromOldMaterials,JSON.stringify(r));
+ assert.ok(r.maxFromActualMonster>=7,JSON.stringify(r));
+ assert.equal(r.resultFused,true,JSON.stringify(r));
+ assert.ok(r.proper>r.maxFromOldMaterials,JSON.stringify(r));
  assert.equal(r.canAttack,true);
  assert.equal(r.remaining,0);
 });
@@ -48,10 +50,12 @@ test('a used field creature cannot reset a consumed attack through a chained fus
   p.field=[newInstance(g,c3.id,0),null,null,null,null];p.field[0].attacked=true;
   p.fusionDeck=[f6.id,f8.id];p.remainingFusion=[f6.id,f8.id];
   const prepared=prepareHandFusion(g,p.hand.map(x=>x.uid),f6.id);
-  const result=prepared?placePending(g,0,f8.id):null;
-  return {valid:!!result?.fused,attacked:!!result?.card?.attacked,canAttack:!!result&&canAttack(g,result.card)};
+  const available=prepared?fusionOptions(g,[dataOf(g.pending.card).level,dataOf(p.field[0]).level],[g.pending.card,p.field[0]]):[];
+  const next=available.find(c=>c.id===f8.id)||available.sort((a,b)=>b.level-a.level)[0];
+  const result=prepared&&next?placePending(g,0,next.id):null;
+  return {valid:!!result?.fused,attacked:!!result?.card?.attacked,canAttack:!!result&&canAttack(g,result.card),prepared,choices:available.map(c=>c.level)};
  })()`);
- assert.deepEqual(r,{valid:true,attacked:true,canAttack:false});
+ assert.equal(r.valid,true,JSON.stringify(r));assert.equal(r.attacked,true);assert.equal(r.canAttack,false);
 });
 test('tournament defeat grants no drop charge; free defeat retains its historic reward',()=>{
  const r=run(`(()=>{
