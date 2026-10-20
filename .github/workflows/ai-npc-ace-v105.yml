@@ -1,0 +1,34 @@
+name: Arcane Duel - NPC IX/X ACE Funnel v10.5
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-real-npc-ace-funnel-v105.cjs'
+      - '.github/workflows/ai-npc-ace-v105.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  paired-ace-npc-study:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax, core legality, deck and game-rule checks
+        run: |
+          node --check tests/ai-real-npc-ace-funnel-v105.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: 256 real NPC matches, 64 paired seeds and independent holdout
+        run: node tests/ai-real-npc-ace-funnel-v105.cjs
+      - name: AI regression suite
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-decision-diagnostics-v62.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-npc-ace-funnel-v105
+          path: artifacts/ai-real-npc-ace-funnel-v105.json
+          if-no-files-found: warn
+          retention-days: 30
