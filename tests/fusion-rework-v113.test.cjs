@@ -33,3 +33,13 @@ test('original PvP fusion budgeting remains unchanged',()=>{
  const r=inspect("(()=>{const p=createGame({mode:'pvp',seed:131});return {result:fusionBudget([2,2],p),existing:Math.min(8,4,3)};})()");
  assert.equal(r.result,r.existing);
 });
+
+test('stamped fusion role, combat role, full-card data and material imprint all agree despite a different template role',()=>{
+ const r=inspect("(()=>{profile=freshProfile();const g=createGame({mode:'pve',opponentId:4,seed:4189});game=g;g.active=0;const p=g.players[0];const predator=RPG_BASE_CARDS.filter(c=>c.role==='predator'&&!c.fusionOnly&&c.level<=6).slice(0,3);const soul=RPG_BASE_CARDS.filter(c=>c.role==='soul'&&!c.fusionOnly&&c.level<=6).slice(0,3);const template=RPG_FUSIONS.find(c=>c.level===6&&!c.retired&&!c.enemyOnly);if(predator.length<3||soul.length<3||!template)throw Error('missing roles');const predRole=window.ArcaneRoleFusion.inheritance(predator.map(c=>newInstance(g,c.id,0)));const soulRole=window.ArcaneRoleFusion.inheritance(soul.map(c=>newInstance(g,c.id,0)));const fused={...newInstance(g,template.id,0),fusion:true,roleOverride:'predator'};const label=dataOf(fused).role,effective=window.ArcaneEssenceCombat.roleOf(fused);fused.roleOverride='soul';return {predRole,soulRole,label,effective,soulTemplate:dataOf(fused).role,soulCombat:window.ArcaneEssenceCombat.roleOf(fused),templateRole:CARDS[fused.id].role};})()");
+ assert.equal(r.predRole,'predator',JSON.stringify(r));assert.equal(r.soulRole,'soul',JSON.stringify(r));
+ assert.equal(r.label,'predator');assert.equal(r.effective,'predator');assert.equal(r.soulTemplate,'soul');assert.equal(r.soulCombat,'soul');
+});
+test('explain button uses same real budget as preview and gives practical next-stage suggestion without spending materials',()=>{
+ const r=inspect("(()=>{profile=freshProfile();const g=createGame({mode:'pve',seed:118});game=g;g.active=0;const p=g.players[0];const c6=RPG_BASE_CARDS.find(c=>c.level===6&&!c.retired&&!c.fusionOnly),c5=RPG_BASE_CARDS.find(c=>c.level===5&&!c.retired&&!c.fusionOnly);p.hand=[newInstance(g,c6.id,0),newInstance(g,c5.id,0)];const materials=p.hand.slice();g.materials=materials.map(c=>c.uid);g.arcaneFusionCoreUid=materials[0].uid;const before=JSON.stringify(g.materials)+':'+p.remainingFusion.length;const result=window.ArcaneFusionTutorial113.explanation({g,levels:materials.map(c=>dataOf(c).level),materials,pending:false});return {budget:result.budget,formula:fusionBudget([6,5],g,materials),core:result.rule.core,explains:!!result.suggestion,after:JSON.stringify(g.materials)+':'+p.remainingFusion.length,before};})()");
+ assert.equal(r.budget,r.formula);assert.equal(r.core,6);assert.equal(r.after,r.before);assert.equal(r.explains,true);
+});
