@@ -26,7 +26,7 @@ test('Character pack rare chance never exceeds 10 percent',()=>{
  const run=boot(),x=run('OPPONENTS.map(o=>characterPackRareChance(o.id))');
  assert.ok(x.every(n=>n>=0&&n<=.10));
 });
-test('Fusion booster spends coins and stores exactly one fusion reward',()=>{
- const run=boot(),x=run('(()=>{profile.cleared=[1];profile.coins=100000;const before=profile.coins,price=window.ArcaneExpansion.fusionPackPrice(),ok=window.ArcaneExpansion.buyFusionPack(),id=profile.lastBooster?.cards[0];return {ok,id,price,spent:before-profile.coins,fusion:CARDS[id]?.fusionOnly,valid:validateProfile(JSON.parse(window.localStorage.getItem(SAVE_KEY))).coins===profile.coins};})()');
- assert.equal(x.ok,true);assert.equal(x.spent,x.price);assert.equal(x.fusion,true);assert.equal(x.valid,true);
+test('Fusion booster spends booster seals, preserves essence and stores exactly one fusion reward',()=>{
+ const run=boot(),x=run('(()=>{profile.cleared=[1];profile.coins=100000;profile.boosterSeals=100;const before=profile.boosterSeals,essence=profile.coins,price=window.ArcaneExpansion.fusionPackPrice(),ok=window.ArcaneExpansion.buyFusionPack(),id=profile.lastBooster?.cards[0];return {ok,id,price,spent:before-profile.boosterSeals,essenceUnchanged:essence===profile.coins,fusion:CARDS[id]?.fusionOnly,valid:validateProfile(JSON.parse(window.localStorage.getItem(SAVE_KEY))).coins===profile.coins};})()');
+ assert.equal(x.ok,true);assert.equal(x.spent,x.price);assert.equal(x.essenceUnchanged,true);assert.equal(x.fusion,true);assert.equal(x.valid,true);
 });
