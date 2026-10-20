@@ -249,3 +249,16 @@ Das value-gated Kaufexperiment mit **12 unabhängigen Startkarrieren je Arm** un
 - Alle experimentellen Aktionen waren Match-sandboxed, rechtmäßig und wurden **nicht** in `assets/game.js` oder der produktiven KI übernommen. Ökonomie-, Save-, Rollen-, Gegner- und Browser-Regressionen der jeweiligen Versionen bestanden.
 
 **Folgerung:** Deckbau und Fusionsauswahl allein beheben die IV-Hürde nicht reproduzierbar. Priorität v8.7 ist [Issue #14](https://github.com/2dz28t8rt2-eng/Arcane-Duel/issues/14): Angriffsziel, Gegenschlag, Position, Seelenentzug, ACE und Zugfolge instrumentieren, auf realen Inventaren in unabhängig gepaarten Train-/Holdout-Kämpfen messen und danach mit vollständigen echten Karrieren IV/VI bestätigen. `main`, Live-NPC-KI, Kartenwerte und Splitterpreise bleiben gesperrt.
+
+
+## KI v8.7 abgeschlossen (20.10.2026) – Board-Taktik und Defender-Coverage
+
+**Testergebnis:** [v8.7 GitHub Actions SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39363241584), [Code-/Strategie-Checks SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39363241547), [Browser-Smoke SUCCESS](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39363241510). [Vollständiger Abschlussbericht](AI_V87_BOARD_TACTICS_RESULTS_20261020.md), [Trainingsauftrag #14](https://github.com/2dz28t8rt2-eng/Arcane-Duel/issues/14).
+
+**Unabhängige Datenbasis:** 32 neue legale Karriereursprünge (Seed-Offset 20000), 1.585 regulär gespielte und vergütete Duelle zur Erzeugung tatsächlicher Kartenbestände, 640 gepaarte IV-Diagnoseduelle für 5 Strategiesimulationen (16 Trainings- und 16 vorab zurückgehaltene Kontroll-Ursprünge).
+
+**IV-Siege Training / Holdout pro 64 Kämpfe:** Baseline **3 / 3**, gezielte Bedrohungsattacke **3 / 3**, defensive Positionierung **1 / 4**, Seelenunterstützung **1 / 4**, Hybrid **1 / 4**. Defensive Wechsellogik war im Trainingssatz schlechter, im Holdout geringfügig besser; dies ist **keine belastbare Freigabe**. Der größte Befund: in den Unterstützungsvarianten **0 wirklich ausgeführte Soul-/Guardian-Aktionen**. Ergebnis bei Soul Support entsteht ausschließlich durch defensive Positionswechsel. Es ist noch unbekannt, ob wegen der niedrigen Rollen-Coverage, Feldkonstellation oder Aktionsrestriktionen kein Soul-Skill zustande kommt.
+
+**Freigabe:** `qualified=false`, Trainingsauswahl = `baseline`, keine produktive KI-Änderung oder Merge auf `main`.
+
+**Nächste Roadmap-Priorität v8.8:** [Issue #15](https://github.com/2dz28t8rt2-eng/Arcane-Duel/issues/15) – ernsthafte Coverage-Messung vorhandener Soul-/Guardian-Karten in legal ausgerüsteten Vor-IV/V/VI-Karrieren sowie Zähler für tatsächlich verfügbare und genutzte DEF-, Seelenentzug-/Wächteraktionen; defensive Wechsel unabhängig mit brandneuen Holdout-Seeds bestätigen, dann erst Karriere-IV/VI-Progression prüfen.
