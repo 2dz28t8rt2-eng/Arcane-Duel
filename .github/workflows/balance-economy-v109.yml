@@ -8,6 +8,8 @@ on:
       - 'assets/balance-economy-v109.js'
       - 'index.html'
       - 'tests/balance-economy-v109.test.cjs'
+      - 'tests/update-balance.test.cjs'
+      - 'tests/shard-rework-v77.test.cjs'
       - '.github/workflows/balance-economy-v109.yml'
   workflow_dispatch:
 permissions:
@@ -28,6 +30,6 @@ jobs:
           node --check assets/balance-economy-v109.js
           node --test tests/balance-economy-v109.test.cjs
       - name: Existing inventory/fusion/loot/save regression tests
-        run: node --test tests/regression.test.cjs tests/shard-rework-v77.test.cjs tests/monster-roles-forge.test.cjs tests/ai-fusion-choice-v61.test.cjs
+        run: node --test tests/regression.test.cjs tests/update-balance.test.cjs tests/shard-rework-v77.test.cjs tests/monster-roles-forge.test.cjs tests/ai-fusion-choice-v61.test.cjs
       - name: Smoke live game scripts and profile bootstrap
         run: node tests/helpers/game-runtime.cjs
