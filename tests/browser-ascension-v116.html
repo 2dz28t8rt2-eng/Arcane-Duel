@@ -6,7 +6,7 @@ f.addEventListener('load',async()=>{
  const w=f.contentWindow,d=f.contentDocument,notes=[];let ok=true;
  const check=(v,s)=>{notes.push((v?'OK ':'FAIL ')+s);if(!v)ok=false;report.textContent=notes.join('\n')};
  try{
-  w.eval('profile=freshProfile();profile.cleared=[1,2,3,4,5];profile.trainingWins=3;profile.coins=100000;profile.activeDuel=null;game=null;uiMode="menu";menuTab="workshop";const item=CARDS.find(c=>c.rpg&&c.level===8&&!c.ace&&!c.enemyOnly&&!c.fusionOnly&&!c.retired&&!c.essenceMonster&&!c.hard);for(let i=0;i<9;i++)addCard(item.id);renderMenu();');
+  w.eval('profile=freshProfile();profile.cleared=[1,2,3,4,5];profile.trainingWins=3;profile.coins=100000;profile.activeDuel=null;game=null;uiMode="menu";menuTab="workshop";const item=CARDS.find(c=>c.rpg&&c.level===8&&!c.ace&&!c.enemyOnly&&!c.fusionOnly&&!c.retired&&!c.essenceMonster&&!c.hard&&!c.questOnly&&!c.trainingReward&&!c.milestoneOnly&&!c.lv1Exclusive&&!c.fateOnly);for(let i=0;i<9;i++)addCard(item.id);renderMenu();');
   const intro=d.getElementById('modal');
   check(intro.textContent.includes('AUFSTIEGSSCHMIEDE')&&intro.textContent.includes('V'),'Popup nach V erscheint');
   check(w.eval('profile.ascensionIntroSeen'), 'Einmalige Einführung als gesehen markiert');
@@ -15,7 +15,8 @@ f.addEventListener('load',async()=>{
   check(!!shop&&shop.textContent.includes('60 %')&&shop.textContent.includes('40 %'),'Werkstatt mit 60/40-Wahrscheinlichkeit');
   const select=shop?.querySelector('#ad116Level');
   if(select){select.value='8';select.dispatchEvent(new w.Event('change',{bubbles:true}));}
-  check(!!d.querySelector('[data-ad116-forge]'),'Schmiedeknopf für drei gleiche Materialien');
+  const forgeButton=d.querySelector('[data-ad116-forge]');
+  check(!!forgeButton&&!forgeButton.disabled,'Schmiedeknopf aktiviert; Inventar gültig: '+w.eval('JSON.stringify({ids:[...document.querySelectorAll("[data-ad116-material]")].map(x=>x.value),choices:window.ArcaneAscensionForge116.inputPool(8).length})')));
   const before=w.eval('profile.coins');
   d.querySelector('[data-ad116-forge]')?.click();
   check(d.getElementById('modal').textContent.includes('Drei Karten dauerhaft verschmelzen'),'Bestätigungsfenster vorhanden');
