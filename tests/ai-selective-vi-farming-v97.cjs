@@ -181,7 +181,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
     fusionDeck:[...profile.fusionDeck],enhancements:profile.enhancements,
     difficulty:'easy'});
    const initialChoose=chooseAiAction,initialApply=applyAiAction;
-   if(treatment==='fixed-farm'||treatment==='adaptive-farm'){
+   if(['fixed-farm','vi-focused','vi-efficient'].includes(treatment)){
     chooseAiAction=function(game,requested){
      if(game!==g||game.active!==0)return initialChoose(game,requested);
      return ((${summonPolicySource})(game,'tempo-board',controller))||
@@ -207,7 +207,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
     farms++;farmMatchesByTier[tier]=(farmMatchesByTier[tier]||0)+1;
     farmXpByTier[tier]=(farmXpByTier[tier]||0)+(reward.xp||0);
     farmLootByTier[tier]=(farmLootByTier[tier]||0)+Number(!!reward.loot?.card);
-    if(treatment==='adaptive-farm'&&streak>0){adaptiveFarmMatches++;adaptiveFarmWins+=Number(win);}
+    if(treatment!=='fixed-farm'&&streak>0){adaptiveFarmMatches++;adaptiveFarmWins+=Number(win);}
    }
    if(context==='tournament')tournaments++;
    events.push({tier,context,won:win,playerLevel:playerLevel(profile),
