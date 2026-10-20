@@ -1,0 +1,12 @@
+/* Arcane Duel v11.3 physical card attack lunge and small explosive impact */
+.ad113-attack-ghost{position:fixed;z-index:15001;pointer-events:none!important;transform-origin:center center;will-change:transform,filter;filter:drop-shadow(0 0 12px #e8b9ff);border-radius:12px}
+.ad113-attack-ghost::after{content:'';position:absolute;inset:-4px;border-radius:14px;box-shadow:0 0 18px #ffcd8abb,inset 0 0 10px #fff1bc88;pointer-events:none}
+.ad113-attack-ghost.ad113-attack-hit{filter:brightness(2.3) drop-shadow(0 0 28px #ffd783)}
+.ad113-attack-impact{position:fixed;z-index:15005;width:10px;height:10px;pointer-events:none;transform:translate(-50%,-50%);isolation:isolate;filter:drop-shadow(0 0 13px #ffd6a1)}
+.ad113-impact-core{position:absolute;left:50%;top:50%;width:80px;height:80px;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,#fffde1 0%,#ffc878 23%,#ff8e5880 54%,transparent 70%);box-shadow:0 0 28px #ffc477aa;animation:ad113ImpactBloom .3s ease-out both}
+.ad113-foe-impact .ad113-impact-core{background:radial-gradient(circle,#faf0ff,#ad95ffab 40%,transparent 71%);box-shadow:0 0 28px #a884ffb7}
+.ad113-attack-impact i{--angle:calc(var(--impact-index)*30deg);position:absolute;left:0;top:0;width:5px;height:21px;border-radius:9px;transform-origin:50% 4px;background:linear-gradient(#fff7c5,#e6a169,transparent);box-shadow:0 0 7px #ffd597;animation:ad113ImpactRay .45s ease-out both;transform:rotate(var(--angle))}
+.ad113-foe-impact i{background:linear-gradient(#f8d7ff,#b09aff,transparent)}
+@keyframes ad113ImpactBloom{0%{opacity:.1;transform:translate(-50%,-50%) scale(.15)}43%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.65)}}
+@keyframes ad113ImpactRay{0%{opacity:0;transform:rotate(var(--angle)) translateY(0) scale(.3)}25%{opacity:1}100%{opacity:0;transform:rotate(var(--angle)) translateY(-55px) scale(.25)}}
+@media(prefers-reduced-motion:reduce){.ad113-attack-ghost,.ad113-attack-impact{display:none!important}}
