@@ -1491,7 +1491,11 @@ async function performAttack(ai,di){
  try{
   const a=center(document.querySelector(`[data-mine="${ai}"]`)),
         b=di===null?center($('enemyBanner')):center(document.querySelector(`[data-enemy="${di}"]`));
-  if(animationSpeed!=='instant'){bolt(a,b);sound('attack');}
+  if(animationSpeed!=='instant'){
+   const physical=await window.ArcaneAttackFX?.play?.(g,viewId,ai,di);
+   if(!physical)bolt(a,b);
+   sound('attack');
+  }
   render();
   if(result.damage)damageFloat(result.damaged===viewId?a:b,'−'+result.damage);
   await animationWait(120);await window.ArcaneDefenderFX?.flush(g);
@@ -1520,7 +1524,9 @@ async function runAi(){
    await window.ArcaneLumiraCorruption?.beforeAiAction?.(g,a);
    if(game!==g||g.winner!==null)break;
    if(a.type==='attack'&&animationSpeed!=='instant'){
-    const from=center(document.querySelector(`[data-enemy="${a.ai}"]`)),to=a.di===null?center($('myBanner')):center(document.querySelector(`[data-mine="${a.di}"]`));bolt(from,to);sound('attack');
+    const physical=await window.ArcaneAttackFX?.play?.(g,1,a.ai,a.di);
+    if(!physical){const from=center(document.querySelector(`[data-enemy="${a.ai}"]`)),to=a.di===null?center($('myBanner')):center(document.querySelector(`[data-mine="${a.di}"]`));bolt(from,to);}
+    sound('attack');
    }
    result=applyAiAction(g,a);if(!result)throw Error('KI-Aktion nicht möglich.');
    const fusion=a.type==='place'&&result.card?.fusion;
