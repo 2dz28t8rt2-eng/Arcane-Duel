@@ -1,0 +1,44 @@
+name: Arcane Duel - NPC ACE Material Value v10.6
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-earned-npc-opponents-v106.cjs'
+      - 'tests/ai-npc-ace-material-value-v106.cjs'
+      - '.github/workflows/ai-npc-ace-material-v106.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-earned-decks-and-npc-ace-value:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Static and existing rule regression checks
+        run: |
+          node --check tests/ai-earned-npc-opponents-v106.cjs
+          node --check tests/ai-npc-ace-material-value-v106.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: Earn 32 independent real player decks via original career and rewards
+        env:
+          ARCANE_V106_CAREERS: '32'
+          ARCANE_V106_TIER_ATTEMPTS: '24'
+        run: node tests/ai-earned-npc-opponents-v106.cjs
+      - name: Compare original, aggressive and ACE material-value NPC policies on same seeds
+        run: node tests/ai-npc-ace-material-value-v106.cjs
+      - name: Existing NPC AI invariants
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-decision-diagnostics-v62.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - name: Archive earned inventories and complete NPC matched outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-npc-ace-material-v106
+          path: |
+            artifacts/ai-earned-player-decks-v106.json
+            artifacts/ai-npc-ace-material-value-v106.json
+          if-no-files-found: warn
+          retention-days: 30
