@@ -160,6 +160,14 @@
   },0);
   value.heritagePct=Math.min(15,inherited);
   value.factor=clamp(value.factor+value.heritagePct/100,.72,2.2);
+  // Revamped Fusionskunde: one real chained fusion per PvE duel gets +3%
+  // before the actual ATK/DEF rolls. Preview never consumes the perk.
+  value.fusionLoreChainPct=0;
+  if(g?.active===0&&!g.arcaneFusionLoreChainUsed&&
+     (profile?.upgrades?.fusionLore||0)>0&&materials.some(c=>c?.fusion)){
+   value.factor=clamp(value.factor+.03,.72,2.2);
+   value.fusionLoreChainPct=3;
+  }
   return value;
  });
  const oldFused=fusedInstance;
@@ -187,6 +195,11 @@
   const earned=Math.max(0,Math.min(30,(totalQuality-1)*100-carried));
   result.fusionHeritage={earnedPct:+earned.toFixed(2),carriedPct:+carried.toFixed(2)};
   result.fusionCoreLevel=rule.core;
+  if(g.active===0&&instances.some(c=>c.fusion)&&
+     !g.arcaneFusionLoreChainUsed&&(profile?.upgrades?.fusionLore||0)>0){
+    g.arcaneFusionLoreChainUsed=true;
+    logEvent(g,'✦ Fusionskunde: +3 % Qualität bei der ersten echten Weiterfusion dieses Duells.');
+  }
   result.fusionResonatorLineage={
    count:rule.resonatorLineage.count,
    used:rule.resonatorLineage.used||rule.resonatorLineage.granted
@@ -215,6 +228,8 @@
  const oldValidate=validateDuelSnapshot;
  validateDuelSnapshot=function(raw){
   const restored=oldValidate(raw);
+  if(raw.arcaneFusionLoreChainUsed===true||raw.arcaneFusionLoreChainUsed===false)
+   restored.arcaneFusionLoreChainUsed=raw.arcaneFusionLoreChainUsed;
   const resume=(from,to)=>{
    if(!from||!to||from.uid!==to.uid||from.id!==to.id||!to.fusion)return;
    const h=from.fusionHeritage;
