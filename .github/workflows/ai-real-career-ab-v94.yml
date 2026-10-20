@@ -1,0 +1,39 @@
+name: Arcane Duel - Genuine Career A/B Through VI v9.4
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-real-career-ab-v94.cjs'
+      - '.github/workflows/ai-real-career-ab-v94.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-earnings-career-holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JS and real economy battle rules
+        run: |
+          node --check tests/ai-real-career-ab-v94.cjs
+          node --check tests/helpers/ai-pre-attack-v92.cjs
+          node --test tests/ai-fusion-choice-v61.test.cjs tests/ai-fusion-preservation-v62.test.cjs tests/shard-rework-v77.test.cjs tests/monster-roles-forge.test.cjs tests/regression.test.cjs
+      - name: Play complete naturally rewarded paired campaigns to tier VI
+        env:
+          ARCANE_V94_CAREERS: '32'
+          ARCANE_V94_TIER_ATTEMPTS: '16'
+        run: node tests/ai-real-career-ab-v94.cjs
+      - name: Additional NPC AI and game legality regression
+        run: node --test tests/ai-revamp-v55.test.cjs tests/ai-decision-diagnostics-v62.test.cjs tests/ai-fusion-choice-v61.test.cjs
+      - name: Upload full paired career profiles and provenance
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-real-career-ab-v94
+          path: artifacts/ai-real-career-ab-v94.json
+          if-no-files-found: warn
+          retention-days: 30
