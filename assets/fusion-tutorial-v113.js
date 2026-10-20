@@ -141,7 +141,7 @@
  });
  const oldRules=showRules;
  function handbook(){
-  return '<details class="arcane-rule-chapter ad113-handbook" open><summary>✧ Fusionen meistern – Stufe, Qualität & Kernkarte</summary>'+
+  return '<details class="ad113-handbook" open><summary>✧ Fusionen meistern – Stufe, Qualität & Kernkarte</summary>'+
    '<div class="arcane-rule-body"><p><b>1. Kernkarte wählen:</b> Markiere mindestens zwei Handkarten. '+
    'Unter den Materialien kannst du „Als Kernkarte“ drücken. Sie legt den Ausgangspunkt deiner Fusion fest. '+
    'Bei Straßen zählt automatisch die höchste Stufe, damit die Reihenfolge keinen Vorteil verschafft.</p>'+
