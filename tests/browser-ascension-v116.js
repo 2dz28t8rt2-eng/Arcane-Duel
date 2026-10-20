@@ -18,7 +18,7 @@ const run=async()=>{
   const select=shop?.querySelector('#ad116Level');
   if(select){select.value='8';select.dispatchEvent(new w.Event('change',{bubbles:true}));}
   const forgeButton=d.querySelector('[data-ad116-forge]');
-  check(!!forgeButton&&!forgeButton.disabled,'Schmiedeknopf aktiviert; Inventar gültig: '+w.eval('JSON.stringify({ids:[...document.querySelectorAll("[data-ad116-material]")].map(x=>x.value),choices:window.ArcaneAscensionForge116.inputPool(8).length})')));
+  check(!!forgeButton&&!forgeButton.disabled,'Schmiedeknopf aktiviert; Inventar gültig: '+w.eval('JSON.stringify({ids:[...document.querySelectorAll("[data-ad116-material]")].map(x=>x.value),choices:window.ArcaneAscensionForge116.inputPool(8).length})'));
   const before=w.eval('profile.coins');
   d.querySelector('[data-ad116-forge]')?.click();
   check(d.getElementById('modal').textContent.includes('Drei Karten dauerhaft verschmelzen'),'Bestätigungsfenster vorhanden');
