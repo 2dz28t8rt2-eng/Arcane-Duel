@@ -183,7 +183,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
     fusionDeck:[...profile.fusionDeck],enhancements:profile.enhancements,
     difficulty:'easy'});
    const initialChoose=chooseAiAction,initialApply=applyAiAction;
-   if(['fixed-farm','vi-focused','vi-efficient'].includes(treatment)){
+   if(['fixed-farm','vi-focused','vi-yield-stop'].includes(treatment)){
     chooseAiAction=function(game,requested){
      if(game!==g||game.active!==0)return initialChoose(game,requested);
      return ((${summonPolicySource})(game,'tempo-board',controller))||
