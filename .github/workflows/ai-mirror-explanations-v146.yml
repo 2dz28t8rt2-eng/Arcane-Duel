@@ -1,0 +1,118 @@
+name: Arcane Duel - v14.6 Mirror Matches and Explainable Decisions
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-mirror-explanations-v146.cjs'
+      - '.github/workflows/ai-mirror-explanations-v146.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v146-mirrors-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  mirror-strategy-learning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check legal game rules, three strategy mechanics and trainer syntax
+        run: |
+          node --check tests/ai-mirror-explanations-v146.cjs
+          node --test \
+            tests/ai-history-v130.test.cjs \
+            tests/ai-board-planner-v129.test.cjs \
+            tests/ai-fusion-choice-v61.test.cjs \
+            tests/ai-fusion-preservation-v62.test.cjs \
+            tests/fusion-rework-v113.test.cjs \
+            tests/fusion-utility-v55.test.cjs \
+            tests/defender-soul-update.test.cjs \
+            tests/allrounder-resonance-v41.test.cjs \
+            tests/role-inheritance-regression.test.cjs \
+            tests/role-budget-resonator-v41.test.cjs \
+            tests/essence-combat.test.cjs \
+            tests/lv1-fusion-and-ghost-v47.test.cjs \
+            tests/lv1-fanatic-ace-v48.test.cjs \
+            tests/balance-economy-v109.test.cjs \
+            tests/progression-real-inventory-audit.test.cjs
+      - name: Restore authentic self-play learning lineage
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v136-extensive-1200-episode-selfplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39637833422
+          github-token: ${{ github.token }}
+          path: artifacts/history
+      - name: Restore v14.2 planner action audit
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v142-planner-action-override-and-mechanic-coverage
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39647899323
+          github-token: ${{ github.token }}
+          path: artifacts/history-v142
+      - name: Restore v14.3 real fusion placements
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v143-fusion-value-training-and-verified-placement
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39650698039
+          github-token: ${{ github.token }}
+          path: artifacts/history-v143
+      - name: Restore v14.4 historical followup lessons
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v144-historical-fusion-followup-counterplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39653165893
+          github-token: ${{ github.token }}
+          path: artifacts/history-v144
+      - name: Restore v14.5 three-strategy reported outcomes
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v145-three-strategy-rule-curriculum-and-training
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39657418644
+          github-token: ${{ github.token }}
+          path: artifacts/history-v145
+      - name: Validate original history and frozen champion
+        run: |
+          test "$(find artifacts/history -name ai-v136-training-report.json | wc -l)" -eq 3
+          node - <<'JS'
+          const assert=require('node:assert/strict');
+          const m=require('./models/ai-selfplay-v136.json');
+          const r=require('./artifacts/history-v145/report.json');
+          assert.equal(m.gamesTrained,1920);
+          assert.equal(m.productionActive,false);
+          assert.equal(r.schema,'arcane-v145-three-strategy-historical-curriculum');
+          assert.equal(r.passForPromotion,false);
+          console.log('Original historical lessons are verified and independent from new holdout.');
+          JS
+      - name: Pilot seat-swapped mirrors and exact action explanations
+        env:
+          ARCANE_V146_TRAIN: '21'
+          ARCANE_V146_HOLDOUT: '21'
+          ARCANE_V146_LEAGUE: '3'
+        run: node tests/ai-mirror-explanations-v146.cjs
+      - name: Extensive independent three-strategy mirror and history-driven training
+        env:
+          ARCANE_V146_TRAIN: '84'
+          ARCANE_V146_HOLDOUT: '84'
+          ARCANE_V146_LEAGUE: '14'
+        run: node tests/ai-mirror-explanations-v146.cjs
+      - name: Archive decisions, comparison report, explainable feedback and candidate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v146-mirror-strategy-decision-explanations
+          path: |
+            artifacts/v146/report.json
+            artifacts/v146/decision-explanations.json
+            artifacts/v146/candidate.json
+          retention-days: 90
+          if-no-files-found: warn
