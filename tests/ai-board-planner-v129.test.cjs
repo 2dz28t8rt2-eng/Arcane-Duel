@@ -13,8 +13,8 @@ test('v12.9 strategic policy only considers current visible board and returns a 
   const me=g.players[0],them=g.players[1];
   me.field=[null,null,null,null,null];
   them.field=[null,null,null,null,null];
-  const def=me.originalDeck.find(c=>CARDS[c.id]?.level>=4)||me.originalDeck[0];
-  const mon=newInstance(g,def.id,0);mon.card={...mon.card,atk:1800,def:1200};
+  const def=me.originalDeck.find(id=>CARDS[id]?.level>=4)||me.originalDeck[0];
+  const mon=newInstance(g,def,0);mon.card={...mon.card,atk:1800,def:1200};
   mon.mode='atk';mon.attacked=false;me.field[0]=mon;
   const output=strategicBoardPolicy(g,stat,null);
   return {output,stats:stat};
