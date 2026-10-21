@@ -24,9 +24,11 @@ for(const difficulty of ['easy','hard'])test('v12.6 '+difficulty+' correct 2 one
   assert.deepEqual(b.fusions,a.fusions);
   for(const c of b.changes){
    assert.equal(c.kind,'main');assert.equal(c.delta,id===7?-1:1);
+   if(id===8)assert.ok(c.toLevel<=9,'VIII must respect its intended main deck level ceiling');
    assert.notEqual(c.from,b.ace);assert.notEqual(c.to,b.ace);
   }
   assert.ok([...new Set(b.main)].every(c=>b.main.filter(k=>k===c).length<=3));
   if(id===7)assert.equal(b.f10,4);
+  if(id===8)assert.ok(b.main.every(c=>c!=null), 'VIII must have valid cards');
  }
 });
