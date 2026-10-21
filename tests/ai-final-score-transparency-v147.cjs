@@ -525,7 +525,7 @@ function lookahead139(g,w,st,mode='candidate'){
    (profile.material??.10)*materials-(action.type==='fusion'?.05:0)+d;
   audit.push({action,score,raw:{linear:.22*entry.base,immediate,
     follow:f.gain,defense,materials,
-    tempo:a.type==='attack'?1:0,reserve:a.type==='fusion'?1:0,end:0},
+    tempo:action.type==='attack'?1:0,reserve:action.type==='fusion'?1:0,end:0},
    nextAction:f.action||null,
    placement:{completed:branch.placementCompleted,
     slot:branch.placementSlot??null,materials:branch.materialCount}});
