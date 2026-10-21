@@ -8,6 +8,7 @@ const assert=require('node:assert/strict');
 const {boot}=require('./helpers/game-runtime.cjs');
 const {summonPolicySource}=require('./helpers/ai-pre-attack-v92.cjs');
 const {boardPlannerSource}=require('./helpers/ai-board-planner-v129.cjs');
+const {ruleFeatureSource}=require('./helpers/ai-rule-features-v130.cjs');
 const {preferBaselineForTier}=require('./helpers/ai-policy-memory-v130.cjs');
 const history=require('../models/ai-policy-history-v130.json');
 const origins=Number(process.env.ARCANE_V130_SEEDS||16);
@@ -17,7 +18,7 @@ const selectedHistoricalPolicy=preferBaselineForTier(10,'strategic-lookahead');
 const useLookahead=selectedHistoricalPolicy.recommended==='strategic-lookahead';
 for(let run=0;run<origins;run++){
  const vm=boot({seed:130100+run*43,x128Mode:'full'});
- vm.exec(summonPolicySource);vm.exec(boardPlannerSource);
+ vm.exec(summonPolicySource);vm.exec(boardPlannerSource);vm.exec(ruleFeatureSource);
  const expr=`(()=>{
   const x=rpgEnemyLoadout(10,'easy'),g=createGame({
     id:'experience-v130-${run}',mode:'pve',context:'tournament',
@@ -48,6 +49,7 @@ for(let run=0;run<origins;run++){
     myRemainingFusion:me.remainingFusion?.length??0,
     availableAttacks:me.field.map((c,i)=>c&&canAttack(g,c)?i:null)
      .filter(i=>i!==null),
+    liveRuleFeatures:tacticalRuleFeatures(g),
     // Intentionally no enemy.hand or enemy.deck, nor RNG state.
    };
   };
@@ -98,6 +100,7 @@ for(let run=0;run<origins;run++){
 const report={schema:'arcane-action-experiences-v130',
  rulesSnapshot:'development-v12.8',historySchema:history.schema,
  selectedHistoricalPolicy,useLookahead,
+ ruleFeatures:'read-only actual legal attacks, candidate fusions, decay, roles and positions',
  historicalComparisons:history.history.length,
  actualExperienceCount:records.length,episodes:duels.length,
  trainCount:records.filter(x=>x.split==='train').length,
