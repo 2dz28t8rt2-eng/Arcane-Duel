@@ -481,41 +481,64 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
    if(context==='tournament')tournaments++;
     sealsEarned+=Number(reward.boosterSeals||0);
     extraShardsEarned+=Number(reward.extraShards||0);
+   if(context==='free'&&win)farmWins++;
+   const drop=reward.loot?.card??null;
+   if(drop!=null&&CARDS[drop]){
+    cardDrops++;normalDrops+=Number(!CARDS[drop].fusionOnly);
+    fusionDrops+=Number(!!CARDS[drop].fusionOnly);
+    highDrops+=Number(CARDS[drop].level>=7);
+    if(context==='free'){
+     const item=lootedByTier[tier]??={cards:0,high:0,normal:0,fusion:0};
+     item.cards++;item.high+=Number(CARDS[drop].level>=7);
+     item.normal+=Number(!CARDS[drop].fusionOnly);
+     item.fusion+=Number(!!CARDS[drop].fusionOnly);
+    }
+   }
    events.push({tier,context,won:win,playerLevel:playerLevel(profile),
     deckAverageLevel:profile.activeDeck.reduce((sum,id)=>sum+CARDS[id].level,0)/profile.activeDeck.length,
     loot:reward.loot?.card??null,coins:reward.coins,xp:reward.xp});
    return win;
   }
-  // Every cycle begins at the hardest unlocked source. After five real
-  // battles, a source with fewer than 3 wins out of 5 is considered unsuitable.
-  // Step back one tier. Invest earned resources after each five battles.
-  // Restart the search at the highest source after three samples.
+  // Remember a failed source until actual earned card improvements.
+  function power(){return {main:profile.activeDeck.reduce((n,id)=>n+CARDS[id].level,0)/40,
+   attack:profile.activeDeck.reduce((n,id)=>n+CARDS[id].atk,0)/40,
+   fusion:profile.fusionDeck.reduce((n,id)=>n+CARDS[id].level,0)/Math.max(1,profile.fusionDeck.length)};}
+  function locked(tier){
+   const old=sourceLocks[tier];if(!old)return false;
+   const now=power();
+   if(now.main-old.main>=.25||now.attack-old.attack>=70||
+     now.fusion-old.fusion>=.6||farmWins-old.wins>=40){delete sourceLocks[tier];return false;}
+   return true;
+  }
   function smartFarm(nextBoss,maximum,phase){
-   let total=0,wins=0;
+   let total=0,wins=0,source=Math.min(highestCleared(),nextBoss-1),group=0;
    while(total<maximum){
-    let source=Math.min(highestCleared(),Math.max(0,nextBoss-1));
-    for(let group=0;group<3&&total<maximum;group++){
-     const size=Math.min(5,maximum-total);
-     let local=0;
-     for(let k=0;k<size;k++){
-      // VI has a historical 75-match diagnostic budget (tournament VI
-      // plus free rematches against V). Continue farming VI-preparation
-      // legally against IV instead of exhausting that offline budget.
-      if(bossTierInProgress===6&&source===5&&viPhaseMatches>=72){
-       source=4;backtracks++;
-      }
-      const win=duel(source,'free');
-      local+=Number(win);wins+=Number(win);total++;farmsSinceTier++;
-      farmSourceMatches[source]=(farmSourceMatches[source]||0)+1;
-      farmSourceWins[source]=(farmSourceWins[source]||0)+Number(win);
-     }
-     const downgrade=local/size<.6&&source>0;
-     backtracks+=Number(downgrade);smartWaves++;
-     if(farmStrategyHistory.length<300)farmStrategyHistory.push({
-       forTier:nextBoss,phase,source,fights:size,wins:local,
-       nextSource:downgrade?source-1:source,cycleGroup:group+1});
-     if(downgrade)source--;
-     prepare();investmentCycles++;
+    if(bossTierInProgress===6&&source===5&&viPhaseMatches>=70)source=4;
+    if(source>0&&locked(source)){source--;backtracks++;avoidedTries++;continue;}
+    const size=Math.min(5,maximum-total),before=power(),start=events.length;
+    let success=0;
+    for(let i=0;i<size;i++){
+     if(bossTierInProgress===6&&source===5&&viPhaseMatches>=70)source=4;
+     const won=duel(source,'free');success+=Number(won);wins+=Number(won);
+     total++;farmsSinceTier++;
+     farmSourceMatches[source]=(farmSourceMatches[source]||0)+1;
+     farmSourceWins[source]=(farmSourceWins[source]||0)+Number(won);
+    }
+    const drops=events.slice(start).filter(x=>x.loot!=null).length;
+    prepare();investmentCycles++;smartWaves++;group++;
+    const after=power();
+    const improved=after.main-before.main>=.08||after.attack-before.attack>=12||after.fusion-before.fusion>=.15;
+    if(farmStrategyHistory.length<300)farmStrategyHistory.push({
+     forTier:nextBoss,phase,source,fights:size,wins:success,drops,improved,
+     deckLevelGain:+(after.main-before.main).toFixed(3)});
+    if(success/size<.6&&source>0){
+     sourceLocks[source]={...after,wins:farmWins};source--;backtracks++;
+    }
+    // Revisit a stronger source only after its failure lock clears.
+    if(group%3===0){
+     let top=Math.min(highestCleared(),nextBoss-1);
+     while(top>source&&locked(top))top--;
+     if(top>source)source=top;
     }
    }
    return {matches:total,wins};
@@ -597,7 +620,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
    const priorPrep=snapshot(tier);
    const plannedPrep=progressive?(deepFarm[tier]||0):0;
    let prepDuels=0,prepWins=0;
-   if(treatment==='adaptive-source-forge'&&plannedPrep){
+   if(memory&&plannedPrep){
     const sample=smartFarm(tier,plannedPrep,'pre-boss');
     prepDuels=sample.matches;prepWins=sample.wins;
    }else for(let k=0;k<plannedPrep;k++){
@@ -631,7 +654,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
     // Adaptive uses early recovery after two losses, genuine earned
     // duel rewards and a per-tier finite experiment farming budget.
     if(tier<6){
-     if(attempt%3===2&&treatment==='adaptive-source-forge'){
+     if(attempt%3===2&&memory){
       smartFarm(tier,farmAfter,'early-boss-recovery');
      }else if(attempt%3===2)for(let k=0;k<farmAfter;k++){
       if(tier===6&&viPhaseMatches>=75)break;
@@ -687,7 +710,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
        source:farmTier,avgDeckAtk:Math.round(average),
        bossSignatureAtk:visibleBoss,xpFactor:+xpFactor.toFixed(3),
        farmCount:batch});
-      if(treatment==='adaptive-source-forge'){
+      if(memory){
        const first=events.length,result=smartFarm(tier,batch,'boss-recovery');
        farmedForThisBoss+=result.matches;
        const earned=events.slice(first).filter(e=>e.context==='free');
@@ -754,7 +777,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
    // Replays against a BEATEN opponent improve the owned collection
    // while respecting drop odds, XP penalties and actual resource costs.
    const postCount=farmAfter+(tier>=6?Math.min(5,tier-5):0)+(progressive&&tier>=4?Math.min(8,tier-3):0);
-   if(treatment==='adaptive-source-forge')smartFarm(tier+1,postCount,'post-victory');
+   if(memory)smartFarm(tier+1,postCount,'post-victory');
    else for(let k=0;k<postCount;k++){
     duel(tier,'free');farmsSinceTier++;prepare();
    }
@@ -869,7 +892,7 @@ const comparison=ns=>{
  let better=0,worse=0,same=0;
  for(const n of ns){
   const a=results.find(r=>r.run===n&&r.treatment==='fixed-source-forge');
-  const b=results.find(r=>r.run===n&&r.treatment==='adaptive-source-forge');
+  const b=results.find(r=>r.run===n&&r.memory);
   if(b.cleared>a.cleared)better++;else if(b.cleared<a.cleared)worse++;else same++;
  }return {better,worse,same};
 };
