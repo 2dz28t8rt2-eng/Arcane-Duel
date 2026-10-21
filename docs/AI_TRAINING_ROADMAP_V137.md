@@ -77,3 +77,13 @@ Jede Lektion ermittelt mit der echten Engine die legalen Optionen, misst unmitte
 - Eigenständiger Planer probiert in einer isolierten Engine-Kopie **bis zu zwei eigene Aktionen innerhalb desselben Zuges** (Beschwörung + Platzierung oder aufeinanderfolgende Angriffe). Er ist ausdrücklich **noch keine** zweirundige Vollsuche.
 - Neue Kandidatenleistung **31/60** Mirror-Siege (51,7 %), **7/15** gegen VII/IX/X, Spezialisten jeweils 13/24, 13/24 und 14/24; **keine ungültigen Engine-Aktionen**. Champion unverändert, Produktion nicht angepasst.
 - **v14.0 empfohlen:** direkter AB-Test Planer AN/AUS bei identischem Gewichtsstand, danach umfassender Mechaniklehrplan inklusive Feldfusion, Rollen-/Soul-Drain-Skills, Resonanz, Pokerboni, ACE und Zerfall. Unsicherheit durch alternative Zufallsläufe ausweisen; Modelle erst mit unabhängigen Bestätigungsduellen befördern.
+
+## Umsetzung v14.0 – kontrollierter Planer-AN/AUS-Vergleich und umfangreiche Mechanikprüfungen (21.10.2026)
+
+**[Vollständiger Prüfbericht](AI_V140_PLANNER_AB_CURRICULUM_RESULTS_20261021.md)** · [Actions SUCCESS #39645002521](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39645002521) · [Trainingsartefakt](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39645002521/artifacts/12367211909).
+
+- **160** Trainingsszenarien, **152** unabhängige legale Entscheidungspaare, **2** nur bei ausreichender gruppierter Evidenz zugelassene kleine Gewichtupdates. **42 Mechanik-/KI-Regresstests bestanden**.
+- **Isolierter Planer-A/B-Test mit identischen Gewichten:** Planer **33/64** Siege gegen denselben Controller ohne Planer, jeweils Startseed und Deck gespiegelt. **Kein** Nachweis eines echten generellen Vorteils.
+- Neuer Planerkandidat gegen eingefrorenen Champion **34/64** Mirror-Siege, bei Bossen VII/IX/X jedoch nur **8/32** gegen **10/32** Champion; Spezialisten **16/28, 16/28, 19/28**. **Keine Promotion**, keine Änderungen an aktiver Gegner-KI, Balance, `main` oder Spielerdaten.
+- Die getestete Vorhersage umfasst nur zwei eigene Aktionen **im gleichen Zug**, nicht zwei bis drei vollständige Runden. Historische Einzeldaten dienen zur Fehleranalyse, nicht als Beweis der idealen Alternativentscheidung.
+- **v14.1:** Instrumentierte Mechanikabdeckung, mehrere Folgesimulationen pro schwieriger Entscheidung, gezielte statt pauschaler Planeraktivierung und später regelkonforme Mehrzugplanung. Schwierige Mechaniken wie Feldfusion, ACE-Priorisierung, Soul-Drain, Resonanz und Pokerboni explizit prüfen. Langfristigen versionierten Replay-Speicher vorbereiten.
