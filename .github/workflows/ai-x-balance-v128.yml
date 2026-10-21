@@ -5,6 +5,8 @@ on:
     paths:
       - 'assets/opponent-x-balance-v128.js'
       - 'tests/opponent-x-balance-v128.test.cjs'
+      - 'tests/helpers/game-runtime.cjs'
+      - 'tests/opponent-vii-x-roster-v125.test.cjs'
       - 'tests/ai-x-balance-v128.cjs'
       - '.github/workflows/ai-x-balance-v128.yml'
   workflow_dispatch:
