@@ -425,7 +425,8 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
       handMeasure.zeroChoices+=Number(f.optionCount===0);
      }
      const offense=aggressive?xOffensivePolicy(game,offensiveAudit):null;
-     const tactical=planning?strategicBoardPolicy(game,strategicStats,learning):null;
+     const tactical=planning&&context==='tournament'&&tier>=7?
+       strategicBoardPolicy(game,strategicStats,learning):null;
      return tactical||offense||((${summonPolicySource})(game,'tempo-board',controller))||
       initialChoose(game,requested);
     };
