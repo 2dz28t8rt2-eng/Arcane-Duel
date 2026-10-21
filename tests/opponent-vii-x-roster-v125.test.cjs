@@ -1,7 +1,7 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {boot}=require('./helpers/game-runtime.cjs');
-const check=(difficulty,withoutRoster125)=>boot({seed:12541,withoutRoster125,withoutRoster126:true}).run(`(()=>{
+const check=(difficulty,withoutRoster125)=>boot({seed:12541,withoutRoster125,withoutRoster126:true,x128Mode:'off'}).run(`(()=>{
  const o={};
  for(let i=1;i<=10;i++){
   const p=rpgEnemyLoadout(i,'${difficulty}'),h=deck=>deck.reduce((m,id)=>(m[CARDS[id].level]=(m[CARDS[id].level]||0)+1,m),{});
