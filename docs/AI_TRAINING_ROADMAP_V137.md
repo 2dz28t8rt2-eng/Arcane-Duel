@@ -107,3 +107,14 @@ Jede Lektion ermittelt mit der echten Engine die legalen Optionen, misst unmitte
 - Neue Trainingsphase mit fünf Planer-Aktivierungsregeln sowie unabhängigem Holdout auf anderen Decks/Seeds und Tests gegen VII/IX/X und Strategieexperten.
 - **Keine ungeprüfte Modellübernahme.** Nur Regeln, die im Training reale Overrides und eine messbare Verbesserung erzeugen, gelangen in die Holdout-Prüfung; produktive Gegner-KI bleibt unverändert.
 - Status/Bewertung aus dem Workflow und dessen Artefakt ableiten; Start allein gilt **nicht** als Erfolgsnachweis.
+
+## Abschluss v14.2 – tatsächliche Planer-Overrides und neuer v14.3-Fokus (21.10.2026)
+
+[Prüfbericht v14.2](AI_V142_OVERRIDE_AUDIT_RESULTS_20261021.md) · [Actions #39647899323](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39647899323), SUCCESS.
+
+- **42/42 Regressionstests bestanden.** 70 neue Train-Szenarien × fünf Gates × Sitzwechsel; 84 unabhängige Holdout-Szenarien.
+- Planer `always` traf nur **11 von 537** tatsächlich andere Entscheidungen (**2,05 %**). **10× Fusion → Normal**, **1× Angriff → Ende**. Train-Siege **69/140**, andere Gates maximal **70/140**.
+- Gate-Auswahl `none`; Holdout **84/168** (50 %) und Boss **15/42 auf beiden Kontrollseiten**. Deshalb **keine unabhängige Bestätigung eines neuen Planers**, kein Modellwechsel und keine produktive Integration.
+- Mechanik-Angebote an passenden Entscheidungspunkten gemessen: Wächter-Heilung **22 legal/14 passend gewählt**, Seelenentzug **82/70**. Fallback-/Phasentypen separat dokumentiert.
+- **Warnsignal:** Nach normalen Beschwörungen war die unmittelbare Board-Heuristik in **409/409 Samples null**; nach Fusionen konstant **−0,130 in 420/420 Samples**. Mögliches Mess-/Placement-Timing-Problem (noch nicht endgültig bewiesen) könnte die ungewöhnlich häufige Fusionsvermeidung des Planers erklären.
+- **v14.3 Priorität:** Simulator-Endzustände nach tatsächlich vollendeter Normal- und Fusionsplatzierung prüfen, Legal-Resolver-Fortschritt und Boarddeltas mit Assertions absichern; Fusionsmaterial/Erb-/Rollen-/Resonanzwerte und Zerfall berücksichtigen. Dann gezielte Gegenproben an den echten Override-Situationen statt bloß höhere Duellzahlen.
