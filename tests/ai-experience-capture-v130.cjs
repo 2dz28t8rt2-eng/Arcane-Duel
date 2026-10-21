@@ -7,18 +7,26 @@ const fs=require('node:fs');
 const assert=require('node:assert/strict');
 const {boot}=require('./helpers/game-runtime.cjs');
 const {summonPolicySource}=require('./helpers/ai-pre-attack-v92.cjs');
+const {boardPlannerSource}=require('./helpers/ai-board-planner-v129.cjs');
+const {preferBaselineForTier}=require('./helpers/ai-policy-memory-v130.cjs');
 const history=require('../models/ai-policy-history-v130.json');
 const origins=Number(process.env.ARCANE_V130_SEEDS||16);
 if(!Number.isInteger(origins)||origins<2||origins>64)throw Error('Invalid origins');
 const records=[],duels=[],policy='tempo-board';
+const selectedHistoricalPolicy=preferBaselineForTier(10,'strategic-lookahead');
+const useLookahead=selectedHistoricalPolicy.recommended==='strategic-lookahead';
 for(let run=0;run<origins;run++){
- const vm=boot({seed:130100+run*43,x128Mode:'full'});vm.exec(summonPolicySource);
+ const vm=boot({seed:130100+run*43,x128Mode:'full'});
+ vm.exec(summonPolicySource);vm.exec(boardPlannerSource);
  const expr=`(()=>{
   const x=rpgEnemyLoadout(10,'easy'),g=createGame({
     id:'experience-v130-${run}',mode:'pve',context:'tournament',
     opponentId:10,seed:${130101+run*109},starter:${run%2},
     deck:[...x.deck],fusionDeck:[...x.fusionDeck]
   });
+  const searchStats={scans:0,nodes:0,availableAttackOptions:0,
+   chosenAttacks:0,expectedAdvantage:0,phaseOverrides:0,
+   skippedUnsafeAttacks:0,switchesToAttack:0};
   const stats={summonObservations:0,normalOffered:0,legalFusionOffers:0,
    fusionAvailableTurns:0,freeSlotObservations:0,fullBoardObservations:0,
    noNormalHand:0,enemyAheadAtSummon:0,attackerOnBoardAtSummon:0,
@@ -47,7 +55,8 @@ for(let run=0;run<origins;run++){
   const oldChoose=chooseAiAction,oldApply=applyAiAction;
   chooseAiAction=function(game,style){
    if(game!==g||game.active!==0)return oldChoose(game,style);
-   return summonPolicy(game,'tempo-board',stats)||oldChoose(game,style);
+   return (${useLookahead}?strategicBoardPolicy(game,searchStats,null):null)||
+     summonPolicy(game,'tempo-board',stats)||oldChoose(game,style);
   };
   applyAiAction=function(game,a){
    if(game!==g||game.active!==0)return oldApply(game,a);
@@ -88,6 +97,7 @@ for(let run=0;run<origins;run++){
 }
 const report={schema:'arcane-action-experiences-v130',
  rulesSnapshot:'development-v12.8',historySchema:history.schema,
+ selectedHistoricalPolicy,useLookahead,
  historicalComparisons:history.history.length,
  actualExperienceCount:records.length,episodes:duels.length,
  trainCount:records.filter(x=>x.split==='train').length,
@@ -98,7 +108,8 @@ const report={schema:'arcane-action-experiences-v130',
  'The final winner is an episode label, not a reliable individual-action advantage.',
  'Observed rewards are from a single executed action; a true counterfactual policy needs additional safe simulated alternatives.',
  'Do not train on holdout; never compare different X-balance regimes without revalidation.',
- 'This collection builds reusable source data; no automatic promotion to production AI.'
+ 'This collection builds reusable source data; no automatic promotion to production AI.',
+ 'Past-run training outcomes select the candidate policy BEFORE new data capture; untouched holdout scores are not consulted.'
  ],duels,transitions:records};
 fs.mkdirSync('artifacts',{recursive:true});
 fs.writeFileSync('artifacts/ai-experiences-v130.json',JSON.stringify(report,null,2)+'\n');
