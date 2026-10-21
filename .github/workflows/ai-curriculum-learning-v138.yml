@@ -46,7 +46,7 @@ jobs:
           test "$(find artifacts/history -name 'ai-v136-training-report.json' | wc -l)" -eq 3
           V137=$(find artifacts/v137history -name history-and-counterfactual.json -type f | head -1)
           test -n "$V137"
-          cp "$V137" artifacts/v137history/history-and-counterfactual.json
+          if [ "$V137" != "artifacts/v137history/history-and-counterfactual.json" ]; then cp "$V137" artifacts/v137history/history-and-counterfactual.json; fi
           node - <<'JS'
           const fs=require('fs'),assert=require('node:assert/strict');
           const m=JSON.parse(fs.readFileSync('models/ai-selfplay-v136.json','utf8'));
