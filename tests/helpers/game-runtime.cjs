@@ -4,7 +4,7 @@ const repo=process.env.ARCANE_AUDIT_REPO?path.resolve(process.env.ARCANE_AUDIT_R
 const index=fs.readFileSync(path.join(repo,'index.html'),'utf8');
 const scripts=[...index.matchAll(/<script\b[^>]*\bsrc="([^"]+)"[^>]*>/g)].map(m=>m[1].split('?')[0]);
 const source=new Map(scripts.map(file=>[file,fs.readFileSync(path.join(repo,file),'utf8')]));
-function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster118=false,fusionReworkSides='both',saved=null}={}){
+function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster118=false,withoutIV123=false,fusionReworkSides='both',saved=null}={}){
  const nodes=new Map(),storage=new Map(saved?Object.entries(saved):[]);
  function el(id=''){
   const attributes=new Map(),classes=new Set();
@@ -38,6 +38,8 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster
  for(const file of scripts){
   // Only the offline matched-career control disables the optional v11.8 NPC roster.
   if(withoutRoster118&&file==='assets/opponent-roster-balance-v118.js')continue;
+  // Regression-only control retains all other balances while leaving IV unchanged.
+  if(withoutIV123&&file==='assets/opponent-iv-balance-v123.js')continue;
   // Control arm uses the same current game and economy, only the v11.3 fusion
   // calculator and its dependent interactive tutorial are switched off.
   if(withoutFusionRework&&['assets/fusion-rework-v113.js','assets/fusion-tutorial-v113.js'].includes(file))continue;
