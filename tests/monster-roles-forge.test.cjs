@@ -318,7 +318,7 @@ test('Defenders have 9% extra base DEF and normal high-level bonus, without buff
   assert.equal(g.normalRoleBonus({rpg:true,fusionOnly:true,role:'guardian',level},'def',0),0);
  }
 });
-test('Jagdinstinkt and Schildwall apply 80/20 level scaling for both stats, max five ranks',()=>{
+test('Jagdinstinkt and Schildwall apply enhanced class-specific scaling for both stats, max five ranks',()=>{
  const {g}=setup();
  const level=10;
  const cards=[...g.ARCANE_STAGE_IDS.values()].map(id=>g.CARDS[id]);
@@ -327,11 +327,11 @@ test('Jagdinstinkt and Schildwall apply 80/20 level scaling for both stats, max 
  const soul=cards.find(c=>c.level===level&&c.role==='soul');
  const base=p=>g.normalRoleBonus(p,'atk',1),def=p=>g.normalRoleBonus(p,'def',1);
  g.profile.upgrades.jagdinstinkt=5;g.profile.upgrades.schildwall=5;
- assert.equal(g.normalRoleBonus(predator,'atk',0)-base(predator),5*(15+8*level));
- assert.equal(g.normalRoleBonus(predator,'def',0)-def(predator),5*(5+2*level));
+ assert.equal(g.normalRoleBonus(predator,'atk',0)-base(predator),5*(20+10*level));
+ assert.equal(g.normalRoleBonus(predator,'def',0)-def(predator),5*(6+3*level));
  for(const c of [guardian,soul]){
-  assert.equal(g.normalRoleBonus(c,'atk',0)-base(c),5*(5+2*level));
-  assert.equal(g.normalRoleBonus(c,'def',0)-def(c),5*(20+8*level));
+  assert.equal(g.normalRoleBonus(c,'atk',0)-base(c),5*(6+3*level));
+  assert.equal(g.normalRoleBonus(c,'def',0)-def(c),5*(28+10*level));
  }
  const fakeFusion={...predator,fusionOnly:true};
  assert.equal(g.normalRoleBonus(fakeFusion,'atk',0),0);
