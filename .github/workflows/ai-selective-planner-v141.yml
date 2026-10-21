@@ -1,0 +1,80 @@
+name: Arcane Duel - v14.1 Selective Planner and Mechanic Coverage
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-selective-planner-v141.cjs'
+      - '.github/workflows/ai-selective-planner-v141.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v141-selective-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  learning-and-coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate tactical AI and role-specific engine mechanics
+        run: |
+          node --check tests/ai-selective-planner-v141.cjs
+          node --test tests/ai-history-v130.test.cjs tests/ai-board-planner-v129.test.cjs tests/defender-soul-update.test.cjs tests/allrounder-resonance-v41.test.cjs tests/fusion-rework-v113.test.cjs tests/lv1-fusion-and-ghost-v47.test.cjs tests/role-inheritance-regression.test.cjs
+      - name: Restore prior 1920-game historical model reports
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v136-extensive-1200-episode-selfplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39637833422
+          github-token: ${{ github.token }}
+          path: artifacts/history
+      - name: Restore v14.0 planner A/B evidence (diagnosis only)
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v140-extensive-planner-ab-and-mechanic-replay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39645002521
+          github-token: ${{ github.token }}
+          path: artifacts/history-v140
+      - name: Assert genuine training lineage and historic record validity
+        run: |
+          test "$(find artifacts/history -name ai-v136-training-report.json | wc -l)" -eq 3
+          node - <<'JS'
+          const fs=require('fs'),assert=require('node:assert/strict');
+          const m=JSON.parse(fs.readFileSync('models/ai-selfplay-v136.json','utf8'));
+          const r=JSON.parse(fs.readFileSync('artifacts/history-v140/training-report.json','utf8'));
+          assert.equal(m.gamesTrained,1920);
+          assert.equal(m.weights.length,15);
+          assert.equal(r.schema,'arcane-v140-planner-ab-mechanic-curriculum');
+          assert.equal(r.plannerAB.matches,64);
+          assert.equal(m.productionActive,false);
+          console.log('Validated champion and authentic earlier A/B, kept separate from new gate fitting');
+          JS
+      - name: Pilot selectivity and verify zero illegal moves
+        env:
+          ARCANE_V141_TRAIN: '12'
+          ARCANE_V141_HOLDOUT: '24'
+          ARCANE_V141_LEAGUE: '3'
+        run: node tests/ai-selective-planner-v141.cjs
+      - name: Full selective-gate training and blinded independent evaluations
+        env:
+          ARCANE_V141_TRAIN: '56'
+          ARCANE_V141_HOLDOUT: '72'
+          ARCANE_V141_LEAGUE: '16'
+        run: node tests/ai-selective-planner-v141.cjs
+      - name: Save trained selector, independent report and mechanic telemetry
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v141-selective-planner-mechanic-audit
+          path: |
+            artifacts/v141/train-gate-selection.json
+            artifacts/v141/report.json
+            artifacts/v141/candidate.json
+          if-no-files-found: warn
+          retention-days: 90
