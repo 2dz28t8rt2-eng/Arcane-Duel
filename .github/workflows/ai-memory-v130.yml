@@ -33,9 +33,9 @@ jobs:
         env:
           ARCANE_V130_SEEDS: '2'
         run: node tests/ai-experience-capture-v130.cjs
-      - name: Generate 16 reusable training and untouched holdout duels
+      - name: Generate 30 varied training and untouched holdout duels
         env:
-          ARCANE_V130_SEEDS: '16'
+          ARCANE_V130_SEEDS: '30'
         run: node tests/ai-experience-capture-v130.cjs
       - name: Upload action trajectories for future training
         if: always()
