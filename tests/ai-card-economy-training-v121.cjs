@@ -796,6 +796,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
    giantStreetFusions,
    forgeCount,forgeCost,forgeFusion,forgeNormal,forgeLevel10,forgeUnavailable,forgeLevels,forgeHistory,
    backtracks,smartWaves,investmentCycles,farmSourceMatches,farmSourceWins,farmStrategyHistory,forgeStrategyHistory,
+   cardDrops,normalDrops,fusionDrops,highDrops,lootedByTier,avoidedTries,forgePhases,
    realVIHandFusions,realVIFieldFusions,realVIPlacedFusions,
    realVIFusionMaterialCount,realVIFusionAtkSum,realVIFusionDefSum,
    realVIWallBreaks,realVIAttackDamage,realVIKills,
@@ -819,6 +820,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
  if(r.error)throw Error('Career failed: '+r.error);
  assert.equal(r.training,3);assert.ok(r.saveValid);
  results.push({...r,run,treatment});
+ console.log('ARCANE_V121_PROGRESS '+JSON.stringify({origin:run+1,arm:treatment,cleared:r.cleared,duels:r.duels,drops:r.cardDrops}));
 }
 
 
@@ -850,6 +852,7 @@ const summarise=rs=>Object.fromEntries(arms.map(arm=>{
   reachedVII:tier7.length,clearedVI:xs.filter(r=>r.cleared>=6).length,
   clearedVII:xs.filter(r=>r.cleared>=7).length,clearedX:xs.filter(r=>r.cleared>=10).length,
   boughtFusions:sum(r=>r.fusionPulls),boughtNormalCards:sum(r=>r.normalPackCards),
+  actualCardDrops:sum(r=>r.cardDrops),actualHighLevelDrops:sum(r=>r.highDrops),
   mixedPackCards:sum(r=>r.mixedPackCards),totalPacks:sum(r=>r.boosters+r.fusionPacks),
   spentSeals:sum(r=>r.normalSealSpent+r.fusionSealSpent),
   earnedSeals:sum(r=>r.sealsEarned),remainingSeals:sum(r=>r.finalSeals),
@@ -888,14 +891,15 @@ const forgeSummary=rs=>Object.fromEntries(arms.map(arm=>{
   level10Outputs:sum(x=>x.forgeLevel10),noAvailableRecipe:sum(x=>x.forgeUnavailable),
   outputLevels:levels}];
 }));
-const comparison=ns=>{
+const comparison=ns=>Object.fromEntries(arms.filter(arm=>arm!=='baseline').map(arm=>{
  let better=0,worse=0,same=0;
  for(const n of ns){
-  const a=results.find(r=>r.run===n&&r.treatment==='fixed-source-forge');
-  const b=results.find(r=>r.run===n&&r.memory);
+  const a=results.find(r=>r.run===n&&r.treatment==='baseline');
+  const b=results.find(r=>r.run===n&&r.treatment===arm);
   if(b.cleared>a.cleared)better++;else if(b.cleared<a.cleared)worse++;else same++;
- }return {better,worse,same};
-};
+ }
+ return [arm,{better,worse,same}];
+}));
 const training={byArm:summarise(results.filter(r=>r.run<train)),
  forge:forgeSummary(results.filter(r=>r.run<train)),
  fusion:realFusionSummary(results.filter(r=>r.run<train)),
@@ -904,23 +908,24 @@ const holdout={byArm:summarise(results.filter(r=>r.run>=train)),
  forge:forgeSummary(results.filter(r=>r.run>=train)),
  fusion:realFusionSummary(results.filter(r=>r.run>=train)),
  comparison:comparison(Array.from({length:careers-train},(_,i)=>train+i))};
-const report={schema:'arcane-adaptive-farming-and-forge-v120',
+const report={schema:'arcane-card-acquisition-factorial-v121',
  origins:careers,trainOrigins:train,holdoutOrigins:careers-train,
- control:'Identical current NPC rosters, paid forge, rewards and game AI; only the offline farming and investment policy differs.',
+ control:'Four-arm matched careers: baseline, farming memory, focused forge or both; all earn true rewards and face same enemies.',
  totalCareers:results.length,
  totalRealDuelRewards:results.reduce((n,r)=>n+r.duels,0),
  offset:careerSeedOffset,arms,byArm,training,holdout,overallFusion:realFusionSummary(results),overallForge:forgeSummary(results),
  farmSchedule:{4:4,5:6,6:8,7:12,8:16,9:20,10:24},
- experiment:'Matched earned careers: fixed previous-tier farming versus five-match win-rate backtracking with invested rewards and targeted ascension.',
+ experiment:'Isolate improved farming memory and forge material selection, measure card acquisition and true deck growth.',
  raw:results.map(r=>({run:r.run,treatment:r.treatment,split:r.run<train?'train':'holdout',
   maxTierReached:Math.max(...r.snapshots.map(x=>x.tier)),
   highestReallyCleared:r.cleared,
   totalMatches:r.duels,freeMatches:r.farms,tournamentMatches:r.tournaments,
   shardsSpent:r.shardsSpent,boosters:r.boosters,
   VIICombat:{attempts:r.v7Attempts,fusions:r.v7Fusions,attacks:r.v7Attacks,damage:r.v7Damage,kills:r.v7Kills,turns:r.v7Turns,totalDamage:r.v7TotalDamage},
-  forge:{crafts:r.forgeCount,cost:r.forgeCost,fusions:r.forgeFusion,normals:r.forgeNormal,level10:r.forgeLevel10,unavailable:r.forgeUnavailable,levels:r.forgeLevels,history:r.forgeHistory,priorities:r.forgeStrategyHistory},
+  forge:{crafts:r.forgeCount,cost:r.forgeCost,fusions:r.forgeFusion,normals:r.forgeNormal,level10:r.forgeLevel10,unavailable:r.forgeUnavailable,levels:r.forgeLevels,history:r.forgeHistory,priorities:r.forgeStrategyHistory,phases:r.forgePhases},
+  acquisition:{drops:r.cardDrops,normal:r.normalDrops,fusion:r.fusionDrops,level7Plus:r.highDrops,farmByTier:r.lootedByTier},
   adaptivePolicy:{tierBacktracks:r.backtracks,measuredWaves:r.smartWaves,investments:r.investmentCycles,
-   farmingMatchesBySource:r.farmSourceMatches,farmingWinsBySource:r.farmSourceWins,history:r.farmStrategyHistory},
+   farmingMatchesBySource:r.farmSourceMatches,farmingWinsBySource:r.farmSourceWins,history:r.farmStrategyHistory,avoidedRetry:r.avoidedTries},
   actualFusion:{totalPlaced:r.allFusionPlaced,fieldChains:r.allFieldFusions,
    highestLevel:r.maxFusionPlacedLevel,levels:r.actualFusionLevelHistogram,
    tournamentLevels:r.actualFusionByTournamentStage,farmLevels:r.actualFusionByFarmStage,
@@ -959,7 +964,7 @@ const report={schema:'arcane-adaptive-farming-and-forge-v120',
   'Boss IX/X fairness cannot be assessed from VI inventory; progression must be earned.',
   'No invented cards, XP, awards, NPC debuffs or tournament victories.',
   'Both groups use identical stage-progressive farming, real drops, resources and unchanged opponents.',
-  'Both arms use identical v11.6 skills, farming and ascension forging. The NPC rosters are the single isolated variable.',
+  'Four arms isolate farming memory and forge priority while NPC rosters and gameplay rules remain identical.',
   'Every fusion-level measure counts an actual successfully placed monster, not merely a proposed card.',
   'Equal initial seeds may produce different later cards and battles due to divergent genuine decisions.',
   'Stage IV-X progressive pre-boss prep uses 4/6/8/12/16/20/24 earned replays of cleared opponents.',
