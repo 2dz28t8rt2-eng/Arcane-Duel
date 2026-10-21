@@ -2,6 +2,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const {boot}=require('./helpers/game-runtime.cjs');
+const {preferBaselineForTier}=require('./helpers/ai-policy-memory-v130.cjs');
 const memory=JSON.parse(fs.readFileSync(path.join(__dirname,'../models/ai-policy-history-v130.json'),'utf8'));
 test('historical evidence contains separated comparable experiments and never guesses move labels',()=>{
  assert.equal(memory.schema,'arcane-ai-policy-history-v130');
@@ -57,4 +58,15 @@ test('game remains sole authority for live rules, deck legality and X power',()=
   assert.equal(r.levels.length,10);
   assert.ok(r.levels[9]>r.levels[2],'high rank must decay faster');
  }
+});
+
+test('saved past runs are really consumed as train-only policy priors',()=>{
+ const v=preferBaselineForTier(9,'strategic-lookahead');
+ assert.equal(v.recommended,'tempo-baseline');
+ assert.equal(v.baselineTrainWins,10);
+ assert.equal(v.challengerTrainWins,6);
+ assert.equal(v.requireFreshHoldout,true);
+ assert.equal(preferBaselineForTier(9,'strategic-online-feedback').recommended,'tempo-baseline');
+ assert.equal(preferBaselineForTier(7,'strategic-lookahead').recommended,'tempo-baseline');
+ assert.throws(()=>preferBaselineForTier(11),/tier/);
 });
