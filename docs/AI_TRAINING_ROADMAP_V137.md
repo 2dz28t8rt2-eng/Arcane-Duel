@@ -178,3 +178,14 @@ Jede Lektion ermittelt mit der echten Engine die legalen Optionen, misst unmitte
 - **Historische Ergebnisse:** v14.2/v14.3/v14.4 originale Berichte werden geladen und als Lehrziele wiederverwendet; keine alte Holdout-Antwort geht ins Training. Ein versionierter Bericht und drei Strategiekonfigurationen werden nach Lauf archiviert.
 - **Grenzen:** Kein garantierter Zugriff auf fremde Karten oder künftige Würfe; kein echtes mehrzügiges vollumfängliches RL und keine Behauptung, alle Sonderquests/economy bereits gelernt zu haben. `main`, Produktivgegner und gespeicherter Champion werden bis zu klarer Validierung nicht verändert.
 - Bewertung erst nach abgeschlossenem Workflow und Originalbericht vornehmen.
+
+## Abschluss v14.5 – Hauptstrategien und prüfbare Regelkenntnis (21.10.2026)
+
+[Ausführlicher v14.5-Prüfbericht](AI_V145_THREE_STRATEGY_CURRICULUM_RESULTS_20261021.md) · [erfolgreicher GitHub-Lauf #39657418644](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39657418644) · [Originalartefakt](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39657418644/artifacts/12371433658).
+
+- Alle **86 Regeltests** erfolgreich, 84 neue Trainings- und 84 unabhängige Holdout-Szenarien, jeweils nach drei Strategiegruppen und mit Seitenwechseln.
+- Train-only ausgewählte Parameter: `pressure-controlled` für Offensiv, `guardian-stable` für Guardian/Soul und `fusion-conserve` für Fusion/Material. Es handelt sich um Parameterprofile bei eingefrorenen 15 Championgewichten, **nicht** um bewiesene vollständige Regelmeisterschaft oder automatisches Recurrent-/RL-Lernen.
+- Unabhängige Ergebnisse: **79/168 (47,0 %)** gegen v14.3, **88/168 (52,4 %)** gegen Champion. Besonders Fusion verliert **32/72 (44,4 %)** gegen v14.3; Defensive gegen Champion **27/48 (56,3 %)**.
+- Boss VII/IX/X zusammen: **15/42** neuer Kandidat, **17/42** v14.3 und **14/42** Champion. **X: 0/14 alle drei**. Spezialisten: Offensiv **14/28**, DEF **13/28**, Fusion **17/28**.
+- V14.5 unterscheidet erstmals beabsichtigte von später ausgeführten Followup-Aktionstypen: **347** Planungsabsichten und **346** später passende Aktionsarten auf erfolgreich gemeldeten Engineaktionen. **Vorsicht:** Noch kein Nachweis identischer Karte/UID/Ziel/Positionswahl oder wirksamen Kombos.
+- Kein neues Modell befördert. **v14.6 Prioritäten:** echte Aktions-/UID-/Target-/State-Deltas aufnehmen; je Hauptstrategie isolierte Mechaniklektionen mit legalen Vergleichen, Schwerpunkt Vermeidung von Fusionsrückschritten; konkrete X-Fehleranalyse, persistente versionierte Replay-Daten, mehrfaches unabhängiges Sampling. Bevorzugt nachweisbare Entscheidungen statt bloß erhöhte Anzahl Selbstspielrunden.
