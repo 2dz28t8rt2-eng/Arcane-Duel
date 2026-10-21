@@ -1,0 +1,52 @@
+name: Arcane Duel - v13.1 Rules, Learned Tactics and Board Lookahead
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-rule-learning-v131.cjs'
+      - '.github/workflows/ai-rule-learning-v131.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  learned-board-training:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify rule engine and tactical policy source
+        run: |
+          node --check tests/ai-rule-learning-v131.cjs
+          node --test tests/ai-history-v130.test.cjs tests/ai-board-planner-v129.test.cjs
+      - name: Download genuine v13.0 training and untouched holdout experiences
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v130-real-state-action-experiences
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39623655878
+          github-token: ${{ github.token }}
+          path: artifacts
+      - name: Pilot rule learning and matched board duels on separate seeds
+        env:
+          ARCANE_V131_STARTS: '2'
+          ARCANE_V131_SEED_OFFSET: '50000'
+        run: node tests/ai-rule-learning-v131.cjs
+      - name: Fit actual observed-action model and evaluate 128 fresh matched duels
+        env:
+          ARCANE_V131_STARTS: '16'
+          ARCANE_V131_SEED_OFFSET: '0'
+        run: node tests/ai-rule-learning-v131.cjs
+      - name: Retain learned coefficients and per-boss rule/strategy report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v131-rule-learning-and-lookahead
+          path: |
+            artifacts/ai-rule-model-v131.json
+            artifacts/ai-rule-training-v131.json
+          retention-days: 60
+          if-no-files-found: warn
