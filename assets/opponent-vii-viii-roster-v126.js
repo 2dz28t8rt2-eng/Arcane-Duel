@@ -21,7 +21,7 @@
   const desired=mode==='raise10'?10:mode==='raise1'?1:-1;
   const slots=deck.map((cid,index)=>({index,cid,card:CARDS[cid]}))
    .filter(({cid,card})=>!!card&&cid!==ace&&card.level>=2&&
-     (mode==='raise10'?card.level<10:mode==='raise1'?card.level<10:card.level>2))
+     (mode==='raise10'?card.level<10:mode==='raise1'?card.level<9:card.level>2))
    .sort((a,b)=>mode==='raise10'?b.card.level-a.card.level||a.index-b.index:
      mode==='raise1'?b.card.level-a.card.level||a.index-b.index:
      b.card.level-a.card.level||a.index-b.index);
