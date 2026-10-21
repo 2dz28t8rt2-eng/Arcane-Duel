@@ -60,3 +60,12 @@ Jede Lektion ermittelt mit der echten Engine die legalen Optionen, misst unmitte
 
 ## Grundsatz
 **Mehr simulierte Spiele sind nicht gleich mehr Intelligenz.** Die KI soll alte Misserfolge erklären, regelkonforme Alternativen erneut prüfen, die Erkenntnisse über viele voneinander unabhängige Spiele validieren und nur belastbare Verbesserung als neues Wissen dauerhaft übernehmen.
+
+## Umsetzung v13.8 – Decision Replay und Curriculum (21.10.2026)
+
+- **[Echter abgeschlossener Trainingsbericht](AI_V138_CURRICULUM_TRAINING_RESULTS_20261021.md)**, [Actions #39642462976](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39642462976).
+- Historische v13.6-Generationsberichte und v13.7-Entscheidungsbelege eingebunden; aus früheren Gradienteneinträgen können keine vollständigen früheren Spielsituationen rekonstruiert werden.
+- **81** neu rekonstruierte legale Gegenproben, sichtbare Zustände und eigene Hand protokolliert, **30** train-only Gewichtsänderungen.
+- Unabhängiger Vergleich ergab nur **17/60 Mirror-Siege**, Boss VII/IX/X **0/15** gegenüber **7/15** beim bisherigen Champion. Kandidat klar abgelehnt, kein produktiver Rollout.
+- Lehre für die nächste Version: Eine alternative Aktionsfolge in **einem** Match ist ein zu verrauschtes Signal für Gewichtsupdates. **v13.9 muss Mehrfach-Gegenproben über Seeds, Explizit-Vertrauensmaße, einzelne Mechanikübungen und echtes Lookahead priorisieren.**
+- Replay und Kandidat im [v13.8-Trainingsartefakt](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39642462976/artifacts/12365881460), 90 Tage auf GitHub Actions; zukünftige Runs müssen Lernmaterial rechtzeitig übernehmen. Veränderte Spielregeln, Spielerinventar und NPC-KI: **keine**.
