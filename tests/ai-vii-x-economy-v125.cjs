@@ -78,6 +78,22 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
   const acquiredIds={};
   let farmWins=0,cardDrops=0,normalDrops=0,fusionDrops=0,highDrops=0,lootedByTier={},avoidedTries=0;
   const sourceLocks={},forgePhases={};
+  const perkPurchases={},perkPurchaseLogs=[],boostersBySize={},fusionPacksBySize={},
+    packOpened={character:0,normal:0,fusion:0},packCharactersPicked={},
+    activeAiActions={player:{},npc:{}},skillActions={player:{},npc:{}},
+    passiveExposure={jagdinstinkt:0,schildwall:0,kolossenkraft:0,schwarminstinkt:0,grosswildjaeger:0},
+    bossSkillStats={7:{},10:{}},bossPerkRanks={7:[],10:[]};
+  const skillType=x=>['arcane-guardian-heal','arcane-soul-extract'].includes(x)||
+    /skill|ability|active|condense|discharge|raid|bastion/i.test(x);
+  function boughtUpgrade(key){
+    const purchased=buyUpgrade(key);
+    if(purchased){
+      perkPurchases[key]=(perkPurchases[key]||0)+1;
+      if(perkPurchaseLogs.length<150)perkPurchaseLogs.push({tier:highestCleared(),
+        key,rank:profile.upgrades[key],coins:profile.coins});
+    }
+    return purchased;
+  }
   function settle(){
    for(let loops=0;loops<15&&profile.rewardQueue.length;loops++){
     const q=profile.rewardQueue[0];
@@ -95,7 +111,11 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
     if(profile.packs[packKey(source,'easy')]>0&&openCharacterPack(source,'easy')){
      const c=[...profile.openPack.cards],best=c.map((id,i)=>({id,i})).sort((a,b)=>
       (CARDS[b.id].atk+CARDS[b.id].def)-(CARDS[a.id].atk+CARDS[a.id].def))[0];
-     if(best&&takePackCard(best.i)){packChoice++;closeCharacterPack();}
+     if(best&&takePackCard(best.i)){
+      packChoice++;packOpened.character++;
+      packCharactersPicked[source]=(packCharactersPicked[source]||0)+1;
+      closeCharacterPack();
+     }
     }
    }
    if(allowPurchase){
@@ -109,7 +129,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
      const available=order.find(k=>UPGRADES[k]&&
       profile.upgrades[k]<UPGRADES[k].max&&
       profile.coins>=upgradeCost(k)+(tier>=4?75:110));
-     if(available&&buyUpgrade(available)){upgrades++;buysAttempted++;}
+     if(available&&boughtUpgrade(available)){upgrades++;buysAttempted++;}
     }
     if((plan==='farm'||plan==='specialize'||plan==='hybrid')&&crafts<10&&
      sharedShards()>=SHARD_CRAFT_COST){
@@ -127,7 +147,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
       ['grosswildjaeger','schwarminstinkt','kolossenkraft'];
      const perk=perks.find(k=>profile.upgrades[k]<UPGRADES[k].max&&
       profile.coins>=upgradeCost(k)+(tier>=4?90:140));
-     if(perk&&buyUpgrade(perk)){upgradesV109++;upgrades++;buysAttempted++;}
+     if(perk&&boughtUpgrade(perk)){upgradesV109++;upgrades++;buysAttempted++;}
     }
     // Exactly one purchase opportunity for every third earned victory.
     // Removes old unequal hard limits on normal vs fusion packs.
@@ -141,7 +161,8 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
      if(fCount){
       const old=profile.boosterSeals;
       if(market.buyFusionPack(fCount)){
-       fusionPacks++;fusionSealSpent+=old-profile.boosterSeals;
+       fusionPacks++;packOpened.fusion++;
+       fusionPacksBySize[fCount]=(fusionPacksBySize[fCount]||0)+1;fusionSealSpent+=old-profile.boosterSeals;
        mixedPackCards+=profile.lastBooster.cards.length;
        fusionPulls+=profile.lastBooster.cards.filter(id=>CARDS[id].fusionOnly).length;
        buysAttempted++;
@@ -151,7 +172,8 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
       if(n){
        const old=profile.boosterSeals;
        if(buyBooster(n)){
-        boosters++;normalSealSpent+=old-profile.boosterSeals;
+        boosters++;packOpened.normal++;
+        boostersBySize[n]=(boostersBySize[n]||0)+1;normalSealSpent+=old-profile.boosterSeals;
         normalPackCards+=profile.lastBooster.cards.length;
         buysAttempted++;
        }
@@ -439,8 +461,39 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
     }
     return result;
    };
+   // Inspect REAL successful actions rather than equating an owned skill
+   // with an activation. Passive perk exposure is recorded separately.
+   const observingApply=applyAiAction;
+   applyAiAction=function(game,action){
+    const actor=game.active===0?'player':'npc',kind=String(action?.type||'unknown');
+    const before=game.active,p=game.players[0];
+    const result=observingApply(game,action);
+    if(game===g&&result){
+     const map=activeAiActions[actor];map[kind]=(map[kind]||0)+1;
+     if(skillType(kind)){
+       skillActions[actor][kind]=(skillActions[actor][kind]||0)+1;
+     }
+     if(before===0&&kind==='end'){
+       const crew=p.field.filter(Boolean).map(c=>dataOf(c).role||CARDS[c.id]?.role||'');
+       if((profile.upgrades.jagdinstinkt||0)>0&&crew.includes('predator'))
+        passiveExposure.jagdinstinkt++;
+       if((profile.upgrades.schildwall||0)>0&&crew.some(r=>r==='guardian'||r==='soul'))
+        passiveExposure.schildwall++;
+       for(const key of ['kolossenkraft','schwarminstinkt','grosswildjaeger'])
+        if((profile.upgrades[key]||0)>0)passiveExposure[key]++;
+     }
+     if(context==='tournament'&&(tier===7||tier===10)){
+       const entry=bossSkillStats[tier];const actorKey=actor+'_'+kind;
+       entry[actorKey]=(entry[actorKey]||0)+1;
+     }
+    }
+    return result;
+   };
    try{simulateGame(g,policy);}
    finally{chooseAiAction=initialChoose;applyAiAction=initialApply;}
+   if(context==='tournament'&&(tier===7||tier===10)){
+     if(bossPerkRanks[tier].length<30)bossPerkRanks[tier].push({...profile.upgrades});
+   }
    if(ivEncounter){
     const policyCalls=controller.summonObservations-controllerStart.summonObservations;
     const policyNormals=controller.policyNormalChoices-controllerStart.policyNormalChoices;
@@ -852,6 +905,9 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
   return {policy,plan,strategy,treatment,controller,training,snapshots,events,
    dropInstalled,finalDeckStrength,weakForgeSpentByTier,
    opponentIVCombat,ivPolicyCalls,ivPolicyNormal,ivPolicyFusion,
+   perkPurchases,perkPurchaseLogs,boostersBySize,fusionPacksBySize,
+   packOpened,packCharactersPicked,activeAiActions,skillActions,
+   passiveExposure,bossSkillStats,bossPerkRanks,
    ivAttacks,ivDamage,ivKills,ivFusionPlacements,ivLPLost,
    adaptiveBatches,adaptiveFarmMatches,adaptiveFarmWins,tierFarmDecisions,
    yieldSkipped,measuredBatches,yieldUseful,yieldWeak,actualFarmXp,actualFarmLoot,
@@ -880,7 +936,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
    boosters,fusionPacks,fusionPulls,normalPackCards,mixedPackCards,
    v7Attempts,v7Fusions,v7Attacks,v7Damage,v7Kills,v7Turns,v7TotalDamage,
     normalSealSpent,fusionSealSpent,sealsEarned,extraShardsEarned,upgradesV109,
-    finalSeals:profile.boosterSeals,finalRanks:Object.fromEntries(['grosswildjaeger','kolossenkraft','schwarminstinkt'].map(k=>[k,profile.upgrades[k]||0])),
+    finalSeals:profile.boosterSeals,finalRanks:{...profile.upgrades},
     packChoice,milestones,crafts,upgrades,buysAttempted,
    shardCrafts,shardResearches,shardRerolls,shardsSpent,
    cleared:Math.max(0,...profile.cleared),
@@ -996,6 +1052,18 @@ const report={schema:'arcane-vii-x-roster-skills-boosters-v125',
   totalMatches:r.duels,freeMatches:r.farms,tournamentMatches:r.tournaments,
   shardsSpent:r.shardsSpent,boosters:r.boosters,
   VIICombat:{attempts:r.v7Attempts,fusions:r.v7Fusions,attacks:r.v7Attacks,damage:r.v7Damage,kills:r.v7Kills,turns:r.v7Turns,totalDamage:r.v7TotalDamage},
+  economy:{perkPurchases:r.perkPurchases,perkPurchaseLogs:r.perkPurchaseLogs,
+    finalPerkRanks:r.finalRanks,normalBoosterPurchases:r.boosters,
+    fusionPackPurchases:r.fusionPacks,characterPacksOpened:r.packOpened.character,
+    packsOpened:r.packOpened,normalBoosterSizes:r.boostersBySize,
+    fusionPackSizes:r.fusionPacksBySize,characterPackChoices:r.packCharactersPicked,
+    normalBoosterCards:r.normalPackCards,
+    mixedPackCards:r.mixedPackCards,fusionCardsFromPacks:r.fusionPulls,
+    sealsSpent:{normal:r.normalSealSpent,fusion:r.fusionSealSpent}},
+  skillAudit:{realSuccessfulActionTypes:r.activeAiActions,
+    activeSkillActionTypes:r.skillActions,
+    passiveEligibleOwnTurns:r.passiveExposure,bossActionTypes:r.bossSkillStats,
+    recordedBossPerkRanks:r.bossPerkRanks},
   IVCombat:{attempts:r.opponentIVCombat.length,policyCalls:r.ivPolicyCalls,
    normalSelections:r.ivPolicyNormal,fusionSelections:r.ivPolicyFusion,
    playerAttackActions:r.ivAttacks,damageToEnemy:r.ivDamage,
@@ -1055,6 +1123,10 @@ const report={schema:'arcane-vii-x-roster-skills-boosters-v125',
   'This test does not force live users to grind or give free cards/resources.',
   'No card data, ACE, player ability or other NPC deck changes in the experiment; control skips VII/X overlay only in its isolated VM.',
   'Actual packs have different card counts and seal prices. Spending and obtained card quality are reported.',
+  'Booster purchase size, costs and produced cards are measured through actual successful purchases; character packs require an actual open and pick.',
+  'Skills are counted only for real successful supported AI action types; passive perk ranks and eligible field turns are tracked separately, not misreported as activation.',
+  'Browser-only active skill UI buttons, if not available to the offline duel AI, will show zero activations; zero does not mean the perk itself fails.',
+  'A larger number of free fights changes raw card and booster totals, so also compare per-career and per-fight performance.',
   'VII combat traces actual fusion instances, attacks and monster damage, not hypothetical options.',
   'Measures acquisition strategies inside v10.9, not an invalid pre-v10.9 counterfactual.',
   'Tier VI retains a 75-relevant-match offline cap, tiers VII-X progressively allow more farming; these are test budgets, not game rules.'
