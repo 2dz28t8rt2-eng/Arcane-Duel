@@ -139,3 +139,15 @@ Jede Lektion ermittelt mit der echten Engine die legalen Optionen, misst unmitte
 - Späte Turniergegner: neuer Kandidat **9/27**, Champion **5/27**; IX **3/9 vs. 0/9**, X **0/9 auf beiden Seiten**.
 - Spezialisierte Gegner: Offensiv **10/24 (41,7 %)**, Defender **12/24**, Fusion/Ökonomie **16/24**. **Keine Promotion**, weil Mirror-Test die 56-%-Schwelle und Offensivtest die 45-%-Schwelle verfehlten. Produktiver Champion, `main`, Spielbalance und Spielerinventar unverändert.
 - **v14.4 Priorität:** Echte Folgeaktion nach Platzierung, harte Gegenwehr von Predator/Tempo, rollenbezogene Soul/Guardian-Übungen und Konterfähigkeit vs. X. Längere Planungsfolgen nur mit öffentlich beobachtbarer Gegnerinformation und neuen Validierungsseeds.
+
+## KI-Training v14.4 – historische Belege, Folgeaktionen und offensive Gegenwehr (21.10.2026)
+
+[GitHub Actions Trainingslauf #39653165893](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39653165893). Umsetzung: `tests/ai-historical-fusion-followup-v144.cjs`, Workflow: `.github/workflows/ai-historical-fusion-followup-v144.yml`.
+
+- **Wiederverwendung alter Befunde:** Original-Artefakte der erfolgreichen v13.6-Generationen, v14.2-Override-Audit und v14.3-Fusionsbewertung werden automatisch abgerufen und per Schema/Fachbedingungen verifiziert. Die Berichte priorisieren die Trainingsaufgaben; frühere Holdout-Sieger werden nicht in aktuelle Kandidatenfit-Daten umgewandelt.
+- **Fach 1:** Nach tatsächlich aufgelöster Normal- oder Fusionsplatzierung prüft die echte Engine legale unmittelbare Folgeaktionen (Angriff, Soul-Drain, Guardian-Heilung). Verfügbarkeit, erfolgreiche Engine-Ausführung und positiver kurzfristiger Boardnutzen werden protokolliert. Kein Zug aus fremder Hand und kein zusätzlicher Gratiszug.
+- **Fach 2:** Öffentlich sichtbarer gegnerischer Angriffsdruck – Feldangreifer, ACE am Feld, eigene Abwehr – geht als eigene Bewertungsgröße ein. Der Controller darf weiterhin gegen eine ressourcenintensive Fusion entscheiden.
+- **Drei auf aktuellen Trainingsdecks getestete Parameterkombinationen:** konservativ, ausgewogen, Gegenspiel. Eingefrorene Champion-Gewichte bleiben unverändert. Nur der anhand neuer Trainingsduelle bestimmte Kandidat wird auf fremden Decks/Seeds gegen v14.3, Champion, VII/IX/X und Offensive-/DEF-/Fusionsspezialisten geprüft.
+- **Regelprüfung:** originale Duell-Engine, kein eigenmächtig erzeugtes Monster, keine ausgedachten Fusionen, keine ausgelesenen verdeckten gegnerischen Karten. v14.4 implementiert noch keinen 2–3-Runden-Minimax-Planer; die Auswertung folgt ausschließlich aus aktuellen GitHub-Reports.
+- **Promotiongate:** mindestens 56 % gegen Champion, mindestens 53 % gegen v14.3, Bossleistung nicht schlechter und mindestens 45 % gegen jeden Experten. Andernfalls keine neue KI-Übernahme.
+- **Archivierung:** Ausführlicher Report, Historien-Lernplan und Kandidatenparameter im GitHub-Artefakt des Workflows; die praktische produktive Gegner-KI und `main` bleiben bis zur unabhängigen Validierung unverändert.
