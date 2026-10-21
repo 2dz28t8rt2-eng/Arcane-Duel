@@ -87,3 +87,13 @@ Jede Lektion ermittelt mit der echten Engine die legalen Optionen, misst unmitte
 - Neuer Planerkandidat gegen eingefrorenen Champion **34/64** Mirror-Siege, bei Bossen VII/IX/X jedoch nur **8/32** gegen **10/32** Champion; Spezialisten **16/28, 16/28, 19/28**. **Keine Promotion**, keine Änderungen an aktiver Gegner-KI, Balance, `main` oder Spielerdaten.
 - Die getestete Vorhersage umfasst nur zwei eigene Aktionen **im gleichen Zug**, nicht zwei bis drei vollständige Runden. Historische Einzeldaten dienen zur Fehleranalyse, nicht als Beweis der idealen Alternativentscheidung.
 - **v14.1:** Instrumentierte Mechanikabdeckung, mehrere Folgesimulationen pro schwieriger Entscheidung, gezielte statt pauschaler Planeraktivierung und später regelkonforme Mehrzugplanung. Schwierige Mechaniken wie Feldfusion, ACE-Priorisierung, Soul-Drain, Resonanz und Pokerboni explizit prüfen. Langfristigen versionierten Replay-Speicher vorbereiten.
+
+## Umsetzung v14.1 – selektiver Planer und Mechanik-Telemetrie (21.10.2026)
+
+[Prüfbericht](AI_V141_SELECTIVE_PLANNER_RESULTS_20261021.md) · [Trainingslauf SUCCESS, Attempt 2 #39646196727](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39646196727).
+
+- Fünf Aktivierungsstrategien getestet (immer, Beschwörung, Angriff, frühe Angriffe, Bedrohungs-Erkennung), **je 56/112** Train-Siege. **Keine** Strategie qualifizierte sich gegenüber eingefrorenem Champion.
+- Richtiger Fallback `none` (Planer nicht aktiv), unabhängige Spiegel-Duelle **72/144**; Boss VII/IX/X **14/36** identische Kontroll-KI. Daher **kein** neuer nachgewiesener Fortschritt und kein Produktions-Rollout.
+- Mechanik-Telemetrie erstmals auch für legal angebotenen Seelenentzug (**13** Entscheidungskontexte) und Wächterheilung (**3**), gewählt **9** bzw. **2** Aktionen. **Nicht direkt als Prozent verrechnen**, da Angebotsfenster/Action-Tally noch nicht je identischem Entscheidungsschritt verbunden sind.
+- 42 Mechanik-Regressionstests bestanden. Kein fehlerhafter Legal-Resolver und kein Wechsel des Champions.
+- **v14.2 kritischer nächster Schritt:** Pro Entscheidung protokollieren, ob der Planer **tatsächlich eine andere Aktion auswählt**, was davon legal/umgesetzt wurde, und warum (Features, Board-Zustand, Material-, Rollen-/ACE-/Zerfallskosten). Danach Kontroll-A/B über echte Abweichungsfälle und saubere Opportunity-Raten. Erst darauf neues umfangreiches Training aufbauen.
