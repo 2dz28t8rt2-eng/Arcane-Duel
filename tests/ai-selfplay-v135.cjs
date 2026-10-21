@@ -328,7 +328,7 @@ for(let i=0;i<trainSet.length;i++){
  else counter.bossSparringDuels++;
  if(frozen)counter.frozenOpponentDuels++;
  const ep={grad,winner:r.winner,kind:s.kind,tier:s.tier,actions:r.decisions.length};
- replay.push(ep);if(replay.length>80)replay.shift();
+ replay.push(ep);if(replay.length>120)replay.shift();
  if(i%20===0||i===trainSet.length-1)
   console.log('ARCANE_V135_TRAIN '+JSON.stringify({
    episode:i+1,of:count,mirrors:counter.mirroredDuels,
@@ -389,7 +389,6 @@ const byTier=Object.fromEntries([7,9,10].map(t=>[
  t,aggregate(testResults.filter(x=>x.tier===t))]));
 const bossByTier=Object.fromEntries([7,9,10].map(t=>[
  t,aggregate(testResults.filter(x=>x.kind==='boss'&&x.tier===t))]));
-const priorHeld=previous?.evaluation?.byKind?.mirror?.currentWinRate||null;
 const mirrorScore=byKind.mirror.currentWinRate;
 const crossScore=byKind.cross.currentWinRate;
 const safe=Object.values(byKind).every(x=>x.invalid===0)&&
@@ -402,6 +401,13 @@ const evaluation={byKind,byTier,bossByTier,
  validationOnly:true,noHoldoutOptimization:true,
  championBeatsOlderPolicy:mirrorScore>.5&&crossScore>.5,
  promotionEligible};
+// Do not overwrite a proven historical model after a losing generation.
+// Candidate results and replay survive for learning even if its weights fail.
+const checkpointAccepted=!previous || (mirrorScore>=.50 && crossScore>=.50 &&
+ bossByTier[9].currentWins>=bossByTier[9].baselineBossWins &&
+ bossByTier[10].currentWins>=bossByTier[10].baselineBossWins);
+const storedWeights=checkpointAccepted?frozenWeights:startingWeights;
+const storedEvaluation=checkpointAccepted?evaluation:previous.evaluation;
 const report={
  schema:'arcane-v135-selfplay-run',status:'completed',
  method:'two-seat stochastic self-play + terminal-outcome policy-gradient + bounded low-rate experience replay',
@@ -413,6 +419,7 @@ const report={
  evaluation,heldoutExamples:testResults.slice(0,70),
  learnedParameterCount:N,
  weightsBefore:startingWeights,weightsAfter:frozenWeights,
+ checkpointAccepted,storedWeights,
  permanentModelTrackedInRepository:'models/ai-selfplay-v135.json',
  productionIntegrated:false,
  notes:[
@@ -422,14 +429,20 @@ const report={
   'Mirror duels have symmetric training decks, standard LP, neutral power and alternating starter; PvE-specific role or perk rules can still differ across seats.',
   'All training decks are constructed source-legal configurations, NOT earned inventories.',
   'Historical replay is bounded and downweighted because it is off-policy.',
+  'A guarded checkpoint keeps the previous champion if new weights lose the frozen mirror and cross-role benchmarks.',
   'Boss VII/IX/X are included as sparring training scenarios, with unseen-seed boss benchmark evaluation.',
   'Held-out deck and match RNG seeds change each learning generation.',
   'Model checkpoint is experimental and not injected into gameplay unless explicitly promoted.'
  ]};
 fs.mkdirSync('artifacts',{recursive:true});fs.mkdirSync('models',{recursive:true});
-const checkpoint={schema:KEY,version:'13.5',weights:frozenWeights,
+const checkpoint={schema:KEY,version:'13.5',weights:storedWeights,
  gamesTrained:counter.previousGames+count,
- replay:replay.slice(-80),evaluation,
+ bestCheckpointGames:checkpointAccepted?counter.previousGames+count:
+  previous.bestCheckpointGames||previous.gamesTrained,
+ replay:replay.slice(-120),evaluation:storedEvaluation,
+ lastCandidateWeights:frozenWeights,lastCandidateEvaluation:evaluation,
+ lastCandidateAccepted:checkpointAccepted,
+ checkpointRule:'Retain old champion if new weights regress in mirror or cross-deck holdout',
  sourceRun:'GitHub Actions',lastTrainingKinds:counter,
  productionActive:false,requiresNpcIntegration:true};
 fs.writeFileSync('artifacts/ai-v135-training-report.json',JSON.stringify(report,null,2)+'\n');
@@ -437,5 +450,7 @@ fs.writeFileSync('artifacts/ai-v135-checkpoint.json',JSON.stringify(checkpoint,n
 fs.writeFileSync(repoFile,JSON.stringify(checkpoint,null,2)+'\n');
 console.log('ARCANE_V135_SUMMARY '+JSON.stringify({
  training:counter,byKind,byTier,bossByTier,
- promotionEligible,modelPersisted:'models/ai-selfplay-v135.json',
+ promotionEligible,checkpointAccepted,
+ archivedChampionRetained:!checkpointAccepted,
+ modelPersisted:'models/ai-selfplay-v135.json',
  productionIntegrated:false}));
