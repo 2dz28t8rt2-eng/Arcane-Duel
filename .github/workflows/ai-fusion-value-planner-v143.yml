@@ -1,0 +1,79 @@
+name: Arcane Duel - v14.3 Complete Fusion Value Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-fusion-value-planner-v143.cjs'
+      - '.github/workflows/ai-fusion-value-planner-v143.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v143-fusion-value-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  fusion-value-learning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 95
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate legal fusion resolver and AI rules
+        run: |
+          node --check tests/ai-fusion-value-planner-v143.cjs
+          node --test tests/ai-history-v130.test.cjs tests/ai-board-planner-v129.test.cjs tests/fusion-rework-v113.test.cjs tests/defender-soul-update.test.cjs tests/allrounder-resonance-v41.test.cjs tests/lv1-fusion-and-ghost-v47.test.cjs tests/role-inheritance-regression.test.cjs
+      - name: Restore source-trained champion and older match reports
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v136-extensive-1200-episode-selfplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39637833422
+          github-token: ${{ github.token }}
+          path: artifacts/history
+      - name: Restore diagnosed v14.2 fusion-to-normal action overrides
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v142-planner-action-override-and-mechanic-coverage
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39647899323
+          github-token: ${{ github.token }}
+          path: artifacts/history-v142
+      - name: Check historical model and previous audit
+        run: |
+          test "$(find artifacts/history -name ai-v136-training-report.json | wc -l)" -eq 3
+          node - <<'JS'
+          const assert=require('node:assert/strict');
+          const old=require('./artifacts/history-v142/report.json');
+          const model=require('./models/ai-selfplay-v136.json');
+          assert.equal(old.schema,'arcane-v142-action-override-audit');
+          assert.equal(old.selectedGate,'none');
+          assert.equal(model.gamesTrained,1920);
+          assert.equal(model.productionActive,false);
+          console.log('Verified frozen champion and last fusion-to-normal override issue.');
+          JS
+      - name: Pilot both fusion and normal fully resolved placement
+        env:
+          ARCANE_V143_TRAIN: '9'
+          ARCANE_V143_HOLDOUT: '12'
+          ARCANE_V143_LEAGUE: '3'
+        run: node tests/ai-fusion-value-planner-v143.cjs
+      - name: Extensive v14.3 fusion utility training and independent holdout
+        env:
+          ARCANE_V143_TRAIN: '42'
+          ARCANE_V143_HOLDOUT: '54'
+          ARCANE_V143_LEAGUE: '12'
+        run: node tests/ai-fusion-value-planner-v143.cjs
+      - name: Preserve post-placement evaluations, outcomes, and candidate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v143-fusion-value-training-and-verified-placement
+          path: |
+            artifacts/v143/report.json
+            artifacts/v143/placement-examples.json
+            artifacts/v143/candidate.json
+          retention-days: 90
+          if-no-files-found: warn
