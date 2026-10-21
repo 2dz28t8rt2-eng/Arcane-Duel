@@ -202,3 +202,16 @@ Jede Lektion ermittelt mit der echten Engine die legalen Optionen, misst unmitte
 - **Breite Regelprüfung**: die Mechanik-Tests zu Angriff und Verschleiß, Guardian/Soul, Fusion/Vererbung/Resonanz, LV1/ACE, Essence und Inventar/Ökonomie bleiben vorgeschaltet. Kein bestandener Regeltest allein ist ein Beweis für vollständiges strategisches Verständnis.
 - **Sicherheitsentscheidung**: Keine automatische Live-NPC-Integration und kein `main`-Merge bei einem einfach nur erfolgreich durchgelaufenen Training; positive Ergebnisse müssen gegenüber v14.5, Champion, Bossen und Spezialisten in wirklich getrennten Holdouts bestehen.
 - **Konkreter Langzeitspeicher**: Erklärung und tatsächliche Aktionseffekte versioniert mit aktuellem Regel-Commit archivieren; Workflow-Artefakte sind nur zeitlich begrenzt verfügbar.
+
+## Abschluss v14.6 – gespiegelte drei Strategien, exakte Folgeaktionen und KI-Begründungen (21.10.2026)
+
+[Prüfbericht v14.6](AI_V146_MIRROR_EXPLAINABLE_RESULTS_20261021.md) · [GitHub Actions SUCCESS #39663274946](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39663274946) · [Originaldaten und Entscheidungsprotokolle](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39663274946/artifacts/12376790934).
+
+- **86/86 Regressionstests bestanden**, 84 Trainings- und 84 unabhängige Holdout-Szenarien, jeweils gleiches legales Deck, Start-Seed und gespiegelter Spielersitz pro Vergleich.
+- Alle drei Spezial-Strategien **exakt 50 %** gegen v14.5: Offensive **24/48**, Guardian/Soul **24/48**, Fusion/Hybrid/Allrounder **36/72**. Gegen Champion **91/168 (54,2 %)**. Es gibt keinen neuen bestätigten spielstarken Kandidaten.
+- Boss VII/IX/X: **12/42 v14.6**, **11/42 v14.5**, **15/42 Champion**; bei X v14.6 **1/14**. Gegen Spezialisten Offensiv **20/28**, DEF **20/28**, Fusion **22/28**.
+- **Folgeaktionen:** **709** geplante und später nach Aktionstyp ausgeführte Aktionen, aber nur **513 exakte Aktionsmatches (72,4 %)**. Die übrigen **196** haben unterschiedliche Angreifer/Ziele/Slots oder Materialien. Eine exakte Aktion beweist allein keinen besseren Nutzen.
+- **Erklärungsnachweis aus dem Artefakt:** 12 erfasste Spielszenarien, 120 Entscheidungsnotizen und 216 Spielaktions-Deltas. Die lineare Feature-Erklärung stimmt mit der finalen Lookahead-Rangfolge nicht immer überein: **24 negative Score-Abstände**; **74** Notizen betreffen nicht im linearen Kandidaten-Set erfasste Phasen-/Fallbackaktionen (`legalCandidate:false` ist **nicht** automatisch eine illegale Aktion).
+- **Wichtiges Diagnosesignal:** Genau 50 % gegen v14.5 für sämtliche Deckklassen und in 5/6 gesampelten gespiegelten Perspektiven identische Aktionsreihenfolge. Bevor weitere Trainingsmassen laufen: paarweise tatsächliche Policy-Overrides nach UID/Slot/Ziel messen und prüfen, ob neue Gewichtungen das Handeln überhaupt ändern.
+- **v14.7 Priorität:** endgültige `lookahead`-Werte je Alternative protokollieren (nicht nur linearen Score), geplante und tatsächlich ausgeführte Folgeschritte mit Spielzustands-Hash und Ergebnis verknüpfen; echte Gegenproben an unsicheren Situationen; Boss VII/X auf Kartenverfügbarkeit/ACE und legalen Konter untersuchen. Historische Berichte bleiben Lehrplan, kein Testdatenleck.
+- **Kein Rollout**: Champion, `main` und produktive Gegner unverändert; `qualifiesForPromotion:false`.
