@@ -8,6 +8,8 @@ on:
       - 'scripts/build-ai-history-v130.py'
       - 'tests/ai-history-v130.test.cjs'
       - 'tests/ai-experience-capture-v130.cjs'
+      - 'tests/helpers/ai-rule-features-v130.cjs'
+      - 'tests/helpers/ai-policy-memory-v130.cjs'
       - '.github/workflows/ai-memory-v130.yml'
   workflow_dispatch:
 permissions:
@@ -24,6 +26,7 @@ jobs:
       - name: Validate history split integrity and game rules
         run: |
           node --check tests/ai-experience-capture-v130.cjs
+          node --check tests/helpers/ai-rule-features-v130.cjs
           python -m py_compile scripts/build-ai-history-v130.py
           node --test tests/ai-history-v130.test.cjs tests/opponent-x-balance-v128.test.cjs
       - name: Capture two real action-level pilot experiences
