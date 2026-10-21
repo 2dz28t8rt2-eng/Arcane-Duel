@@ -39,7 +39,7 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster
   // Only the offline matched-career control disables the optional v11.8 NPC roster.
   if(withoutRoster118&&file==='assets/opponent-roster-balance-v118.js')continue;
   // Regression-only control retains all other balances while leaving IV unchanged.
-  if(withoutIV123&&file==='assets/opponent-iv-balance-v123.js')continue;
+  if((withoutIV123||withoutRoster118)&&file==='assets/opponent-iv-balance-v123.js')continue;
   // Control arm uses the same current game and economy, only the v11.3 fusion
   // calculator and its dependent interactive tutorial are switched off.
   if(withoutFusionRework&&['assets/fusion-rework-v113.js','assets/fusion-tutorial-v113.js'].includes(file))continue;
