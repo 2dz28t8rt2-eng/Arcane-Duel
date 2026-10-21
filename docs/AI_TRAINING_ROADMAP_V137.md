@@ -164,3 +164,17 @@ Jede Lektion ermittelt mit der echten Engine die legalen Optionen, misst unmitte
 - Im v14.3-A/B-Holdout **1.802** zusätzliche legale Aktionsexperimente in geklonten Ständen, **619** mit positivem angenommenem Nutzen. Dies sind **Simulationsmöglichkeiten, nicht 619 tatsächlich im Duell gespielte Folgeaktionen**.
 - **Keine Promotion**, da direkte v14.3-Schwelle von 53 % verfehlt wurde und Bossleistung nicht mindestens Championniveau erreicht.
 - **v14.5 Prioritäten:** realer Phasenablauf nach Fusion (inkl. Positionsphase) vor hypothetischem Folgeangriff, Vergleich von geplanten und tatsächlich ausgeführten Aktionen, mechanikspezifische Nutzungsstatistiken für Soul-Drain/Guardian-Heal, Gegner-X-Stress-Tests und mehrfach gesampelte legale Gegenspiel-Antworten. Historische Dokumentation soll die Lektionen, nicht rückwirkend die optimale Aktion festlegen.
+
+## Implementation v14.5 – Drei Hauptstrategien und Regelkunde (21.10.2026)
+
+[Live-Actions-Workflow #39657418644](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39657418644) · Trainer `tests/ai-three-strategy-curriculum-v145.cjs` · Workflow `.github/workflows/ai-three-strategy-curriculum-v145.yml`.
+
+- **Offensive/Predator:** Attackendruck, direkte LP-Gefahr, Angriffsverschleiß, sichtbare ACE-Risiken und sichere Gegenzüge.
+- **Verteidigung/Wächter/Seelenzehrer:** Schutz und DEF, legale Wächter-Heilung, Seelenentzug, Feldwert und Überlebensfähigkeit.
+- **Fusion/Materialökonomie:** Wirklich aufgelöste Fusionswürfe und Platzierung, Materialkosten, Synergien, Folgeaktionen und Zerfall.
+- Jede Strategie hat zwei unterschiedliche Gewichtsprofile. Auswahl durch auf neue **Trainingsdecks** beschränkte Duelle; alle drei gewonnenen Spezialisierungen anschließend an **unbenutzten Decks/Seeds** mit gespiegelten Starts, Original-Champion, v14.3 und späten Bossen messen.
+- **Regelvertrag:** `docs/AI-REGELWERK-V130.md` bleibt Grundlage. CI erweitert die ausführbaren Prüfungen um Fusionen, Essence, Resonanz, Rollenvererbung, ACE/LV1 und Ökonomie. Tests zeigen Korrektheit, aber **nicht**, dass jede komplexe Regel im strategischen Controller autonom gemeistert wird.
+- **v14.4-Korrektur:** Eine beurteilte Folgeaktion wird nur über legale Entscheidungen der **originalen** Engine-Phasenlogik erreicht, nicht durch künstliches Umschalten auf `attacks`. Absichten werden unabhängig von tatsächlich ausgeführten Handlungen gezählt.
+- **Historische Ergebnisse:** v14.2/v14.3/v14.4 originale Berichte werden geladen und als Lehrziele wiederverwendet; keine alte Holdout-Antwort geht ins Training. Ein versionierter Bericht und drei Strategiekonfigurationen werden nach Lauf archiviert.
+- **Grenzen:** Kein garantierter Zugriff auf fremde Karten oder künftige Würfe; kein echtes mehrzügiges vollumfängliches RL und keine Behauptung, alle Sonderquests/economy bereits gelernt zu haben. `main`, Produktivgegner und gespeicherter Champion werden bis zu klarer Validierung nicht verändert.
+- Bewertung erst nach abgeschlossenem Workflow und Originalbericht vornehmen.
