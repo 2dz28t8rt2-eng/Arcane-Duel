@@ -83,6 +83,8 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
     activeAiActions={player:{},npc:{}},skillActions={player:{},npc:{}},
     passiveExposure={jagdinstinkt:0,schildwall:0,kolossenkraft:0,schwarminstinkt:0,grosswildjaeger:0},
     bossSkillStats={7:{},10:{}},bossPerkRanks={7:[],10:[]};
+  const xBattles=[],xAttackerStats={npc:{},player:{}},xEndReasons={},
+    xPreBossState=[],tenPackWaits=0,tenPackPurchases=0,tenAffordableMisses=0;
   const skillType=x=>['arcane-guardian-heal','arcane-soul-extract'].includes(x)||
     /skill|ability|active|condense|discharge|raid|bastion/i.test(x);
   function boughtUpgrade(key){
@@ -156,18 +158,24 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
      const market=window.ArcaneFusionPackV109,seals=profile.boosterSeals||0;
      const fusionAllowed=
        tier>=2&&market&&market.fusionPackPool(tier).fusion.length>0;
-     const fCount=fusionAllowed?
-       [10,5,3,1].find(n=>seals>=market.fusionPackPrice(n)):null;
+     const tenPrice=fusionAllowed?market.fusionPackPrice(10):Infinity;
+     const saving=treatment==='save-for-10'&&fusionAllowed;
+     const fCount=fusionAllowed?(saving?
+       (seals>=tenPrice?10:null):
+       [10,5,3,1].find(n=>seals>=market.fusionPackPrice(n))):null;
+     if(saving&&!fCount)tenPackWaits++;
+     if(saving&&seals>=tenPrice&&!fCount)tenAffordableMisses++;
      if(fCount){
       const old=profile.boosterSeals;
       if(market.buyFusionPack(fCount)){
        fusionPacks++;packOpened.fusion++;
+       if(saving)tenPackPurchases++;
        fusionPacksBySize[fCount]=(fusionPacksBySize[fCount]||0)+1;fusionSealSpent+=old-profile.boosterSeals;
        mixedPackCards+=profile.lastBooster.cards.length;
        fusionPulls+=profile.lastBooster.cards.filter(id=>CARDS[id].fusionOnly).length;
        buysAttempted++;
       }
-     }else{
+     }else if(!saving){
       const n=[10,5,3,1].find(n=>seals>=boosterPrice(tier,n));
       if(n){
        const old=profile.boosterSeals;
@@ -330,6 +338,18 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
    const initialChoose=chooseAiAction,initialApply=applyAiAction;
    const isVIPhase=bossTierInProgress===6&&((context==='tournament'&&tier===6)||
     (context==='free'&&tier===5));
+   const xEncounter=context==='tournament'&&tier===10;
+   const xTrace=xEncounter?{
+     actions:{player:{},npc:{}},aceId:ACE_CARD_IDS[10],
+     npcAcePlaced:0,npcLevel10FusionPlaced:0,npcFusionPlaced:0,
+     playerFusionPlaced:0,npcMonstersDestroyed:0,playerMonstersDestroyed:0,
+     damageToPlayer:0,damageToNpc:0,playerStrikes:0,npcStrikes:0,
+     npcCardsPlaced:{},npcAttackDamageById:{},playerAttackDamageById:{},
+     turnsWithNpcAce:0,turnsWithNpcLevel10:0,scannedTurns:new Set(),
+     playerLpAtStart:g.players[0].lp,npcLpAtStart:g.players[1].lp,
+     initialPlayerDeck:g.players[0].deck.length,
+     initialPlayerFusionTemplates:g.players[0].fusionDeck.length
+   }:null;
    const inspectedTurns=new Set();
    const ivEncounter=context==='tournament'&&tier===4;
    const controllerStart={...controller},ivStartLP=ivEncounter?g.players[0].lp:0;
@@ -467,8 +487,43 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
    applyAiAction=function(game,action){
     const actor=game.active===0?'player':'npc',kind=String(action?.type||'unknown');
     const before=game.active,p=game.players[0];
+    const npc=game.players[1];
+    const xMyLp=xTrace?p.lp:0,xNpcLp=xTrace?npc.lp:0;
+    const attacker=xTrace&&action?.type==='attack'?
+      game.players[before].field[action.ai]?.id:null;
+    const xFusionPending=xTrace&&action?.type==='place'&&game.pending?.kind==='fusion';
     const result=observingApply(game,action);
     if(game===g&&result){
+     if(xTrace){
+       xTrace.actions[actor][kind]=(xTrace.actions[actor][kind]||0)+1;
+       xTrace.damageToPlayer+=Math.max(0,xMyLp-p.lp);
+       xTrace.damageToNpc+=Math.max(0,xNpcLp-npc.lp);
+       if(kind==='attack'){
+         const damage=actor==='npc'?Math.max(0,xMyLp-p.lp):Math.max(0,xNpcLp-npc.lp);
+         const item=xAttackerStats[actor],key=String(attacker??'unknown');
+         item[key]??={attempts:0,damage:0,card:attacker!=null?CARDS[attacker]?.name||null:null};
+         item[key].attempts++;item[key].damage+=damage;
+         xTrace[actor==='npc'?'npcStrikes':'playerStrikes']++;
+         if(actor==='npc')xTrace.npcAttackDamageById[key]=(xTrace.npcAttackDamageById[key]||0)+damage;
+         else xTrace.playerAttackDamageById[key]=(xTrace.playerAttackDamageById[key]||0)+damage;
+       }
+       if(kind==='place'&&result.card){
+         if(actor==='npc'){
+           const cid=result.card.id;
+           xTrace.npcCardsPlaced[cid]=(xTrace.npcCardsPlaced[cid]||0)+1;
+           if(cid===xTrace.aceId)xTrace.npcAcePlaced++;
+           if(xFusionPending||result.fused){
+             xTrace.npcFusionPlaced++;
+             if(dataOf(result.card).level===10)xTrace.npcLevel10FusionPlaced++;
+           }
+         }else if(xFusionPending||result.fused)xTrace.playerFusionPlaced++;
+       }
+       if(kind==='end'&&!xTrace.scannedTurns.has(game.turn)){
+         xTrace.scannedTurns.add(game.turn);
+         xTrace.turnsWithNpcAce+=Number(npc.field.some(c=>c?.id===xTrace.aceId));
+         xTrace.turnsWithNpcLevel10+=Number(npc.field.some(c=>c&&c.fusion&&dataOf(c).level===10));
+       }
+     }
      const map=activeAiActions[actor];map[kind]=(map[kind]||0)+1;
      if(skillType(kind)){
        skillActions[actor][kind]=(skillActions[actor][kind]||0)+1;
@@ -493,6 +548,28 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
    finally{chooseAiAction=initialChoose;applyAiAction=initialApply;}
    if(context==='tournament'&&(tier===7||tier===10)){
      if(bossPerkRanks[tier].length<30)bossPerkRanks[tier].push({...profile.upgrades});
+   }
+   if(xTrace){
+     const gameOver=g.winner===0?'player-win':g.players[0].lp<=0?'player-lp-zero':
+       g.players[0].deck.length===0?'player-deck-empty':
+       g.players[1].lp<=0?'npc-lp-zero':'other-loss';
+     xEndReasons[gameOver]=(xEndReasons[gameOver]||0)+1;
+     xBattles.push({
+       win:g.winner===0,rounds:g.turn,
+       outcome:gameOver,playerLP:g.players[0].lp,npcLP:g.players[1].lp,
+       playerDeckRemaining:g.players[0].deck.length,npcDeckRemaining:g.players[1].deck.length,
+       playerFieldRemaining:g.players[0].field.filter(Boolean).length,
+       npcFieldRemaining:g.players[1].field.filter(Boolean).length,
+       npcAcePlaced:xTrace.npcAcePlaced,
+       npcLevel10FusionPlaced:xTrace.npcLevel10FusionPlaced,npcFusionPlaced:xTrace.npcFusionPlaced,
+       playerFusionPlaced:xTrace.playerFusionPlaced,
+       npcStrikes:xTrace.npcStrikes,playerStrikes:xTrace.playerStrikes,
+       damageToPlayer:xTrace.damageToPlayer,damageToNpc:xTrace.damageToNpc,
+       turnsWithNpcAce:xTrace.turnsWithNpcAce,turnsWithNpcLevel10:xTrace.turnsWithNpcLevel10,
+       npcCardsPlaced:xTrace.npcCardsPlaced,actions:xTrace.actions,
+       npcAttackDamageById:xTrace.npcAttackDamageById,
+       playerAttackDamageById:xTrace.playerAttackDamageById
+     });
    }
    if(ivEncounter){
     const policyCalls=controller.summonObservations-controllerStart.summonObservations;
@@ -697,6 +774,10 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
    if(tier>1&&!profile.cleared.includes(tier-1))
     throw Error('Progress was not legitimately unlocked: '+tier);
    const snap=snapshot(tier);
+   if(tier===10)xPreBossState.push({mainLevel:snap.averageMainLevel,
+     fusionLevel:snap.fusionAverageLevel,coins:snap.coins,
+     copies:snap.ownedCardCopies,ranks:{...profile.upgrades},
+     mainDeck:snap.activeDeck,fusionDeck:snap.fusionDeck});
    snapshots.push({tier:snap.tier,playerLevel:snap.playerLevel,
     coins:snap.coins,shardsAvailable:snap.shardsAvailable,
      seals:snap.seals,discovered:snap.discovered,ranks:snap.ranks,
@@ -906,6 +987,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
    dropInstalled,finalDeckStrength,weakForgeSpentByTier,
    opponentIVCombat,ivPolicyCalls,ivPolicyNormal,ivPolicyFusion,
    perkPurchases,perkPurchaseLogs,boostersBySize,fusionPacksBySize,
+   xBattles,xAttackerStats,xEndReasons,xPreBossState,tenPackWaits,tenPackPurchases,tenAffordableMisses,
    packOpened,packCharactersPicked,activeAiActions,skillActions,
    passiveExposure,bossSkillStats,bossPerkRanks,
    ivAttacks,ivDamage,ivKills,ivFusionPlacements,ivLPLost,
@@ -1060,6 +1142,12 @@ const report={schema:'arcane-x-targeted-cards-economy-v126',
     normalBoosterCards:r.normalPackCards,
     mixedPackCards:r.mixedPackCards,fusionCardsFromPacks:r.fusionPulls,
     sealsSpent:{normal:r.normalSealSpent,fusion:r.fusionSealSpent}},
+  xDiagnostic:{battleCount:r.xBattles.length,battles:r.xBattles,
+    biggestAttackers:r.xAttackerStats,endReasons:r.xEndReasons,
+    beforeX:r.xPreBossState},
+  tenPackStrategy:{waitOpportunities:r.tenPackWaits,
+    tenPacksPurchased:r.tenPackPurchases,
+    affordableMissed:r.tenAffordableMisses},
   skillAudit:{realSuccessfulActionTypes:r.activeAiActions,
     activeSkillActionTypes:r.skillActions,
     passiveEligibleOwnTurns:r.passiveExposure,bossActionTypes:r.bossSkillStats,
@@ -1127,6 +1215,9 @@ const report={schema:'arcane-x-targeted-cards-economy-v126',
   'Skills are counted only for real successful supported AI action types; passive perk ranks and eligible field turns are tracked separately, not misreported as activation.',
   'Browser-only active skill UI buttons, if not available to the offline duel AI, will show zero activations; zero does not mean the perk itself fails.',
   'A larger number of free fights changes raw card and booster totals, so also compare per-career and per-fight performance.',
+  'The 10-pack arm deliberately banks seals until a size-10 fusion pack is affordable once such packs are unlocked, whereas the other arm buys its largest affordable pack at each opportunity.',
+  'The X trace captures successful game actions, played NPC cards, LP damage by actual attacker ID and final deck/LP state; LP damage from passive mechanics may not have an attacking ID.',
+  'An end-of-game empty deck does not prove deck-out as the loss cause; reported causes prioritize zero LP and otherwise mark depleted deck as suggestive only.',
   'VII combat traces actual fusion instances, attacks and monster damage, not hypothetical options.',
   'Measures acquisition strategies inside v10.9, not an invalid pre-v10.9 counterfactual.',
   'Tier VI retains a 75-relevant-match offline cap, tiers VII-X progressively allow more farming; these are test budgets, not game rules.'
