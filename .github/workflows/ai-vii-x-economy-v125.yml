@@ -1,0 +1,47 @@
+name: Arcane Duel - v12.5 VII X Balance and AI Economy Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/opponent-vii-x-roster-v125.js'
+      - 'tests/opponent-vii-x-roster-v125.test.cjs'
+      - 'tests/ai-vii-x-economy-v125.cjs'
+      - '.github/workflows/ai-vii-x-economy-v125.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  paired-career-economy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate legal unchanged card data and VII X replacements
+        run: |
+          node --check assets/opponent-vii-x-roster-v125.js
+          node --test tests/opponent-vii-x-roster-v125.test.cjs tests/opponent-roster-v118.test.cjs tests/opponent-iv-balance-v123.test.cjs
+      - name: Validate and pilot skills perks and boosters training
+        if: hashFiles('tests/ai-vii-x-economy-v125.cjs') != ''
+        env:
+          ARCANE_V125_CAREERS: '2'
+          ARCANE_V125_TIER_ATTEMPTS: '8'
+        run: |
+          node --check tests/ai-vii-x-economy-v125.cjs
+          node tests/ai-vii-x-economy-v125.cjs
+      - name: Main 32 origins with old versus new VII X rosters
+        if: hashFiles('tests/ai-vii-x-economy-v125.cjs') != ''
+        env:
+          ARCANE_V125_CAREERS: '32'
+          ARCANE_V125_TIER_ATTEMPTS: '30'
+        run: node tests/ai-vii-x-economy-v125.cjs
+      - name: Upload battle economy skill and perk statistics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v125-vii-x-skills-boosters
+          path: artifacts/ai-vii-x-economy-v125.json
+          retention-days: 30
+          if-no-files-found: warn
