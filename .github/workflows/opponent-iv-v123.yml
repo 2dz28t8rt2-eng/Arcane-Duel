@@ -1,0 +1,46 @@
+name: Arcane Duel - v12.3 Opponent IV Balance Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/opponent-iv-balance-v123.js'
+      - 'tests/opponent-iv-balance-v123.test.cjs'
+      - 'tests/ai-opponent-iv-training-v123.cjs'
+      - 'tests/helpers/game-runtime.cjs'
+      - 'index.html'
+      - '.github/workflows/opponent-iv-v123.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  iv-deck-and-career:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript and old/new decks (easy and hard)
+        run: |
+          node --check assets/opponent-iv-balance-v123.js
+          node --check tests/ai-opponent-iv-training-v123.cjs
+          node --test tests/opponent-iv-balance-v123.test.cjs tests/opponent-roster-v118.test.cjs tests/ascension-balance-v116.test.cjs
+      - name: Pilot two seed-matched real careers per roster
+        env:
+          ARCANE_V123_CAREERS: '2'
+          ARCANE_V123_TIER_ATTEMPTS: '8'
+        run: node tests/ai-opponent-iv-training-v123.cjs
+      - name: Run 32 seed-matched real careers per IV roster
+        env:
+          ARCANE_V123_CAREERS: '32'
+          ARCANE_V123_TIER_ATTEMPTS: '30'
+        run: node tests/ai-opponent-iv-training-v123.cjs
+      - name: Upload full IV balancing and career results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v123-opponent-iv-paired-careers
+          path: artifacts/ai-opponent-iv-training-v123.json
+          retention-days: 30
+          if-no-files-found: warn
