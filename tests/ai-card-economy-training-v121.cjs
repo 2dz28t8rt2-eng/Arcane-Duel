@@ -66,6 +66,10 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
   const progressive=true; // Identical increased legal farm time on both arms
   const deepFarm={4:4,5:6,6:8,7:12,8:16,9:20,10:24};
   const validDeck=(p)=>!mainDeckError(p.activeDeck)&&!fusionDeckError(p.fusionDeck);
+  const memory=treatment==='memory-only'||treatment==='combined';
+  const targeted=treatment==='forge-only'||treatment==='combined';
+  let farmWins=0,cardDrops=0,normalDrops=0,fusionDrops=0,highDrops=0,lootedByTier={},avoidedTries=0;
+  const sourceLocks={},forgePhases={};
   function settle(){
    for(let loops=0;loops<15&&profile.rewardQueue.length;loops++){
     const q=profile.rewardQueue[0];
@@ -213,16 +217,29 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
       profile.coins>=forge.price(lv+1)+45&&
       (forge.outputPool(lv+1,false).length+forge.outputPool(lv+1,true).length)>0);
     const mainLevel=profile.activeDeck.reduce((n,id)=>n+CARDS[id].level,0)/profile.activeDeck.length;
-    const tierGoal=Math.min(10,Math.max(3,highestCleared()+1)),needsMain=mainLevel<tierGoal-.5;
-    if(treatment==='adaptive-source-forge')choices.sort((a,b)=>{
+    const lowTen=profile.activeDeck.map(id=>CARDS[id].level).sort((a,b)=>a-b).slice(0,10).reduce((a,b)=>a+b,0)/10;
+    const tierGoal=Math.min(10,Math.max(3,highestCleared()+1)),needsMain=lowTen<Math.max(2,tierGoal-3);
+    if(targeted)choices.sort((a,b)=>{
       const score=lv=>!needsMain?lv*100:
        (lv+1<=tierGoal?(lv+1)*100:-1000-Math.abs(lv+1-tierGoal)*100);
       return score(b)-score(a)||b-a;
     });
     const candidate=choices[0];
     if(candidate){
-     const ids=forge.suggested(candidate),before=profile.coins;
-     if(treatment==='adaptive-source-forge'&&forgeStrategyHistory.length<75)
+     let ids=forge.suggested(candidate);const before=profile.coins;
+     if(targeted&&!needsMain){
+      const fusions=[];
+      for(const c of forge.inputPool(candidate).filter(c=>c.fusionOnly)){
+       for(let i=0;i<Math.min(freeCopies(c.id),3-fusions.length);i++)fusions.push(c.id);
+       if(fusions.length===3)break;
+      }
+      if(fusions.length===3&&forge.safeRecipe(fusions,candidate))ids=fusions;
+     }
+     if(targeted){
+      const phase=needsMain?'improve-lowest-quarter':'focus-high-level-fusions';
+      forgePhases[phase]=(forgePhases[phase]||0)+1;
+     }
+     if(targeted&&forgeStrategyHistory.length<75)
       forgeStrategyHistory.push({afterTier:highestCleared(),mainLevel:+mainLevel.toFixed(2),
        goal:tierGoal,priority:needsMain?'raise-main-level':'highest-tier',materialLevel:candidate,
        allFusion:ids.every(id=>CARDS[id].fusionOnly)});
@@ -294,7 +311,7 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
     const highest=Math.max(0,...[...choices].map(id=>CARDS[id]?.level||0));
     return {legalCombos,optionCount:choices.size,highest};
    }
-   if(['fixed-source-forge','adaptive-source-forge'].includes(treatment)){
+   if(['baseline','memory-only','forge-only','combined'].includes(treatment)){
     chooseAiAction=function(game,requested){
      if(game!==g||game.active!==0)return initialChoose(game,requested);
      if(isVIPhase&&!game.pending&&!game.summoned&&
