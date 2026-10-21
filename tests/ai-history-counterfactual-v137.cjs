@@ -45,7 +45,7 @@ function locate(root,name){
 }
 const histReports=[];
 for(const generation of ['gen1','gen2','gen3']){
- const f=locate('artifacts/history','ai-v136-training-report.json');
+ // Historical source is read from the exact generation directory below.
  // The download can include multiple same-named report files. Match exact
  // generation directory instead of using the first result of locate().
  const direct=[
@@ -120,7 +120,7 @@ const scenes=Array.from({length:tests},(_,i)=>{
  const tier=[7,9,10][i%3],style=styles[Math.floor(i/3)%styles.length],
   variant=i%2?'specialist':'starter-heavy';
  const s={tier,style,variant,deckSeed:7900+i*83,seed:937000+i*313,
-   starter:i%2,kind:i%2?'attack':'summon'};
+   starter:i%2,kind:i%2?'attacks':'summon'};
  return {...s,deck:make(s)};
 });
 function simulate(scene,mode,firstPolicy,secondPolicy,forcedPhase=null){
@@ -154,7 +154,7 @@ function simulate(scene,mode,firstPolicy,secondPolicy,forcedPhase=null){
  'const w=game.active===0?LEG137_POL0:LEG137_POL1;',
  'const shouldBranch=!done&&game.active===0&&game.aiPhase===',
    JSON.stringify(forcedPhase||scene.kind),
-   '&&!game.pending&&(game.aiPhase!=="attack"||game.turn>1);',
+   '&&!game.pending&&(game.aiPhase!=="attacks"||game.turn>1);',
  'if(shouldBranch){',
  'const choices=choices135(game,stat).filter(c=>[',
    '"normal","fusion","attack","end"].includes(c.action.type));',
