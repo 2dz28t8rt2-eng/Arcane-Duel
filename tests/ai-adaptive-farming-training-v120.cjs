@@ -481,6 +481,12 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
      const size=Math.min(5,maximum-total);
      let local=0;
      for(let k=0;k<size;k++){
+      // VI has a historical 75-match diagnostic budget (tournament VI
+      // plus free rematches against V). Continue farming VI-preparation
+      // legally against IV instead of exhausting that offline budget.
+      if(bossTierInProgress===6&&source===5&&viPhaseMatches>=72){
+       source=4;backtracks++;
+      }
       const win=duel(source,'free');
       local+=Number(win);wins+=Number(win);total++;farmsSinceTier++;
       farmSourceMatches[source]=(farmSourceMatches[source]||0)+1;
