@@ -1,0 +1,57 @@
+name: Arcane Duel - v13.7 Historical Learning and Counterfactual Academy
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-history-counterfactual-v137.cjs'
+      - '.github/workflows/ai-history-counterfactual-v137.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v137-history-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  old-match-learning-and-curriculum-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check rules, grammar and earlier training guards
+        run: |
+          node --check tests/ai-history-counterfactual-v137.cjs
+          node --test tests/ai-history-v130.test.cjs tests/ai-board-planner-v129.test.cjs
+      - name: Retrieve full archived 2026-10-21 v13.6 history
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v136-extensive-1200-episode-selfplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39637833422
+          github-token: ${{ github.token }}
+          path: artifacts/history
+      - name: Confirm three authentic generation reports and safe model
+        run: |
+          find artifacts/history -name ai-v136-training-report.json -print
+          test "$(find artifacts/history -name ai-v136-training-report.json | wc -l)" -eq 3
+          node -e "const m=require('./models/ai-selfplay-v136.json');if(m.productionActive!==false||m.replay.length!==120)throw Error('Unexpected historical model');"
+      - name: Pilot counterfactual legality, state matching and historic coverage
+        env:
+          ARCANE_V137_CASES: '4'
+        run: node tests/ai-history-counterfactual-v137.cjs
+      - name: Full reproducible alternatives, distinct deck roles and historical league
+        env:
+          ARCANE_V137_CASES: '18'
+        run: node tests/ai-history-counterfactual-v137.cjs
+      - name: Upload historical diagnosis and annotated real-engine counterfactuals
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v137-history-curriculum-league-counterfactual-report
+          path: |
+            artifacts/v137/history-and-counterfactual.json
+          retention-days: 90
+          if-no-files-found: warn
