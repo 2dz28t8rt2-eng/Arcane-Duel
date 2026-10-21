@@ -1,0 +1,77 @@
+name: Arcane Duel - v14.2 Planner Action Override Audit and Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-planner-override-audit-v142.cjs'
+      - '.github/workflows/ai-planner-override-audit-v142.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v142-override-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  audit-and-learn:
+    runs-on: ubuntu-latest
+    timeout-minutes: 95
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate trainer and actual game rules
+        run: |
+          node --check tests/ai-planner-override-audit-v142.cjs
+          node --test tests/ai-history-v130.test.cjs tests/ai-board-planner-v129.test.cjs tests/defender-soul-update.test.cjs tests/allrounder-resonance-v41.test.cjs tests/fusion-rework-v113.test.cjs tests/lv1-fusion-and-ghost-v47.test.cjs tests/role-inheritance-regression.test.cjs
+      - name: Restore historical v13.6 reports
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v136-extensive-1200-episode-selfplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39637833422
+          github-token: ${{ github.token }}
+          path: artifacts/history
+      - name: Restore v14.1 old planner gate report for diagnosis only
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v141-selective-planner-mechanic-audit
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39646196727
+          github-token: ${{ github.token }}
+          path: artifacts/history-v141
+      - name: Check preserved champion and historic diagnostic provenance
+        run: |
+          test "$(find artifacts/history -name ai-v136-training-report.json | wc -l)" -eq 3
+          node - <<'JS'
+          const assert=require('node:assert/strict');
+          const m=require('./models/ai-selfplay-v136.json');
+          const p=require('./artifacts/history-v141/report.json');
+          assert.equal(m.gamesTrained,1920);
+          assert.equal(m.productionActive,false);
+          assert.equal(p.schema,'arcane-v141-selective-planner-training-report');
+          console.log('Historical source verified: 1920 training matches, v14.1 unchanged champion');
+          JS
+      - name: Pilot override correctness on matched legal actions
+        env:
+          ARCANE_V142_TRAIN: '8'
+          ARCANE_V142_HOLDOUT: '12'
+          ARCANE_V142_LEAGUE: '3'
+        run: node tests/ai-planner-override-audit-v142.cjs
+      - name: Extensive action-overrides curriculum and truly independent holdout
+        env:
+          ARCANE_V142_TRAIN: '70'
+          ARCANE_V142_HOLDOUT: '84'
+          ARCANE_V142_LEAGUE: '16'
+        run: node tests/ai-planner-override-audit-v142.cjs
+      - name: Persist audit, selected gate and diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v142-planner-action-override-and-mechanic-coverage
+          path: |
+            artifacts/v142/report.json
+            artifacts/v142/selector.json
+          retention-days: 90
+          if-no-files-found: warn
