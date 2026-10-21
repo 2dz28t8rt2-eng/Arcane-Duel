@@ -128,3 +128,14 @@ Jede Lektion ermittelt mit der echten Engine die legalen Optionen, misst unmitte
 - **Experimentelles Training:** Drei Gewichtungen des vollständigen Board-Nutzens auf *nur Trainingsdecks*, anschließend eingefrorene Version auf vollständig unabhängigen Holdout-Decks/Seeds, gespiegelten Duellen, VII/IX/X und drei Strategie-Spezialisten. Ausschließlich Forschung, keine aktive Gegner-KI geändert.
 - **QA-Bedingungen:** Null ungültige Spielaktionen, echte aufgelöste Platzierungen und dokumentierte Normal-/Fusionsvergleiche. Produktives Modell wird nur nach unabhängigem Leistungsgewinn separat geprüft; `main` und der etablierte Champion bleiben unberührt.
 - Der Start allein bedeutet **keinen** nachgewiesenen Leistungsgewinn. Der Prüfbericht folgt aus konkreten GitHub-Laufdaten.
+
+## Abschluss v14.3 – vollständig ausgewertete Fusionen und independent Holdout (21.10.2026)
+
+[Originaler Prüfbericht](AI_V143_FUSION_VALUE_RESULTS_20261021.md) · [Actions SUCCESS #39650698039](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39650698039) · [Archiv mit Modellen und Platzierungsbeispielen](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39650698039/artifacts/12370645783).
+
+- **42/42 Game-Engine-/KI-Regressionstests bestanden**, vollständiger Pilot und Trainingslauf erfolgreich. Simulierte Fusionen werden erst **nach echter Platzierung** bewertet; Fusionswürfe, realisierte ATK/DEF, eigene Material-/Reservekosten, Rollen, Guardian/Soul-Synergien und Zweirunden-Zerfallsschätzung berücksichtigt.
+- Bestes **train-only** Fusionsgewicht `fusion-aware-strong`: **50/84** Siege (59,5 %) auf Trainingsszenarien.
+- Neues unabhängiges Holdout **59/108** Mirror-Siege (54,6 %). **241/324 (74,4 %) tatsächliche Planeraktionen anders** als Baseline; 1.268 vollständig gelöste Beschwörungs-/Fusionsplatzierungen, 620 bewertete Fusionen, keine unerledigten Simulationszweige. Vorher v14.2 nur 11/537 abweichende Entscheidungen, allerdings unterschiedliche Tests, daher kein direkt gepaarter Kausalvergleich.
+- Späte Turniergegner: neuer Kandidat **9/27**, Champion **5/27**; IX **3/9 vs. 0/9**, X **0/9 auf beiden Seiten**.
+- Spezialisierte Gegner: Offensiv **10/24 (41,7 %)**, Defender **12/24**, Fusion/Ökonomie **16/24**. **Keine Promotion**, weil Mirror-Test die 56-%-Schwelle und Offensivtest die 45-%-Schwelle verfehlten. Produktiver Champion, `main`, Spielbalance und Spielerinventar unverändert.
+- **v14.4 Priorität:** Echte Folgeaktion nach Platzierung, harte Gegenwehr von Predator/Tempo, rollenbezogene Soul/Guardian-Übungen und Konterfähigkeit vs. X. Längere Planungsfolgen nur mit öffentlich beobachtbarer Gegnerinformation und neuen Validierungsseeds.
