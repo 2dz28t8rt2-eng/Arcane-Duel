@@ -69,3 +69,11 @@ Jede Lektion ermittelt mit der echten Engine die legalen Optionen, misst unmitte
 - Unabhängiger Vergleich ergab nur **17/60 Mirror-Siege**, Boss VII/IX/X **0/15** gegenüber **7/15** beim bisherigen Champion. Kandidat klar abgelehnt, kein produktiver Rollout.
 - Lehre für die nächste Version: Eine alternative Aktionsfolge in **einem** Match ist ein zu verrauschtes Signal für Gewichtsupdates. **v13.9 muss Mehrfach-Gegenproben über Seeds, Explizit-Vertrauensmaße, einzelne Mechanikübungen und echtes Lookahead priorisieren.**
 - Replay und Kandidat im [v13.8-Trainingsartefakt](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39642462976/artifacts/12365881460), 90 Tage auf GitHub Actions; zukünftige Runs müssen Lernmaterial rechtzeitig übernehmen. Veränderte Spielregeln, Spielerinventar und NPC-KI: **keine**.
+
+## Umsetzung v13.9 – konservatives Lern-Gate und Engine-basierte 2-Aktionen-Planung (21.10.2026)
+
+- **[Gesamtergebnis](AI_V139_CONFIDENCE_LOOKAHEAD_RESULTS_20261021.md)** · [Actions #39643785644](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39643785644) **SUCCESS**.
+- 84 Trainingsfälle, 81 legale originale Gegenproben und 1 konservativ zugelassene Gewichtsänderung.
+- Eigenständiger Planer probiert in einer isolierten Engine-Kopie **bis zu zwei eigene Aktionen innerhalb desselben Zuges** (Beschwörung + Platzierung oder aufeinanderfolgende Angriffe). Er ist ausdrücklich **noch keine** zweirundige Vollsuche.
+- Neue Kandidatenleistung **31/60** Mirror-Siege (51,7 %), **7/15** gegen VII/IX/X, Spezialisten jeweils 13/24, 13/24 und 14/24; **keine ungültigen Engine-Aktionen**. Champion unverändert, Produktion nicht angepasst.
+- **v14.0 empfohlen:** direkter AB-Test Planer AN/AUS bei identischem Gewichtsstand, danach umfassender Mechaniklehrplan inklusive Feldfusion, Rollen-/Soul-Drain-Skills, Resonanz, Pokerboni, ACE und Zerfall. Unsicherheit durch alternative Zufallsläufe ausweisen; Modelle erst mit unabhängigen Bestätigungsduellen befördern.
