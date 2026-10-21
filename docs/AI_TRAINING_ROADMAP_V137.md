@@ -97,3 +97,13 @@ Jede Lektion ermittelt mit der echten Engine die legalen Optionen, misst unmitte
 - Mechanik-Telemetrie erstmals auch für legal angebotenen Seelenentzug (**13** Entscheidungskontexte) und Wächterheilung (**3**), gewählt **9** bzw. **2** Aktionen. **Nicht direkt als Prozent verrechnen**, da Angebotsfenster/Action-Tally noch nicht je identischem Entscheidungsschritt verbunden sind.
 - 42 Mechanik-Regressionstests bestanden. Kein fehlerhafter Legal-Resolver und kein Wechsel des Champions.
 - **v14.2 kritischer nächster Schritt:** Pro Entscheidung protokollieren, ob der Planer **tatsächlich eine andere Aktion auswählt**, was davon legal/umgesetzt wurde, und warum (Features, Board-Zustand, Material-, Rollen-/ACE-/Zerfallskosten). Danach Kontroll-A/B über echte Abweichungsfälle und saubere Opportunity-Raten. Erst darauf neues umfangreiches Training aufbauen.
+
+## KI-Training v14.2 – prüfbare Action-Overrides und echte Aktionsangebote
+
+- **Implementierung:** `tests/ai-planner-override-audit-v142.cjs` und `.github/workflows/ai-planner-override-audit-v142.yml`.
+- [Aktueller GitHub-Workflow](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39647899323).
+- Jede geeignete Planersituation wird **mit der normalen KI-Aktion auf einer geklonten Engine-Position** verglichen; gemessen werden vollständige Aktionsabweichungen, Phase, Zugnummer und konkrete Aktionsarten.
+- Die angebotenen und gewählten Aktionen werden **pro identischem Entscheidungspunkt** zusammengeführt. Nicht passende Fallbacks werden separat ausgewiesen, statt fälschlich Nutzungsquoten zu berechnen.
+- Neue Trainingsphase mit fünf Planer-Aktivierungsregeln sowie unabhängigem Holdout auf anderen Decks/Seeds und Tests gegen VII/IX/X und Strategieexperten.
+- **Keine ungeprüfte Modellübernahme.** Nur Regeln, die im Training reale Overrides und eine messbare Verbesserung erzeugen, gelangen in die Holdout-Prüfung; produktive Gegner-KI bleibt unverändert.
+- Status/Bewertung aus dem Workflow und dessen Artefakt ableiten; Start allein gilt **nicht** als Erfolgsnachweis.
