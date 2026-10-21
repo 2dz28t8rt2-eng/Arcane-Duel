@@ -1,0 +1,44 @@
+name: Arcane Duel - v13.0 Rule Knowledge and Historical AI Memory
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'docs/AI-REGELWERK-V130.md'
+      - 'models/ai-policy-history-v130.json'
+      - 'scripts/build-ai-history-v130.py'
+      - 'tests/ai-history-v130.test.cjs'
+      - 'tests/ai-experience-capture-v130.cjs'
+      - '.github/workflows/ai-memory-v130.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  rules-and-memory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate history split integrity and game rules
+        run: |
+          node --check tests/ai-experience-capture-v130.cjs
+          python -m py_compile scripts/build-ai-history-v130.py
+          node --test tests/ai-history-v130.test.cjs tests/opponent-x-balance-v128.test.cjs
+      - name: Capture two real action-level pilot experiences
+        env:
+          ARCANE_V130_SEEDS: '2'
+        run: node tests/ai-experience-capture-v130.cjs
+      - name: Generate 16 reusable training and untouched holdout duels
+        env:
+          ARCANE_V130_SEEDS: '16'
+        run: node tests/ai-experience-capture-v130.cjs
+      - name: Upload action trajectories for future training
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v130-real-state-action-experiences
+          path: artifacts/ai-experiences-v130.json
+          retention-days: 60
+          if-no-files-found: warn
