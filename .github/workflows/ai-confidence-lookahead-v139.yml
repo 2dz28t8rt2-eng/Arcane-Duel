@@ -44,7 +44,7 @@ jobs:
       - name: Restore v13.8 failed candidate decision traces as historical lessons
         uses: actions/download-artifact@v4
         with:
-          name: arcane-v139-confidence-lookahead-league-report
+          name: arcane-v138-rule-decision-memory-and-trained-candidate
           repository: 2dz28t8rt2-eng/Arcane-Duel
           run-id: 39642462976
           github-token: ${{ github.token }}
@@ -62,7 +62,7 @@ jobs:
           assert.equal(m.gamesTrained,1920);
           assert.equal(h.schema,'arcane-v137-history-and-counterfactual');
           assert.ok(h.curriculum.realActionPairing.pairedCounterfactualStates>=18);
-          console.log('Arcane v13.8 restored:',m.gamesTrained,'old training duels and',h.curriculum.realActionPairing.pairedCounterfactualStates,'old controlled choice pairs');
+          console.log('Arcane v13.9 restored:',m.gamesTrained,'old training duels and',h.curriculum.realActionPairing.pairedCounterfactualStates,'old controlled choice pairs');
           JS
       - name: Validate paired action legality, recording and comparison on pilot
         env:
@@ -80,7 +80,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: arcane-v138-rule-decision-memory-and-trained-candidate
+          name: arcane-v139-confidence-lookahead-league-report
           path: |
             artifacts/v139/decision-replay.json
             artifacts/v139/curriculum-report.json
