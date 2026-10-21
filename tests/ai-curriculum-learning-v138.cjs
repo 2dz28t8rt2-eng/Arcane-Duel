@@ -137,14 +137,19 @@ function buildScene(i,part='train'){
  const style=styles[Math.floor(i/3)%styles.length];
  const variant=(part==='train'?['balanced','veteran']:
   ['starter-heavy','specialist'])[Math.floor(i/21)%2];
- const deckSeed=(part==='train'?7100:871000)+i*89;
  const seed=(part==='train'?1380000:2838000)+i*173+tier*13;
- const s={tier,style,variant,deckSeed,seed,
-  starter:i%2,kind:i%2?'attacks':'summon'};
- const deck=make(s);
- assert.ok(!seen.has(deck.fingerprint),'Train/holdout deck collision');
- seen.add(deck.fingerprint);
- return {...s,deck};
+ const s={tier,style,variant,seed,starter:i%2,
+  kind:i%2?'attacks':'summon'};
+ // Benchmark generator accepts 0–9999. Re-seed on identical deck
+ // fingerprints, keeping train and holdout disjoint by construction.
+ for(let attempt=0;attempt<500;attempt++){
+  s.deckSeed=((part==='train'?1100:6100)+i*89+attempt*79)%10000;
+  const deck=make(s);
+  if(seen.has(deck.fingerprint))continue;
+  seen.add(deck.fingerprint);
+  return {...s,deck};
+ }
+ throw Error('Insufficient independent decks for '+part+' '+style);
 }
 const train=Array.from({length:tests},(_,i)=>buildScene(i));
 const holdout=Array.from({length:config.holdout},(_,i)=>buildScene(i,'holdout'));
