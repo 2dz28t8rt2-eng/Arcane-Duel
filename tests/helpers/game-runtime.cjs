@@ -46,6 +46,8 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster
   if((withoutRoster125||withoutRoster118)&&file==='assets/opponent-vii-x-roster-v125.js')continue;
   // v12.6 tier VII/VIII overlay is independent; older roster controls skip it.
   if((withoutRoster126||withoutRoster125||withoutRoster118)&&file==='assets/opponent-vii-viii-roster-v126.js')continue;
+  // Historical roster-control tests must not receive newer X-specific balance.
+  if((withoutRoster118||withoutRoster125)&&file==='assets/opponent-x-balance-v128.js')continue;
   // Control arm uses the same current game and economy, only the v11.3 fusion
   // calculator and its dependent interactive tutorial are switched off.
   if(withoutFusionRework&&['assets/fusion-rework-v113.js','assets/fusion-tutorial-v113.js'].includes(file))continue;
