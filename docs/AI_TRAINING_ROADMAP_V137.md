@@ -151,3 +151,16 @@ Jede Lektion ermittelt mit der echten Engine die legalen Optionen, misst unmitte
 - **Regelprüfung:** originale Duell-Engine, kein eigenmächtig erzeugtes Monster, keine ausgedachten Fusionen, keine ausgelesenen verdeckten gegnerischen Karten. v14.4 implementiert noch keinen 2–3-Runden-Minimax-Planer; die Auswertung folgt ausschließlich aus aktuellen GitHub-Reports.
 - **Promotiongate:** mindestens 56 % gegen Champion, mindestens 53 % gegen v14.3, Bossleistung nicht schlechter und mindestens 45 % gegen jeden Experten. Andernfalls keine neue KI-Übernahme.
 - **Archivierung:** Ausführlicher Report, Historien-Lernplan und Kandidatenparameter im GitHub-Artefakt des Workflows; die praktische produktive Gegner-KI und `main` bleiben bis zur unabhängigen Validierung unverändert.
+
+## Abschluss v14.4 – Folgeaktionen, historische Berichte und Bosskontrolle (21.10.2026)
+
+[Ausführlicher Prüfbericht](AI_V144_HISTORICAL_FOLLOWUP_RESULTS_20261021.md) · [abgeschlossener Workflow #39653165893](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39653165893) · [Original-Artefakt](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39653165893/artifacts/12370433620).
+
+- **GitHub SUCCESS**, 42/42 Regeltests, vollständiger Pilot und Hauptlauf. Originalberichte v13.6, v14.2 und v14.3 validiert.
+- Drei neue Folgeaktions-/Kontergewichte auf 36 Trainingsszenarien mit gespiegelten Sitzen. Gewählt `followup-conservative` mit **34/72 Siegen** (47,2 %) – alle drei Varianten bleiben im Train-Test unter 50 %.
+- Holdout mit 48 unabhängigen Szenarien: **49/96** Siege (51,0 %) gegen v14.3-Fusionsplaner und **56/96** (58,3 %) gegen den unmodifizierten Champion.
+- Boss VII/IX/X: **6/24** neuer Kandidat, **6/24** v14.3, **8/24** Champion. Für X **0/8** beim neuen Kandidaten.
+- Spezialisten: Offensiv **10/20**, DEF **11/20**, Fusion/Ökonomie **14/20**.
+- Im v14.3-A/B-Holdout **1.802** zusätzliche legale Aktionsexperimente in geklonten Ständen, **619** mit positivem angenommenem Nutzen. Dies sind **Simulationsmöglichkeiten, nicht 619 tatsächlich im Duell gespielte Folgeaktionen**.
+- **Keine Promotion**, da direkte v14.3-Schwelle von 53 % verfehlt wurde und Bossleistung nicht mindestens Championniveau erreicht.
+- **v14.5 Prioritäten:** realer Phasenablauf nach Fusion (inkl. Positionsphase) vor hypothetischem Folgeangriff, Vergleich von geplanten und tatsächlich ausgeführten Aktionen, mechanikspezifische Nutzungsstatistiken für Soul-Drain/Guardian-Heal, Gegner-X-Stress-Tests und mehrfach gesampelte legale Gegenspiel-Antworten. Historische Dokumentation soll die Lektionen, nicht rückwirkend die optimale Aktion festlegen.
