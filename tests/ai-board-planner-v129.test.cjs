@@ -20,7 +20,7 @@ test('v12.9 strategic policy only considers current visible board and returns a 
   return {output,stats:stat};
  })()`);
  assert.equal(x.output.type,'attack');assert.equal(x.output.ai,0);assert.equal(x.output.di,null);
- assert.ok(x.stats.scans>0&&x.stats.nodes>0);
+ assert.ok(x.stats.scans>0&&x.stats.availableAttackOptions>0);
 });
 test('v12.9 bounded strategic planner completes real X mirror duels without illegal actions',()=>{
  for(const seed of [12911,12912]){
