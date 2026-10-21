@@ -16,11 +16,13 @@ if(!Number.isInteger(careers)||careers<1||careers>40||
 // Fresh isolated VM per arm, so identical paid resources and PRNG seeds
 // yield a genuine paired progression comparison.
 const choices=['balanced','offensive','guardian','economy','balanced','guardian','offensive','economy'];
-const arms=['iv-original','iv-softened'];
+// A: original IV without tempo (v12.3 diagnostic); B: original IV WITH tempo;
+// C: softened IV WITH tempo. Each uses identical matched origins and rewards.
+const arms=['iv-original-no-tempo','iv-original','iv-softened'];
 const careerSeedOffset=123610;
 const results=[];
 for(let run=0;run<careers;run++)for(const treatment of arms){
- const vm=boot({seed:670127+(careerSeedOffset+run)*317,withoutIV123:treatment==='iv-original'});
+ const vm=boot({seed:670127+(careerSeedOffset+run)*317,withoutIV123:treatment!=='iv-softened'});
  const policy=choices[run%choices.length],plan=['investment','specialize','farm','hybrid'][run%4];
  const expr=`(()=>{
   profile=freshProfile();profile.guideSeen=true;profile.showcase.pending=false;
@@ -443,7 +445,8 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
     const policyCalls=controller.summonObservations-controllerStart.summonObservations;
     const policyNormals=controller.policyNormalChoices-controllerStart.policyNormalChoices;
     const policyFusions=controller.policyFusionChoices-controllerStart.policyFusionChoices;
-    if(policyCalls<=0)throw Error('Tempo-board controller did not run against IV');
+    if(treatment!=='iv-original-no-tempo'&&policyCalls<=0)
+      throw Error('Tempo-board controller did not run against IV');
     ivPolicyCalls+=policyCalls;ivPolicyNormal+=policyNormals;ivPolicyFusion+=policyFusions;
     ivAttacks+=combat.realAttacks;ivDamage+=combat.playerDamage;
     ivKills+=combat.enemyKills;ivFusionPlacements+=combat.fusionPlaced;
@@ -887,8 +890,9 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
  if(r.error)throw Error('Career failed: '+r.error);
  assert.equal(r.training,3);assert.ok(r.saveValid);
  assert.ok(r.opponentIVCombat.length>0,'career must actually attempt IV');
- assert.ok(r.ivPolicyCalls>0,'both groups must actually execute the tempo-board policy against IV');
- assert.ok(r.opponentIVCombat.every(x=>x.summonPolicyCalls>0),'IV diagnostic skipped controller');
+ if(treatment==='iv-original-no-tempo')assert.equal(r.ivPolicyCalls,0,'historical controller-off control must remain off');
+ else assert.ok(r.ivPolicyCalls>0,'both controller-on IV arms must execute tempo-board');
+ if(treatment!=='iv-original-no-tempo')assert.ok(r.opponentIVCombat.every(x=>x.summonPolicyCalls>0),'IV diagnostic skipped controller');
  assert.equal(r.opponentIVCombat.length,r.tierAttempts[4]||0,'Every IV tournament battle must be logged');
  results.push({...r,run,treatment});
  console.log('ARCANE_V124_PROGRESS '+JSON.stringify({origin:run+1,arm:treatment,cleared:r.cleared,duels:r.duels,drops:r.cardDrops}));
@@ -981,12 +985,12 @@ const holdout={byArm:summarise(results.filter(r=>r.run>=train)),
  comparison:comparison(Array.from({length:careers-train},(_,i)=>train+i))};
 const report={schema:'arcane-opponent-iv-tempo-corrected-v124',
  origins:careers,trainOrigins:train,holdoutOrigins:careers-train,
- control:'Both paired IV arms use the identical ACTIVE tempo-board summon policy, true earned progression, unchanged game rules, and differ solely in IV 4+1 one-level reductions.',
+ control:'Three matched arms: old IV with legacy no-tempo controller (v12.3), old IV with active tempo-board AI, softened IV with active tempo-board AI; valid loot and game rules in every arm.',
  totalCareers:results.length,
  totalRealDuelRewards:results.reduce((n,r)=>n+r.duels,0),
  offset:careerSeedOffset,arms,byArm,training,holdout,overallFusion:realFusionSummary(results),overallForge:forgeSummary(results),
  farmSchedule:{4:4,5:6,6:8,7:12,8:16,9:20,10:24},
- experiment:'Repeat exact paired IV balance on the same 32 origins as v12.3 but with the previously missing tempo-board player AI, logging each IV battle action and outcome.',
+ experiment:'Same v12.3 seed origins, 3-way controlled 96-career comparison separately isolates tempo-board AI effect and 4+1 IV deck lowering effect, with detailed per-IV-duel telemetry.',
  raw:results.map(r=>({run:r.run,treatment:r.treatment,split:r.run<train?'train':'holdout',
   maxTierReached:Math.max(...r.snapshots.map(x=>x.tier)),
   highestReallyCleared:r.cleared,
@@ -1042,7 +1046,7 @@ const report={schema:'arcane-opponent-iv-tempo-corrected-v124',
   'No invented cards, XP, awards, NPC debuffs or tournament victories.',
   'Both groups use identical stage-progressive farming, real drops and currencies; only IV differs.',
   'The only gameplay difference between arms is opponent IV: four non-ACE normal cards and one non-ACE fusion replaced by legal cards exactly one level lower.',
-  'Both paired arms assert live executed tempo-board player summon-controller calls on every IV tournament duel; v12.3 previously did not activate this policy due to stale arm labels.',
+  'Two arms assert executed tempo-board AI calls on every IV duel. Third arm explicitly reproduces the controller-off v12.3 conditions; this separates AI correction from IV deck lowering.',
   'Per-match IV diagnostics report observed completed player attack actions, dealt LP damage, killed NPC units, and actually placed fusions. They cannot identify the exact enemy card responsible for a loss without more opponent instrumentation.',
   'Every fusion-level measure counts an actual successfully placed monster, not merely a proposed card.',
   'Equal initial seeds may produce different later cards and battles due to divergent genuine decisions.',
