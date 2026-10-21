@@ -14,15 +14,19 @@ const history=require('../models/ai-policy-history-v130.json');
 const origins=Number(process.env.ARCANE_V130_SEEDS||16);
 if(!Number.isInteger(origins)||origins<2||origins>64)throw Error('Invalid origins');
 const records=[],duels=[],policy='tempo-board';
+const trainingStages=[3,9,10]; // easy success cases + IX bottleneck + X finale
 const selectedHistoricalPolicy=preferBaselineForTier(10,'strategic-lookahead');
-const useLookahead=selectedHistoricalPolicy.recommended==='strategic-lookahead';
 for(let run=0;run<origins;run++){
+ const bossTier=trainingStages[run%trainingStages.length];
+ const prior=bossTier>=7?preferBaselineForTier(bossTier,'strategic-lookahead'):
+  {recommended:'tempo-baseline',reason:'no same-regime strategic benchmark'};
+ const useLookahead=prior.recommended==='strategic-lookahead';
  const vm=boot({seed:130100+run*43,x128Mode:'full'});
  vm.exec(summonPolicySource);vm.exec(boardPlannerSource);vm.exec(ruleFeatureSource);
  const expr=`(()=>{
   const x=rpgEnemyLoadout(10,'easy'),g=createGame({
     id:'experience-v130-${run}',mode:'pve',context:'tournament',
-    opponentId:10,seed:${130101+run*109},starter:${run%2},
+    opponentId:${bossTier},seed:${130101+run*109},starter:${run%2},
     deck:[...x.deck],fusionDeck:[...x.fusionDeck]
   });
   const searchStats={scans:0,nodes:0,availableAttackOptions:0,
@@ -89,17 +93,19 @@ for(let run=0;run<origins;run++){
  assert(res.actions.length>0);
  assert(!res.actions.some(x=>'enemyHand' in x.before||'enemyDeck' in x.before));
  const split=run<Math.floor(origins/2)?'train':'holdout';
- duels.push({run,split,won:res.won,turn:res.turn,
+ duels.push({run,split,bossTier,chosenFromHistory:prior.recommended,
+  won:res.won,turn:res.turn,
    actions:res.actions.length,policyCalls:res.policyCalls});
  for(let i=0;i<res.actions.length;i++){
-  const a=res.actions[i];records.push({run,split,actionIndex:i,
+  const a=res.actions[i];records.push({run,split,bossTier,actionIndex:i,
     ...a,finalWon:res.won,terminalOutcomeIsNotCausalCredit:true});
  }
- console.log('ARCANE_V130_REPLAY '+JSON.stringify({run:run+1,split,win:res.won,actions:res.actions.length}));
+ console.log('ARCANE_V130_REPLAY '+JSON.stringify({run:run+1,split,bossTier,win:res.won,actions:res.actions.length}));
 }
 const report={schema:'arcane-action-experiences-v130',
  rulesSnapshot:'development-v12.8',historySchema:history.schema,
- selectedHistoricalPolicy,useLookahead,
+ baselineOpponentDeck:'Player uses current X loadout only inside isolated test duels',
+ selectedHistoricalPolicy,trainingStages,
  ruleFeatures:'read-only actual legal attacks, candidate fusions, decay, roles and positions',
  historicalComparisons:history.history.length,
  actualExperienceCount:records.length,episodes:duels.length,
