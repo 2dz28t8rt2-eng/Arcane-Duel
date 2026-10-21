@@ -24,7 +24,7 @@ const counter={
  replayEpisodesAvailable:replay.length,episodeCount:0,
  trainingActions:0,replayUpdates:0,supportActions:0,
  mirroredDuels:0,crossArchetypeDuels:0,frozenOpponentDuels:0,
- illegal:0,perSide:{0:0,1:0}
+ illegal:0,bossSparringDuels:0,perSide:{0:0,1:0}
 };
 function ownedDeck(tier,style,variant,seed){
  const d=makeBenchmarkDeck(catalog,tier,style,variant,seed);
@@ -260,20 +260,20 @@ assert.ok(Number.isInteger(hold)&&hold>=1&&hold<=6);
 function trainScenario(i){
  const tier=[7,9,10][i%3],style=STYLES[(Math.floor(i/3)+i)%STYLES.length];
  const variant=['balanced','veteran'][Math.floor(i/21)%2];
- const seed=135000+i*109+tier*101;
+ const seed=135000+i*109+tier*101+counter.previousGames*83;
  const otherStyle=STYLES[(STYLES.indexOf(style)+2+i)%STYLES.length];
- const kind=i%5===0?'cross':'mirror';
+ const kind=i%7===0?'boss':i%5===0?'cross':'mirror';
  return {tier,kind,seed,starter:i%2,
-  left:ownedDeck(tier,style,variant,1300+(i*13)%3400),
-  right:kind==='mirror'?null:ownedDeck(tier,otherStyle,variant,2500+(i*17)%3200)};
+  left:ownedDeck(tier,style,variant,1300+(i*13+counter.previousGames*7)%3400),
+  right:kind!=='cross'?null:ownedDeck(tier,otherStyle,variant,2500+(i*17+counter.previousGames*9)%3200)};
 }
 function evalScenario(i,tier,kind='mirror'){
  const style=STYLES[i%STYLES.length];
  const variant=['starter-heavy','specialist'][Math.floor(i/STYLES.length)%2];
- const seed=835000+tier*1700+i*59+(kind==='cross'?100000:0);
- const left=ownedDeck(tier,style,variant,6200+(i*11)%3000);
+ const seed=835000+tier*1700+i*59+(kind==='cross'?100000:0)+counter.previousGames*97;
+ const left=ownedDeck(tier,style,variant,6200+(i*11+counter.previousGames*13)%3000);
  const right=kind==='cross'?ownedDeck(tier,STYLES[(i+3)%STYLES.length],
-  variant,7100+(i*19)%2800):left;
+  variant,7100+(i*19+counter.previousGames*17)%2800):left;
  return {tier,kind,seed,starter:i%2,left,right};
 }
 const trainSet=Array.from({length:count},(_,i)=>{
@@ -310,10 +310,12 @@ function replayPrior(){
  }
 }
 replayPrior();
+if(previous)assert.ok(counter.replayUpdates>0,'Historical experiences were not replayed');
 const trainExamples=[];
 for(let i=0;i<trainSet.length;i++){
  const s=trainSet[i];
- const frozen=i%4===0,seat=frozen?
+ const frozen=s.kind!=='boss'&&i%4===0,seat=s.kind==='boss'?
+  ['current','engine']:frozen?
   (i%2?['archived','current']:['current','archived']):
   ['current','current'];
  const r=play(s,seat,{explore:true,trace:true});
@@ -321,7 +323,9 @@ for(let i=0;i<trainSet.length;i++){
  counter.episodeCount++;counter.trainingActions+=r.decisions.length;
  counter.supportActions+=r.tally.support;
  counter.perSide[0]+=r.tally.bySide[0];counter.perSide[1]+=r.tally.bySide[1];
- if(s.kind==='mirror')counter.mirroredDuels++;else counter.crossArchetypeDuels++;
+ if(s.kind==='mirror')counter.mirroredDuels++;
+ else if(s.kind==='cross')counter.crossArchetypeDuels++;
+ else counter.bossSparringDuels++;
  if(frozen)counter.frozenOpponentDuels++;
  const ep={grad,winner:r.winner,kind:s.kind,tier:s.tier,actions:r.decisions.length};
  replay.push(ep);if(replay.length>80)replay.shift();
@@ -390,7 +394,8 @@ const mirrorScore=byKind.mirror.currentWinRate;
 const crossScore=byKind.cross.currentWinRate;
 const safe=Object.values(byKind).every(x=>x.invalid===0)&&
  byKind.mirror.matchedDuels>0&&byKind.cross.matchedDuels>0;
-const promotionEligible=safe&&mirrorScore>=.52&&crossScore>=.48&&
+const promotionEligible=safe&&mirrorScore>=.55&&crossScore>=.55&&
+ bossByTier[9].currentWinRate>=.25&&bossByTier[10].currentWinRate>=.25&&
  bossByTier[9].currentWins>=bossByTier[9].baselineBossWins&&
  bossByTier[10].currentWins>=bossByTier[10].baselineBossWins;
 const evaluation={byKind,byTier,bossByTier,
@@ -411,13 +416,14 @@ const report={
  permanentModelTrackedInRepository:'models/ai-selfplay-v135.json',
  productionIntegrated:false,
  notes:[
-  'Self-play genuinely changes shared policy after each recorded duel.',
+  'Self-play genuinely changes shared policy after each recorded duel; boss sparring trains only the controlled seat.',
   'Both players use same rule-authoritative legal actions; opponent private hand is never read for decisions.',
   'This is a linear policy-gradient bootstrap, NOT a deep perfect-play model.',
   'Mirror duels have symmetric training decks, standard LP, neutral power and alternating starter; PvE-specific role or perk rules can still differ across seats.',
   'All training decks are constructed source-legal configurations, NOT earned inventories.',
   'Historical replay is bounded and downweighted because it is off-policy.',
-  'Boss VII/IX/X are separate reference matchups, not mirror tests.',
+  'Boss VII/IX/X are included as sparring training scenarios, with unseen-seed boss benchmark evaluation.',
+  'Held-out deck and match RNG seeds change each learning generation.',
   'Model checkpoint is experimental and not injected into gameplay unless explicitly promoted.'
  ]};
 fs.mkdirSync('artifacts',{recursive:true});fs.mkdirSync('models',{recursive:true});
