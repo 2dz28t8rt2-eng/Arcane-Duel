@@ -83,8 +83,8 @@ for(let run=0;run<careers;run++)for(const treatment of arms){
     activeAiActions={player:{},npc:{}},skillActions={player:{},npc:{}},
     passiveExposure={jagdinstinkt:0,schildwall:0,kolossenkraft:0,schwarminstinkt:0,grosswildjaeger:0},
     bossSkillStats={7:{},10:{}},bossPerkRanks={7:[],10:[]};
-  const xBattles=[],xAttackerStats={npc:{},player:{}},xEndReasons={},
-    xPreBossState=[],tenPackWaits=0,tenPackPurchases=0,tenAffordableMisses=0;
+  const xBattles=[],xAttackerStats={npc:{},player:{}},xEndReasons={},xPreBossState=[];
+  let tenPackWaits=0,tenPackPurchases=0,tenAffordableMisses=0;
   const skillType=x=>['arcane-guardian-heal','arcane-soul-extract'].includes(x)||
     /skill|ability|active|condense|discharge|raid|bastion/i.test(x);
   function boughtUpgrade(key){
