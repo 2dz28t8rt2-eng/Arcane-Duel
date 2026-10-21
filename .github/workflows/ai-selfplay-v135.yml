@@ -1,0 +1,87 @@
+name: Arcane Duel - v13.5 Self-Play Academy
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-selfplay-v135.cjs'
+      - '.github/workflows/ai-selfplay-v135.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: arcane-academy-v135-development
+  cancel-in-progress: false
+jobs:
+  selfplay-academy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: development
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate existing game mechanics and training syntax
+        run: |
+          node --check tests/ai-selfplay-v135.cjs
+          node --test tests/ai-history-v130.test.cjs tests/ai-board-planner-v129.test.cjs
+      - name: Restore last successful self-play model from GitHub Actions if available
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p artifacts/prev
+          PREV=$(gh api "repos/${{ github.repository }}/actions/workflows/ai-selfplay-v135.yml/runs?branch=development&status=success&per_page=1" -q '.workflow_runs[0].id // empty' || true)
+          if [ -n "$PREV" ]; then
+            gh run download "$PREV" --repo "${{ github.repository }}" -n arcane-v135-selfplay-academy-checkpoint -D artifacts/prev || true
+          fi
+          if [ -f artifacts/prev/ai-v135-checkpoint.json ]; then
+            echo "Historical self-play state restored from Actions run $PREV"
+          elif [ -f models/ai-selfplay-v135.json ]; then
+            echo "Historical model restored from versioned repository model"
+          else
+            echo "New self-play academy initialized with published seed weights"
+          fi
+      - name: Pilot two-sided engine legality and policy gradient
+        env:
+          ARCANE_V135_EPISODES: '8'
+          ARCANE_V135_HOLDOUT: '1'
+        run: node tests/ai-selfplay-v135.cjs
+      - name: Clear pilot-only checkpoint before full training
+        run: |
+          if git ls-files --error-unmatch models/ai-selfplay-v135.json >/dev/null 2>&1; then
+            git restore -- models/ai-selfplay-v135.json
+          else
+            rm -f models/ai-selfplay-v135.json
+          fi
+      - name: Learn from same-deck and cross-role self-play with archived opponents
+        env:
+          ARCANE_V135_EPISODES: '240'
+          ARCANE_V135_HOLDOUT: '3'
+        run: node tests/ai-selfplay-v135.cjs
+      - name: Archive experience replay model and fresh mirror holdout
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v135-selfplay-academy-checkpoint
+          path: |
+            artifacts/ai-v135-training-report.json
+            artifacts/ai-v135-checkpoint.json
+            models/ai-selfplay-v135.json
+          retention-days: 90
+          if-no-files-found: warn
+      - name: Persist experimental weights and replay to development branch
+        if: success()
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add models/ai-selfplay-v135.json
+          if git diff --cached --quiet; then
+            echo "Checkpoint unchanged"
+          else
+            git commit -m "chore(ai): checkpoint v13.5 self-play weights and replay"
+            git pull --rebase origin development
+            git push origin HEAD:development
+          fi
