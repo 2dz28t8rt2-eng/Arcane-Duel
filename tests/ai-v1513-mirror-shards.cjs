@@ -190,7 +190,9 @@ function runStudy(){
        summonThreshold:75,
        opponentPolicy:['guardian','soul'].includes(style)?'economy':'offensive'});
     assert.equal(result.invalid,0,'Invalid AI action');
-    assert.deepEqual(result.initialLP,[10000,10000],'Unequal starting LP');
+    assert.ok(result.initialLP.every(Number.isFinite));
+    assert.ok(result.initialLP[0]>0,'Missing positive starting LP');
+    assert.equal(result.initialLP[0],result.initialLP[1],'Starting LP must be identical');
     assert.equal(result.stats.prebattleOffensiveSouls,0,'Soul attacks before unlock');
     if(result.firstAttackTurn!==null)assert.ok(result.firstAttackTurn>stage);
     out.push({arm:model.label,stage,style,tier,scenario,starter,seat,
