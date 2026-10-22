@@ -74,7 +74,7 @@ function generate(pierce,swarm,offset,count){
    const board=p=>p.field.filter(Boolean).reduce((sum,c)=>{
     const d=dataOf(c),r=c.roleOverride||CARDS[c.id]?.role;
     return sum+d.atk*.60+d.def*.45+
-     (r==='soul'&&c.mode==='def'?c.essenceCombat?.soul*.65:0);
+     (r==='soul'&&c.mode==='def'?(c.essenceCombat?.soul||0)*.65:0);
    },0);
    return (own.lp-enemy.lp)*1.0+board(own)-board(enemy);
   }
@@ -183,6 +183,10 @@ for(const {swarm,pierce,label} of arms){
   const x=q[a.key]||(q[a.key]={mean:0,count:0});
   x.count++;x.mean+=.13*(a.reward-x.mean);
  }
+ for(const row of training.slice(0,300))for(const m of row.scored)
+  assert.ok(Number.isFinite(m.reward),'Fresh non-finite training reward');
+ for(const row of holdout)for(const m of row.scored)
+  assert.ok(Number.isFinite(m.reward),'Fresh non-finite holdout reward');
  const fitCandidate=fitness(training,q);
  const beforeValidation=fitness(training.slice(300),starting);
  const candidateValidation=fitness(training.slice(300),q);
