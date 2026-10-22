@@ -13,7 +13,7 @@ patch('9100:5150','9200:5250');
 patch("+'\\n'+lookahead139.toString()+'\\n'+explain146.toString()","+'\\n'+lookahead139.toString()+'\\n'+lookahead148.toString()+'\\n'+explain146.toString()");
 patch("'suggested=lookahead139(game,weights,tally,ARCANE144_SIDES[side]);',","'suggested=lookahead148(game,weights,tally,ARCANE144_SIDES[side]);',");
 patch("'sameStateComparisons:0,sameStateOverrides:0,',","'sameStateComparisons:0,sameStateOverrides:0,',\n 'v148Offers:{},v148Chosen:{},v148Interventions:0,',\n 'v148Evaluations:0,v148Audit:[],v148Rejected:0,',");
-const addon=String.raw\`
+const addon=String.raw`
 function lookahead148(g,w,stats,mode='candidate'){
  if(mode==='prior147')return lookahead139(g,w,stats,'candidate');
  if(mode==='champion')return null;
@@ -82,10 +82,10 @@ function lookahead148(g,w,stats,mode='candidate'){
  }
  return winner.action;
 }
-\`;
+`;
 if(!script.includes('function play(scene'))throw Error('No game function');
 script=script.replace('function play(scene',addon+'\nfunction play(scene');
-const run=String.raw\`
+const run=String.raw`
 const history=[
  ['v142','artifacts/history-v142/report.json','arcane-v142-action-override-audit'],
  ['v143','artifacts/history-v143/report.json','arcane-v143-fusion-value-resolution'],
@@ -257,5 +257,5 @@ console.log('ARCANE_V148_SUMMARY '+JSON.stringify({
  training:report.training,independent:report.vsPrior147,
  champion:control,boss,league,decisionStatistics:totals,
  promote,productionIntegrated:false}));
-\`;
+`;
 new Function('require','process','console',script+run)(require,process,console);
