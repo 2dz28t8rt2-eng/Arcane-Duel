@@ -43,10 +43,10 @@ jobs:
           const fs=require('node:fs'),assert=require('node:assert/strict');
           const r=JSON.parse(fs.readFileSync('artifacts/v1494/report.json','utf8'));
           assert.equal(r.schema,'arcane-v1494-seat-bias-investigation');
-          assert.equal(r.matchCount,180);
+          assert.equal(r.matchCount,360);
           assert.equal(r.groups.length,12);
           for(const group of r.groups){
-            assert.equal(group.total,15);
+            assert.equal(group.total,30);
             assert.equal(group.seat0Wins+group.seat1Wins,group.decided);
             assert.equal(group.starterWins+group.secondWins,group.decided);
           }
