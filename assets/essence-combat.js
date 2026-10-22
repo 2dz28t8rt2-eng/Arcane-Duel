@@ -59,8 +59,8 @@
  const isDefender=c=>['soul','guardian'].includes(roleOf(c));
  const soulRank=c=>isSoul(c)?(c.soulRank||CARDS[c.id]?.soulRank||Math.min(5,Math.max(1,Math.ceil(dataOf(c).level/2)))):0;
  const isEssenceDuel=g=>g?.mode==='pve'&&g.essenceRules===true;
- // Isolated research curriculum: deny offensive Soul effects until BOTH seats
- // have played 3 turns and the symmetric attack unlock is reached.
+ // Isolated research curriculum: passive and active Soul offense unlocks with
+ // the FIRST legal attack turn, including normal turn-2 initiative.
  const soulReady=g=>!g?.strategicTraining||g.turn>=g.strategicTraining.soulUnlockTurn;
  const buffTier=g=>Math.max(0,g?.essenceTier||0);
  const activeSchool=g=>g?.essenceSchool||null;
@@ -191,9 +191,9 @@
   }
   const g=originalCreate(options);
   if(g.mode!=='pve')return g;
-  g.essenceRules=true;g.essenceSchool=essence().school;g.essenceTier=maxTier();
+  g.essenceRules=true;g.essenceSchool=g.strategicTraining?.symmetricSides?null:essence().school;g.essenceTier=g.strategicTraining?.symmetricSides?0:maxTier();
   g.essenceTrial=isTrial?trial.key:null;
-  g.essenceParticipated=!isTrial&&essence().chosen!==null&&profile.activeDeck.includes(essence().chosen)&&options.context!=='auto';
+  g.essenceParticipated=!g.strategicTraining?.symmetricSides&&!isTrial&&essence().chosen!==null&&profile.activeDeck.includes(essence().chosen)&&options.context!=='auto';
   g.essenceTurns=0;g.essenceKills=0;g.essenceGuardSpent=false;g.essenceTauntUsed=false;g.essenceTurnAttacks=0;
   for(const card of [...g.players[0].hand,...g.players[0].field.filter(Boolean)]){
    if(card.id===essence().chosen&&CARDS[card.id]?.essenceMonster&&g.essenceParticipated){
@@ -210,7 +210,7 @@
   if(!isEssenceDuel(g))return c;
   if(!c.card)return c;
   const entry=CARDS[c.id];
-  if(entry.essenceMonster&&owner===0&&c.id===essence().chosen&&!g.essenceTrial){
+  if(entry.essenceMonster&&owner===0&&!g.strategicTraining?.symmetricSides&&c.id===essence().chosen&&!g.essenceTrial){
    const lev=evolvedLevel(buffTier(g));c.card.level=lev;
    c.card.atk=Math.min(10000,c.card.atk+lev*45+essence().rank*35);
    c.card.def=Math.min(10000,c.card.def+lev*70+essence().rank*55);
