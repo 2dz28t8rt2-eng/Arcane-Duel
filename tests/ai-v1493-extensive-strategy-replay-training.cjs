@@ -188,7 +188,13 @@ function duel1492(scene){
       phase:'positions',kind:'switch',turn:g.turn,role:role(support.c),
       level:dataOf(support.c).level});}
 
-  }else if(phase==='attacks')selected=candidateAttack();
+  }else if(phase==='attacks'){
+   // Fair action availability: both the baseline and the strategic candidate
+   // may use researched active Soul powers instead of losing them to an attack override.
+   const ability=baseChoose(JSON.parse(JSON.stringify(game)),policy);
+   selected=ability&&['soul-raid','soul-discharge'].includes(ability.type)?
+    ability:candidateAttack();
+  }
   if(selected){
    // The reference is inspected on a clone, never mutating real phase or RNG.
    const state=JSON.parse(JSON.stringify(game));
