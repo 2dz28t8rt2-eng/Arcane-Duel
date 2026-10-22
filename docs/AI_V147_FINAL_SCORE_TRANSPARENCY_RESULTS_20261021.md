@@ -82,7 +82,7 @@ Predator, Tier VII, eigener Zug 1, legal gleiche Hand/gleicher Startseed:
 
 - **Gewählt:** `normal`, Karten-UID `15`, finaler Score `1.8754653`.
 - Beiträge: `linear 0.338321`, `postPlacement 1.537144`, übrige Komponenten 0.
-- Höherwertiger Vergleich gegen **Fusion** `uids [13,15]`, Fusion `choice 65`: finaler Score `1.1725764`, inklusive **Materialabzug −0.13** und **Fusionsreserve −0.05**.
+- Andere legale Option, **Fusion** `uids [13,15]`, Fusion `choice 65`: finaler Score `1.1725764`, inklusive **Materialabzug −0.13** und **Fusionsreserve −0.05**.
 - Unter exakt denselben Kandidaten und Fusionsausgängen würde auch das v14.6-Gewicht die Normalbeschwörung bevorzugen.
 - **Interpretation:** Die KI kann nachvollziehbar angeben, warum ihr heutiger Bewertungsalgorithmus in dieser Position eine Normalbeschwörung der Fusion vorzieht. Das beweist nicht, dass dies der langfristig beste Zug war.
 
