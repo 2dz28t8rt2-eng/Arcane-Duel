@@ -16,6 +16,7 @@ function roleProbe1491(){
   const soul=newInstance(g,ids.soul[0],0),guard=newInstance(g,ids.guardian[0],0);
   soul.mode='def';guard.mode='def';soul.summonedTurn=1;guard.summonedTurn=1;
   const max=soul.card.def;
+  window.ArcaneEssenceCombat.statLayer(soul); // snapshot true maximum BEFORE applying the simulated wound
   soul.card.def=Math.max(5,max-270);
   g.players[0].field=[soul,withGuard?guard:null,null,null,null];
   g.players[1].field.fill(null);
