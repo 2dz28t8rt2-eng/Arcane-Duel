@@ -1,0 +1,94 @@
+name: Arcane Duel - v14.9.14 Cross-Deck 80-20 Historical Curriculum
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v14914-crossdeck-history.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  train-crossdeck-history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify source syntax and combat parity regressions
+        run: |
+          set -euo pipefail
+          node --check tests/ai-v1514-history.cjs
+          node --check tests/ai-v1514-Q.cjs
+          node --check tests/ai-v1514-crossdeck-shards.cjs
+          node --check tests/ai-v1514-aggregate.cjs
+          node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
+      - name: Recover verified old train-only replay and latest successful Q checkpoint
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/arcane-prev /tmp/arcane-history/{v1511,v1512,v1513} artifacts/v1514
+          for rid in 39803691439 39843438099 39847734409; do
+            status=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$rid" --jq '.conclusion')
+            test "$status" = success
+          done
+          gh run download 39803691439 --repo "$GITHUB_REPOSITORY" --name arcane-v14911-summon-fusion-training --dir /tmp/arcane-history/v1511
+          gh run download 39843438099 --repo "$GITHUB_REPOSITORY" --name arcane-v14912-veteran-predator-training --dir /tmp/arcane-history/v1512
+          gh run download 39847734409 --repo "$GITHUB_REPOSITORY" --name arcane-v14913-symmetric-history --dir /tmp/arcane-history/v1513
+          LAST=$(gh run list --workflow ai-v14914-crossdeck-history.yml --branch development --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+          if [ -n "$LAST" ]; then
+            gh run download "$LAST" --repo "$GITHUB_REPOSITORY" --name arcane-v14914-crossdeck-history --dir /tmp/arcane-prev
+            echo "ARCANE_V1514_RESTORED $LAST"
+          else
+            cp /tmp/arcane-history/v1513/training-q-and-examples.json /tmp/arcane-prev/training-q-and-examples.json
+            echo "ARCANE_V1514_RESTORED 39847734409"
+          fi
+          node tests/ai-v1514-history.cjs
+      - name: Continue historical Predator Q using training-only examples
+        run: node --expose-gc --max-old-space-size=3200 tests/ai-v1514-Q.cjs
+      - name: Cross-Deck smoke – both different and mirrored 40-card decks
+        run: |
+          set -euo pipefail
+          node --expose-gc --max-old-space-size=1800 tests/ai-v1514-crossdeck-shards.cjs 0
+          node --expose-gc --max-old-space-size=1800 tests/ai-v1514-crossdeck-shards.cjs 32
+      - name: Run remaining 38 full-duel shards for 2560 games
+        run: |
+          set -euo pipefail
+          for shard in $(seq 1 39); do
+            if [ "$shard" = "32" ]; then continue; fi
+            echo "::group::cross-deck / mirror shard $shard"
+            node --expose-gc --max-old-space-size=1800 tests/ai-v1514-crossdeck-shards.cjs "$shard"
+            echo "::endgroup::"
+          done
+      - name: Validate exact 80-20 ratios and archive train-only action histories
+        run: node --max-old-space-size=2800 tests/ai-v1514-aggregate.cjs
+      - name: Verify all controls and protected holdout data
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const m=JSON.parse(fs.readFileSync('artifacts/v1514/fullmatch.json','utf8'));
+          const q=JSON.parse(fs.readFileSync('artifacts/v1514/report.json','utf8'));
+          const t=JSON.parse(fs.readFileSync('artifacts/v1514/training-action-trajectories.json','utf8'));
+          a.equal(m.totalMatches,2560);a.equal(m.controls.crossDeckRatio,.8);
+          a.equal(m.controls.mirrorRatio,.2);a.equal(m.independentHoldoutGames,640);
+          a.equal(m.controls.noAsymmetricHandicaps,true);
+          a.equal(q.priorCheckpointLoaded,true);a.ok(q.historicalSources.length>=3);
+          a.equal(q.productionEnabled,false);a.equal(m.controls.noProductionPromotion,true);
+          a.equal(t.examples.length,m.archivedTrainingTrajectories);
+          a.ok(m.modelSummary.every(s=>s.games===640&&s.cross.games===512&&s.mirror.games===128));
+          console.log('ARCANE_V1514_VERIFIED '+JSON.stringify({games:m.totalMatches,
+           cross:2048,mirrors:512,holdout:640,trainingTrajectories:t.examples.length,
+           historicRunSources:q.historicalSources,acceptedQ:q.updatedQArms,
+           wins:m.modelSummary.map(s=>({model:s.model,wins:s.wins,doubleCounters:s.doubleCounters}))}));
+          JS
+      - name: Upload complete Q checkpoints, per-match data and training action trajectories
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v14914-crossdeck-history
+          path: artifacts/v1514/
+          retention-days: 90
+          if-no-files-found: warn
