@@ -6,6 +6,7 @@ on:
       - '.github/workflows/ai-v14911-summon-fusion-learning.yml'
       - 'tests/ai-v1511-tactical-Q-continuation.cjs'
       - 'tests/ai-v1511-summon-fusion-forecast-matches.cjs'
+      - 'tests/ai-v1511-aggregate-shards.cjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -26,6 +27,7 @@ jobs:
         run: |
           node --check tests/ai-v1511-tactical-Q-continuation.cjs
           node --check tests/ai-v1511-summon-fusion-forecast-matches.cjs
+          node --check tests/ai-v1511-aggregate-shards.cjs
           node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
       - name: Restore learned Q from last successful v14.9.11 or v14.9.10 checkpoint
         env:
@@ -52,9 +54,17 @@ jobs:
       - name: Continue outcome-safe Q learning on fresh public-board action alternatives
         run: |
           node --expose-gc --max-old-space-size=4096 tests/ai-v1511-tactical-Q-continuation.cjs
-      - name: Compare summons fusions conservative Q and two-turn predator reactions in 1536 new duels
+      - name: Run 24 isolated 64-duel batches with a NEW Node.js heap per batch
         run: |
-          node --expose-gc --max-old-space-size=4096 tests/ai-v1511-summon-fusion-forecast-matches.cjs
+          set -euo pipefail
+          for shard in $(seq 0 23); do
+            echo "::group::Predator fusion comparison - shard $shard / 23"
+            node --expose-gc --max-old-space-size=1800 tests/ai-v1511-summon-fusion-forecast-matches.cjs "$shard"
+            echo "::endgroup::"
+          done
+      - name: Verify all 1536 unique comparisons and merge saved shards
+        run: |
+          node --max-old-space-size=1800 tests/ai-v1511-aggregate-shards.cjs
       - name: Validate fair seats independent holdout and observed legal summon/fusion simulations
         run: |
           node - <<'JS'
