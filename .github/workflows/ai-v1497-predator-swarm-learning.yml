@@ -3,6 +3,11 @@ on:
   push:
     branches: [development]
     paths:
+      - 'assets/essence-combat.js'
+      - 'assets/game.js'
+      - 'tests/predator-swarm-v1497.test.cjs'
+      - 'tests/ai-v1497-predator-swarm-counterfactual.cjs'
+      - 'tests/ai-v1497-swarm-fullmatch-holdout.cjs'
       - '.github/workflows/ai-v1497-predator-swarm-learning.yml'
   workflow_dispatch:
 permissions:
