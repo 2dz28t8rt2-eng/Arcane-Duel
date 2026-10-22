@@ -14,7 +14,7 @@ function probe(mode,owner,count,attackRole='predator',enemyPredators=0,override=
   p.field=[null,null,null,null,null];p.lp=10000;}
  const team=g.players[owner],enemy=g.players[1-owner];
  const first=newInstance(g,attackRole==='predator'?predator.id:guardian.id,owner);
- first.card.atk=1000;first.mode='atk';
+ first.card={...(first.card||{level:CARDS[first.id].level,atk:CARDS[first.id].atk,def:CARDS[first.id].def}),atk:1000};first.mode='atk';
  if(override){first.roleOverride='predator';first.fusion=true;}
  team.field[0]=first;
  for(let i=1;i<count;i++){
