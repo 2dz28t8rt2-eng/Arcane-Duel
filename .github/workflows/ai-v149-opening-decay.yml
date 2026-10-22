@@ -4,6 +4,7 @@ on:
     branches: [development]
     paths:
       - 'assets/game.js'
+      - 'assets/qa-followup-v51.js'
       - 'tests/opening-grace-postsummon-v149.test.cjs'
       - '.github/workflows/ai-v149-opening-decay.yml'
   workflow_dispatch:
