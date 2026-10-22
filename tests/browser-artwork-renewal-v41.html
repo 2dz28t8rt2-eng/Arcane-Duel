@@ -35,7 +35,7 @@ document.getElementById('runtime').addEventListener('load',async()=>{
    const card=win.eval('CARDS['+row.id+']'),stats=expected[row.id];
    check(card.name===row.cardName&&card.desc===row.description,'Name and description '+row.id);
    check(card.art===row.art&&card.customArt===row.art,'Live artwork mapping '+row.id);
-   const stableIdentity=card.level===stats[0]&&card.role===stats[3]&&card.element===stats[4];
+   const stableIdentity=card.level===stats[0]&&(card.fusionOnly?card.role==null:card.role===stats[3])&&card.element===stats[4];
    const approvedAceUpgrade=card.ace&&win.ArcaneQaSprint52?.improvedAces?.includes(row.id);
    const expectedBudget=Math.round(win.ArcaneLevelBudget.budget(card.level)*
      (approvedAceUpgrade?1.90:win.ArcaneLevelBudget.rarityFactor(card))/10)*10;
