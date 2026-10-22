@@ -1,0 +1,34 @@
+name: Arcane Duel - v14.8.5 Diagnose Player 0 vs NPC Fusion Advantage
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-v1485-fusion-side-audit.cjs'
+      - '.github/workflows/ai-v1485-fusion-side-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: arcane-v1485-fusion-audit-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  side-bias:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate diagnostic syntax
+        run: node --check tests/ai-v1485-fusion-side-audit.cjs
+      - name: Measure identical fusion materials for player 0 and NPC without permanent changes
+        run: node tests/ai-v1485-fusion-side-audit.cjs
+      - name: Archive exact measured quality, resonance and fusion dice differences
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1485-verified-fusion-side-bias
+          path: artifacts/v1485/fusion-side-report.json
+          retention-days: 90
+          if-no-files-found: warn
