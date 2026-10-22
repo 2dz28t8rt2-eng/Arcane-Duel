@@ -37,9 +37,9 @@ document.getElementById('app').addEventListener('load',async()=>{
    check(wrapper.hasAttribute('inert')&&card.tabIndex===-1,'Decorative previews cannot trigger gameplay or keyboard focus');
   }
   check(rack.children[1].classList.contains('atlas-lv10'),'Formerly affected LV10 front card is explicitly covered');
-  // Create a real material fusion on an originally Predator template.
+  // Create a real material fusion on a role-neutral Level-5 template.
   w.eval(`hideModal();animationSpeed='instant';busy=false;aiRunning=false;
-   const target=RPG_FUSIONS.find(c=>c.role==='predator'&&c.level===5&&!c.retired&&!c.enemyOnly);
+   const target=RPG_FUSIONS.find(c=>c.level===5&&!c.retired&&!c.enemyOnly);
    const other=RPG_FUSIONS.find(c=>c.id!==target.id&&c.level<=5&&!c.retired&&!c.enemyOnly);
    game=createGame({id:'browser-role-regression',mode:'pve',context:'free',opponentId:7,seed:60139,
     deck:RPG_DEFAULT_DECK,fusionDeck:[target.id,other.id]});game.active=0;game.turn=4;
