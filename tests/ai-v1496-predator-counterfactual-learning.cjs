@@ -6,6 +6,12 @@
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const {boot}=require('./helpers/game-runtime.cjs');
 const out='artifacts/v1496';fs.mkdirSync(out,{recursive:true});
+const previousPath='artifacts/v1496/previous-training-q.json';
+const previous=fs.existsSync(previousPath)?JSON.parse(fs.readFileSync(previousPath,'utf8')):null;
+const epoch=Number(process.env.GITHUB_RUN_NUMBER||0);
+if(!Number.isInteger(epoch)||epoch<0)throw Error('Bad training epoch');
+const previousByPierce=new Map((Array.isArray(previous)?previous:[]).map(x=>[String(x.pierce),x]));
+
 function generate(pierce,offset,count){
  profile=freshProfile();profile.guideSeen=true;
  for(const k of Object.keys(profile.upgrades||{}))profile.upgrades[k]=0;
@@ -122,29 +128,39 @@ function fitness(data,q){
 }
 const selected=[];
 for(const pierce of [0,.08,.12]){
- const training=boot({seed:1496000}).run('('+generate.toString()+')('+pierce+',6000,450)',300000);
- const holdout=boot({seed:1496000}).run('('+generate.toString()+')('+pierce+',160000,150)',300000);
+ const training=boot({seed:1496000}).run('('+generate.toString()+')('+pierce+','+(6000+epoch*800000)+',450)',300000);
+ const holdout=boot({seed:1496000}).run('('+generate.toString()+')('+pierce+','+(160000+epoch*800000)+',150)',300000);
  assert.equal(training.length,450);assert.equal(holdout.length,150);
- const q={};
+ const prior=previousByPierce.get(String(pierce));
+ const starting=prior&&prior.learnedQ?structuredClone(prior.learnedQ):{};
+ const initialTrain=fitness(training,starting);
+ const q=structuredClone(starting);
  // Genuine counterfactual action-value updates from matched, engine-run moves.
  // This does NOT use victory labels, test labels, or privileged enemy hands.
  for(const row of training)for(const a of row.scored){
   const x=q[a.key]||(q[a.key]={mean:0,count:0});
   x.count++;x.mean+=.13*(a.reward-x.mean);
  }
- const fit=fitness(training,q),held=fitness(holdout,q);
- const record={pierce,train:fit,holdout:held,keys:Object.keys(q).length,
-  learnedQ:q,replayExamples:training.slice(0,45),
+ const fitCandidate=fitness(training,q);
+ const accepted=!prior||fitCandidate.learnerUtility>=initialTrain.learnerUtility;
+ const finalQ=accepted?q:starting;
+ const fit=fitness(training,finalQ),held=fitness(holdout,finalQ);
+ const record={pierce,train:fit,holdout:held,keys:Object.keys(finalQ).length,
+  learnedQ:finalQ,priorQ:!!prior,trainValueBefore:initialTrain.learnerUtility,
+  newQAccepted:accepted,epoch,replayExamples:training.slice(0,45),
   testExamples:holdout.slice(0,12)};
  selected.push(record);
  console.log('ARCANE_V1496_PREDATOR_ARMOR '+JSON.stringify({pierce,
-  train:fit,holdout:held,keys:record.keys}));
+  train:fit,holdout:held,keys:record.keys,priorQ:record.priorQ,
+  updated:record.newQAccepted,previousTrainUtility:record.trainValueBefore}));
 }
 const chosen=[...selected].sort((a,b)=>b.train.learnerUtility-a.train.learnerUtility||
  a.pierce-b.pierce)[0];
 const report={schema:'arcane-v1496-predator-counterfactual-learning',
  status:'completed',sourceSha:process.env.GITHUB_SHA||'unknown',
  selectionMethod:'train-only highest counterfactual tactical value; tie favors smaller buff',
+ trainingEpoch:epoch,priorCheckpointLoaded:previousByPierce.size>0,
+ updatedQArms:selected.filter(x=>x.newQAccepted).length,
  trainingCasesPerArm:450,holdoutCasesPerArm:150,
  chosenResearchPierce:chosen.pierce,productionEnabled:false,
  model:'contextual tabular Q-value with incremental SGD-like updates from real cloned engine alternatives',
@@ -156,6 +172,7 @@ const report={schema:'arcane-v1496-predator-counterfactual-learning',
   'Q key generalization is limited to a handful of explicitly selected features; not a pretrained neural network.',
   'The matched one-reply model is a measured local tactical objective, not a direct guarantee of win-rate improvement.',
   'Selection of Predator buff strength is based strictly on training labels, never the independent holdout.',
+  'Only previously accepted Q-values, never previous holdout labels, are restored between runs.',
   'No production or main-branch balance change is activated.']};
 fs.writeFileSync(out+'/report.json',JSON.stringify(report,null,2)+'\n');
 fs.writeFileSync(out+'/training-q-and-examples.json',JSON.stringify(selected,null,2)+'\n');
