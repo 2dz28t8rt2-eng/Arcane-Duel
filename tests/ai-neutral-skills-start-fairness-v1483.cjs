@@ -161,8 +161,8 @@ function verifyNeutral(m,neutral=true){
   assert.equal(a.skillMetadata,0,'Card/role skills not disabled');
   assert.ok(a.originalSkillMetadata>0,'No skills present before disabling');
   assert.ok(Object.values(a.upgrades).every(v=>v===0),'Perks not neutral');
-  assert.deepEqual(a.powers,[1,1],'Player power modifiers not neutral');
-  assert.deepEqual(a.enhancements,[0,0],'Unbalanced player upgrades remain');
+  assert.equal(JSON.stringify(a.powers),'[1,1]','Player power modifiers not neutral');
+  assert.equal(JSON.stringify(a.enhancements),'[0,0]','Unbalanced player upgrades remain');
   assert.equal(a.essenceRules,false,'Essence combat still activated');
  }else{
   assert.equal(a.neutralSkills,false);
