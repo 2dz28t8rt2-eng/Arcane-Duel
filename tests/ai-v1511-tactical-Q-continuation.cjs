@@ -147,8 +147,8 @@ const arms=[
  {swarm:.02,pierce:.10,label:'swarm-plus-10pp-pierce'}
 ];
 for(const {swarm,pierce,label} of arms){
- const training=boot({seed:1497000}).run('('+generate.toString()+')('+[pierce,swarm,6000+epoch*800000,450].join(',')+')',300000);
- const holdout=boot({seed:1497000}).run('('+generate.toString()+')('+[pierce,swarm,160000+epoch*800000,150].join(',')+')',300000);
+ const training=boot({seed:1497000}).run('('+generate.toString()+')('+[pierce,swarm,3006000+epoch*800000,450].join(',')+')',300000);
+ const holdout=boot({seed:1497000}).run('('+generate.toString()+')('+[pierce,swarm,3160000+epoch*800000,150].join(',')+')',300000);
  assert.equal(training.length,450);assert.equal(holdout.length,150);
  const prior=previousByArm.get(String(swarm)+'|'+String(pierce));
  const starting=prior?.learnedQ?structuredClone(prior.learnedQ):{};
