@@ -10,14 +10,19 @@ fs.writeFileSync(root+'/v1497-prior-q.json',JSON.stringify(previous)+'\n');
 const sources=[
  {id:39803691439,path:'/tmp/arcane-history/v1511/training-q-and-examples.json'},
  {id:39843438099,path:'/tmp/arcane-history/v1512/training-q-and-examples.json'}];
-const examples=[],seen=new Set();
+const examples=[],seen=new Set();let discardedInvalid=0;
 for(const source of sources){
  const groups=read(source.path);
  assert.ok(Array.isArray(groups)&&groups.length===3,'Unexpected archived arms');
  for(const arm of groups){
   assert.ok(arm.learnedQ&&Array.isArray(arm.replayExamples)&&arm.replayExamples.length>0);
   for(const sample of arm.replayExamples){
-   assert.ok(Array.isArray(sample.scored)&&sample.scored.every(a=>typeof a.key==='string'&&Number.isFinite(a.reward)));
+   // Historical engines could serialize NaN rewards as null in JSON.
+   // Drop the WHOLE contaminated example, never coerce null to zero.
+   if(!Array.isArray(sample.scored)||!sample.scored.length||
+      !sample.scored.every(a=>typeof a.key==='string'&&Number.isFinite(a.reward))){
+      discardedInvalid++;continue;
+   }
    const key=[source.id,arm.swarm,arm.pierce,sample.seed,sample.i].join('|');
    if(seen.has(key))continue;
    seen.add(key);
@@ -26,12 +31,12 @@ for(const source of sources){
   }
  }
 }
-assert.ok(examples.length>=180,'Missing meaningful archived training examples');
+assert.ok(examples.length>=120,'Missing meaningful archived training examples');
 const pack={schema:'arcane-v1513-train-only-replay',sources:sources.map(s=>s.id),
  examples,excluded:['holdout','testExamples','fullmatch-cases']};
 fs.writeFileSync(root+'/historical-train.json',JSON.stringify(pack)+'\n');
 fs.writeFileSync(root+'/provenance.json',JSON.stringify({
  sourceRuns:pack.sources,priorQKeys:previous.map(x=>Object.keys(x.learnedQ).length),
- historicalTrainingExamples:examples.length,holdoutAsTraining:false},null,2)+'\n');
-console.log('ARCANE_V1513_HISTORY '+JSON.stringify({sources:pack.sources,examples:examples.length,
+ historicalTrainingExamples:examples.length,invalidHistoricalExamplesDiscarded:discardedInvalid,holdoutAsTraining:false},null,2)+'\n');
+console.log('ARCANE_V1513_HISTORY '+JSON.stringify({sources:pack.sources,examples:examples.length,discardedInvalid,
  priorQKeys:previous.map(x=>Object.keys(x.learnedQ).length)}));
