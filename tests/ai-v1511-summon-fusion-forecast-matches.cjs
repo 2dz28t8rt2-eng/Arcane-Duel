@@ -217,26 +217,6 @@ function runStudy(){
   count:out.length,win:out.reduce((n,x)=>n+x.win,0),
   simulatedSummons:out.reduce((n,x)=>n+x.summonLegal,0),
   qChanges:out.reduce((n,x)=>n+x.qMoves,0)}));
- return;
- const report={schema:'arcane-v1511-predator-summon-fusion-forecast-fullmatch',status:'completed',
-  sourceSha:process.env.GITHUB_SHA||'unknown',totalMatches:out.length,stages,opponents:styles,
-  controls:{roleActive:true,researchOnly:true,freezeOpponent:'balanced',seatsMirrored:true,startersMirrored:true,arenaLPDecayDisabled:true,QWeightsFromSeparateTraining:true,productionEnabled:false},
-  arms:arms.flatMap(a=>[false,true].map(defenderLead=>({...a,defenderLead,
-    qKeys:a.decision==='heuristic'?0:Object.keys(data.find(x=>x.swarm===a.swarm&&x.pierce===a.pierce)?.learnedQ||{}).length,
-    ...stats[a.label+(defenderLead?'-hard-defender':'-normal')]}))),
-  limitations:['Q values trained only on separate tactical public-board situations.',
-   'Full 40-card Predator decks versus 40-card opponent archetype decks, both seats and starter directions.',
-   'Different archetype decks have different hands. No artificial matching of cross-role hands.',
-   'The opponent policies are economy (Guardian/Soul) and offensive (Fusion/Hybrid), not a self-play opponent league.',
-   'Hard defender scenarios start two genuine opponent deck cards in DEF slots: controlled asymmetric stress tests, not normal opening play.',
-   'Lookahead simulates at most one visible enemy attack and one next-turn own attack. It does NOT roll full turn effects, draws, fusion, hidden hands or arena decay.',
-   'Chosen safe-Q must pass a confidence and heuristic-regret margin; all policies remain offline research.',
-   'Summon/fusion forecast simulates legal clone placement plus at most one visible enemy attack, not entire future turns.',
-   'Arena LP decay disabled only for research; no production promotion.']};
- assert.equal(report.totalMatches,1536);
- for(const arm of report.arms){assert.equal(arm.games,192);if(arm.decision!=='heuristic')assert.ok(arm.qKeys>0);}
- fs.writeFileSync('artifacts/v1511/fullmatch.json',JSON.stringify(report,null,2)+'\n');
- fs.writeFileSync('artifacts/v1511/fullmatch-cases.json',JSON.stringify(out,null,2)+'\n');
- console.log('ARCANE_V1511_FULLMATCH '+JSON.stringify({matches:out.length,arms:report.arms}));
+
 }
 new Function('require','process','console',src+'\n('+runStudy.toString()+')()')(require,process,console);
