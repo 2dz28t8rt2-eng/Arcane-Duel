@@ -4,6 +4,7 @@ on:
     branches: [development]
     paths:
       - 'tests/ai-neutral-skills-start-fairness-v1483.cjs'
+      - 'tests/ai-neutral-skills-aggregate-v1483.cjs'
       - '.github/workflows/ai-neutral-skills-start-fairness-v1483.yml'
   workflow_dispatch:
 permissions:
@@ -11,7 +12,7 @@ permissions:
   actions: read
 concurrency:
   group: arcane-v1483-neutral-opening-fairness-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   verified-planner-transparency:
     runs-on: ubuntu-latest
@@ -24,6 +25,7 @@ jobs:
       - name: Check game mechanics and trainer syntax
         run: |
           node --check tests/ai-neutral-skills-start-fairness-v1483.cjs
+          node --check tests/ai-neutral-skills-aggregate-v1483.cjs
           node --test \
             tests/ai-history-v130.test.cjs \
             tests/ai-board-planner-v129.test.cjs \
@@ -144,7 +146,17 @@ jobs:
           ARCANE_V1483_TRAIN: '84'
           ARCANE_V1483_HOLDOUT: '84'
           ARCANE_V1483_LEAGUE: '14'
-        run: node tests/ai-neutral-skills-start-fairness-v1483.cjs
+        run: |
+          set -euo pipefail
+          for shard in 0 1 2 3; do
+            echo "=== Isolated v14.8.3 shard $shard/3 (21 holdout scenarios) ==="
+            ARCANE_V1483_SHARD="$shard" node --max-old-space-size=4096 tests/ai-neutral-skills-start-fairness-v1483.cjs
+          done
+      - name: Verify and merge all independent memory-safe shards
+        env:
+          ARCANE_V1483_TRAIN: '84'
+          ARCANE_V1483_HOLDOUT: '84'
+        run: node tests/ai-neutral-skills-aggregate-v1483.cjs
       - name: Archive opening-factor fairness diagnostics and skills-off verification
         if: always()
         uses: actions/upload-artifact@v4
@@ -154,5 +166,6 @@ jobs:
             artifacts/v1483/report.json
             artifacts/v1483/opening-examples.json
             artifacts/v1483/mode-config.json
+            artifacts/v1483/shards/
           retention-days: 90
           if-no-files-found: warn
