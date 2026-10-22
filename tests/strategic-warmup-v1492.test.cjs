@@ -4,7 +4,7 @@ const {boot}=require('./helpers/game-runtime.cjs');
 function scenario(n){
  profile=freshProfile();profile.guideSeen=true;
  const g=createGame({mode:'pve',context:'free',seed:1492002,starter:0,
-  strategicTraining:{enabled:true,noAttackTurns:n,disableArenaLPDecay:true}});
+  strategicTraining:{enabled:true,noAttackTurns:n,disableArenaLPDecay:true,symmetricSides:true}});
  const ids={
   soul:CARDS.find(c=>c.role==='soul'&&!c.fusionOnly&&c.level>=3)?.id,
   predator:CARDS.find(c=>c.role==='predator'&&!c.fusionOnly&&c.level>=3)?.id};
@@ -20,7 +20,7 @@ function scenario(n){
  settleRound(g);const after=g.players.map(p=>p.lp);
  function soul(turn){
   const x=createGame({mode:'pve',context:'free',seed:1492002,starter:0,
-   strategicTraining:{enabled:true,noAttackTurns:n,disableArenaLPDecay:true}});
+   strategicTraining:{enabled:true,noAttackTurns:n,disableArenaLPDecay:true,symmetricSides:true}});
   x.fateUsed=[true,true];x.turn=turn;x.active=1;x.winner=null;x.pending=null;
   const eater=newInstance(x,ids.soul,0),victim=newInstance(x,ids.predator,1);
   eater.mode='def';victim.mode='atk';
@@ -40,12 +40,12 @@ function scenario(n){
 function run(n){return boot({seed:1492002}).run('('+scenario.toString()+')('+n+')');}
 test('research mode opt-in only, with no arena LP decay',()=>{
  const r=run(10);assert.equal(r.normal,null);assert.equal(r.pvp,null);
- assert.equal(r.mode.noAttackTurns,10);assert.equal(r.mode.soulUnlockTurn,11);
+ assert.equal(r.mode.noAttackTurns,10);assert.equal(r.mode.soulUnlockTurn,11);assert.equal(r.mode.symmetricSides,true);
  assert.deepEqual(r.before,r.after);
 });
 test('all six stages gate normal attacks while first-turn attack rule remains',()=>{
  for(const n of [0,2,4,6,8,10]){
-  const r=run(n);assert.equal(r.mode.soulUnlockTurn,Math.max(7,n+1));
+  const r=run(n);assert.equal(r.mode.soulUnlockTurn,Math.max(2,n+1));
   for(const row of r.attacks)
    assert.equal(row.allowed,row.turn>n&&row.turn!==1,JSON.stringify({n,row}));
  }
@@ -57,5 +57,13 @@ test('soul offensive pressure never bypasses the opening freeze',()=>{
   assert.equal(r.locked.enemyLPDamage,0);
   assert.ok(r.unlocked.energy>0,JSON.stringify({n,unlocked:r.unlocked}));
   assert.ok(r.unlocked.statsLost>r.locked.statsLost);
+ }
+});
+
+test('Soul unlock coincides with first legal combat action at every stage',()=>{
+ for(const n of [0,2,4,6,8,10]){
+  const r=run(n),first=Math.max(2,n+1);
+  assert.equal(r.mode.soulUnlockTurn,first);
+  assert.equal(r.attacks.find(row=>row.turn===first)?.allowed,true);
  }
 });
