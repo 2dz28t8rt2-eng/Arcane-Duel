@@ -2,7 +2,7 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const {boot}=require('./helpers/game-runtime.cjs');
-function seatAudit(){
+function seatAudit(seat=null){
  profile=freshProfile();profile.guideSeen=true;
  for(const k of Object.keys(profile.upgrades||{}))profile.upgrades[k]=0;
  Object.assign(profile.upgrades,{resilience:2,fusionLore:2,combatDiscipline:2,openingAegis:2});
@@ -84,6 +84,8 @@ function seatAudit(){
    essenceSchool:g.essenceSchool,essenceTier:g.essenceTier,
    soulUnlock:g.strategicTraining.soulUnlockTurn};
  }
+ if(seat===0||seat===1)return {stats:nStats(10,true),fusion:fusion(seat,true),
+  attack:attackPair(seat,true),passive:passive(seat,true,10),early:passive(seat,true,2)};
  return {symmetric:{stats:nStats(10,true),fusion:[fusion(0,true),fusion(1,true)],
   attack:[attackPair(0,true),attackPair(1,true)],
   passive:[passive(0,true,10),passive(1,true,10)],
@@ -97,6 +99,7 @@ function seatAudit(){
  };
 }
 function run(){return boot({seed:14941234}).run('('+seatAudit.toString()+')()');}
+function runSeat(seat){return boot({seed:14941234}).run('('+seatAudit.toString()+')('+seat+')');}
 test('research-only controls do not alter regular PvE or PvP',()=>{
  const r=run();assert.equal(r.normal.strategyMode,null);assert.equal(r.normal.pvp,null);
 });
@@ -110,10 +113,10 @@ test('symmetric seat test neutralizes owner-zero resilience and opening meta eff
   'Unmasked PvE deliberately demonstrates active player-zero resilience advantage');
 });
 test('same fusion, same attack and same passive Soul state have equal seat outputs',()=>{
- const r=run();
+ const left=runSeat(0),right=runSeat(1);
  for(const kind of ['fusion','attack','passive','early'])
-  assert.deepEqual(r.symmetric[kind][0],r.symmetric[kind][1],
-   'Unmatched symmetric '+kind+' outputs: '+JSON.stringify(r.symmetric[kind]));
- assert.ok(r.symmetric.passive[0].soulEnergy>0,'Soul must work on attack unlock');
- assert.ok(r.symmetric.early[0].soulEnergy>0,'Soul must work on earlier stage');
+  assert.deepEqual(left[kind],right[kind],
+   'Unmatched mirrored '+kind+' outputs: '+JSON.stringify([left[kind],right[kind]]));
+ assert.ok(left.passive.soulEnergy>0,'Soul must work on attack unlock');
+ assert.ok(left.early.soulEnergy>0,'Soul must work on earlier stage');
 });
