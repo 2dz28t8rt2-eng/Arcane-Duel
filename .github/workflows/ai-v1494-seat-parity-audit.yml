@@ -4,6 +4,7 @@ on:
     branches: [development]
     paths:
       - 'assets/game.js'
+      - 'assets/evolution.js'
       - 'assets/essence-combat.js'
       - 'assets/fusion-rework-v113.js'
       - 'assets/qa-followup-v51.js'
