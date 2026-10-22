@@ -57,18 +57,20 @@ function decayInVm(){
  const first=STARTER,second=1-STARTER;
  const a=newInstance(g,template.id,first);a.summonedTurn=1;
  g.players[first].field[0]=a;
- const origA=a.card.atk,rate=creatureDecayRate(g,a,first);
+ const origA=a.card.atk,baseA=creatureDecayRate(g,a,first),
+  extraA=window.ArcaneQaFollowup.levelDecayExtra(a),rate=baseA+extraA;
  advanceTurn(g); // turn1 ends: summoning exempt
  const b=newInstance(g,template.id,second);b.summonedTurn=2;
  g.players[second].field[0]=b;
- const origB=b.card.atk,rateB=creatureDecayRate(g,b,second);
+ const origB=b.card.atk,baseB=creatureDecayRate(g,b,second),
+  extraB=window.ArcaneQaFollowup.levelDecayExtra(b),rateB=baseB+extraB;
  advanceTurn(g); // turn2 ends: other summoning exempt
  const afterFirstTurns=[a.card.atk,b.card.atk];
  advanceTurn(g); // turn3 ends: first monster loses stats
  const afterThirdTurn=[a.card.atk,b.card.atk];
  advanceTurn(g); // turn4 ends: second monster loses stats
  const afterFourthTurn=[a.card.atk,b.card.atk];
- return {starter:first,rate,rateB,original:[origA,origB],
+ return {starter:first,rate,rateB,baseRates:[baseA,baseB],extra:[extraA,extraB],original:[origA,origB],
   afterFirstTurns,afterThirdTurn,afterFourthTurn};
 }
 function decayRun(starter){
