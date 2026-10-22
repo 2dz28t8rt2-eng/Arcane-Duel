@@ -199,7 +199,7 @@ function duelStartingLP(mode,opponentId=0,difficulty='easy',context='free',showc
  if(opponentId<=8)return 7000;
  return 10000;
 }
-function createGame(options={}){const g=createGame16(options);g.rulesVersion=5;g.maxLP=duelStartingLP(g.mode,g.opponentId,g.difficulty,g.context,options.showcase===true);g.players.forEach(p=>p.lp=g.maxLP);if(g.mode==='pve')g.players[0].shield=Math.min(600,g.players[0].shield+25*(profile?.upgrades?.openingAegis||0));g.fateUsed=[false,false];g.fateEvent=null;g.encounter=options.encounter?JSON.parse(JSON.stringify(options.encounter)):null;
+function createGame(options={}){const g=createGame16(options);g.rulesVersion=5;g.openingDecayGrace=!!(g.mode==='pve'&&options.openingDecayGrace===true);g.maxLP=duelStartingLP(g.mode,g.opponentId,g.difficulty,g.context,options.showcase===true);g.players.forEach(p=>p.lp=g.maxLP);if(g.mode==='pve')g.players[0].shield=Math.min(600,g.players[0].shield+25*(profile?.upgrades?.openingAegis||0));g.fateUsed=[false,false];g.fateEvent=null;g.encounter=options.encounter?JSON.parse(JSON.stringify(options.encounter)):null;
  if(g.mode==='pve'&&g.context==='tournament'&&g.opponentId>0&&!profile.cleared.includes(g.opponentId)&&!(profile.tournamentLosses?.[g.opponentId]>0)){
  const ace=CARDS[OPPONENTS[g.opponentId].signature],best=Math.max(...g.players[0].originalDeck.map(id=>baseStat(CARDS[id],'atk',g.players[0])));const boost=Math.min(.12,Math.max(0,(best-ace.atk)/Math.max(1,ace.atk)));
  if(boost>0){g.firstTrialBoost=boost;g.players[1].power=(g.players[1].power||1)*(1+boost);for(const c of [...g.players[1].hand,...g.players[1].field.filter(Boolean)])if(c?.card){c.card.atk=round10(c.card.atk*(1+boost));c.card.def=round10(c.card.def*(1+boost));}}
@@ -221,7 +221,7 @@ function creatureDecayRate(g,c,owner=g?.active){
 }
 function advanceTurn(g){if(g.winner===null&&!g.pending&&g.mode==='pve'){
  for(const c of g.players[g.active].field.filter(Boolean)){
-  if(c.summonedTurn===g.turn)continue; // first own turn protected
+  if(c.summonedTurn===g.turn||(g.openingDecayGrace&&c.summonedTurn===1&&g.turn===3))continue; // opening-grace research switch, disabled by default
   const amount=creatureDecayRate(g,c,g.active);
   for(const stat of ['atk','def'])c.card[stat]=Math.max(0,c.card[stat]-amount);
   c.decayTotal=(c.decayTotal||0)+amount;
