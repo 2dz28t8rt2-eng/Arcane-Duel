@@ -71,10 +71,10 @@ test('Full card previews label the actual Soul role while the template stays rol
  const r=setup().run(`(()=>{
   const {f}=RoleRegression.fixture('predator','soul');
   const html=fullCardHtml(f);
-  return {template:CARDS[f.id].role,soulChip:html.includes('essence-role-chip essence-role-soul'),
+  return {template:CARDS[f.id].role??null,soulChip:html.includes('essence-role-chip essence-role-soul'),
    predatorChip:html.includes('essence-role-chip essence-role-predator')};
  })()`);
- assert.deepEqual(r,{template:undefined,soulChip:true,predatorChip:false});
+ assert.deepEqual(r,{template:null,soulChip:true,predatorChip:false});
 });
 test('A Soul Eater fusion actually heals LP from its chosen DEF focus',()=>{
  const r=setup().run(`(()=>{

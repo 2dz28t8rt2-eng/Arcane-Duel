@@ -46,10 +46,10 @@ test('real game catalogue resolves exactly each new card portrait and matching l
     hasFateClass:view.includes('fate-sparkle')
    };
   }),installed:ArcaneLateGameV71.artworksInstalled,
-  newLate:window.ArcaneLateGameV117?.count||0,total:CARDS.length
+  newLate:window.ArcaneLateGameV117?.count||0,newFusions:window.ArcaneFusionWaveV129?.installed||0,total:CARDS.length
  }))()`);
  assert.equal(state.installed,true);
- assert.equal(state.total,732+state.newLate);
+ assert.equal(state.total,732+state.newLate+state.newFusions);
  for(let i=0;i<16;i++){
   const c=state.cards[i],expected=rows[i];
   for(const k of ['id','name','level','role','atk','def','source','art'])assert.equal(c[k],expected[k]);
