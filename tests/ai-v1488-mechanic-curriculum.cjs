@@ -326,4 +326,6 @@ const functions=v1487.slice(v1487.indexOf('function visibleReply1487('),v1487.in
 assert.ok(functions.includes('function lookahead1487('));
 const policySource=functions+'\n'+lookahead1488.toString();
 new Function('require','process','console','POLICY_SOURCE','RUN_SOURCE',
- v1486Prelude+'\n'+injection)(require,process,console,policySource,'('+run1488.toString()+')();');
+ v1486Prelude+'\n'+
+ 'const stage=process.env.ARCANE_V1488_STAGE||"train";const root="artifacts/v1488";const shards=3;\n'+
+ aggregateRows.toString()+'\n'+injection)(require,process,console,policySource,'('+run1488.toString()+')();');
