@@ -79,7 +79,6 @@ patch("  options.sort((a,b)=>b.score-a.score);",
  "   if(qOption!==heuristic)counter.qDecisions=(counter.qDecisions||0)+1;",
  "   return qOption.a;",
  "  }",
- "  if(scene.decision==='gated-Q'&&!conservative){}",
  "  // Bounded two-own-turn visible-board rollout. Never inspect a rival hand,",
  "  // future draws or secret fusion stock. Only current ATK actions and one",
  "  // public opponent counterattack are simulated. No privileged information.",
@@ -195,6 +194,8 @@ function runStudy(){
    'Different archetype decks have different hands. No artificial matching of cross-role hands.',
    'The frozen balanced opponent is not a full league of independent strong champions.',
    'Hard defender scenarios start two genuine opponent deck cards in DEF slots: controlled asymmetric stress tests, not normal opening play.',
+   'Lookahead simulates at most one visible enemy attack and one next-turn own attack. It does NOT roll full turn effects, draws, fusion, hidden hands or arena decay.',
+   'Chosen safe-Q must pass a confidence and heuristic-regret margin; all policies remain offline research.',
    'Arena LP decay disabled only for research; no production promotion.']};
  assert.equal(report.totalMatches,1152);
  for(const arm of report.arms){assert.equal(arm.games,144);if(arm.decision!=='heuristic')assert.ok(arm.qKeys>0);}
