@@ -12,7 +12,7 @@ function scenario(n){
  const sample=newInstance(g,ids.predator,0);
  sample.mode='atk';g.players[0].field=[sample,null,null,null,null];
  const attacks=[];
- for(const turn of [1,2,4,6,8,10,11,12]){
+ for(const turn of [1,2,3,4,5,6,7,8,9,10,11,12]){
   g.turn=turn;g.active=turn%2?0:1;sample.attacked=false;
   attacks.push({turn,allowed:canAttack(g,sample)});
  }
