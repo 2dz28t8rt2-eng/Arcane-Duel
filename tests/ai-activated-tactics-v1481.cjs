@@ -263,7 +263,7 @@ const report={schema:'arcane-v1481-activated-tactical-policy',
   'private opponent cards not inspected',
   'earlier holdout results used for teaching priorities not action labels',
   'old champion frozen and production game unchanged']};
-fs.mkdirSync('artifacts/v148',{recursive:true});
+fs.mkdirSync('artifacts/v1481',{recursive:true});
 fs.writeFileSync('artifacts/v1481/report.json',JSON.stringify(report,null,2)+'\n');
 fs.writeFileSync('artifacts/v1481/replays.json',JSON.stringify({
  schema:'arcane-v1481-auditable-example-decisions',examples:evidence,
