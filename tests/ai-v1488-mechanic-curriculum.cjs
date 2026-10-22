@@ -327,7 +327,7 @@ assert.ok(functions.includes('function lookahead1487('));
 const policySource=functions+'\n'+lookahead1488.toString();
 new Function('require','process','console','POLICY_SOURCE','RUN_SOURCE',
  v1486Prelude+'\n'+
- 'const stage=process.env.ARCANE_V1488_STAGE||"train";const root="artifacts/v1488";const shards=3;\n'+
+ 'const stage=process.env.ARCANE_V1488_STAGE||"train";const root="artifacts/v1488";const shards=3;const shard=Number(process.env.ARCANE_V1488_SHARD||0);\n'+
  aggregateRows.toString()+'\n'+injection)(require,process,console,policySource,
- 'const stage=process.env.ARCANE_V1488_STAGE||"train";const root="artifacts/v1488";const shards=3;\n'+
+ 'const stage=process.env.ARCANE_V1488_STAGE||"train";const root="artifacts/v1488";const shards=3;const shard=Number(process.env.ARCANE_V1488_SHARD||0);\n'+
  aggregateRows.toString()+'\n('+run1488.toString()+')();');
