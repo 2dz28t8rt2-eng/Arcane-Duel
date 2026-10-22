@@ -224,7 +224,7 @@ const holdoutMatrix={};
 const detailed=[];
 const mirrorReversals={pairs:0,sameSeatWinner:0,shiftedSeatWinner:0,
  candidateBoth:0,oldBoth:0,seat0Wins:0,policyWins:0};
-const winningSeatCross={};
+const openingEffects={scenarios:0,starterSwapChangedWinner:0,handDeckSwapChangedWinner:0};
 for(const s of holdout){
  const perScene={};
  for(const cond of modeCases){
@@ -262,8 +262,9 @@ for(const s of holdout){
  }
  const seedBase=perScene.starter0_base,seedStartFlip=perScene.starter1_base,
   seedHandFlip=perScene.starter0_swapped_hands;
- add(winningSeatCross,'starter_flips',Number(seedBase.baselineSeat!==seedStartFlip.baselineSeat)?0:1);
- add(winningSeatCross,'hands_flip',Number(seedBase.baselineSeat!==seedHandFlip.baselineSeat)?0:1);
+ openingEffects.scenarios++;
+ openingEffects.starterSwapChangedWinner+=Number(seedBase.baselineSeat!==seedStartFlip.baselineSeat);
+ openingEffects.handDeckSwapChangedWinner+=Number(seedBase.baselineSeat!==seedHandFlip.baselineSeat);
  if(detailed.length<18)detailed.push({
   seed:s.seed,deckFingerprint:s.deck.fingerprint,style:s.style,tier:s.tier,
   deck:s.deck.deck,fusionDeck:s.deck.fusionDeck,
@@ -302,7 +303,7 @@ const report={schema:'arcane-v1483-neutral-skills-factorial-opening-diagnostics'
  training:trainingChoice,
  holdout:{scenarios:holdout.length,conditions:holdoutMatrix,
   mirrorReversals,firstPlayerBreakdown,
-  openingEffects:winningSeatCross,
+  openingEffects:openingEffects,
   possibleComparators:'seat vs starter vs shuffled starting hand'},
  historicalSources:priorReports,neutralizedAssertions,
  limitations:[
@@ -316,6 +317,16 @@ const report={schema:'arcane-v1483-neutral-skills-factorial-opening-diagnostics'
  ]};
 fs.mkdirSync('artifacts/v1483',{recursive:true});
 fs.writeFileSync('artifacts/v1483/report.json',JSON.stringify(report,null,2)+'\n');
+fs.writeFileSync('artifacts/v1483/mode-config.json',JSON.stringify({
+ schema:'arcane-v1483-test-only-reversible-neutral-skills',
+ defaultActualGameplay:'unchanged (skills and perks enabled)',
+ neutralModeFlag:'scene.neutralSkills=true',
+ disabledMetadata:['ability','role','soulRank','essenceSchool','passive','skill','perk','effect','roleOverride'],
+ disabledDynamic:['all profile.upgrades ranks','player enhancements','player power bonuses','essence rules','fate events'],
+ unchanged:['summons','attack legality','fusions','card level and base stats','opening shield'],
+ restoration:'scene.neutralSkills=false loads original modules into a new VM',
+ noRuntimeGameModification:true
+},null,2)+'\n');
 fs.writeFileSync('artifacts/v1483/opening-examples.json',JSON.stringify({
  schema:'arcane-v1483-opener-swap-matches',examples:detailed,
  pilotCases:benchCases,disabledSkillControls:reinstatement
@@ -330,7 +341,7 @@ console.log('ARCANE_V1483_SUMMARY '+JSON.stringify({
    baselineSeat1Wins:v.baselineWins[1],
    sameSeatWinner:v.sameSeatWinner,compared:v.tacticalCompared,
    changed:v.tacticalChanged}])),
- firstPlayerBreakdown,originalVsSwap:winningSeatCross,
+ firstPlayerBreakdown,originalVsSwap:openingEffects,
  productionIntegrated:false}));
 `;
 new Function('require','process','console',script+run)(require,process,console);
