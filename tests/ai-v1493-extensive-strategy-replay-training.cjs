@@ -272,17 +272,24 @@ const profiles=step===0?fixed:[previous,
  fixed[0],fixed[1],{...previous,name:'replay-explore',
   synergy:clamp(previous.synergy+.22,.35,3),
   aggression:clamp(previous.aggression+.14,.4,1.8)}];
+const encountered=new Set();
 function deck(c,i,hold){
- const seed=(hold?5000:1200)+step*420+i*19;
- const d=c.style==='mixed'?mixed(c.tier,seed,c.ratio):
-  makeBenchmarkDeck(catalog,c.tier,c.style,i%2?'veteran':'balanced',seed);
- assert.equal(d.deck.length,40,'Not a complete 40-card deck');
- const ids=new Map();for(const id of d.deck)ids.set(id,(ids.get(id)||0)+1);
- assert.ok([...ids.values()].every(n=>n<=3),'Invalid triple-limit');
- const hash=crypto.createHash('sha256').update(JSON.stringify({
-  main:[...d.deck].sort((a,b)=>a-b),fusion:[...d.fusionDeck].sort((a,b)=>a-b)})).digest('hex');
- return {...d,sourceSeed:seed,analysisStyle:c.style,
-  ratio:c.ratio??null,fingerprint:hash};
+ for(let attempt=0;attempt<48;attempt++){
+  const seed=(hold?4300:700)+step*420+i*19+attempt*53;
+  const d=c.style==='mixed'?mixed(c.tier,seed,c.ratio):
+   makeBenchmarkDeck(catalog,c.tier,c.style,
+    (i+attempt)%2?'veteran':'balanced',seed);
+  assert.equal(d.deck.length,40,'Not a complete 40-card deck');
+  const ids=new Map();for(const id of d.deck)ids.set(id,(ids.get(id)||0)+1);
+  assert.ok([...ids.values()].every(n=>n<=3),'Invalid triple-limit');
+  const hash=crypto.createHash('sha256').update(JSON.stringify({
+   main:[...d.deck].sort((a,b)=>a-b),fusion:[...d.fusionDeck].sort((a,b)=>a-b)})).digest('hex');
+  if(encountered.has(hash))continue;
+  encountered.add(hash);
+  return {...d,sourceSeed:seed,analysisStyle:c.style,
+   ratio:c.ratio??null,fingerprint:hash,regenerationAttempts:attempt};
+ }
+ throw Error('Unable to construct unique 40-card benchmark deck: '+c.style+'/'+c.tier);
 }
 const trainDecks=cases.map((c,i)=>deck(c,i,false));
 const holdDecks=cases.map((c,i)=>deck(c,i,true));
