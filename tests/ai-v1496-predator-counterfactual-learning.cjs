@@ -145,13 +145,16 @@ for(const pierce of [0,.08,.12]){
  const accepted=!prior||fitCandidate.learnerUtility>=initialTrain.learnerUtility;
  const finalQ=accepted?q:starting;
  const fit=fitness(training,finalQ),held=fitness(holdout,finalQ);
- const record={pierce,train:fit,holdout:held,keys:Object.keys(finalQ).length,
+ const oldHeld=prior?fitness(holdout,starting):null; // diagnostic only, never used to select
+ const record={pierce,train:fit,holdout:held,priorHoldout:oldHeld,
+  improvedOnUnseenSincePrior:oldHeld?held.learnerUtility-oldHeld.learnerUtility:null,
+  keys:Object.keys(finalQ).length,
   learnedQ:finalQ,priorQ:!!prior,trainValueBefore:initialTrain.learnerUtility,
   newQAccepted:accepted,epoch,replayExamples:training.slice(0,45),
   testExamples:holdout.slice(0,12)};
  selected.push(record);
  console.log('ARCANE_V1496_PREDATOR_ARMOR '+JSON.stringify({pierce,
-  train:fit,holdout:held,keys:record.keys,priorQ:record.priorQ,
+  train:fit,holdout:held,priorHoldout:oldHeld,keys:record.keys,priorQ:record.priorQ,
   updated:record.newQAccepted,previousTrainUtility:record.trainValueBefore}));
 }
 const chosen=[...selected].sort((a,b)=>b.train.learnerUtility-a.train.learnerUtility||
@@ -166,7 +169,7 @@ const report={schema:'arcane-v1496-predator-counterfactual-learning',
  model:'contextual tabular Q-value with incremental SGD-like updates from real cloned engine alternatives',
  outcomeCredit:false,fullDuelWinRate:false,
  roles:['predator','guardian','soul','combatant'],
- candidates:selected.map(x=>({pierce:x.pierce,train:x.train,holdout:x.holdout,keys:x.keys})),
+ candidates:selected.map(x=>({pierce:x.pierce,train:x.train,holdout:x.holdout,priorHoldout:x.priorHoldout,updated:x.newQAccepted,keys:x.keys})),
  limitations:['These are synthetic but legal public-board tactical positions, not complete independent matches.',
   'Only ATTACK vs PASS with one public-board reply is learned; summoning, fusion and hidden opponent hand are not included.',
   'Q key generalization is limited to a handful of explicitly selected features; not a pretrained neural network.',
