@@ -210,6 +210,7 @@ if(g.mode==='pve'&&stage?.enabled===true&&[0,2,4,6,8,10].includes(stage.noAttack
   soulUnlockTurn:Math.max(2,stage.noAttackTurns+1),
   // Isolate player-only meta perks without altering ordinary career PvE.
   symmetricSides:stage.symmetricSides===true};
+ if(g.strategicTraining.symmetricSides)g.players.forEach(p=>{p.shield=0;}); // research removes the original second-seat opening shield for BOTH seats
 }
 g.openingDecayGrace=!!(g.mode==='pve'&&options.openingDecayGrace===true);g.maxLP=duelStartingLP(g.mode,g.opponentId,g.difficulty,g.context,options.showcase===true);g.players.forEach(p=>p.lp=g.maxLP);if(g.mode==='pve'&&!g.strategicTraining?.symmetricSides)g.players[0].shield=Math.min(600,g.players[0].shield+25*(profile?.upgrades?.openingAegis||0));g.fateUsed=[false,false];g.fateEvent=null;g.encounter=options.encounter?JSON.parse(JSON.stringify(options.encounter)):null;
  if(g.mode==='pve'&&g.context==='tournament'&&g.opponentId>0&&!profile.cleared.includes(g.opponentId)&&!(profile.tournamentLosses?.[g.opponentId]>0)){
