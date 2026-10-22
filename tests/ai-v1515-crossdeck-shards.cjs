@@ -51,12 +51,12 @@ patch("   let score=cardValue(c)+(type==='soul'?guardians*scene.profile.synergy*
  "   let score=cardValue(c)+(type==='soul'?guardians*scene.profile.synergy*260:0)+\n    (type==='guardian'?souls*scene.profile.synergy*260:0);\n   if(type==='predator'&&scene.swarm)score+=scene.swarm*dataOf(c).atk*(predators+1)*2.2;");
 patch("  ranking.sort((a,b)=>b.score-a.score);",["  ranking.sort((a,b)=>b.score-a.score);","  if(scene.summonForecast&&ranking.length>1&&","     g.turn>=Math.max(2,g.strategicTraining.noAttackTurns+1)&&",
 "     g.players[1-g.active].field.some(Boolean)&&",
-"     (counter.summonForecastChecks||0)<(scene.forecastBudget||8)){","   const actor=g.active,op=1-actor,options=ranking.slice(0,4);","   function utility(x){","    const score=p=>p.lp+p.field.filter(Boolean).reduce((v,c)=>{","     const d=dataOf(c);return v+d.atk*.56+d.def*.52+120;},0);","    const own=x.players[actor],enemy=x.players[op];","    const swarm=own.field.filter(c=>c&&role(c)==='predator').length;","    return score(own)-score(enemy)+swarm*swarm*45;","   }","   function simulate(entry){","    const x=JSON.parse(JSON.stringify(g));","    try{","     if(!applyAiAction(x,entry.a))return -Infinity;","     if(x.pending){","      const place=x.players[actor].field.findIndex(c=>!c);","      if(place<0||!applyAiAction(x,{type:'place',idx:place}))return -Infinity;","     }","     const before=utility(x);","     if(x.winner===null&&g.turn>=g.strategicTraining.noAttackTurns){","      x.active=op;x.turn++;x.aiPhase='attacks';","      for(const c of x.players[op].field)if(c)c.attacked=false;","      const response=attackPlan(x);","      if(response?.type==='attack'&&attack(x,response.ai,response.di))counter.firstCounterAttacks=(counter.firstCounterAttacks||0)+1;",
+"     (counter.summonForecastChecks||0)<(scene.forecastBudget||8)){","   const actor=g.active,op=1-actor,options=ranking.slice(0,4);","   function utility(x){","    const score=p=>p.lp+p.field.filter(Boolean).reduce((v,c)=>{","     const d=dataOf(c);return v+d.atk*.56+d.def*.52+120;},0);","    const own=x.players[actor],enemy=x.players[op];","    const swarm=own.field.filter(c=>c&&role(c)==='predator').length;","    return score(own)-score(enemy)+swarm*swarm*45;","   }","   function simulate(entry){","    const x=JSON.parse(JSON.stringify(g));","    try{","     if(!applyAiAction(x,entry.a))return -Infinity;","     if(x.pending){","      const place=x.players[actor].field.findIndex(c=>!c);","      if(place<0||!applyAiAction(x,{type:'place',idx:place}))return -Infinity;","     }","     const before=utility(x);","     if(x.winner===null&&g.turn>=g.strategicTraining.noAttackTurns){","      x.active=op;x.turn++;x.aiPhase='attacks';","      for(const c of x.players[op].field)if(c)c.attacked=false;","      const response=attackPlan(x);","      if(response&&Number.isInteger(response.ai)&&attack(x,response.ai,response.di))counter.firstCounterAttacks=(counter.firstCounterAttacks||0)+1;",
 "      if(scene.summonCounterDepth>=2&&x.winner===null){",
 "       counter.secondCounterChecks=(counter.secondCounterChecks||0)+1;",
 "       if(x.players[op].field.some(c=>c&&canAttack(x,c)))counter.secondCounterOpportunities=(counter.secondCounterOpportunities||0)+1;",
 "       const second=attackPlan(x);",
-"       if(second?.type==='attack'){",
+"       if(second&&Number.isInteger(second.ai)){",
 "        if(attack(x,second.ai,second.di))counter.doubleCounterAttacks=(counter.doubleCounterAttacks||0)+1;",
 "       }",
 "      }","     }","     counter.summonForecastLegal=(counter.summonForecastLegal||0)+1;","     return before*.2+utility(x)*.8+entry.score*.2;","    }catch(e){return -Infinity;}","   }","   let selected=options[0],best=simulate(selected);","   for(const item of options.slice(1)){","    const score=simulate(item);","    if(score>best+(scene.summonThreshold||75)){selected=item;best=score;}","   }","   counter.summonForecastChecks=(counter.summonForecastChecks||0)+1;","   if(selected!==options[0]){","    ranking.splice(ranking.indexOf(selected),1);ranking.unshift(selected);","    counter.summonForecastChanges=(counter.summonForecastChanges||0)+1;","    if(selected.a.type==='fusion')","     counter.fusionForecastChanges=(counter.fusionForecastChanges||0)+1;","   }","  }"].join('\n'));
@@ -116,12 +116,12 @@ patch("  options.sort((a,b)=>b.score-a.score);",
  "    first.active=enemy;first.turn++;first.aiPhase='attacks';",
  "    for(const u of first.players[enemy].field)if(u){u.attacked=false;u.switched=false;}",
  "    const response=attackPlan(first);",
- "    if(response&&response.type==='attack'&&attack(first,response.ai,response.di))counter.attackFirstCounters=(counter.attackFirstCounters||0)+1;",
+ "    if(response&&Number.isInteger(response.ai)&&attack(first,response.ai,response.di))counter.attackFirstCounters=(counter.attackFirstCounters||0)+1;",
 "    if(scene.summonCounterDepth>=2&&first.winner===null){",
 "      counter.attackSecondChecks=(counter.attackSecondChecks||0)+1;",
 "      if(first.players[enemy].field.some(c=>c&&canAttack(first,c)))counter.attackSecondOpportunities=(counter.attackSecondOpportunities||0)+1;",
 "      const nextCounter=attackPlan(first);",
-"      if(nextCounter?.type==='attack'&&attack(first,nextCounter.ai,nextCounter.di))counter.attackSecondCounters=(counter.attackSecondCounters||0)+1;",
+"      if(nextCounter&&Number.isInteger(nextCounter.ai)&&attack(first,nextCounter.ai,nextCounter.di))counter.attackSecondCounters=(counter.attackSecondCounters||0)+1;",
 "    }",
  "   }",
  "   if(first.winner===null){",
@@ -169,6 +169,7 @@ patch("  seed,profile,warmup,starter,candidateSeat};",
  "  seed,profile,warmup,starter,candidateSeat,...extras};");
 
 
+// attackPlan returns {ai,di,score}, NOT {type:'attack',ai,di}. Validate attacker index, then apply through the real engine.
 // Record only candidate decisions on training cases, never an opponent's hidden hand.
 patch("soulActionsBySeat:[0,0]};","soulActionsBySeat:[0,0],actionTape:[]};");
 patch(" applyAiAction=function(game,action){",[
