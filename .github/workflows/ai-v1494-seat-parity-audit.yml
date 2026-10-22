@@ -5,6 +5,7 @@ on:
     paths:
       - 'assets/game.js'
       - 'assets/evolution.js'
+      - 'assets/allrounder-resonance-v41.js'
       - 'assets/essence-combat.js'
       - 'assets/fusion-rework-v113.js'
       - 'assets/qa-followup-v51.js'
