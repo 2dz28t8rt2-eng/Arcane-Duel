@@ -296,10 +296,13 @@
    const s=statLayer(d),rawStrength=guardedFirst?Math.floor(effectiveAttack(g,a,d)*.5):effectiveAttack(g,a,d);
     // PvE only: guardian and soul roles dampen incoming HP damage.
     // Attackers still win via focused fire; no immunity and no free ATK counter buff.
-    // Training-only Predator identity: break layered defensive armor without
-    // increasing attacks into ATK monsters or free direct LP damage.
-    const predatorPierce=g.strategicTraining?.symmetricSides&&roleOf(a)==='predator'?
-     (g.strategicTraining.predatorArmorPierce||0):0;
+    // Predator's live defensive-armor penetration: the 35% DEF mitigation of
+    // Guardians and Soul Drainers becomes 25% for Predator attackers.
+    // An unarmored Predator in DEF has no armor to pierce; no extra damage.
+    // Research modes can still opt out or override this to compare balanced arms.
+    const predatorPierce=roleOf(a)==='predator'?
+     (g.strategicTraining?.symmetricSides?
+      (g.strategicTraining.predatorArmorPierce||0):.10):0;
     const mitigation=isDefender(d)?Math.max(0,.35-predatorPierce):0;
     const strength=Math.max(0,Math.floor(rawStrength*(1-mitigation)));
     if(mitigation&&strength<rawStrength)logEvent(g,dataOf(d).name+
