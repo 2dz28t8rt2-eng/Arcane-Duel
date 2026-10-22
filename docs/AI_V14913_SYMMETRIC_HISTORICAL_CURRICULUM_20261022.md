@@ -12,7 +12,7 @@ Startreihenfolgen und beide Sitze, außerdem vier feste Deck-Szenarien.
 
 In **jedem** einzelnen Duell: Gleiches 40-Karten-Deck, identische Starthand,
 gleicher Reststapel, identischer Fusionsvorrat, identische Lebenspunkte
-(10.000), identische Perks/Upgrades (neutral), symmetrische Rollenboni.
+(8.000 im aktuellen Forschungsmodus), identische Perks/Upgrades (neutral), symmetrische Rollenboni.
 Keine einseitige Startkartenaufstellung, kein LP-Handicap.
 
 Forschungsabweichung: Arena-LP-Zerfall ist beidseitig deaktiviert; deshalb
