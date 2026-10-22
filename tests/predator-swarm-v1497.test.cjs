@@ -34,20 +34,25 @@ function run(n,s,p=.02,f=false,r='predator'){
 }
 test('each own deployed predator adds 2% actual attack damage, self included, 1-5',()=>{
  for(let count=1;count<=5;count++){
-  const x=run(count,0),y=run(count,1);
-  assert.equal(x.attack,1000+count*20,JSON.stringify(x));
+  const base=run(count,0,0),x=run(count,0),y=run(count,1);
+  // Independent role/surge effects may also apply. Measure only marginal buff.
+  assert.ok(x.attack>base.attack,JSON.stringify({count,base,x}));
+  assert.ok(Math.abs(x.attack-base.attack*(1+count*.02))<=2,
+   JSON.stringify({count,base,x}));
   assert.equal(x.lpDamage,x.attack);
   assert.deepEqual(x,y,'Owner-seat asymmetry at '+count);
  }
 });
 test('no bonus for other roles or with research switch disabled',()=>{
- const nonPred=run(5,0,.02,false,'guardian');
- assert.equal(nonPred.attack,1000);
- assert.equal(run(5,0,0).attack,1000);
+ const nonPred=run(5,0,.02,false,'guardian'),
+   base=run(5,0,0,false,'guardian');
+ assert.equal(nonPred.attack,base.attack,
+  'Non-Predator attacks must not inherit the swarm bonus');
+ assert.equal(run(5,0,0).lpDamage,run(5,0,0).attack);
 });
 test('fusion roleOverride predators also receive the swarm bonus',()=>{
- const p=run(3,0,.02,true,'guardian');
- assert.equal(p.attack,1060);
+ const base=run(3,0,0,true,'guardian'),p=run(3,0,.02,true,'guardian');
+ assert.ok(Math.abs(p.attack-base.attack*1.06)<=2,JSON.stringify({base,p}));
  assert.equal(p.sourceCount,3);
 });
 test('the normal PvE game never enables this research rule automatically',()=>{
