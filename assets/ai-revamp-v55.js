@@ -277,18 +277,23 @@
   return oldAi(g,style==='attack'?'offensive':
     style==='fusion'?'economy':style==='defense'?'guardian':policy);
  };
- // Swarm bonus counts NORMAL Predator creatures. Existing fusion bonuses and
- // passive Allrounder/Resonator values are unchanged.
- const oldEffective=effectiveAttack;
- effectiveAttack=function(g,c,d){
-  const base=oldEffective(g,c,d);
-  if(!g||!c||c.fusion||role(c)!=='predator')return base;
+ // v14.9.8: the former extra pack bonus (+2% from 2 normal Predators,
+ // up to +8%) is retired. The single central effectiveAttack swarm rule
+ // now gives +2% for EACH own active Predator (including role-imprinted
+ // fusions) and MUST NOT be multiplied a second time here.
+ // Preserve the diagnostic API as a read-only estimate of that ONE bonus.
+ function predatorSwarm(g,c){
+  if(!g||!c||role(c)!=='predator')return 0;
   const owner=g.players.findIndex(p=>p.field.includes(c));
-  if(owner<0)return base;
-  const pack=g.players[owner].field.filter(x=>x&&!x.fusion&&role(x)==='predator').length;
-  const bonus=Math.min(8,Math.max(0,pack-1)*2);
-  return Math.round(base*(1+bonus/100));
- };
+  if(owner<0)return 0;
+  const count=g.players[owner].field.filter(x=>x&&role(x)==='predator').length;
+  const percent=g.strategicTraining?
+   (g.strategicTraining.predatorSwarmPercent||0):.02;
+  const factor=Math.min(5,count)*percent;
+  if(!factor)return 0;
+  const boosted=effectiveAttack(g,c,null);
+  return Math.max(0,Math.round(boosted-boosted/(1+factor)));
+ }
  const oldRoleBonus=normalRoleBonus;
  normalRoleBonus=function(c,stat,owner=0,upgrades){
   const current=oldRoleBonus(c,stat,owner,upgrades);
@@ -301,5 +306,5 @@
   prepareAce:g=>{const o=opponent(g);if(!o)return false;
    cueAce(g,g.players[1],o);return !!g.arcaneAceCue;},
   getScenario:g=>opponent(g)||null,
-  predatorSwarm:(g,c)=>c&&g?effectiveAttack(g,c,null)-oldEffective(g,c,null):0});
+  predatorSwarm});
 })();
