@@ -1,0 +1,112 @@
+name: Arcane Duel - v14.8.8 Strategic Mechanic Curriculum Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-v1488-mechanic-curriculum.cjs'
+      - '.github/workflows/ai-v1488-mechanic-curriculum.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v1488-strategic-curriculum-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  train-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax, real game rules and original fair test arena
+        run: |
+          node --check tests/ai-v1488-mechanic-curriculum.cjs
+          node --check tests/ai-v1487-two-ply-training.cjs
+          node --check tests/ai-v1486-three-arm-symmetric-training.cjs
+          node tests/ai-v1486-three-arm-mechanics-gate.cjs
+          node --test tests/ai-board-planner-v129.test.cjs tests/fusion-rework-v113.test.cjs tests/fusion-utility-v55.test.cjs tests/role-inheritance-regression.test.cjs tests/allrounder-resonance-v41.test.cjs
+      - name: Restore exact v13.6 original self-play reports
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v136-extensive-1200-episode-selfplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39637833422
+          github-token: ${{ github.token }}
+          path: artifacts/history
+      - name: Restore frozen v14.7 reference profiles
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v147-final-score-transparency-and-mirror-training
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39666712311
+          github-token: ${{ github.token }}
+          path: artifacts/history-v147
+      - name: Verify historical datasets before running
+        run: |
+          test "$(find artifacts/history -name ai-v136-training-report.json | wc -l)" -eq 3
+          test -f artifacts/history-v147/report.json
+          node - <<'JS'
+          const assert=require('node:assert/strict');
+          assert.equal(require('./artifacts/history-v147/report.json').schema,
+            'arcane-v147-final-score-transparent-mirrors');
+          assert.equal(require('./models/ai-selfplay-v136.json').productionActive,false);
+          JS
+      - name: Train three legal material-cost policies on 21 independent scenes, isolated into three memory shards
+        env:
+          ARCANE_V1486_TRAIN: '21'
+          ARCANE_V1486_HOLDOUT: '21'
+          ARCANE_V1486_LEAGUE: '3'
+          ARCANE_V1488_STAGE: 'train'
+        run: |
+          set -euo pipefail
+          for shard in 0 1 2; do
+            ARCANE_V1488_SHARD="$shard" node --max-old-space-size=4096 tests/ai-v1488-mechanic-curriculum.cjs
+          done
+      - name: Freeze best policy using training data only – fail closed on missing shards
+        env:
+          ARCANE_V1488_STAGE: 'select'
+        run: node tests/ai-v1488-mechanic-curriculum.cjs
+      - name: Independent seven-strategy holdout with paired seats and starters
+        env:
+          ARCANE_V1486_TRAIN: '21'
+          ARCANE_V1486_HOLDOUT: '21'
+          ARCANE_V1486_LEAGUE: '3'
+          ARCANE_V1488_STAGE: 'holdout'
+        run: |
+          set -euo pipefail
+          for shard in 0 1 2; do
+            ARCANE_V1488_SHARD="$shard" node --max-old-space-size=4096 tests/ai-v1488-mechanic-curriculum.cjs
+          done
+      - name: Aggregate verified training and holdout, reject invalid or duplicated scenarios
+        env:
+          ARCANE_V1488_STAGE: 'aggregate'
+        run: node tests/ai-v1488-mechanic-curriculum.cjs
+      - name: Enforce final schema, zero illegal actions, all seven styles and frozen policy
+        run: |
+          node - <<'JS'
+          const assert=require('node:assert/strict');
+          const r=require('./artifacts/v1488/report.json');
+          assert.equal(r.schema,'arcane-v1488-strategic-mechanic-curriculum');
+          assert.equal(r.productionIntegrated,false);
+          assert.equal(r.championPromoted,false);
+          assert.equal(r.holdout.games,168);
+          assert.equal(r.holdout.invalid,0);
+          assert.equal(r.controls.unseenHoldoutScenes,21);
+          for(const s of r.controls.styles)assert.equal(r.holdout.byStyle[s].games,24);
+          assert.ok(r.holdout.decisions>0);
+          console.log('ARCANE_V1488_CHECK '+JSON.stringify({
+            score:r.holdout.wins+'/'+r.holdout.games,
+            decisions:r.holdout.decisions,meaningful:r.holdout.meaningful,
+            changed:r.holdout.diverged,selected:r.selectedMaterialCost}));
+          JS
+      - name: Preserve original shard reports, decision traces, parameter selection and final verdict
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1488-strategic-curriculum-full
+          path: artifacts/v1488/
+          retention-days: 90
+          if-no-files-found: warn
