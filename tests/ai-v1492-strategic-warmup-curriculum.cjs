@@ -43,7 +43,7 @@ function duel1492(scene){
   seed:scene.seed,starter:scene.starter,deck:scene.deck,
   fusionDeck:scene.fusionDeck,
   enemy:{deck:scene.deck,fusionDeck:scene.fusionDeck,enhancements:{},power:1,flatBonus:0},
-  strategicTraining:{enabled:true,noAttackTurns:scene.warmup,disableArenaLPDecay:true}});
+  strategicTraining:{enabled:true,noAttackTurns:scene.warmup,disableArenaLPDecay:true,symmetricSides:true}});
  g.fateUsed=[true,true];maybeFate=()=>false;
  for(const p of g.players){p.power=1;p.enhancements={};p.flatBonus=0;p.shield=0;}
  // Identical five starting cards, identical remaining deck, identical fusion stock;
