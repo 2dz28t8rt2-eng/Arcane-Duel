@@ -309,7 +309,7 @@
    if(p.field[ai]===a){
     const sA=statLayer(a);sA.attacksThisTurn=Math.min(2,sA.attacksThisTurn+1);
     a.attacked=true;
-    const fatigue=g.active===0?30-2*(profile?.upgrades?.combatDiscipline||0):30;
+    const fatigue=g.active===0&&!g.strategicTraining?.symmetricSides?30-2*(profile?.upgrades?.combatDiscipline||0):30;
     a.card.atk=Math.max(0,a.card.atk-fatigue);a.attackFatigue=(a.attackFatigue||0)+fatigue;
    }
    logEvent(g,dataOf(a).name+' gegen '+dataOf(d).name+': DEF-Schaden '+strength+' (davon Seelenessenz '+soulLost+').');
