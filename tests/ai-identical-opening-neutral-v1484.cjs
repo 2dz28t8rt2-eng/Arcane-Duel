@@ -361,7 +361,7 @@ const report={schema:'arcane-v1484-identical-opening-resource-controlled-trainin
   'Both opening shields are zero in the controlled tests rather than providing the usual non-starter shield.',
   'Hardcoded PvE seat-specific rules may remain during subsequent turns and are what the experiment tests.'
  ]};
-fs.mkdirSync('artifacts/v1483',{recursive:true});
+fs.mkdirSync('artifacts/v1484',{recursive:true});
 if(shardIndex!==null)fs.mkdirSync('artifacts/v1484/shards',{recursive:true});
 const reportPath=shardIndex===null?'artifacts/v1484/report.json':
  'artifacts/v1484/shards/report-'+shardIndex+'.json';
