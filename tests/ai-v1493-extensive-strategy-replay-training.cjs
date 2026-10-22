@@ -63,7 +63,7 @@ function duel1492(scene){
  const counter={turns:0,actions:0,differences:0,prebattleOffensiveSouls:0,
   occupiedAtUnlock:null,enemyAtUnlock:null,firstAttackTurn:null,
   firstOffensiveSoulTurn:null,byType:{},examples:[],
-  plannedSummons:0,boardRechecks:0,unsafeBaselineAttacks:0,avoidedUnsafe:0,learningSamples:[]};
+  plannedSummons:0,boardRechecks:0,unsafeBaselineAttacks:0,avoidedUnsafe:0,learningSamples:[],soulActionsBySeat:[0,0]};
  const baseChoose=chooseAiAction,baseApply=applyAiAction,baseAdvance=advanceTurn;
  let learner=scene.candidateSeat;
  function role(c){return c?.roleOverride||CARDS[c?.id]?.role||'combatant';}
@@ -227,6 +227,8 @@ function duel1492(scene){
   return result;
  };
  applyAiAction=function(game,action){
+  if(game===g&&['soul-raid','soul-discharge'].includes(action?.type))
+   counter.soulActionsBySeat[game.active]++;
   if(game===g&&action?.type==='attack'&&counter.firstAttackTurn===null)
    counter.firstAttackTurn=game.turn;
   return baseApply(game,action);
@@ -338,6 +340,8 @@ function summarize(rows){
   illegalActions:rows.reduce((n,r)=>n+r.invalid,0),
   fullBoards:rows.filter(r=>r.occupancy?.[0]===5&&r.occupancy?.[1]===5).length,
   starterWins:rows.filter(r=>r.winner===r.starter).length,
+  researchSoulActionsBySeat:[0,1].map(seat=>rows.reduce((n,r)=>
+    n+(r.stats.soulActionsBySeat?.[seat]||0),0)),
   firstAttackViolations:rows.filter(r=>r.firstAttackTurn!==null&&
     r.firstAttackTurn<=stage).length,byStyle:styles};
 }
@@ -433,6 +437,8 @@ if(step===stages.length-1){
    'soulViolations','illegalActions','fullBoards','starterWins','firstAttackViolations'])
    p[k]=(p[k]||0)+(x.holdout[k]||0);return p;
  },{});
+ totals.researchSoulActionsBySeat=[0,1].map(seat=>
+  prior.reduce((n,row)=>n+(row.holdout.researchSoulActionsBySeat?.[seat]||0),0));
  const report={schema:'arcane-v1493-extensive-strategic-replay',
   status:'completed',sourceSha:process.env.GITHUB_SHA||'unknown',
   promotionEligible:false,productionActive:false,championPromoted:false,
