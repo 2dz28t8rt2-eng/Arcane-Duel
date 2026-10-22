@@ -306,7 +306,7 @@ const report={schema:'arcane-v1482-actual-controller-mirror-research',
   'private opponent cards not inspected',
   'earlier holdout results used for teaching priorities not action labels',
   'old champion frozen and production game unchanged']};
-fs.mkdirSync('artifacts/v1481',{recursive:true});
+fs.mkdirSync('artifacts/v1482',{recursive:true});
 fs.writeFileSync('artifacts/v1482/report.json',JSON.stringify(report,null,2)+'\n');
 fs.writeFileSync('artifacts/v1482/replays.json',JSON.stringify({
  schema:'arcane-v1482-true-comparison-replays',examples:evidence,
