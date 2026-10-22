@@ -211,7 +211,7 @@ if(g.mode==='pve'&&stage?.enabled===true&&[0,2,4,6,8,10].includes(stage.noAttack
   // Isolate player-only meta perks without altering ordinary career PvE.
   symmetricSides:stage.symmetricSides===true,
   // Explicit research-only anti-DEF Predator piercing. Nothing changes in live PvE.
-  predatorArmorPierce:stage.symmetricSides===true&&[0,0.08,0.12].includes(stage.predatorArmorPierce)?
+  predatorArmorPierce:stage.symmetricSides===true&&[0,0.08,0.10,0.12].includes(stage.predatorArmorPierce)?
    stage.predatorArmorPierce:0,
   // Opt-in swarm study: 2% outgoing damage per own deployed Predator, max 5 slots.
   predatorSwarmPercent:stage.symmetricSides===true&&[0,.02].includes(stage.predatorSwarmPercent)?
