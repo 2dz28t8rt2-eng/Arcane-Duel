@@ -306,7 +306,7 @@
     const mitigation=isDefender(d)?Math.max(0,.35-predatorPierce):0;
     const strength=Math.max(0,Math.floor(rawStrength*(1-mitigation)));
     if(mitigation&&strength<rawStrength)logEvent(g,dataOf(d).name+
-      ' · Verteidiger-Rüstung: '+(rawStrength-strength)+' Schaden abgewehrt (35 %).');
+      ' · Verteidiger-Rüstung: '+(rawStrength-strength)+' Schaden abgewehrt ('+Math.round(mitigation*100)+' %).');
    const immuneBefore=s.guardLeft>0;
    let remaining=immuneBefore?0:strength;
    const condemned=s.condensed?Math.min(s.condensed,remaining):0;
