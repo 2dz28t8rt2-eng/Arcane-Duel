@@ -11,6 +11,7 @@ on:
       - 'assets/qa-followup-v51.js'
       - 'tests/strategic-warmup-v1492.test.cjs'
       - 'tests/strategic-seat-parity-v1494.test.cjs'
+      - 'tests/ai-v1493-extensive-strategy-replay-training.cjs'
       - 'tests/ai-v1494-seat-bias-investigation.cjs'
       - '.github/workflows/ai-v1494-seat-parity-audit.yml'
   workflow_dispatch:
