@@ -47,7 +47,7 @@ test('Three losses at IV, V and IX offer contextual help without counting other 
 test('Fusion preview explains consumed zones and inherited roles without consuming RNG, cards or templates',()=>{
  const r=setup().run(`(()=>{const g=createGame({mode:'pve',opponentId:4,seed:192}),p=g.players[0];g.active=0;
   const ids=[...ARCANE_STAGE_IDS.values()].filter(id=>CARDS[id].role==='guardian'&&CARDS[id].level===2).slice(0,3),m=ids.map(id=>newInstance(g,id,0));p.field=[...m,null,null];
-  const t=RPG_FUSIONS.find(c=>c.level===4&&c.role==='predator');p.remainingFusion=[t.id,t.id];
+  const t=RPG_FUSIONS.find(c=>c.level===4&&!c.retired);p.remainingFusion=[t.id,t.id];
   const before=JSON.stringify(g),v=ArcaneProgressionSupport.fusionDecision(g,m,t);return {same:JSON.stringify(g)===before,role:v.role,field:v.field,change:v.fieldChange,chance:v.chance,remaining:v.remaining};})()`);
  assert.deepEqual(r,{same:true,role:'guardian',field:3,change:-2,chance:1,remaining:1});
 });

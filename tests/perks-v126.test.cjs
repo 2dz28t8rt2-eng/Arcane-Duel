@@ -5,8 +5,8 @@ test('v12.6 strengthened Jagdinstinkt and Schildwall affect only correctly typed
  const r=boot({seed:1261}).run(`(()=>{
  const hunter=CARDS.find(c=>c.rpg&&!c.retired&&!c.fusionOnly&&c.role==='predator'&&c.level>=3);
  const guard=CARDS.find(c=>c.rpg&&!c.retired&&!c.fusionOnly&&c.role==='guardian'&&c.level>=3);
- const fusion=CARDS.find(c=>c.rpg&&c.fusionOnly&&c.role==='predator');
- if(!hunter||!guard||!fusion)throw Error('Missing normal/hunter or fusion samples');
+ const fusion=CARDS.find(c=>c.rpg&&c.fusionOnly&&!c.retired);
+ if(!hunter||!guard||!fusion)throw Error('Missing normal Predator or fusion samples');
  const full={jagdinstinkt:2,schildwall:2},zero={jagdinstinkt:0,schildwall:0};
  const bonus=(card,stat,owner,upgrades)=>normalRoleBonus(card,stat,owner,upgrades);
  return {h:hunter.level,g:guard.level,
