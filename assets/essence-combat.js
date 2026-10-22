@@ -59,6 +59,9 @@
  const isDefender=c=>['soul','guardian'].includes(roleOf(c));
  const soulRank=c=>isSoul(c)?(c.soulRank||CARDS[c.id]?.soulRank||Math.min(5,Math.max(1,Math.ceil(dataOf(c).level/2)))):0;
  const isEssenceDuel=g=>g?.mode==='pve'&&g.essenceRules===true;
+ // Isolated research curriculum: deny offensive Soul effects until BOTH seats
+ // have played 3 turns and the symmetric attack unlock is reached.
+ const soulReady=g=>!g?.strategicTraining||g.turn>=g.strategicTraining.soulUnlockTurn;
  const buffTier=g=>Math.max(0,g?.essenceTier||0);
  const activeSchool=g=>g?.essenceSchool||null;
  const statLayer=c=>{
@@ -67,6 +70,7 @@
  };
  const roll=(g,n)=>randomInt(g,Math.max(1,n));
  function addBurn(g,owner,amount,desc){
+  if(!soulReady(g))return 0;
   if(amount<=0||g.winner!==null)return 0;
   const victim=1-owner,actual=damagePlayer(g,victim,amount);
   g.damageDealt[owner]+=actual;logEvent(g,desc+': '+actual+' LP Burn.');
@@ -87,6 +91,7 @@
   return gain;
  }
  function absorb(g,creature,owner){
+  if(!soulReady(g))return;
   const store=statLayer(creature),opponent=g.players[1-owner];
   const lv=dataOf(creature).level,rank=soulRank(creature);
   let earned=0,drainedDef=0,drainedAtk=0;const targets=[];
@@ -120,6 +125,7 @@
   logEvent(g,dataOf(creature).name+' zehrt '+drainedAtk+' ATK / '+drainedDef+' DEF; +'+gain+' Seelenessenz.');
  }
  function soulDecay(g,c,owner){
+   if(!soulReady(g))return;
    const s=statLayer(c);
    if(owner===0&&c.arcaneDecaySkipTurn===g.turn-1){
     if(s.cooldown>0)s.cooldown--;
@@ -362,7 +368,7 @@
     }
    }
    for(const creature of team){
-    if(creature.mode==='def'&&isSoul(creature))absorb(g,creature,owner);
+    if(soulReady(g)&&creature.mode==='def'&&isSoul(creature))absorb(g,creature,owner);
     if(g.winner!==null)break;
    }
    window.ArcaneDefenderFX?.endTurn(g);
@@ -389,7 +395,7 @@
   const result=oldSwitch(g,idx);if(result&&isEssenceDuel(g))statLayer(g.players[g.active].field[idx]);return result;
  };
  function condense(idx){
-  if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0)return false;
+  if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0||!soulReady(game))return false;
   const c=game.players[0].field[idx];if(!c||!isSoul(c)||c.mode!=='def')return false;
   const e=statLayer(c);if(e.soul<40||e.cooldown>0||e.lastSoulAction===game.turn)return false;
   const amount=Math.floor(e.soul*.75);
@@ -399,7 +405,7 @@
   saveDuelSnapshot();render();return true;
  }
  function discharge(idx){
-  if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0)return false;
+  if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0||!soulReady(game))return false;
   const c=game.players[0].field[idx];if(!c||!isSoul(c)||c.mode!=='def')return false;
   const e=statLayer(c);
   // All Soul Eaters have an offensive release. Higher rank gains its edge
@@ -412,7 +418,7 @@
  // Choose one enemy monster. Seelenraub trades the turn's active ability for
  // 250% of a normal single-target passive extraction; no immediate LP burn.
  function soulRaid(idx,targetIndex){
-  if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0||!Number.isInteger(targetIndex)||
+  if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0||!soulReady(game)||!Number.isInteger(targetIndex)||
      targetIndex<0||targetIndex>=5)return false;
   const creature=game.players[0].field[idx],target=game.players[1].field[targetIndex];
   if(!creature||!isSoul(creature)||creature.mode!=='def'||!target?.card)return false;
@@ -458,7 +464,7 @@
   return true;
  }
  function chooseDrain(idx,stat){
-  if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0)return false;
+  if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0||!soulReady(game))return false;
   const c=game.players[0].field[idx],s=c&&statLayer(c);
   if(!c||!isSoul(c)||!s||c.mode!=='def'||soulRank(c)<3||s.lastDrainSwitch===game.turn||!['atk','def'].includes(stat))return false;
   s.drainPreference=stat==='atk'?1:2;s.lastDrainSwitch=game.turn;render();return true;
