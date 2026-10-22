@@ -29,6 +29,20 @@ jobs:
           node --check tests/ai-v1496-predator-counterfactual-learning.cjs
           node --check tests/predator-armor-pierce-v1496.test.cjs
           node --test tests/predator-armor-pierce-v1496.test.cjs tests/strategic-seat-parity-v1495.test.cjs tests/strategic-seat-parity-v1494.test.cjs
+      - name: Restore prior successful research Q only (no previous holdout labels)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p artifacts/v1496 /tmp/arcane-prior
+          PREVIOUS=$(gh run list --workflow ai-v1496-predator-counterfactual.yml --branch development --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+          if [ -n "$PREVIOUS" ]; then
+            if gh run download "$PREVIOUS" --name arcane-v1496-predator-counterfactual-learning --dir /tmp/arcane-prior; then
+              if [ -f /tmp/arcane-prior/training-q-and-examples.json ]; then
+                cp /tmp/arcane-prior/training-q-and-examples.json artifacts/v1496/previous-training-q.json
+                echo "ARCANE_V1496_RESTORED_Q $PREVIOUS"
+              fi
+            fi
+          fi
       - name: Matched legal Predator decisions, real engine alternatives and learned Q values
         run: |
           node --max-old-space-size=4096 tests/ai-v1496-predator-counterfactual-learning.cjs
@@ -43,6 +57,8 @@ jobs:
           assert.equal(x.candidates.length,3);
           assert.deepEqual(x.candidates.map(y=>y.pierce),[0,.08,.12]);
           assert.equal(x.productionEnabled,false);
+          assert.equal(x.updatedQArms>=0,true);
+          assert.equal(typeof x.priorCheckpointLoaded,'boolean');
           assert.ok(x.candidates.every(y=>y.keys>0&&
             y.holdout.cases===150&&Number.isFinite(y.holdout.learnerUtility)));
           console.log('ARCANE_V1496_GATES '+JSON.stringify({
