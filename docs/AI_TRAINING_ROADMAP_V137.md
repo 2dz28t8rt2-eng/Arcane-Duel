@@ -287,7 +287,7 @@ Jede Lektion ermittelt mit der echten Engine die legalen Optionen, misst unmitte
 
 ## v14.8.2 – Tatsächliche Entscheidungsvergleiche und Sitzplatzvorteil (22.10.2026)
 
-[GitHub Actions #39719781097](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39719781097) · Trainer `tests/ai-true-baseline-mirrors-v1482.cjs` · Workflow `.github/workflows/ai-true-baseline-mirrors-v1482.yml`.
+[GitHub Actions #39720256066](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39720256066) · Trainer `tests/ai-true-baseline-mirrors-v1482.cjs` · Workflow `.github/workflows/ai-true-baseline-mirrors-v1482.yml`.
 
 - **Diagnose von v14.8.1:** In allen neun archivierten Mirror-Match-Paaren gewann jeweils dieselbe Sitzposition, obwohl Kandidat und Referenz ihre Plätze wechselten. So ergeben sich auch bei unterschiedlicher Stärke automatisch jeweils ein Sieg/eine Niederlage pro Paar. Die fortgesetzte 50-%-Rate ist deshalb ohne Sitzplatzkontrolle **kein brauchbarer Lernnachweis**.
 - **Geprüfte Baseline statt künstliche Score-Gegenprobe:** v14.8.2 ruft den tatsächlichen v14.7-Planer (mit seinem linearen Fallback) auf einem **geklonten, identischen Vorher-Spielzustand** auf. Erfasst werden exakte Aktionsdifferenzen nach Monster, Kartenauswahl, Ziel und Slot, die gegensätzlichen Aktionen und die sichtbare Boardlage. Technische Limitation: stochastische innere Zweige können die RNG-Reihenfolge beeinflussen; ein Klonzustand ist kein vollständiger unabhängiger Paralleluniversum-Rollout.
