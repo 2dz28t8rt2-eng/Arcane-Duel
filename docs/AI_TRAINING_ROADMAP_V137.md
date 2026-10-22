@@ -331,7 +331,7 @@ Jede Lektion ermittelt mit der echten Engine die legalen Optionen, misst unmitte
 
 ## v14.8.4 – Streng identische Starthände und Deckreihenfolge (22.10.2026)
 
-[GitHub Actions #39729295588](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39729295588) · Trainer `tests/ai-identical-opening-neutral-v1484.cjs` · Aggregator `tests/ai-identical-opening-aggregate-v1484.cjs` · Workflow `.github/workflows/ai-identical-opening-neutral-v1484.yml`.
+[GitHub Actions #39729295588](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39729970919) · Trainer `tests/ai-identical-opening-neutral-v1484.cjs` · Aggregator `tests/ai-identical-opening-aggregate-v1484.cjs` · Workflow `.github/workflows/ai-identical-opening-neutral-v1484.yml`.
 
 **Ausgangsbefund:** v14.8.3 mit deaktivierten Skills/Perks: identischer alter Controller auf beiden Seiten, jedoch 262/336 (=77,98 %) Siege von Spielerplatz 0; tatsächlicher Startspieler gewinnt nur 164/336 (=48,81 %). Unterschiede der getrennt gezogenen Starthände/Deckreihenfolgen waren ein verbleibender Störfaktor.
 
@@ -342,3 +342,5 @@ Jede Lektion ermittelt mit der echten Engine die legalen Optionen, misst unmitte
 **Fragestellung:** Bleibt die Sitzplatzlast bestehen, wenn wirklich gleiche Starthand, Nachziehreihenfolge und Anfangsressourcen garantiert sind? Falls ja, sitzt die Ursache wahrscheinlich in späteren, spielerplatzabhängigen PvE-Engine- oder Controllerpfaden; ein genereller Vorteil des ersten Zuges ist separat aus den Startspielerwechseln zu erkennen. Die vollständige Live-PvE-Semantik ist auch mit gleichen Anfangsressourcen nicht automatisch auf beiden Seiten identisch: hartkodierte Spieler-0-/Gegner-1-Verzweigungen können weiter bestehen. Ein Testresultat ist deshalb **keine automatische Regeländerung oder Champion-Promotion**.
 
 **Keine Live-Änderung:** Main, echte Spielstände, reguläre Skills und Perks sowie produktive KI/Champion unverändert. Pilot mit Pflichtprüfung vor Vollserie. Ergebnisse erst nach GitHub-Actions `SUCCESS` und erfolgreicher 4-Shard-Aggregation.
+
+**Pilotkontrolle:** Im ersten v14.8.4-Test wurden alle strikten Identitäts-Assertions erfolgreich ausgeführt. Der anschließende JSON-Export scheiterte an einem fehlenden Ausgabeordner (ENOENT). Ausgabeordner korrigiert; maßgeblicher neuer Lauf: [#39729970919](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/39729970919).
