@@ -76,6 +76,7 @@ function decayRun(starter){
  return vm.run('('+decayInVm.toString()+')()',120000);
 }
 const decay=[decayRun(0),decayRun(1)];
+console.log('ARCANE_V1485_RAW_DECAY_TIMELINE '+JSON.stringify(decay));
 for(const item of decay){
  assert.equal(item.rate,item.rateB,'Player-dependent monster decay rate');
  assert.deepEqual(item.afterFirstTurns,item.original,
