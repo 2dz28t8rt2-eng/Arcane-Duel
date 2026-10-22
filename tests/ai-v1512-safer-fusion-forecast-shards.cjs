@@ -6,7 +6,7 @@ function patch(a,b){assert.equal(src.split(a).length-1,1,'patch failure: '+a.sli
 patch('step=Number(process.argv[2])','step=0');
 patch("const root='artifacts/v1493'","const root='artifacts/v1512'");
 patch("enemy:{deck:scene.deck,fusionDeck:scene.fusionDeck,enhancements:{},power:1,flatBonus:0},",
- "enemy:{deck:scene.deck1||scene.deck,fusionDeck:scene.fusionDeck,enhancements:{},power:1,flatBonus:0},");
+ "enemy:{deck:scene.deck1||scene.deck,fusionDeck:scene.fusionDeck1||scene.fusionDeck,enhancements:{},power:1,flatBonus:0},");
 patch("strategicTraining:{enabled:true,noAttackTurns:scene.warmup,disableArenaLPDecay:true,symmetricSides:true}});",
  "strategicTraining:{enabled:true,noAttackTurns:scene.warmup,disableArenaLPDecay:true,symmetricSides:true,predatorSwarmPercent:scene.swarm,predatorArmorPierce:scene.pierce}});");
 patch(" second.hand=first.hand.map(c=>({...JSON.parse(JSON.stringify(c)),uid:g.nextUid++}));\n second.deck=[...first.deck];second.originalDeck=[...first.originalDeck];\n second.fusionDeck=[...first.fusionDeck];second.remainingFusion=[...first.remainingFusion];",
@@ -16,7 +16,8 @@ patch(" second.hand=first.hand.map(c=>({...JSON.parse(JSON.stringify(c)),uid:g.n
  "   const p=g.players[owner];",
  "   p.hand=ids.slice(0,5).map(id=>newInstance(g,id,owner));",
  "   p.deck=ids.slice(5);p.originalDeck=[...ids];",
- "   p.fusionDeck=[...scene.fusionDeck];p.remainingFusion=[...scene.fusionDeck];",
+ "   const fusionIds=owner===0?scene.fusionDeck:(scene.fusionDeck1||scene.fusionDeck);",
+  "   p.fusionDeck=[...fusionIds];p.remainingFusion=[...fusionIds];",
  "  }",
  " }else{",
  "  second.hand=first.hand.map(c=>({...JSON.parse(JSON.stringify(c)),uid:g.nextUid++}));",
@@ -188,12 +189,14 @@ function runStudy(){
   const enemy=makeBenchmarkDeck(catalog,tier,styles[j],'balanced',seed+17);
   for(const arm of arms)for(const starter of [0,1])for(const seat of [0,1]){
    const deck=seat===0?pred.deck:enemy.deck,deck1=seat===0?enemy.deck:pred.deck;
+   const fusionDeck=seat===0?pred.fusionDeck:enemy.fusionDeck,
+     fusionDeck1=seat===0?enemy.fusionDeck:pred.fusionDeck;
    const matchSeed=15120000+Number(defenderLead)*100000+stage*1000+j*160+i*14+starter*3;
    const opponentPolicy=['economy','economy','offensive','offensive'][j];
    const weights=arm.decision==='heuristic'?null:data.find(x=>x.swarm===arm.swarm&&x.pierce===arm.pierce)?.learnedQ;
-   const result=sceneResult({deck,fusionDeck:pred.fusionDeck},stage,matchSeed,
+   const result=sceneResult({deck,fusionDeck},stage,matchSeed,
     {name:'forecast',defense:.85,synergy:1,waitCost:1.1,materialCost:.53,aggression:1},
-    starter,seat,{deck1,swarm:arm.swarm,pierce:arm.pierce,decision:arm.decision,q:weights,defenderLead,summonForecast:arm.summonForecast,safeSummon:arm.safeSummon,opponentPolicy});
+    starter,seat,{deck1,fusionDeck1,swarm:arm.swarm,pierce:arm.pierce,decision:arm.decision,q:weights,defenderLead,summonForecast:arm.summonForecast,safeSummon:arm.safeSummon,opponentPolicy});
    assert.equal(result.invalid,0,'Illegal AI action');
    assert.equal(result.stats.prebattleOffensiveSouls,0,'Early Soul extraction');
    if(result.firstAttackTurn!==null)assert.ok(result.firstAttackTurn>stage);
