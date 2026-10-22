@@ -273,7 +273,7 @@ const profiles=step===0?fixed:[previous,
   synergy:clamp(previous.synergy+.22,.35,3),
   aggression:clamp(previous.aggression+.14,.4,1.8)}];
 function deck(c,i,hold){
- const seed=(hold?23000:6000)+step*1200+i*31+(hold?100:0);
+ const seed=(hold?5000:1200)+step*420+i*19;
  const d=c.style==='mixed'?mixed(c.tier,seed,c.ratio):
   makeBenchmarkDeck(catalog,c.tier,c.style,i%2?'veteran':'balanced',seed);
  assert.equal(d.deck.length,40,'Not a complete 40-card deck');
