@@ -239,7 +239,7 @@ assert.ok(cutoff>0,'Changed source layout in v14.8.6');
 const prelude=previous.slice(0,cutoff);
 const glue=[
  'patch('+JSON.stringify("+'\\n'+lookahead148.toString()+'\\n'+explain146.toString()")+','+
-  JSON.stringify("+'\\n'+lookahead148.toString()+'\\n'+lookahead1487.toString()+'\\n'+explain146.toString()")+');',
+  JSON.stringify("+'\\n'+lookahead148.toString()+'\\n'+visibleReply1487.toString()+'\\n'+lookahead1487.toString()+'\\n'+explain146.toString()")+');',
  'patch('+JSON.stringify("'suggested=lookahead148(game,weights,tally,ARCANE144_SIDES[side]);',")+','+
   JSON.stringify("'suggested=lookahead1487(game,weights,tally,ARCANE144_SIDES[side]);',")+');',
  'patch('+JSON.stringify("vm.exec('var ARCANE147_TRACE='+String(auditCapture)+';');")+','+
