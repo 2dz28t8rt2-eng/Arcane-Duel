@@ -149,7 +149,7 @@ function game(s,roles=['prior147','prior147'],cfg=modeCases[0],capture=false,
  const c={...s,...cfg,neutralSkills:neutral};
  return play(c,model.weights,model.weights,'none','positions',false,2,
   'always',2.35,roles,{
-   bySide:[candidateProfiles[group(s)],oldProfiles[group(s)]],
+   bySide:roles.map(m=>m==='candidate'?candidateProfiles[group(s)]:oldProfiles[group(s)]),
    oldProfile:oldProfiles[group(s)]
   },capture);
 }
