@@ -3,7 +3,7 @@ on:
   push:
     branches: [development]
     paths:
-      - '.github/workflows/ai-v14912-summon-fusion-learning.yml'
+      - '.github/workflows/ai-v14912-predator-strategy-continued.yml'
       - 'tests/ai-v1512-persistent-Q-continuation.cjs'
       - 'tests/ai-v1512-safer-fusion-forecast-shards.cjs'
       - 'tests/ai-v1512-aggregate-shards.cjs'
