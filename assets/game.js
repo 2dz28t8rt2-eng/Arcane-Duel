@@ -212,7 +212,10 @@ if(g.mode==='pve'&&stage?.enabled===true&&[0,2,4,6,8,10].includes(stage.noAttack
   symmetricSides:stage.symmetricSides===true,
   // Explicit research-only anti-DEF Predator piercing. Nothing changes in live PvE.
   predatorArmorPierce:stage.symmetricSides===true&&[0,0.08,0.12].includes(stage.predatorArmorPierce)?
-   stage.predatorArmorPierce:0};
+   stage.predatorArmorPierce:0,
+  // Opt-in swarm study: 2% outgoing damage per own deployed Predator, max 5 slots.
+  predatorSwarmPercent:stage.symmetricSides===true&&[0,.02].includes(stage.predatorSwarmPercent)?
+   stage.predatorSwarmPercent:0};
  if(g.strategicTraining.symmetricSides)g.players.forEach(p=>{p.shield=0;}); // research removes the original second-seat opening shield for BOTH seats
 }
 g.openingDecayGrace=!!(g.mode==='pve'&&options.openingDecayGrace===true);g.maxLP=duelStartingLP(g.mode,g.opponentId,g.difficulty,g.context,options.showcase===true);g.players.forEach(p=>p.lp=g.maxLP);if(g.mode==='pve'&&!g.strategicTraining?.symmetricSides)g.players[0].shield=Math.min(600,g.players[0].shield+25*(profile?.upgrades?.openingAegis||0));g.fateUsed=[false,false];g.fateEvent=null;g.encounter=options.encounter?JSON.parse(JSON.stringify(options.encounter)):null;
