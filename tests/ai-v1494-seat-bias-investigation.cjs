@@ -2,6 +2,8 @@
 const fs=require('node:fs'),assert=require('node:assert/strict');
 let src=fs.readFileSync('tests/ai-v1493-extensive-strategy-replay-training.cjs','utf8');
 src=src.slice(0,src.indexOf("\nconst crypto=require('node:crypto');"));
+// This script borrows the simulator only, not the six-stage trainer CLI.
+src=src.replace('step=Number(process.argv[2])','step=0');
 function patch(a,b){assert.equal(src.split(a).length-1,1,'source mismatch: '+a);src=src.replace(a,b);}
 patch("strategicTraining:{enabled:true,noAttackTurns:scene.warmup,disableArenaLPDecay:true}});",
 "strategicTraining:{enabled:true,noAttackTurns:scene.warmup,disableArenaLPDecay:true,symmetricSides:!!scene.symmetricSides}});");
