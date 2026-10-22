@@ -127,7 +127,7 @@ function attackPlan(g){
  // Early opponents intentionally keep their easy-to-read, basic AI.
  // Tournament opponents III-X learn to eliminate the biggest live threat
  // with the weakest safe attacker instead of always attacking the smallest card.
- if(g.mode==='pve'&&g.active===1&&g.opponentId>=3){
+ if(g.mode==='pve'&&g.active===1&&!g.strategicTraining?.symmetricSides&&g.opponentId>=3){
   let best=null;
   for(const a of attackers)for(const t of targets){
    const strength=effectiveAttack(g,a.c,t.c),victim=dataOf(t.c),attacker=dataOf(a.c);
@@ -170,7 +170,7 @@ function applyAiAction(g,a){if(g.winner!==null)return null;switch(a.type){case '
 function aiTurn(g,policy='balanced'){const turn=g.turn;for(let i=0;i<40&&g.winner===null&&g.turn===turn;i++){const a=chooseAiAction(g,policy);if(!applyAiAction(g,a))throw Error('KI konnte ihre Aktion nicht ausführen: '+a.type);}if(g.winner===null&&g.turn===turn)throw Error('KI-Zug konnte nicht beendet werden.');}
 function simulateGame(g,playerPolicy='balanced',enemyPolicy='balanced'){for(let i=0;i<32&&g.winner===null;i++)aiTurn(g,g.active===0?playerPolicy:enemyPolicy);if(g.winner===null)throw Error('Duell konnte nicht abgeschlossen werden.');return g;}
 
-function coreCreateGame(options={}){const g=createClassicGame(options);g.maxLP=START_LP;g.context=options.context||'free';if(g.mode==='pve'){const baseEnemy=options.enemy||rpgEnemyLoadout(g.opponentId,options.difficulty,options.trainingStage),enemy={...baseEnemy,power:baseEnemy.power*(g.opponentId>0&&g.context!=='tournament'&&g.context!=='challenge'&&options.difficulty!=='hard'?.9:1)},loadouts=[{deck:options.deck||RPG_DEFAULT_DECK,fusionDeck:options.fusionDeck||RPG_START_FUSIONS,enhancements:options.enhancements||{},power:1,flatBonus:options.challenge==='untrained'?0:(options.flatBonus||0)},enemy];g.players=loadouts.map((l,id)=>{const allowed=id===1&&options.showcase?CARDS.filter(c=>c.rpg&&!c.fusionOnly&&!c.ace&&c.level>=8&&c.level<=10).map(c=>c.id):RPG_BASE_CARDS.map(c=>c.id);if(mainDeckError(l.deck,allowed))throw Error(mainDeckError(l.deck,allowed));if(fusionDeckError(l.fusionDeck))throw Error(fusionDeckError(l.fusionDeck));const deck=buildDeck(g,l.deck);return {id,lp:START_LP,shield:id===1-g.starter?OPENING_SHIELD:0,deck,originalDeck:[...deck],fusionDeck:[...l.fusionDeck],enhancements:{...l.enhancements},power:l.power||1,flatBonus:l.flatBonus||0,hand:[],field:Array(5).fill(null),graveyard:[]};});g.players.forEach(p=>drawToFive(g,p));}return g;}
+function coreCreateGame(options={}){const g=createClassicGame(options);g.maxLP=START_LP;g.context=options.context||'free';if(g.mode==='pve'){const baseEnemy=options.enemy||rpgEnemyLoadout(g.opponentId,options.difficulty,options.trainingStage),enemy={...baseEnemy,power:baseEnemy.power*(g.opponentId>0&&g.context!=='tournament'&&g.context!=='challenge'&&options.difficulty!=='hard'?.9:1)},loadouts=[{deck:options.deck||RPG_DEFAULT_DECK,fusionDeck:options.fusionDeck||RPG_START_FUSIONS,enhancements:options.enhancements||{},power:1,flatBonus:options.challenge==='untrained'?0:(options.flatBonus||0)},enemy];g.players=loadouts.map((l,id)=>{const allowed=id===1&&options.showcase?CARDS.filter(c=>c.rpg&&!c.fusionOnly&&!c.ace&&c.level>=8&&c.level<=10).map(c=>c.id):RPG_BASE_CARDS.map(c=>c.id);if(mainDeckError(l.deck,allowed))throw Error(mainDeckError(l.deck,allowed));if(fusionDeckError(l.fusionDeck))throw Error(fusionDeckError(l.fusionDeck));const deck=buildDeck(g,l.deck);return {id,researchSymmetric:options.strategicTraining?.enabled===true&&options.strategicTraining?.symmetricSides===true,lp:START_LP,shield:id===1-g.starter?OPENING_SHIELD:0,deck,originalDeck:[...deck],fusionDeck:[...l.fusionDeck],enhancements:{...l.enhancements},power:l.power||1,flatBonus:l.flatBonus||0,hand:[],field:Array(5).fill(null),graveyard:[]};});g.players.forEach(p=>drawToFive(g,p));}return g;}
 
 function fusionOptions(g,levels,materials=[]){const limit=fusionBudget(levels,g,materials),p=g.players[g.active];return [...new Set(p.remainingFusion||p.fusionDeck)].map(id=>CARDS[id]).filter(c=>c.level<=limit);}
 function fusionLevel(levels,g){return g?.mode==='pve'?Math.max(0,...fusionOptions(g,levels).map(c=>c.level)):fusionBudget(levels,g);}
@@ -513,7 +513,7 @@ function normalRoleBonus(c,stat,owner=0,upgrades=profile?.upgrades){
 }
 function baseStat(c,stat,p){
  return c[stat]*(p?.power||1)+ascensionStep(c.id)*(p?.enhancements?.[c.id]||0)+(p?.flatBonus||0)+
-  (p?normalRoleBonus(c,stat,p.id):0);
+  (p?normalRoleBonus(c,stat,p.id,p.researchSymmetric?{}:profile?.upgrades):0);
 }
 
 const XP_MILESTONES=[5,10,15,20,25,30,35,40,45,50];
