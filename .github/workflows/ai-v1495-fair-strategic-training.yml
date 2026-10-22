@@ -1,0 +1,101 @@
+name: Arcane Duel - v14.9.5 Fair Strategic Learning and Seat Audit
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v1495-fair-strategic-training.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v1495-fair-learning-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  fair-strategy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify fairness gates and both-seat Soul Raid before any study
+        run: |
+          node --check tests/ai-v1493-extensive-strategy-replay-training.cjs
+          node --check tests/ai-v1494-seat-bias-investigation.cjs
+          node --test tests/strategic-warmup-v1492.test.cjs tests/strategic-seat-parity-v1494.test.cjs tests/strategic-seat-parity-v1495.test.cjs tests/essence-combat.test.cjs tests/opening-grace-postsummon-v149.test.cjs
+      - name: Paired seat parity on old PvE rules versus symmetric research rules
+        run: |
+          node --max-old-space-size=4096 tests/ai-v1494-seat-bias-investigation.cjs
+      - name: Train staged candidates with active Soul Raid, full board building and independent holdout
+        run: |
+          set -euo pipefail
+          for stage in 0 1 2 3 4 5; do
+            node --expose-gc --max-old-space-size=4096 tests/ai-v1493-extensive-strategy-replay-training.cjs "$stage"
+          done
+      - name: Validate isolated parity, training selection, fresh holdout and active Soul utilization
+        run: |
+          node - <<'JS'
+          const assert=require('node:assert/strict'),fs=require('node:fs');
+          const a=JSON.parse(fs.readFileSync('artifacts/v1494/report.json','utf8'));
+          const r=JSON.parse(fs.readFileSync('artifacts/v1493/report.json','utf8'));
+          assert.equal(a.matchCount,360);
+          assert.equal(a.groups.length,12);
+          assert.equal(r.schema,'arcane-v1493-extensive-strategic-replay');
+          assert.deepEqual(r.stageOrder,[10,8,6,4,2,0]);
+          assert.equal(r.holdoutMatches,288);
+          assert.equal(r.trainingMatches,1440);
+          assert.equal(r.productionActive,false);
+          assert.equal(r.totals.illegalActions,0);
+          assert.equal(r.totals.soulViolations,0);
+          assert.equal(r.totals.firstAttackViolations,0);
+          assert.ok(r.totals.actualChangedActions>0);
+          const group=a.groups.filter(x=>x.controls==='research-symmetric');
+          const mirrored={};
+          for(const policy of ['balanced-mirror','strategic-mirror']){
+            const g=group.filter(x=>x.policy===policy);
+            const wins0=g.reduce((s,x)=>s+x.seat0Wins,0);
+            const wins1=g.reduce((s,x)=>s+x.seat1Wins,0);
+            const timeouts=g.reduce((s,x)=>s+x.timeouts,0);
+            assert.equal(wins0+wins1+timeouts,90);
+            assert.ok(Math.abs(wins0-wins1)<=30,
+              'Symmetric mirror still shows excessive seat bias for '+policy);
+            mirrored[policy]={seat0Wins:wins0,seat1Wins:wins1,timeouts};
+          }
+          const used=r.totals.researchSoulActionsBySeat||[];
+          assert.equal(used.length,2,'Missing both-seat active Soul telemetry');
+          assert.ok(used[0]>0&&used[1]>0,
+            'An AI seat was unable to use active Soul actions in real research duels');
+          const trial={
+            schema:'arcane-v1495-symmetric-seat-fair-strategy-training',
+            status:'completed',sourceSha:process.env.GITHUB_SHA,
+            productionActive:false,activeSoulRaidBothSeats:true,
+            noEarlySoulActions:true,trainingMatches:r.trainingMatches,
+            holdoutMatches:r.holdoutMatches,mirroredSeatAuditGames:a.matchCount,
+            researchMirrors:mirrored,totals:r.totals,
+            stageScores:r.stages.map(x=>({stage:x.stage,
+              selected:x.selected,wins:x.holdout.wins,
+              games:x.holdout.games,timeouts:x.holdout.timeouts,
+              soulBySeat:x.holdout.researchSoulActionsBySeat})),
+            limitations:['Symmetric research uses no arena LP decay, unlike the normal game.',
+              'Mirrored seat wins are not guaranteed to be 50/50 with finite seeded decks.',
+              'The selected AI is experimental, not deployed.',
+              'Replay outcome credit has not demonstrated reliable single-action causal learning.',
+              'Tournament boss and quest-only exceptions are outside the mirrored free-duel curriculum.']
+          };
+          fs.mkdirSync('artifacts/v1495',{recursive:true});
+          fs.writeFileSync('artifacts/v1495/report.json',JSON.stringify(trial,null,2)+'\n');
+          console.log('ARCANE_V1495_FINAL '+JSON.stringify(trial));
+          JS
+      - name: Preserve learning, tactical decisions, complete holdouts and seat parity proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1495-fair-strategy-learning-and-mirror-audit
+          path: |
+            artifacts/v1493/
+            artifacts/v1494/
+            artifacts/v1495/
+          retention-days: 90
+          if-no-files-found: warn
