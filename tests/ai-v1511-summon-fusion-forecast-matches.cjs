@@ -144,6 +144,8 @@ patch("  options.sort((a,b)=>b.score-a.score);",
  "  }",
  "  }"
  ].join('\n'));
+patch("   try{aiTurn(g,g.active===learner?'balanced':'balanced');}",
+"   try{aiTurn(g,g.active===learner?'balanced':(scene.opponentPolicy||'balanced'));}");
 patch("function sceneResult(deck,warmup,seed,profile,starter,candidateSeat){",
  "function sceneResult(deck,warmup,seed,profile,starter,candidateSeat,extras={}){");
 patch("  seed,profile,warmup,starter,candidateSeat};",
@@ -165,14 +167,15 @@ function runStudy(){
   for(const arm of arms)for(const starter of [0,1])for(const seat of [0,1]){
    const deck=seat===0?pred.deck:enemy.deck,deck1=seat===0?enemy.deck:pred.deck;
    const matchSeed=15110000+Number(defenderLead)*100000+stage*1000+j*160+i*14+starter*3;
+   const opponentPolicy=['economy','economy','offensive','offensive'][j];
    const weights=arm.decision==='heuristic'?null:data.find(x=>x.swarm===arm.swarm&&x.pierce===arm.pierce)?.learnedQ;
    const result=sceneResult({deck,fusionDeck:pred.fusionDeck},stage,matchSeed,
     {name:'forecast',defense:.85,synergy:1,waitCost:1.1,materialCost:.53,aggression:1},
-    starter,seat,{deck1,swarm:arm.swarm,pierce:arm.pierce,decision:arm.decision,q:weights,defenderLead,summonForecast:arm.summonForecast});
+    starter,seat,{deck1,swarm:arm.swarm,pierce:arm.pierce,decision:arm.decision,q:weights,defenderLead,summonForecast:arm.summonForecast,opponentPolicy});
    assert.equal(result.invalid,0,'Illegal AI action');
    assert.equal(result.stats.prebattleOffensiveSouls,0,'Early Soul extraction');
    if(result.firstAttackTurn!==null)assert.ok(result.firstAttackTurn>stage);
-   const row={arm:arm.label,defenderLead,stage,opponent:styles[j],scenario:i,
+   const row={arm:arm.label,defenderLead,stage,opponent:styles[j],opponentPolicy,scenario:i,
     seat,starter,win:result.candidateWin,timeout:result.timeout,
     qMoves:result.stats.qDecisions||0,lookaheadChecks:result.stats.lookaheadChecks||0,
     lookaheadChanges:result.stats.lookaheadChanges||0,
@@ -195,7 +198,7 @@ function runStudy(){
   limitations:['Q values trained only on separate tactical public-board situations.',
    'Full 40-card Predator decks versus 40-card opponent archetype decks, both seats and starter directions.',
    'Different archetype decks have different hands. No artificial matching of cross-role hands.',
-   'The frozen balanced opponent is not a full league of independent strong champions.',
+   'The opponent policies are economy (Guardian/Soul) and offensive (Fusion/Hybrid), not a self-play opponent league.',
    'Hard defender scenarios start two genuine opponent deck cards in DEF slots: controlled asymmetric stress tests, not normal opening play.',
    'Lookahead simulates at most one visible enemy attack and one next-turn own attack. It does NOT roll full turn effects, draws, fusion, hidden hands or arena decay.',
    'Chosen safe-Q must pass a confidence and heuristic-regret margin; all policies remain offline research.',
