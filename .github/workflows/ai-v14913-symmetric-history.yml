@@ -1,0 +1,82 @@
+name: Arcane Duel - v14.9.13 Symmetric Historical Curriculum
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v14913-symmetric-history.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  train-symmetric-curriculum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 160
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify source syntax and symmetrical rules
+        run: |
+          node --check tests/ai-v1513-history.cjs
+          node --check tests/ai-v1513-Q.cjs
+          node --check tests/ai-v1513-mirror-shards.cjs
+          node --check tests/ai-v1513-aggregate.cjs
+          node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
+      - name: Restore vetted archived training-only experience and previous Q checkpoint
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/arcane-prev /tmp/arcane-history/v1511 /tmp/arcane-history/v1512 artifacts/v1513
+          for rid in 39803691439 39843438099; do
+            status=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$rid" --jq '.conclusion')
+            test "$status" = success
+          done
+          gh run download 39803691439 --repo "$GITHUB_REPOSITORY" --name arcane-v14911-summon-fusion-training --dir /tmp/arcane-history/v1511
+          gh run download 39843438099 --repo "$GITHUB_REPOSITORY" --name arcane-v14912-veteran-predator-training --dir /tmp/arcane-history/v1512
+          LAST=$(gh run list --workflow ai-v14913-symmetric-history.yml --branch development --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+          if [ -n "$LAST" ]; then
+            gh run download "$LAST" --repo "$GITHUB_REPOSITORY" --name arcane-v14913-symmetric-history --dir /tmp/arcane-prev
+            echo "ARCANE_V1513_RESTORED $LAST"
+          else
+            cp /tmp/arcane-history/v1512/training-q-and-examples.json /tmp/arcane-prev/training-q-and-examples.json
+            echo "ARCANE_V1513_RESTORED 39843438099"
+          fi
+          node tests/ai-v1513-history.cjs
+      - name: Update persistent Q using training-only history and unseen validation
+        run: node --expose-gc --max-old-space-size=3200 tests/ai-v1513-Q.cjs
+      - name: Evaluate 2304 complete 40-card mirrored duels in 36 shards
+        run: |
+          set -euo pipefail
+          for shard in $(seq 0 35); do
+            echo "::group::v14.9.13 mirrored shard $shard"
+            node --expose-gc --max-old-space-size=1800 tests/ai-v1513-mirror-shards.cjs "$shard"
+            echo "::endgroup::"
+          done
+      - name: Aggregate all unique matched pairs and tactic metrics
+        run: node --max-old-space-size=2400 tests/ai-v1513-aggregate.cjs
+      - name: Reject missing learning or asymmetric experiments
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const m=JSON.parse(fs.readFileSync('artifacts/v1513/fullmatch.json','utf8'));
+          const q=JSON.parse(fs.readFileSync('artifacts/v1513/report.json','utf8'));
+          a.equal(m.matches,2304);a.equal(m.symmetric.noHandicaps,true);
+          a.equal(m.symmetric.sameDeck,true);a.equal(m.symmetric.sameOpeningHand,true);
+          a.equal(q.priorCheckpointLoaded,true);a.ok(q.historicalSources.length>=2);
+          a.equal(m.productionEnabled,false);a.equal(q.productionEnabled,false);
+          a.ok(m.policies.length===4&&m.policies.every(p=>p.games===576));
+          console.log('ARCANE_V1513_VERIFIED '+JSON.stringify({games:m.matches,
+            sources:q.historicalSources,acceptedQ:q.updatedQArms,
+            policies:m.policies.map(p=>({name:p.label,wins:p.wins,secondCounters:p.doubleCounters}))}));
+          JS
+      - name: Save history, Q checkpoint, individual games and summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v14913-symmetric-history
+          path: artifacts/v1513/
+          retention-days: 90
+          if-no-files-found: warn
