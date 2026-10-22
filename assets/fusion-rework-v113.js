@@ -163,7 +163,7 @@
   // Revamped Fusionskunde: one real chained fusion per PvE duel gets +3%
   // before the actual ATK/DEF rolls. Preview never consumes the perk.
   value.fusionLoreChainPct=0;
-  if(g?.active===0&&!g.arcaneFusionLoreChainUsed&&
+  if(g?.active===0&&!g?.strategicTraining?.symmetricSides&&!g.arcaneFusionLoreChainUsed&&
      (profile?.upgrades?.fusionLore||0)>0&&materials.some(c=>c?.fusion)){
    value.factor=clamp(value.factor+.03,.72,2.2);
    value.fusionLoreChainPct=3;
@@ -195,7 +195,7 @@
   const earned=Math.max(0,Math.min(30,(totalQuality-1)*100-carried));
   result.fusionHeritage={earnedPct:+earned.toFixed(2),carriedPct:+carried.toFixed(2)};
   result.fusionCoreLevel=rule.core;
-  if(g.active===0&&instances.some(c=>c.fusion)&&
+  if(g.active===0&&!g.strategicTraining?.symmetricSides&&instances.some(c=>c.fusion)&&
      !g.arcaneFusionLoreChainUsed&&(profile?.upgrades?.fusionLore||0)>0){
     g.arcaneFusionLoreChainUsed=true;
     logEvent(g,'✦ Fusionskunde: +3 % Qualität bei der ersten echten Weiterfusion dieses Duells.');
