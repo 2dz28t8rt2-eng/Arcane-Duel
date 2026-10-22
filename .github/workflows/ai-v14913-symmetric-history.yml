@@ -1,5 +1,5 @@
 name: Arcane Duel - v14.9.13 Symmetric Historical Curriculum
-# Rerun after rejecting nonfinite historical samples and repairing soul-energy rewards
+# Rerun with verified historical replay and dynamic equality-only LP assertion
 on:
   push:
     branches: [development]
