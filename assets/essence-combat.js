@@ -283,7 +283,11 @@
    const s=statLayer(d),rawStrength=guardedFirst?Math.floor(effectiveAttack(g,a,d)*.5):effectiveAttack(g,a,d);
     // PvE only: guardian and soul roles dampen incoming HP damage.
     // Attackers still win via focused fire; no immunity and no free ATK counter buff.
-    const mitigation=isDefender(d)?.35:0;
+    // Training-only Predator identity: break layered defensive armor without
+    // increasing attacks into ATK monsters or free direct LP damage.
+    const predatorPierce=g.strategicTraining?.symmetricSides&&roleOf(a)==='predator'?
+     (g.strategicTraining.predatorArmorPierce||0):0;
+    const mitigation=isDefender(d)?Math.max(0,.35-predatorPierce):0;
     const strength=Math.max(0,Math.floor(rawStrength*(1-mitigation)));
     if(mitigation&&strength<rawStrength)logEvent(g,dataOf(d).name+
       ' · Verteidiger-Rüstung: '+(rawStrength-strength)+' Schaden abgewehrt (35 %).');
