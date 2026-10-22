@@ -160,7 +160,7 @@ function duel1492(scene){
   return best.a;
  }
  chooseAiAction=function(game,policy){
-  if(game!==g||game.active!==learner)return baseChoose(game,policy);
+  if(game!==g||game.active!==learner||game.pending)return baseChoose(game,policy);
   const phase=game.aiPhase;
   let selected=null;
   if(phase==='summon')selected=candidateSummon();
