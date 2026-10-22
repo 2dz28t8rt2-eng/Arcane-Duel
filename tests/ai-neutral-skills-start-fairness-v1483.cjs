@@ -170,8 +170,25 @@ function verifyNeutral(m,neutral=true){
    'Test-only mode leaked across isolated matches');
  }
 }
+// Shard the large, independent duel simulations into fresh Node processes.
+// A single VM process grew beyond the V8 heap limit in GitHub run #39722113328.
+// Dataset partitioning is by original array position (no replacement/re-use).
+const shardText=process.env.ARCANE_V1483_SHARD;
+const shardIndex=shardText===undefined?null:Number(shardText);
+const shardCount=4;
+if(shardIndex!==null){
+ assert.ok(Number.isInteger(shardIndex)&&shardIndex>=0&&shardIndex<shardCount,
+  'ARCANE_V1483_SHARD must be 0, 1, 2, or 3');
+}
+const selectedTrain=shardIndex===null?train:train.filter((_,i)=>i%shardCount===shardIndex);
+const selectedHoldout=shardIndex===null?holdout:holdout.filter((_,i)=>i%shardCount===shardIndex);
+console.log('ARCANE_V1483_SHARD_CONFIG '+JSON.stringify({
+ shardIndex,shardCount,trainCount:selectedTrain.length,
+ holdoutCount:selectedHoldout.length,fullTrain:train.length,
+ fullHoldout:holdout.length}));
+assert.ok(selectedTrain.length>0&&selectedHoldout.length>0);
 const reinstatement=[];
-for(const s of train.slice(0,2)){
+for(const s of selectedTrain.slice(0,2)){
  const on=game(s,['prior147','prior147'],modeCases[0],false,false);
  const off=game(s,['prior147','prior147'],modeCases[0],false,true);
  verifyNeutral(on,false);verifyNeutral(off,true);
@@ -188,8 +205,8 @@ function add(map,key,win){
  p.games++;p.seat0Wins+=Number(win===0);p.seat1Wins+=Number(win===1);
 }
 const benchCases=[];
-const pilot=Math.max(7,Math.min(14,train.length));
-for(const s of train.slice(0,pilot)){
+const pilot=Math.max(7,Math.min(14,selectedTrain.length));
+for(const s of selectedTrain.slice(0,pilot)){
  for(const c of modeCases){
   const m=game(s,['prior147','prior147'],c,false,true);
   verifyNeutral(m);
@@ -207,7 +224,7 @@ for(const r of Object.values(openingDiagnostics))assert.ok(r.games>=7);
 const perf={on:0,off:0};
 const trainingChoice={};
 for(const k of Object.keys(sections)){
- const samples=train.filter(s=>group(s)===k);
+ const samples=selectedTrain.filter(s=>group(s)===k);
  // Keep selected strategy vs old v14.7 reference, test two seating assignments.
  let wins=0,duels=0,changed=0,compared=0;
  for(const s of samples){
@@ -225,7 +242,7 @@ const detailed=[];
 const mirrorReversals={pairs:0,sameSeatWinner:0,shiftedSeatWinner:0,
  candidateBoth:0,oldBoth:0,seat0Wins:0,policyWins:0};
 const openingEffects={scenarios:0,starterSwapChangedWinner:0,handDeckSwapChangedWinner:0};
-for(const s of holdout){
+for(const s of selectedHoldout){
  const perScene={};
  for(const cond of modeCases){
   const base=game(s,['prior147','prior147'],cond,false,true);
@@ -273,7 +290,7 @@ for(const s of holdout){
  });
 }
 assert.equal(Object.keys(holdoutMatrix).length,4);
-for(const r of Object.values(holdoutMatrix))assert.equal(r.scenarios,holdout.length);
+for(const r of Object.values(holdoutMatrix))assert.equal(r.scenarios,selectedHoldout.length);
 const totalPolicies=mirrorReversals.policyWins;
 const firstPlayerBreakdown={
  starter0Base:holdoutMatrix.starter0_base.baselineWins,
@@ -291,6 +308,8 @@ const neutralizedAssertions={
 };
 const report={schema:'arcane-v1483-neutral-skills-factorial-opening-diagnostics',
  status:'completed',sourceCommit:process.env.GITHUB_SHA||'unknown',
+ shardIndex,shardCount,fullTrainScenarios:train.length,fullHoldoutScenarios:holdout.length,
+ splitReason:'v14.8.3 first full simulation ran out of V8 memory; four isolated subprocesses',
  testOnly:true,productionIntegrated:false,promotionEligible:false,
  controls:{skillsAndPerksDefault:'enabled in actual game',
   isolatedNeutralMode:'enabled only in trainer VM and only when scenario.neutralSkills=true',
@@ -301,7 +320,7 @@ const report={schema:'arcane-v1483-neutral-skills-factorial-opening-diagnostics'
  pilot:{samples:benchCases.length,neutralVerification:reinstatement,
   openingDiagnostics},
  training:trainingChoice,
- holdout:{scenarios:holdout.length,conditions:holdoutMatrix,
+ holdout:{scenarios:selectedHoldout.length,conditions:holdoutMatrix,
   mirrorReversals,firstPlayerBreakdown,
   openingEffects:openingEffects,
   possibleComparators:'seat vs starter vs shuffled starting hand'},
@@ -316,7 +335,10 @@ const report={schema:'arcane-v1483-neutral-skills-factorial-opening-diagnostics'
   'The game code, Main branch, real profiles and original champion parameters are untouched.'
  ]};
 fs.mkdirSync('artifacts/v1483',{recursive:true});
-fs.writeFileSync('artifacts/v1483/report.json',JSON.stringify(report,null,2)+'\n');
+if(shardIndex!==null)fs.mkdirSync('artifacts/v1483/shards',{recursive:true});
+const reportPath=shardIndex===null?'artifacts/v1483/report.json':
+ 'artifacts/v1483/shards/report-'+shardIndex+'.json';
+fs.writeFileSync(reportPath,JSON.stringify(report,null,2)+'\n');
 fs.writeFileSync('artifacts/v1483/mode-config.json',JSON.stringify({
  schema:'arcane-v1483-test-only-reversible-neutral-skills',
  defaultActualGameplay:'unchanged (skills and perks enabled)',
@@ -327,11 +349,14 @@ fs.writeFileSync('artifacts/v1483/mode-config.json',JSON.stringify({
  restoration:'scene.neutralSkills=false loads original modules into a new VM',
  noRuntimeGameModification:true
 },null,2)+'\n');
-fs.writeFileSync('artifacts/v1483/opening-examples.json',JSON.stringify({
+fs.writeFileSync(shardIndex===null?'artifacts/v1483/opening-examples.json':
+ 'artifacts/v1483/shards/opening-'+shardIndex+'.json',JSON.stringify({
  schema:'arcane-v1483-opener-swap-matches',examples:detailed,
+ shardIndex,fullTrainScenarios:train.length,fullHoldoutScenarios:holdout.length,
  pilotCases:benchCases,disabledSkillControls:reinstatement
 },null,2)+'\n');
 console.log('ARCANE_V1483_SUMMARY '+JSON.stringify({
+ shardIndex,
  pilot:neutralizedAssertions,
  training:trainingChoice,
  mirrored:mirrorReversals,
