@@ -263,6 +263,17 @@
   if(!a?.fusion&&g.players[g.active].field.some(c=>c&&c!==a&&CARDS[c.id]?.role==='support'&&c.mode==='def'))
    atk+=Math.min(160,25+dataOf(a).level*8);
   if(a?.id===essence().chosen&&CARDS[a.id]?.essenceSchool==='predator'&&a.essenceCombat?.doubleChoice===2)atk=Math.floor(atk*.7);
+  // Symmetric research variant: the ATTACKER must be a Predator, and only
+  // currently deployed, living Predator roles in its OWN five field slots count.
+  // Field fusion roleOverrides are included. A Predator counts itself.
+  // Applied as effective attack rather than altering permanent base ATK:
+  // applies equally to DEF chip, ATK combat and unblocked LP damage.
+  const percent=g?.strategicTraining?.symmetricSides?
+   (g.strategicTraining.predatorSwarmPercent||0):0;
+  if(percent&&roleOf(a)==='predator'){
+   const deployed=g.players[g.active].field.filter(c=>c&&roleOf(c)==='predator').length;
+   atk=Math.floor(atk*(1+Math.min(5,deployed)*percent));
+  }
   return atk;
  };
  attack=function(g,ai,di){
