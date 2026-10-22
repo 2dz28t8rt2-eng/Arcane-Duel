@@ -11,7 +11,7 @@
  const isResonator=c=>!!c&&c.fusion===true&&c.roleOverride==='resonator';
  const charges=c=>Number.isInteger(c?.resonance)?Math.max(0,Math.min(isResonator(c)?2:3,c.resonance)):0;
  function evaluate(g,materials){
-  if(g?.mode!=='pve'||g.active!==0||!Array.isArray(materials))return {bonus:0,materials:0,charges:0};
+  if(g?.mode!=='pve'||(g.active!==0&&!g.strategicTraining?.symmetricSides)||!Array.isArray(materials))return {bonus:0,materials:0,charges:0};
   const field=new Set(g.players?.[g.active]?.field?.filter(Boolean).map(c=>c.uid)||[]);
   let base=0,resonator=0,n=0,rn=0,total=0;
   for(const c of materials){
@@ -28,13 +28,13 @@
  }
  const oldAdvanceTurn=advanceTurn;
  advanceTurn=function(g,...args){
-  if(!g||g.mode!=='pve'||g.active!==0||g.winner!==null||g.pending)
+  if(!g||g.mode!=='pve'||(g.active!==0&&!g.strategicTraining?.symmetricSides)||g.winner!==null||g.pending)
    return oldAdvanceTurn(g,...args);
-  const start=g.turn,owned=[...g.players[0].field.filter(Boolean)];
+  const start=g.turn,owner=g.active,owned=[...g.players[owner].field.filter(Boolean)];
   const value=oldAdvanceTurn(g,...args);
   if(value!==false&&g.turn>start){
    for(const c of owned){
-    if(!g.players[0].field.includes(c)||!(isAllrounder(c)||isResonator(c))||c.summonedTurn===start)continue;
+    if(!g.players[owner].field.includes(c)||!(isAllrounder(c)||isResonator(c))||c.summonedTurn===start)continue;
     c.resonance=Math.min(isResonator(c)?2:3,charges(c)+1);
    }
   }
