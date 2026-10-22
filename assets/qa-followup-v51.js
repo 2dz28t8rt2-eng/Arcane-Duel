@@ -64,7 +64,8 @@
   const turn=g.turn,owner=g.active;
   const eligible=g.mode==='pve'&&g.winner===null&&!g.pending&&
     g.evolutionMode!=='burst'?
-    g.players[owner].field.filter(c=>c?.card&&c.summonedTurn!==turn):[];
+    g.players[owner].field.filter(c=>c?.card&&c.summonedTurn!==turn&&
+     !(g.openingDecayGrace&&c.summonedTurn===1&&turn===3)):[];
   const result=lastAdvance(g,...args);
   if(result===false||g.turn===turn||g.mode!=='pve')return result;
   for(const c of eligible){
