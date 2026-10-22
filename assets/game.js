@@ -205,11 +205,13 @@ const stage=options.strategicTraining;
 if(g.mode==='pve'&&stage?.enabled===true&&[0,2,4,6,8,10].includes(stage.noAttackTurns)){
  g.strategicTraining={version:1,noAttackTurns:stage.noAttackTurns,
   disableArenaLPDecay:stage.disableArenaLPDecay===true,
-  // Full offensive soul freeze until BOTH players completed at least 3 own turns,
-  // AND the first actual attack window begins. No turn-2 Soul shortcut.
-  soulUnlockTurn:Math.max(7,stage.noAttackTurns+1)};
+  // Mirror the attack start: in standard initiative the second duelist may
+  // attack on global turn 2. An even research lock N ends before N+1.
+  soulUnlockTurn:Math.max(2,stage.noAttackTurns+1),
+  // Isolate player-only meta perks without altering ordinary career PvE.
+  symmetricSides:stage.symmetricSides===true};
 }
-g.openingDecayGrace=!!(g.mode==='pve'&&options.openingDecayGrace===true);g.maxLP=duelStartingLP(g.mode,g.opponentId,g.difficulty,g.context,options.showcase===true);g.players.forEach(p=>p.lp=g.maxLP);if(g.mode==='pve')g.players[0].shield=Math.min(600,g.players[0].shield+25*(profile?.upgrades?.openingAegis||0));g.fateUsed=[false,false];g.fateEvent=null;g.encounter=options.encounter?JSON.parse(JSON.stringify(options.encounter)):null;
+g.openingDecayGrace=!!(g.mode==='pve'&&options.openingDecayGrace===true);g.maxLP=duelStartingLP(g.mode,g.opponentId,g.difficulty,g.context,options.showcase===true);g.players.forEach(p=>p.lp=g.maxLP);if(g.mode==='pve'&&!g.strategicTraining?.symmetricSides)g.players[0].shield=Math.min(600,g.players[0].shield+25*(profile?.upgrades?.openingAegis||0));g.fateUsed=[false,false];g.fateEvent=null;g.encounter=options.encounter?JSON.parse(JSON.stringify(options.encounter)):null;
  if(g.mode==='pve'&&g.context==='tournament'&&g.opponentId>0&&!profile.cleared.includes(g.opponentId)&&!(profile.tournamentLosses?.[g.opponentId]>0)){
  const ace=CARDS[OPPONENTS[g.opponentId].signature],best=Math.max(...g.players[0].originalDeck.map(id=>baseStat(CARDS[id],'atk',g.players[0])));const boost=Math.min(.12,Math.max(0,(best-ace.atk)/Math.max(1,ace.atk)));
  if(boost>0){g.firstTrialBoost=boost;g.players[1].power=(g.players[1].power||1)*(1+boost);for(const c of [...g.players[1].hand,...g.players[1].field.filter(Boolean)])if(c?.card){c.card.atk=round10(c.card.atk*(1+boost));c.card.def=round10(c.card.def*(1+boost));}}
@@ -217,7 +219,7 @@ g.openingDecayGrace=!!(g.mode==='pve'&&options.openingDecayGrace===true);g.maxLP
 function fusionPenalty(g){return g.mode==='pve'&&g.active===1&&g.context==='tournament'?(g.opponentId===1?100:g.opponentId===2?50:0):0;}
 function materialBase(c,stat){return Math.max(0,dataOf(c)[stat]-(c.materialBonus?.[stat]||0));}
 function materialBlocks(g,instances){return instances.flatMap(c=>c.fusion?Array(Math.min(12,dataOf(c).level)).fill(10):Array(g.players[g.active].enhancements[c.id]||0).fill(20)).slice(0,24);}
-function fusedInstance(g,instances,levels){if(g.mode!=='pve')return classicFusedInstance(g,instances,levels);const pool=fusionOptions(g,levels),p=g.players[g.active],template=g.fusionChoice!==undefined?pool.find(c=>c.id===g.fusionChoice):[...pool].sort((a,b)=>b.level-a.level||b.atk-a.atk)[0];if(!template)return null;const rolls=Math.min(4,qualityRolls(levels)+0+(g.mode==='pve'&&g.active===0&&!g.totalFusions[0]?(profile?.upgrades?.fusionLore||0):0));let best=null;for(let n=0;n<rolls;n++){const roll={atk:round10(baseStat(template,'atk',p)*(.94+randomInt(g,13)/100)),def:round10(baseStat(template,'def',p)*(.94+randomInt(g,13)/100))};if(!best||roll.atk+roll.def>best.atk+best.def)best=roll;}
+function fusedInstance(g,instances,levels){if(g.mode!=='pve')return classicFusedInstance(g,instances,levels);const pool=fusionOptions(g,levels),p=g.players[g.active],template=g.fusionChoice!==undefined?pool.find(c=>c.id===g.fusionChoice):[...pool].sort((a,b)=>b.level-a.level||b.atk-a.atk)[0];if(!template)return null;const rolls=Math.min(4,qualityRolls(levels)+0+(g.mode==='pve'&&g.active===0&&!g.strategicTraining?.symmetricSides&&!g.totalFusions[0]?(profile?.upgrades?.fusionLore||0):0));let best=null;for(let n=0;n<rolls;n++){const roll={atk:round10(baseStat(template,'atk',p)*(.94+randomInt(g,13)/100)),def:round10(baseStat(template,'def',p)*(.94+randomInt(g,13)/100))};if(!best||roll.atk+roll.def>best.atk+best.def)best=roll;}
 const bonus={atk:0,def:0};for(const n of materialBlocks(g,instances))bonus[randomInt(g,2)?'atk':'def']+=n;for(const stat of ['atk','def'])best[stat]=Math.max(0,Math.max(best[stat],Math.ceil(Math.max(...instances.map(c=>materialBase(c,stat)))*.95/10)*10)+bonus[stat]-fusionPenalty(g));
 p.remainingFusion.splice(p.remainingFusion.indexOf(template.id),1);logEvent(g,template.name+': Fusionskopie verbraucht. Die endgültigen Werte werden erst nach dem Ausspielen enthüllt.');return {...newInstance(g,template.id),card:{level:template.level,...best},fusion:true,materialBonus:bonus,qualityRolls:rolls,attacked:instances.some(c=>c.attacked)};}
 function placePending(g,idx,choice){const result=placePending16(g,idx,choice);if(result&&g.mode==='pve'){const c=result.card;c.summonedTurn=g.turn;c.decayClass=c.fusion?'fusion':c.id<20?'starter':'normal';c.decayTotal=0;}return result;}
@@ -226,7 +228,7 @@ function creatureDecayRate(g,c,owner=g?.active){
  const lv=Math.max(1,Math.min(10,dataOf(c).level|0));
  const base=ASCENSION_DECAY_BY_LEVEL[lv];
  // A true PvE perk, available only to the player's own creatures.
- const reduction=owner===0?Math.max(0,Math.min(2,profile?.upgrades?.resilience||0))*.10:0;
+ const reduction=owner===0&&!g?.strategicTraining?.symmetricSides?Math.max(0,Math.min(2,profile?.upgrades?.resilience||0))*.10:0;
  return Math.max(1,Math.round(base*(1-reduction)));
 }
 function advanceTurn(g){if(g.winner===null&&!g.pending&&g.mode==='pve'){
