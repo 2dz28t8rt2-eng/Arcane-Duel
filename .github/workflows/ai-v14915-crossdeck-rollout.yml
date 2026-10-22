@@ -1,4 +1,4 @@
-name: Arcane Duel - v14.9.15 Cross-Deck 80-20 Protected Q and Counter-Rollouts
+name: Arcane Duel - v14.9.15 Cross-Deck 80-20 Protected Q and Counter-Rollouts (verified attackPlan contract)
 on:
   push:
     branches: [development]
@@ -72,6 +72,21 @@ jobs:
           set -euo pipefail
           node --expose-gc --max-old-space-size=1800 tests/ai-v1515-crossdeck-shards.cjs 0
           node --expose-gc --max-old-space-size=1800 tests/ai-v1515-crossdeck-shards.cjs 32
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const rows=[0,32].flatMap(i=>JSON.parse(fs.readFileSync(
+            'artifacts/v1515/shards/part-'+String(i).padStart(2,'0')+'.json','utf8')).cases);
+          const deep=rows.filter(r=>r.arm==='Q-two-counter-planner');
+          const shallow=rows.filter(r=>r.arm==='Q-one-counter-planner');
+          const totals=arr=>arr.reduce((o,r)=>({
+            seen:o.seen+r.secondCounterOpportunities+r.attackSecondOpportunities,
+            done:o.done+r.doubleCounters+r.attackSecondCounters}),{seen:0,done:0});
+          const d=totals(deep),s=totals(shallow);
+          a.ok(d.seen>0,'Smoke has no eligible second attack');
+          a.ok(d.done>0,'Broken attackPlan response contract: no legal second attack executed');
+          a.equal(s.done,0,'Single-counter arm unexpectedly uses second reply');
+          console.log('ARCANE_V1515_COUNTER_SMOKE '+JSON.stringify({deep:d,shallow:s}));
+          JS
       - name: Run remaining 38 counter-rollout and cross-deck shards
         run: |
           set -euo pipefail
