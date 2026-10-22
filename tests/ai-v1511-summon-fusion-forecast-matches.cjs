@@ -151,6 +151,11 @@ patch("function sceneResult(deck,warmup,seed,profile,starter,candidateSeat){",
 patch("  seed,profile,warmup,starter,candidateSeat};",
  "  seed,profile,warmup,starter,candidateSeat,...extras};");
 function runStudy(){
+ // ONE small shard per fresh Node.js process: V8/VM contexts cannot pile up
+ // across 1,536 games. 24 shards x 64 games, no gameplay rule changes.
+ const shardIndex=Number(process.argv[2]);
+ assert.ok(Number.isInteger(shardIndex)&&shardIndex>=0&&shardIndex<24,
+  'Run a shard index 0..23, never all 1536 games in a single Node.js heap');
  const data=JSON.parse(fs.readFileSync('artifacts/v1511/training-q-and-examples.json','utf8'));
  const arms=[
   {label:'baseline-heuristic',swarm:.02,pierce:.10,decision:'heuristic',summonForecast:false},
@@ -160,7 +165,10 @@ function runStudy(){
  ];
  const stages=[0,6,10],styles=['guardian','soul','fusion','hybrid'];
  const out=[],stats={};
- for(const defenderLead of [false,true])for(const stage of stages)for(let j=0;j<styles.length;j++)for(let i=0;i<4;i++){
+ for(const defenderLead of [false,true])for(const stage of stages)for(let j=0;j<styles.length;j++){
+  const expectedShard=(defenderLead?12:0)+stages.indexOf(stage)*styles.length+j;
+  if(expectedShard!==shardIndex)continue;
+  for(let i=0;i<4;i++){
   // The source-gated 40-card deck generator accepts integer seeds from 0 to 9999.
   // Keep a distinct study seed family without changing the generator contract.
   const tier=i%2?10:9,seed=7300+stage*57+j*149+i*31;
@@ -193,6 +201,23 @@ function runStudy(){
    const op=x.opponents[styles[j]]||(x.opponents[styles[j]]={games:0,wins:0});op.games++;op.wins+=row.win;
   }
  }
+ }
+ // Every shard covers exactly one (defender-start, stage, enemy archetype)
+ // combination, four source-valid 40-card deck sets, four AI policies, and
+ // both starter/seat configurations. Persist raw cases, not partial totals.
+ assert.equal(out.length,64,'Expected exactly 64 duels per fresh heap');
+ const shardOut='artifacts/v1511/shards';
+ fs.mkdirSync(shardOut,{recursive:true});
+ const file=shardOut+'/part-'+String(shardIndex).padStart(2,'0')+'.json';
+ const record={schema:'arcane-v1511-predator-fusion-shard',shardIndex,
+  shardCount:24,duelsPerShard:64,sourceSha:process.env.GITHUB_SHA||'unknown',
+  cases:out};
+ fs.writeFileSync(file,JSON.stringify(record)+'\n');
+ console.log('ARCANE_V1511_SHARD '+JSON.stringify({shard:shardIndex,
+  count:out.length,win:out.reduce((n,x)=>n+x.win,0),
+  simulatedSummons:out.reduce((n,x)=>n+x.summonLegal,0),
+  qChanges:out.reduce((n,x)=>n+x.qMoves,0)}));
+ return;
  const report={schema:'arcane-v1511-predator-summon-fusion-forecast-fullmatch',status:'completed',
   sourceSha:process.env.GITHUB_SHA||'unknown',totalMatches:out.length,stages,opponents:styles,
   controls:{roleActive:true,researchOnly:true,freezeOpponent:'balanced',seatsMirrored:true,startersMirrored:true,arenaLPDecayDisabled:true,QWeightsFromSeparateTraining:true,productionEnabled:false},
