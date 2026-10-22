@@ -161,7 +161,11 @@ function runStudy(){
  const stages=[0,6,10],styles=['guardian','soul','fusion','hybrid'];
  const out=[],stats={};
  for(const defenderLead of [false,true])for(const stage of stages)for(let j=0;j<styles.length;j++)for(let i=0;i<4;i++){
-  const tier=i%2?10:9,seed=48000+stage*101+j*233+i*97;
+  // The source-gated 40-card deck generator accepts integer seeds from 0 to 9999.
+  // Keep a distinct study seed family without changing the generator contract.
+  const tier=i%2?10:9,seed=7300+stage*57+j*149+i*31;
+  assert.ok(Number.isInteger(seed)&&seed>=0&&seed<=9999,
+   'Benchmark deck seed outside supported 0..9999 range: '+seed);
   const pred=makeBenchmarkDeck(catalog,tier,'predator','balanced',seed);
   const enemy=makeBenchmarkDeck(catalog,tier,styles[j],'balanced',seed+17);
   for(const arm of arms)for(const starter of [0,1])for(const seat of [0,1]){
