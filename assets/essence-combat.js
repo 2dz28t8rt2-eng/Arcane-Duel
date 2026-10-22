@@ -258,19 +258,21 @@
  const oldAttack=attack,oldEffective=effectiveAttack;
  effectiveAttack=function(g,a,d){
   let atk=oldEffective(g,a,d);
-  if(!isEssenceDuel(g))return atk;
-  const role=a?.roleOverride||CARDS[a?.id]?.role;
-  if(!a?.fusion&&g.players[g.active].field.some(c=>c&&c!==a&&CARDS[c.id]?.role==='support'&&c.mode==='def'))
-   atk+=Math.min(160,25+dataOf(a).level*8);
-  if(a?.id===essence().chosen&&CARDS[a.id]?.essenceSchool==='predator'&&a.essenceCombat?.doubleChoice===2)atk=Math.floor(atk*.7);
-  // Symmetric research variant: the ATTACKER must be a Predator, and only
-  // currently deployed, living Predator roles in its OWN five field slots count.
-  // Field fusion roleOverrides are included. A Predator counts itself.
-  // Applied as effective attack rather than altering permanent base ATK:
-  // applies equally to DEF chip, ATK combat and unblocked LP damage.
-  const percent=g?.strategicTraining?.symmetricSides?
-   (g.strategicTraining.predatorSwarmPercent||0):0;
-  if(percent&&roleOf(a)==='predator'){
+  if(isEssenceDuel(g)){
+   if(!a?.fusion&&g.players[g.active].field.some(c=>c&&c!==a&&CARDS[c.id]?.role==='support'&&c.mode==='def'))
+    atk+=Math.min(160,25+dataOf(a).level*8);
+   if(a?.id===essence().chosen&&CARDS[a.id]?.essenceSchool==='predator'&&a.essenceCombat?.doubleChoice===2)
+    atk=Math.floor(atk*.7);
+  }
+  // Live Predator swarm on development: +2% per own, currently deployed Predator.
+  // This complements Jagdinstinkt (base ATK) and the pre-roll Predator fusion
+  // imprint; it does not change either system's stored stats. Role-overridden
+  // fusion cards count. Other roles and off-board cards receive no bonus.
+  // Research games can still opt out (0) for properly paired control arms.
+  const percent=g?.strategicTraining?
+   (g.strategicTraining.predatorSwarmPercent||0):.02;
+  if(percent&&(g?.mode==='pve'||g?.mode==='pvp')&&roleOf(a)==='predator'&&
+   g.players[g.active]?.field?.includes(a)){
    const deployed=g.players[g.active].field.filter(c=>c&&roleOf(c)==='predator').length;
    atk=Math.floor(atk*(1+Math.min(5,deployed)*percent));
   }
