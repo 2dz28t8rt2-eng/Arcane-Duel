@@ -153,6 +153,6 @@ jobs:
           path: |
             artifacts/v1483/report.json
             artifacts/v1483/opening-examples.json
-            artifacts/v1483/candidate.json
+            artifacts/v1483/mode-config.json
           retention-days: 90
           if-no-files-found: warn
