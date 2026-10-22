@@ -4,6 +4,7 @@ on:
     branches: [development]
     paths:
       - 'assets/custom-art/Arcane-Duel-10-neue-Fusionen-v129.zip'
+      - '.github/workflows/install-fusion-wave2-v129.yml'
   workflow_dispatch:
 permissions:
   contents: write

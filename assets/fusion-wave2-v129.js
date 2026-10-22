@@ -23,7 +23,9 @@
    throw Error('Fusion Wave v129: missing loot source '+s.source);
   // These are BLUEPRINT midpoints, not final fusion stats. The current fusion
   // rules apply materials, quality, levels, the dynamic stamp, and real rolls.
-  const midpoint=FUSION_POWER[s.level];
+  // The original fusion chart intentionally jumps from LV2 to LV4.
+  // Interpolate the missing LV3 midpoint without changing any existing level.
+  const midpoint=FUSION_POWER[s.level]??(s.level===3?Math.round((FUSION_POWER[2]+FUSION_POWER[4])/20)*10:0);
   if(!(midpoint>0))throw Error('Fusion Wave v129: missing level '+s.level);
   const atk=round10(midpoint*(.91+((i%3)-1)*.035));
   const def=round10(midpoint*(.91-((i%3)-1)*.035));
