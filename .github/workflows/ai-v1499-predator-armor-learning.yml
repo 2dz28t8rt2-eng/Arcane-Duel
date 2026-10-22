@@ -1,0 +1,89 @@
+name: Arcane Duel - v14.9.9 Predator 10pp Armor and Tactical Learning
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v1499-predator-armor-learning.yml'
+      - 'tests/ai-v1499-predator-pierce-counterfactual.cjs'
+      - 'tests/ai-v1499-predator-armor-full-duels.cjs'
+      - 'tests/predator-armor-live-v1499.test.cjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v1499-armor-learn-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  predator-armor-learn:
+    runs-on: ubuntu-latest
+    timeout-minutes: 140
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify live 10pp penetration, preexisting Predator swarm and seat parity
+        run: |
+          node --check assets/game.js
+          node --check assets/essence-combat.js
+          node --check tests/ai-v1499-predator-pierce-counterfactual.cjs
+          node --check tests/ai-v1499-predator-armor-full-duels.cjs
+          node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/predator-armor-pierce-v1496.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
+      - name: Restore only prior learned Q coefficients from successful research archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p artifacts/v1499 /tmp/arcane-prior-v1499 /tmp/arcane-prior-v1497
+          LAST=$(gh run list --workflow ai-v1499-predator-armor-learning.yml --branch development --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+          if [ -n "$LAST" ] && gh run download "$LAST" --name arcane-v1499-predator-armor-learn --dir /tmp/arcane-prior-v1499; then
+            if [ -f /tmp/arcane-prior-v1499/training-q-and-examples.json ]; then
+              cp /tmp/arcane-prior-v1499/training-q-and-examples.json artifacts/v1499/previous-training-q.json
+              echo "RESTORED_V1499_Q $LAST"
+            fi
+          fi
+          OLD=$(gh run list --workflow ai-v1497-predator-swarm-learning.yml --branch development --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+          if [ -n "$OLD" ] && gh run download "$OLD" --name arcane-v1497-swarm-and-learned-Q --dir /tmp/arcane-prior-v1497; then
+            if [ -f /tmp/arcane-prior-v1497/training-q-and-examples.json ]; then
+              cp /tmp/arcane-prior-v1497/training-q-and-examples.json artifacts/v1499/v1497-prior-q.json
+              echo "TRANSFERRED_V1497_LEARNED_Q $OLD"
+            fi
+          fi
+      - name: Train Predator legal attack alternatives with +10pp armor bypass and saved Q
+        run: |
+          node --expose-gc --max-old-space-size=4096 tests/ai-v1499-predator-pierce-counterfactual.cjs
+      - name: Holdout full 40-card Predator versus armored-defender matches and hard-DEF starts
+        run: |
+          node --expose-gc --max-old-space-size=4096 tests/ai-v1499-predator-armor-full-duels.cjs
+      - name: Validate actual full-match and tactical Q usage with separate holdouts
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const q=JSON.parse(fs.readFileSync('artifacts/v1499/report.json','utf8'));
+          const m=JSON.parse(fs.readFileSync('artifacts/v1499/fullmatch.json','utf8'));
+          assert.equal(q.schema,'arcane-v1499-predator-10pp-armor-counterfactual-learning');
+          assert.deepEqual(q.candidates.map(x=>x.pierce),[0,0,.1]);
+          assert.deepEqual(q.candidates.map(x=>x.swarm),[0,.02,.02]);
+          assert.equal(q.trainingCasesPerArm,450);
+          assert.equal(q.holdoutCasesPerArm,150);
+          assert.equal(q.productionEnabled,false);
+          assert.ok(q.candidates.every(x=>x.keys>0&&Number.isFinite(x.holdout.learnerUtility)));
+          assert.equal(m.schema,'arcane-v1499-predator-10pp-armor-fullmatch');
+          assert.equal(m.totalMatches,1152);
+          assert.equal(m.arms.length,8);
+          assert.ok(m.arms.every(a=>a.games===144&&a.seatWins.length===2));
+          assert.ok(m.arms.filter(a=>a.learnQ).every(a=>a.qKeys>0&&a.qMoves>0));
+          console.log('ARCANE_V1499_VERIFIED '+JSON.stringify({qCandidates:q.candidates.map(x=>({
+           arm:x.label,training:x.train.meanLearner,holdout:x.holdout.meanLearner,
+           oldHeuristic:x.holdout.meanBaseline,keys:x.keys})),duels:m.arms.map(x=>({
+           arm:x.label,hardDefender:x.defenderLead,wins:x.wins,
+           matches:x.games,seatWins:x.seatWins,qActions:x.qMoves,timeouts:x.timeouts}))}));
+          JS
+      - name: Archive Q learning, complete matches and mirrored validation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1499-predator-armor-learn
+          path: artifacts/v1499/
+          retention-days: 90
+          if-no-files-found: warn
