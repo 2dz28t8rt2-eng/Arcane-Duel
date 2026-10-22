@@ -127,7 +127,7 @@
  function soulDecay(g,c,owner){
    if(!soulReady(g))return;
    const s=statLayer(c);
-   if(owner===0&&c.arcaneDecaySkipTurn===g.turn-1){
+   if((owner===0||g.strategicTraining?.symmetricSides)&&c.arcaneDecaySkipTurn===g.turn-1){
     if(s.cooldown>0)s.cooldown--;
     if(s.raidCooldown>0)s.raidCooldown--;
     return; // Seelenraub pauses decay; cooldowns still progress.
@@ -229,15 +229,15 @@
  const oldAttackPlan=attackPlan;
  attackPlan=function(g){
   let result=oldAttackPlan(g);
-  if(isEssenceDuel(g)&&g.active===1&&result&&Number.isInteger(result.di)&&g.players[0].field[result.di]?.essenceCombat?.guardLeft>0){
+  if(isEssenceDuel(g)&&(g.active===1||g.strategicTraining?.symmetricSides)&&result&&Number.isInteger(result.di)&&g.players[1-g.active].field[result.di]?.essenceCombat?.guardLeft>0){
    // The classic attack planner assumes it can destroy a 1-DEF creature.
    // Never waste attacks against Last Bastion when another legal target exists.
-   const others=g.players[0].field.map((c,i)=>({c,i})).filter(x=>x.c&&!(x.c.essenceCombat?.guardLeft>0));
+   const others=g.players[1-g.active].field.map((c,i)=>({c,i})).filter(x=>x.c&&!(x.c.essenceCombat?.guardLeft>0));
    if(!others.length)return null;
    others.sort((a,b)=>dataOf(a.c).def-dataOf(b.c).def);
    result={ai:result.ai,di:others[0].i};
   }
-  if(result||!isEssenceDuel(g)||g.active!==1||g.winner!==null)return result;
+  if(result||!isEssenceDuel(g)||(g.active!==1&&!g.strategicTraining?.symmetricSides)||g.winner!==null)return result;
   // Legacy AI attacks only if it can destroy DEF in a single blow.
   // With new monster-HP, predators must also chip away at dangerous blockers.
   const owner=g.players[g.active],foe=g.players[1-g.active];
@@ -474,5 +474,75 @@
   const c=g.players[0].field.find(c=>c?.id===essence().chosen&&CARDS[c.id]?.essenceSchool==='fusion');
   return c?1+(activeSchool(g)==='fusion'&&perkRank(buffTier(g))>=3?1:0):0;
  }
- window.ArcaneEssenceCombat={condense,discharge,soulRaid,conversionFactor,predatorMode,fusionRollBonus,beginTrial,chooseDrain,statLayer,roleOf,soulRank,perkRank,evolvedLevel,rankCap,nextCost,essence,schools,schoolName,monsterIds};
+
+ // Research-only, seat-neutral active Soul actions. The ordinary UI API still
+ // enforces player-zero authorization and remains unchanged.
+ function researchSoulAction(g,action){
+  if(!isEssenceDuel(g)||!g.strategicTraining?.symmetricSides||
+   !soulReady(g)||g.winner!==null||g.pending)return false;
+  const owner=g.active,creature=g.players[owner].field[action.idx];
+  if(!creature||!isSoul(creature)||creature.mode!=='def')return false;
+  const layer=statLayer(creature);
+  if(layer.lastSoulAction===g.turn)return false;
+  if(action.type==='soul-raid'){
+   const target=g.players[1-owner].field[action.target];
+   if(!target?.card||layer.raidCooldown>0)return false;
+   const level=dataOf(creature).level,budget=Math.floor((20+5*level)*2.5);
+   const ratio=layer.drainPreference===1?.7:layer.drainPreference===2?.3:.5;
+   const first=ratio>=.5?'atk':'def',second=first==='atk'?'def':'atk';
+   let remaining=budget,drainedAtk=0,drainedDef=0;
+   const take=(stat,n)=>{
+    const real=Math.min(Math.max(0,target.card[stat]),n);
+    target.card[stat]-=real;remaining-=real;
+    if(stat==='atk')drainedAtk+=real;else drainedDef+=real;
+   };
+   take(first,Math.ceil(budget*Math.max(ratio,1-ratio)));
+   take(second,remaining);
+   if(remaining>0)take(first,remaining);
+   const earned=drainedAtk+drainedDef;
+   if(!earned)return false;
+   const gain=storeDrainedEnergy(g,creature,owner,earned);
+   layer.raidCooldown=3;layer.lastSoulAction=g.turn;
+   creature.arcaneDecaySkipTurn=g.turn; // same effect for both owners
+   logEvent(g,dataOf(creature).name+' · Forschung-Seelenraub: −'+drainedAtk+
+    ' ATK / −'+drainedDef+' DEF, +'+gain+' Seelenessenz.');
+   return {type:action.type,earned,gain,owner};
+  }
+  if(action.type==='soul-discharge'){
+   if(layer.lastDischarge===g.turn||layer.soul<40)return false;
+   const amount=layer.soul;layer.soul=0;
+   layer.lastDischarge=g.turn;layer.lastSoulAction=g.turn;
+   addBurn(g,owner,Math.floor(amount*1.30),dataOf(creature).name+' · Forschung-Entladung');
+   return {type:action.type,amount,owner};
+  }
+  return false;
+ }
+ const baseResearchChoose=chooseAiAction,baseResearchApply=applyAiAction;
+ chooseAiAction=function(g,policy='balanced'){
+  if(g?.strategicTraining?.symmetricSides&&g.aiPhase==='attacks'&&
+   !g.pending&&soulReady(g)&&g.winner===null){
+   const mine=g.players[g.active],enemy=g.players[1-g.active];
+   for(let i=0;i<mine.field.length;i++){
+    const c=mine.field[i];if(!c||!isSoul(c)||c.mode!=='def')continue;
+    const state=statLayer(c);if(state.lastSoulAction===g.turn)continue;
+    if(state.raidCooldown===0){
+     const targets=enemy.field.map((c,j)=>({c,j})).filter(x=>
+      x.c?.card&&(x.c.card.atk+x.c.card.def)>0);
+     targets.sort((a,b)=>(b.c.card.atk+b.c.card.def)-
+      (a.c.card.atk+a.c.card.def)||a.j-b.j);
+     if(targets.length)return {type:'soul-raid',idx:i,target:targets[0].j};
+    }
+    if(state.soul>=40&&state.lastDischarge!==g.turn)
+     return {type:'soul-discharge',idx:i};
+   }
+  }
+  return baseResearchChoose(g,policy);
+ };
+ applyAiAction=function(g,action){
+  if(g?.strategicTraining?.symmetricSides&&
+   (action?.type==='soul-raid'||action?.type==='soul-discharge'))
+   return researchSoulAction(g,action);
+  return baseResearchApply(g,action);
+ };
+ window.ArcaneEssenceCombat={condense,discharge,soulRaid,researchSoulAction,conversionFactor,predatorMode,fusionRollBonus,beginTrial,chooseDrain,statLayer,roleOf,soulRank,perkRank,evolvedLevel,rankCap,nextCost,essence,schools,schoolName,monsterIds};
 })();
