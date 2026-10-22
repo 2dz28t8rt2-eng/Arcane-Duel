@@ -163,7 +163,7 @@ jobs:
         env:
           ARCANE_V1486_TRAIN: '9'
           ARCANE_V1486_HOLDOUT: '9'
-          ARCANE_V1486_LEAGUE: '2'
+          ARCANE_V1486_LEAGUE: '3'
         run: |
           set -euo pipefail
           for arm in baseline neutral symmetric; do
