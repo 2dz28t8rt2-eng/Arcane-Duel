@@ -38,6 +38,7 @@ function mixed(tier,seed,ratio){
 }
 function duel1492(scene){
  profile=freshProfile();profile.guideSeen=true;
+ for(const key of Object.keys(profile.upgrades||{}))profile.upgrades[key]=0;
  // The only missing-information exclusion: never inspect enemy hand/deck in AI policy.
  const g=createGame({mode:'pve',context:'free',opponentId:0,difficulty:'hard',
   seed:scene.seed,starter:scene.starter,deck:scene.deck,
