@@ -43,7 +43,7 @@ patch(" if(!scene.deck1&&opening(first)!==opening(second))throw Error('Unmatched
  "   monster.mode='def';monster.summonedTurn=0;op.field[slot]=monster;",
  "  }",
  " }"
- ].join('\\n'));
+ ].join('\n'));
 patch(" const guardians=field.filter(c=>role(c)==='guardian').length,\n   souls=field.filter(c=>role(c)==='soul').length;",
  " const guardians=field.filter(c=>role(c)==='guardian').length,\n   souls=field.filter(c=>role(c)==='soul').length,\n   predators=field.filter(c=>role(c)==='predator').length;");
 patch("   let score=cardValue(c)+(type==='soul'?guardians*scene.profile.synergy*260:0)+\n    (type==='guardian'?souls*scene.profile.synergy*260:0);",
