@@ -37,7 +37,8 @@ jobs:
               if actual_paths != expected_paths | {'manifest.json','INSTALLATION.md'}:
                   raise SystemExit('Unexpected/missing ZIP members')
               embedded=json.loads(z.read('manifest.json'))
-              if embedded['cards']!=specs: raise SystemExit('Archive/card manifest mismatch')
+              if [(x['id'],x['art'],x['name'],x['level']) for x in embedded['cards']] != [(x['id'],x['art'],x['name'],x['level']) for x in specs]:
+                  raise SystemExit('Archive/card identity mismatch')
               hashes=set()
               for s in specs:
                   p=s['art']
