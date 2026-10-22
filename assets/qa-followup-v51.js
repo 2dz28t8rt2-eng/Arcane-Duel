@@ -48,8 +48,8 @@
  const lastChoose=chooseAiAction;
  chooseAiAction=function(g,...args){
   const action=lastChoose(g,...args);
-  if(g?.mode==='pve'&&g.active===1&&action?.type==='switch'){
-   const unit=g.players[1]?.field?.[action.idx];
+  if(g?.mode==='pve'&&(g.active===1||g.strategicTraining?.symmetricSides)&&action?.type==='switch'){
+   const unit=g.players[g.active]?.field?.[action.idx];
    if(unit?.attacked||unit?.arcaneAttackTurn===g.turn){
     // Do not get stuck in an invalid AI switch loop.
     g.aiPhase='end';
