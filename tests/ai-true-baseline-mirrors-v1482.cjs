@@ -64,7 +64,7 @@ function lookahead148(g,w,stats,mode='candidate'){
  }
  if(!ranked.length)return null;
  const clone147=JSON.parse(JSON.stringify(g));
- const refTally={choices:0,bySide:[0,0],support:0,fusions:0,attacks:0};
+ const refTally={choices:0,bySide:[0,0],support:0,fusions:0,attacks:0,\n  finalRankedTraces:[],traceIntegrityErrors:0,sameStateComparisons:0,sameStateOverrides:0};
  const v147Action=lookahead139(clone147,w,refTally,'candidate')||
     decision135(clone147,w,false,null,refTally);
  stats.v1482Compared++;
