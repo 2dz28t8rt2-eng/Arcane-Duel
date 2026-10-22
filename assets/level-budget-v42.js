@@ -8,7 +8,7 @@
  const totals=Object.freeze([0,180,270,420,630,810,1030,1270,1530,1830,2150]);
  const original=workshopBudget;
  const budget=lv=>totals[lv]||original(lv);
- const shares={predator:.76,hunter:.68,guardian:.25,soul:.22,support:.43,weaver:.40,combatant:.50};
+ const shares={predator:.76,guardian:.25,soul:.22,support:.43,weaver:.40,combatant:.50};
  const rarityFactor=c=>c.ace?1.12:c.rarity==='legendary'||c.rarity==='mythic'?1.18:c.rarity==='epic'?1.13:c.rarity==='rare'?1.09:1;
  const round=n=>Math.round(n/10)*10;
  const changed=[];

@@ -730,9 +730,9 @@ for(const spec of [
  * Roles are assigned on CARD objects, not inferred by the duel UI.
  */
 for(const c of RPG_BASE_CARDS.concat(RPG_FUSIONS)){
- if(c.essenceMonster)continue;
+ if(c.essenceMonster||c.fusionOnly)continue;
  const ratio=(Number(c.def)||0)/Math.max(1,Number(c.atk)||0);
- c.role=c.ability==='guide'?'weaver':c.ability==='hunt'?'hunter':ratio>=1.09?'guardian':ratio<=.82?'predator':(c.id%8===0?'support':'combatant');
+ c.role=c.ability==='guide'?'weaver':c.ability==='hunt'?'predator':ratio>=1.09?'guardian':ratio<=.82?'predator':(c.id%8===0?'support':'combatant');
 }
 const ROLE_SOUL_CANDIDATES=RPG_BASE_CARDS.filter(c=>!c.essenceMonster&&c.role==='guardian'&&c.level>=2);
 for(let i=0;i<ROLE_SOUL_CANDIDATES.length;i++){

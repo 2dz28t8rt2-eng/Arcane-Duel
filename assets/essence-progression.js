@@ -80,19 +80,19 @@
   if(menuTab==='upgrades')p.insertAdjacentHTML('beforeend',essenceDashboard());
   if(menuTab==='lexicon'&&E().school)p.insertAdjacentHTML('beforeend','<section class="menu-panel essence-lore-teaser"><h2>✧ Die vergessenen Schriften</h2><p>Ein neues Kapitel erzählt vom Bund zwischen Duellanten und Essenzwesen.</p>'+loreMarkup()+'</section>');
  }
- const roleLabel={predator:'PREDATOR',guardian:'WÄCHTER',soul:'SEELENZEHRER',support:'UNTERSTÜTZER',weaver:'RUNENWEBER',hunter:'JÄGER',combatant:'ALLROUNDER',resonator:'RESONATOR'};
+ const roleLabel={predator:'PREDATOR',guardian:'WÄCHTER',soul:'SEELENZEHRER',support:'UNTERSTÜTZER',weaver:'RUNENWEBER',combatant:'ALLROUNDER',resonator:'RESONATOR'};
  const roleText={
   predator:'Predator: +2 % Angriffsschaden je eigenem Predator am Feld, maximal +10 %. Gegen Wächter/Seelenzehrer in DEF ignoriert Predator-Angriff 10 Prozentpunkte Rüstung (35 % → 25 %). Predator-Fusionen zählen.',
   guardian:'Wächter: regeneriert in DEF-Position die Grund-DEF verbündeter Verteidiger.',
   soul:'Seelenzehrer: saugt ATK und DEF aller gegnerischen Monster ab. Gespeicherte Seelen-DEF verursacht beim Zerfall Burn; Verdichten schafft stabilen Schutz.',
   support:'Unterstützer: verstärkt in DEF-Position den Angriff verbündeter gewöhnlicher Monster.',
   weaver:'Runenweber: unterstützt präzise Fusionen.',
-  hunter:'Jäger: spezialisiert auf große Fusionsgegner.',
   combatant:'Allrounder: eine ausgewogene Kreatur ohne zusätzlichen Rollenbonus.'
  };
  const originalFullCardHtml=fullCardHtml;
  fullCardHtml=function(card,attrs='',classes='',badge=''){
   const html=originalFullCardHtml(card,attrs,classes,badge),c=CARDS[card?.id],role=roleOf(card);
+  if(c?.fusionOnly&&!card?.fusion)return html; // Fusion blueprints have NO role stamp.
   if(!role||role==='combatant'||!html.includes('<div class="hand-title">'))return html;
   const text=c.essenceMonster?'ESSENZWESEN':roleLabel[role]||role;
   return html.replace('<div class="hand-title">','<span class="essence-role-chip essence-role-'+role+'">'+esc(text)+'</span><div class="hand-title">');
