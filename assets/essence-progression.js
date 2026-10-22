@@ -82,7 +82,7 @@
  }
  const roleLabel={predator:'PREDATOR',guardian:'WÄCHTER',soul:'SEELENZEHRER',support:'UNTERSTÜTZER',weaver:'RUNENWEBER',hunter:'JÄGER',combatant:'ALLROUNDER',resonator:'RESONATOR'};
  const roleText={
-  predator:'Predator: jeder eigene Predator am Feld verstärkt Angriffe der Predatoren um +2 %, maximal +10 % bei fünf Predatoren. Auch Predator-Fusionen zählen.',
+  predator:'Predator: +2 % Angriffsschaden je eigenem Predator am Feld, maximal +10 %. Gegen Wächter/Seelenzehrer in DEF ignoriert Predator-Angriff 10 Prozentpunkte Rüstung (35 % → 25 %). Predator-Fusionen zählen.',
   guardian:'Wächter: regeneriert in DEF-Position die Grund-DEF verbündeter Verteidiger.',
   soul:'Seelenzehrer: saugt ATK und DEF aller gegnerischen Monster ab. Gespeicherte Seelen-DEF verursacht beim Zerfall Burn; Verdichten schafft stabilen Schutz.',
   support:'Unterstützer: verstärkt in DEF-Position den Angriff verbündeter gewöhnlicher Monster.',
