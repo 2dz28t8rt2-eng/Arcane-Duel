@@ -316,6 +316,8 @@ function study(){
      const enemyAttacks=m.stats.siegeEnemyAttackActions||0;
      const enemySoul=m.stats.siegeEnemySoulOffense||0;
      assert.ok(Number.isFinite(enemyAttacks+enemySoul),'Missing opponent action counters');
+     assert.deepEqual(m.stats.selfPlayIllegalSwitchesBySeat,[0,0],
+      'Illegal switch emitted from strategic AI');
      assert.ok(m.stats.selfPlayCallsBySeat.every(n=>n>0),
       'Both seats MUST use the experimental AI decision planner');
      const reward=m.candidateWin*100+
@@ -385,6 +387,8 @@ function study(){
  const passesSeatParity=[0,1].every(seat=>bestExperimental.train.bySeat[seat].wins>=baseline.train.bySeat[seat].wins);
  const candidate=bestExperimental.train.wins>=baseline.train.wins+4&&passesSeatParity?bestExperimental:baseline;
  const result={schema:'arcane-v1526-stage',stage,
+  learningSource:'v14.9.25 TRAIN-only symmetric reference actions',
+  trainingPriorWeights:learned,
   name:['guardian-soul-lv8-mirror','guardian-soul-lv9-mirror','guardian-soul-lv10-mirror','guardian-soul-lv8-crossrole','guardian-soul-lv10-crossrole'][stage],
   controls:{matchedDecks:true,pairedSeeds:true,pairedSeats:true,pairedStarters:true,
    arenaLPDecayOff:true,noEnemyActiveOffenseBeforeStage3:true,
@@ -392,7 +396,7 @@ function study(){
   selectionMethod:'At least +4 TRAIN wins versus symmetric two-sided test-AI reference, no regressions per seat. Only TRAIN-derived selfplay priors; HOLDOUT unseen for selection.',
   chosenArm:candidate.arm,selectedWeights:candidate.weights,
   previousSelectedWeights:inherited,
-  promoted:candidate.arm!=='role-reference',trainCandidate:candidate.train,trainBaseline:baseline.train,
+  promoted:candidate.arm!=='symmetric-reference',trainCandidate:candidate.train,trainBaseline:baseline.train,
   holdoutCandidate:candidate.holdout,holdoutBaseline:baseline.holdout,
   summaries,allCases:cases.map(({actions,...rest})=>rest)};
  fs.writeFileSync(root+'/stage-'+stage+'.json',JSON.stringify(result,null,2)+'\n');
