@@ -39,6 +39,7 @@ inject(' const baseChoose=chooseAiAction,baseApply=applyAiAction,baseAdvance=adv
 ' counter.readyDirectOpportunities=0;counter.missedDirectOpportunities=0;',
 ' counter.selfPlayCallsBySeat=[0,0];counter.selfPlayStrategicBySeat=[0,0];',
 ' counter.selfPlayActionTypesBySeat=[{},{}];',
+' counter.selfPlaySwitchRepairsBySeat=[0,0];counter.selfPlaySwitchRepairExamples=[];',
 ' counter.breachSwitches=0;counter.breachAttacks=0;counter.lastDefenderEliminated=0;',
 ' const baseChoose=chooseAiAction,baseApply=applyAiAction,baseAdvance=advanceTurn;'
 ]);
@@ -235,6 +236,24 @@ inject('  if(selected){\n   // The reference is inspected on a clone, never muta
 '   // The reference is inspected on a clone, never mutating real phase or RNG.'
 ]);
 
+// Prevent an invalid position command from turning an entire self-play run
+// into a research engine crash. Legal positions still go through real switchPosition.
+// Never allow pending fusion placements to be masked by this guard.
+inject('  const ok=baseApply(game,action);',[
+'  if(game===g&&action?.type==="switch"){',
+'   const c=game.players[game.active]?.field[action.idx];',
+'   if(game.pending)throw Error("Invalid pending fusion switch, no fallback allowed");',
+'   if(!c||c.switched||c.attacked){',
+'    counter.selfPlaySwitchRepairsBySeat[game.active]++;',
+'    if(counter.selfPlaySwitchRepairExamples.length<12)',
+'     counter.selfPlaySwitchRepairExamples.push({turn:game.turn,seat:game.active,idx:action.idx,',
+'      present:!!c,switched:!!c?.switched,attacked:!!c?.attacked,phase:game.aiPhase});',
+'    return baseApply(game,{type:"end"});',
+'   }',
+'  }',
+'  const ok=baseApply(game,action);'
+]);
+
 // This function is serialized into the SAME scope as the verified simulator.
 function study(){
  const fs=require('node:fs'),assert=require('node:assert/strict');
@@ -308,6 +327,7 @@ function study(){
       win:m.candidateWin,reason:m.reason,timeout:m.timeout,turn:m.turn,
       enemyOffense:enemyAttacks+enemySoul,enemyAttacks,enemySoul,
       counterSuppressed:m.stats.siegeCounterBlocked||0,
+      switchRepairsBySeat:m.stats.selfPlaySwitchRepairsBySeat,
       selfPlayCallsBySeat:m.stats.selfPlayCallsBySeat,
       selfPlayStrategicBySeat:m.stats.selfPlayStrategicBySeat,
       selfPlayActionTypesBySeat:m.stats.selfPlayActionTypesBySeat,
