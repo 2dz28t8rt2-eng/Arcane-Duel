@@ -75,10 +75,14 @@ jobs:
       - name: Continue 16-run protected tactical Q learning
         run: node --expose-gc --max-old-space-size=3200 tests/ai-v1527-Q.cjs
       # Deck builder accepts only integer seeds between 0 and 9999; values bounded in research runner.
+      # Batch isolation fixes confirmed 2.9GB Node OOM in 960-match monolithic phase. Each batch handles exactly 120 matches.
       - name: Phase 0 - Level-8 identical-deck transfer
         run: |
           set -euo pipefail
-          node --expose-gc --max-old-space-size=2900 tests/ai-v1527-roles-generalization.cjs 0
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 tests/ai-v1527-roles-generalization.cjs 0 "$pair"
+          done
+          node --max-old-space-size=1400 tests/ai-v1527-roles-generalization.cjs 0 finalize
           node - <<'JS'
           const fs=require('node:fs'),a=require('node:assert/strict');
           const s=JSON.parse(fs.readFileSync('artifacts/v1527/stage-0.json','utf8'));
@@ -94,13 +98,33 @@ jobs:
             validation:s.validationCandidate.wins,holdout:s.holdoutCandidate.wins}));
           JS
       - name: Phase 1 - Level-9 identical-deck transfer
-        run: node --expose-gc --max-old-space-size=2900 tests/ai-v1527-roles-generalization.cjs 1
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 tests/ai-v1527-roles-generalization.cjs 1 "$pair"
+          done
+          node --max-old-space-size=1400 tests/ai-v1527-roles-generalization.cjs 1 finalize
       - name: Phase 2 - Level-10 identical-deck transfer
-        run: node --expose-gc --max-old-space-size=2900 tests/ai-v1527-roles-generalization.cjs 2
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 tests/ai-v1527-roles-generalization.cjs 2 "$pair"
+          done
+          node --max-old-space-size=1400 tests/ai-v1527-roles-generalization.cjs 2 finalize
       - name: Phase 3 - Level-8 cross-role transfer
-        run: node --expose-gc --max-old-space-size=2900 tests/ai-v1527-roles-generalization.cjs 3
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 tests/ai-v1527-roles-generalization.cjs 3 "$pair"
+          done
+          node --max-old-space-size=1400 tests/ai-v1527-roles-generalization.cjs 3 finalize
       - name: Phase 4 - Level-10 cross-role transfer
-        run: node --expose-gc --max-old-space-size=2900 tests/ai-v1527-roles-generalization.cjs 4
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 tests/ai-v1527-roles-generalization.cjs 4 "$pair"
+          done
+          node --max-old-space-size=1400 tests/ai-v1527-roles-generalization.cjs 4 finalize
       - name: Aggregate 4800 role-aware selfplay games
         run: node --max-old-space-size=3200 tests/ai-v1527-generalization-aggregate.cjs
       - name: Verify every legal result, proper split and protected strategy selection
