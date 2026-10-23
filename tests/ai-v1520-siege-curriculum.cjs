@@ -13,8 +13,9 @@ function inject(oldText,lines){
 inject(' let learner=scene.candidateSeat;',[
 ' let learner=scene.candidateSeat;',
 ' const defender=g.players[1-learner],fortCount=[3,1,3,2][scene.siegeStage];',
-' const ranked=defender.deck.map(id=>({id,card:CARDS[id]})).filter(x=>x.card&&',
-"  ['guardian','soul'].includes(x.card.role)).sort((a,b)=>b.card.def-a.card.def||a.id-b.id);",
+' const ranked=defender.deck.map(id=>({id,card:CARDS[id]})).filter(x=>x.card)',
+"  .sort((a,b)=>(['guardian','soul'].includes(b.card.role)?150000:0)+b.card.def-",
+"   ((['guardian','soul'].includes(a.card.role)?150000:0)+a.card.def)||a.id-b.id);",
 " if(ranked.length<fortCount)throw Error('Too few legal defender cards in deck');",
 ' for(let i=0;i<fortCount;i++){',
 '  const picked=ranked[i],pos=defender.deck.indexOf(picked.id);',
