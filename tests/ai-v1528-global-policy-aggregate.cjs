@@ -145,6 +145,7 @@ const report={schema:'arcane-v1528-global-role-selection-report',status:'complet
  totalDuels:4800,trainDuels:1600,validationDuels:1600,holdoutDuels:1600,
  controls:{bothSeatsUseFullStrategicAI:true,noIllegalMoves:true,
   trainValidationHoldoutSeparated:true,holdoutNeverUsedForSelection:true,
+  globalFiveStageSelection:true,stageLocalPromotionDisabled:true,
   historicalQOpponentPool:true,perSeatPromotionGate:true,
   fullCombat:true,arenaLPDecayResearchOnlyOff:true,
   noProductionChanges:true},
