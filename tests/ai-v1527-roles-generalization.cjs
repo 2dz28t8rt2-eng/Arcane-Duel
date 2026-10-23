@@ -326,8 +326,8 @@ function study(){
   const tier=stage===0?8:stage===1?9:stage===2?10:stage===3?8:10;
   const foeTier=tier;
   for(let scenario=0;scenario<6;scenario++){
-   const seedA=6900+pair*127+scenario*79+stage*1109;
-   const seedB=8900+pair*139+scenario*113+stage*1301;
+   const seedA=2100+pair*127+scenario*79+stage*709;
+   const seedB=4100+pair*139+scenario*113+stage*653;
    const a=makeBenchmarkDeck(catalog,tier,roleA,'balanced',seedA);
    const b=makeBenchmarkDeck(catalog,foeTier,roleB,'balanced',seedB);
    assert.equal(a.deck.length,40);assert.equal(b.deck.length,40);
