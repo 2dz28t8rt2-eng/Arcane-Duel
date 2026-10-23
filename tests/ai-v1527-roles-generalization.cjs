@@ -320,8 +320,26 @@ function study(){
   {name:'fusion-threat',rolePolicy:role(.65,.85,1.60,1.45)},
   {name:'counter-risk',rolePolicy:role(.90,.95,1.0,1.95)}
  ];
+ const shardArg=String(process.argv[3]||'');
+ assert.ok(shardArg==='finalize'||/^[0-7]$/.test(shardArg),
+  'Supply one pair shard 0..7 or the finalize command');
  const cases=[];
+ if(shardArg==='finalize'){
+  for(let p=0;p<matchups.length;p++){
+   const path=root+'/stage-'+stage+'-pair-'+p+'.json';
+   assert.ok(fs.existsSync(path),'Missing pair shard '+p);
+   const obj=JSON.parse(fs.readFileSync(path,'utf8'));
+   assert.equal(obj.stage,stage);assert.equal(obj.pair,p);
+   assert.equal(obj.cases.length,120,'Each independent process must report 120 matches');
+   for(const row of obj.cases){
+    assert.equal(row.stage,stage);assert.equal(row.pair,p);
+    cases.push(row);
+   }
+  }
+ }else{
+ const requestedPair=Number(shardArg);
  for(let pair=0;pair<matchups.length;pair++){
+  if(pair!==requestedPair)continue;
   const [roleA,roleB]=matchups[pair];
   const tier=stage===0?8:stage===1?9:stage===2?10:stage===3?8:10;
   const foeTier=tier;
@@ -391,10 +409,18 @@ function study(){
       ownLost:m.stats.siegeOwnCardLosses||0,
       enemyDamage:m.stats.siegeOpponentLPDamage||0,
       ownDamage:m.stats.siegeOwnLPDamage||0,reward,
-      actions:scenario===3?[]:m.stats.actionTape||[]});
+      actions:scenario<2?m.stats.actionTape||[]:[]});
     }
    }
   }
+ }
+ assert.equal(cases.length,120,'One pair shard should have exactly 120 matches');
+ fs.writeFileSync(root+'/stage-'+stage+'-pair-'+requestedPair+'.json',
+  JSON.stringify({stage,pair:requestedPair,cases})+'\n');
+ console.log('ARCANE_V1527_PAIR '+JSON.stringify({stage,pair:requestedPair,games:cases.length,
+  splitCounts:Object.fromEntries(['train','validation','holdout'].map(t=>
+   [t,cases.filter(x=>x.split===t).length]))}));
+ return;
  }
  assert.equal(cases.length,960,'Stage must have 960 matched selfplay games');
  function summary(rows){
