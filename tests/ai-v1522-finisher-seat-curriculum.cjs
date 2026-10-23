@@ -261,7 +261,8 @@ function study(){
  const bestExperimental=[...summaries].filter(x=>x.finishMode).sort((a,b)=>
   b.train.wins-a.train.wins||b.train.meanReward-a.train.meanReward||a.arm.localeCompare(b.arm))[0];
  // NEVER promote a candidate without strictly more TRAIN wins than the unchanged baseline.
- const candidate=bestExperimental.train.wins>baseline.train.wins?bestExperimental:baseline;
+ const passesSeatParity=[0,1].every(seat=>bestExperimental.train.bySeat[seat].wins>=baseline.train.bySeat[seat].wins);
+ const candidate=bestExperimental.train.wins>baseline.train.wins&&passesSeatParity?bestExperimental:baseline;
  const result={schema:'arcane-v1522-stage',stage,
   name:['one-wall-no-retaliation','two-wall-no-retaliation','two-wall-with-counterstrike','two-wall-with-soul-burn','growing-fortress','escalating-resistance','full-combat-transfer'][stage],
   controls:{matchedDecks:true,pairedSeeds:true,pairedSeats:true,pairedStarters:true,
