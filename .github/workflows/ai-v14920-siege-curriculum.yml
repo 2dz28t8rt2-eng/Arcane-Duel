@@ -65,6 +65,7 @@ jobs:
           a.ok(m.allCases.every(x=>x.enemyOffense===0&&x.enemySummons===0),
            'A static fortress acted offensively or grew');
           a.ok(m.allCases.every(x=>x.turn>0&&x.seedA!==x.seedB));
+          a.ok(m.allCases.some(x=>x.enemyDamage>0),'Fortress stage produced no actual offensive damage');
           a.equal(m.holdoutCandidate.games,32);
           console.log('ARCANE_V1520_STATIC_SMOKE '+JSON.stringify({games:512,
            selected:m.chosenArm,train:m.trainCandidate.wins,holdout:m.holdoutCandidate.wins}));
