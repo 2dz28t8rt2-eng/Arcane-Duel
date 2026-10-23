@@ -75,7 +75,7 @@ const arms=names.map(arm=>{
  const filtered=rows.filter(r=>r.arm===arm);
  const splits=Object.fromEntries(['train','validation','holdout'].map(split=>
   [split,summary(filtered.filter(r=>r.split===split))]));
- const opponents=Object.fromEntries(['latest','v1526'].map(checkpoint=>
+ const opponents=Object.fromEntries(['champion-v1528','v1526'].map(checkpoint=>
   [checkpoint,summary(filtered.filter(r=>r.foeCheckpoint===checkpoint))]));
  const roleTypes=Object.fromEntries(['guardian','soul','predator','fusion','allrounder','hybrid']
   .map(role=>[role,summary(filtered.filter(r=>r.roleA===role))]));
@@ -86,7 +86,7 @@ const arms=names.map(arm=>{
 const paired=['train','validation','holdout'].map(split=>{
  const c=rows.filter(r=>r.split===split),stageResults=[];
  for(let st=0;st<5;st++){
-  const ref=new Map(c.filter(r=>r.stage===st&&r.arm==='pool-reference').map(r=>
+  const ref=new Map(c.filter(r=>r.stage===st&&r.arm==='guardian-champion').map(r=>
    [[r.pair,r.scenario,r.starter,r.seat].join('|'),r]));
   for(const arm of names.slice(1)){
    let flippedWin=0,flippedLoss=0;
@@ -131,7 +131,7 @@ const selectedCandidates=eligible.filter(x=>x.qualifies).sort((a,b)=>
  b.validationGain-a.validationGain||b.trainGain-a.trainGain||a.arm.localeCompare(b.arm));
 const chosen=selectedCandidates[0]?.arm||'guardian-champion';
 const selection={
- arm:chosen,promoted:chosen!=='pool-reference',
+ arm:chosen,promoted:chosen!=='guardian-champion',
  policy:rows.find(x=>x.arm===chosen)?.rolePolicy??null,
  incumbent:'guardian-champion',incumbentFromRun:39974390088,
  selectionBasedOn:['train','validation'],holdoutSeenBySelector:false,
