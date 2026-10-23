@@ -81,7 +81,7 @@ jobs:
           a.deepEqual(selection.policy,{guardian:1.15,soul:1.3,material:.85,risk:.95});
           fs.writeFileSync('artifacts/v1529/incumbent-policy.json',
             JSON.stringify({sourceRun:39974390088,arm:selection.arm,
-             policy:selection.policy,holdoutUsedForSelection:false})+'\\n');
+             policy:selection.policy,holdoutUsedForSelection:false}));
           console.log('ARCANE_V1529_CHAMPION '+JSON.stringify(selection.policy));
           JS
       - name: Continue 18-run protected tactical Q learning
