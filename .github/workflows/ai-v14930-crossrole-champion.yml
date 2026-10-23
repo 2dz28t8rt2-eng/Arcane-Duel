@@ -98,6 +98,7 @@ jobs:
         run: node --expose-gc --max-old-space-size=3200 tests/ai-v1530-Q.cjs
       # Deck builder accepts only integer seeds between 0 and 9999; values bounded in research runner.
       # Batch isolation fixes confirmed 2.9GB Node OOM in 960-match monolithic phase. Each batch handles exactly 120 matches.
+      # Research v14.9.30 opponent labels: champion-v1528 and balanced-v1529; the old v1526 label is historical archive data only.
       - name: Phase 0 - Level-8 identical-deck transfer
         run: |
           set -euo pipefail
@@ -114,7 +115,9 @@ jobs:
           a.equal(s.holdoutCandidate.games,64);
           a.ok(s.allCases.every(r=>r.mirror&&r.illegalSwitchesBySeat.every(n=>n===0)));
           a.ok(s.allCases.every(r=>r.selfPlayStrategicBySeat.every(n=>n>0)));
-          a.ok(s.allCases.some(r=>r.foeCheckpoint==='v1526'));
+          a.ok(s.allCases.some(r=>r.foeCheckpoint==='champion-v1528'));
+          a.ok(s.allCases.some(r=>r.foeCheckpoint==='balanced-v1529'));
+          a.ok(s.allCases.every(r=>['champion-v1528','balanced-v1529'].includes(r.foeCheckpoint)));
           a.equal(s.chosenArm,'guardian-champion','No stage selection before the global gate');
           a.equal(s.promoted,false);
           a.equal(s.controls.globalSelectionOnly,true);
