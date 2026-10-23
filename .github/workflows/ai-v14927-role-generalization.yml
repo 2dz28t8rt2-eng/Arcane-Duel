@@ -74,6 +74,7 @@ jobs:
           JS
       - name: Continue 16-run protected tactical Q learning
         run: node --expose-gc --max-old-space-size=3200 tests/ai-v1527-Q.cjs
+      # Deck builder accepts only integer seeds between 0 and 9999; values bounded in research runner.
       - name: Phase 0 - Level-8 identical-deck transfer
         run: |
           set -euo pipefail
