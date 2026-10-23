@@ -17,6 +17,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      # Explicit legal-action guard reports invalid switch cases rather than allowing illegal moves.
       - name: Validate self-play training code and real game rules
         run: |
           set -euo pipefail
