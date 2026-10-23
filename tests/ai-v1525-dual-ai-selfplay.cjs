@@ -229,7 +229,7 @@ inject('  if(game!==g||game.active!==learner||game.pending)return baseChoose(gam
 '  if(game===g&&!game.pending)counter.selfPlayCallsBySeat[game.active]++;',
 '  if(game!==g||(!scene.selfPlay&&game.active!==learner)||game.pending)return baseChoose(game,policy);'
 ]);
-inject('  if(selected){\\n   // The reference is inspected on a clone, never mutating real phase or RNG.',[
+inject('  if(selected){\n   // The reference is inspected on a clone, never mutating real phase or RNG.',[
 '  if(selected){',
 '   if(game===g)counter.selfPlayStrategicBySeat[game.active]++;',
 '   // The reference is inspected on a clone, never mutating real phase or RNG.'
