@@ -89,3 +89,27 @@ Only test scripts, CI workflow and documents are added on
 - `tests/ai-v1527-history.cjs`
 - `tests/ai-v1527-Q.cjs`
 - `.github/workflows/ai-v14927-role-generalization.yml`
+
+## Runtime reliability correction (2026-10-23)
+Initial run #39947326174 failed because new deck-generator seeds exceeded
+its legitimate 0..9999 integer range. The seed formula was then bounded.
+Run #39947677115 passed game-rule, Q checkpoint and history checks but
+failed in phase 0 with a Node.js V8 heap OOM (2900 MB; exit 134).
+No game-winning conclusions may be drawn from either failed run.
+
+The corrected runner accepts `<stage> <pair>` to simulate exactly 120 duels
+in one independent Node.js process (8 role pairs × 120 = 960 games per phase).
+`<stage> finalize` separately verifies and merges all eight shard files
+in deterministic role-pair order, producing the exact same stage schema
+and TRAIN/VALIDATION/HOLDOUT splits. Node processes are isolated; no
+cross-shard game-state or RNG mixing occurs. Validation and holdout
+action tapes are omitted from shard artifacts, so only TRAIN traces
+are available for downstream learning.
+
+The replacement workflow runs five phases as 40 independent bounded
+Node simulation processes plus five strict aggregate passes.
+The implementation is in `tests/ai-v1527-roles-generalization.cjs` and
+`.github/workflows/ai-v14927-role-generalization.yml`.
+GitHub run #39963832441 is the corrected restart; as of this note,
+the first phase was still running. Do not describe the experiment as
+fully complete until the workflow reports success.
