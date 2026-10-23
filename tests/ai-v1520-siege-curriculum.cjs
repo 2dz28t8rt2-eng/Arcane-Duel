@@ -122,7 +122,7 @@ function study(){
  const fs=require('node:fs'),assert=require('node:assert/strict');
  const {boot}=require('./helpers/game-runtime.cjs');
  const {makeBenchmarkDeck}=require('./helpers/lategame-ai-decks-v72.cjs');
- const catalog=boot({seed:15200042}).run('({cards:CARDS,defaultDeck:RPG_DEFAULT_DECK,startFusions:RPG_START_FUSIONS})');
+ const catalog=boot({seed:15200042}).run('({cards:CARDS,defaultDeck:RPG_DEFAULT_DECK,startFusions:RPG_START_FUSIONS,opponents:OPPONENTS})');
  const root='artifacts/v1520';fs.mkdirSync(root,{recursive:true});
  const stage=Number(process.argv[2]);
  assert.ok(Number.isInteger(stage)&&stage>=0&&stage<4);
