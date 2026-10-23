@@ -54,6 +54,7 @@ jobs:
           node tests/ai-v1520-history.cjs
       - name: Continue protected tactical Predator Q independently of siege optimization
         run: node --expose-gc --max-old-space-size=3200 tests/ai-v1520-Q.cjs
+      # Stage 0 is a fail-fast runtime gate: stop before curriculum training if the simulator cannot execute.
       - name: Stage 0 – static Guardian Soul fortress with no enemy actions
         run: |
           set -euo pipefail
