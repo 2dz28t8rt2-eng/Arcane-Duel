@@ -417,31 +417,37 @@ function study(){
     missedDirectOpportunities:rows.reduce((v,r)=>v+r.missedDirectOpportunities,0)} };
  }
  const summaries=profiles.map(profile=>{
-  const ours=cases.filter(c=>c.arm===profile.name);
-  return {arm:profile.name,weights:profile.weights,
-   opponentWeights:profile.opponentWeights,symmetric:profile.symmetric,
-   train:summary(ours.filter(r=>r.split==='train')),
-   holdout:summary(ours.filter(r=>r.split==='holdout'))};
+  const rows=cases.filter(x=>x.arm===profile.name);
+  return {arm:profile.name,rolePolicy:profile.rolePolicy,
+   train:summary(rows.filter(x=>x.split==='train')),
+   validation:summary(rows.filter(x=>x.split==='validation')),
+   holdout:summary(rows.filter(x=>x.split==='holdout'))};
  });
  const baseline=summaries[0];
- const bestExperimental=[...summaries].filter(x=>!x.symmetric).sort((a,b)=>
-  b.train.wins-a.train.wins||b.train.meanReward-a.train.meanReward||a.arm.localeCompare(b.arm))[0];
- // NEVER promote a candidate without strictly more TRAIN wins than the unchanged baseline.
- const passesSeatParity=[0,1].every(seat=>bestExperimental.train.bySeat[seat].wins>=baseline.train.bySeat[seat].wins);
- const candidate=bestExperimental.train.wins>=baseline.train.wins+4&&passesSeatParity?bestExperimental:baseline;
+ const candidates=summaries.slice(1).filter(x=>
+  x.train.wins>=baseline.train.wins+4&&
+  x.validation.wins>=baseline.validation.wins+2&&
+  [0,1].every(seat=>
+   x.train.bySeat[seat].wins>=baseline.train.bySeat[seat].wins&&
+   x.validation.bySeat[seat].wins>=baseline.validation.bySeat[seat].wins));
+ candidates.sort((a,b)=>b.validation.wins-a.validation.wins||
+  b.train.wins-a.train.wins||a.arm.localeCompare(b.arm));
+ const candidate=candidates[0]||baseline;
  const result={schema:'arcane-v1527-stage',stage,
-  learningSource:'v14.9.25 TRAIN-only symmetric reference actions',
-  trainingPriorWeights:learned,
-  name:['guardian-soul-lv8-mirror','guardian-soul-lv9-mirror','guardian-soul-lv10-mirror','guardian-soul-lv8-crossrole','guardian-soul-lv10-crossrole'][stage],
-  controls:{matchedDecks:true,pairedSeeds:true,pairedSeats:true,pairedStarters:true,
-   arenaLPDecayOff:true,noEnemyActiveOffenseBeforeStage3:true,
-   holdoutUsedForSelection:false},
-  selectionMethod:'At least +4 TRAIN wins versus symmetric two-sided test-AI reference, no regressions per seat. Only TRAIN-derived selfplay priors; HOLDOUT unseen for selection.',
-  chosenArm:candidate.arm,selectedWeights:candidate.weights,
-  previousSelectedWeights:inherited,
-  promoted:candidate.arm!=='symmetric-reference',trainCandidate:candidate.train,trainBaseline:baseline.train,
+  name:['selfplay-l8-mirror','selfplay-l9-mirror','selfplay-l10-mirror',
+    'selfplay-l8-crossrole','selfplay-l10-crossrole'][stage],
+  learningSource:'prior verified Q and roles; current games selected by TRAIN then VALIDATION',
+  controls:{pairedSeeds:true,pairedSeats:true,pairedStarters:true,
+   independentTrainValidationHoldout:true,
+   priorQCheckpointOpponent:true,holdoutNeverUsedForSelection:true},
+  selectionMethod:'TRAIN +4/64; VALIDATION +2/64; zero regression on either seat in both splits; never use HOLDOUT',
+  chosenArm:candidate.arm,selectedRolePolicy:candidate.rolePolicy,
+  previousSelectedRolePolicy:previous?.selectedRolePolicy||null,
+  promoted:candidate.arm!=='pool-reference',
+  trainCandidate:candidate.train,trainBaseline:baseline.train,
+  validationCandidate:candidate.validation,validationBaseline:baseline.validation,
   holdoutCandidate:candidate.holdout,holdoutBaseline:baseline.holdout,
-  summaries,allCases:cases.map(({actions,...rest})=>rest)};
+  summaries,allCases:cases.map(({actions,...row})=>row)};
  fs.writeFileSync(root+'/stage-'+stage+'.json',JSON.stringify(result,null,2)+'\n');
  fs.writeFileSync(root+'/stage-'+stage+'-train-actions.json',JSON.stringify({
   schema:'arcane-v1527-training-only-actions',stage,
@@ -451,7 +457,7 @@ function study(){
   }))})+'\n');
  console.log('ARCANE_V1527_STAGE '+JSON.stringify({stage,name:result.name,
   winner:candidate.arm,weights:candidate.weights,
-  training:candidate.train,holdout:candidate.holdout,
+  training:candidate.train,validation:candidate.validation,holdout:candidate.holdout,
   baselineHoldout:baseline.holdout,games:cases.length}));
 }
 const inner='\nnew Function("require","process","console",src+"\\n("+'
