@@ -229,5 +229,7 @@ function study(){
   training:candidate.train,holdout:candidate.holdout,
   baselineHoldout:baseline.holdout,games:cases.length}));
 }
+const inner='\nnew Function("require","process","console",src+"\\n("+'
+ +JSON.stringify(study.toString())+'+")()")(require,process,console);';
 new Function('require','process','console',
- prefix+'\n'+patchLines.join('\n')+'\n('+study.toString()+')()')(require,process,console);
+ prefix+'\n'+patchLines.join('\n')+inner)(require,process,console);
