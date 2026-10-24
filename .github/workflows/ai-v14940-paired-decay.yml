@@ -195,7 +195,7 @@ jobs:
       - name: Phase 6 - EXACT SAME SEEDS with full LP decay on BOTH seats
         run: |
           set -euo pipefail
-          for pair in 0 1 2 3 4 6 6 7; do
+          for pair in 0 1 2 3 4 5 6 7; do
             node --expose-gc --max-old-space-size=1900 tests/ai-v1540-paired-decay-selfplay.cjs 6 "$pair"
           done
           node --max-old-space-size=1400 tests/ai-v1540-paired-decay-selfplay.cjs 6 finalize
