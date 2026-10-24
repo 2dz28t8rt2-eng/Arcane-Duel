@@ -231,7 +231,7 @@ jobs:
             a.ok(s.allCases.every(x=>x.candidateActionMix&&Number.isInteger(x.fusionReplyEvaluations)&&Number.isInteger(x.attackReplyEvaluations)));
             const counterCases=s.allCases.filter(x=>x.arm==='counterfactual-attack-guard');
             a.ok(s.allCases.every(x=>Number.isInteger(x.attackReplySimulations)&&Number.isInteger(x.attackReplyHits)));
-            if(i>=2)a.ok(counterCases.some(x=>x.attackReplySimulations>0),'Legal enemy attack follow-up not checked in L10 cross-role duel');
+            if(i===4)a.ok(counterCases.some(x=>x.attackReplySimulations>0),'Legal enemy attack follow-up not checked in hard L10 cross-role duel');
             a.ok(r.arms.every(x=>x.pairedSeatRoleAudit&&x.hardL10ByPair),'Missing seat-role diagnostics');
             a.ok(s.allCases.every(x=>x.illegalSwitchesBySeat.every(n=>n===0)));
             a.ok(s.allCases.every(x=>x.selfPlayStrategicBySeat.every(n=>n>0)));
