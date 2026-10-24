@@ -20,7 +20,7 @@ for(let stage=0;stage<7;stage++){
   assert.ok(Number.isInteger(r.scenario)&&r.scenario>=0&&r.scenario<6);
   const split=r.scenario<2?'train':r.scenario<4?'validation':'holdout';
   assert.equal(r.split,split);
-  assert.equal(r.seed,15400000+stage*200000+r.pair*10000+r.scenario*1381+r.starter*71);
+  assert.equal(r.seed,15400000+(stage>=5?5:stage)*200000+r.pair*10000+r.scenario*1381+r.starter*71);
   assert.ok([0,1].includes(r.win)&&r.turn>0&&Number.isFinite(r.reward));
   assert.equal(r.mirror,stage<=1);
   assert.equal(r.decayEnabled,stage===6);
