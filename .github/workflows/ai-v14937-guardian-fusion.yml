@@ -3,7 +3,7 @@ on:
   push:
     branches: [development]
     paths:
-      - '.github/workflows/ai-v14937-seat2-allrounder.yml'
+      - '.github/workflows/ai-v14937-guardian-fusion.yml'
   workflow_dispatch:
 permissions:
   contents: read
