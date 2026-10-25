@@ -127,3 +127,12 @@ test('paired A/B deck simulations use both first-player positions and identical 
   }
   assert.equal(new Set(rounds.map(x=>x.policy)).size,4);
 });
+
+test('local radar comparison reports only measured policy gaps',()=>{
+  const {api}=setup();
+  const before={reports:[{policy:'balanced',stats:[{n:12,wins:6},{n:12,wins:6}]}]};
+  const after=[{policy:'balanced',stats:[{n:12,wins:9},{n:12,wins:6}]}];
+  const report=api.compareRadarRuns(before,after);
+  assert.match(report,/Ausgewogen \+13 Prozentpunkte/);
+  assert.equal(api.compareRadarRuns(null,after),'');
+});

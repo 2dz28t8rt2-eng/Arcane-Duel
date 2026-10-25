@@ -7,6 +7,7 @@
   const esc=value=>escapeHtml(String(value??''));
   const fmt=value=>Math.round(Number(value)||0).toLocaleString('de-AT');
   const DATA_KEY='arcane-duel-v122-strategy';
+  const RADAR_KEY='arcane-duel-v122-radar';
   const ROLE_LABELS={predator:'Predator',guardian:'Wächter',soul:'Seelenzehrer',resonator:'Resonator',combatant:'Allrounder',allrounder:'Allrounder',support:'Support',weaver:'Runenweber'};
   const POLICIES=[['balanced','Ausgewogen'],['offensive','Offensiv'],['guardian','Defensiv'],['economy','Ressourcenorientiert']];
   function pairedSchedule(i,foe,policy){
@@ -333,36 +334,65 @@
 
   // This is a local diagnosis. It does NOT claim to aggregate GitHub training histories.
   function startSplit(stats,starter,win,fusions){const s=stats[starter];s.n++;s.wins+=win?1:0;s.fusions+=fusions;}
+  function readRadarHistory(){
+    try{const parsed=JSON.parse(window.localStorage?.getItem(RADAR_KEY)||'[]');
+      return Array.isArray(parsed)?parsed.filter(x=>x&&typeof x.key==='string'&&Number.isInteger(x.foe)&&
+        Array.isArray(x.reports)).slice(0,8):[];}catch(_){return [];}
+  }
+  function radarKey(deck,fusion){
+    return JSON.stringify({deck,fusion,enhancements:profile.enhancements,power:profile.upgrades.power});
+  }
+  function compareRadarRuns(previous,reports){
+    if(!previous?.reports||!Array.isArray(reports))return '';
+    const differences=reports.map(r=>{
+      const old=previous.reports.find(x=>x.policy===r.policy);
+      if(!old)return null;
+      const past=(old.stats||[]).reduce((acc,s)=>({wins:acc.wins+(Number(s.wins)||0),n:acc.n+(Number(s.n)||0)}),{wins:0,n:0});
+      const now=r.stats.reduce((acc,s)=>({wins:acc.wins+s.wins,n:acc.n+s.n}),{wins:0,n:0});
+      return {policy:r.policy,gap:pct(now.wins,now.n)-pct(past.wins,past.n)};
+    }).filter(Boolean);
+    return differences.length?'Vorheriger vergleichbarer Durchlauf: '+differences.map(d=>
+      (POLICIES.find(x=>x[0]===d.policy)?.[1]||d.policy)+' '+(d.gap>0?'+':'')+d.gap+' Prozentpunkte').join(' · ')+
+      '. Gleiche Testseeds, keine Aussage über andere Gegner oder Decks.':'';
+  }
   function openRadar(){
     if(game||uiMode!=='menu')return;
     openModal('<section class="ad122-panel"><div class="modal-kicker">LOKALER BALANCE-RADAR</div><h2>Strategie- und Startspielercheck</h2>'+ 
       '<p>Ein wiederholbarer Diagnosetest für dein gewähltes Deck. Wir vergleichen drei KI-Stile und beide Startpositionen bei gleichen Seeds. Keine Änderung am Balancing.</p>'+ 
       '<div class="ad122-controls"><label>Deck<select id="ad122-radar-slot">'+options(slots().map(x=>[x.id,x.name]),profile.activeSlot)+'</select></label>'+ 
-      '<label>Gegner<select id="ad122-radar-foe">'+options(foes().map(x=>[x.id,x.name]),0)+'</select></label></div>'+ 
-      '<div id="ad122-radar-result" aria-live="polite"><p class="ad122-muted">36 gepaarte Tests (72 simulierte Duelle). Die Startposition ist eine feste Testvariable.</p></div>'+ 
+      '<label>Gegner<select id="ad122-radar-foe">'+options(foes().map(x=>[x.id,x.name]),0)+'</select></label>'+ 
+      '<label>Testumfang<select id="ad122-radar-n">'+options([[12,'12 je Stil und Startplatz'],[24,'24 je Stil und Startplatz']],12)+'</select></label></div>'+ 
+      '<div id="ad122-radar-result" aria-live="polite"><p class="ad122-muted">Wahlweise 72 oder 144 simulierte Duelle. Die Startposition wird kontrolliert; Ergebnisse können lokal mit späteren Messungen verglichen werden.</p></div>'+ 
       '<div class="modal-actions"><button type="button" class="btn primary" id="ad122-radar-run">Radar starten</button>'+modalEnd+'</div></section>');
     bindClose();
     $id('ad122-radar-run').onclick=async()=>{
       const local=++ticket,slot=Number($id('ad122-radar-slot').value),foe=Number($id('ad122-radar-foe').value),
-        deck=activeDeckFor(slot),fusion=fusionDeckFor(slot),host=$id('ad122-radar-result'),button=$id('ad122-radar-run');
-      if(!deckLegal(deck,fusion)||!foes().some(f=>f.id===foe)){host.textContent='Deck oder Gegner derzeit nicht für einen Test verfügbar.';return;}
+        n=Number($id('ad122-radar-n').value),deck=activeDeckFor(slot),fusion=fusionDeckFor(slot),host=$id('ad122-radar-result'),button=$id('ad122-radar-run');
+      if(!deckLegal(deck,fusion)||!foes().some(f=>f.id===foe)||![12,24].includes(n)){
+        host.textContent='Deck oder Gegner derzeit nicht für einen Test verfügbar.';return;}
       button.disabled=true;let errors=0;
       const reports=[];
       for(const policy of ['balanced','offensive','guardian']){
         const stats=[{n:0,wins:0,fusions:0},{n:0,wins:0,fusions:0}];
-        for(let i=0;i<12;i++){
+        for(let i=0;i<n;i++){
           if(local!==ticket||!host.isConnected)return;
           const seed=122500+foe*577+i*547;
           for(let starter=0;starter<=1;starter++){
             try{const result=simulateOnce(deck,fusion,foe,policy,seed,starter);
               startSplit(stats,starter,result.win,result.fusions);}catch(_){errors++;}
           }
-          host.textContent='Radar: '+roleLabel(policy)+' · Paar '+(i+1)+' / 12';
+          host.textContent='Radar: '+(POLICIES.find(x=>x[0]===policy)?.[1]||policy)+' · Paar '+(i+1)+' / '+n;
           await yieldUI();
         }
         reports.push({policy,stats});
       }
       if(local!==ticket||!host.isConnected)return;
+      const history=readRadarHistory(),key=radarKey(deck,fusion),previous=history.find(x=>x.foe===foe&&x.key===key&&x.n===n);
+      const comparison=!errors?compareRadarRuns(previous,reports):'';
+      if(!errors){
+        try{window.localStorage?.setItem(RADAR_KEY,JSON.stringify([{key,foe,n,date:Date.now(),
+          reports:reports.map(x=>({policy:x.policy,stats:x.stats}))},...history].slice(0,8)));}catch(_){}
+      }
       host.innerHTML='<div class="ad122-radar-grid">'+reports.map(r=>{
         const label=POLICIES.find(x=>x[0]===r.policy)?.[1]||r.policy;
         const a=r.stats[0],b=r.stats[1];
@@ -372,7 +402,8 @@
           '<small>Ø Fusionen: '+((a.fusions+b.fusions)/Math.max(1,a.n+b.n)).toFixed(1)+'</small></article>';
       }).join('')+'</div>'+ 
       (errors?'<p class="ad122-warning">'+errors+' Simulationen hatten keinen gültigen Abschluss und fehlen in der Quote.</p>':'')+
-      '<p class="ad122-muted">Wichtig: Je Stil nur 12 Spiele pro Startposition. Große Unterschiede sind Hinweise für weitere Tests, keine belastbaren Beweise für ein globales Startspieler- oder Rollenproblem. GitHub-Trainingsberichte sind hier nicht einbezogen.</p>';
+      (comparison?'<p>'+esc(comparison)+'</p>':'')+
+      '<p class="ad122-muted">Wichtig: Je Stil nur '+n+' Spiele pro Startposition. Große Unterschiede sind Hinweise für weitere Tests, keine belastbaren Beweise für ein globales Startspieler- oder Rollenproblem. Diese lokale Historie enthält keine GitHub-Trainingsberichte.</p>';
       button.disabled=false;
     };
   }
@@ -456,5 +487,5 @@
   if(uiMode==='menu')extendMenu();
 
   window.ArcaneStrategyEvolution122=Object.freeze({version:'12.2.0',safeState,proposeSwap,comparisonText,
-    dangerMarkers,pivotalMoments,archiveRows,pairedSchedule,openOptimizer,openArchive,openRadar});
+    dangerMarkers,pivotalMoments,archiveRows,pairedSchedule,compareRadarRuns,openOptimizer,openArchive,openRadar});
 })();
