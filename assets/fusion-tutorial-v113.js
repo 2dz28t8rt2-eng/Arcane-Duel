@@ -68,7 +68,8 @@
   const role=materials.length>=2?window.ArcaneRoleFusion?.inheritance?.(materials):null;
   const detail=rule.others?.map((level,i)=>'Material '+(i+2)+': Lv '+level+
    ' · Gewicht '+Math.round((rule.weights[i]||0)*100)+' %').join(' · ')||'';
-  return {g,rule,budget,best,pattern,quality,coreName,role,suggestion,detail,pending,
+  const partialStreet=!rule.street&&/^(Kleine|Große|Gigantische) Straße/.test(pattern.name);
+  return {g,rule,budget,best,pattern,quality,coreName,role,suggestion,detail,pending,partialStreet,
    inherited:quality.heritagePct||0,resonance:quality.resonancePct||0};
  }
  function openHelp(){
@@ -86,6 +87,12 @@
    (q.street?'<p class="ad113-positive"><b>✦ '+esc(q.streetName)+
     '!</b> Die Materiallevel bilden eine geschlossene Folge. Der normale Qualitätsabzug für Levelabstände entfällt. '+
     'Die Reihenfolge des Anklickens ist egal.</p>':
+    info.partialStreet?
+    '<p class="ad113-positive"><b>✦ '+esc(info.pattern.name)+
+    ' als Teilkombination erkannt.</b> Die aufeinanderfolgenden Level behalten ihren Pokerbonus, '+
+    'auch wenn weitere Materialien doppelt vorkommen. Alle übrigen Karten werden mitverbraucht und '+
+    'gehen weiterhin in die Level- und Qualitätsberechnung ein; nur die vollständige Straße '+
+    'schützt vor dem gesamten Levelabstands-Abzug.</p>':
     '<p>Unterschiedliche Materiallevel beeinflussen die Qualität. Schwache Füllkarten zählen mit, '+
     'geben aber keinen kostenlosen Levelaufstieg.</p>')+
    '<p><b>Kombination:</b> '+esc(info.pattern.name)+' · '+
