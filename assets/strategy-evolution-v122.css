@@ -1,0 +1,60 @@
+/* Arcane Duel v12.2 – quiet, opt-in strategy controls in the existing medieval UI. */
+#modal:has(.ad122-panel){width:min(1050px,94vw);max-width:94vw;max-height:min(92vh,1050px);overflow:auto}
+.ad122-panel{display:grid;gap:16px;color:#e9deea}
+.ad122-panel h2{margin:0;color:#ffe6b8;font-size:clamp(1.35rem,3vw,1.9rem)}
+.ad122-panel p{line-height:1.5;margin:0}
+.ad122-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:11px}
+.ad122-controls label{display:grid;gap:7px;color:#d9cfdf;font-size:.84rem}
+.ad122-controls select,.ad122-wish-add select{border:1px solid rgba(222,191,129,.4);border-radius:9px;background:#20253a;color:#f4e2c5;padding:10px;min-width:0;font:inherit;max-width:100%}
+.ad122-suggestion,#ad122-opt-result{padding:15px 17px;border:1px solid rgba(207,173,122,.31);border-radius:13px;background:linear-gradient(130deg,rgba(100,65,97,.25),rgba(20,34,49,.65));display:grid;gap:9px}
+.ad122-suggestion b{color:#ead0a5}
+.ad122-suggestion strong{color:#ffdeb0}
+.ad122-suggestion small,.ad122-muted{color:#c6c0cf;font-size:.8rem;line-height:1.48}
+.ad122-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.ad122-metrics span{display:grid;gap:7px;border:1px solid rgba(216,181,126,.25);border-radius:10px;padding:10px 12px;background:rgba(17,28,44,.6);font-size:.78rem;color:#c9c6d4}
+.ad122-metrics b{font-size:1.35rem;color:#f1d6a1}
+.ad122-warning{color:#ffb890}
+.ad122-empty{padding:24px 18px;border:1px dashed rgba(223,181,131,.3);border-radius:12px;color:#d1c0d1}
+.ad122-archive{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,285px),1fr));gap:10px;max-height:62vh;overflow:auto}
+.ad122-archive article{display:grid;align-content:start;gap:7px;min-width:0;border:1px solid rgba(230,183,112,.24);background:rgba(24,31,48,.72);border-radius:12px;padding:12px 14px;overflow-wrap:anywhere}
+.ad122-archive strong{color:#f6dcb1}
+.ad122-archive small{color:#bfb5cd;font-size:.75rem;line-height:1.45}
+.ad122-archive span{color:#e5d7e9;font-size:.82rem}
+.ad122-radar-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.ad122-radar-grid article{display:grid;gap:11px;border:1px solid rgba(221,190,131,.32);border-radius:13px;background:rgba(23,35,48,.6);padding:14px}
+.ad122-radar-grid strong{color:#f3dfb8}
+.ad122-radar-grid span{font-size:.84rem;color:#e5dbea}
+.ad122-radar-grid b{color:#dfd1a7}
+.ad122-radar-grid small{font-size:.77rem;color:#bfb6c6}
+#ad122-wishlist{margin:0 0 19px;display:grid;gap:12px;padding:15px 18px;border-radius:13px;border:1px solid rgba(214,173,111,.32);background:linear-gradient(115deg,rgba(60,47,76,.35),rgba(21,37,49,.67));color:#eadde8}
+.ad122-wish-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ad122-wish-head>div{display:grid;gap:5px}
+.ad122-wish-head strong{font-size:1rem;color:#f3dbb5}
+.ad122-wish-head small{font-size:.79rem;color:#c6bed0}
+.ad122-wish-head>span{white-space:nowrap;color:#e5c591;font-size:.89rem}
+.ad122-wish-add{display:flex;gap:9px;align-items:center}
+.ad122-wish-add select{flex:1;width:1px}
+.ad122-wish-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,285px),1fr));gap:8px}
+.ad122-wish-items>div{display:flex;justify-content:space-between;align-items:center;gap:9px;padding:9px 11px;border-radius:9px;background:rgba(21,31,45,.58);border:1px solid rgba(205,180,138,.2);font-size:.84rem}
+.ad122-wish-items span{overflow-wrap:anywhere}
+.ad122-wish-items em{font-size:.72rem;color:#cfb7cb;font-style:normal}
+.ad122-wish-items button{flex:none;cursor:pointer;border:1px solid rgba(224,175,114,.35);background:rgba(40,38,55,.66);color:#f0d3b4;border-radius:7px;padding:6px 9px}
+#ad122-danger-tools{display:grid;gap:7px;margin-top:10px}
+.ad122-danger-toggle{cursor:pointer;justify-self:start;padding:7px 10px;border-radius:8px;border:1px solid rgba(217,191,149,.35);background:rgba(31,35,56,.6);color:#ead9c1;font:inherit;font-size:.78rem}
+.ad122-danger-toggle[aria-pressed=true]{border-color:rgba(236,187,114,.73);background:rgba(119,77,54,.36)}
+#ad122-danger-tools small{font-size:.69rem;color:#c5bcc6;line-height:1.4}
+.monster-slot.ad122-threat{outline:2px solid rgba(250,97,99,.74)!important;outline-offset:2px;box-shadow:0 0 17px rgba(229,63,73,.26)!important}
+.monster-slot.ad122-opportunity{outline:2px solid rgba(111,216,176,.83)!important;outline-offset:2px;box-shadow:0 0 17px rgba(75,213,168,.26)!important}
+#ad122-lesson{margin-top:14px;padding:12px;border:1px solid rgba(235,191,116,.4);border-radius:11px;background:linear-gradient(135deg,rgba(98,65,96,.28),rgba(25,32,52,.75));display:grid;gap:7px}
+.ad122-lesson-title{color:#e8c68c;font-size:.69rem;letter-spacing:.07em;font-weight:700}
+#ad122-lesson b{color:#f8e4bf;font-size:.87rem}
+#ad122-lesson p{font-size:.77rem;line-height:1.45;color:#e0d3df;margin:0}
+#ad122-lesson .btn{justify-self:start}
+.ad122-moments{margin-top:15px;padding:13px 14px;border:1px solid rgba(226,185,120,.29);border-radius:12px;background:rgba(31,33,52,.45);display:grid;gap:10px}
+.ad122-moments h3{margin:0;color:#f4ddb3;font-size:1rem}
+.ad122-moments ol{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.ad122-moments li{display:grid;gap:3px;border-left:2px solid #be9b70;padding:4px 9px;background:rgba(101,87,111,.12)}
+.ad122-moments li small{color:#e7c49c;font-size:.72rem}
+.ad122-moments li span{font-size:.82rem;color:#e7dfe6;overflow-wrap:anywhere}
+@media(max-width:710px){.ad122-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.ad122-radar-grid{grid-template-columns:1fr}.ad122-wish-add{flex-wrap:wrap}.ad122-wish-add select{width:100%;flex-basis:100%}}
+@media(prefers-reduced-motion:reduce){.monster-slot.ad122-threat,.monster-slot.ad122-opportunity{animation:none!important;transition:none!important}}
