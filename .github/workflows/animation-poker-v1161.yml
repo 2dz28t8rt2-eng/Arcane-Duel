@@ -1,0 +1,38 @@
+name: Arcane Duel - v11.6.1 Motion and Poker QA
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/evolution.js'
+      - 'assets/attack-impact-v113.js'
+      - 'assets/attack-impact-v113.css'
+      - 'assets/summon-stage-v56.js'
+      - 'assets/summon-stage-v56.css'
+      - 'assets/hand-draw-v1161.js'
+      - 'assets/hand-draw-v1161.css'
+      - 'assets/game.js'
+      - 'tests/animation-poker-v1161.test.cjs'
+      - '.github/workflows/animation-poker-v1161.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  motion-poker-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check new and changed scripts
+        run: |
+          node --check assets/attack-impact-v113.js
+          node --check assets/hand-draw-v1161.js
+          node --check assets/summon-stage-v56.js
+          node --check assets/evolution.js
+          node --check assets/game.js
+          node --check tests/animation-poker-v1161.test.cjs
+      - name: Poker subsets, level safety, battle and existing fusion scenarios
+        run: |
+          node --test tests/animation-poker-v1161.test.cjs tests/fusion-rework-v113.test.cjs tests/fusion-save-stress-v113.test.cjs tests/qa-user-demo-20261019.test.cjs tests/summon-stage-v56.test.cjs
