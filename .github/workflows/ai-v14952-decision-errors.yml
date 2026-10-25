@@ -1,0 +1,156 @@
+name: Arcane Duel - v14.9.52 Decision Error Audit and Tactical Research
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v14952-decision-errors.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  decision-error-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      SELFPLAY: tests/ai-v1552-decision-errors-selfplay.cjs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify new research scripts and real combat regression tests
+        run: |
+          set -euo pipefail
+          for f in tests/ai-v1552-{history,Q,decision-errors-selfplay,decision-errors-aggregate}.cjs; do
+            test -f "$f"
+            node --check "$f"
+          done
+          node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
+      - name: Restore successful v14.9.51 checkpoint and forty-one-run TRAIN-only history
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARCANE_PREVIOUS_ARTIFACT_DIR: /tmp/arcane-v1552-prior
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40236577655" --jq '.conclusion')" = success
+          mkdir -p /tmp/arcane-v1552-prior artifacts/v1552
+          gh run download 40236577655 --repo "$GITHUB_REPOSITORY" --name arcane-v14951-head2head-hardl10 --dir /tmp/arcane-v1552-prior
+          for f in older-q-checkpoint.json prior-selfplay-checkpoint.json incumbent-policy.json research-balanced-policy.json; do
+            cp "/tmp/arcane-v1552-prior/$f" "artifacts/v1552/$f"
+          done
+          node tests/ai-v1552-history.cjs
+      - name: Update Q values only with independent TRAIN-only confirmation
+        run: node --expose-gc --max-old-space-size=3200 tests/ai-v1552-Q.cjs
+      - name: Phase 0 - Level-8 mirrored decks and seats
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 0 "$pair"; done
+          node "$SELFPLAY" 0 finalize
+      - name: Phase 1 - Level-9 mirrored decks and seats
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 1 "$pair"; done
+          node "$SELFPLAY" 1 finalize
+      - name: Phase 2 - Level-10 cross-role transfer
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 2 "$pair"; done
+          node "$SELFPLAY" 2 finalize
+      - name: Phase 3 - Real symmetrical LP decay within main validation
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 3 "$pair"; done
+          node "$SELFPLAY" 3 finalize
+      - name: Phase 4 - Tripled hard-Level-10 Guardian and Allrounder cases
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 4 "$pair"; done
+          node "$SELFPLAY" 4 finalize
+      - name: Phase 5 - Exact-paired Level-10 baseline without decay
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 5 "$pair"; done
+          node "$SELFPLAY" 5 finalize
+      - name: Phase 6 - Exact-paired Level-10 counterpart with real decay
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 6 "$pair"; done
+          node "$SELFPLAY" 6 finalize
+      - name: Phase 7 - New candidate directly versus frozen v14.9.51 champion
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 7 "$pair"; done
+          node "$SELFPLAY" 7 finalize
+      - name: Phase 8 - Fresh focused Guardian-Hybrid and Allrounder-Predator cases
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 8 "$pair"; done
+          node "$SELFPLAY" 8 finalize
+      - name: Aggregate protected promotions and paired TRAIN-only decision errors
+        run: node --max-old-space-size=3200 tests/ai-v1552-decision-errors-aggregate.cjs
+      - name: Validate complete 12672-duel report and sealed holdout
+        run: |
+          set -euo pipefail
+          node - <<'JS'
+          const a=require('node:assert/strict'),fs=require('node:fs'),p='artifacts/v1552/';
+          const read=f=>JSON.parse(fs.readFileSync(p+f,'utf8'));
+          const r=read('report.json'),h=read('historical-train.json');
+          const q=read('training-q-and-examples.json'),prov=read('provenance.json');
+          const frozen=read('frozen-v1551-champion.json');
+          a.equal(r.status,'completed');a.equal(r.totalDuels,12672);
+          a.equal(r.primaryDuels,8064);a.equal(r.stages.length,9);a.equal(r.arms.length,6);
+          a.equal(h.sources.length,41);a.equal(h.examples.length,5397);
+          a.equal(h.sources.at(-1),40236577655);
+          a.equal(prov.holdoutAsTraining,false);a.equal(q.length,3);
+          a.equal(frozen.arm,'l10-guarded-worst-reply');a.equal(frozen.holdoutUsed,false);
+          a.ok(r.controls.holdoutNeverUsedForSelection);
+          a.ok(r.controls.directH2HTrainValidationRequiredForPromotion);
+          a.ok(r.controls.focusedL10HoldoutExcludedFromSelection);
+          a.ok(r.controls.trainOnlyPairedFirstActionDivergence);
+          a.ok(r.controls.noProductionChanges);
+          a.equal(r.decisionDiagnostics.length,3);
+          a.ok(r.decisionDiagnostics.every(x=>x.trainCases===704));
+          a.deepEqual(r.globalSelection.selectionGateStages,[0,1,2,3,4,7,8]);
+          a.equal(r.globalSelection.holdoutSeenBySelector,false);
+          for(let stage=0;stage<9;stage++){
+            const s=read('stage-'+stage+'.json');
+            a.equal(s.allCases.length,stage===4?3456:1152);
+            a.equal(s.summaries.length,6);a.equal(s.promoted,false);
+            a.ok(s.allCases.every(x=>x.illegalSwitchesBySeat.every(n=>n===0)));
+            a.ok(s.allCases.every(x=>x.selfPlayStrategicBySeat.every(n=>n>0)));
+            a.ok(s.allCases.every(x=>x.decayEnabled===(stage===3||stage===6)));
+            if(stage===7)a.ok(s.allCases.every(x=>x.foeCheckpoint==='guarded-v1551'));
+            const d=read('stage-'+stage+'-decision-diffs.json');
+            a.equal(d.rows.length,stage===4?576:192);
+            a.ok(d.rows.every(x=>x.split==='train'));
+          }
+          const winner=r.globalSelection;
+          if(winner.promoted){
+            const z=winner.candidates.find(x=>x.arm===winner.arm);
+            a.ok(z?.qualifies&&z.guardianGate&&z.seatNonRegressionVsFrozen);
+            a.ok(z.validationGainVsFrozen>=6&&z.trainGainVsFrozen>=2);
+            a.ok(z.hardL10ValidationVsFrozen>=2&&z.hardL10ValidationVsGuardian>=2);
+            a.ok(z.decayValidationVsFrozen>=0);
+            a.ok(z.h2hTrainGain>=1&&z.h2hValidationGain>=3);
+            a.ok(z.focusedValidationGain>=0);
+          }else a.equal(winner.arm,'l10-guarded-worst-reply');
+          a.ok(r.arms.some(x=>x.arm==='guarded-attack-window'&&
+            x.evaluations.preciseAttackChecks>0));
+          a.ok(r.arms.some(x=>x.arm==='guarded-fusion-patience'&&
+            x.evaluations.fusionPatienceChecks>0));
+          a.ok(r.arms.some(x=>x.arm==='guarded-selective-defense'&&
+            x.evaluations.defenseThreatGated+x.evaluations.defenseThreatEligible>0));
+          console.log('ARCANE_V1552_VALIDATED '+JSON.stringify({
+            duels:r.totalDuels,champion:winner.arm,promoted:winner.promoted,
+            qualified:winner.candidates.filter(x=>x.qualifies).map(x=>x.arm)
+          }));
+          JS
+      - name: Archive all sealed research phases and historical checkpoint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v14952-decision-errors
+          path: artifacts/v1552/
+          retention-days: 90
+          if-no-files-found: warn
