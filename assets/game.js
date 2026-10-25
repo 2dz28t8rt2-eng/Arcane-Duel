@@ -1519,10 +1519,9 @@ async function performAttack(ai,di){
     (di!==null&&!opponent.field[di])||(di===null&&opponent.field.some(Boolean))){
   g.selection=null;render();toast('Angriff nicht verfügbar oder bereits verbraucht.');return;
  }
- // Commit combat first. If a late validator rejects the attack, never show
- // a misleading projectile, sound or damage animation.
- const result=attack(g,ai,di);
- if(!result){g.selection=null;render();toast('Angriff nicht ausführbar.');return;}
+ // The board must remain intact until the charge and impact complete.
+ // Commit battle only AFTER the cinematic: an enemy cannot disappear before
+ // the attacker actually reaches it. Lock input through the entire sequence.
  busy=true;
  try{
   const a=center(document.querySelector(`[data-mine="${ai}"]`)),
@@ -1530,8 +1529,11 @@ async function performAttack(ai,di){
   if(animationSpeed!=='instant'){
    const physical=await window.ArcaneAttackFX?.play?.(g,viewId,ai,di);
    if(!physical)bolt(a,b);
-   sound('attack');
   }
+  if(game!==g||g.winner!==null)return;
+  const result=attack(g,ai,di);
+  if(!result){g.selection=null;render();toast('Angriff nicht ausführbar.');return;}
+  if(animationSpeed!=='instant')sound('attack');
   render();
   if(result.damage)damageFloat(result.damaged===viewId?a:b,'−'+result.damage);
   await animationWait(120);await window.ArcaneDefenderFX?.flush(g);
