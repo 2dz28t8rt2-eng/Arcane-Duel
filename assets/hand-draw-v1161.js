@@ -22,6 +22,11 @@
   let i=0;
   root.querySelectorAll('[data-hand]').forEach(node=>{
    if(!entering.has(Number(node.dataset.hand)))return;
+   // Calculate the actual distance to the right viewport edge. This is a
+   // proper screen-entry flight, not just a small nudge within the hand.
+   const rect=node.getBoundingClientRect();
+   const flight=Math.max(140,window.innerWidth-rect.left+Math.max(32,rect.width*.3));
+   node.style.setProperty('--ad117-from',Math.round(flight)+'px');
    node.classList.add('ad117-hand-incoming');
    node.style.setProperty('--ad117-delay',Math.min(i++,4)*85+'ms');
   });
