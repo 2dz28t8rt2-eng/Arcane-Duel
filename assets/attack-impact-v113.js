@@ -33,32 +33,32 @@
   const fresh=creature?.summonedTurn===g.turn;
   try{
    // Recently played creatures deliberately take a beat before attacking.
-   await delay(fresh?850:160);
+   await delay(fresh?420:65);
    if(ghost.animate){
     const motion=ghost.animate([
      {transform:'translate(0,0) scale(1)',filter:'brightness(1)'},
      {transform:'translate('+dx*.08+'px,'+dy*.08+'px) scale(.90)',filter:'brightness(1.15)',offset:.18},
      {transform:'translate('+dx*.75+'px,'+dy*.75+'px) scale(1.12)',filter:'brightness(1.6)',offset:.71},
      {transform:'translate('+dx+'px,'+dy+'px) scale(.84)',filter:'brightness(2.35)'}
-    ],{duration:480,easing:'cubic-bezier(.19,.72,.16,1)',fill:'forwards'});
+    ],{duration:285,easing:'cubic-bezier(.08,.85,.12,1)',fill:'forwards'});
     // Hidden iframes and some browsers do not always settle WAAPI.finished.
     // Keep this strictly visual; never hold the turn or input indefinitely.
-    await Promise.race([motion.finished.catch(()=>{}),delay(620)]);
+    await Promise.race([motion.finished.catch(()=>{}),delay(390)]);
     motion.cancel();
-   }else await delay(480);
+   }else await delay(285);
    const burst=document.createElement('div');
    burst.className='ad113-attack-impact'+(owner===1?' ad113-foe-impact':'');
    burst.style.left=(dst.left+dst.width/2)+'px';
    burst.style.top=(dst.top+dst.height/2)+'px';
    burst.setAttribute('aria-hidden','true');
-   burst.innerHTML='<span class="ad113-impact-core"></span>'+
-    Array.from({length:12},(_,i)=>'<i style="--impact-index:'+i+'"></i>').join('');
+   burst.innerHTML='<span class="ad113-impact-core"></span><span class="ad117-impact-ring"></span><span class="ad117-impact-ring ad117-second-ring"></span>'+
+    Array.from({length:32},(_,i)=>'<i style="--impact-index:'+i+';--impact-deg:'+(i*137.5%360)+'deg;--impact-distance:'+(38+i%7*9)+'px;--impact-delay:'+(i%5*12)+'ms"></i>').join('');
    document.body.appendChild(burst);
    ghost.classList.add('ad113-attack-hit');
-   await delay(280);
+   await delay(340);
    burst.remove();
    return true;
   }finally{ghost.remove();}
  }
- window.ArcaneAttackFX=Object.freeze({version:'11.3.0',play});
+ window.ArcaneAttackFX=Object.freeze({version:'11.6.1',play});
 })();
