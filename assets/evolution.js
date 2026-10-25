@@ -122,13 +122,23 @@ chooseAiAction=function(g,policy='balanced'){
 
 // High-quality multiple materials and optional element synergies.
 function fusionPattern(levels,elements=[]){const count=new Map();for(const level of levels)count.set(level,(count.get(level)||0)+1);const groups=[...count.values()].sort((a,b)=>b-a),straight=[...new Set(levels)].sort((a,b)=>a-b),chain=straight.length===levels.length&&straight.every((v,i)=>!i||v===straight[i-1]+1);
+ // A hand may contain a three-/four-card straight and extra duplicates.
+ // Prefer the LONGEST real consecutive subset, independent of click order.
+ // Extra cards remain real consumed materials and still affect quality/level.
+ let streak=1,maximumStraight=1;
+ for(let i=1;i<straight.length;i++){streak=straight[i]===straight[i-1]+1?streak+1:1;maximumStraight=Math.max(maximumStraight,streak);}
+ maximumStraight=Math.min(5,maximumStraight);
  let name='Freie Fusion',rollBonus=0,levelBonus=0,qualityBonus=0;
  const hasLevelOnePair=(count.get(1)||0)>=2;
  if(groups[0]===5){name='Fünfling';rollBonus=3;levelBonus=2;qualityBonus=.18;}
  else if(groups[0]===4){name='Vierling';rollBonus=2;levelBonus=1;qualityBonus=.13;}
  else if(groups[0]===3&&groups[1]===2){name='Full House';rollBonus=2;levelBonus=2;qualityBonus=.14;}
- else if(chain&&levels.length>=4){name='Große Straße';rollBonus=levels.length===5?4:3;levelBonus=levels.length===5?3:2;qualityBonus=levels.length===5?.36:.30;}
- else if(chain&&levels.length===3){name='Kleine Straße';rollBonus=1;levelBonus=1;qualityBonus=.20;}
+ else if(maximumStraight>=3){
+  name=maximumStraight===5?'Gigantische Straße':maximumStraight===4?'Große Straße':'Kleine Straße';
+  rollBonus=maximumStraight===5?4:maximumStraight===4?3:1;
+  levelBonus=maximumStraight===5?3:maximumStraight===4?2:1;
+  qualityBonus=maximumStraight===5?.36:maximumStraight===4?.30:.20;
+ }
  else if(groups[0]===3){name='Drilling';rollBonus=1;levelBonus=1;qualityBonus=.08;}
  else if(groups[0]===2&&groups[1]===2){name='Zwei Paare';rollBonus=1;levelBonus=1;qualityBonus=.12+(hasLevelOnePair ? .05 : 0);}
  else if(groups[0]===2){name='Paar';qualityBonus=.04+(hasLevelOnePair ? .015 : 0);}
