@@ -29,6 +29,7 @@
         material=human?(g.materials||[]).map(uid=>me.hand.find(c=>c.uid===uid)).filter(Boolean):[],
         levels=material.map(c=>dataOf(c).level),
         cost=levels.length>=2?qualityRolls(levels):null,
+        poker=levels.length>=2?window.ArcaneFusionMath?.pattern?.(levels,material.map(c=>dataOf(c).element)):null,
         current=pending?.card||chosen;
   const phase=!human?'Gegnerzug':pending?'Feldplatz wählen':g.summoned?'Beschwörung verbraucht':material.length>=2?'Fusion vorbereiten':chosen?'Normale Beschwörung':'Karte wählen';
   const phaseId=!human?'opponent':pending?'placement':g.summoned?'spent':material.length>=2?'fusion':chosen?'summon':'select';
@@ -56,7 +57,7 @@
   if(levels.length>=2){
    const options=fusionOptions(g,levels,material).filter(c=>canCompleteHandFusion(g,levels,c.id));
    limits='<div class="ad56-material-status"><strong>'+levels.length+' / 5 Materialien</strong>'+
-    '<span>Qualität: '+cost+' Würfe</span><span>Materialbudget: bis Lv '+fusionBudget(levels,g)+'</span><span>'+options.length+' verfügbare Vorlagen</span>'+
+    '<span>Basiswürfe: '+cost+(poker?.rollBonus?' · Poker +'+poker.rollBonus:'')+'</span><span>'+esc(poker?.name||'Freie Fusion')+'</span><span>Materialbudget: bis Lv '+fusionBudget(levels,g)+'</span><span>'+options.length+' verfügbare Vorlagen</span>'+
     (options.length?'<span>Höchste verfügbare Vorlage: Lv '+Math.max(...options.map(c=>c.level))+'</span>':
      '<span class="ad56-warning">Derzeit keine legale Fusionsvorlage</span>')+'</div>';
   }else if(material.length){
