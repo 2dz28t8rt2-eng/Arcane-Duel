@@ -28,7 +28,11 @@
     let finished=false;
     const close=()=>{if(finished)return;finished=true;el.classList.add('ad120-leave');
       window.setTimeout(()=>{el.remove();unlockBusy=false;drainUnlocks();},260);};
-    el.querySelector('button').onclick=close;
+    // Headless battle/economy tests use a minimal DOM without parsed child
+    // nodes. Notifications must never interrupt legitimate game operations.
+    const dismiss=el.querySelector?.('button');
+    if(!dismiss){el.remove?.();unlockBusy=false;drainUnlocks();return;}
+    dismiss.onclick=close;
     window.setTimeout(close,4400);
   }
   function progressSnapshot(){
