@@ -1,0 +1,51 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Arcane Duel – Fusionsassistent v15.6</title>
+<style>body{font:14px system-ui;color:#f1f1e8;background:#101725;padding:12px}iframe{width:100%;height:540px;border:1px solid #8795ba}pre{white-space:pre-wrap}</style>
+</head><body><h1>Fusionsassistent · echte Browserinteraktionen</h1><pre id="result">Test läuft …</pre>
+<iframe id="app" src="../index.html" title="Arcane Duel Fusionsassistent"></iframe>
+<script>
+const frame=document.getElementById('app'),out=document.getElementById('result');
+frame.addEventListener('load',()=>{
+  const reports=[],failures=[];
+  function check(ok,message){reports.push((ok?'OK: ':'FEHLER: ')+message);if(!ok)failures.push(message);}
+  try{
+    const w=frame.contentWindow,d=w.document;
+    d.getElementById('guideClose')?.click();
+    d.getElementById('helpDismiss')?.click();
+    w.eval(`(()=>{
+      hideModal();uiMode='duel';game=createGame({mode:'pve',opponentId:1,starter:0,seed:1566});
+      game.active=0;game.turn=5;game.summoned=false;
+      const normal=RPG_BASE_CARDS.find(c=>c.level===2&&!c.fusionOnly&&!c.retired),
+        fusion=RPG_FUSIONS.find(c=>c.level===2&&!c.retired),p=game.players[0];
+      p.hand=[newInstance(game,normal.id,0),newInstance(game,normal.id,0),newInstance(game,normal.id,0)];
+      p.remainingFusion=[fusion.id,fusion.id];game.materials=[];game.pending=null;
+      window.__ad156Count=p.hand.length;render();
+    })()`);
+    d.getElementById('duelScreen').hidden=false;
+    const coach=d.getElementById('ad156-fusion-coach'),buttons=coach?.querySelectorAll('[data-ad156-apply]');
+    check(!!coach,'Assistent im echten Duell sichtbar');
+    check((buttons?.length||0)>0,'Spielbare Materialvorschläge werden angezeigt');
+    check(coach?.textContent.includes('Endgültige ATK'),'Endgültige Kampfwerte bleiben verborgen');
+    buttons?.[0]?.click();
+    const marked=w.eval('game.materials.length'),hand=w.eval('game.players[0].hand.length');
+    check(marked>=2&&marked<=5,'Materialvorschlag lässt sich mit einem Klick markieren');
+    check(hand===w.__ad156Count&&w.eval('game.pending===null&&!game.summoned'),'Übernehmen verbraucht weder Monster noch Fusion');
+    check(d.getElementById('fusionBtn')?.disabled===false,'Die normale Fusionsbestätigung bleibt erforderlich');
+    w.eval(`(()=>{
+      const p=game.players[0],m=game.materials.map(uid=>p.hand.find(c=>c.uid===uid));
+      chooseFusionModal(m.map(c=>dataOf(c).level),m,()=>{});
+    })()`);
+    check(!!d.querySelector('.fusion-choice-modal .ad156-choice-explain'),'Fusionsauswahl enthält verständlichen Ablauf und Kopienverbrauch');
+    d.getElementById('fusionCancel')?.click();
+    w.eval(`(()=>{
+      const p=game.players[0],old=p.hand[0],incoming=p.hand[1];old.attacked=true;
+      p.field=[old,null,null,null,null];p.hand=[incoming];game.materials=[];
+      game.pending={kind:'normal',card:incoming,levels:[dataOf(incoming).level]};render();
+    })()`);
+    check(!!d.querySelector('#ownRow [data-mine="0"].ad156-zone-fusion'),'Besetzte Fusionszone wird sichtbar gekennzeichnet');
+    check(!!d.querySelector('#ownRow [data-mine="1"].ad156-zone-open'),'Freie Beschwörungszone wird sichtbar gekennzeichnet');
+    check(d.getElementById('ad156-fusion-coach')?.textContent.includes('Angriff bleibt verbraucht'),
+      'Angriffssperre aus dem Feldmaterial wird verständlich erklärt');
+  }catch(error){failures.push(error.message);reports.push('EXCEPTION: '+(error.stack||error.message).slice(0,1000));}
+  out.textContent=reports.join('\n');document.body.dataset.fusionCoachTest=failures.length?'fail':'pass';
+},{once:true});
+</script></body></html>

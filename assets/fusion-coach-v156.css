@@ -1,0 +1,43 @@
+/* v15.6: compact teaching layer after the existing three-step summon cockpit. */
+#duelScreen #summonStage .ad156-coach{margin-top:11px;padding:12px 14px;border:1px solid #a58abc88;
+  border-radius:11px;background:linear-gradient(120deg,#17283c,#211e38);color:#e3eaf6;
+  font:12px/1.55 system-ui,sans-serif;min-width:0}
+#duelScreen .ad156-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:5px 14px}
+#duelScreen .ad156-head strong{color:#ffe0a6;font-size:14px}
+#duelScreen .ad156-head span{color:#b8d6e9;font-size:11px}
+#duelScreen .ad156-status{margin:8px 0;color:#e9edf6;line-height:1.6}
+#duelScreen .ad156-status b,#duelScreen .ad156-status strong{color:#fff0bd}
+#duelScreen .ad156-muted{display:block;margin-top:7px;color:#bbcadc;font-size:11px}
+#duelScreen .ad156-warning{color:#ffcbc4;font-weight:700}
+#duelScreen .ad156-suggestions{border-top:1px solid #aab4d73d;margin-top:9px;padding-top:8px}
+#duelScreen .ad156-suggestions summary,#duelScreen .ad156-pending summary{cursor:pointer;color:#c7e6ff;font-weight:800;
+  padding:5px 0;list-style-position:inside}
+#duelScreen .ad156-suggestions summary:focus-visible,#duelScreen .ad156-pending summary:focus-visible{
+  outline:2px solid #ffe5aa;outline-offset:3px;border-radius:4px}
+#duelScreen .ad156-suggestions ul{padding:0;margin:8px 0;list-style:none;display:grid;gap:7px}
+#duelScreen .ad156-suggestions li{display:flex;gap:10px;align-items:center;justify-content:space-between;
+  border:1px solid #aabdd042;background:#121f35;border-radius:8px;padding:9px 11px;min-width:0}
+#duelScreen .ad156-suggestions li>div{display:grid;min-width:0;gap:3px;overflow-wrap:anywhere}
+#duelScreen .ad156-suggestions li b{font-size:12px;color:#f4e8d0;font-weight:700}
+#duelScreen .ad156-suggestions li small{color:#c1d3e3}
+#duelScreen .ad156-suggestions .ad156-label{color:#9ee0c9;font-size:10px;letter-spacing:.025em;text-transform:uppercase;font-weight:800}
+#duelScreen .ad156-suggestions li button{font-size:12px;min-height:42px;white-space:normal;flex-shrink:0;
+  max-width:170px;border-color:#b9c4e3;color:#fff4d6;background:#283954}
+#duelScreen .ad156-suggestions li button:hover,#duelScreen .ad156-suggestions li button:focus-visible{
+  outline:2px solid #ffe5ad;outline-offset:2px;background:#334967}
+#duelScreen .ad156-suggestions>small{color:#bdccdf}
+#duelScreen .ad156-pending .ad156-status{font-weight:800;color:#baf3df}
+#duelScreen .ad156-pending ul{margin:5px 0 0;padding-left:22px}
+#duelScreen #ownRow .monster-slot.ad156-zone-open{outline:2px solid #7ad6b5;outline-offset:2px}
+#duelScreen #ownRow .monster-slot.ad156-zone-fusion{outline:2px solid #e5b76e;outline-offset:2px}
+#duelScreen #ownRow .monster-slot.ad156-zone-blocked{outline:2px dashed #9d6075;outline-offset:2px}
+.fusion-choice-modal .ad156-choice-explain{border:1px solid #9f9fc17a;border-radius:9px;padding:11px 13px;
+  margin:12px 0;background:#18253b;color:#f0ecdc;text-align:left;font:12px/1.65 system-ui,sans-serif}
+.fusion-choice-modal .ad156-choice-explain b{color:#ffe0a9}
+.fusion-choice-modal .ad156-choice-explain p{margin:6px 0 0;color:#c6d6e9}
+@media(max-width:700px){
+ #duelScreen #summonStage .ad156-coach{padding:10px}
+ #duelScreen .ad156-suggestions li{flex-direction:column;align-items:stretch}
+ #duelScreen .ad156-suggestions li button{width:100%;max-width:none}
+}
+@media(prefers-reduced-motion:reduce){#duelScreen .ad156-coach *,#duelScreen #ownRow .monster-slot{transition:none!important}}

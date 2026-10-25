@@ -252,3 +252,14 @@ jobs:
               exit 1
             fi
           done
+
+          echo "Checking beginner-friendly v15.6 fusion assistant on desktop and mobile..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=14000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-fusion-coach-v156.html >"/tmp/arcane-fusion-coach-${size}.html" 2>/tmp/arcane-fusion-coach.log
+            if ! grep -q 'data-fusion-coach-test="pass"' "/tmp/arcane-fusion-coach-${size}.html"; then
+              echo "v15.6 beginner fusion assistant FAILED at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/arcane-fusion-coach-${size}.html" | head -100 || true
+              tail -25 /tmp/arcane-fusion-coach.log || true
+              exit 1
+            fi
+          done
