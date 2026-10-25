@@ -267,7 +267,7 @@ jobs:
           const decayActive=JSON.parse(fs.readFileSync(root+'stage-6.json','utf8'));
           a.ok(decayActive.allCases.every(x=>x.decayEnabled));
           a.ok(r.arms.some(x=>x.arm==='fusion-sequence-defense'&&x.evaluations.defenseProbes>0),'Legal defensive previews were never attempted');
-          a.ok(r.arms.some(x=>x.arm==='fusion-sequence-defense-guardian'&&x.evaluations.defenseProbes>0),'Guardian/Soul defense preview was never attempted');
+          a.ok(r.arms.some(x=>x.arm==='fusion-sequence-tradeoff'&&x.evaluations.defenseTradeoffChecks>0&&x.evaluations.defenseTradeoffOwnAttacks>0&&x.evaluations.defenseTradeoffSwitches>0),'Actual offense-vs-defense preview and legal selected switches must be exercised');
           a.equal(r.controls.abBothStagesExcludedFromPromotion,true);
           a.equal(r.controls.seatTwoPairedOutcomeTracing,true);
           a.equal(r.priorResearchChampion.sourceRun,40137913164);
