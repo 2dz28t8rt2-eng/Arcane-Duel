@@ -145,6 +145,9 @@
     const cap=fusionBudget(levels,g,materials);
     const result={levels,pattern:pattern.name,rollBonus:pattern.rollBonus,levelCap:cap,
       core:rule.core,bonus:rule.bonus||0,resonatorBonus:rule.resonatorBonus||0,
+      coreName:dataOf(materials[rule.coreIndex]||materials[0]).name,
+      coreIsFusion:rule.coreIsFusion===true,gain:Number(rule.gain)||0,
+      weightedPenalty:Math.round((Number(rule.penalty)||0)*100),
       closedStreet:rule.street===true,partialStreet:/Straße/.test(pattern.name)&&rule.street!==true,
       penalty:Number(rule.penalty)||0,prior:null};
     if(materials.length>2){
@@ -168,10 +171,14 @@
     div.innerHTML='<summary>Warum Lv '+out.levelCap+'? · '+esc(out.pattern)+'</summary>'+ 
       '<div class="ad151-fusion-content"><p>Materialstufen: <b>'+esc(out.levels.join(' + '))+'</b> · Kernstufe '+pretty(out.core)+
       ' · höchstens Lv '+pretty(out.levelCap)+' als verfügbare Fusionsstufe.</p>'+ 
+      '<p>Kernmaterial: <b>'+esc(out.coreName)+'</b> (Lv '+pretty(out.core)+')'+
+      (out.coreIsFusion?' · bereits fusioniertes Monster':'')+'. Nächstes passendes Material: '+
+      (out.gain>=0?'+':'')+out.gain+' Beitrag zum Kernrang.'+
+      (out.bonus?' · '+out.bonus+' zusätzlicher Levelbonus für passende Materialien.':'')+'</p>'+
       '<p>Pokerkombination: <b>'+esc(out.pattern)+'</b> · zusätzliche Pokerwürfe +'+pretty(out.rollBonus)+'.</p>'+ 
       (out.partialStreet?'<p class="ad151-fusion-note">Eine zusammenhängende Teilstraße zählt für den Pokerbonus. Für den Fusionslevelbonus gilt sie nicht als geschlossene Straße, weil zusätzliche Duplikate dabei sind.</p>':'')+
       (out.resonatorBonus?'<p class="ad151-fusion-note">Einmaliger Resonator-Kettenbonus: +1 Level.</p>':'')+
-      (out.penalty?'<p>Zusätzliche weit entfernte Materialstufen können die Fusionsqualität mindern.</p>':'')+
+      (out.penalty?'<p>Große Materialabstände: bis zu '+out.weightedPenalty+' % rechnerischer Qualitätsabzug vor den Werten.</p>':'')+
       (out.prior?'<p>Letztes Material hinzugefügt: zuvor <b>'+esc(out.prior.pattern)+'</b> und Lv '+pretty(out.prior.levelCap)+
         ', jetzt Lv '+pretty(out.levelCap)+(delta===0?' (unverändert)':delta>0?' (+'+delta+')':' ('+delta+')')+'.</p>':'')+
       '<small>Alle Materialien zählen. Der angezeigte Höchstrang erzeugt keine Vorlage, die nicht im Fusionsdeck ist. Stärke und Rollenboni werden separat gewürfelt.</small></div>';

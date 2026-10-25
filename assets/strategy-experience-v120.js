@@ -128,7 +128,14 @@
     const host=$id('summonStage');
     if(!host||!game||uiMode!=='duel'||game.pending||game.summoned||game.active!==0)return;
     const p=game.players[0],materials=(game.materials||[]).map(uid=>p.hand.find(c=>c.uid===uid)).filter(Boolean);
-    if(materials.length<2)return;
+    const previous=host.querySelector('.ad120-fusion-preview');
+    if(materials.length<2){previous?.remove();return;}
+    const signature=JSON.stringify({materials:materials.map(c=>[c.uid,dataOf(c).level]),
+      core:game.arcaneFusionCoreUid||null,available:p.remainingFusion});
+    // The duel engine can re-render repeatedly during visual effects. Preserve
+    // the preview (and open details/focus) until its actual inputs change.
+    if(previous?.dataset.ad120Signature===signature)return;
+    previous?.remove();
     const levels=materials.map(c=>dataOf(c).level);
     const candidates=fusionOptions(game,levels,materials).filter(c=>canCompleteHandFusion(game,levels,c.id));
     const pattern=window.ArcaneFusionMath?.pattern?.(levels,materials.map(c=>dataOf(c).element));
@@ -139,11 +146,14 @@
         try{
           const preview=fusionPreview(game,c,materials,levels);
           return '<li><b>'+esc(c.name)+' · Lv '+c.level+'</b><span>ATK '+format(preview.atk[0])+'–'+format(preview.atk[1])+
-            ' · DEF '+format(preview.def[0])+'–'+format(preview.def[1])+'</span></li>';
+            ' · DEF '+format(preview.def[0])+'–'+format(preview.def[1])+
+            ' · '+Math.max(0,Number(preview.remaining)||0)+' Vorlage(n) nach Fusion'+
+            (preview.attackSpent?' · Angriff bereits verbraucht':'')+'</span></li>';
         }catch(_){return '<li><b>'+esc(c.name)+' · Lv '+c.level+'</b></li>';}
       }).join('');
     const container=host.querySelector('.ad56-material')||host;
     const panel=document.createElement('div');panel.className='ad120-fusion-preview';
+    panel.dataset.ad120Signature=signature;
     panel.innerHTML='<div class="ad120-preview-title"><strong>✦ Fusionsvorschau</strong><span>Maximum Lv '+cap+'</span></div>'+
       '<p>'+esc(pattern?.name||'Freie Fusion')+' · '+materials.length+' Materialien'+
       (pattern?.rollBonus?' · +'+pattern.rollBonus+' Pokerwürfe':'')+

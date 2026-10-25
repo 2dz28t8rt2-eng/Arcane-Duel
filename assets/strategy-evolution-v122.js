@@ -238,6 +238,10 @@
     if(!tip||!anchor){$id('ad122-lesson')?.remove();return;}
     activeTip=tip;
     let panel=$id('ad122-lesson');if(!panel){panel=document.createElement('div');panel.id='ad122-lesson';anchor.appendChild(panel);}
+    // Repeated duel renders should not rebuild an unchanged lesson or steal
+    // focus from its dismiss button while animations are playing.
+    if(panel.dataset.arcaneTip===tip&&panel.querySelector('#ad122-lesson-dismiss'))return;
+    panel.dataset.arcaneTip=tip;
     panel.innerHTML='<div class="ad122-lesson-title">✧ KURZE TAKTIKLEKTION</div><b>'+esc(TIPS[tip].name)+'</b>'+ 
       '<p>'+esc(TIPS[tip].text)+'</p><button type="button" class="btn tiny" id="ad122-lesson-dismiss">Verstanden</button>';
     $id('ad122-lesson-dismiss').onclick=()=>{
@@ -307,6 +311,35 @@
       opponent&&Array.isArray(opponent.loot)&&opponent.loot.includes(id)&&
       (i===0||opponentUnlocked(i))).map(({opponent,i})=>opponent.name||'Gegner '+i);
   }
+  // Only surface reachable acquisition paths from actual live reward pools.
+  // In particular, do not reveal undiscovered cards or promise specific drops.
+  function acquisitionHints(id){
+    const card=CARDS[id];
+    if(!card||!known(id))return [];
+    const sources=[];
+    if(typeof lootPool==='function'){
+      for(let i=0;i<OPPONENTS.length;i++){
+        if(i!==0&&!opponentUnlocked(i))continue;
+        const easy=lootPool(i,'easy').includes(id);
+        const hard=typeof hardUnlocked==='function'&&hardUnlocked(i)&&lootPool(i,'hard').includes(id);
+        if(!easy&&!hard)continue;
+        const name=OPPONENTS[i]?.name||'Gegner '+i;
+        sources.push(name+' ('+[easy?'Normal':null,hard?'Schwer':null].filter(Boolean).join('/')+
+          ': Duellbeute / Charakter-Booster)');
+      }
+    }else sources.push(...confirmedDropSources(id).map(name=>name+' (Duellbeute)'));
+    const forbidden=['ace','essenceMonster','enemyOnly','questOnly','lv1Exclusive','fateOnly',
+      'milestoneOnly','workshopOnly','trainingReward'];
+    if(typeof cardAvailable==='function'&&cardAvailable(id)&&!forbidden.some(flag=>card[flag]))
+      sources.push('Splitterwerkstatt (Herstellung, sofern Material vorhanden)');
+    const packs=window.ArcaneFusionPackV109;
+    if(packs?.fusionPackPool&&typeof highestCleared==='function'){
+      const pool=packs.fusionPackPool(highestCleared());
+      if((card.fusionOnly?pool?.fusion:pool?.normal)?.includes(id))
+        sources.push('Gemischte Fusionsbooster (Zufallspool)');
+    }
+    return sources;
+  }
   function drawWishPanel(panel){
     if(!panel?.isConnected)return;
     const state=readState(),candidates=wishlistCatalog().filter(c=>!state.wish.includes(c.id)),selected=state.wish.map(id=>CARDS[id]).filter(Boolean);
@@ -318,12 +351,12 @@
       '<button type="button" class="btn" id="ad122-wish-add"'+(selected.length>=8||!candidates.length?' disabled':'')+'>Vormerken</button></div>'+ 
       (selected.length?'<div class="ad122-wish-items">'+selected.map(c=>'<div><span>'+esc(c.name)+' · Lv '+c.level+
         (owned(c.id)?' <em>✓ Erhalten</em>':' <em>Noch nicht im Besitz</em>')+
-        '<small class="ad122-drop-hint">'+(confirmedDropSources(c.id).length?
-          'Bestätigter Beutepool: '+esc(confirmedDropSources(c.id).slice(0,3).join(', ')):
-          'Kein freigeschalteter Gegner mit dieser Karte im direkten Beutepool.')+'</small></span>'+ 
+        '<small class="ad122-drop-hint">'+(acquisitionHints(c.id).length?
+          'Mögliche Wege: '+esc(acquisitionHints(c.id).join(' · ')):
+          'Aktuell keine nachweisbare freigeschaltete Bezugsquelle.')+'</small></span>'+
         '<button type="button" data-ad122-wish-remove="'+c.id+'">Entfernen</button></div>').join('')+'</div>':
         '<p class="ad122-muted">Noch keine Wünsche eingetragen.</p>')+
-      '<small class="ad122-muted">Fundorte zeigen ausschließlich nachweisbare direkte Gegner-Beutepools, keine garantierten Drops. Unbekannte Gegner und Monster bleiben verborgen. Die Wunschliste erhöht keine Dropraten.</small>';
+      '<small class="ad122-muted">Nur nachweisbare Quellen: freigeschaltete Normal-/Schwer-Beutepools samt Charakter-Boostern, Herstellung und gemischte Booster. Keine garantierten Karten oder Dropraten; unbekannte Gegner und Monster bleiben verborgen.</small>';
     $id('ad122-wish-add').onclick=()=>{
       const id=Number($id('ad122-wish-choice')?.value),s=readState();
       if(s.wish.length>=8||!wishlistCatalog().some(c=>c.id===id)||s.wish.includes(id))return;
@@ -499,5 +532,5 @@
   if(uiMode==='menu')extendMenu();
 
   window.ArcaneStrategyEvolution122=Object.freeze({version:'12.2.0',safeState,proposeSwap,comparisonText,
-    dangerMarkers,pivotalMoments,archiveRows,pairedSchedule,compareRadarRuns,confirmedDropSources,openOptimizer,openArchive,openRadar});
+    dangerMarkers,pivotalMoments,archiveRows,pairedSchedule,compareRadarRuns,confirmedDropSources,acquisitionHints,openOptimizer,openArchive,openRadar});
 })();

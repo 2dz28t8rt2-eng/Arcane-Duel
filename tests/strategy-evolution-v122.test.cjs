@@ -145,3 +145,21 @@ test('wishlist location hints show only owned/known cards from unlocked confirme
   assert.deepEqual(Array.from(api.confirmedDropSources(4)),[]);
   assert.deepEqual(Array.from(api.confirmedDropSources(1000)),[]);
 });
+
+test('acquisition guide checks live easy/hard pools, crafting and booster access without spoilers',()=>{
+  const opponents=[{name:'Training',loot:[2]},{name:'Burgwächter',loot:[2,4]},
+    {name:'Geheimgegner',loot:[1,4]}];
+  const {api,state}=setup({OPPONENTS:opponents,opponentUnlocked:id=>id<=1,
+    hardUnlocked:id=>id===1,highestCleared:()=>1,cardAvailable:id=>id===2,
+    lootPool:(i,mode)=>i===0?[2]:i===1?(mode==='hard'?[4]:[2,4]):[1,4]});
+  state.window.ArcaneFusionPackV109={fusionPackPool:()=>({fusion:[4],normal:[2]})};
+  const normal=Array.from(api.acquisitionHints(2));
+  assert.ok(normal.some(x=>x.includes('Training')&&x.includes('Normal')));
+  assert.ok(normal.some(x=>x.includes('Splitterwerkstatt')));
+  assert.ok(normal.some(x=>x.includes('Fusionsbooster')));
+  const fusion=Array.from(api.acquisitionHints(4));
+  assert.ok(fusion.some(x=>x.includes('Burgwächter')&&x.includes('Normal/Schwer')));
+  assert.ok(fusion.some(x=>x.includes('Fusionsbooster')));
+  assert.ok(fusion.every(x=>!x.includes('Geheimgegner')));
+  assert.deepEqual(Array.from(api.acquisitionHints(999)),[]);
+});

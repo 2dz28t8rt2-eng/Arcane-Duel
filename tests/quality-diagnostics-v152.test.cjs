@@ -27,3 +27,15 @@ test('resource diagnostics summarize only measured entries',()=>{
   assert.equal(result.slow[0].duration,120);
   assert.equal(result.slow[1].name,'main.js');
 });
+test('frame diagnostics report measured spacing only and ignore invalid intervals',()=>{
+  const context={document:{getElementById:()=>null,querySelectorAll:()=>[]},uiMode:'duel',
+    renderMenu:()=>{},window:{},escapeHtml:x=>String(x)};
+  vm.runInNewContext(fs.readFileSync(resolve(),'utf8'),context);
+  const api=context.window.ArcaneQualityDiagnostics152;
+  assert.equal(api.analyzeFrames([0,16,33]),null);
+  const report=api.analyzeFrames([0,16,32,48,64,80,96,160]);
+  assert.ok(report.fps>35&&report.fps<55);
+  assert.equal(report.stalls,1);
+  assert.equal(report.frames,7);
+  assert.equal(report.p95Ms,64);
+});

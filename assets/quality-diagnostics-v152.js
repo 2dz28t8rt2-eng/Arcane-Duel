@@ -27,6 +27,45 @@
       slow
     };
   }
+  function analyzeFrames(times){
+    if(!Array.isArray(times)||times.length<5)return null;
+    const deltas=[];
+    for(let i=1;i<times.length;i++){
+      const delta=times[i]-times[i-1];
+      if(Number.isFinite(delta)&&delta>0)deltas.push(delta);
+    }
+    if(deltas.length<4)return null;
+    const sorted=[...deltas].sort((a,b)=>a-b);
+    const typical=sorted[Math.floor(sorted.length/2)];
+    return {fps:Math.round(1000*deltas.length/deltas.reduce((sum,n)=>sum+n,0)),
+      medianMs:Math.round(typical),p95Ms:Math.round(sorted[Math.ceil(sorted.length*.95)-1]),
+      stalls:deltas.filter(n=>n>50).length,frames:deltas.length};
+  }
+  function sampleFrames(){
+    if(typeof requestAnimationFrame!=='function'||document.hidden)return Promise.resolve(null);
+    return new Promise(resolve=>{
+      const times=[];let started=null,finished=false,timeout=null;
+      const finish=value=>{
+        if(finished)return;
+        finished=true;clearTimeout(timeout);
+        document.removeEventListener?.('visibilitychange',onVisibility);
+        resolve(value);
+      };
+      const onVisibility=()=>{if(document.hidden)finish(null);};
+      // Background tabs often pause requestAnimationFrame altogether.
+      timeout=setTimeout(()=>finish(null),5000);
+      document.addEventListener?.('visibilitychange',onVisibility);
+      const frame=now=>{
+        if(finished)return;
+        if(document.hidden){finish(null);return;}
+        if(started===null)started=now;
+        times.push(now);
+        if(now-started>=2400||times.length>=180){finish(analyzeFrames(times));return;}
+        requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+    });
+  }
   function showReport(){
     if(uiMode!=='menu')return;
     const m=report();
@@ -42,9 +81,25 @@
       '<details><summary>Langsamste erfasste Dateien</summary><ol>'+m.slow.map(x=>'<li>'+esc(x.name)+
         ' <span>'+ms(x.duration)+'</span></li>').join('')+'</ol></details>'+
       '<small>Die Browser-Messung hängt von Cache, Gerät, Verbindung und Ressourcen-Timing-Freigaben ab. '+
-      'Sie ist kein Vergleich zwischen verschiedenen Nutzern. Grafik- und Animations-FPS werden hier noch nicht gemessen.</small>'+
+      'Sie ist kein Vergleich zwischen verschiedenen Nutzern. Die optionale Bildratenprobe misst ausschließlich diese Menüansicht, nicht die Duellanimation.</small>'+
+      '<div class="ad152-frame-check"><button type="button" class="btn" id="ad152-perf-sample">Bildrate 2,4 Sekunden prüfen</button>'+
+      '<p id="ad152-perf-result" role="status">Noch keine Bildratenprobe gestartet.</p></div>'+
       '<div class="modal-actions"><button type="button" class="btn primary" id="ad152-perf-close">Schließen</button></div></section>');
     $id('ad152-perf-close').onclick=hideModal;
+    $id('ad152-perf-sample').onclick=async()=>{
+      const button=$id('ad152-perf-sample');
+      if(!button||button.disabled)return;
+      button.disabled=true;
+      const result=$id('ad152-perf-result');
+      if(result)result.textContent='Messung läuft … Bitte die Seite im Vordergrund lassen.';
+      const measured=await sampleFrames();
+      const target=$id('ad152-perf-result');
+      if(target)target.textContent=measured?
+        'Menüansicht: ca. '+measured.fps+' Bilder/s, typisch '+measured.medianMs+' ms, 95 % bis '+
+        measured.p95Ms+' ms, Verzögerungen über 50 ms: '+measured.stalls+' von '+measured.frames+' Bildern.':
+        'Die Messung war im Hintergrund oder ist in diesem Browser nicht verfügbar.';
+      if(button.isConnected)button.disabled=false;
+    };
   }
   function decorateMenu(){
     if(uiMode!=='menu')return;
@@ -61,5 +116,5 @@
   const previous=renderMenu;
   renderMenu=function(){const result=previous.apply(this,arguments);decorateMenu();return result;};
   if(uiMode==='menu')decorateMenu();
-  window.ArcaneQualityDiagnostics152=Object.freeze({report,showReport});
+  window.ArcaneQualityDiagnostics152=Object.freeze({report,showReport,analyzeFrames,sampleFrames});
 })();
