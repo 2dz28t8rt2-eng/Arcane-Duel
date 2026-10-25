@@ -31,7 +31,9 @@ function setup(overrides={}){
     saveProfile:()=>true,setActiveDeck:()=>true,openModal:()=>{},hideModal:()=>{},toast:()=>{}
   };
   Object.assign(state,overrides);
-  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'strategy-evolution-v122.js'),'utf8'),state);
+  const repoPath=path.join(__dirname,'../assets/strategy-evolution-v122.js');
+  const localPath=path.join(__dirname,'strategy-evolution-v122.js');
+  vm.runInNewContext(fs.readFileSync(fs.existsSync(repoPath)?repoPath:localPath,'utf8'),state);
   return {api:state.window.ArcaneStrategyEvolution122,state,storage};
 }
 
