@@ -1,0 +1,149 @@
+name: Arcane Duel - v14.9.49 Legal Enemy-Reply Defense Research
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v14949-legal-replies.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  legal-role-counter-selfplay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify research harness syntax and combat regressions
+        run: |
+          set -euo pipefail
+          for f in tests/ai-v1549-{history,Q,targeted-l10-selfplay,targeted-l10-aggregate}.cjs; do
+            node --check "$f"
+          done
+          node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
+      - name: Restore verified v14.9.48 checkpoint and thirty-seven TRAIN-only sources
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40220761209" --jq '.conclusion')" = success
+          mkdir -p /tmp/arcane-prev artifacts/v1549
+          gh run download 40220761209 --repo "$GITHUB_REPOSITORY" --name arcane-v14948-targeted-l10 --dir /tmp/arcane-prev
+          for f in older-q-checkpoint.json prior-selfplay-checkpoint.json incumbent-policy.json research-balanced-policy.json; do
+            cp "/tmp/arcane-prev/$f" "artifacts/v1549/$f"
+          done
+          node tests/ai-v1549-history.cjs
+      - name: Continue guarded research Q updates, never train from holdout
+        run: node --expose-gc --max-old-space-size=3200 tests/ai-v1549-Q.cjs
+      - name: Phase 0 - Level-8 mirror transfer, fresh paired seeds
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 tests/ai-v1549-legal-replies-selfplay.cjs 0 "$pair"; done
+          node tests/ai-v1549-legal-replies-selfplay.cjs 0 finalize
+      - name: Phase 1 - Level-9 mirror transfer
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 tests/ai-v1549-legal-replies-selfplay.cjs 1 "$pair"; done
+          node tests/ai-v1549-legal-replies-selfplay.cjs 1 finalize
+      - name: Phase 2 - Level-10 cross-role transfer
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 tests/ai-v1549-legal-replies-selfplay.cjs 2 "$pair"; done
+          node tests/ai-v1549-legal-replies-selfplay.cjs 2 finalize
+      - name: Phase 3 - Level-8 cross-role generalization
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 tests/ai-v1549-legal-replies-selfplay.cjs 3 "$pair"; done
+          node tests/ai-v1549-legal-replies-selfplay.cjs 3 finalize
+      - name: Phase 4 - Doubled hard Level-10 cross-role release gate
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 tests/ai-v1549-legal-replies-selfplay.cjs 4 "$pair"; done
+          node tests/ai-v1549-legal-replies-selfplay.cjs 4 finalize
+      - name: Phase 5 - Exact-paired no-decay Level-10 diagnostic
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 tests/ai-v1549-legal-replies-selfplay.cjs 5 "$pair"; done
+          node tests/ai-v1549-legal-replies-selfplay.cjs 5 finalize
+      - name: Phase 6 - Same seats, decks and seeds with symmetrical decay
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 tests/ai-v1549-legal-replies-selfplay.cjs 6 "$pair"; done
+          node tests/ai-v1549-legal-replies-selfplay.cjs 6 finalize
+      - name: Phase 7 - Frozen two-ply Level-10 head-to-head
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 tests/ai-v1549-legal-replies-selfplay.cjs 7 "$pair"; done
+          node tests/ai-v1549-legal-replies-selfplay.cjs 7 finalize
+      - name: Phase 8 - Fresh hard-Level-10 focused roles, diagnostic only
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 tests/ai-v1549-legal-replies-selfplay.cjs 8 "$pair"; done
+          node tests/ai-v1549-legal-replies-selfplay.cjs 8 finalize
+      - name: Aggregate strictly protected global gate and diagnostics
+        run: node --max-old-space-size=3200 tests/ai-v1549-legal-replies-aggregate.cjs
+      - name: Validate 11520 legal duels and protected research boundaries
+        run: |
+          set -euo pipefail
+          node - <<'JS'
+          const a=require('node:assert/strict'),fs=require('node:fs'),root='artifacts/v1549/';
+          const r=JSON.parse(fs.readFileSync(root+'report.json','utf8'));
+          const h=JSON.parse(fs.readFileSync(root+'historical-train.json','utf8'));
+          const q=JSON.parse(fs.readFileSync(root+'training-q-and-examples.json','utf8'));
+          const prov=JSON.parse(fs.readFileSync(root+'provenance.json','utf8'));
+          a.equal(r.totalDuels,11520);a.equal(r.primaryDuels,6912);
+          a.equal(r.focusedDiagnosticDuels,1152);
+          a.equal(r.noDecayDiagnosticDuels,1152);
+          a.equal(r.decayDiagnosticDuels,1152);
+          a.equal(r.headToHeadDiagnosticDuels,1152);
+          a.equal(r.stages.length,9);a.equal(r.arms.length,6);
+          a.equal(r.controls.noIllegalMoves,true);
+          a.equal(r.controls.holdoutNeverUsedForSelection,true);
+          a.equal(r.controls.focusedL10DiagnosticExcludedFromSelection,true);
+          a.deepEqual(r.globalSelection.selectionBasedOn,['train','validation']);
+          a.equal(r.globalSelection.holdoutSeenBySelector,false);
+          a.equal(h.sources.length,38);a.equal(h.examples.length,4992);
+          a.equal(prov.holdoutAsTraining,false);
+          a.equal(q.length,3);
+          a.ok(r.arms.some(x=>x.arm==='l10-legal-guardian-replies'&&x.evaluations.tacticalReplyGuardian>0&&x.evaluations.tacticalReplyLegal>0));
+          a.ok(r.arms.some(x=>x.arm==='l10-legal-allrounder-replies'&&x.evaluations.tacticalReplyAllrounder>0&&x.evaluations.tacticalReplyLegal>0));
+          a.ok(r.arms.some(x=>x.arm==='l10-legal-dual-replies'));
+          a.equal(r.controls.extendedHardL10SamplePerRole,true);
+          for(let stage=0;stage<9;stage++){
+            const s=JSON.parse(fs.readFileSync(root+'stage-'+stage+'.json','utf8'));
+            a.equal(s.allCases.length,stage===4?2304:1152);a.equal(s.summaries.length,6);
+            a.equal(s.promoted,false);a.equal(s.chosenArm,'guardian-champion');
+            a.ok(s.allCases.every(x=>x.illegalSwitchesBySeat.every(n=>n===0)));
+            a.ok(s.allCases.every(x=>x.selfPlayStrategicBySeat.every(n=>n>0)));
+            if(stage===8)a.equal(s.controls.targetedHardL10Diagnostic,true);
+            if(stage===5||stage===6)a.ok(s.allCases.every(x=>x.decayEnabled===(stage===6)));
+          }
+          a.equal(r.focusedDiagnostic.length,6);
+          for(const f of r.focusedDiagnostic){
+            for(const split of ['train','validation','holdout']){
+              a.equal(f.groups['guardian-hybrid'][split].games,32);
+              a.equal(f.groups['allrounder-predator'][split].games,32);
+              a.equal(f.groups['other-controls'][split].games,0);
+            }
+          }
+          if(r.globalSelection.promoted){
+            const gate=r.globalSelection.candidates.find(x=>x.arm===r.globalSelection.arm);
+            a.ok(gate?.qualifies&&gate.seatParity&&gate.groups.hardL10>=0);
+            a.ok(gate.trainGain>=8&&gate.validationGain>=8);
+          }
+          console.log('ARCANE_V1549_VALIDATED '+JSON.stringify({
+            duels:r.totalDuels,selected:r.globalSelection.arm,promoted:r.globalSelection.promoted,
+            hardL10:r.globalSelection.candidates.map(x=>({arm:x.arm,delta:x.groups.hardL10}))
+          }));
+          JS
+      - name: Archive all nine phases and sealed research diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v14949-legal-replies
+          path: artifacts/v1549/
+          retention-days: 90
+          if-no-files-found: warn
