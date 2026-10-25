@@ -44,6 +44,8 @@
     // Hidden iframes and some browsers do not always settle WAAPI.finished.
     // Keep this strictly visual; never hold the turn or input indefinitely.
     await Promise.race([motion.finished.catch(()=>{}),delay(390)]);
+    // Keep the ghost on the target before releasing WAAPI's fill state.
+    ghost.style.transform='translate('+dx+'px,'+dy+'px) scale(.84)';
     motion.cancel();
    }else await delay(285);
    const burst=document.createElement('div');
