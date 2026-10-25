@@ -1,0 +1,14 @@
+.ad155-fusion{max-width:880px;margin:auto;line-height:1.5}
+.ad155-fusion-controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.ad155-fusion-controls label{display:grid;gap:4px;font-weight:700;color:#f2e3b9}
+.ad155-fusion-controls select{width:100%;min-width:0;padding:10px;border-radius:7px;background:#132441;color:#fff;border:1px solid #a18a6b}
+.ad155-fusion-summary{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px;background:#172d49;border-radius:8px}
+.ad155-fusion-summary b{color:#ffe7aa}
+.ad155-fusion h3{margin:15px 0 8px;color:#cde9ff}
+.ad155-paths{display:grid;gap:7px;padding-left:23px}
+.ad155-paths li{padding:9px 11px;background:#122742;border:1px solid #9dbaeb53;border-radius:7px}
+.ad155-paths b,.ad155-paths small{display:block;overflow-wrap:anywhere}
+.ad155-paths small{color:#b8d1e4}
+.ad155-fusion-note{font-size:.85em;color:#c4cfdd;border-top:1px solid #acbed044;margin-top:15px;padding-top:10px}
+.ad155-material-gap{padding:11px;border:1px solid #dfb877a1;background:#4b3c2466;border-radius:8px}
+@media(max-width:650px){.ad155-fusion-controls{grid-template-columns:minmax(0,1fr)}}

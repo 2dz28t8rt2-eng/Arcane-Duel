@@ -1,0 +1,50 @@
+/* Element-specific motes: always inside the already canonical level overlay. */
+.tc-card[data-element="FEUER"] .ad154-aura .ad154-motes{background-image:
+  radial-gradient(circle at 19% 85%,#ffcb6caa 0 1px,transparent 3px),
+  radial-gradient(circle at 48% 64%,#ff704baa 0 1px,transparent 3px),
+  radial-gradient(circle at 78% 89%,#fce7a6aa 0 1px,transparent 3px);
+  animation-name:ad155-rise}
+.tc-card[data-element="WASSER"] .ad154-aura .ad154-motes{background-image:
+  radial-gradient(circle at 19% 18%,#91e8ffbd 0 2px,transparent 4px),
+  radial-gradient(circle at 73% 74%,#55adffd1 0 2px,transparent 4px),
+  radial-gradient(circle at 50% 43%,#dbf8ff9c 0 1px,transparent 4px);
+  animation-name:ad155-tide}
+.tc-card[data-element="WIND"] .ad154-aura .ad154-motes{background-image:
+  radial-gradient(ellipse at 21% 30%,#b8fff1c9 0 1px,transparent 6px),
+  radial-gradient(ellipse at 81% 68%,#d9fff7c2 0 1px,transparent 7px);
+  animation-name:ad155-drift-side}
+.tc-card[data-element="ERDE"] .ad154-aura .ad154-motes{background-image:
+  radial-gradient(circle at 24% 78%,#b5ffaaa8 0 2px,transparent 4px),
+  radial-gradient(circle at 82% 38%,#e1f2b2a5 0 1px,transparent 4px),
+  radial-gradient(circle at 48% 16%,#9ce79d9e 0 1px,transparent 4px);
+  animation-name:ad155-earth}
+.tc-card[data-element="LICHT"] .ad154-aura .ad154-motes{background-image:
+  radial-gradient(circle at 28% 27%,#fff6cc 0 1px,transparent 5px),
+  radial-gradient(circle at 75% 68%,#fff1b1 0 1px,transparent 5px),
+  radial-gradient(circle at 52% 47%,#fff9d2 0 1px,transparent 4px)}
+.tc-card[data-element="DUNKEL"] .ad154-aura .ad154-motes{background-image:
+  radial-gradient(circle at 17% 74%,#cda7ffb5 0 2px,transparent 5px),
+  radial-gradient(circle at 72% 24%,#9068eac2 0 1px,transparent 6px),
+  radial-gradient(circle at 60% 63%,#e8b8ffa9 0 1px,transparent 5px)}
+.tc-card.ad155-ace-glow .ad154-aura .ad154-runes{opacity:.9;filter:drop-shadow(0 0 4px #ffe7a1a1)}
+.tc-card.ad155-fusion-glow.ad154-tier-3 .ad154-aura .ad154-runes,
+.tc-card.ad155-fusion-glow.ad154-tier-4 .ad154-aura .ad154-runes{
+  background:linear-gradient(90deg,#deb7ff55,transparent 21%,transparent 79%,#deb7ff55);
+  opacity:.85}
+body[data-ad155-fx="subtle"] .ad154-aura{opacity:.42!important}
+body[data-ad155-fx="subtle"] .ad154-aura *,body[data-ad155-fx="subtle"] .ad154-aura::before,
+body[data-ad155-fx="subtle"] .ad154-aura::after{animation-duration:15s!important}
+body[data-ad155-fx="epic"] .ad154-tier-3 .ad154-aura,
+body[data-ad155-fx="epic"] .ad154-tier-4 .ad154-aura{filter:brightness(1.25) saturate(1.15)}
+body[data-ad155-fx="epic"] .ad154-tier-4 .ad154-aura .ad154-runes{opacity:.96}
+#ad155-fx-options{border:1px solid #bfa2e374}
+#ad155-fx-options label{font-weight:700;color:#eedda9}
+#ad155-fx-options select{margin:6px 0;max-width:100%;padding:9px;color:#f9f8ff;background:#172844;border:1px solid #b4a0cd;border-radius:7px}
+#ad155-fx-options small{display:block;color:#b7c7d5}
+@keyframes ad155-rise{from{transform:translateY(10px)}to{transform:translateY(-14px)}}
+@keyframes ad155-tide{from{transform:translate(0,-5px)}to{transform:translate(4px,5px)}}
+@keyframes ad155-drift-side{from{transform:translateX(-7px)}to{transform:translateX(9px)}}
+@keyframes ad155-earth{from{opacity:.3}to{opacity:.9}}
+@media(prefers-reduced-motion:reduce){.tc-card .ad154-aura,.tc-card .ad154-aura *,
+ .tc-card .ad154-aura::before,.tc-card .ad154-aura::after{animation:none!important;filter:none!important}}
+body.ad-motion-disabled .tc-card .ad154-aura *{animation:none!important}
