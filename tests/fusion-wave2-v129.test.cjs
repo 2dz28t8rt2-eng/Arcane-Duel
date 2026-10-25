@@ -16,10 +16,11 @@ test('fusion blueprints have no permanent role, hunter never survives as a card 
  const v=run(`(()=>({hunters:CARDS.filter(c=>c?.role==='hunter').map(c=>c.id),
  fusionTagged:CARDS.filter(c=>c?.fusionOnly&&c.role!=null).map(c=>c.id),
  total:CARDS.length,installed:window.ArcaneFusionWaveV129?.installed||0,
+ newWave:window.ArcaneFusionWaveV130?.installed||0,
  weavers:CARDS.filter(c=>c?.role==='weaver'&&!c.retired).map(c=>({name:c.name,level:c.level}))
  }))()`);
  assert.deepEqual(v.hunters,[]);assert.deepEqual(v.fusionTagged,[]);
- assert.equal(v.total,742+v.installed);
+ assert.equal(v.total,742+v.installed+v.newWave);
  assert.equal(v.weavers.filter(x=>x.name==='Runenkröte des Moores').length,10);
 });
 test('material inheritance still stamps the summoned fusion, not its blueprint',()=>{
@@ -36,7 +37,7 @@ test('new cards are only enabled after verified WebP files are installed',()=>{
  const v=run(`(()=>({installed:window.ArcaneFusionWaveV129?.installed||0,
   ids:window.ArcaneFusionWaveV129?.ids||[],
   fusionDeck:UPDATE_B_FUSION_IDS.length,
-  records:CARDS.slice(742).map(c=>({id:c.id,role:c.role??null,level:c.level,fusion:c.fusionOnly,
+  records:CARDS.slice(742,752).map(c=>({id:c.id,role:c.role??null,level:c.level,fusion:c.fusionOnly,
    art:c.art,inPool:UPDATE_B_SET.has(c.id),inRare:UPDATE_B_FUSION_IDS.includes(c.id)}))}))()`);
  assert.equal(v.records.length,v.installed);
  if(!v.installed){assert.equal(v.ids.length,0);return;}

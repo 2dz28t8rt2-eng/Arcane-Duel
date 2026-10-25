@@ -5,15 +5,17 @@ const manifest=fs.readFileSync(path.join(root,'assets/collection-v3-data.js'),'u
 const appendix=fs.readFileSync(path.join(root,'assets/collection-v3-lategame-v71.js'),'utf8');
 const appendix117=fs.readFileSync(path.join(root,'assets/collection-v3-lategame-v117.js'),'utf8');
 const appendix129=fs.readFileSync(path.join(root,'assets/collection-v3-fusion-wave2-v129.js'),'utf8');
+const appendix130=fs.readFileSync(path.join(root,'assets/collection-v3-fusion-wave3-v130.js'),'utf8');
 const context={window:{}};vm.runInNewContext(manifest,context);
 const originalCount=context.window.ARCANE_COLLECTION_V3.length;
 vm.runInNewContext(appendix,context);
 vm.runInNewContext(appendix117,context);
 vm.runInNewContext(appendix129,context);
+vm.runInNewContext(appendix130,context);
 const cards=context.window.ARCANE_COLLECTION_V3;
 test('Monsterlexikon includes the newest 16 endgame normal monsters, with unique IDs',()=>{
  assert.equal(originalCount,360,'Legacy collection baseline unexpectedly changed');
- assert.equal(cards.length,376+(context.window.ArcaneCollectionLateGameV117?.count||0)+(context.window.ArcaneCollectionFusionWaveV129?.count||0),'All newly registered collectibles must appear in the lexicon');
+ assert.equal(cards.length,376+(context.window.ArcaneCollectionLateGameV117?.count||0)+(context.window.ArcaneCollectionFusionWaveV129?.count||0)+(context.window.ArcaneCollectionFusionWaveV130?.count||0),'All newly registered collectibles must appear in the lexicon');
  assert.equal(context.window.ArcaneCollectionLateGameV71.count,16);
  assert.equal(new Set(cards.map(c=>c.id)).size,cards.length);
  assert.ok(cards.every(c=>Number.isInteger(c.level)&&c.level>=1&&c.level<=10));
@@ -36,5 +38,5 @@ test('Collection view has working filter hooks and never changes saved profile',
  for(const hook of ['tierList','artFilter','search','sort','cards'])assert.ok(html.includes('id="'+hook+'"'));
  assert.ok(!js.includes('localStorage'));
  assert.ok(html.includes('assets/art-engine.js')&&html.includes('assets/collection-v3-data.js')&&html.includes('assets/collection-v3-lategame-v71.js'));
- assert.match(html,/(?:376|386|396) Kartenvorlagen/);
+ assert.match(html,/(?:376|386|396|406) Kartenvorlagen/);
 });

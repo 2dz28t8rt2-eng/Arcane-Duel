@@ -6,7 +6,7 @@ const {boot,repo}=require('./helpers/game-runtime.cjs');
 const rows=JSON.parse(fs.readFileSync(path.join(repo,'assets/lategame-v117-manifest.json'),'utf8')).cards;
 const budget={7:1270,8:1530,9:1830,10:2150};
 const shares={predator:.76,guardian:.25,soul:.22,combatant:.50};
-const snap=()=>boot({seed:11707}).run(`(()=>({count:window.ArcaneLateGameV117?.count||0,newFusions:window.ArcaneFusionWaveV129?.installed||0,total:CARDS.length,
+const snap=()=>boot({seed:11707}).run(`(()=>({count:window.ArcaneLateGameV117?.count||0,newFusions:window.ArcaneFusionWaveV129?.installed||0,v130Fusions:window.ArcaneFusionWaveV130?.installed||0,total:CARDS.length,
  cards:CARDS.slice(732,742).map(c=>({id:c.id,name:c.name,level:c.level,
  role:c.role,atk:c.atk,def:c.def,art:c.art,customArt:c.customArt,
  source:c.source,requiredTier:c.requiredTier,retired:c.retired,
@@ -30,7 +30,7 @@ test('exactly ten distinct, level 7–10, role-correct, effect-free specs',()=>{
 test('all ten illustrations valid and unique, when artwork install is active',()=>{
  const x=snap();
  if(!x.count){assert.equal(x.total,732);return;}
- assert.equal(x.count,10);assert.equal(x.total,742+x.newFusions);
+ assert.equal(x.count,10);assert.equal(x.total,742+x.newFusions+x.v130Fusions);
  const hashes=new Set();
  for(const c of rows){
   const buf=fs.readFileSync(path.join(repo,c.art));
@@ -57,10 +57,10 @@ test('live normal monsters follow level budget, reach loot/decks and render with
 });
 test('monster lexicon includes all ten entries with no duplicates when installed',()=>{
  const sandbox={window:{}};
- for(const file of ['assets/collection-v3-data.js','assets/collection-v3-lategame-v71.js','assets/collection-v3-lategame-v117.js','assets/collection-v3-fusion-wave2-v129.js'])
+ for(const file of ['assets/collection-v3-data.js','assets/collection-v3-lategame-v71.js','assets/collection-v3-lategame-v117.js','assets/collection-v3-fusion-wave2-v129.js','assets/collection-v3-fusion-wave3-v130.js'])
   vm.runInNewContext(fs.readFileSync(path.join(repo,file),'utf8'),sandbox,{filename:file});
  const items=sandbox.window.ARCANE_COLLECTION_V3,installed=sandbox.window.ArcaneCollectionLateGameV117.count;
- assert.equal(items.length,376+installed+(sandbox.window.ArcaneCollectionFusionWaveV129?.count||0));
+ assert.equal(items.length,376+installed+(sandbox.window.ArcaneCollectionFusionWaveV129?.count||0)+(sandbox.window.ArcaneCollectionFusionWaveV130?.count||0));
  assert.equal(new Set(items.map(x=>x.id)).size,items.length);
  if(!installed)return;
  for(const x of rows){

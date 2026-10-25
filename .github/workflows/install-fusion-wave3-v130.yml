@@ -1,0 +1,95 @@
+name: Install 10 Arcane Duel Fusion Artworks v130
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/custom-art/Arcane-Duel-10-neue-Fusionen-v130-GitHub-Upload.zip'
+      - '.github/workflows/install-fusion-wave3-v130.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: arcane-fusion-wave-v130
+  cancel-in-progress: false
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: development
+          persist-credentials: true
+      - name: Verify the approved uploaded archive and activate the new cards
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, json, struct, zipfile
+          archive=Path('assets/custom-art/Arcane-Duel-10-neue-Fusionen-v130-GitHub-Upload.zip')
+          expected='f3517a2326c73e5c464fc4770038da36ae4fb70d3d53daed31f4c8d5b81c451a'
+          if not archive.is_file() or hashlib.sha256(archive.read_bytes()).hexdigest()!=expected:
+              raise SystemExit('Invalid or missing original v130 Fusion Wave artwork archive')
+          manifest=json.loads(Path('assets/fusion-wave3-v130-manifest.json').read_text('utf-8'))
+          cards=manifest['cards']
+          if len(cards)!=10 or [c['id'] for c in cards]!=list(range(752,762)):
+              raise SystemExit('Ten-card manifest ID sequence was changed')
+          expected_paths={c['art'] for c in cards}
+          if len(expected_paths)!=10: raise SystemExit('Duplicate artwork paths')
+          with zipfile.ZipFile(archive) as z:
+              names={n for n in z.namelist() if not n.endswith('/')}
+              if names!=expected_paths|{'manifest.json','INSTALLATION.md'}:
+                  raise SystemExit('Uploaded ZIP entries mismatch expected images')
+              package=json.loads(z.read('manifest.json'))
+              incoming=package.get('cards',[])
+              if [(c.get('name'),c.get('level'),c.get('art')) for c in incoming] != [(c['name'],c['level'],c['art']) for c in cards]:
+                  raise SystemExit('Uploaded ZIP card names, levels, or images mismatch the manifest')
+              hashes=set()
+              for c in cards:
+                  target=c['art']
+                  if not target.startswith('assets/custom-art/fusion-wave3-v130/') or not target.endswith('.webp'):
+                      raise SystemExit('Invalid v130 image destination')
+                  img=z.read(target)
+                  if len(img)<80000 or img[:4]!=b'RIFF' or img[8:12]!=b'WEBP' or img[12:16] not in (b'VP8 ',b'VP8L',b'VP8X'):
+                      raise SystemExit('Invalid WebP image '+target)
+                  digest=hashlib.sha256(img).hexdigest()
+                  if digest in hashes:raise SystemExit('Duplicate illustration')
+                  hashes.add(digest)
+                  path=Path(target)
+                  if path.exists():raise SystemExit('Refusing to overwrite image '+target)
+                  path.parent.mkdir(parents=True,exist_ok=True)
+                  path.write_bytes(img)
+          old='const ARTWORKS_COMPLETE=false;'
+          for name in ['assets/fusion-wave3-v130.js','assets/collection-v3-fusion-wave3-v130.js']:
+              p=Path(name);s=p.read_text('utf-8')
+              if s.count(old)!=1:raise SystemExit('v130 activation gate was modified')
+              p.write_text(s.replace(old,'const ARTWORKS_COMPLETE=true;'),encoding='utf-8')
+          changes=[
+            ('index.html','fusion-v130-pending','fusion-v130-live'),
+            ('collection-v3.html','fusion-v130-pending','fusion-v130-live')
+          ]
+          for filename,before,after in changes:
+              p=Path(filename);s=p.read_text('utf-8')
+              if s.count(before)!=1:raise SystemExit('Unexpected v130 script version stamp in '+filename)
+              p.write_text(s.replace(before,after),encoding='utf-8')
+          # Update only static collection count; runtime dynamic count uses cards.length.
+          p=Path('collection-v3.html');s=p.read_text('utf-8')
+          if s.count('396')!=3:raise SystemExit('Unexpected v129 lexicon baseline')
+          p.write_text(s.replace('396','406'),encoding='utf-8')
+          print('Installed all ten original WebP artworks and enabled cards 752-761.')
+          PY
+      - name: Test integration, balance, card indexing, and gallery
+        run: |
+          node --check assets/fusion-wave3-v130.js
+          node --check assets/collection-v3-fusion-wave3-v130.js
+          node --test tests/fusion-wave3-v130.test.cjs tests/fusion-wave2-v129.test.cjs tests/collection-v3.test.cjs
+      - name: Commit enabled artwork and remove uploaded archive
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/custom-art/fusion-wave3-v130/ assets/fusion-wave3-v130.js assets/collection-v3-fusion-wave3-v130.js index.html collection-v3.html
+          git rm -- assets/custom-art/Arcane-Duel-10-neue-Fusionen-v130-GitHub-Upload.zip
+          git diff --cached --quiet && exit 0
+          git commit -m "art(fusion-v130): install ten original role-neutral fusion artworks"
+          git pull --rebase origin development
+          git push origin HEAD:development
