@@ -30,6 +30,7 @@ jobs:
       - name: Restore successful v14.9.50 champion and forty-run TRAIN-only history
         env:
           GH_TOKEN: ${{ github.token }}
+          ARCANE_PREVIOUS_ARTIFACT_DIR: /tmp/arcane-v1551-prior
         run: |
           set -euo pipefail
           test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40230757229" --jq '.conclusion')" = success
