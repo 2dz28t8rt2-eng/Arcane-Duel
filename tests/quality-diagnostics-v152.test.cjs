@@ -18,11 +18,12 @@ test('resource diagnostics summarize only measured entries',()=>{
   const context={document:{getElementById:()=>null,querySelectorAll:()=>[]},uiMode:'duel',
     renderMenu:()=>{},window:{},escapeHtml:x=>String(x),
     performance:{getEntriesByType:type=>type==='navigation'?[{duration:100,domContentLoadedEventEnd:70,responseStart:20}]:
-      [{name:'https://host.test/assets/main.js',duration:50,initiatorType:'script'},
+      [{name:'https://host.test/assets/main.js?v=20261025',duration:50,initiatorType:'script'},
         {name:'https://host.test/assets/bg.webp',duration:120,initiatorType:'img'}]}};
   vm.runInNewContext(fs.readFileSync(resolve(),'utf8'),context);
   const result=context.window.ArcaneQualityDiagnostics152.report();
   assert.equal(result.resourceCount,2);
   assert.equal(result.images,1);
   assert.equal(result.slow[0].duration,120);
+  assert.equal(result.slow[1].name,'main.js');
 });

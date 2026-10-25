@@ -14,7 +14,7 @@
     const kind=t=>resources.filter(x=>x.initiatorType===t).length;
     const slow=[...resources].filter(x=>Number.isFinite(x.duration)&&x.duration>0)
       .sort((a,b)=>b.duration-a.duration).slice(0,6)
-      .map(e=>({name:String(e.name).split(/[/?#]/).filter(Boolean).slice(-1)[0]||'Ressource',duration:e.duration}));
+      .map(e=>({name:String(e.name).split(/[?#]/)[0].split('/').filter(Boolean).slice(-1)[0]||'Ressource',duration:e.duration}));
     return {
       navigationDuration:navigation?.duration,
       domReady:navigation?.domContentLoadedEventEnd,
