@@ -19,7 +19,7 @@
   check(data.every((c,i)=>c.id===716+i),'Stabile IDs 716 bis 731');
   check(data.every(c=>c.art===c.customArt),'Jedes Originalbild ersetzt den Generator');
   const gallery=[...lex.document.querySelectorAll('#cards article.monster')];
-  check(gallery.length===376+(lex.ArcaneCollectionLateGameV117?.count||0),'Das aktuelle Lexikon rendert die erwartete Anzahl an Einträgen');
+  check(gallery.length===376+(lex.ArcaneCollectionLateGameV117?.count||0)+(lex.ArcaneCollectionFusionWaveV129?.count||0)+(lex.ArcaneCollectionFusionWaveV130?.count||0),'Das aktuelle Lexikon rendert die erwartete Anzahl an Einträgen');
   const galleryNames=new Set(gallery.map(el=>el.querySelector('h3')?.textContent));
   check(data.every(c=>galleryNames.has(c.name)),'Alle 16 Namen in der Monsterkollektion gefunden');
   const results=await Promise.all(data.map(c=>new Promise(resolve=>{
