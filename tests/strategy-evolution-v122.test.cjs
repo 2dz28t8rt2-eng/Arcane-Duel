@@ -4,7 +4,8 @@ const vm=require('node:vm');
 const fs=require('node:fs');
 const path=require('node:path');
 
-function setup(){
+function setup(overrides={}){
+  const storage=new Map();
   const CARDS=[
     {id:0,rpg:true,name:'Wächter A',level:8,role:'guardian',atk:800,def:1000},
     {id:1,rpg:true,name:'Wächter B',level:7,role:'guardian',atk:700,def:900},
@@ -15,7 +16,7 @@ function setup(){
   const profile={inventory:{0:3,1:3,2:3,3:3,4:1},unlocked:[0,1,2,3],fusionOwned:[4],slots:[],activeSlot:0,
     activeDeck:[],fusionDeck:[4],enhancements:{},upgrades:{power:0}};
   const state={
-    window:{localStorage:{getItem:()=>null,setItem:()=>{}},setTimeout:(callback)=>callback()},
+    window:{localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},setTimeout:(callback)=>callback()},
     document:{getElementById:()=>null},CARDS,profile,RPG_BASE_CARDS:CARDS.filter(c=>!c.fusionOnly),
     $:()=>null,uiMode:'idle',menuTab:'free',game:null,
     escapeHtml:x=>String(x).replace(/</g,'&lt;'),
@@ -29,8 +30,9 @@ function setup(){
     monsterTrainingBonus:()=>0,createGame:()=>({}),simulateGame:()=>{},
     saveProfile:()=>true,setActiveDeck:()=>true,openModal:()=>{},hideModal:()=>{},toast:()=>{}
   };
+  Object.assign(state,overrides);
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'strategy-evolution-v122.js'),'utf8'),state);
-  return {api:state.window.ArcaneStrategyEvolution122,state};
+  return {api:state.window.ArcaneStrategyEvolution122,state,storage};
 }
 
 test('safe state strips malformed and excessive client metadata',()=>{
@@ -87,6 +89,23 @@ test('archive groups equivalent materials regardless of placement order',()=>{
   assert.equal(rows[0].count,2);
   assert.equal(rows[0].maxAtk,500);
   assert.equal(rows[0].maxDef,300);
+});
+
+test('failed field placement cannot accidentally add materials to the fusion archive',()=>{
+  const {state,storage}=setup({
+    prepareHandFusion:g=>{g.pending={kind:'fusion',card:{id:4,fusion:true}};return true;},
+    placePending:(g,idx)=>idx===0?null:{card:{id:4,fusion:true,roleOverride:'guardian'}}
+  });
+  const g={mode:'pve',active:0,turn:4,pending:null,players:[
+    {hand:[{id:0,uid:11},{id:1,uid:12}],field:[{id:2},null]},
+    {field:[]}
+  ]};
+  state.game=g;state.uiMode='duel';
+  assert.equal(state.prepareHandFusion(g,[11,12],4),true);
+  assert.equal(state.placePending(g,0,4),null);
+  assert.ok(state.placePending(g,1,4));
+  const record=JSON.parse(storage.get('arcane-duel-v122-strategy')).fusions[0];
+  assert.deepEqual(Array.from(record.materials),[0,1]);
 });
 
 test('A/B report makes no positive claim without complete simulations',()=>{
