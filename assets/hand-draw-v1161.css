@@ -4,7 +4,7 @@
  will-change:transform,opacity,filter
 }
 @keyframes ad117HandArrive{
- 0%{transform:translateX(min(38vw,260px)) rotate(8deg) scale(.94);opacity:0;filter:brightness(1.4)}
+ 0%{transform:translateX(var(--ad117-from,90vw)) rotate(8deg) scale(.94);opacity:0;filter:brightness(1.4)}
  72%{transform:translateX(-8px) rotate(-2deg) scale(1.02);opacity:1;filter:brightness(1.16)}
  100%{transform:translateX(0) rotate(0deg) scale(1);opacity:1;filter:brightness(1)}
 }
