@@ -39,6 +39,7 @@ test('tutorial follows real actions and unlock toast can be dismissed',()=>{
   assert.match(src,/g\.selection\?\.type==='hand'/);
   assert.match(src,/g\.summoned/);
   assert.match(src,/g\.players\[0\]\.field\.some\(c=>c&&\(c\.attacked\|\|c\.switched\)\)/);
-  assert.match(src,/el\.querySelector\('button'\)\.onclick=close/);
+  assert.match(src,/const dismiss=el\.querySelector\?\.\('button'\)/);
+  assert.match(src,/dismiss\.onclick=close/);
   assert.match(css,/prefers-reduced-motion:reduce/);
 });
