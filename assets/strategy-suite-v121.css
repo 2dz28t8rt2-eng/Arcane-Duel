@@ -53,7 +53,7 @@
 .ad121-new-cards strong{color:#efd0a0;font-size:.92rem}
 .ad121-new-cards>div{display:flex;flex-wrap:wrap;gap:7px}
 .ad121-new-cards span{font-size:.77rem;padding:5px 9px;border-radius:20px;background:rgba(218,163,76,.14);color:#eedbc2}
-#modal:has(.ad121-lab) .modal{width:min(1060px,calc(100vw - 28px));max-width:1060px;max-height:min(92vh,1000px);overflow:auto}
+#modal:has(.ad121-lab){width:min(1060px,92vw);max-width:92vw;max-height:min(92vh,1000px);overflow:auto}
 .ad121-lab{display:grid;gap:13px}
 .ad121-lab h2{margin:0;color:#ffe5ba}
 .ad121-lab>p{margin:0;line-height:1.5}
