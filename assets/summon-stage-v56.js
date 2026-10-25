@@ -19,6 +19,9 @@
  function renderStage(){
   const host=document.getElementById('summonStage');
   if(!host||!game||uiMode!=='duel')return;
+  const oldViewport=host.querySelector('.ad117-mat-viewport');
+  const previousScroll=oldViewport?.scrollTop||0;
+  const previousCount=Number(host.dataset.ad117MaterialCount||0);
   const g=game,human=g.mode==='pvp'||g.active===0,
         me=currentPlayer(g),isReady=human&&!g.summoned&&!g.pending,
         pending=human?g.pending:null,
@@ -71,8 +74,13 @@
        chosen?'„Beschwören“ wählen oder eine andere Handkarte anklicken.':
        material.length?'Weitere Materialien markieren oder „Fusionieren“ drücken.':
        'Du darfst pro Zug eine Karte beschwören oder eine Fusion ausführen.')+'</p></section>'+
-    '<section class="ad56-block ad56-material"><h3>Fusionsmaterial</h3>'+materialHtml+limits+'</section></div>'+
+    '<section class="ad56-block ad56-material"><h3>Fusionsmaterial</h3><div class="ad117-mat-viewport">'+materialHtml+'</div>'+limits+'</section></div>'+
    '</div>';
+  // Do not send the page or material list back to the top on every pick.
+  host.dataset.ad117MaterialCount=String(material.length);
+  const viewport=host.querySelector('.ad117-mat-viewport');
+  if(viewport)viewport.scrollTop=material.length>previousCount&&material.length>=4?
+   viewport.scrollHeight:previousScroll;
  }
  render=function(){const result=previousRender();renderStage();return result;};
  document.getElementById('summonStage')?.addEventListener('click',event=>{
