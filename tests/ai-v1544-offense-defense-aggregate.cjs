@@ -347,13 +347,13 @@ const selection={
  holdoutReferenceWins:base.splits.holdout.wins,
  holdoutDifference:byArm.get(chosen).splits.holdout.wins-base.splits.holdout.wins
 };
-const confirmationMaterial=eligible.find(x=>x.arm==='fusion-postreply-material');
+const confirmationTwoPly=eligible.find(x=>x.arm==='fusion-sequence-2ply');
 const priorResearchChampion={
- arm:'fusion-postreply-material',sourceRun:40123309581,
+ arm:'fusion-sequence-2ply',sourceRun:40137913164,
  status:'previously-promoted-research-champion',
- revalidated:!!confirmationMaterial?.qualifies,
- // Do not silently replace the v14.9.38 promoted research policy with the old baseline.
- // If replication fails, report it; further independent testing will determine next steps.
+ revalidated:!!confirmationTwoPly?.qualifies,
+ // Retain historical v14.9.41 2-ply champion even if replication fails.
+ // Never silently overwrite promoted policy with old Guardian/Soul benchmark.
  retainedForResearchReview:true
 };
 const report={schema:'arcane-v1544-global-role-selection-report',status:'completed',
