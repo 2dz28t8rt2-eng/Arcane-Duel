@@ -20,7 +20,8 @@ jobs:
       - name: Verify research harness syntax and combat regressions
         run: |
           set -euo pipefail
-          for f in tests/ai-v1549-{history,Q,targeted-l10-selfplay,targeted-l10-aggregate}.cjs; do
+          for f in tests/ai-v1549-{history,Q,legal-replies-selfplay,legal-replies-aggregate}.cjs; do
+            test -f "$f"
             node --check "$f"
           done
           node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
