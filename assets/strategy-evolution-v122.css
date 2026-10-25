@@ -38,6 +38,7 @@
 .ad122-wish-items>div{display:flex;justify-content:space-between;align-items:center;gap:9px;padding:9px 11px;border-radius:9px;background:rgba(21,31,45,.58);border:1px solid rgba(205,180,138,.2);font-size:.84rem}
 .ad122-wish-items span{overflow-wrap:anywhere}
 .ad122-wish-items em{font-size:.72rem;color:#cfb7cb;font-style:normal}
+.ad122-wish-items .ad122-drop-hint{display:block;color:#e3caa0;font-size:.72rem;line-height:1.4;margin-top:5px}
 .ad122-wish-items button{flex:none;cursor:pointer;border:1px solid rgba(224,175,114,.35);background:rgba(40,38,55,.66);color:#f0d3b4;border-radius:7px;padding:6px 9px}
 #ad122-danger-tools{display:grid;gap:7px;margin-top:10px}
 .ad122-danger-toggle{cursor:pointer;justify-self:start;padding:7px 10px;border-radius:8px;border:1px solid rgba(217,191,149,.35);background:rgba(31,35,56,.6);color:#ead9c1;font:inherit;font-size:.78rem}

@@ -136,3 +136,12 @@ test('local radar comparison reports only measured policy gaps',()=>{
   assert.match(report,/Ausgewogen \+13 Prozentpunkte/);
   assert.equal(api.compareRadarRuns(null,after),'');
 });
+
+test('wishlist location hints show only owned/known cards from unlocked confirmed loot lists',()=>{
+  const opponents=[{name:'Training',loot:[2]},{name:'Burgwächter',loot:[2,3]},
+    {name:'Geheimgegner',loot:[2,4]}];
+  const {api}=setup({OPPONENTS:opponents,opponentUnlocked:id=>id===1});
+  assert.deepEqual(Array.from(api.confirmedDropSources(2)),['Training','Burgwächter']);
+  assert.deepEqual(Array.from(api.confirmedDropSources(4)),[]);
+  assert.deepEqual(Array.from(api.confirmedDropSources(1000)),[]);
+});

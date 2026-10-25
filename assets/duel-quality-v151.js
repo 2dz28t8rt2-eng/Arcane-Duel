@@ -123,10 +123,15 @@
           '<article>'+forecastLine(combatForecast(game,ai,di))+'</article>').join('')+'</div>';
       }
     }
-    panel.innerHTML='<div class="ad151-tools-head"><button type="button" id="ad151-forecast-switch" aria-pressed="'+enabled+'">'+
+    const markup='<div class="ad151-tools-head"><button type="button" id="ad151-forecast-switch" aria-pressed="'+enabled+'">'+
       '✦ Kampfprognose '+(enabled?'AN':'AUS')+'</button>'+ 
       '<small>Optional · reale sichtbare Feldwerte</small></div>'+content+
       (enabled?'<small class="ad151-disclaimer">Prognose, keine Kampfgarantie: verdeckte Effekte und zukünftige Aktionen werden nicht vorausgesagt.</small>':'');
+    // The core renders frequently during animations. Recreating the same DOM
+    // on every frame discards focus/scroll and needlessly reflows the sidebar.
+    if(panel.__arcaneLastMarkup===markup&&panel.querySelector('#ad151-forecast-switch'))return;
+    panel.__arcaneLastMarkup=markup;
+    panel.innerHTML=markup;
     $id('ad151-forecast-switch').onclick=()=>{setSetting(!setting());drawForecast();};
   }
 

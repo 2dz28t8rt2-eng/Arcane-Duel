@@ -299,6 +299,14 @@
   // Compact bestiary wishlist. Secret cards never reveal their names or artwork.
   function wishlistCatalog(){return CARDS.filter(c=>c&&c.rpg&&!c.retired&&!c.enemyOnly&&!c.fateOnly&&
     c.level>=1&&c.level<=10&&known(c.id)&&(!c.questOnly||known(c.id))&&(!c.lv1Exclusive||known(c.id)));}
+  function confirmedDropSources(id){
+    if(!known(id)||!CARDS[id])return [];
+    // Report ONLY explicitly recorded opponent loot pools already unlocked by the player.
+    // Packs, forge, quests and speculative card.source fields are not guaranteed drops.
+    return OPPONENTS.map((opponent,i)=>({opponent,i})).filter(({opponent,i})=>
+      opponent&&Array.isArray(opponent.loot)&&opponent.loot.includes(id)&&
+      (i===0||opponentUnlocked(i))).map(({opponent,i})=>opponent.name||'Gegner '+i);
+  }
   function drawWishPanel(panel){
     if(!panel?.isConnected)return;
     const state=readState(),candidates=wishlistCatalog().filter(c=>!state.wish.includes(c.id)),selected=state.wish.map(id=>CARDS[id]).filter(Boolean);
@@ -309,9 +317,13 @@
         '<option value="">Keine weiteren entdeckten Karten</option>')+'</select>'+ 
       '<button type="button" class="btn" id="ad122-wish-add"'+(selected.length>=8||!candidates.length?' disabled':'')+'>Vormerken</button></div>'+ 
       (selected.length?'<div class="ad122-wish-items">'+selected.map(c=>'<div><span>'+esc(c.name)+' · Lv '+c.level+
-        (owned(c.id)?' <em>✓ Erhalten</em>':' <em>Noch nicht im Besitz</em>')+'</span><button type="button" data-ad122-wish-remove="'+c.id+'">Entfernen</button></div>').join('')+'</div>':
+        (owned(c.id)?' <em>✓ Erhalten</em>':' <em>Noch nicht im Besitz</em>')+
+        '<small class="ad122-drop-hint">'+(confirmedDropSources(c.id).length?
+          'Bestätigter Beutepool: '+esc(confirmedDropSources(c.id).slice(0,3).join(', ')):
+          'Kein freigeschalteter Gegner mit dieser Karte im direkten Beutepool.')+'</small></span>'+ 
+        '<button type="button" data-ad122-wish-remove="'+c.id+'">Entfernen</button></div>').join('')+'</div>':
         '<p class="ad122-muted">Noch keine Wünsche eingetragen.</p>')+
-      '<small class="ad122-muted">Ein Fundort wird nur angezeigt, wenn er in den bestehenden Kartendaten eindeutig bekannt ist. Deine Wunschliste erhöht keine Dropraten.</small>';
+      '<small class="ad122-muted">Fundorte zeigen ausschließlich nachweisbare direkte Gegner-Beutepools, keine garantierten Drops. Unbekannte Gegner und Monster bleiben verborgen. Die Wunschliste erhöht keine Dropraten.</small>';
     $id('ad122-wish-add').onclick=()=>{
       const id=Number($id('ad122-wish-choice')?.value),s=readState();
       if(s.wish.length>=8||!wishlistCatalog().some(c=>c.id===id)||s.wish.includes(id))return;
@@ -487,5 +499,5 @@
   if(uiMode==='menu')extendMenu();
 
   window.ArcaneStrategyEvolution122=Object.freeze({version:'12.2.0',safeState,proposeSwap,comparisonText,
-    dangerMarkers,pivotalMoments,archiveRows,pairedSchedule,compareRadarRuns,openOptimizer,openArchive,openRadar});
+    dangerMarkers,pivotalMoments,archiveRows,pairedSchedule,compareRadarRuns,confirmedDropSources,openOptimizer,openArchive,openRadar});
 })();

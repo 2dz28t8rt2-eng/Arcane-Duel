@@ -52,6 +52,11 @@
 .ad120-coach-actions{display:flex;align-items:center;justify-content:space-between;font-size:.77rem}
 .ad120-coach-actions button{border:1px solid #e8ca8299;border-radius:8px;padding:7px 10px;
  background:#40304d;color:#fff1cd;cursor:pointer}
+.ad120-lesson-list{display:grid;gap:10px;margin:16px 0;text-align:left}
+.ad120-lesson-list .ad120-lesson{width:100%;min-height:48px;text-align:left;white-space:normal;
+ color:#ffe6b0;border:1px solid #c9a76b88;background:linear-gradient(115deg,#30263d,#211e2d);border-radius:10px}
+.ad120-lesson-list .ad120-lesson:hover,.ad120-lesson-list .ad120-lesson:focus-visible{
+ border-color:#f4d99f;background:#393048;outline:2px solid #f1d29b44}
 #modal:has(.ad120-lab){width:min(880px,92vw);max-width:92vw;max-height:85vh;overflow:auto}
 .ad120-lab{text-align:left;color:#f6ead7}
 .ad120-lab>p{line-height:1.55;max-width:690px}
@@ -75,7 +80,8 @@
  .ad120-lab-results{grid-template-columns:1fr}
  #modal:has(.ad120-lab){width:94vw;max-width:94vw}
  .ad120-unlock{bottom:12px;right:12px}
- .ad120-coach{left:12px;bottom:12px}
+ .ad120-coach{left:12px;bottom:auto;top:calc(70px + env(safe-area-inset-top,0px));
+  width:min(340px,calc(100vw - 24px));max-height:min(38vh,280px);overflow:auto}
 }
 @media(prefers-reduced-motion:reduce){
  .ad120-unlock,.ad120-unlock.ad120-leave,.ad120-unlock::before{animation:none!important}
