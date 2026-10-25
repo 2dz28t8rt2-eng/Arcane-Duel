@@ -9,6 +9,12 @@
   const DATA_KEY='arcane-duel-v122-strategy';
   const ROLE_LABELS={predator:'Predator',guardian:'Wächter',soul:'Seelenzehrer',resonator:'Resonator',combatant:'Allrounder',allrounder:'Allrounder',support:'Support',weaver:'Runenweber'};
   const POLICIES=[['balanced','Ausgewogen'],['offensive','Offensiv'],['guardian','Defensiv'],['economy','Ressourcenorientiert']];
+  function pairedSchedule(i,foe,policy){
+    // Both seat positions share a seed before the next seed is sampled; the
+    // original and modified decks then see the same schedule and AI policy.
+    return {seed:122000+foe*811+Math.floor(i/2)*1973,starter:i%2,
+      policy:policy==='mixed'?POLICIES[Math.floor(i/2)%POLICIES.length][0]:policy};
+  }
   let ticket=0,lastHighlights='',activeTip='',lastTipGame='';
   let memory=null;
   const eventsByGame=new WeakMap(),handByGame=new WeakMap();
@@ -92,8 +98,8 @@
       '<p>Ein überprüfbarer Vorschlag auf Grundlage von Rollenverteilung, Duplikaten und Stufenmix. Das System kann die Spielstärke nicht allein aus Kartenwerten beweisen.</p>'+ 
       '<div class="ad122-controls"><label>Deckplatz<select id="ad122-opt-slot">'+options(slots().map(x=>[x.id,x.name]),profile.activeSlot)+'</select></label>'+ 
       '<label>Gegner<select id="ad122-opt-foe">'+options(foes().map(x=>[x.id,x.name]),0)+'</select></label>'+ 
-      '<label>KI-Stil<select id="ad122-opt-policy">'+options(POLICIES,'balanced')+'</select></label>'+ 
-      '<label>Umfang<select id="ad122-opt-n">'+options([[10,'10 je Deck'],[30,'30 je Deck']],30)+'</select></label></div>'+ 
+      '<label>KI-Stil<select id="ad122-opt-policy">'+options([...POLICIES,['mixed','Mix aus vier Strategien']],'mixed')+'</select></label>'+ 
+      '<label>Umfang<select id="ad122-opt-n">'+options([[10,'10 je Deck'],[30,'30 je Deck'],[60,'60 je Deck']],30)+'</select></label></div>'+ 
       '<div id="ad122-opt-suggestion" class="ad122-suggestion" aria-live="polite"></div>'+ 
       '<div id="ad122-opt-result" aria-live="polite"></div><div class="modal-actions">'+
       '<button class="btn primary" id="ad122-opt-run">Original und Vorschlag testen</button>'+modalEnd+'</div></section>');
@@ -116,29 +122,35 @@
       const local=++ticket,slot=Number($id('ad122-opt-slot').value),foe=Number($id('ad122-opt-foe').value),
         policy=$id('ad122-opt-policy').value,n=Number($id('ad122-opt-n').value),deck=activeDeckFor(slot),fusion=fusionDeckFor(slot);
       const plan=deckLegal(deck,fusion)?proposeSwap(deck):null;
-      if(!plan||![10,30].includes(n)||!foes().some(o=>o.id===foe))return;
+      if(!plan||![10,30,60].includes(n)||!foes().some(o=>o.id===foe))return;
       const button=$id('ad122-opt-run'),host=$id('ad122-opt-result');button.disabled=true;
       const base={n:0,wins:0,fusions:0},proposal={n:0,wins:0,fusions:0};let errors=0;
+      const pairs=[];
       for(let i=0;i<n;i++){
         if(ticket!==local||!host.isConnected)return;
-        const seed=122000+foe*811+i*1973;
+        const schedule=pairedSchedule(i,foe,policy),outcomes=[];
         for(const [cards,stats] of [[deck,base],[plan.trial,proposal]]){
-          try{const result=simulateOnce(cards,fusion,foe,policy,seed,0);
-            stats.n++;stats.wins+=result.win?1:0;stats.fusions+=result.fusions;}catch(_){errors++;}
+          try{const result=simulateOnce(cards,fusion,foe,schedule.policy,schedule.seed,schedule.starter);
+            stats.n++;stats.wins+=result.win?1:0;stats.fusions+=result.fusions;outcomes.push(result.win);}catch(_){errors++;}
         }
+        if(outcomes.length===2)pairs.push({starter:schedule.starter,original:outcomes[0],trial:outcomes[1]});
         host.textContent='Gepaarter Test '+(i+1)+' / '+n+' …';await yieldUI();
       }
       if(ticket!==local||!host.isConnected)return;
+      const improved=pairs.filter(x=>!x.original&&x.trial).length,
+        declined=pairs.filter(x=>x.original&&!x.trial).length;
       host.innerHTML='<div class="ad122-metrics"><span>Original<b>'+pct(base.wins,base.n)+' %</b></span>'+ 
         '<span>Vorschlag<b>'+pct(proposal.wins,proposal.n)+' %</b></span>'+ 
         '<span>Ø Fusionen Original<b>'+(base.fusions/Math.max(1,base.n)).toFixed(1)+'</b></span>'+ 
         '<span>Ø Fusionen Vorschlag<b>'+(proposal.fusions/Math.max(1,proposal.n)).toFixed(1)+'</b></span></div>'+ 
         '<p>'+esc(comparisonText(base,proposal))+'</p>'+ 
-        (errors?'<p class="ad122-warning">'+errors+' Simulationen scheiterten und wurden nicht als Siege gezählt.</p>':'')+
-        '<p class="ad122-muted">Beide Decks nutzen dieselben Seeds, nicht notwendigerweise dieselben Handkarten. Kein tatsächlicher Spielstand wurde während der Tests verändert.</p>'+ 
-        '<button type="button" class="btn" id="ad122-opt-apply">Geprüften Austausch übernehmen</button>';
+        '<p>Direkter Paarvergleich: <b>'+improved+'</b> Siege nur mit dem Vorschlag, <b>'+declined+'</b> nur mit dem Original. '+
+        'Beide Startplätze wurden gleich häufig getestet.</p>'+ 
+        (errors?'<p class="ad122-warning">'+errors+' Simulationen scheiterten. Der Paarvergleich ist unvollständig, daher wird kein Kartenwechsel aus diesem Test freigegeben.</p>':'')+
+        '<p class="ad122-muted">Gleiche Seeds und KI-Stile je Paar, nicht notwendigerweise identische Handkarten. Die Stichprobe erlaubt noch keinen statistisch gesicherten Vorteil. Keine Änderung am Spielstand während der Tests.</p>'+ 
+        '<button type="button" class="btn" id="ad122-opt-apply"'+(errors||pairs.length!==n?' disabled':'')+'>Getesteten Austausch übernehmen</button>';
       button.disabled=false;
-      $id('ad122-opt-apply').onclick=()=>confirmSwap(slot,deck,plan);
+      $id('ad122-opt-apply').onclick=()=>{if(!errors&&pairs.length===n)confirmSwap(slot,deck,plan);};
     };
   }
   function confirmSwap(slot,source,plan){
@@ -444,5 +456,5 @@
   if(uiMode==='menu')extendMenu();
 
   window.ArcaneStrategyEvolution122=Object.freeze({version:'12.2.0',safeState,proposeSwap,comparisonText,
-    dangerMarkers,pivotalMoments,archiveRows,openOptimizer,openArchive,openRadar});
+    dangerMarkers,pivotalMoments,archiveRows,pairedSchedule,openOptimizer,openArchive,openRadar});
 })();

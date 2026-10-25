@@ -115,3 +115,15 @@ test('A/B report makes no positive claim without complete simulations',()=>{
   assert.match(api.comparisonText({n:0,wins:0},{n:0,wins:0}),/Zu wenige/);
   assert.match(api.comparisonText({n:10,wins:5},{n:10,wins:6}),/dieses Testszenario/);
 });
+
+test('paired A/B deck simulations use both first-player positions and identical within-pair seeds',()=>{
+  const {api}=setup();
+  const rounds=Array.from({length:30},(_,i)=>api.pairedSchedule(i,2,'mixed'));
+  assert.equal(rounds.filter(x=>x.starter===0).length,15);
+  assert.equal(rounds.filter(x=>x.starter===1).length,15);
+  for(let i=0;i<30;i+=2){
+    assert.equal(rounds[i].seed,rounds[i+1].seed);
+    assert.equal(rounds[i].policy,rounds[i+1].policy);
+  }
+  assert.equal(new Set(rounds.map(x=>x.policy)).size,4);
+});
