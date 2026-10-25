@@ -25,7 +25,7 @@ jobs:
           from pathlib import Path
           import hashlib, json, struct, zipfile
           archive=Path('assets/custom-art/Arcane-Duel-10-neue-Fusionen-v130-GitHub-Upload.zip')
-          expected='f3517a2326c73e5c464fc4770038da36ae4fb70d3d53daed31f4c8d5b81c451a'
+          expected='761fddfa19bc6f2fbf7e27186d53a273ccd2457983d26edbafe019194861cf9c'
           if not archive.is_file() or hashlib.sha256(archive.read_bytes()).hexdigest()!=expected:
               raise SystemExit('Invalid or missing original v130 Fusion Wave artwork archive')
           manifest=json.loads(Path('assets/fusion-wave3-v130-manifest.json').read_text('utf-8'))
