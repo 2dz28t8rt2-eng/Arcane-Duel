@@ -190,7 +190,7 @@ test('Grand straight is awarded for Lv1+2+3+4, with greater reward for five card
  const four=evolution.fusionPattern([1,2,3,4]),five=evolution.fusionPattern([1,2,3,4,5]),three=evolution.fusionPattern([1,2,3]);
  assert.equal(three.name,'Kleine Straße');
  assert.equal(four.name,'Große Straße');
- assert.equal(five.name,'Große Straße');
+ assert.equal(five.name,'Gigantische Straße');
  assert.ok(five.qualityBonus>four.qualityBonus);
  assert.ok(four.qualityBonus>three.qualityBonus);
 });
