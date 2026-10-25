@@ -182,8 +182,8 @@
     panel.innerHTML='<button type="button" class="ad122-danger-toggle" aria-pressed="'+enabled+'">⚔ Taktische Hinweise '+(enabled?'AN':'AUS')+'</button>'+ 
       (enabled?'<small>Nur sichtbare Feldwerte. Kein sicherer Angriffsausgang und keine Vorhersage verdeckter Karten.</small>':'');
     panel.querySelector('button').onclick=()=>{const s=readState();s.dangers=!s.dangers;writeState(s);decorateDuel();};
-    $id('ownRow')?.querySelectorAll('[data-mine]').forEach(x=>{x.classList.remove('ad122-threat');x.removeAttribute('data-ad122-hint');});
-    $id('enemyRow')?.querySelectorAll('[data-enemy]').forEach(x=>{x.classList.remove('ad122-opportunity');x.removeAttribute('data-ad122-hint');});
+    $id('ownRow')?.querySelectorAll('[data-mine]').forEach(x=>{if(x.hasAttribute('data-ad122-hint'))x.removeAttribute('title');x.classList.remove('ad122-threat');x.removeAttribute('data-ad122-hint');});
+    $id('enemyRow')?.querySelectorAll('[data-enemy]').forEach(x=>{if(x.hasAttribute('data-ad122-hint'))x.removeAttribute('title');x.classList.remove('ad122-opportunity');x.removeAttribute('data-ad122-hint');});
     if(!enabled)return;
     const threats=dangerMarkers(game);
     threats.forEach((threat,i)=>{
@@ -247,7 +247,7 @@
     const real=typeof game!=='undefined'&&g===game&&uiMode==='duel'&&g.mode==='pve'&&g.active===0;
     const pending=real?g.pending:null,old=real?g.players[0].field[idx]:null;
     const hand=real?handByGame.get(g):null;
-    const materials=pending?.kind==='fusion'?hand?.materials||[]:pending?.card?.id!=null?[pending.card.id]:[];
+    const materials=pending?.kind==='fusion'?[...(hand?.materials||[])]:pending?.card?.id!=null?[pending.card.id]:[];
     if(old)materials.push(old.id);
     const result=oldPlace.apply(this,arguments);
     if(real&&result?.card?.fusion&&materials.length>=2){
