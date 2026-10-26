@@ -31,7 +31,7 @@ test('cards, active decks and upgrade rank caps are restricted server-side',()=>
  assert.ok(endpoint.includes('game.validDeck(deck,catalog,fusion)'));
  assert.ok(endpoint.includes('game.PERK_LIMITS[body.key]'));
  assert.ok(endpoint.includes('expectedRevision===p.revision'));
- assert.ok(endpoint.includes('snapshot.cards.filter(c=>c.playable'));
+ assert.ok(endpoint.includes('economy.packDraw(p,body.pack,catalog,rng)'));
  assert.ok(rules.validDeck(data.starterMain,catalog));
  assert.ok(rules.validDeck(data.starterFusions,catalog,true));
 });
