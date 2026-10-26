@@ -52,3 +52,23 @@
 .duo-chapter-step.complete{border-color:#79a79b;background:#1b3430;color:#cef2dd}
 .duo-chapter-step.skipped{opacity:.55;border-style:dashed}
 @media(max-width:530px){.duo-chapter-progress{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* 2v2 independent, server-owned progression v17.1 */
+.duo-profile-panel{margin:14px auto;max-width:1180px}
+.duo-profile-panel h2{margin:0 0 10px}
+.duo-profile-stats{padding:12px 14px;background:#1d2e39;border:1px solid #69a7a1;
+ border-radius:9px;color:#e1fae9;font-weight:700;line-height:1.6}
+.duo-profile-shop{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:12px;margin:15px 0}
+.duo-profile-shop>div{padding:12px;border:1px solid #554e6a;
+ border-radius:10px;background:#11192a;min-width:0}
+.duo-profile-shop h3{font-size:15px;margin:0 0 8px;color:#eddfba}
+.duo-profile-shop select,.duo-profile-shop button,
+.duo-profile-panel input{max-width:100%;width:100%;box-sizing:border-box}
+.duo-profile-shop select{min-width:0;margin:5px 0 9px}
+.duo-profile-shop button{font-size:12px}
+#duoProfileMessage{font-size:13px;min-height:20px;color:#e9d1a0}
+#duoProfileBackupBox{display:block;margin-top:10px}
+#duoProfileBackupBox[hidden]{display:none}
+#duoProfileBackupLink{color:#ffddbd}
+@media(max-width:810px){.duo-profile-shop{grid-template-columns:1fr}}
