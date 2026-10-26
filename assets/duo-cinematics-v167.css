@@ -1,0 +1,39 @@
+/* 2v2 v16.7: bounded, server-confirmed combat visuals. */
+.duo-battle{position:relative;isolation:isolate}
+.duo-fx-stage{position:absolute;inset:0;z-index:10;overflow:hidden;pointer-events:none}
+.duo-fx-notice{position:sticky;bottom:12px;z-index:11;width:min(100%,540px);
+ margin:0 auto;pointer-events:none;padding:11px 16px;border-radius:12px;
+ border:1px solid rgba(241,203,117,.8);background:rgba(18,25,44,.95);
+ color:#fff0c8;text-align:center;font-weight:650;font-size:.87rem;
+ box-shadow:0 8px 28px rgba(0,0,0,.55);opacity:0;transform:translateY(10px);
+ transition:opacity .18s,transform .18s;visibility:hidden}
+.duo-fx-notice.visible{opacity:1;transform:translateY(0);visibility:visible}
+.duo-fx-burst{position:absolute;width:15px;height:15px;margin:-7px;
+ border-radius:50%;border:2px solid #ffdb9b;box-shadow:0 0 20px #f8bd71;
+ animation:duoFxImpact .7s ease-out both}
+.duo-fx-fusion,.duo-fx-fate{border-color:#e8caff;box-shadow:0 0 28px #c992f8}
+.duo-fx-arena{border-color:#ff9877;box-shadow:0 0 28px #fa746c}
+.duo-fx-spark{position:absolute;left:4px;top:4px;width:4px;height:4px;
+ border-radius:50%;background:#fff0b8;box-shadow:0 0 8px #facd76;
+ transform:rotate(var(--angle));animation:duoFxSpark .6s ease-out both}
+.duo-fx-projectile{position:absolute;font-size:28px;line-height:1;
+ margin:-14px;color:#ffe8ae;text-shadow:0 0 18px #f7ba6e;
+ animation:duoFxTravel .38s cubic-bezier(.2,.65,.55,1) both}
+@keyframes duoFxTravel{from{transform:translate(0,0) scale(.75);opacity:1}
+ to{transform:translate(var(--move-x),var(--move-y)) scale(1.4);opacity:0}}
+@keyframes duoFxImpact{from{transform:scale(.5);opacity:1}
+ to{transform:scale(7);opacity:0}}
+@keyframes duoFxSpark{from{transform:rotate(var(--angle)) translateX(0);opacity:1}
+ to{transform:rotate(var(--angle)) translateX(45px);opacity:0}}
+.duo-sync-warning{color:#ffd5bf;border:1px solid #b87870;padding:10px;
+ border-radius:8px;background:#42272b}
+.duo-save-state[data-sync="offline"]{border-color:#c77e78;background:#39222b;color:#ffd8d2}
+.duo-save-state[data-sync="saved"]{border-color:#668a9a}
+@media(max-width:530px){
+ .duo-fx-notice{font-size:.77rem;padding:8px 10px;bottom:6px}
+ .duo-fx-spark{animation-duration:.45s}
+}
+@media(prefers-reduced-motion:reduce){
+ .duo-fx-stage,.duo-fx-burst,.duo-fx-spark,.duo-fx-projectile{display:none!important}
+ .duo-fx-notice{transition:none;transform:none}
+}
