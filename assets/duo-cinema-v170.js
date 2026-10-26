@@ -89,7 +89,7 @@
   const content=make('div','duo-cinema170-content',undefined,inner);
   return {inner,content,stamp:sequence};
  }
- function fusionSequence(event){
+ function fusionSequence(event,catalog){
   const {inner,content,stamp}=base(event),r=event.result;
   make('p','duo-cinema170-owner',event.name+' · '+r.pattern,inner);
   const status=make('p','duo-cinema170-stage','1 · ROLLENSTEMPEL',content);
@@ -120,7 +120,12 @@
     status.textContent='4 · FUSION VOLLENDET';
     reward.replaceChildren();
     make('strong','duo-cinema170-level','LEVEL '+r.level,reward);
-    make('strong','duo-cinema170-name','Fusionsmonster',reward);
+    const template=catalog?.[r.id]||{};
+    if(typeof template.art==='string'&&template.art.length<1024){
+     const img=make('img','duo-cinema170-art',undefined,reward);
+     img.src=template.art;img.alt=template.name||'Fusionsmonster';
+    }
+    make('strong','duo-cinema170-name',template.name||'Fusionsmonster',reward);
     make('strong','duo-cinema170-stats',
      r.atk+' ATK  ·  '+r.def+' DEF',reward);
     reward.classList.add('visible');
@@ -145,14 +150,14 @@
   make('p','duo-cinema170-note','Karteninhalte bleiben nur dem Besitzer bekannt.',content);
   schedule(clear,1500,stamp);
  }
- function onState(previous,current){
+ function onState(previous,current,catalog){
   const events=observed(previous,current);
   sequence++;
   clear();
   if(!enabled||!events.length||typeof document==='undefined'||reduced()||
      document.visibilityState==='hidden')return events;
   const event=events.find(x=>x.kind==='fusion')||events[0];
-  if(event.kind==='fusion')fusionSequence(event);
+  if(event.kind==='fusion')fusionSequence(event,catalog);
   else drawSequence(event);
   return events;
  }
