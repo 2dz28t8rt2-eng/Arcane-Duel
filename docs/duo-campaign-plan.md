@@ -1,3 +1,38 @@
+# 2v2 v17.3 – Wiederholung, Kartenschmiede, Sammlung und Zerlegung (26.10.2026)
+
+**Gilt ausschließlich für den eigenständigen 2v2-Modus:** zwei Menschen gegen zwei KI-Gegner, kein Import aus dem Singleplayer, kein KI-Training und kein `main`-Merge.
+
+## Wiederholungsbelohnungen
+
+- **Erster Kapitelsieg:** wie bisher 100 % der Belohnung (Kapitel `k`: `40+20k` EP, `70+35k` Essenz, `1+k` Splitter).
+- **Wiederholung in einem neuen Raum:** 50 % EP, abgerundete 40 % Essenz und ein Splitter.
+- **Tageslimit:** maximal **drei** Wiederholungsauszahlungen je Kapitel und Profil pro **UTC-Tag**. Der erste Abschluss zählt nicht zum Wiederholungslimit. Keine erneute Auszahlung bei erneutem Speichern desselben Raums.
+- Die Datenbank sperrt das jeweilige Profil während der Auszahlung (`FOR UPDATE`), verbucht in stabiler Profilreihenfolge und nutzt weiter das eindeutige Belohnungsprotokoll. Überschreitet man das Tageslimit, wird der Kampf nicht blockiert; es folgt lediglich keine weitere Auszahlung.
+- Durchgeführt wurde ein **zurückgerollter** Datenbanktest mit zwei Profilen und fünf Siegräumen in Kapitel I: je Profil **150 EP / 231 Essenz / 5 Splitter** aus insgesamt 4 Auszahlungen, 5. Auszahlung wegen Limit unterblieben.
+
+## Karten verbessern
+
+- Im eigenen aktuellen Deck befindliche Karten können permanent von Rang 0 bis höchstens **Rang 5** verbessert werden. Die vorhandene Einzelkarten-Stat-Berechnung der 2v2-Kampflogik wird unverändert verwendet: +10 ATK/DEF je Rang bei frühen Karten-IDs unter 20, +20 bei Fusionen, +30 bei übrigen normalen Karten.
+- Upgrade-Kosten für Rang `r → r+1`: `75 + 55r` Essenz, dazu `1 + floor(r/2)` Splitter; Fusionen kosten zusätzlich 35 Essenz und einen Splitter.
+- Nur eine serverseitig bestätigte Profilrevision darf einen Kauf durchführen; Währung und Kartenrang werden in **einer** Profilaktualisierung gespeichert. Laufende Duelle behalten ihre anfänglichen Kartenwerte.
+- Entfernt man eine verbesserte Karte aus dem aktiven Deck, wird der nicht mehr verwendbare Enhancement-Eintrag entfernt; beim aktiven gebundenen Essenzwesen wird eine unzulässige Deckentfernung abgelehnt.
+
+## Eigene Sammlung und überzählige Karten zerlegen
+
+- Such- und Filteransicht nach normalen Monstern, Fusionen und freien Exemplaren. Anzeige von erworbenen Exemplaren, im Deck belegten Exemplaren und Verstärkungsrang.
+- Zerlegt wird **ein echtes, nicht im Deck benötigtes Exemplar**; ungenutzte normale Monster geben `18 + 5 × Level` Essenz und einen Splitter, ungenutzte Fusionen `42 + 5 × Level` Essenz und zwei Splitter.
+- **Unzerlegbar:** alle im aktuellen Deck eingesetzten Exemplare sowie Ace-, Schicksals-, spezielle Lv1-Fusions- und Essenzwesen-Karten. Die Oberfläche verlangt zusätzlich eine ausdrückliche Bestätigung.
+- Serverseitig werden der Kartenbestand und die Währung gemeinsam über den Profil-Revisionsvergleich aktualisiert. Kein mehrfacher Verkauf derselben Kopie und keine Änderung des Singleplayer-Inventars.
+
+## Test- und Veröffentlichungsstatus
+
+- Neue gemeinsame, reine Economy-Helfer, Node-Regressionsfälle, Chrome-Smoke-Tests für Desktop und Mobil sowie ein einmaliger, optionaler Live-Smoke mit einem eigens erstellten 2v2-Testprofil.
+- Der Trigger für reduzierte Wiederholungsbelohnungen wurde auf der separaten Supabase-Beta bereitgestellt und in einer Transaktion mit anschließendem `ROLLBACK` überprüft.
+- Die Kartenschmiede liegt ausschließlich auf `development`; reale Zwei-Geräte-Abnahme bleibt wie gewünscht zurückgestellt.
+- Eine langfristige, persönliche Anmeldung statt der privaten Profil-Links ist für spätere Releases weiterhin sinnvoll.
+
+---
+
 # 2v2 v17.2 – Pakete, Freischaltungen und 2v2-Forschung (26.10.2026)
 
 Ziel: den **ausschließlich eigenständigen** Fortschritt für **zwei Menschen gegen zwei KI** mit langfristigen Währungsausgaben, Karten- und Forschungsentscheidungen vertiefen. Kein Import aus dem Singleplayer, keine Änderungen an `main` oder der laufenden Gegner-KI-Forschung.
