@@ -72,3 +72,12 @@
 #duoProfileBackupBox[hidden]{display:none}
 #duoProfileBackupLink{color:#ffddbd}
 @media(max-width:810px){.duo-profile-shop{grid-template-columns:1fr}}
+
+/* v17.2 independent 2v2 research progression */
+.duo-research{padding:12px;border:1px solid #765c87;
+ border-radius:10px;background:#191c32}
+.duo-research h3{margin-top:0;color:#ead0fc}
+.duo-research p{line-height:1.45}
+.duo-research button{display:block;width:100%;max-width:100%;margin:6px 0 11px}
+.duo-research button:disabled{opacity:.6;cursor:not-allowed}
+#duoProfileUnlockInfo{border-left:3px solid #92abcc;padding:6px 10px}
