@@ -131,7 +131,7 @@
   finally{busy=false;render();}
  }
  const format=c=>name(c.id)+' · Lv '+c.level+' · '+c.atk+'/'+c.def+
-  ' · '+(c.mode==='def'?'DEF':'ATK');
+  ' · '+(c.mode==='def'?'DEF':'ATK')+(c.soul?' · ✦ '+c.soul+' Seele':'');
  function render(){
   const dock=$('duoActions'),track=$('duoTrack'),seats=$('duoSeats'),log=$('duoLog');
   for(const n of [dock,track,seats,log])n.replaceChildren();
@@ -184,6 +184,11 @@
      'duo-field-meta');
     el('small',cell,(c.mode==='def'?'🛡 DEF':'⚔ ATK')+
      (c.fusion?' · Fusion':'')+' · '+c.role,'duo-card-level');
+    if(c.role==='soul')el('small',cell,'✦ '+(c.soul||0)+' Seele · '+
+     (c.condensed||0)+' Verdichtung · CD '+(c.soulCooldown||0),
+     'duo-soul-status');
+    if(c.role==='combatant'&&c.resonance)el('small',cell,
+     '✧ Resonanz +'+(4+4*c.resonance)+' %','duo-card-level');
     cell.title='Feld '+(slot+1)+(c.used?' · Angriff verbraucht':'')+
      (c.placedRound>=game.round?' · noch nicht bereit':'');
    }
@@ -260,6 +265,47 @@
     'Feld '+(x.slot+1)+' · '+name(x.c.id)+' → '+(x.c.mode==='def'?'ATK':'DEF')]),part);
    button('Position ändern',part,()=>send({type:'switch',slot:Number(which.value)}));
   }
+  const souls=p.field.flatMap((c,slot)=>c?.role==='soul'&&c.mode==='def'?
+   [{c,slot}]:[]);
+  if(souls.length){
+   const part=section(dock,'✦ Seelenzehrer','Aktive Fähigkeiten nur in DEF: Pro Monster '+
+    'eine Seelenaktion je eigenem Zug. Passive Seelenentzüge erfolgen beim nächsten eigenen Zug.');
+   const which=selector('Seelenzehrer',souls.map(x=>[x.slot,
+    'Feld '+(x.slot+1)+' · '+name(x.c.id)+' · '+(x.c.soul||0)+' Seele']),part);
+   const actions=el('div',part,undefined,'duo-soul-actions');
+   const focus=selector('Entzugsfokus',[['atk','ATK bevorzugen'],['def','DEF bevorzugen']],actions);
+   const focusButton=button('Fokus setzen',actions,()=>send({type:'soulFocus',
+    slot:Number(which.value),stat:focus.value}));
+   const condense=button('Seele verdichten (75 % → DEF)',actions,
+    ()=>send({type:'soulCondense',slot:Number(which.value)}));
+   const discharge=button('Seelenentladung (130 % → LP)',actions,
+    ()=>send({type:'soulDischarge',slot:Number(which.value)}));
+   const raidTargets=game.players.filter(x=>x.team!==p.team)
+    .flatMap(x=>x.field.flatMap((c,slot)=>c?[{seat:x.seat,slot,c,name:x.name}]:[]));
+   if(raidTargets.length){
+    const target=selector('Raubziel',raidTargets.map(x=>[x.seat+':'+x.slot,
+     x.name+' · Feld '+(x.slot+1)+' · '+format(x.c)]),actions);
+    const raid=button('Gezielter Seelenraub (250 %)',actions,()=>{
+     const [targetSeat,targetSlot]=target.value.split(':').map(Number);
+     send({type:'soulRaid',slot:Number(which.value),targetSeat,targetSlot});
+    });
+    const enabled=()=>{
+     const c=p.field[Number(which.value)],used=c.lastSoulAction===p.ownTurns;
+     raid.disabled=used||(c.raidCooldown||0)>0||busy||!!syncError;
+     condense.disabled=used||(c.soulCooldown||0)>0||(c.soul||0)<40||busy||!!syncError;
+     discharge.disabled=used||(c.soul||0)<40||busy||!!syncError;
+     focusButton.disabled=c.level<5||c.lastDrainSwitch===p.ownTurns||busy||!!syncError;
+    };
+    which.onchange=enabled;enabled();
+   }else{
+    const enabled=()=>{
+     const c=p.field[Number(which.value)],used=c.lastSoulAction===p.ownTurns;
+     condense.disabled=used||(c.soulCooldown||0)>0||(c.soul||0)<40||busy||!!syncError;
+     discharge.disabled=used||(c.soul||0)<40||busy||!!syncError;
+     focusButton.disabled=c.level<5||c.lastDrainSwitch===p.ownTurns||busy||!!syncError;
+    };which.onchange=enabled;enabled();
+   }
+  }
   if(legal.attackers.length){
    const part=section(dock,'⚔ Angriff','Gegnerische Monster blockieren direkte Angriffe.');
    const row=el('div',part,undefined,'duo-choices');
@@ -280,7 +326,7 @@
  }
  async function init(){
   try{
-   const response=await fetch('assets/duo-card-catalog-v160.json?v=duo-v160');
+   const response=await fetch('assets/duo-card-catalog-v160.json?v=duo-v161');
    if(!response.ok)throw Error('Kartenkatalog fehlt.');
    const snapshot=await response.json();
    if(snapshot.schema!==1||snapshot.cards.length<400)throw Error('Kartenkatalog unvollständig.');

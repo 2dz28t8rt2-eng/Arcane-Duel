@@ -6,3 +6,7 @@
 .duo-action-status{padding:6px 10px;border-radius:8px;border:1px solid #676280;margin:8px 0}
 .duo-selected{border-color:#e0c58a!important;box-shadow:0 0 0 1px #e0c58a}
 .duo-panel button:disabled{opacity:.6;cursor:not-allowed}
+.duo-soul-status{display:block;margin-top:4px;color:#e2c0ff;font-size:.76rem;line-height:1.35}
+.duo-soul-actions{display:flex;flex-wrap:wrap;align-items:flex-end;gap:9px;margin-top:10px}
+.duo-soul-actions button{flex:1 1 170px;min-height:39px}
+.duo-soul-actions .duo-choice{flex:1 1 220px}

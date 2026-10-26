@@ -1,5 +1,30 @@
 # Kampagnenstart und Kapitelpakete – 18. Oktober 2026
 
+> **Fortsetzung 26. Oktober 2026 · v16.1 Regelabgleich auf `development`:**
+> Der gemeinsame serverseitige 2v2-Regelkern hat jetzt echte DEF-Lebenspunkte,
+> Schutzschichten (verdichtete Seele → gespeicherte Seele → Grund-DEF),
+> 35 % Rüstung für Wächter/Seelenzehrer, ihren Gegenschlag (50 % ATK),
+> 10 % Predator-Rüstungsdurchdringung und den auf das **eigene** Feld
+> begrenzten Predator-Schwarmbonus (max. +10 %). Passive Seelenzehrer
+> greifen beide gegnerischen Felder an, verursachen Seelenbrand und
+> besitzen jetzt servergeprüfte Aktionen: Verdichten, Entladen, gezielter
+> Seelenraub und ATK/DEF-Entzugsfokus ab Rang 3. Abklingzeiten und
+> Zerfall laufen nur bei eigenen Zügen; Seelenraub setzt den Zerfall
+> im Aktivierungszug aus. Wächter regenerieren Grund-DEF von Verbündeten,
+> auch auf dem Partnerfeld. Fusionsrollen folgen der Spezialistenmehrheit
+> der Materialien (nicht der Vorlage oder dem zuerst gewählten Feldmonster),
+> mit materialabhängiger Statverteilung und Seelen-Erbe bei Feldfusion.
+> Resonanz bleibt auf eigene Materialien begrenzt. Laufende v16.0-Räume
+> können Karten mit den zuvor fehlenden Statusfeldern weiterverwenden.
+>
+> **Forschungsstopp für die KI:** Weder der Singleplayer-KI-Code noch
+> Trainingspipeline oder die bestehende 2v2-Aktionsplanung wurden verändert.
+> Die neuen Regeln gelten auch für KI-Monster, aber ihre Strategie wurde
+> bewusst nicht erweitert. Offen bleiben insbesondere vollständige
+> Spezialwürfe/Elemente/Pokerkombinationen, persönliche Perks und
+> Essenz-Bindungsfähigkeiten, Kartenbesitznachweise und Live-Tests mit zwei
+> physischen Geräten. Bis dahin ist die v16.1-Seite eine *unranked Beta*.
+
 > **Stand 26. Oktober 2026 · v16.0 Beta:** Die neue Testseite
 > [duo-campaign-v2.html](../duo-campaign-v2.html) verwendet eine getrennte
 > Supabase-Funktion `arcane-duo-v2` und die private Tabelle

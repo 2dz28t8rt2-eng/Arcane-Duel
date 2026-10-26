@@ -1,4 +1,4 @@
-/* 2v2 v16.0 beta. Isolated from the legacy arcane-duo endpoint/room table.
+/* 2v2 v16.1 beta. Isolated from the legacy arcane-duo endpoint/room table.
  * Client sends choices only. Deck legality, fusion levels, roles, damage,
  * draw order, turn ownership and private state live on the server.
  */
@@ -119,7 +119,8 @@ Deno.serve(async request=>{
   assert(kind==="action","Unbekannte Anfrage.");
   assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===room.revision,
    "Spielstand geändert. Bitte synchronisieren.");
-  assert(body.action&&["summon","attack","switch","fusion","end","nextChapter"].includes(body.action.type),
+  assert(body.action&&["summon","attack","switch","fusion","end","nextChapter",
+   "soulCondense","soulDischarge","soulRaid","soulFocus"].includes(body.action.type),
    "Aktion nicht erlaubt.");
   let next=game.apply(room.state,seat,body.action,{catalog});
   next=game.aiTurn(next,{catalog});

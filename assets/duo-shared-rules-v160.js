@@ -1,4 +1,4 @@
-/* Arcane Duel 2v2 · server-authoritative ruleset v16.0 beta.
+/* Arcane Duel 2v2 · server-authoritative ruleset v16.1 beta.
  * The same pure reducer runs in Node tests and the Supabase Edge Function.
  * All card IDs/stats are from the generated singleplayer CARDS registry.
  * No browser-provided damage or derived stats are ever trusted.
@@ -57,7 +57,7 @@
    assert(validDeck(d,catalog),'Hauptdeck muss aus 40 gültigen Einzelspieler-Karten bestehen (maximal 3 Kopien).');
   for(const f of [hostFusions,enemyFusionsA,enemyFusionsB])
    assert(validDeck(f,catalog,true),'Fusionsdeck muss aus 2–15 freigeschalteten Fusionen bestehen (maximal 3 Kopien).');
-  return {schema:2,mode:'duo-campaign',ruleset:'duo-v160',roomId,chapter,entry,
+  return {schema:2,mode:'duo-campaign',ruleset:'duo-v161',roomId,chapter,entry,
    status:'waiting',revision:0,activeSeat:0,turn:0,round:1,uid:1,
    teams:[{lp:16000,maxLp:16000},{lp:16000,maxLp:16000}],
    players:[player(0,safeName(hostName),chapterDeck(hostDeck,catalog,chapter,entry),hostFusions),
@@ -71,11 +71,133 @@
   return {uid:g.uid++,id,level:c.level,atk:Math.max(0,Math.round(c.atk*quality)),
    def:Math.max(0,Math.round(c.def*quality)),role:roleOverride||c.role||'combatant',
    fusion,mode:'atk',used:false,switched:false,placedRound:g.round,
-   resonance:0,soul:0,condensed:0,soulCooldown:0,decayGrace:1};
+   resonance:0,soul:0,condensed:0,soulCooldown:0,raidCooldown:0,
+   condenseLeft:0,condenseSlice:0,drainPreference:0,lastSoulAction:-1,
+   lastDrainSwitch:-1,decaySkipOwnTurn:-1,maxDef:Math.max(0,Math.round(c.def*quality)),
+   decayGrace:1};
  }
  const hasCards=(p)=>p.field.some(Boolean);
+ const defensive=c=>c&&['guardian','soul'].includes(c.role);
+ const roleName={predator:'Predator',guardian:'Wächter',soul:'Seelenzehrer',
+  resonator:'Resonator',combatant:'Allrounder'};
+ function combat(c){
+  // Migrate cards in already-running v16.0 rooms without invalidating a session.
+  if(c.maxDef===undefined)c.maxDef=c.def;
+  if(c.raidCooldown===undefined)c.raidCooldown=0;
+  if(c.condenseLeft===undefined)c.condenseLeft=0;
+  if(c.condenseSlice===undefined)c.condenseSlice=0;
+  if(c.drainPreference===undefined)c.drainPreference=0;
+  if(c.lastSoulAction===undefined)c.lastSoulAction=-1;
+  if(c.lastDrainSwitch===undefined)c.lastDrainSwitch=-1;
+  if(c.decaySkipOwnTurn===undefined)c.decaySkipOwnTurn=-1;
+  if(c.soulCooldown===undefined)c.soulCooldown=0;
+  if(c.soul===undefined)c.soul=0;
+  if(c.condensed===undefined)c.condensed=0;
+  return c;
+ }
  function win(g,team,reason){
   g.status='finished';g.winner=team;g.log.push(reason);
+ }
+ const score=(g,team,damage,label)=>{
+  const dealt=Math.min(g.teams[1-team].lp,Math.max(0,Math.floor(damage)));
+  if(dealt){g.teams[1-team].lp-=dealt;g.log.push(label+': '+dealt+' LP Schaden.');}
+  if(g.teams[1-team].lp===0&&g.status==='active')win(g,team,'Seelenenergie oder Angriff beendet das Duell.');
+  return dealt;
+ };
+ function removeIfEmpty(g,p,slot,catalog){
+  const c=p.field[slot];
+  if(c&&c.mode==='def'&&c.def<=0){
+   p.graveyard.push(c);p.field[slot]=null;
+   g.log.push(definition(catalog,c.id).name+' hat keine DEF mehr und wird zerstört.');
+  }
+ }
+ function endOwnerTurn(g,p,catalog){
+  for(let slot=0;slot<p.field.length;slot++){
+   const c=p.field[slot];if(!c)continue;combat(c);
+   if(c.role==='soul'){
+    if(c.decaySkipOwnTurn!==p.ownTurns){
+     if(c.soul>0){
+      const lost=Math.min(c.soul,Math.max(10,Math.ceil(c.soul*.32)));
+      c.soul-=lost;
+      score(g,p.team,Math.floor(lost*.35),definition(catalog,c.id).name+' · Seelenzerfall');
+     }
+     if(c.condenseLeft>0){
+      c.condensed=Math.max(0,c.condensed-Math.min(c.condensed,c.condenseSlice));
+      c.condenseLeft--;
+      if(c.condenseLeft===0)c.condensed=0;
+     }
+    }
+    if(c.soulCooldown>0)c.soulCooldown--;
+    if(c.raidCooldown>0)c.raidCooldown--;
+   }
+   // Active Seelenraub pauses both stored-soul and creature-value decay.
+   if(c.decaySkipOwnTurn!==p.ownTurns){
+    if(c.decayGrace>0)c.decayGrace--;
+    else{
+     const lost=c.fusion?50:30;
+     c.atk=Math.max(0,c.atk-lost);c.def=Math.max(0,c.def-lost);
+    }
+   }
+   removeIfEmpty(g,p,slot,catalog);
+  }
+ }
+ function restoreAllies(g,p,catalog){
+  // Allied Guardian healing, including the partner's board, is base DEF only.
+  const allies=g.players.filter(x=>x.team===p.team)
+   .flatMap(x=>x.field.map((c,slot)=>({owner:x,slot,c})))
+   .filter(x=>x.c&&defensive(x.c)&&x.c.mode==='def');
+  for(const guardian of p.field.filter(c=>c?.role==='guardian'&&c.mode==='def')){
+   for(const ally of allies){
+    if(ally.c===guardian)continue;
+    combat(ally.c);
+    const amount=Math.min(150,25+guardian.level*12);
+    const healed=Math.min(amount,Math.max(0,ally.c.maxDef-ally.c.def));
+    if(healed){ally.c.def+=healed;
+     g.log.push('Wächter stärkt '+definition(catalog,ally.c.id).name+' um '+healed+' DEF.');}
+   }
+  }
+ }
+ function soulCapacity(c){return 250+c.level*125;}
+ function storeSoul(c,amount){
+  combat(c);
+  const gain=Math.min(Math.max(0,soulCapacity(c)-c.soul),
+   Math.floor(amount*(c.fusion?1.5:1)));
+  c.soul+=gain;return gain;
+ }
+ function absorbSouls(g,p,catalog){
+  for(const source of p.field.filter(c=>c?.role==='soul'&&c.mode==='def')){
+   combat(source);
+   let earned=0,drainedDef=0,drainedAtk=0;
+   for(const opponent of g.players.filter(x=>x.team!==p.team)){
+    for(const target of opponent.field.filter(Boolean)){
+     const amount={atk:0,def:0};
+     for(const stat of ['atk','def']){
+      const n=Math.min(target[stat],10);target[stat]-=n;amount[stat]+=n;
+     }
+     for(let i=0;i<source.level;i++){
+      const chance=source.drainPreference===1?75:source.drainPreference===2?25:50;
+      // Stable server-side sequence; client never decides how much is drained.
+      const sample=(((g.turn+1)*2654435761+source.uid*2246822519+
+       target.uid*3266489917+i*668265263)>>>0)%100;
+      let stat=sample<chance?'atk':'def';
+      if(target[stat]===0&&target[stat==='atk'?'def':'atk']>0)
+       stat=stat==='atk'?'def':'atk';
+      const n=Math.min(5,target[stat]);target[stat]-=n;amount[stat]+=n;
+     }
+     earned+=amount.atk+amount.def;drainedAtk+=amount.atk;drainedDef+=amount.def;
+    }
+   }
+   if(!earned)continue;
+   const gain=storeSoul(source,earned);
+   score(g,p.team,Math.min(60+source.level*60,Math.floor(earned*1.75)),
+    definition(catalog,source.id).name+' · Seelenbrand');
+   if(source.level>=5&&source.drainPreference===2)
+    g.teams[p.team].lp=Math.min(g.teams[p.team].maxLp,
+     g.teams[p.team].lp+Math.floor(drainedDef*.3));
+   g.log.push(definition(catalog,source.id).name+' entzieht beiden Gegnerfeldern '+
+    drainedAtk+' ATK / '+drainedDef+' DEF und speichert '+gain+' Seele.');
+   if(g.status!=='active')return;
+  }
  }
  function moveOn(g,catalog){
   g.activeSeat=(g.activeSeat+1)%4;g.turn++;
@@ -86,16 +208,14 @@
   if(p.deck.length===0){win(g,1-p.team,p.name+' hat zum Zugbeginn keine Deckkarten mehr.');return;}
   for(const c of p.field){
    if(!c)continue;
+   combat(c);
    c.used=false;c.switched=false;
-   if(c.decayGrace>0)c.decayGrace--;
-   else{
-    const lost=c.fusion?50:30;
-    c.atk=Math.max(0,c.atk-lost);c.def=Math.max(0,c.def-lost);
-   }
    if(c.role==='combatant')c.resonance=Math.min(3,c.resonance+1);
    if(c.fusion&&c.role==='resonator')c.resonance=Math.min(2,c.resonance+1);
-   if(c.soulCooldown>0)c.soulCooldown--;
   }
+  restoreAllies(g,p,catalog);
+  absorbSouls(g,p,catalog);
+  if(g.status!=='active')return;
   draw(p);
   g.log.push(p.name+' ist am Zug und zieht bis auf fünf Handkarten.');
  }
@@ -138,6 +258,73 @@
   const rule=fusionLevel(cards);
   return {rule,cards,templates:[...new Set(p.remainingFusion)].filter(id=>
    definition(catalog,id)?.level<=rule.level&&definition(catalog,id)?.level>=2)};
+ }
+ function fusionRole(cards){
+  const specialist=cards.map(c=>c.role).filter(r=>['predator','guardian','soul'].includes(r));
+  if(!specialist.length)return 'resonator';
+  if(specialist.every(r=>r==='soul'))return 'soul';
+  const defense=specialist.filter(r=>r==='guardian'||r==='soul').length;
+  const predators=specialist.filter(r=>r==='predator').length;
+  const majority=Math.floor(specialist.length/2)+1;
+  if(defense>=majority&&defense>predators)return 'guardian';
+  if(predators>=majority&&predators>defense)return 'predator';
+  return 'resonator';
+ }
+ const roleWeights=role=>role==='predator'?{atk:1.2,def:.75}:
+  defensive({role})?{atk:.75,def:1.35}:{atk:1,def:1};
+ function soulActor(g,p,slot,catalog){
+  assert(Number.isInteger(slot)&&slot>=0&&slot<7,'Ungültiger Feldplatz.');
+  const c=p.field[slot];
+  assert(c&&c.role==='soul'&&c.mode==='def','Nur Seelenzehrer in DEF können diese Fähigkeit nutzen.');
+  combat(c);return c;
+ }
+ function soulAction(g,p,action,catalog){
+  const c=soulActor(g,p,action.slot,catalog),label=definition(catalog,c.id).name;
+  if(action.type==='soulFocus'){
+   assert(c.level>=5,'Entzugsfokus wird erst ab Rang 3 verfügbar.');
+   assert(['atk','def'].includes(action.stat),'Fokus muss ATK oder DEF sein.');
+   assert(c.lastDrainSwitch!==p.ownTurns,'Fokus in diesem Zug schon gewechselt.');
+   c.drainPreference=action.stat==='atk'?1:2;c.lastDrainSwitch=p.ownTurns;
+   g.log.push(label+' konzentriert den Seelenentzug auf '+action.stat.toUpperCase()+'.');
+   return;
+  }
+  assert(c.lastSoulAction!==p.ownTurns,'Bereits eine aktive Seelenfähigkeit in diesem Zug benutzt.');
+  if(action.type==='soulCondense'){
+   assert(c.soul>=40&&c.soulCooldown===0,'Nicht genug Seele oder Verdichten auf Abklingzeit.');
+   const amount=Math.floor(c.soul*.75);
+   c.soul-=amount;c.condensed=Math.min(9000,c.condensed+amount);
+   c.condenseLeft=3;c.condenseSlice=Math.ceil(c.condensed/3);c.soulCooldown=3;
+   g.log.push(label+' verdichtet '+amount+' Seele zu vorübergehender DEF.');
+  }else if(action.type==='soulDischarge'){
+   assert(c.soul>=40,'Für die Entladung werden mindestens 40 Seelenpunkte benötigt.');
+   const amount=c.soul;c.soul=0;
+   score(g,p.team,Math.floor(amount*1.3),label+' · Seelenentladung');
+  }else if(action.type==='soulRaid'){
+   assert(c.raidCooldown===0,'Seelenraub ist noch auf Abklingzeit.');
+   assert(Number.isInteger(action.targetSeat)&&Number.isInteger(action.targetSlot)&&
+    action.targetSlot>=0&&action.targetSlot<7,'Ungültiges Seelenraub-Ziel.');
+   const enemy=g.players[action.targetSeat];
+   assert(enemy&&enemy.team!==p.team,'Seelenraub ist nur gegen Gegner erlaubt.');
+   const target=enemy.field[action.targetSlot];assert(target,'Seelenraub-Ziel ist leer.');
+   const budget=Math.floor((20+5*c.level)*2.5);
+   const ratio=c.drainPreference===1?.7:c.drainPreference===2?.3:.5;
+   const first=ratio>=.5?'atk':'def',second=first==='atk'?'def':'atk';
+   let remaining=budget,atk=0,def=0;
+   const take=(stat,n)=>{
+    const actual=Math.min(Math.max(0,target[stat]),n);
+    target[stat]-=actual;remaining-=actual;
+    if(stat==='atk')atk+=actual;else def+=actual;
+   };
+   take(first,Math.ceil(budget*Math.max(ratio,1-ratio)));
+   take(second,remaining);if(remaining>0)take(first,remaining);
+   assert(atk+def>0,'Dieses Ziel besitzt keine entziehbaren Werte mehr.');
+   const gained=storeSoul(c,atk+def);
+   c.raidCooldown=3;c.decaySkipOwnTurn=p.ownTurns;
+   g.log.push(label+' raubt '+definition(catalog,target.id).name+' '+atk+
+    ' ATK / '+def+' DEF und speichert '+gained+' Seele.');
+   removeIfEmpty(g,enemy,action.targetSlot,catalog);
+  }else fail('Unbekannte Seelenfähigkeit.');
+  c.lastSoulAction=p.ownTurns;
  }
  function apply(old,seat,action,{catalog}){
   assert(old?.schema===2&&old.mode==='duo-campaign','Unbekanntes 2v2-Spielstandsformat.');
@@ -195,53 +382,80 @@
    for(const index of removingField)p.field[index]=null;
    p.graveyard.push(...types.map(c=>({id:c.id,from:'fusion'})));
    p.remainingFusion.splice(p.remainingFusion.indexOf(action.templateId),1);
-   const inherited=types.find(c=>c.from==='field')?.role||types[0].role;
+   const inherited=fusionRole(types),weights=roleWeights(inherited);
    const normalBonus=types.reduce((sum,c)=>sum+(c.role==='combatant'&&!c.fusion?4+4*(c.resonance||0):0),0);
    const resonatorBonus=types.reduce((sum,c)=>sum+(c.role==='resonator'&&c.fusion?10+10*(c.resonance||0):0),0);
    const quality=1+Math.min(.24,normalBonus/100)+Math.min(.6,resonatorBonus/100);
    const result=instance(g,action.templateId,catalog,{fusion:true,roleOverride:inherited,quality});
+   result.atk=Math.round(result.atk*weights.atk);
+   result.def=Math.round(result.def*weights.def);
+   result.maxDef=result.def;
+   result.quality=Math.round(quality*1000)/1000;
+   result.roleOrigin='material';
+   const charged=types.filter(c=>c.from==='field').reduce((v,c)=>v+Math.max(0,c.soul||0),0);
+   if(charged){
+    const defGain=Math.min(250,Math.floor(charged*.3/10)*10);
+    result.def+=defGain;result.maxDef=result.def;
+    if(inherited==='soul')result.soul=Math.min(soulCapacity(result),Math.floor(charged*.3));
+   }
    if(rule.resonatorAscent)result.resonatorAscentUsed=true;
    p.field[action.slot]=result;p.summoned=true;
    g.log.push(p.name+' fusioniert '+cards.length+' eigene Monster zu '+
-    definition(catalog,action.templateId).name+' (Lv '+result.level+').');
+    definition(catalog,action.templateId).name+' (Lv '+result.level+', Rolle '+
+    (roleName[inherited]||inherited)+', Qualität +'+Math.round((quality-1)*100)+' %).');
   }else if(action.type==='attack'){
    const src=p.field[action.slot];
    assert(src&&src.mode==='atk'&&!src.used&&src.placedRound<g.round,'Angreifer ist nicht bereit.');
    const foes=g.players.filter(x=>x.team!==p.team);
    const enemy=foes.find(x=>x.seat===action.targetSeat);
-   const predators=g.players.filter(x=>x.team===p.team)
-    .flatMap(x=>x.field).filter(x=>x?.role==='predator').length;
-   const raw=Math.max(0,Math.floor(src.atk*(src.role==='predator'?1+.02*predators:1)));
+   // Swarm includes only the active player's own field, capped at five.
+   const predators=p.field.filter(x=>x?.role==='predator').length;
+   const raw=Math.max(0,Math.floor(src.atk*(src.role==='predator'?
+    1+.02*Math.min(5,predators):1)));
    if(action.targetSeat===null){
     assert(foes.every(x=>!hasCards(x)),'Direkter Angriff ist durch Gegnerkarten blockiert.');
-    g.teams[1-p.team].lp=Math.max(0,g.teams[1-p.team].lp-raw);
-    g.log.push(p.name+' verursacht '+raw+' direkten Schaden.');
+    score(g,p.team,raw,p.name+' · direkter Angriff');
    }else{
-    assert(enemy&&Number.isInteger(action.targetSlot),'Gegnerischer Feldplatz fehlt.');
+    assert(enemy&&Number.isInteger(action.targetSlot)&&
+     action.targetSlot>=0&&action.targetSlot<7,'Gegnerischer Feldplatz fehlt.');
     const target=enemy.field[action.targetSlot];assert(target,'Ziel ist leer.');
-    const power=target.mode==='def'?target.def:target.atk;
-    const armor=target.mode==='def'&&['guardian','soul'].includes(target.role)?0.35:0;
-    const piercing=src.role==='predator'&&target.mode==='def'&&armor>0?.10:0;
-    const eff=raw>power?Math.floor((raw-power)*(1-armor+piercing)):raw-power;
-    if(eff>0||eff===0&&target.mode==='atk'){
-     enemy.graveyard.push(target);enemy.field[action.targetSlot]=null;
-    }
     if(target.mode==='atk'){
-     if(eff<=0){p.graveyard.push(src);p.field[action.slot]=null;}
-     g.teams[eff<0?p.team:enemy.team].lp=Math.max(0,g.teams[eff<0?p.team:enemy.team].lp-Math.abs(eff));
-    }else if(eff<0)g.teams[p.team].lp=Math.max(0,g.teams[p.team].lp+eff);
-    if(target.role==='guardian'){
-     const counter=Math.floor(target.atk*.5);
-     g.teams[p.team].lp=Math.max(0,g.teams[p.team].lp-counter);
-     g.log.push('Wächter-Gegenschlag: '+counter+' LP Schaden.');
+     const diff=raw-target.atk;
+     if(diff>=0){enemy.graveyard.push(target);enemy.field[action.targetSlot]=null;}
+     if(diff<=0){p.graveyard.push(src);p.field[action.slot]=null;}
+     if(diff!==0)score(g,diff>0?p.team:enemy.team,Math.abs(diff),
+      p.name+' · ATK-Duell gegen '+enemy.name);
+     g.log.push(p.name+' greift '+enemy.name+' in ATK an (Differenz '+diff+').');
+    }else{
+     combat(target);
+     const mitigation=defensive(target)?(src.role==='predator'?.25:.35):0;
+     let remaining=Math.max(0,Math.floor(raw*(1-mitigation)));
+     const original=remaining;
+     const condensedLost=Math.min(target.condensed,remaining);
+     target.condensed-=condensedLost;remaining-=condensedLost;
+     const soulLost=Math.min(target.soul,remaining);
+     target.soul-=soulLost;remaining-=soulLost;
+     const defLost=Math.min(target.def,remaining);
+     target.def-=defLost;
+     if(soulLost)score(g,enemy.team,Math.floor(soulLost*.5),
+      definition(catalog,target.id).name+' · erzwungener Seelenverlust');
+     removeIfEmpty(g,enemy,action.targetSlot,catalog);
+     if(defensive(target))score(g,enemy.team,Math.floor(target.atk*.5),
+      definition(catalog,target.id).name+' · Gegenschlag');
+     g.log.push(p.name+' greift '+enemy.name+' in DEF an: '+original+
+      ' Trefferstärke, −'+condensedLost+' Verdichtung / −'+soulLost+
+      ' Seele / −'+defLost+' Grund-DEF ('+Math.round(mitigation*100)+' % Rüstung).');
     }
-    g.log.push(p.name+' greift '+enemy.name+' an ('+eff+').');
    }
-   if(p.field[action.slot])p.field[action.slot].used=true;
-   if(g.teams[0].lp===0||g.teams[1].lp===0)
-    win(g,g.teams[0].lp>0?0:1,'Ein Team hat keine LP mehr.');
+   if(p.field[action.slot]){
+    p.field[action.slot].used=true;
+    p.field[action.slot].atk=Math.max(0,p.field[action.slot].atk-30);
+   }
+  }else if(['soulCondense','soulDischarge','soulRaid','soulFocus'].includes(action.type)){
+   soulAction(g,p,action,catalog);
   }else if(action.type==='end'){
-   moveOn(g,catalog);
+   endOwnerTurn(g,p,catalog);
+   if(g.status==='active')moveOn(g,catalog);
   }else fail('Unbekannte Aktion.');
   g.revision++;return g;
  }
@@ -279,6 +493,6 @@
   }
   return v;
  }
- return Object.freeze({version:'16.0-beta',CHAPTERS,seats,allowed,validDeck,packIds,
-  chapterDeck,create,apply,aiTurn,view,fusionLevel,fusionOptions});
+ return Object.freeze({version:'16.1-beta',CHAPTERS,seats,allowed,validDeck,packIds,
+  chapterDeck,create,apply,aiTurn,view,fusionLevel,fusionOptions,fusionRole});
 });
