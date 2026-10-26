@@ -1,3 +1,15 @@
+# 2v2 v16.8 – Wiederaufnahme und Konfliktsicherheit (26.10.2026)
+
+- **Sitzplatzübernahme auf zweitem Gerät:** Gastgeber und Partner können nach bewusstem Klick jeweils einen privaten, 64-Hex-Bearer-Link erzeugen. Der Link autorisiert **nur den eigenen Sitzplatz**; der Einladungsschlüssel ist separat. Die Berechtigung wird durch die bestehende Edge-Funktion mit einem SHA-256-Hash serverseitig überprüft. Nach erfolgreicher Wiederaufnahme wird das geheime URL-Fragment durch eine harmlose Raumreferenz ersetzt.
+- **Keine automatische Langzeitspeicherung des Tokens:** Standardmäßig weiterhin ausschließlich sessionStorage pro Browser-Tab. Keine Speicherung in localStorage, kein neuer Login und keine permanente Berechtigung. Die Links verfallen spätestens mit dem 48-Stunden-Raum.
+- **Verbindungsprobleme:** Online-, Sichtbarkeits- und Fokuswechsel lösen eine Aktualisierung aus. Polling bei Fehlern verwendet begrenztes Backoff von 2,5 bis 30 Sekunden. Unveränderte Revisionen zerstören keine Formularauswahl.
+- **Konkurrierende Aktionen:** Veraltete Revisionsnummern werden schon vom Server abgelehnt. Der Browser lädt in diesem Fall automatisch den aktuellen Stand nach und fordert zu einer neuen Entscheidung auf; er wiederholt eine unbekannt ausgeführte Aktion **nicht** unkontrolliert. Rückläufige, verspätete Antworten werden ignoriert.
+- **Neue Tests:** Node-Regressionen für Links, ungültige Tokens und Backoff; Chrome-Browserprüfung in 1200/410 px; manuell ausführbares `node scripts/smoke-duo-recovery-v168.cjs` für zwei unabhängige Online-Clients (echte Räume, Zugriffskontrolle, Sichtbarkeit privater Hände, Konkurrenz und Wiederaufnahme).
+- **Wichtig:** Der neue Live-Test ist separat dokumentiert und nicht automatisch bestätigt. Eine reale Abnahme auf zwei physischen Geräten ist weiterhin erforderlich.
+- **Nicht geändert:** Arcane-Duo-v2-Edge-Funktion, Datenbankschema, KI-Forschung, Singleplayer-Kampfregeln, der stabile `main`-Branch.
+
+---
+
 # 2v2 v16.7 – Darstellung und Synchronisation (26.10.2026)
 
 - **Optisches Update:** Die Online-Beta liest bestätigte öffentliche Ereignisse aus dem Server-Spielstand. Angriffe, Fusionen, Beschwörungen, Schicksalszüge, Zerstörungen und Arena-Zerfall erhalten begrenzte, nicht spielrelevante Effekte. Bei reduzierter Bewegung bleiben verständliche Texthinweise.
