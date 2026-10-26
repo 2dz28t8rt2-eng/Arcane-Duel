@@ -1,4 +1,4 @@
-/* Arcane Duel 15.8 — read-only choices for the online 2v2 interface.
+/* Arcane Duel 2v2 v16.5 — read-only choices for the online 2v2 interface.
  * The server remains authoritative for every game action.
  */
 (function(root,factory){
@@ -14,18 +14,28 @@
   const freeSlots=p.field.flatMap((card,slot)=>card?[]:[slot]);
   const hand=!p.summoned&&freeSlots.length?p.hand.map((id,index)=>({id,index})):[];
   const attackers=p.field.flatMap((card,slot)=>card&&card.mode==='atk'&&!card.used&&
-   card.placedRound<state.round?[{slot,card}]:[]);
+   !(card.lv1LockedUntil>p.ownTurns)&&card.placedRound<state.round?[{slot,card}]:[]);
+  if(p.lv1?.perk)attackers.push(...(p.lv1.ghostSlots||[]).flatMap((card,slot)=>
+   card&&card.mode==='atk'&&!card.used&&
+   !(card.lv1LockedUntil>p.ownTurns)&&card.placedRound<state.round?
+    [{slot,card,area:'ghost'}]:[]));
   const opponents=state.players.filter(player=>player.team!==p.team);
   const targets=opponents.flatMap(player=>player.field.flatMap((card,slot)=>card?
    [{seat:player.seat,slot,card,name:player.name}]:[]));
+  targets.push(...opponents.flatMap(player=>(player.lv1?.ghostSlots||[])
+   .flatMap((card,slot)=>card?[{seat:player.seat,slot,card,
+    name:player.name,area:'ghost'}]:[])));
   const waiting=p.field.flatMap((card,slot)=>card&&card.placedRound>=state.round&&!card.used?[slot]:[]);
   return {canAct:true,freeSlots,hand,attackers,targets,waiting};
  }
  function attackCommand(from,target){
   if(!Number.isInteger(from?.slot))throw Error('Bitte einen Angreifer wählen.');
-  if(target===null)return {type:'attack',slot:from.slot,targetSeat:null,targetSlot:null};
+  if(target===null)return {type:'attack',slot:from.slot,targetSeat:null,targetSlot:null,
+   ...(from.area==='ghost'?{area:'ghost'}:{})};
   if(!Number.isInteger(target?.seat)||!Number.isInteger(target?.slot))throw Error('Ungültiges Ziel.');
-  return {type:'attack',slot:from.slot,targetSeat:target.seat,targetSlot:target.slot};
+  return {type:'attack',slot:from.slot,targetSeat:target.seat,targetSlot:target.slot,
+   ...(from.area==='ghost'?{area:'ghost'}:{}),
+   ...(target.area==='ghost'?{targetArea:'ghost'}:{})};
  }
  function phase(state,seat){
   if(!state)return 'not-created';

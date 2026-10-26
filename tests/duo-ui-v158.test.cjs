@@ -68,3 +68,17 @@ test('used attackers are excluded, and direct target command contains explicit n
  assert.throws(()=>ui.attackCommand(undefined,null),/Angreifer/);
  assert.throws(()=>ui.attackCommand({slot:2},undefined),/Ziel/);
 });
+test('Lv1 ghost zones contribute legal attack sources and blocked direct-attack targets',()=>{
+ const game=joined();game.round=3;
+ game.players[0].lv1={perk:true,ghostSlots:[
+  {id:10,atk:300,mode:'atk',used:false,placedRound:1}]};
+ game.players[1].lv1={perk:false,ghostSlots:[
+  {id:20,atk:280,def:500,mode:'def',used:false,placedRound:1}]};
+ const choices=ui.legalChoices(game,0);
+ assert.deepEqual(choices.attackers.map(x=>[x.slot,x.area]),[[0,'ghost']]);
+ assert.deepEqual(choices.targets.map(x=>[x.seat,x.slot,x.area]),[[1,0,'ghost']]);
+ assert.deepEqual(ui.attackCommand(choices.attackers[0],choices.targets[0]),
+  {type:'attack',slot:0,targetSeat:1,targetSlot:0,
+   area:'ghost',targetArea:'ghost'});
+ assert.equal(ui.legalChoices(game,2).canAct,false);
+});

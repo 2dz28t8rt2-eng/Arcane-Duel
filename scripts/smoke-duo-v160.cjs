@@ -1,7 +1,7 @@
 'use strict';
-/* Manual online smoke. Creates three disposable rooms with real 40-card decks,
+/* Manual online smoke. Creates four disposable rooms with real 40-card decks,
  * verifies invite, 4-seat turn order, server validation, private hands and
- * the v16.4 DEF/Soul/Essence abilities, combat perk ranks, card ascensions
+ * the v16.5 DEF/Soul/Essence/Lv1 abilities, combat perk ranks, card ascensions
  * and server-only fusion rolls without altering any existing room.
  * Requires HTTPS access and a deployed isolated arcane-duo-v2 function.
  */
@@ -26,7 +26,7 @@ const host=post({type:'create',name:'Parity QA',entry:'new',deck:hostDeck,fusion
  enhancements:{387:5}});
 assert.equal(host.state.schema,2);
 assert.equal(host.state.status,'waiting');
-assert.equal(host.state.ruleset,'duo-v164');
+assert.equal(host.state.ruleset,'duo-v165');
 assert.equal(host.state.teams[0].shield,75);
 assert.ok(host.invite);
 const guest=post({type:'join',roomId:host.roomId,invite:host.invite,
@@ -120,4 +120,32 @@ assert.equal(essenceDouble.state.players[0].field[0].essenceChoice,2);
 const invalidEssence=post({type:'create',name:'Essence Tamper QA',entry:'new',
  deck:essenceDeck,fusions,essence:{chosen:396,school:'predator',tier:3,rank:5}},400);
 assert.match(invalidEssence.error,/Essenzstufe/);
-console.log('Online 2v2 v16.4: private hands, seat order, save, DEF, Soul, validated perks, ascension, shield, server-only fusion rolls and server-side Essence companion actions OK.');
+// Keep three genuine Lv1 cards at positions 3–5: chapter loans replace 0–2.
+const lv1Deck=[...deck.slice(0,3),0,1,4,...deck.slice(6)];
+const lv1Fusions=[...fusions,711,712,713];
+const researcher=post({type:'create',name:'Lv1 Research QA',entry:'new',
+ deck:lv1Deck,fusions:lv1Fusions,lv1:{perk:true,rank:3}});
+assert.equal(researcher.state.players[0].lv1.rank,3);
+const researchGuest=post({type:'join',roomId:researcher.roomId,invite:researcher.invite,
+ name:'Lv1 Partner',deck,fusions});
+const loanSummon=post({type:'action',roomId:researcher.roomId,token:researcher.token,
+ expectedRevision:researchGuest.state.revision,
+ action:{type:'summon',handIndex:0,slot:0}});
+const loanEnd=post({type:'action',roomId:researcher.roomId,token:researcher.token,
+ expectedRevision:loanSummon.state.revision,action:{type:'end'}});
+const partnerEnd=post({type:'action',roomId:researcher.roomId,token:researchGuest.token,
+ expectedRevision:loanEnd.state.revision,action:{type:'end'}});
+assert.equal(partnerEnd.state.activeSeat,0);
+const hand=post({type:'state',roomId:researcher.roomId,token:researcher.token}).state.players[0].hand;
+const levelOne=hand.map((id,index)=>({id,index})).filter(x=>snapshot.cards[x.id]?.level===1);
+assert.ok(levelOne.length>=3,'Three real Lv1 cards must be available for the special fusion');
+const lv1Fused=post({type:'action',roomId:researcher.roomId,token:researcher.token,
+ expectedRevision:partnerEnd.state.revision,
+ action:{type:'fusion',materials:levelOne.slice(0,3).map(x=>({from:'hand',index:x.index})),
+  slot:1,templateId:711}});
+const hive=lv1Fused.state.players[0].field[1];
+assert.equal(hive.id,711);assert.equal(hive.level,1);
+assert.ok(hive.qualityRolls>=3);
+assert.equal(hive.lv1Full.def,hive.def);
+assert.equal(lv1Fused.state.rngSeed,undefined);
+console.log('Online 2v2 v16.5: private hands, seat order, save, DEF, Soul, validated perks, ascension, shield, authoritative fusion rolls, Essence companions, and Lv1 special fusion OK.');

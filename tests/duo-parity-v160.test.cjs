@@ -319,7 +319,7 @@ test('old v16.0 room snapshots continue to run without new Soul fields',()=>{
  assert.equal(after.teams[1].lp,15870);
 });
 test('combat build is server-validated, bounded to the submitted decks and persists on both seats',()=>{
- assert.equal(rules.version,'16.4-beta');
+ assert.equal(rules.version,'16.5-beta');
  const opts={roomId:'build-123456',hostName:'Host',hostDeck:deck,hostFusions:fusions,
   enemyDeckA:deck,enemyDeckB:deck,enemyFusionsA:fusions,enemyFusionsB:fusions,
   chapter:1,entry:'new',catalog,hostUpgrades:{power:10,openingAegis:3},
@@ -579,4 +579,177 @@ test('Defense specialization reduces only defensive creature decay and old rooms
  let old=setup();for(const p of old.players)delete p.essence;
  old=move(old,0,{type:'summon',handIndex:0,slot:0});
  assert.ok(old.players[0].field[0]);
+});
+const lv1Fusions=[...fusions,711,712,713];
+const withResearch=(rank=3)=>{
+ const g=rules.create({roomId:'lv1-room-123456',hostName:'Forscher',hostDeck:deck,
+  hostFusions:lv1Fusions,enemyDeckA:deck,enemyDeckB:deck,
+  enemyFusionsA:fusions,enemyFusionsB:fusions,catalog,
+  hostLv1:{perk:true,rank}});
+ return move(g,2,{type:'join',name:'Partner',deck,fusions});
+};
+test('Lv1 research rank is validated and ordinary Lv1 creatures receive only the researched bonus',()=>{
+ assert.throws(()=>rules.normalizedBuild({}, {},deck,fusions,catalog,{},
+  {perk:false,rank:1}),/Verbotene Forschung/);
+ for(const rank of [-1,0,6,1.5])assert.throws(()=>rules.normalizedBuild({}, {},
+  deck,fusions,catalog,{},{perk:true,rank}),/Verbotene Forschung/);
+ const state=withResearch(5);
+ state.players[0].hand=[0,714];
+ const normal=move(state,0,{type:'summon',handIndex:0,slot:0}).players[0].field[0];
+ let baseline=setup();baseline.players[0].hand=[0];
+ const unresearched=move(baseline,0,{type:'summon',handIndex:0,slot:0}).players[0].field[0];
+ assert.equal(normal.atk,unresearched.atk+25);
+ assert.equal(normal.def,unresearched.def+25);
+ assert.equal(state.players[0].lv1.rank,5);
+ const ace=move({...state,players:state.players.map((p,i)=>i===0?{...p,
+  hand:[714]}:p)},0,{type:'summon',handIndex:0,slot:0}).players[0].field[0];
+ assert.equal(ace.atk,111,
+  'Lumira gets no ordinary Lv1 research stat bonus');
+ let legacy=setup();for(const p of legacy.players)delete p.lv1;
+ legacy=move(legacy,0,{type:'summon',handIndex:0,slot:0});
+ assert.ok(legacy.players[0].field[0], 'previous rooms still accept summons');
+});
+test('exclusive Level-1 fusion needs the quest perk and exactly three to five real Lv1 materials',()=>{
+ const material3=[0,1,2].map(index=>({from:'hand',index}));
+ const noUnlock=setup();noUnlock.players[0].hand=[0,1,4,4,4];
+ noUnlock.players[0].remainingFusion=[711,712,713];
+ assert.equal(rules.fusionOptions(noUnlock,0,material3,catalog).templates.length,0);
+ assert.throws(()=>move(noUnlock,0,{type:'fusion',materials:material3,
+  slot:0,templateId:711}),/nicht verfügbar/);
+ let state=withResearch();state.players[0].hand=[0,1,4,4,4];
+ const materials2=material3.slice(0,2);
+ assert.equal(rules.fusionOptions(state,0,materials2,catalog).templates.includes(711),false);
+ const available=rules.fusionOptions(state,0,material3,catalog).templates;
+ assert.deepEqual([711,712,713].every(id=>available.includes(id)),true);
+ const three=rules.fusionPreview(state,0,material3,catalog,{templateId:711});
+ assert.equal(three.resultingLevel,1);
+ assert.equal(three.analysis.specialLv1,true);
+ assert.ok(three.analysis.rolls>=3);
+ assert.ok(three.analysis.quality>rules.fusionOptions(state,0,material3,catalog).analysis.quality);
+ const five=rules.fusionOptions(state,0,[0,1,2,3,4].map(index=>({from:'hand',index})),catalog);
+ assert.ok(five.templates.includes(712));
+ state=move(state,0,{type:'fusion',materials:material3,slot:0,templateId:711});
+ const hive=state.players[0].field[0];
+ assert.equal(hive.level,1);assert.equal(hive.fusion,true);
+ assert.equal(hive.rollTrace.length,three.analysis.rolls);
+ assert.equal(hive.def,hive.rollMath.winner.def+hive.materialBonus.def+100);
+ assert.equal(hive.lv1Full.def,hive.def);
+ assert.ok(!state.players[0].remainingFusion.includes(711));
+ let mixed=withResearch();mixed.players[0].hand=[0,7,4];
+ assert.equal(rules.fusionOptions(mixed,0,material3,catalog).templates.includes(711),false);
+});
+test('Nekroth opens five ghost zones over own turns; station/return consume monster actions',()=>{
+ let state=withResearch();state.players[0].field[0]=live(711,{fusion:true,level:1});
+ for(let n=0;n<5;n++){
+  state.activeSeat=3;state=move(state,3,{type:'end'});
+  assert.equal(state.players[0].lv1.ghostSlots.length,n+1);
+ }
+ state.players[0].field[1]=live(4);
+ state=move(state,0,{type:'lv1Station',slot:1,ghostSlot:0});
+ assert.equal(state.players[0].field[1],null);
+ assert.equal(state.players[0].lv1.ghostSlots[0].id,4);
+ assert.throws(()=>move(state,0,{type:'lv1Return',ghostSlot:0,slot:1}),/nicht möglich/);
+ state.activeSeat=3;state=move(state,3,{type:'end'});
+ state=move(state,0,{type:'lv1Return',ghostSlot:0,slot:1});
+ assert.equal(state.players[0].field[1].id,4);
+ assert.equal(state.players[0].lv1.ghostSlots[0],null);
+ assert.equal(state.players[0].field[1].used,true);
+ assert.equal(state.players[0].lv1.ghostSlots.length,5);
+});
+test('ghost cards block direct attacks, can be attacked or used for fusion material',()=>{
+ let state=withResearch();state.round=2;
+ state.players[0].lv1.ghostSlots=[live(4,{mode:'def',def:500,maxDef:500})];
+ state.players[1].field[0]=live(9,{atk:250});state.activeSeat=1;
+ assert.throws(()=>move(state,1,{type:'attack',slot:0,targetSeat:null,targetSlot:null}),
+  /Direkter Angriff.*blockiert/);
+ state=move(state,1,{type:'attack',slot:0,targetSeat:0,targetSlot:0,targetArea:'ghost'});
+ assert.ok(state.players[0].lv1.ghostSlots[0].def<500);
+ state.activeSeat=0;state.players[0].hand=[0,1];
+ const materials=[{from:'ghost',index:0},{from:'hand',index:0},{from:'hand',index:1}];
+ assert.ok(rules.fusionOptions(state,0,materials,catalog).templates.includes(712));
+ state=move(state,0,{type:'fusion',materials,slot:0,templateId:712});
+ assert.equal(state.players[0].lv1.ghostSlots[0],null);
+ assert.equal(state.players[0].field[0].level,1);
+});
+test('Nekroth sacrifices an occupied ghost zone to resurrect its saved fused values',()=>{
+ let state=withResearch();state.round=2;state.activeSeat=1;
+ state.players[0].field[0]=live(711,{fusion:true,level:1,mode:'def',
+  atk:150,def:20,maxDef:150,lv1Full:{atk:150,def:150}});
+ state.players[0].lv1.ghostSlots=[live(4,{mode:'def'})];
+ state.players[1].field[0]=live(9,{atk:500});
+ state=move(state,1,{type:'attack',slot:0,targetSeat:0,targetSlot:0});
+ assert.equal(state.players[0].field[0].def,150);
+ assert.equal(state.players[0].field[0].atk,150);
+ assert.equal(state.players[0].lv1.ghostSlots[0],null);
+ assert.ok(state.log.some(line=>line.includes('wiedergeboren')));
+});
+test('Aegurion redirects attacks across partner boards and uses DEF for survival even in ATK',()=>{
+ let state=withResearch();state.round=2;state.activeSeat=1;
+ state.players[0].field[0]=live(712,{fusion:true,level:1,mode:'atk',
+  atk:50,def:500,maxDef:500});
+ state.players[2].field[0]=live(4,{mode:'def',def:500,maxDef:500});
+ state.players[1].field[0]=live(9,{atk:300});
+ state=move(state,1,{type:'attack',slot:0,targetSeat:2,targetSlot:0});
+ assert.equal(state.players[2].field[0].def,500);
+ assert.equal(state.players[0].field[0].def,194);
+ assert.ok(state.log.some(x=>x.includes('Aegurion')));
+ state.activeSeat=3;state=move(state,3,{type:'end'});
+ assert.ok(state.players[0].field[0].def>194,'protection regenerates lost DEF');
+});
+test('Nyxar grants two attacks, an echo offer, and half fatigue to level-one swarm',()=>{
+ let state=withResearch();state.round=2;
+ state.players[0].field[0]=live(713,{fusion:true,level:1,atk:300,def:300});
+ state.players[0].field[1]=live(4);
+ state=move(state,0,{type:'attack',slot:0,targetSeat:null,targetSlot:null});
+ assert.equal(state.players[0].field[0].used,false);
+ assert.equal(state.players[0].field[0].lv1Attacks,1);
+ assert.equal(state.players[0].field[0].atk,285);
+ assert.ok(state.players[0].lv1.offers.includes(4));
+ state=move(state,0,{type:'attack',slot:0,targetSeat:null,targetSlot:null});
+ assert.equal(state.players[0].field[0].used,true);
+ assert.equal(state.players[0].field[0].atk,270);
+ state=move(state,0,{type:'lv1UseOffer',index:0,slot:2});
+ assert.equal(state.players[0].field[2].lv1Effectless,true);
+ assert.equal(state.players[0].field[2].id,4);
+ assert.throws(()=>move(state,0,{type:'lv1UseOffer',index:100,slot:3}),
+  /Kein Schwarm-Echo/);
+});
+test('Floating after genuine Level-1 death gives a bounded free echo or a real deck card',()=>{
+ let state=withResearch();state.round=2;
+ state.players[0].field[0]=live(4,{mode:'atk',atk:50});
+ state.players[1].field[0]=live(9,{atk:400});state.activeSeat=1;
+ state=move(state,1,{type:'attack',slot:0,targetSeat:0,targetSlot:0});
+ assert.equal(state.players[0].field[0],null);
+ assert.deepEqual(state.players[0].lv1.choices,[4]);
+ state.activeSeat=0;
+ state=move(state,0,{type:'lv1Floating',index:0,kind:'echo',slot:0});
+ assert.equal(state.players[0].field[0].lv1Echo,true);
+ assert.equal(state.players[0].lv1.choices.length,0);
+ let fromDeck=withResearch();fromDeck.players[0].lv1.choices=[4];
+ const oldCount=fromDeck.players[0].deck.length;
+ fromDeck=move(fromDeck,0,{type:'lv1Floating',index:0,kind:'deck',slot:0});
+ assert.equal(fromDeck.players[0].deck.length,oldCount-1);
+ assert.equal(fromDeck.players[0].field[0].lv1Echo,false);
+});
+test('Lumira survives one lethal DEF attack and heals team on own turn',()=>{
+ let state=withResearch();state.round=2;state.activeSeat=1;
+ state.players[0].field[0]=live(714,{atk:200,def:100,maxDef:200,mode:'def'});
+ state.players[1].field[0]=live(9,{atk:500});
+ state=move(state,1,{type:'attack',slot:0,targetSeat:0,targetSlot:0});
+ assert.equal(state.players[0].field[0].def,1);
+ assert.equal(state.players[0].field[0].lv1AceSaved,true);
+ state.teams[0].lp=15000;state.activeSeat=3;
+ state=move(state,3,{type:'end'});
+ assert.equal(state.teams[0].lp,15060);
+ assert.ok(state.players[0].field[0].def>1);
+});
+test('ghosts and queued Lv1 effects reset between campaign chapters',()=>{
+ let state=withResearch();state.players[0].lv1={perk:true,rank:3,
+  ghostSlots:[live(4)],charges:3,choices:[4],offers:[4],floatUsed:3,swarmUsed:5};
+ state.status='finished';state.winner=0;
+ state=move(state,0,{type:'nextChapter'});
+ assert.equal(state.players[0].lv1.perk,true);
+ assert.deepEqual(state.players[0].lv1.ghostSlots,[]);
+ assert.deepEqual(state.players[0].lv1.choices,[]);
+ assert.equal(state.players[0].lv1.charges,0);
 });

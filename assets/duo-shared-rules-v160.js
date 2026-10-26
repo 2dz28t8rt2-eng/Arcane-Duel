@@ -1,4 +1,4 @@
-/* Arcane Duel 2v2 · server-authoritative ruleset v16.4 beta.
+/* Arcane Duel 2v2 · server-authoritative ruleset v16.5 beta.
  * The same pure reducer runs in Node tests and the Supabase Edge Function.
  * All card IDs/stats are from the generated singleplayer CARDS registry.
  * No browser-provided damage or derived stats are ever trusted.
@@ -40,7 +40,7 @@
  const TRAINING_BONUSES=[35,25,15,10,8,6,4,3,2,2];
  const DECAY_BY_LEVEL=[0,20,25,30,40,55,65,80,105,135,170];
  const perk=(p,key)=>clamp(p?.upgrades?.[key]||0,0,PERK_LIMITS[key]||0);
- function normalizedBuild(upgrades={},enhancements={},deck=[],fusions=[],catalog={},essence={}){
+ function normalizedBuild(upgrades={},enhancements={},deck=[],fusions=[],catalog={},essence={},lv1={}){
   assert(upgrades&&typeof upgrades==='object'&&!Array.isArray(upgrades),
    'Ausbauten haben ein ungültiges Format.');
   assert(enhancements&&typeof enhancements==='object'&&!Array.isArray(enhancements),
@@ -80,8 +80,15 @@
   }else assert(Number.isInteger(chosen)&&essenceIds.length===1&&
    essenceIds[0]===chosen&&definition(catalog,chosen)?.essenceSchool,
    'Gebundenes Essenzmonster muss einmal im eigenen Deck sein.');
+  assert(lv1&&typeof lv1==='object'&&!Array.isArray(lv1),
+   'Level-1-Forschung hat ein ungültiges Format.');
+  const researched=lv1.perk===true,researchRank=lv1.rank??0;
+  assert(Number.isInteger(researchRank)&&researchRank>=(researched?1:0)&&
+   researchRank<=(researched?5:0),
+   'Verbotene Forschung benötigt eine gültige Freischaltung (Rang 1–5).');
   return {upgrades:u,enhancements:e,essence:{chosen,school,tier,rank,
-   type:chosen===null?null:definition(catalog,chosen).essenceSchool}};
+   type:chosen===null?null:definition(catalog,chosen).essenceSchool},
+   lv1:{perk:researched,rank:researchRank}};
  }
  const trainingBonus=p=>TRAINING_BONUSES.slice(0,perk(p,'power')).reduce((a,b)=>a+b,0);
  const ascensionStep=c=>c.id<20?10:c.fusionOnly?20:30;
@@ -131,13 +138,15 @@
    deck:[...deck],fusionDeck:[...fusions],remainingFusion:[...fusions],
    upgrades:build.upgrades,enhancements:build.enhancements,
    essence:build.essence||{chosen:null,school:null,tier:0,rank:0,type:null},
+   lv1:{perk:build.lv1?.perk===true,rank:build.lv1?.rank||0,
+    ghostSlots:[],charges:0,choices:[],offers:[],floatUsed:0,swarmUsed:0},
    fusionsPerformed:0,fusionLoreChainUsed:false,hand:[],
    field:Array(7).fill(null),graveyard:[],summoned:false,ownTurns:0};
  }
  function draw(p,n=5){while(p.hand.length<n&&p.deck.length)p.hand.push(p.deck.shift());}
  function create({roomId,hostName,hostDeck,hostFusions,enemyDeckA,enemyDeckB,
     enemyFusionsA,enemyFusionsB,chapter=1,entry='new',catalog,randomSeed,
-    hostUpgrades={},hostEnhancements={},hostEssence={}}){
+    hostUpgrades={},hostEnhancements={},hostEssence={},hostLv1={}}){
   assert(typeof roomId==='string'&&roomId.length>=6,'Raumkennung fehlt.');
   assert(CHAPTERS.some(c=>c.id===chapter),'Ungültiges Kapitel.');
   assert(['new','chapter'].includes(entry),'Ungültiger Einstieg.');
@@ -147,8 +156,8 @@
   for(const f of [hostFusions,enemyFusionsA,enemyFusionsB])
    assert(validDeck(f,catalog,true),'Fusionsdeck muss aus 2–15 freigeschalteten Fusionen bestehen (maximal 3 Kopien).');
   const hostBuild=normalizedBuild(hostUpgrades,hostEnhancements,hostDeck,hostFusions,
-   catalog,hostEssence);
-  return {schema:2,mode:'duo-campaign',ruleset:'duo-v164',roomId,chapter,entry,
+   catalog,hostEssence,hostLv1);
+  return {schema:2,mode:'duo-campaign',ruleset:'duo-v165',roomId,chapter,entry,
    status:'waiting',revision:0,activeSeat:0,turn:0,round:1,uid:1,
    rngSeed:Number.isSafeInteger(randomSeed)&&randomSeed>=1&&randomSeed<=0xffffffff?
     randomSeed:roomSeed(roomId), // deterministic Node QA; Edge injects secret crypto seed
@@ -170,16 +179,23 @@
   const level=companion?essenceLevel(p.essence.tier):c.level;
   if(companion){atk=Math.min(10000,atk+level*45+p.essence.rank*35);
    def=Math.min(10000,def+level*70+p.essence.rank*55);}
+  if(p?.lv1?.perk&&c.level===1&&!c.fusionOnly&&!c.ace&&!c.essenceMonster){
+   atk=Math.min(10000,atk+p.lv1.rank*5);def=Math.min(10000,def+p.lv1.rank*5);
+  }
+  // Lumira is an exact-stat story ACE, including outside the research build.
+  if(c.lv1Special==='ace'){atk=111;def=111;}
   return {uid:g.uid++,id,level,atk,def,role:roleOverride||c.role||'combatant',
    fusion,mode:'atk',used:false,switched:false,placedRound:g.round,
    essenceChoice:1,essenceAttacks:0,essenceLastToggle:-1,
    guardLeft:0,guardGrantedTurn:-1,
+   lv1Echo:false,lv1Effectless:false,lv1SwarmApplied:0,lv1Attacks:0,
+   lv1Shield:0,lv1AceSaved:false,lv1Mourn:0,lv1MournUntil:0,
    resonance:0,soul:0,condensed:0,soulCooldown:0,raidCooldown:0,
    condenseLeft:0,condenseSlice:0,drainPreference:0,lastSoulAction:-1,
    lastDrainSwitch:-1,decaySkipOwnTurn:-1,maxDef:def,
    decayGrace:1};
  }
- const hasCards=(p)=>p.field.some(Boolean);
+ const hasCards=(p)=>p.field.some(Boolean)||p.lv1?.ghostSlots?.some(Boolean);
  const defensive=c=>c&&['guardian','soul'].includes(c.role);
  const essenceCompanion=(p,c,type)=>!!c&&p?.essence?.chosen===c.id&&
   p.essence?.type===type;
@@ -228,17 +244,83 @@
   if(g.teams[1-team].lp===0&&g.status==='active')win(g,team,'Seelenenergie oder Angriff beendet das Duell.');
   return dealt;
  };
- function removeIfEmpty(g,p,slot,catalog){
-  const c=p.field[slot];
-  if(c&&c.mode==='def'&&c.def<=0){
-   if(protectBastion(g,p,slot,catalog))return;
-   p.graveyard.push(c);p.field[slot]=null;
+ const lv1State=p=>{
+  if(!p.lv1)p.lv1={perk:false,rank:0,ghostSlots:[],charges:0,choices:[],offers:[],
+   floatUsed:0,swarmUsed:0};
+  return p.lv1;
+ };
+ const ghostZone=p=>lv1State(p).ghostSlots;
+ const lv1Key=(c,catalog)=>c&&!c.lv1Effectless?
+  definition(catalog,c.id)?.lv1Special||'':'';
+ const lv1Troops=p=>[...p.field,...ghostZone(p)].filter(Boolean);
+ const genuineLv1=(c,catalog)=>!!c&&c.level===1&&!c.fusion&&!c.lv1Echo&&
+  !definition(catalog,c.id)?.fusionOnly;
+ const activeLv1=(p,c,catalog)=>lv1State(p).perk&&!!c&&c.level===1&&
+  (!c.fusion||!!definition(catalog,c.id)?.lv1Exclusive);
+ const hasLv1Class=(p,key,catalog)=>lv1State(p).perk&&lv1Troops(p).some(c=>lv1Key(c,catalog)===key);
+ function syncLv1Swarm(p,catalog){
+  if(!lv1State(p).perk)return;
+  const troops=lv1Troops(p).filter(c=>activeLv1(p,c,catalog));
+  const amount=Math.min(9,troops.length-1)*10;
+  for(const c of troops){const delta=amount-(c.lv1SwarmApplied||0);
+   if(delta){c.atk=Math.max(0,c.atk+delta);c.def=Math.max(1,c.def+delta);
+    c.maxDef=Math.max(1,(c.maxDef||c.def)+delta);}
+   c.lv1SwarmApplied=amount;
+  }
+ }
+ function lv1Leave(g,p,c,catalog){
+  if(!activeLv1(p,c,catalog))return;
+  for(const other of lv1Troops(p).filter(x=>x!==c&&activeLv1(p,x,catalog))){
+   other.lv1Mourn=(other.lv1Mourn||0)+8;
+   other.lv1MournUntil=p.ownTurns+3;
+   other.atk+=8;other.def+=8;other.maxDef=(other.maxDef||other.def)+8;
+  }
+  const s=lv1State(p);
+  if(genuineLv1(c,catalog)&&s.floatUsed<5){
+   const count=Math.min(hasLv1Class(p,'hive',catalog)?2:1,5-s.floatUsed);
+   for(let n=0;n<count;n++)s.choices.push(c.id);
+   s.choices=s.choices.slice(-5);s.floatUsed+=count;
+   if(hasLv1Class(p,'hive',catalog))s.charges=Math.min(5,s.charges+1);
+  }
+  syncLv1Swarm(p,catalog);
+ }
+ function lv1Arrival(g,p,c,catalog){
+  if(!lv1State(p).perk||!genuineLv1(c,catalog))return;
+  const s=lv1State(p);
+  if(s.swarmUsed<5&&s.offers.length<5){s.offers.push(c.id);s.swarmUsed++;}
+  if(hasLv1Class(p,'hive',catalog))s.charges=Math.min(5,s.charges+1);
+  syncLv1Swarm(p,catalog);
+ }
+ function lv1Rescue(g,p,slot,catalog,area){
+  const zone=area==='ghost'?ghostZone(p):p.field,c=zone[slot],key=lv1Key(c,catalog);
+  if(!lv1State(p).perk||!c)return false;
+  if(key==='ace'&&!c.lv1AceSaved){c.lv1AceSaved=true;c.def=1;
+   g.log.push('✧ Lumira überlebt einmalig mit 1 DEF.');return true;}
+  if(key!=='hive')return false;
+  const slots=ghostZone(p),index=slots.findIndex(x=>x&&x!==c);
+  if(index<0)return false;
+  const sacrifice=slots[index];slots[index]=null;p.graveyard.push(sacrifice);
+  lv1Leave(g,p,sacrifice,catalog);
+  c.atk=c.lv1Full?.atk??definition(catalog,c.id).atk;
+  c.def=c.lv1Full?.def??definition(catalog,c.id).def;
+  c.maxDef=c.def;
+  g.log.push('✧ Nekroth opfert einen Geisterslot und wird vollständig wiedergeboren.');
+  return true;
+ }
+ function removeIfEmpty(g,p,slot,catalog,area='field'){
+  const zone=area==='ghost'?ghostZone(p):p.field,c=zone[slot];
+  if(c&&c.def<=0&&(c.mode==='def'||
+   activeLv1(p,c,catalog)&&(!!lv1Key(c,catalog)||hasLv1Class(p,'protector',catalog)))){
+   if(lv1Rescue(g,p,slot,catalog,area))return;
+   if(area==='field'&&protectBastion(g,p,slot,catalog))return;
+   p.graveyard.push(c);zone[slot]=null;lv1Leave(g,p,c,catalog);
    g.log.push(definition(catalog,c.id).name+' hat keine DEF mehr und wird zerstört.');
   }
  }
  function endOwnerTurn(g,p,catalog){
   for(let slot=0;slot<p.field.length;slot++){
    const c=p.field[slot];if(!c)continue;combat(c);
+   const oldAtk=c.atk,oldDef=c.def;
    if(c.role==='soul'){
     if(c.decaySkipOwnTurn!==p.ownTurns){
      if(c.soul>0){
@@ -268,8 +350,52 @@
      c.atk=Math.max(0,c.atk-lost);c.def=Math.max(0,c.def-lost);
     }
    }
+   if(lv1State(p).perk&&activeLv1(p,c,catalog)){
+    c.atk+=Math.floor(Math.max(0,oldAtk-c.atk)*.3);
+    c.def+=Math.floor(Math.max(0,oldDef-c.def)*.3);
+   }
    removeIfEmpty(g,p,slot,catalog);
   }
+ }
+ function beginLv1Turn(g,p,catalog){
+  const s=lv1State(p);if(!s.perk)return;
+  s.floatUsed=0;s.swarmUsed=0;
+  for(let i=0;i<s.ghostSlots.length;i++){
+   const c=s.ghostSlots[i];if(!c)continue;
+   c.used=false;c.switched=false;c.lv1Attacks=0;
+   c.atk=Math.max(0,c.atk-21);c.def=Math.max(0,c.def-21);
+   removeIfEmpty(g,p,i,catalog,'ghost');
+  }
+  for(const c of lv1Troops(p)){
+   if(c.lv1Mourn&&p.ownTurns>=(c.lv1MournUntil||0)){
+    c.atk=Math.max(0,c.atk-c.lv1Mourn);
+    c.def=Math.max(1,c.def-c.lv1Mourn);
+    c.maxDef=Math.max(1,(c.maxDef||c.def)-c.lv1Mourn);
+    c.lv1Mourn=0;
+   }
+  }
+  const hive=hasLv1Class(p,'hive',catalog);
+  if(hive&&s.ghostSlots.length<5){s.ghostSlots.push(null);
+   g.log.push('✧ Nekroth öffnet Geisterslot '+s.ghostSlots.length+'/5.');}
+  if(hive){const healing=s.ghostSlots.filter(Boolean).length*20;
+   g.teams[p.team].lp=Math.min(g.teams[p.team].maxLp,g.teams[p.team].lp+healing);}
+  if(hasLv1Class(p,'protector',catalog))for(const c of lv1Troops(p)){
+   if(!activeLv1(p,c,catalog))continue;
+   const deficit=Math.max(0,(c.maxDef||c.def)-c.def);
+   if(deficit)c.def+=Math.ceil(deficit*.5);
+   else c.lv1Shield=Math.min(Math.floor(c.def*.5),
+    (c.lv1Shield||0)+Math.floor(c.def*.25));
+  }
+  for(const c of lv1Troops(p).filter(x=>lv1Key(x,catalog)==='attacker')){
+   const gain=Math.min(5,lv1Troops(p).filter(x=>activeLv1(p,x,catalog)).length)*20;
+   c.atk=Math.min(10000,c.atk+gain);
+  }
+  for(const c of lv1Troops(p))c.lv1Attacks=0;
+  const lumira=lv1Troops(p).find(c=>lv1Key(c,catalog)==='ace');
+  if(lumira){const healed=score(g,p.team,Math.floor(lumira.atk*.3),'Lumira · Seelenfunke');
+   lumira.def=Math.min(lumira.maxDef,lumira.def+healed);
+   g.teams[p.team].lp=Math.min(g.teams[p.team].maxLp,g.teams[p.team].lp+healed);}
+  syncLv1Swarm(p,catalog);
  }
  function restoreAllies(g,p,catalog){
   // Allied Guardian healing, including the partner's board, is base DEF only.
@@ -348,6 +474,8 @@
    if(c.role==='combatant')c.resonance=Math.min(3,c.resonance+1);
    if(c.fusion&&c.role==='resonator')c.resonance=Math.min(2,c.resonance+1);
   }
+  beginLv1Turn(g,p,catalog);
+  if(g.status!=='active')return;
   restoreAllies(g,p,catalog);
   absorbSouls(g,p,catalog);
   if(g.status!=='active')return;
@@ -402,10 +530,15 @@
    'Fusion benötigt zwei bis fünf eigene Materialien.');
   const keys=new Set(),cards=[];
   for(const m of materials){
-   assert(m&&['hand','field'].includes(m.from)&&Number.isInteger(m.index),
+   assert(m&&['hand','field','ghost','charge'].includes(m.from)&&
+    Number.isInteger(m.index)&&m.index>=0,
     'Ungültiges Fusionsmaterial.');
    const key=m.from+':'+m.index;assert(!keys.has(key),'Material doppelt ausgewählt.');keys.add(key);
-   const card=m.from==='hand'?p.hand[m.index]:p.field[m.index];
+   assert((m.from!=='ghost'&&m.from!=='charge')||lv1State(p).perk,
+    'Geistermaterial benötigt die Verbotene Forschung.');
+   const card=m.from==='hand'?p.hand[m.index]:m.from==='field'?p.field[m.index]:
+    m.from==='ghost'?ghostZone(p)[m.index]:m.index<lv1State(p).charges?
+     {_charge:true,id:-1,level:2,role:'combatant',fusion:false}:null;
    assert(card!==null&&card!==undefined,'Fusionsmaterial ist nicht vorhanden.');
    cards.push(m.from==='hand'?{id:card,level:0,...{_hand:true}}:card);
   }
@@ -413,7 +546,9 @@
  }
  function fusionOptions(g,seat,materials,catalog,{coreIndex}={}){
   const p=g.players[seat];
-  const cards=materialSelection(p,materials).map(c=>c._hand?{
+  const cards=materialSelection(p,materials).map(c=>c._charge?{
+   id:-1,level:2,role:'combatant',fusion:false,resonance:0,
+   element:'',ability:'',_charge:true}:c._hand?{
    id:c.id,level:definition(catalog,c.id).level,
    role:definition(catalog,c.id).role||'combatant',fusion:false,resonance:0,
    element:definition(catalog,c.id).element,ability:definition(catalog,c.id).ability}:
@@ -421,8 +556,17 @@
     ability:definition(catalog,c.id).ability});
   const rule=fusionLevel(cards,{coreIndex});
   const analysis=fusionAnalysis(cards,rule,p);
-  return {rule,cards,analysis,templates:[...new Set(p.remainingFusion)].filter(id=>
-   definition(catalog,id)?.level<=rule.level&&definition(catalog,id)?.level>=2)};
+  const eligibleSpecial=lv1State(p).perk&&cards.length>=3&&cards.length<=5&&
+   cards.every(c=>c.level===1&&!c._charge);
+  return {rule,cards,analysis,templates:[...new Set(p.remainingFusion)].filter(id=>{
+   const c=definition(catalog,id);
+   return c?.lv1Exclusive?eligibleSpecial:c?.level<=rule.level&&c?.level>=2;
+  })};
+ }
+ function specialFusionAnalysis(analysis,materials,template){
+  if(!template.lv1Exclusive)return analysis;
+  return {...analysis,quality:Math.min(2.2,analysis.quality+(materials.length===5?.05:.18)),
+   rolls:clamp(Math.max(3,analysis.rolls),1,7),specialLv1:true};
  }
  function fusionPattern(cards){
   const levels=cards.map(c=>c.level),counts=new Map();
@@ -516,10 +660,11 @@
    loreChainApplied,loreOpeningRoll,essenceRolls};
  }
  function fusionPreview(g,seat,materials,catalog,{coreIndex,templateId}={}){
-  const {rule,cards,analysis,templates}=fusionOptions(g,seat,materials,catalog,{coreIndex});
+  const {rule,cards,analysis:baseAnalysis,templates}=fusionOptions(g,seat,materials,catalog,{coreIndex});
   const chosen=templateId??templates[0];
   assert(templates.includes(chosen),'Keine passende Fusionsvorlage verfügbar.');
   const template=definition(catalog,chosen),
+   analysis=specialFusionAnalysis(baseAnalysis,cards,template),
    weight=roleWeights(analysis.role);
   const fieldSoul=cards.reduce((sum,c,i)=>sum+
    (materials[i].from==='field'?Math.max(0,Math.min(2000,c.soul||0)):0),0);
@@ -532,7 +677,14 @@
    const high=Math.max(0,round10(midpoint*1.12)+analysis.materialBlocks*10+carry);
    return [low,high];
   };
-  return {rule,analysis,templateId:chosen,atk:bounds('atk'),def:bounds('def'),
+  const extra=template.lv1Special==='hive'?{atk:0,def:100}:
+   template.lv1Special==='protector'?{atk:0,def:200}:
+   template.lv1Special==='attacker'?{atk:120,def:0}:{atk:0,def:0};
+  const atk=bounds('atk'),def=bounds('def');
+  atk[0]+=extra.atk;atk[1]+=extra.atk;
+  def[0]+=extra.def;def[1]+=extra.def;
+  return {rule,analysis,templateId:chosen,atk,def,
+   resultingLevel:template.lv1Exclusive?1:rule.level,
    soulDef,remaining:g.players[seat].remainingFusion.filter(id=>id===chosen).length};
  }
  function fusionRole(cards){
@@ -612,7 +764,7 @@
    assert(validDeck(action.deck,catalog),'Das Partnerdeck ist ungültig.');
    assert(validDeck(action.fusions,catalog,true),'Das Partner-Fusionsdeck ist ungültig.');
    const build=normalizedBuild(action.upgrades,action.enhancements,
-    action.deck,action.fusions,catalog,action.essence);
+    action.deck,action.fusions,catalog,action.essence,action.lv1);
    const partner=player(2,safeName(action.name),
     chapterDeck(action.deck,catalog,g.chapter,g.entry),action.fusions,build);
    g.players[2]=partner;g.status='active';
@@ -634,6 +786,9 @@
     pl.hand=[];pl.field=Array(7).fill(null);pl.graveyard=[];
     pl.summoned=false;pl.ownTurns=0;pl.fusionsPerformed=0;
     pl.fusionLoreChainUsed=false;draw(pl);
+    const saved=lv1State(pl);
+    saved.ghostSlots=[];saved.charges=0;saved.choices=[];saved.offers=[];
+    saved.floatUsed=0;saved.swarmUsed=0;
    }
    g.log.push('Kapitel '+g.chapter+' beginnt mit vollständigen eigenen Decks.');
    g.revision++;return g;
@@ -646,7 +801,63 @@
    assert(Number.isInteger(action.slot)&&action.slot>=0&&action.slot<7&&!p.field[action.slot],'Feldplatz belegt.');
    const id=p.hand[action.handIndex];assert(allowed(catalog,id),'Karte ist nicht regulär beschwörbar.');
    p.hand.splice(action.handIndex,1);p.field[action.slot]=instance(g,id,catalog,{ownerSeat:seat});
+   lv1Arrival(g,p,p.field[action.slot],catalog);
    p.summoned=true;g.log.push(p.name+' beschwört '+definition(catalog,id).name+'.');
+  }else if(action.type==='lv1Station'){
+   const s=lv1State(p),c=p.field[action.slot],i=action.ghostSlot;
+   assert(s.perk&&Number.isInteger(i)&&i>=0&&i<s.ghostSlots.length&&
+    s.ghostSlots[i]===null&&c&&!c.used&&!c.switched&&
+    c.lv1MovedTurn!==g.turn,'Geisterslot ist belegt oder Monster hat bereits gehandelt.');
+   p.field[action.slot]=null;s.ghostSlots[i]=c;
+   c.used=true;c.switched=true;c.lv1MovedTurn=g.turn;
+   syncLv1Swarm(p,catalog);
+   g.log.push(p.name+' versetzt '+definition(catalog,c.id).name+
+    ' in Geisterslot '+(i+1)+'.');
+  }else if(action.type==='lv1Return'){
+   const s=lv1State(p),i=action.ghostSlot,j=action.slot;
+   const c=s.ghostSlots[i];
+   assert(s.perk&&Number.isInteger(j)&&j>=0&&j<7&&!p.field[j]&&
+    c&&!c.used&&!c.switched&&c.lv1MovedTurn!==g.turn,
+    'Rückverlegung aus dem Geisterslot ist nicht möglich.');
+   s.ghostSlots[i]=null;p.field[j]=c;
+   c.used=true;c.switched=true;c.lv1MovedTurn=g.turn;
+   syncLv1Swarm(p,catalog);
+   g.log.push(p.name+' holt '+definition(catalog,c.id).name+
+    ' auf Feld '+(j+1)+' zurück.');
+  }else if(action.type==='lv1GhostSwitch'){
+   const c=ghostZone(p)[action.ghostSlot];
+   assert(lv1State(p).perk&&c&&!c.used&&!c.switched&&c.lv1MovedTurn!==g.turn,
+    'Geistermonster kann die Position nicht mehr ändern.');
+   c.mode=c.mode==='atk'?'def':'atk';c.switched=true;
+   g.log.push(definition(catalog,c.id).name+' im Geisterslot wechselt auf '+
+    c.mode.toUpperCase()+'.');
+  }else if(action.type==='lv1UseOffer'||action.type==='lv1Floating'){
+   const s=lv1State(p),j=action.slot,i=action.index;
+   assert(s.perk&&Number.isInteger(j)&&j>=0&&j<7&&!p.field[j]&&
+    Number.isInteger(i)&&i>=0,'Freie Lv1-Beschwörung benötigt einen freien Feldplatz.');
+   let id,echo=true;
+   if(action.type==='lv1UseOffer'){
+    id=s.offers[i];assert(Number.isInteger(id),'Kein Schwarm-Echo verfügbar.');
+    s.offers.splice(i,1);
+   }else{
+    id=s.choices[i];assert(Number.isInteger(id),'Keine Floating-Wahl verfügbar.');
+    assert(['echo','deck'].includes(action.kind),'Floating-Art ist ungültig.');
+    if(action.kind==='deck'){
+     const candidates=p.deck.map((id,index)=>({id,index})).filter(x=>
+      definition(catalog,x.id)?.level===1&&!definition(catalog,x.id)?.fusionOnly);
+     assert(candidates.length>0,'Kein echtes Level-1-Monster mehr im Deck.');
+     const pick=candidates[randomInt(g,candidates.length)];
+     id=pick.id;p.deck.splice(pick.index,1);echo=false;
+    }
+    s.choices.splice(i,1);
+   }
+   const c=instance(g,id,catalog,{ownerSeat:seat});
+   if(echo){c.lv1Echo=true;c.lv1Effectless=true;}
+   p.field[j]=c;
+   if(!echo)lv1Arrival(g,p,c,catalog);
+   syncLv1Swarm(p,catalog);
+   g.log.push(p.name+' ruft '+(echo?'ein effektloses Echo':'einen echten Wandergeist')+
+    ': '+definition(catalog,id).name+'.');
   }else if(action.type==='switch'){
    const c=p.field[action.slot];
    assert(c&&!c.used&&!c.switched&&!(c.essenceAttacks>0),
@@ -667,9 +878,11 @@
   }else if(action.type==='fusion'){
    assert(!p.summoned,'Dieser Zug hat bereits eine Beschwörung.');
    assert(Number.isInteger(action.slot)&&action.slot>=0&&action.slot<7,'Ungültiger Zielfeldplatz.');
-   const {rule,cards,analysis,templates}=fusionOptions(g,seat,action.materials,catalog,
+   const {rule,cards,analysis:baseAnalysis,templates}=fusionOptions(g,seat,action.materials,catalog,
     {coreIndex:action.coreIndex});
    assert(templates.includes(action.templateId),'Fusionskarte nicht verfügbar oder Stufe zu hoch.');
+   const template=definition(catalog,action.templateId);
+   const analysis=specialFusionAnalysis(baseAnalysis,cards,template);
    const removingField=new Set(action.materials.filter(m=>m.from==='field').map(m=>m.index));
    assert(!p.field[action.slot]||removingField.has(action.slot),'Fusions-Zielfeld ist nicht frei.');
    // Do not alter state until every constraint is verified.
@@ -677,14 +890,19 @@
    for(const index of action.materials.filter(m=>m.from==='hand').map(m=>m.index).sort((a,b)=>b-a))
     p.hand.splice(index,1);
    for(const index of removingField)p.field[index]=null;
-   p.graveyard.push(...types.map(c=>({id:c.id,from:'fusion'})));
+   for(const index of action.materials.filter(m=>m.from==='ghost').map(m=>m.index))
+    ghostZone(p)[index]=null;
+   const charges=action.materials.filter(m=>m.from==='charge').length;
+   lv1State(p).charges-=charges;
+   p.graveyard.push(...types.filter(c=>!c._charge).map(c=>({id:c.id,from:'fusion'})));
+   for(const c of types.filter(c=>(c.from==='field'||c.from==='ghost')&&!c._charge))
+    lv1Leave(g,p,c,catalog);
    p.remainingFusion.splice(p.remainingFusion.indexOf(action.templateId),1);
    const guaranteedSoul=types.filter(c=>c.from==='field').length>=3&&
     types.filter(c=>c.from==='field').every(c=>defensive(c));
    const awakened=analysis.role==='guardian'&&(guaranteedSoul||
     (analysis.soulOdds>0&&randomInt(g,10000)<Math.floor(analysis.soulOdds*10000)));
    const inherited=awakened?'soul':analysis.role,weights=roleWeights(inherited);
-   const template=definition(catalog,action.templateId);
    const baseline={atk:referenceStat(template,'atk',p)*weights.atk*analysis.quality,
     def:referenceStat(template,'def',p)*weights.def*analysis.quality};
    let best=null,winnerIndex=-1;
@@ -701,6 +919,12 @@
    const result=instance(g,action.templateId,catalog,{fusion:true,roleOverride:inherited});
    result.atk=Math.max(0,best.atk+bonus.atk);
    result.def=Math.max(0,best.def+bonus.def);
+   if(template.lv1Exclusive){
+    const extra=template.lv1Special==='hive'?{atk:0,def:100}:
+     template.lv1Special==='protector'?{atk:0,def:200}:{atk:120,def:0};
+    result.level=1;result.atk+=extra.atk;result.def+=extra.def;
+    result.lv1Full={atk:result.atk,def:result.def};
+   }
    result.maxDef=result.def;
    result.quality=Math.round(analysis.quality*1000)/1000;
    result.roleOrigin='material';
@@ -735,13 +959,18 @@
    p.fusionsPerformed=(p.fusionsPerformed||0)+1;
    if(analysis.loreChainApplied)p.fusionLoreChainUsed=true;
    p.field[action.slot]=result;p.summoned=true;
+   syncLv1Swarm(p,catalog);
    g.log.push(p.name+' fusioniert '+cards.length+' eigene Monster zu '+
     definition(catalog,action.templateId).name+' (Lv '+result.level+', Rolle '+
     (roleName[inherited]||inherited)+', '+analysis.pattern+', '+
     analysis.rolls+' Würfelpaare, Qualität '+Math.round((analysis.quality-1)*100)+' %).');
   }else if(action.type==='attack'){
-   const src=p.field[action.slot];
-   assert(src&&src.mode==='atk'&&!src.used&&src.placedRound<g.round,'Angreifer ist nicht bereit.');
+   const sourceArea=action.area==='ghost'?'ghost':'field';
+   const sourceZone=sourceArea==='ghost'?ghostZone(p):p.field;
+   assert(sourceArea!=='ghost'||lv1State(p).perk,'Geisterangriffe sind nicht freigeschaltet.');
+   const src=sourceZone[action.slot];
+   assert(src&&src.mode==='atk'&&!src.used&&src.placedRound<g.round&&
+    !(src.lv1LockedUntil>p.ownTurns),'Angreifer ist nicht bereit.');
    const foes=g.players.filter(x=>x.team!==p.team);
    let enemy=foes.find(x=>x.seat===action.targetSeat);
    // Swarm includes only the active player's own field, capped at five.
@@ -756,32 +985,55 @@
    }else{
     assert(enemy&&Number.isInteger(action.targetSlot)&&
      action.targetSlot>=0&&action.targetSlot<7,'Gegnerischer Feldplatz fehlt.');
-    let targetSlot=action.targetSlot;
-    let target=enemy.field[targetSlot];assert(target,'Ziel ist leer.');
+    let targetSlot=action.targetSlot,targetArea=action.targetArea==='ghost'?'ghost':'field';
+    let targetZone=targetArea==='ghost'?ghostZone(enemy):enemy.field;
+    let target=targetZone[targetSlot];assert(target,'Ziel ist leer.');
+    if(p.team===1){
+     const protector=g.players.filter(owner=>owner.team===0)
+      .flatMap(owner=>[{owner,area:'field',cards:owner.field},
+       {owner,area:'ghost',cards:ghostZone(owner)}])
+      .flatMap(x=>x.cards.map((c,slot)=>({...x,c,slot})))
+      .find(x=>lv1State(x.owner).perk&&lv1Key(x.c,catalog)==='protector');
+     if(protector){enemy=protector.owner;targetSlot=protector.slot;
+      targetArea=protector.area;
+      targetZone=targetArea==='ghost'?ghostZone(enemy):enemy.field;
+      target=targetZone[targetSlot];
+      g.log.push('✧ Aegurion zieht den gegnerischen Einzelangriff auf sich.');}
+    }
     let taunt=false;
-    if(p.team===1&&g.teams[0].essenceTauntTurn!==g.turn){
+    if(p.team===1&&lv1Key(target,catalog)!=='protector'&&
+     g.teams[0].essenceTauntTurn!==g.turn){
      const guard=g.players.filter(owner=>owner.team===0)
       .flatMap(owner=>owner.field.map((c,slot)=>({owner,c,slot})))
       .find(x=>essenceCompanion(x.owner,x.c,'defense')&&
        x.owner.essence.school==='defense'&&x.c.mode==='def'&&!(x.c.guardLeft>0));
      if(guard){enemy=guard.owner;targetSlot=guard.slot;target=guard.c;
+      targetArea='field';targetZone=enemy.field;
       taunt=true;g.teams[0].essenceTauntTurn=g.turn;
       g.log.push('✦ Aschenhort lenkt den ersten Gegnerangriff auf sich und halbiert ihn.');}
     }
-    if(target.mode==='atk'){
+    const lifeInAtk=activeLv1(enemy,target,catalog)&&
+     (!!lv1Key(target,catalog)||hasLv1Class(enemy,'protector',catalog));
+    if(target.mode==='atk'&&!lifeInAtk){
      const diff=raw-target.atk;
-     if(diff>=0){enemy.graveyard.push(target);enemy.field[targetSlot]=null;}
-     if(diff<=0){p.graveyard.push(src);p.field[action.slot]=null;}
+     if(diff>=0){enemy.graveyard.push(target);targetZone[targetSlot]=null;
+      lv1Leave(g,enemy,target,catalog);}
+     if(diff<=0){p.graveyard.push(src);sourceZone[action.slot]=null;
+      lv1Leave(g,p,src,catalog);}
      if(diff!==0)score(g,diff>0?p.team:enemy.team,Math.abs(diff),
       p.name+' · ATK-Duell gegen '+enemy.name);
      g.log.push(p.name+' greift '+enemy.name+' in ATK an (Differenz '+diff+').');
     }else{
      combat(target);
      const guarded=target.guardLeft>0;
-     const mitigation=defensive(target)?(src.role==='predator'?.25:.35):0;
+     const mitigation=target.mode==='def'&&defensive(target)?
+      (src.role==='predator'?.25:.35):0;
      let remaining=guarded?0:Math.max(0,
       Math.floor((taunt?Math.floor(raw*.5):raw)*(1-mitigation)));
      const original=remaining;
+     const lv1ShieldLost=Math.min(target.lv1Shield||0,remaining);
+     target.lv1Shield=(target.lv1Shield||0)-lv1ShieldLost;
+     remaining-=lv1ShieldLost;
      const condensedLost=Math.min(target.condensed,remaining);
      target.condensed-=condensedLost;remaining-=condensedLost;
      const soulLost=Math.min(target.soul,remaining);
@@ -790,22 +1042,34 @@
      target.def-=defLost;
      if(soulLost)score(g,enemy.team,Math.floor(soulLost*.5),
       definition(catalog,target.id).name+' · erzwungener Seelenverlust');
-     removeIfEmpty(g,enemy,targetSlot,catalog);
-     if(defensive(target)&&!guarded)score(g,enemy.team,Math.floor(target.atk*.5),
+     removeIfEmpty(g,enemy,targetSlot,catalog,targetArea);
+     if(target.mode==='def'&&defensive(target)&&!guarded)
+      score(g,enemy.team,Math.floor(target.atk*.5),
       definition(catalog,target.id).name+' · Gegenschlag');
      g.log.push(p.name+' greift '+enemy.name+' in DEF an: '+original+
       ' Trefferstärke, −'+condensedLost+' Verdichtung / −'+soulLost+
-      ' Seele / −'+defLost+' Grund-DEF ('+Math.round(mitigation*100)+' % Rüstung)'+
+      ' Seele / −'+defLost+' Grund-DEF'+(lv1ShieldLost?' / −'+lv1ShieldLost+' Schutzorb':'')+
+      ' ('+Math.round(mitigation*100)+' % Rüstung)'+
       (guarded?' · Letztes Bollwerk immun.':'')+'.');
     }
    }
-   if(p.field[action.slot]){
+   if(sourceZone[action.slot]){
     if(essenceCompanion(p,src,'predator')){
      src.essenceAttacks=(src.essenceAttacks||0)+1;
      src.used=src.essenceChoice!==2||src.essenceAttacks>=2;
+    }else if(lv1State(p).perk&&lv1Key(src,catalog)==='attacker'){
+     src.lv1Attacks=(src.lv1Attacks||0)+1;
+     src.used=src.lv1Attacks>=2;
+     if(src.lv1Attacks<=2&&p.field.includes(src)&&p.field.some(c=>!c)&&
+      lv1State(p).offers.length<5){
+      const id=lv1Troops(p).find(c=>genuineLv1(c,catalog))?.id;
+      if(Number.isInteger(id))lv1State(p).offers.push(id);
+     }
     }else src.used=true;
-    p.field[action.slot].atk=Math.max(0,p.field[action.slot].atk-
-     (30-2*perk(p,'combatDiscipline')));
+    let fatigue=30-2*perk(p,'combatDiscipline');
+    if(activeLv1(p,src,catalog)&&hasLv1Class(p,'attacker',catalog))
+     fatigue=Math.floor(fatigue*.5);
+    src.atk=Math.max(0,src.atk-fatigue);
    }
   }else if(['soulCondense','soulDischarge','soulRaid','soulFocus'].includes(action.type)){
    soulAction(g,p,action,catalog);
@@ -830,10 +1094,13 @@
    const attackers=active.field.map((c,i)=>({c,i})).filter(x=>x.c&&x.c.mode==='atk'&&!x.c.used&&x.c.placedRound<g.round);
    for(const attacker of attackers){
     const goal=g.players.filter(x=>x.team!==active.team)
-     .flatMap(x=>x.field.map((c,i)=>c?{seat:x.seat,slot:i,card:c}:null).filter(Boolean))
+     .flatMap(x=>[{cards:x.field,area:'field'},
+      {cards:ghostZone(x),area:'ghost'}].flatMap(zone=>
+      zone.cards.map((c,i)=>c?{seat:x.seat,slot:i,area:zone.area,card:c}:null)
+       .filter(Boolean)))
      .sort((a,b)=>Math.max(a.card.atk,a.card.def)-Math.max(b.card.atk,b.card.def))[0];
     g=apply(g,seat,{type:'attack',slot:attacker.i,targetSeat:goal?.seat??null,
-     targetSlot:goal?.slot??null},{catalog});
+     targetSlot:goal?.slot??null,targetArea:goal?.area??null},{catalog});
     if(g.status!=='active')break;
    }
    if(g.status==='active')g=apply(g,seat,{type:'end'},{catalog});
@@ -852,7 +1119,7 @@
   }
   return v;
  }
- return Object.freeze({version:'16.4-beta',CHAPTERS,seats,allowed,validDeck,packIds,
+ return Object.freeze({version:'16.5-beta',CHAPTERS,seats,allowed,validDeck,packIds,
   chapterDeck,create,apply,aiTurn,view,fusionLevel,fusionPattern,fusionOptions,
   fusionAnalysis,fusionPreview,fusionRole,PERK_LIMITS,normalizedBuild});
 });

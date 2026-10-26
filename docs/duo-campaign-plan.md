@@ -1,5 +1,32 @@
 # Kampagnenstart und Kapitelpakete – 18. Oktober 2026
 
+> **Fortsetzung 26. Oktober 2026 · v16.5 Level-1-Forschung auf `development`:**
+> Der isolierte Online-Regelkern übernimmt nun den lokal freigeschalteten Perk
+> „Verbotene Forschung“ und dessen Rang 1–5. Der Server validiert die
+> Eingabegrenzen; gewöhnliche Lv1-Karten erhalten +5 ATK/DEF je Rang.
+> Ausschließlich bei aktiviertem Perk können die drei Questfusionen Nekroth,
+> Aegurion und Nyxar aus 3–5 echten Lv1-Materialstufen entstehen, bleiben Lv1
+> und erhalten ihre Klassenwerte und mindestens drei Qualitätswürfe.
+> Nekroth baut bis zu fünf Geisterzonen auf, erzeugt Geisterfunken, regeneriert
+> LP und kann sich durch ein Geisteropfer wiederbeleben. Aegurion leitet
+> feindliche Einzelangriffe um und schützt mit DEF-Heilung und Schutzorbs;
+> Nyxar steigert eigene ATK, erlaubt zwei Angriffe und erzeugt ein Echo-Angebot.
+> Lumira besitzt exakte 111 Basiswerte, ihre LP-Entzug-/Heilfähigkeit und
+> die einmalige Rettung bei 1 DEF. Das 2v2 kann nun Geisterpositionen,
+> Geisterangriffe, Geister-Fusionsmaterial und begrenzte Floating-/Schwarm-Echos
+> auswählen. Eine Geisterzone blockiert Direktangriffe wie das Hauptfeld.
+> Neues Online-Interface, Vorschau und unabhängige Regressionstests gehören
+> zu diesem Abschnitt; gewöhnliche Fusionen, Kampfausbauten und Essenzbindung
+> bleiben erhalten.
+>
+> **Grenzen:** Die eigentliche Fünf-Stufen-Fanatiker-Quest wird im Online-2v2
+> nicht erneut ausgespielt: Nur ihre bereits lokal freigeschaltete Forschung
+> zählt. Effektbeschwörungen erscheinen in der Online-Beta direkt auf einem
+> gewählten freien Hauptfeldplatz. Der Besitz von Karten/Perk kann ohne
+> gemeinsamen Login noch nicht serverseitig bestätigt werden, daher keine
+> Prämien, Rankings oder Rückschreibung ins Einzelspielerprofil. Zwei-Geräte-QA
+> bleibt erforderlich. `main` und die KI-Forschung werden nicht angerührt.
+
 > **Fortsetzung 26. Oktober 2026 · v16.4 Essenzbindung auf `development`:**
 > Die getrennte Online-Beta liest zusätzlich die aktive Essenzbindung (Art,
 > Spezialisierung, Fortschrittsstufe und Rang) aus dem lokalen Einzelspielerprofil,

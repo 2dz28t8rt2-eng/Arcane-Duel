@@ -1,4 +1,4 @@
-/* 2v2 v16.4 beta. Isolated from the legacy arcane-duo endpoint/room table.
+/* 2v2 v16.5 beta. Isolated from the legacy arcane-duo endpoint/room table.
  * Client sends choices only. Deck legality, fusion levels, roles, damage,
  * draw order, turn ownership and private state live on the server.
  */
@@ -84,7 +84,7 @@ Deno.serve(async request=>{
    const state=game.create({roomId:id,hostName:safeName(body.name),
     hostDeck:body.deck,hostFusions:body.fusions,
     hostUpgrades:body.upgrades,hostEnhancements:body.enhancements,
-    hostEssence:body.essence,
+    hostEssence:body.essence,hostLv1:body.lv1,
     enemyDeckA:enemyDeck(chapter,1),enemyDeckB:enemyDeck(chapter,3),
     enemyFusionsA:enemyFusions(chapter),enemyFusionsB:enemyFusions(chapter),
     chapter,entry,catalog,
@@ -106,7 +106,8 @@ Deno.serve(async request=>{
    assert(await hash(body.invite)===room.invitation_hash,"Einladung ungültig.");
    const guest=secret(),next=game.apply(room.state,2,
     {type:"join",name:body.name,deck:body.deck,fusions:body.fusions,
-     upgrades:body.upgrades,enhancements:body.enhancements,essence:body.essence},{catalog});
+     upgrades:body.upgrades,enhancements:body.enhancements,
+     essence:body.essence,lv1:body.lv1},{catalog});
    const {data:updated,error:writeError}=await db.from(TABLE).update({state:next,
     status:next.status,revision:next.revision,guest_token_hash:await hash(guest),
     invitation_hash:await hash(secret())}).eq("id",roomId)
@@ -124,7 +125,8 @@ Deno.serve(async request=>{
   assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===room.revision,
    "Spielstand geändert. Bitte synchronisieren.");
   assert(body.action&&["summon","attack","switch","fusion","end","nextChapter",
-   "soulCondense","soulDischarge","soulRaid","soulFocus","essencePredatorMode"].includes(body.action.type),
+   "soulCondense","soulDischarge","soulRaid","soulFocus","essencePredatorMode",
+   "lv1Station","lv1Return","lv1GhostSwitch","lv1UseOffer","lv1Floating"].includes(body.action.type),
    "Aktion nicht erlaubt.");
   let next=game.apply(room.state,seat,body.action,{catalog});
   next=game.aiTurn(next,{catalog});

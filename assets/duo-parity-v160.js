@@ -10,7 +10,7 @@
  const key=id=>'arcane-duo-v2-session-'+id;
  const ownOrigin=()=>location.href.split('#')[0].split('?')[0];
  let catalog={},starterMain=[],starterFusions=[],profileDeck=[],profileFusions=[],
-  profileUpgrades={},profileEnhancements={},profileEssence={};
+  profileUpgrades={},profileEnhancements={},profileEssence={},profileLv1={};
  let game=null,seat=-1,roomId='',token='',invite='',busy=false,refreshing=false,
   syncError='',syncedAt=0,sessionReady=true;
  const set=(id,text)=>$(id).textContent=String(text);
@@ -46,7 +46,7 @@
  function readProfile(snapshot){
   starterMain=[...snapshot.starterMain];starterFusions=[...snapshot.starterFusions];
   profileDeck=[...starterMain];profileFusions=[...starterFusions];
-  profileUpgrades={};profileEnhancements={};profileEssence={};
+  profileUpgrades={};profileEnhancements={};profileEssence={};profileLv1={};
   let message='Noch kein Singleplayer-Spielstand in diesem Browser gefunden. '+
    'Für die Beta wird ein gültiges Standarddeck verwendet.';
   try{
@@ -70,20 +70,23 @@
       profileEssence={chosen:p.essence.chosen,school:p.essence.school??null,
        tier,rank:p.essence.rank??0};
      }
+     if(p.lv1Saga?.perk===true){profileLv1={perk:true,
+      rank:Number.isInteger(p.lv1Saga.skillRank)?p.lv1Saga.skillRank:1};}
      rules.normalizedBuild(profileUpgrades,profileEnhancements,profileDeck,
-      profileFusions,catalog,profileEssence);
+      profileFusions,catalog,profileEssence,profileLv1);
      const active=Object.values(profileUpgrades).filter(Boolean).length;
      message='✓ Einzelspieler-Deck übernommen: 40 Hauptkarten, '+
       profileFusions.length+' Fusionen, '+active+' aktive Kampf-Ausbauten und '+
       Object.keys(profileEnhancements).length+' Kartenverstärkungen. '+
       (profileEssence.chosen!==undefined?'Essenzbindung aktiv. ':'')+
+      (profileLv1.perk?'Verbotene Forschung Rang '+profileLv1.rank+' aktiv. ':'')+
       'Diese Beta liest die Ränge nur beim Raumbeitritt; dein Spielstand bleibt unverändert.';
     }else message='Das gespeicherte Deck entspricht nicht den gültigen Karten-/Kopienregeln. '+
       'Die Beta nutzt ein Standarddeck; deine Sammlung bleibt unverändert.';
    }
   }catch{
    profileDeck=[...starterMain];profileFusions=[...starterFusions];
-   profileUpgrades={};profileEnhancements={};profileEssence={};
+   profileUpgrades={};profileEnhancements={};profileEssence={};profileLv1={};
    message='Lokaler Spielstand beziehungsweise Essenzbindung nicht verwendbar. '+
     'Sicheres Standarddeck aktiv; nichts überschrieben.';
   }
@@ -139,7 +142,8 @@
    const entry=$('duoEntry').value;
    const payload={type:'create',name:$('duoHostName').value,entry,
     deck:profileDeck,fusions:profileFusions,
-    upgrades:profileUpgrades,enhancements:profileEnhancements,essence:profileEssence,
+    upgrades:profileUpgrades,enhancements:profileEnhancements,
+    essence:profileEssence,lv1:profileLv1,
     ...(entry==='chapter'?{chapter:chapter().id}:{})};
    const r=await call(payload);
    roomId=r.roomId;token=r.token;seat=0;invite=r.invite;save();load(r);
@@ -153,7 +157,8 @@
   try{
    const r=await call({type:'join',roomId:id,invite:invitation,
     name:$('duoHostName').value,deck:profileDeck,fusions:profileFusions,
-    upgrades:profileUpgrades,enhancements:profileEnhancements,essence:profileEssence});
+    upgrades:profileUpgrades,enhancements:profileEnhancements,
+    essence:profileEssence,lv1:profileLv1});
    roomId=id;token=r.token;seat=2;invite='';save();load(r);
    location.hash='room='+roomId;
    set('duoStatus','Beitritt erfolgreich. Jetzt kämpft ihr gemeinsam!');
@@ -211,6 +216,8 @@
       fusionLore:'Fusionskunde',fusionPrecision:'Runenpräzision',
       openingAegis:'Vorhut-Schutz'}[key]||key)+' '+rank).join(' · '):
      '✧ Keine aktiven Kampf-Ausbauten','duo-perk-note');
+    if(p.lv1?.perk)el('small',panel,'✧ Verbotene Forschung · Rang '+p.lv1.rank+
+     '/5 · '+(p.lv1.charges||0)+' Geisterfunken','duo-perk-note');
    }
    const field=el('div',panel,undefined,'field');
    for(const [slot,c] of p.field.entries()){
@@ -237,10 +244,31 @@
     }
     if(c.guardLeft>0)el('small',cell,'✧ Letztes Bollwerk · '+c.guardLeft+
      ' gegnerische Züge immun','duo-soul-status');
+    if(c.lv1Shield>0)el('small',cell,'◇ Schutzorb '+c.lv1Shield,'duo-soul-status');
+    if(c.lv1Echo)el('small',cell,'◇ Effektloses Lv1-Echo','duo-soul-status');
+    if(card(c.id).lv1Special&&p.lv1?.perk)el('small',cell,
+     '✦ '+card(c.id).lv1Special.toUpperCase(),'duo-soul-status');
     if(c.role==='combatant'&&c.resonance)el('small',cell,
      '✧ Resonanz +'+(4+4*c.resonance)+' %','duo-card-level');
     cell.title='Feld '+(slot+1)+(c.used?' · Angriff verbraucht':'')+
      (c.placedRound>=game.round?' · noch nicht bereit':'');
+   }
+   if(p.lv1?.perk){
+    const reserve=el('div',panel,undefined,'duo-ghost-reserve');
+    el('strong',reserve,'✧ Geisterzonen ('+(p.lv1.ghostSlots||[]).length+'/5)');
+    const grid=el('div',reserve,undefined,'field');
+    (p.lv1.ghostSlots||[]).forEach((c,i)=>{
+     const cell=el('div',grid,undefined,'field-cell duo-ghost-cell '+(c?'filled':''));
+     if(!c){el('span',cell,'◇ Slot '+(i+1));return;}
+     if(card(c.id).art){const img=el('img',cell,undefined,'duo-field-art');
+      img.src=card(c.id).art;img.alt=name(c.id);img.loading='lazy';}
+     el('span',cell,name(c.id));
+     el('small',cell,'Zone '+(i+1)+' · Lv '+c.level+' · '+c.atk+'/'+c.def+
+      ' · '+(c.mode==='def'?'DEF':'ATK'));
+    });
+    if(p.lv1.choices?.length||p.lv1.offers?.length)el('small',reserve,
+     (p.lv1.choices?.length||0)+' Floating-Wahlen · '+
+     (p.lv1.offers?.length||0)+' Schwarm-Echos bereit');
    }
   }
   for(const line of [...game.log].slice(-10).reverse())el('li',log,line);
@@ -270,7 +298,7 @@
     handIndex:Number(hand.value),slot:Number(slot.value)}));
   }
   if(!p.summoned&&p.remainingFusion.length>=1){
-   const part=section(dock,'✦ Fusion','2–5 eigene Hand-/Feldmonster auswählen (Strg-Klick für Mehrfachauswahl). '+
+   const part=section(dock,'✦ Fusion','2–5 eigene Hand-/Feld-/Geistermonster auswählen (Strg-Klick für Mehrfachauswahl). '+
     'Du kannst ein Kernmonster bestimmen; die Vorschau erklärt den Würfelbonus vor der Fusion.');
    const select=el('select',part,undefined,'duo-fusion-list');
    select.multiple=true;select.size=7;select.setAttribute('aria-label','Fusionsmaterialien');
@@ -278,6 +306,15 @@
     name(id)+' · Lv '+card(id).level);opt.value='hand:'+i;});
    p.field.forEach((c,i)=>{if(!c)return;const opt=el('option',select,
     'Feld '+(i+1)+' · '+name(c.id)+' · Lv '+c.level);opt.value='field:'+i;});
+   if(p.lv1?.perk){
+    (p.lv1.ghostSlots||[]).forEach((c,i)=>{if(!c)return;
+     const opt=el('option',select,'Geisterslot '+(i+1)+' · '+name(c.id)+
+      ' · Lv '+c.level);opt.value='ghost:'+i;});
+    for(let i=0;i<(p.lv1.charges||0);i++){
+     const opt=el('option',select,'Geisterfunke '+(i+1)+' · Lv 2 · verbrauchbar');
+     opt.value='charge:'+i;
+    }
+   }
    const outputs=el('div',part,undefined,'duo-choices');
    const core=selector('Kernmonster',[],outputs);
    const options=selector('Fusionsvorlage',[],outputs);
@@ -303,13 +340,15 @@
      hint.textContent='Erforderlich: 2 bis 5 eigene Materialien.';return;
     }
     try{
-     const sources=materials.map(m=>m.from==='hand'?
+     const sources=materials.map(m=>m.from==='charge'?
+      {id:-1,level:2,role:'combatant',fusion:false}:m.from==='hand'?
       {id:p.hand[m.index],level:card(p.hand[m.index]).level}:
-      p.field[m.index]);
+      m.from==='ghost'?p.lv1.ghostSlots[m.index]:p.field[m.index]);
      const initial=rules.fusionLevel(sources);
      materials.forEach((m,i)=>{
       const label=(m.from==='hand'?'Hand ':'Feld ')+(m.index+1)+
-       ' · '+name(sources[i].id)+' (Lv '+sources[i].level+')';
+      ' · '+(m.from==='charge'?'Geisterfunke':name(sources[i].id))+
+      ' (Lv '+sources[i].level+')';
       const op=el('option',core,label);op.value=i;
      });
      core.value=keepCore!==null&&Number(keepCore)<materials.length?
@@ -326,8 +365,11 @@
       options.value=keepTemplate;
      for(const id of slots){const op=el('option',target,'Feld '+(id+1));op.value=id;}
      commit.disabled=!availability.templates.length||!slots.length||busy||!!syncError;
-     const {rule,analysis}=availability;
-     hint.textContent=analysis.pattern+' · Ziellevel maximal '+rule.level+
+     const {rule}=availability;
+     const result=availability.templates.length?rules.fusionPreview(game,seat,materials,
+      catalog,{coreIndex:Number(core.value),templateId:Number(options.value)}):null;
+     const analysis=result?.analysis||availability.analysis;
+     hint.textContent=analysis.pattern+' · Ziellevel '+(result?.resultingLevel??rule.level)+
       ' · '+availability.templates.length+' passende Vorlagen.';
      const lines=['✦ '+analysis.rolls+' Würfelpaare (ATK + DEF) · '+
       'bester gemeinsamer Wurf zählt',
@@ -345,22 +387,22 @@
       ' Fusionswürfe durch das anwesende Essenzwesen');
      if(analysis.elemental)lines.push('✧ Alle Materialien teilen ein Element: Elementharmonie');
      for(const line of lines)el('p',preview,line);
-     if(availability.templates.length){
-      const result=rules.fusionPreview(game,seat,materials,catalog,
-       {coreIndex:Number(core.value),templateId:Number(options.value)});
+     if(result){
       el('strong',preview,'Voraussichtliche Werte: '+
        result.atk[0]+'–'+result.atk[1]+' ATK · '+
        result.def[0]+'–'+result.def[1]+' DEF.');
       el('small',preview,'Der Server würfelt erst bei Bestätigung; '+
        'die Vorschau ist ein möglicher Bereich.','duo-fusion-help');
      }
+     if(analysis.specialLv1)el('strong',preview,
+      '✦ Verbotene Forschung: 3–5 echte Lv1-Materialstufen → exklusive Lv1-Fusion.');
      explanation.textContent='Kernmonster Lv '+rule.core+
       (rule.street?' (bei vollständiger Straße automatisch die höchste Karte)':' (frei gewählt)')+
       ' · Materialabstand '+rule.distance.toFixed(2)+
       ' · Ranggewinn '+(rule.gain>=0?'+':'')+rule.gain+
       ' · Material-/Straßenbonus +'+rule.bonus+
       (rule.resonatorAscent?' · Resonator-Kette +1 (einmalig)':'')+
-      ' · maximal Lv '+rule.level+
+      ' · maximal Lv '+(result?.resultingLevel??rule.level)+
       '. Die Vorlagen-Auswahl beschränkt sich auf freigeschaltete Fusionen dieses Levels oder darunter.';
     }catch(e){hint.textContent=e.message;}
    };
@@ -368,6 +410,58 @@
    core.onchange=()=>update(false);
    options.onchange=()=>update(false);
    update(true);
+  }
+  if(p.lv1?.perk){
+   const state=p.lv1,free=p.field.flatMap((c,i)=>c?[]:[i]),
+    openGhost=(state.ghostSlots||[]).flatMap((c,i)=>c?[]:[i]),
+    stationed=(state.ghostSlots||[]).flatMap((c,i)=>c?[{c,i}]:[]);
+   const lv=section(dock,'✧ Verbotene Forschung · Level-1-Schwarm',
+    'Geisterzonen sind zusätzliche Kampffelder. Verlegen und zurückholen verbraucht '+
+    'die Aktion des Monsters. Geisterfunken zählen als Lv2-Material, nicht als Lv1.');
+   if(free.length&&state.offers?.length){
+    const box=el('div',lv,undefined,'duo-choices');
+    const offer=selector('Schwarm-Echo',state.offers.map((id,i)=>
+     [i,name(id)+' · Effektlose Lv1-Kopie']),box);
+    const target=selector('Freies Feld',free.map(i=>[i,'Feld '+(i+1)]),box);
+    button('Echo kostenlos beschwören',box,()=>send({type:'lv1UseOffer',
+     index:Number(offer.value),slot:Number(target.value)}));
+   }
+   if(free.length&&state.choices?.length){
+    const box=el('div',lv,undefined,'duo-choices');
+    const floating=selector('Floating-Auslöser',state.choices.map((id,i)=>
+     [i,name(id)]),box);
+    const kind=selector('Belohnung',[['echo','Effektloses Lv1-Echo'],
+     ['deck','Echtes zufälliges Lv1 aus Deck']],box);
+    const target=selector('Freies Feld',free.map(i=>[i,'Feld '+(i+1)]),box);
+    button('Floating-Effekt nutzen',box,()=>send({type:'lv1Floating',
+     index:Number(floating.value),kind:kind.value,slot:Number(target.value)}));
+   }
+   if(openGhost.length){
+    const movables=p.field.flatMap((c,slot)=>c&&!c.used&&!c.switched&&
+     c.lv1MovedTurn!==game.turn?[{c,slot}]:[]);
+    if(movables.length){const box=el('div',lv,undefined,'duo-choices');
+     const monster=selector('Monster verlegen',movables.map(x=>
+      [x.slot,'Feld '+(x.slot+1)+' · '+name(x.c.id)]),box);
+     const zone=selector('Freie Geisterzone',openGhost.map(i=>[i,'Zone '+(i+1)]),box);
+     button('In Geisterzone verlegen',box,()=>send({type:'lv1Station',
+      slot:Number(monster.value),ghostSlot:Number(zone.value)}));
+    }
+   }
+   if(stationed.length){
+    const available=stationed.filter(x=>!x.c.used&&!x.c.switched&&
+     x.c.lv1MovedTurn!==game.turn);
+    if(available.length){const box=el('div',lv,undefined,'duo-choices');
+     const monster=selector('Geistermonster',available.map(x=>
+      [x.i,'Zone '+(x.i+1)+' · '+name(x.c.id)]),box);
+     button('Geisterposition wechseln',box,()=>send({type:'lv1GhostSwitch',
+      ghostSlot:Number(monster.value)}));
+     if(free.length){const target=selector('Rückkehrfeld',free.map(i=>
+      [i,'Feld '+(i+1)]),box);
+      button('Aus der Geisterzone zurückholen',box,()=>send({type:'lv1Return',
+       ghostSlot:Number(monster.value),slot:Number(target.value)}));
+     }
+    }
+   }
   }
   const switchables=p.field.flatMap((c,slot)=>c&&!c.used&&!c.switched&&
    !(c.essenceAttacks>0)?[{c,slot}]:[]);
@@ -435,15 +529,17 @@
   if(legal.attackers.length){
    const part=section(dock,'⚔ Angriff','Gegnerische Monster blockieren direkte Angriffe.');
    const row=el('div',part,undefined,'duo-choices');
-   const attack=selector('Angreifer',legal.attackers.map(x=>[x.slot,
-    'Feld '+(x.slot+1)+' · '+format(x.card)]),row);
+   const attack=selector('Angreifer',legal.attackers.map(x=>[
+    (x.area||'field')+':'+x.slot,
+    (x.area==='ghost'?'Geisterzone ':'Feld ')+(x.slot+1)+' · '+format(x.card)]),row);
    const target=selector('Ziel',legal.targets.length?
-    legal.targets.map(x=>[x.seat+':'+x.slot,x.name+' · Feld '+(x.slot+1)+
+    legal.targets.map(x=>[x.seat+':'+(x.area||'field')+':'+x.slot,
+     x.name+' · '+(x.area==='ghost'?'Geisterzone ':'Feld ')+(x.slot+1)+
      ' · '+format(x.card)]):[['direct','Direkt gegen Team-LP']],row);
    button('Angriff bestätigen',part,()=>{
-    const src=legal.attackers.find(x=>x.slot===Number(attack.value));
+    const src=legal.attackers.find(x=>(x.area||'field')+':'+x.slot===attack.value);
     const dst=target.value==='direct'?null:
-     legal.targets.find(x=>x.seat+':'+x.slot===target.value);
+     legal.targets.find(x=>x.seat+':'+(x.area||'field')+':'+x.slot===target.value);
     send(choices.attackCommand(src,dst));
    });
   }
@@ -452,7 +548,7 @@
  }
  async function init(){
   try{
-   const response=await fetch('assets/duo-card-catalog-v160.json?v=duo-v164');
+   const response=await fetch('assets/duo-card-catalog-v160.json?v=duo-v165');
    if(!response.ok)throw Error('Kartenkatalog fehlt.');
    const snapshot=await response.json();
    if(snapshot.schema!==1||snapshot.cards.length<400)throw Error('Kartenkatalog unvollständig.');

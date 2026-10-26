@@ -3,8 +3,8 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>Arcane Duel · 2v2 Regelangleichung (Beta)</title>
-<link rel="stylesheet" href="assets/duo-campaign-demo.css?v=duo-v164">
-<link rel="stylesheet" href="assets/duo-parity-v160.css?v=duo-v164">
+<link rel="stylesheet" href="assets/duo-campaign-demo.css?v=duo-v165">
+<link rel="stylesheet" href="assets/duo-parity-v160.css?v=duo-v165">
 </head><body><main class="duo-wrap">
 <header class="duo-header">
  <div><p class="kicker">✧ ARCANE DUEL · 2V2 REGELANGLEICHUNG</p>
@@ -19,11 +19,14 @@
  Seelenzehrer, Fusionskombinationen, ATK-/DEF-Qualitätswürfe und die acht persönlichen
  Kampf-Ausbauten werden serverseitig berechnet. Aufstiegsränge und die aktive
  Essenzbindung deiner Deckkarten werden mit übernommen. Reißzahn, Runenherz und
- Aschenhort erhalten ihre besonderen Kampffähigkeiten. <strong>Unrangierte Beta:</strong>
+ Aschenhort erhalten ihre besonderen Kampffähigkeiten. Mit freigeschalteter
+ „Verbotener Forschung“ können außerdem die drei besonderen Level-1-Fusionen,
+ Floating-/Schwarm-Echos und die Geisterzonen genutzt werden. <strong>Unrangierte Beta:</strong>
  Da die Übertragung aus dem lokalen
  Profil noch keinen bestätigten Kartenbesitz belegt, gibt es weder Belohnungen noch Ranglisten.
- Besondere Lv1-Questfusionen samt Geistermechanik folgen später. Die Forschung
- an der Einzelspieler-KI bleibt unberührt.
+ Die mehrteilige Level-1-Quest selbst bleibt im Einzelspieler: Im 2v2 gelten nur
+ bereits lokal freigeschaltete Forschungsränge. Die Forschung an der
+ Einzelspieler-KI bleibt unberührt.
 </aside>
 <div class="duo-layout">
 <section class="duo-panel">
@@ -80,10 +83,24 @@
     (je Rang 25 Schildpunkte). Die Schildpunkte erneuern sich bei Kapitelwechsel.
     Zerfall steigt mit dem Monsterlevel; Standhaftigkeit verringert ihn um bis zu 20 %.
     Kampfdisziplin reduziert die ATK-Müdigkeit nach einem Angriff.</li>
-   <li>Fusionen nutzen ausschließlich eigene Hand- und Feldmaterialien. Vorlagen aus dem
+   <li>Fusionen nutzen ausschließlich eigene Hand-, Feld- und bei freigeschalteter
+    Forschung auch Geistermaterialien. Vorlagen aus dem
     eigenen Fusionsdeck werden im Duell verbraucht. Kernkarte, Pokerkombination
     (z. B. Straße oder Full House), Elementharmonie, Resonanz und echte
     Qualitätswürfe bestimmen das Ergebnis. Die Vorschau erklärt Level und Wertebereich.</li>
+   <li>„Verbotene Forschung“ (Rang 1–5) übernimmt den Questfortschritt aus deinem
+    lokalen Einzelspielerprofil. Jede Rangstufe stärkt normale Lv1-Karten um
+    +5 ATK / +5 DEF. Die Spezialfusionen Nekroth, Aegurion und Nyxar benötigen
+    3–5 echte Lv1-Materialstufen, bleiben selbst Lv1 und benutzen ihre eigenen
+    Effekte: Nekroth erweitert bis zu fünf Geisterzonen und kann für seine
+    Wiederbelebung einen Geisterplatz opfern; Aegurion leitet Einzelangriffe um
+    und schützt eigene Lv1-Monster; Nyxar führt bis zu zwei Angriffe aus.</li>
+   <li>Geisterzonen sind angreifbar und verhindern direkte Angriffe, solange sie
+    besetzt sind. Monster können unter Verbrauch ihrer Aktion hinein- oder
+    herauswechseln. Geisterfunken zählen als Lv2-Fusionsmaterial. Bei echten
+    Lv1-Beschwörungen entstehen kostenlose Schwarm-Echos, bei deren Tod kann
+    ein Floating-Echo oder ein zufälliges echtes Lv1-Monster aus dem eigenen
+    Deck gewählt werden. Die Zahl der Auslöser pro Zug ist begrenzt.</li>
    <li>Predatoren erhalten +2 % Angriffsschaden pro eigenem Predator auf dem Feld
     (maximal +10 %) und durchdringen 10 % der DEF-Rüstung von Wächtern/Seelenzehrern.</li>
    <li>In DEF-Position nehmen Wächter und Seelenzehrer 35 % weniger Trefferstärke
@@ -114,7 +131,7 @@
  <div class="duo-log"><h3>Kampfprotokoll</h3><ol id="duoLog"></ol></div>
 </section>
 </div></main>
-<script src="assets/duo-shared-rules-v160.js?v=duo-v164"></script>
-<script src="assets/duo-battle-ui-v158.js?v=duo-v164"></script>
-<script src="assets/duo-parity-v160.js?v=duo-v164"></script>
+<script src="assets/duo-shared-rules-v160.js?v=duo-v165"></script>
+<script src="assets/duo-battle-ui-v158.js?v=duo-v165"></script>
+<script src="assets/duo-parity-v160.js?v=duo-v165"></script>
 </body></html>

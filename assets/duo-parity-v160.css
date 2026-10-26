@@ -19,3 +19,10 @@
 .duo-soul-actions{display:flex;flex-wrap:wrap;align-items:flex-end;gap:9px;margin-top:10px}
 .duo-soul-actions button{flex:1 1 170px;min-height:39px}
 .duo-soul-actions .duo-choice{flex:1 1 220px}
+.duo-ghost-reserve{margin-top:12px;padding:10px 12px;border:1px solid rgba(187,133,247,.58);
+ border-radius:12px;background:linear-gradient(135deg,rgba(92,56,142,.18),rgba(31,22,53,.23))}
+.duo-ghost-reserve>strong{display:block;margin-bottom:8px;color:#f3d5ff;font-size:.86rem}
+.duo-ghost-reserve>.field{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:6px}
+.duo-ghost-cell{border:1px dashed rgba(186,134,243,.66);background:rgba(122,77,174,.1)}
+.duo-ghost-cell.filled{border-style:solid}
+.duo-ghost-cell .duo-field-art{max-height:70px}
