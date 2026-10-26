@@ -22,6 +22,7 @@ jobs:
         run: |
           set -euo pipefail
           for f in tests/ai-v1567-{history,Q,unified-reply-selfplay,unified-reply-aggregate}.cjs; do test -f "$f"; node --check "$f"; done
+          node tests/helpers/game-runtime.cjs
           node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
       - name: Restore sealed previous TRAIN checkpoint
         env:
