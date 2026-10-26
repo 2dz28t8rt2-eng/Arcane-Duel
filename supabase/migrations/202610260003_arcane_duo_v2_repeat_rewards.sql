@@ -24,8 +24,8 @@ begin
  if v_chapter not between 1 and 4 then return new; end if;
  -- Stable lock order protects parallel rewards when teammates swap seats.
  for v_profile in
-  select distinct x from unnest(array[new.host_profile_id,new.guest_profile_id]) as x
-  where x is not null order by x
+  select distinct pid from unnest(array[new.host_profile_id,new.guest_profile_id]) as t(pid)
+  where pid is not null order by pid
  loop
   select coalesce(cleared_chapters,'{}') into v_clear
   from public.arcane_duo_v2_profiles
