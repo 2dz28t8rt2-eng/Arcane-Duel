@@ -17,6 +17,7 @@ function createWindow(){
  });
  window=new BrowserWindow({
   title:'Arcane Duel · Desktop-Testversion',width:1440,height:900,minWidth:940,minHeight:620,
+  icon:path.join(__dirname,'build','icon.ico'),
   backgroundColor:'#0b101c',show:false,autoHideMenuBar:true,
   webPreferences:{
    partition:DESKTOP_PARTITION,

@@ -15,8 +15,10 @@ abgeschottet.
 - F11 schaltet zwischen Fenster und Vollbild um.
 - Bei Verbindungsproblemen erscheint eine deutschsprachige Fehlerseite mit
   einer Schaltfläche zum erneuten Laden.
-- Die Windows-Version wird als portable **`ArcaneDuel-0.1.0-portable.exe`**
+- Die Windows-Version wird als portable **`ArcaneDuel-0.1.1-portable.exe`**
   erstellt. Es ist keine Installation erforderlich.
+- Ein eigenes arkanes Wappen ist als Programmsymbol in der EXE eingebettet
+  und erscheint auch am Desktop und in der Taskleiste.
 
 ## Wichtige Grenzen dieser ersten Version
 
@@ -33,6 +35,10 @@ abgeschottet.
   Veröffentlichungen sollte ein stabiler, geprüfter Build verwendet werden.
 - Das erste Test-Build ist nicht digital signiert. Windows kann beim Start
   deshalb eine SmartScreen-Warnung anzeigen.
+- Die digitale Signatur kann erst mit einem gültigen, auf den Herausgeber
+  ausgestellten Code-Signing-Zertifikat oder einem Cloud-Signierungsdienst
+  aktiviert werden. Hinweise zur sicheren Einrichtung stehen in
+  [`SIGNING.md`](SIGNING.md).
 
 ## Windows-EXE bauen
 
@@ -55,5 +61,5 @@ Windows-Build, sobald Änderungen an `desktop/` in `development` landen.
 
 1. Einzelspieler-Spielstände mit Anmeldung sicher online synchronisieren.
 2. Browser-Speicherstände kontrolliert in ein Desktop-Profil importieren.
-3. Automatische Updates, eigenes Programmsymbol und signierte Veröffentlichung.
+3. Automatische Updates und signierte Veröffentlichung mit verifizierter Herausgeberidentität.
 4. Optional später lokale Spieldateien für einen eingeschränkten Offline-Modus.

@@ -57,7 +57,15 @@ test('offline retry loads the same approved game and includes no native bridge',
 
 test('the executable target is portable and the bundled contents are minimal',()=>{
  const pkg=JSON.parse(read('package.json'));
+ assert.equal(pkg.version,'0.1.1');
  assert.deepEqual(pkg.build.win.target,['portable']);
+ assert.equal(pkg.build.win.icon,'build/icon.ico');
+ assert.ok(pkg.build.files.includes('build/icon.ico'));
+ const icon=fs.readFileSync(path.join(__dirname,'..','build','icon.ico'));
+ assert.equal(icon.readUInt16LE(0),0);
+ assert.equal(icon.readUInt16LE(2),1);
+ assert.ok(icon.readUInt16LE(4)>=5);
+ assert.match(read('main.cjs'),/icon:path\.join\(__dirname,'build','icon\.ico'\)/);
  assert.equal(pkg.build.portable.artifactName,'ArcaneDuel-${version}-portable.exe');
  assert.equal(pkg.build.asar,true);
  assert.ok(pkg.build.files.includes('main.cjs'));
