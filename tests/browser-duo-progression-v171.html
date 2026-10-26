@@ -26,8 +26,10 @@ document.getElementById('duo').addEventListener('load',()=>{
     'Solo storage is not imported');
    check(doc.querySelector('.notice').textContent.includes('keinen Import'),
     'No import or export between game modes');
-   check(doc.getElementById('duoProfilePack').options.length===2,
-    'Normal and fusion card packs supported');
+   check(doc.getElementById('duoProfilePack').options.length===6,
+    'Single, material and three mixed fusion pack sizes supported');
+   check(!!doc.getElementById('duoResearchLv1Buy')&&!!doc.getElementById('duoResearchEssenceBuy'),
+    'Independent 2v2 research branches are visible');
    check(doc.getElementById('duoProfileActive').hidden,
     'No fake local rewards or profile data before server authorization');
   }catch(e){check(false,e.stack||e.message);}
