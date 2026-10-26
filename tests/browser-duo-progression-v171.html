@@ -1,0 +1,38 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8">
+<title>Arcane Duel independent 2v2 progression QA</title></head><body>
+<pre id="result">Lädt …</pre><iframe id="duo" src="../duo-campaign-v2.html" width="1000" height="960"></iframe>
+<script>
+document.getElementById('duo').addEventListener('load',()=>{
+ setTimeout(()=>{
+  const frame=document.getElementById('duo'),doc=frame.contentDocument;
+  let ok=true;const notes=[];
+  const check=(v,text)=>{if(!v)ok=false;notes.push((v?'OK ':'FAIL ')+text);};
+  try{
+   check(!!doc.getElementById('duoProfileCreate'),
+    'Independent 2v2 profile creation available');
+   check(!!doc.getElementById('duoProfileStats'),
+    'Private XP, essence, shards and wins display exists');
+   check(!!doc.getElementById('duoProfileBuyPack')&&
+    !!doc.getElementById('duoProfileUpgrade')&&
+    !!doc.getElementById('duoProfileDeckSave'),
+    'Card packs, upgrades and deck editor present');
+   check(!!doc.getElementById('duoProfileBackup'),
+    'Private cross-device profile recovery present');
+   check(doc.getElementById('duoCreate').disabled,
+    'Cannot start a new campaign without server-owned profile');
+   check(doc.getElementById('duoAccept').disabled,
+    'Cannot join as a human without server-owned profile');
+   check(doc.getElementById('duoDeckInfo').textContent.includes('nicht ausgelesen'),
+    'Solo storage is not imported');
+   check(doc.querySelector('.notice').textContent.includes('keinen Import'),
+    'No import or export between game modes');
+   check(doc.getElementById('duoProfilePack').options.length===2,
+    'Normal and fusion card packs supported');
+   check(doc.getElementById('duoProfileActive').hidden,
+    'No fake local rewards or profile data before server authorization');
+  }catch(e){check(false,e.stack||e.message);}
+  document.getElementById('result').textContent=notes.join('\n');
+  document.documentElement.dataset.duoProgression=ok?'pass':'fail';
+ },1300);
+});
+</script></body></html>
