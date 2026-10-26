@@ -1,7 +1,7 @@
 {
   "name": "arcane-duel-desktop",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Arcane Duel desktop preview for Windows",
   "main": "main.cjs",
   "scripts": {
@@ -20,6 +20,7 @@
     "files": [
       "main.cjs",
       "url-policy.cjs",
+      "revision-resolver.cjs",
       "offline.html",
       "build/icon.ico",
       "package.json"

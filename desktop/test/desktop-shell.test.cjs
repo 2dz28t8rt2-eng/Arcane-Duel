@@ -4,7 +4,8 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
-const {GAME_ROOT,GAME_ENTRY,isGameUrl,isRepositoryUrl}=require('../url-policy.cjs');
+const {GAME_ROOT,GAME_ENTRY,entryForRevision,gameRootFor,isGameUrl,isRepositoryUrl}=require('../url-policy.cjs');
+const {REVISION_API,extractRevision,resolveRevision}=require('../revision-resolver.cjs');
 
 const read=rel=>fs.readFileSync(path.join(__dirname,'..',rel),'utf8');
 
@@ -31,6 +32,38 @@ test('external destinations are restricted to the project repository',()=>{
  assert.equal(isRepositoryUrl('https://github.com.evil.test/2dz28t8rt2-eng/Arcane-Duel'),false);
 });
 
+test('immutable development revisions allow fresh content without changing saved-game origin',()=>{
+ const sha='19fc37fa6bdce78e317475d3ef018c46c97ad64c';
+ const url=entryForRevision(sha);
+ assert.equal(new URL(url).origin,new URL(GAME_ENTRY).origin);
+ assert.equal(url,gameRootFor(sha)+'index.html?arcane-desktop=1');
+ assert.equal(isGameUrl(url,sha),true);
+ assert.equal(isGameUrl(gameRootFor(sha)+'duo-campaign-v2.html',sha),true);
+ assert.equal(isGameUrl(GAME_ENTRY,sha),false);
+ assert.equal(isGameUrl(url),false);
+ for(const invalid of ['main','../../other','c'.repeat(39),'g'.repeat(40)]){
+  assert.throws(()=>entryForRevision(invalid));
+  assert.equal(isGameUrl(url,invalid),false);
+ }
+});
+
+test('GitHub ref resolver validates the exact branch SHA and safely handles failures',async()=>{
+ const sha='19fc37fa6bdce78e317475d3ef018c46c97ad64c';
+ const requested=[];
+ const result=await resolveRevision(async(url,options)=>{
+  requested.push({url,options});
+  return {ok:true,json:async()=>({object:{sha}})};
+ });
+ assert.deepEqual(result,{revision:sha,source:'github'});
+ assert.equal(requested[0].url,REVISION_API);
+ assert.equal(requested[0].options.cache,'no-store');
+ assert.equal(extractRevision({object:{sha:'../../malicious'}}),null);
+ assert.deepEqual(await resolveRevision(async()=>{throw new Error('offline');}),
+  {revision:null,source:'unavailable'});
+ assert.deepEqual(await resolveRevision(async()=>({ok:true,json:async()=>({object:{sha:'bad'}})})),
+  {revision:null,source:'invalid-response'});
+});
+
 test('the desktop browser cannot expose native APIs to the remote page',()=>{
  const source=read('main.cjs');
  assert.match(source,/nodeIntegration:false/);
@@ -41,6 +74,8 @@ test('the desktop browser cannot expose native APIs to the remote page',()=>{
  assert.match(source,/persist:arcane-duel-development/);
  assert.match(source,/setWindowOpenHandler/);
  assert.match(source,/setPermissionRequestHandler/);
+ assert.match(source,/loadFreshGame/);
+ assert.match(source,/last-good-development-revision/);
  assert.doesNotMatch(source,/executeJavaScript\(|contextBridge|preload:/);
  assert.doesNotThrow(()=>new vm.Script(source));
 });
@@ -57,7 +92,7 @@ test('offline retry loads the same approved game and includes no native bridge',
 
 test('the executable target is portable and the bundled contents are minimal',()=>{
  const pkg=JSON.parse(read('package.json'));
- assert.equal(pkg.version,'0.1.1');
+ assert.equal(pkg.version,'0.1.2');
  assert.deepEqual(pkg.build.win.target,['portable']);
  assert.equal(pkg.build.win.icon,'build/icon.ico');
  assert.ok(pkg.build.files.includes('build/icon.ico'));
@@ -70,6 +105,7 @@ test('the executable target is portable and the bundled contents are minimal',()
  assert.equal(pkg.build.asar,true);
  assert.ok(pkg.build.files.includes('main.cjs'));
  assert.ok(pkg.build.files.includes('offline.html'));
+ assert.ok(pkg.build.files.includes('revision-resolver.cjs'));
  assert.ok(!pkg.build.files.includes('**/*'));
  assert.equal(pkg.scripts['dist:portable'],'electron-builder --win portable --x64');
  assert.ok(pkg.devDependencies.electron);
