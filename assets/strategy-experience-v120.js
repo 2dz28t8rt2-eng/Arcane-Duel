@@ -10,13 +10,13 @@
     try{return JSON.parse(window.localStorage?.getItem(TUTORIAL_KEY)||'[]').filter(n=>[1,2,3].includes(n));}
     catch(_){return [];}
   };
-  const lessonNames=['','Grundlagen & Beschwörung','Pokerfusionen','Taktik & Reaktion'];
+  const lessonNames=['','Deine ersten Karten','Fusionen entdecken','Angreifen & verteidigen'];
   function rememberLesson(stage){
     const done=completedLessons();
     if(done.includes(stage))return;
     done.push(stage);
     try{window.localStorage?.setItem(TUTORIAL_KEY,JSON.stringify(done));}catch(_){}
-    unlockNotice('Lernduell '+stage+' abgeschlossen',lessonNames[stage]+' verstanden. Du kannst jederzeit weitertrainieren.');
+    unlockNotice('Lernduell '+stage+' geschafft','Gut gespielt! '+(stage<3?'Die nächste Übung wartet schon auf dich.':'Du bist bereit für dein erstes richtiges Duell.'));
   }
   const unlockQueue=[];
   let unlockBusy=false;
@@ -85,10 +85,10 @@
   function summarizeDuel(g){
     const mine=g.players[0],foe=g.players[1];
     const findings=[];
-    if(g.totalFusions[0]===0&&g.mode==='pve')findings.push('Keine eigene Fusion eingesetzt. Prüfe vor dem nächsten Kampf deine Vorlagen und Materialkombinationen.');
+    if(g.totalFusions[0]===0&&g.mode==='pve')findings.push('Du hast diesmal nicht fusioniert. Vielleicht steckt in deinem Fusionsdeck die passende Verstärkung fürs nächste Duell?');
     if(g.damageDealt[0]<g.damageDealt[1]&&g.winner!==0)
-      findings.push('Der Gegner verursachte mehr LP-Schaden. Analysiere frühe Feldkontrolle und defensive Rollen.');
-    if(!findings.length)findings.push('Prüfe die entscheidenden Aktionen im Duellprotokoll und vergleiche ihre Materialkosten.');
+      findings.push('Der Gegner hat dir mehr Schaden zugefügt. Ein Wächter oder Seelenzehrer könnte dir beim nächsten Mal etwas Luft verschaffen.');
+    if(!findings.length)findings.push('Schau dir die entscheidenden Züge an: Welche Karte hat dir besonders geholfen?');
     // No use of paid HINTS/profile.lastReview: the established hint economy stays intact.
     return {id:g.id,won:g.winner===0,opponent:g.opponentId,turn:g.turn,
       damage:[...g.damageDealt],fusions:[...g.totalFusions],lp:[mine.lp,foe.lp],
@@ -96,15 +96,14 @@
   }
   function reportMarkup(report){
     return '<section class="ad120-report" aria-label="Duell-Nachbericht">'+
-      '<h3>✧ Taktischer Duell-Nachbericht</h3>'+
+      '<h3>✧ Dein Duell im Rückblick</h3>'+
       '<div class="ad120-metrics">'+
       '<div><small>Dein LP-Schaden</small><b>'+format(report.damage[0])+'</b></div>'+
       '<div><small>Gegnerischer LP-Schaden</small><b>'+format(report.damage[1])+'</b></div>'+
       '<div><small>Deine Fusionen</small><b>'+format(report.fusions[0])+'</b></div>'+
       '<div><small>Gegner-Fusionen</small><b>'+format(report.fusions[1])+'</b></div></div>'+
       '<p class="ad120-note">'+esc(report.findings[0])+'</p>'+
-      '<details><summary>Letzte 10 protokollierte Aktionen anzeigen</summary><ol>'+report.events.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ol></details>'+
-      '<small>Die Werte stammen aus diesem tatsächlichen Duell. Die Tipps sind allgemeine Hinweise, keine nachträglich simulierten Alternativen.</small></section>';
+      '<details><summary>Die letzten 10 Aktionen ansehen</summary><ol>'+report.events.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ol></details></section>';
   }
   const originalFinished=showFinished;
   showFinished=function(...args){
@@ -112,6 +111,7 @@
     const before=first&&g.mode==='pve'?progressSnapshot():null;
     const result=originalFinished.apply(this,args);
     if(first&&g.finishShown){
+      if(tutorial?.gameId===g.id)updateTutorial();
       lastReport=summarizeDuel(g);
       const modal=$id('modal');
       if(modal&&modal.querySelector('#modalAgain')){
@@ -119,7 +119,18 @@
         actions?.insertAdjacentHTML('beforebegin',reportMarkup(lastReport));
       }
       if(before)progressChanges(before);
-      if(tutorial?.gameId===g.id)stopTutorial(false);
+      if(tutorial?.gameId===g.id){
+        const lesson=tutorial.stage,complete=tutorial.step===stageLessons(lesson).length-1&&g.winner===0;
+        if(complete)rememberLesson(lesson);
+        const actions=modal?.querySelector('.modal-actions');
+        if(actions){
+          const next=document.createElement('button');next.type='button';next.className='btn primary';
+          next.textContent=g.winner!==0?'↻ Lernduell erneut versuchen':lesson<3?(complete?'✦ Nächstes Lernduell':'↻ Übung wiederholen'):'✦ Zum Spielmenü';
+          next.onclick=()=>{returnToMenu();if(g.winner!==0||!complete||lesson<3)startTutorial(g.winner!==0||!complete?lesson:lesson+1);};
+          actions.prepend(next);
+        }
+        stopTutorial(false);
+      }
     }
     return result;
   };
@@ -156,7 +167,7 @@
     panel.dataset.ad120Signature=signature;
     panel.innerHTML='<div class="ad120-preview-title"><strong>✦ Fusionsvorschau</strong><span>Maximum Lv '+cap+'</span></div>'+
       '<p>'+esc(pattern?.name||'Freie Fusion')+' · '+materials.length+' Materialien'+
-      (pattern?.rollBonus?' · +'+pattern.rollBonus+' Pokerwürfe':'')+
+      (pattern?.rollBonus?' · +'+pattern.rollBonus+' Spezialwürfe':'')+
       (rule?.street?' · Geschlossene Straße':'')+'</p>'+
       (rows?'<ol>'+rows+'</ol>':'<p>Mit diesen Materialien ist derzeit keine passende Vorlage im Fusionsdeck verfügbar.</p>')+
       '<small>Prognosen, keine garantierten Würfelergebnisse. Alle Materialien werden verbraucht; die gewählte Kernkarte kann das Ergebnis verändern.</small>';
@@ -169,18 +180,18 @@
     ['2 · Beschwören','Klicke „Beschwören“ und wähle danach eine freie Monsterzone.'],
     ['3 · Nächster Zug','Beende deinen Zug und warte auf die nächste eigene Aktion.'],
     ['4 · Kampf oder Position','Greife mit einer geeigneten Karte an oder wechsle ihre Kampfposition.'],
-    ['Geschafft!','Du hast die grundlegenden Aktionen ausgeführt. Im nächsten Duell kannst du mit 2–5 Handkarten die Pokerfusionen üben.']
+    ['5 · Gewinne das Duell','Jetzt bist du dran! Besiege deinen Gegner, um diese Übung abzuschließen.']
   ];
   const fusionLessons=[
     ['1 · Materialien sammeln','Wähle mindestens zwei passende Handkarten als Fusionsmaterialien. Ein geeigneter Platz im Fusionsdeck ist nötig.'],
     ['2 · Fusion durchführen','Bestätige die Fusion, wähle eine verfügbare Fusionsvorlage und setze das neue Monster aufs Feld. Die Vorschau erklärt das Ergebnis.'],
-    ['Geschafft!','Du hast eine echte Fusion erfolgreich beschworen. Ihre Kartenstufe ist nicht automatisch ein dauerhaftes Monsterlevel.']
+    ['3 · Gewinne das Duell','Deine Fusion steht! Gewinne jetzt das Duell.']
   ];
   const tacticLessons=[
     ['1 · Schutz aufbauen','Wechsle ein Feldmonster in DEF oder nutze bereits eine defensive Stellung. Beachte Wächter, Seelenzehrer und mögliche Gegenschläge.'],
     ['2 · Gegnerische Antwort zulassen','Beende deinen Zug. Beobachte, wie die gegnerische KI auf deine Stellung reagiert.'],
     ['3 · Gegenangriff planen','Führe in einem eigenen Zug einen erlaubten Angriff aus. Prüfe vorher optional die Kampfprognose.'],
-    ['Geschafft!','Du hast Schutz, gegnerische Reaktion und einen eigenen Angriff erlebt.']
+    ['4 · Gewinne das Duell','Du kennst Angriff und Verteidigung. Zeige jetzt, was du gelernt hast!']
   ];
   const stageLessons=stage=>stage===2?fusionLessons:stage===3?tacticLessons:lessons;
   function stopTutorial(announce=false){tutorial=null;$id('ad120-coach')?.remove();if(announce)unlockNotice('Lernrunde beendet','Du kannst die interaktive Hilfe jederzeit erneut starten.');}
@@ -198,19 +209,18 @@
       if(tutorial.step===1&&g.turn>tutorial.startTurn)tutorial.step=2;
       if(tutorial.step===2&&g.active===0&&g.players[0].field.some(c=>c?.attacked))tutorial.step=3;
     }else{
-      if(tutorial.step===0&&(g.selection?.type==='hand'||g.materials.length))tutorial.step=1;
+      if(tutorial.step===0&&g.selection?.type==='hand')tutorial.step=1;
       if(tutorial.step===1&&g.summoned)tutorial.step=2;
       if(tutorial.step===2&&g.turn>tutorial.startTurn)tutorial.step=3;
       // Only the human's own executed field actions satisfy the last lesson.
       if(tutorial.step===3&&g.players[0].field.some(c=>c&&(c.attacked||c.switched)))tutorial.step=4;
     }
     const sequence=stageLessons(tutorial.stage),finished=tutorial.step===sequence.length-1;
-    if(finished&&!tutorial.celebrated){tutorial.celebrated=true;rememberLesson(tutorial.stage);}
     let panel=$id('ad120-coach');
     if(!panel){panel=document.createElement('aside');panel.id='ad120-coach';panel.className='ad120-coach';document.body.appendChild(panel);}
     const step=sequence[tutorial.step];
     panel.innerHTML='<small>LERNDUELL '+tutorial.stage+' / 3 · '+esc(lessonNames[tutorial.stage])+'</small><b>'+esc(step[0])+'</b><p>'+esc(step[1])+'</p>'+
-      '<div class="ad120-coach-actions"><span>'+Math.min(tutorial.step+1,sequence.length)+' / '+sequence.length+'</span><button type="button" id="ad120-coach-close">'+(finished?'Fertig':'Hilfe beenden')+'</button></div>';
+      '<div class="ad120-coach-actions"><span>'+Math.min(tutorial.step+1,sequence.length)+' / '+sequence.length+'</span><button type="button" id="ad120-coach-close">Hilfe ausblenden</button></div>';
     $id('ad120-coach-close').onclick=()=>stopTutorial(false);
   }
 
@@ -218,7 +228,7 @@
     const before=game?.id;
     hideModal();
     if(uiMode!=='menu')return;
-    startDuel('pve',0,'free');
+    startDuel('pve',0,'free','easy',null,stage);
     if(!game||uiMode!=='duel'||game.id===before)return;
     tutorial={stage,step:0,gameId:game.id,startTurn:game.turn,startFusions:game.totalFusions[0],celebrated:false};
     updateTutorial();
@@ -226,10 +236,10 @@
   function guidedIntro(){
     const done=completedLessons();
     openModal('<div class="modal-kicker">DREI LERNDUELLE</div><h2>Dein interaktiver Spieleinstieg</h2>'+
-      '<p>Erlerne die Spielmechaniken in drei separat startbaren Duellen. Jeder Schritt wird erst durch eine echte Aktion bestätigt.</p>'+
+      '<p>Drei kleine Duelle führen dich Schritt für Schritt ins Spiel. Du beginnst mit 2.000 LP und kannst nach jedem Sieg direkt weitermachen.</p>'+
       '<div class="ad120-lesson-list">'+[1,2,3].map(n=>'<button type="button" class="btn ad120-lesson" data-ad120-stage="'+n+'">'+
-        (done.includes(n)?'✓ ':'✦ ')+n+' · '+esc(lessonNames[n])+(done.includes(n)?' · abgeschlossen':'')+'</button>').join('')+'</div>'+
-      '<p class="ad120-lab-caption">Die Duelle verwenden deine regulären Karten und Regeln; es gibt keine zusätzlichen Werte, Käufe oder erfundenen Belohnungen. Die Kapitel können wiederholt werden.</p>'+
+        (done.includes(n)?'✓ ':'✦ ')+n+' · '+esc(lessonNames[n])+(done.includes(n)?' · geschafft':'')+'</button>').join('')+'</div>'+
+      '<p class="ad120-lab-caption">Du kannst jede Übung wiederholen. Die angezeigten Schritte gelingen nur durch deine eigenen Aktionen.</p>'+
       '<div class="modal-actions"><button class="btn" id="ad120-guide-exit">Schließen</button></div>');
     $id('ad120-guide-exit').onclick=hideModal;
     document.querySelectorAll('[data-ad120-stage]').forEach(b=>b.onclick=()=>startTutorial(Number(b.dataset.ad120Stage)));
@@ -242,7 +252,7 @@
   function labMarkup(){
     const available=labOpponentOptions();
     return '<div class="ad120-lab"><div class="modal-kicker">TAKTIKLABOR</div><h2>Deine drei Decks im Vergleich</h2>'+
-      '<p>Identische Ausgangs-Seeds, echter Regelkern und KI-Steuerung. Keine Belohnungen, keine Verbrauchsgüter und keine Veränderung deiner Spielstände.</p>'+
+      '<p>Probiere deine Decks gegen dieselben Gegner aus. Hier kannst du gefahrlos vergleichen: Dein Spielstand bleibt unverändert, es gibt keine Kosten und keine Belohnungen.</p>'+
       '<div class="ad120-lab-controls"><label>Gegner<select id="ad120-lab-foe">'+available.map(o=>'<option value="'+o.id+'">'+esc(o.name)+'</option>').join('')+'</select></label>'+
       '<label>Eigene KI-Strategie<select id="ad120-lab-policy"><option value="balanced">Ausgewogen</option><option value="offensive">Offensiv</option><option value="guardian">Defensiv</option><option value="economy">Ressourcenorientiert</option></select></label></div>'+
       '<p class="ad120-lab-caption">Je Deck 5 gepaarte Probeduelle. Das ist ein schneller Vergleich, keine belastbare Langzeit-Balanceanalyse.</p>'+
@@ -297,7 +307,7 @@
       format(r.damage/Math.max(1,r.completed))+' Schaden · '+
       (r.fusions/Math.max(1,r.completed)).toFixed(1)+' Fusionen</small>'+
       (r.errors?'<small>'+r.errors+' nicht abgeschlossene Probeduelle</small>':''))+'</article>').join('')+'</div>'+
-      '<p class="ad120-lab-caption">Die simulierte KI ersetzt keine menschliche Spielweise. Gleiche Seeds erlauben einen ersten Vergleich, beweisen aber keine Decküberlegenheit.</p>';
+      '<p class="ad120-lab-caption">Die Ergebnisse geben dir einen ersten Eindruck. Im echten Duell zählen natürlich auch deine Entscheidungen.</p>';
     if(runButton.isConnected)runButton.disabled=false;
   }
 
@@ -306,8 +316,8 @@
     const host=$id('menuHero');
     if(!host||host.querySelector('#ad120-menu-tools'))return;
     const element=document.createElement('div');element.id='ad120-menu-tools';element.className='ad120-menu-tools';
-    element.innerHTML='<button class="btn" id="ad120-open-lab">⚗ Taktisches Decklabor</button>'+
-      '<button class="btn" id="ad120-open-tutorial">✧ Interaktiver Spieleinstieg</button>'+
+    element.innerHTML='<button class="btn primary" id="ad120-open-tutorial">✧ Drei Lernduelle · jetzt starten</button>'+
+      '<button class="btn" id="ad120-open-lab">⚗ Decks ausprobieren</button>'+
       (lastReport?'<button class="btn" id="ad120-open-report">▤ Letzten Duellbericht lesen</button>':'');
     host.appendChild(element);
     $id('ad120-open-lab').onclick=openLab;

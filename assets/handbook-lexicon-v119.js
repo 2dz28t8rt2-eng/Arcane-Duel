@@ -9,7 +9,7 @@
  // were left behind by a late-loaded perk definition. Correct display only.
  if(UPGRADES.resilience)UPGRADES.resilience.desc='Verringert den levelabhängigen Kreaturenzerfall deiner Monster um 10 % pro Rang (maximal 20 %). Angriffsverschleiß bleibt unverändert.';
  if(UPGRADES.fusionLore)UPGRADES.fusionLore.desc='Die erste Fusion pro Duell erhält +1 echten Wertewurf. Die erste Kettenfusion kann zusätzlich einmalig +3 % Qualität erhalten.';
- if(UPGRADES.fusionPrecision)UPGRADES.fusionPrecision.desc='Verbessert die Qualität von Spezialfusionen. Vollständige Pokerstraßen profitieren besonders; auf Rang 3 erhalten Große und Gigantische Straßen einen zusätzlichen Wurf (innerhalb der Obergrenzen).';
+ if(UPGRADES.fusionPrecision)UPGRADES.fusionPrecision.desc='Verbessert die Qualität von Spezialfusionen. Vollständige Spezialstraßen profitieren besonders; auf Rang 3 erhalten Große und Gigantische Straßen einen zusätzlichen Wurf (innerhalb der Obergrenzen).';
 
  const labels={predator:'Predator',guardian:'Wächter',soul:'Seelenzehrer',resonator:'Resonator',allrounder:'Allrounder',combatant:'Allrounder'};
  const types={normal:'Normales Monster',fusion:'Fusionsvorlage',ace:'ACE-Karte',essence:'Essenzwesen',special:'Sondermonster'};
@@ -61,7 +61,7 @@
   const root=$('menuContent')?.querySelector('.monster-index');if(!root||menuTab!=='lexicon')return;
   const all=catalog(),known=all.filter(seen),ownedCount=known.filter(owned).length;
   root.classList.add('ad119-lexicon');
-  root.innerHTML='<div class="ad119-lexicon-intro"><div><p class="ad119-eyebrow">BESTIARIUM · STAND V11.8</p>'+
+  root.innerHTML='<div class="ad119-lexicon-intro"><div><p class="ad119-eyebrow">DEINE ENTDECKUNGEN</p>'+
    '<h2>Monsterlexikon</h2><p>Hier kannst du deine entdeckten Monster in Ruhe kennenlernen – auch die neuen höheren Stufen und Fusionsvorlagen. '+
    'Du siehst nur Namen und Bilder von Karten, die du schon kennst. Geheimnisse bleiben Geheimnisse.</p></div>'+
    '<div class="ad119-count"><strong>'+known.length+'</strong><span>entdeckt von '+all.length+' Kartenvarianten</span></div></div>'+
@@ -125,7 +125,7 @@
   'Fusionen erschaffen':{heading:'Zwei Schritte, kein Geheimtrick',text:'Eine Handfusion entsteht aus zwei bis fünf Karten und einer ausgerüsteten Vorlage. Bei einer Feldfusion kannst du danach ein bereits liegendes Monster als weiteres Material verwenden. Du verbrauchst dabei die Karten im Duell, nicht in deiner Sammlung.'},
   'Welche Rolle erbt eine Fusion?':{heading:'Ein Tipp zur Rollenwahl',text:'Predator für offensive Fusionen, Wächter und Seelenzehrer für längere Duelle. Ohne eindeutige Materialmehrheit kann ein Resonator entstehen. Die Rolle prägt ATK und DEF bereits vor den Wertewürfen.'},
   'Dein Deck und deine Sammlung':{heading:'Neu im Monsterlexikon',text:'Das Bestiarium zeigt jetzt auch deine freigeschalteten höheren Monster, Fusionsvorlagen und besonderen Karten. Filtere nach Level, Element oder Rolle. Unbekannte Karten werden nicht gespoilert.'},
-  'Besser werden ohne blind zu farmen':{heading:'Zwei Werkstätten, zwei Ziele',text:'Die gewöhnliche Monsterwerkstatt verteilt Levelpunkte innerhalb einer Familie um. Die Aufstiegsschmiede schmilzt drei freie Karten derselben Stufe zu einer Karte der nächsthöheren Stufe – inklusive Zufall und Essenzkosten.'},
+  'Mit jedem Duell stärker werden':{heading:'Zwei Werkstätten, zwei Ziele',text:'In der Monsterwerkstatt formst du Karten einer Familie um. In der Aufstiegsschmiede machst du aus drei freien Karten derselben Stufe eine höhere. Dafür brauchst du etwas Essenz und Geduld.'},
   'Bereit für die Arena!':{heading:'Vor jedem schweren Turniergegner',text:'Schau nach einer Niederlage zuerst auf dein Hauptdeck, dann auf deine Fusionsvorlagen. Sind passende Karten da, aber keine freien Kopien? Sammle gezielt weiter, bevor du deine Lieblingskarten einschmilzt.'}
  };
  function guide(){
@@ -147,7 +147,7 @@
    'Standhaftigkeit verringert den Zerfall deiner Monster um 10 oder 20 %.</p>'+
    '<p>Anders als Kreaturenzerfall kostet auch jeder normale Angriff normalerweise 30 ATK. '+
    'Ab Runde 10 steigt außerdem der Schaden der Arena an beiden Spielern.</p>';
-  if(title==='Besser werden ohne blind zu farmen'&&ps[1])ps[1].innerHTML=
+  if(title==='Mit jedem Duell stärker werden'&&ps[1])ps[1].innerHTML=
    '<h3>Die Monsterwerkstatt</h3><p>Hier bleibt die Summe der Levelpunkte erhalten. '+
    'Aus Karten derselben Familie mit <b>2 + 2 + 1</b> kann beispielsweise eine Karte auf Level 5 werden. '+
    'Die Werkstattgrenze wird durch Turniersiege angehoben.</p>'+
@@ -169,11 +169,11 @@
  function rewriteBook(){
   const modal=$('modal'),book=modal?.querySelector('.arcane-handbook');if(!book)return;
   const kicker=modal.querySelector('.modal-kicker');
-  if(kicker)kicker.textContent='ARCANE DUEL 11.8 · AKTUELLES REGELBUCH';
+  if(kicker)kicker.textContent='DAS DUELLANTENHANDBUCH';
   const intro=book.querySelector('.arcane-rule-intro');
-  if(intro)intro.innerHTML='<b>Arcane Duel 11.8</b> · Hier stehen die aktuellen Regeln in normalen Worten. '+
-   'Du musst nicht alles auswendig lernen: Such dir ein Kapitel aus und probiere eine Idee im nächsten Duell. '+
-   'Die Beispiele beziehen sich auf den Einzelspielermodus; lokale PvP-Ausnahmen sind ausdrücklich gekennzeichnet.';
+  if(intro)intro.innerHTML='<b>Willkommen!</b> Hier findest du Antworten zu den Karten, Kämpfen und deinen Möglichkeiten. '+
+   'Du musst nicht alles auf einmal lesen. Fang mit dem ersten Kapitel an oder suche nach einer Frage. '+
+   'Wenn etwas im gemeinsamen 2v2 anders funktioniert, steht es dabei.';
   const ch=[...book.querySelectorAll('.arcane-rule-chapter')];
   const insert=(i,html)=>{const body=ch[i-1]?.querySelector('.arcane-rule-body');if(body)body.insertAdjacentHTML('beforeend',html);};
   insert(1,block('Ein ganz normaler erster Zug',

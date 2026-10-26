@@ -10,7 +10,7 @@ const categories=[
  {id:'play',icon:'⚔',title:'Duellieren',subtitle:'Arena, Duelle & PvP',tabs:['tournament','free','pvp']},
  {id:'deck',icon:'▤',title:'Deck & Sammlung',subtitle:'Karten und Deckbau',tabs:['collection','fusions','decks','lexicon']},
  {id:'missions',icon:'✧',title:'Herausforderungen',subtitle:'Lernpfad und Quests',tabs:['challenges']},
- {id:'growth',icon:'✦',title:'Fortschritt',subtitle:'Skills, Belohnungen & Booster-Shop',tabs:['workshop','upgrades','xp','shop','packs']},
+ {id:'growth',icon:'✦',title:'Fortschritt',subtitle:'Verbesserungen, Belohnungen & Kartenpakete',tabs:['workshop','upgrades','xp','shop','packs']},
  {id:'options',icon:'⚙',title:'Spielstand & Extras',subtitle:'Chronik und Optionen',tabs:['stats','settings']}
 ];
 const descriptions={
@@ -18,7 +18,7 @@ const descriptions={
  free:['Freie Duelle','Trainiere und sammle Beute gegen bekannte Gegner.'],
  pvp:['Lokales PvP','Spiele mit zwei Personen am selben Gerät.'],
  challenges:['Lernpfad & Herausforderungen','Übe Kombinationen mit Leihdecks und erfülle Spezialmissionen.'],
- lexicon:['Wissen & Monsterlexikon','Startanleitung, aktuelles Regelbuch und Kartensammlung an einem Ort.'],
+ lexicon:['Wissen & Monsterlexikon','Lerne die Regeln kennen und entdecke neue Monster.'],
  collection:['Dein Hauptdeck','Wähle und verstärke genau 40 Hauptkarten.'],
  fusions:['Deine Fusionen','Verwalte die Vorlagen für mächtige Verschmelzungen.'],
  decks:['Deckplätze','Organisiere deine drei Deckvarianten.'],
@@ -26,8 +26,8 @@ const descriptions={
  packs:['Charakter-Boosterpacks','Öffne bereits verdiente Charakter-Boosterpacks.'],
  xp:['Levelbelohnungen','Sieh deine nächsten Fortschrittsmeilensteine.'],
  workshop:['Monsterwerkstatt','Verbinde und zerlege freie Monster derselben Familie.'],
- upgrades:['Skills & Perks','Passe deine langfristigen Verbesserungen an.'],
- stats:['Chronik & Hinweise','Deine Duelle, Taktiken und Statistiken.'],
+ upgrades:['Verbesserungen','Mach deine Lieblingsmonster stärker.'],
+ stats:['Deine Chronik','Erinnere dich an deine Duelle und Siege.'],
  settings:['Einstellungen und Spielstandoptionen','Speichern, Import, Export und Einstellungen.']
 };
 function go(tab){
@@ -50,7 +50,7 @@ function renderRoyalMenu(){
  const tabs=new Map([...nav.querySelectorAll('button[data-tab]')].map(btn=>[btn.dataset.tab,btn]));
  nav.replaceChildren();nav.className='fm-navigation';
  nav.innerHTML='<div class="fm-nav-brand"><span>✧</span><div><strong>ARCANE DUEL</strong><small>4.1 · BESTIARIUM</small></div></div>';
- const titles={tournament:'Turnier',free:'Freie Duelle',pvp:'Lokales PvP',collection:'Hauptdeck',fusions:'Fusionsdeck',decks:'Deckplätze',lexicon:'Monsterlexikon',challenges:'Challenges & Quests',workshop:'Monsterwerkstatt',upgrades:'Skills & Perks',xp:'Levelbelohnungen',shop:'Booster-Shop',packs:'Charakter-Boosterpacks',stats:'Chronik',settings:'Einstellungen und Spielstandoptionen'};
+ const titles={tournament:'Turnier',free:'Freie Duelle',pvp:'Lokales PvP',collection:'Hauptdeck',fusions:'Fusionsdeck',decks:'Deckplätze',lexicon:'Monsterlexikon',challenges:'Aufgaben & Abenteuer',workshop:'Monsterwerkstatt',upgrades:'Verbesserungen',xp:'Levelbelohnungen',shop:'Booster-Shop',packs:'Charakter-Boosterpacks',stats:'Chronik',settings:'Einstellungen & Spielstand'};
  const activeGroup=categories.find(g=>g.tabs.includes(menuTab))||categories[0];
  for(const group of categories){
   const active=group.id===activeGroup.id,section=document.createElement('section');section.className='fm-menu-group'+(active?' selected':'');
@@ -64,9 +64,9 @@ function renderRoyalMenu(){
   nav.append(section);
  }
  const help=document.createElement('div');help.className='fm-help';
- help.innerHTML='<button type="button" class="fm-rule-link" data-royal="rules">📖 <strong>Regel-Lexikon</strong><small>Alle Mechaniken & Suche</small></button>'+
+ help.innerHTML='<button type="button" class="fm-rule-link" data-royal="rules">📖 <strong>Regelhandbuch</strong><small>Alles, was du wissen möchtest</small></button>'+
  '<button type="button" class="fm-start-link" data-royal="start">✧ Startanleitung</button>'+ 
- '<button type="button" class="fm-start-link fm-hint-link" data-royal="stats">✦ Taktische Hinweise kaufen · Chronik</button>';
+ '<button type="button" class="fm-start-link fm-hint-link" data-royal="stats">✦ Deine Duellchronik</button>';
  nav.append(help);
  const hidden=document.createElement('div');hidden.hidden=true;hidden.className='fm-tab-storage';
  for(const [,button] of tabs)if(!button.isConnected)hidden.append(button);
@@ -74,7 +74,7 @@ function renderRoyalMenu(){
  const slot=$('activeSlotSelect'),current=descriptions[menuTab]||descriptions.tournament;
  hero.innerHTML='<div class="fm-hero-content"><div><span class="fm-eyebrow">✦ ARCANE DUEL 4.1 · '+safe(activeGroup.title)+'</span>'+
  '<h1>'+safe(current[0])+'</h1><p>'+safe(current[1])+'</p></div>'+
- '<div class="fm-hero-utility"><button type="button" class="fm-hero-rules" data-royal="rules">📖 Regel-Lexikon</button>'+
+ '<div class="fm-hero-utility"><button type="button" class="fm-hero-rules" data-royal="rules">📖 Regelhandbuch</button>'+
  '<label>Aktives Deck <span id="fmDeckSlot"></span></label></div></div>'+
  (profile.activeDuel?'<div class="fm-resume-bar"><b>↶ Laufendes Duell</b><button type="button" class="btn primary" data-royal="resume">Duell fortsetzen</button></div>':'')+
  (profile.migrationMessage?'<p class="fm-migration">'+safe(profile.migrationMessage)+'</p>':'');
@@ -83,7 +83,7 @@ function renderRoyalMenu(){
   const groups=[['⚔ Kampf & Schutz',['power','starter','combatDiscipline','openingAegis','resilience']],
    ['✧ Fusion & Kombinationen',['fusionLore','fusionPrecision']],
    ['✦ Ressourcen & Training',['loot','learning','tempo']]];
-  panel.innerHTML='<div class="fm-perk-intro"><h2>Duellanten-Akademie</h2><p>Spezialisierte Fähigkeiten mit festen Obergrenzen. Deine bestehenden Ränge bleiben unverändert.</p></div>'+
+  panel.innerHTML='<div class="fm-perk-intro"><h2>Duellanten-Akademie</h2><p>Hier machst du deine Monster dauerhaft stärker. Entscheide, welche Verbesserungen zu deinem Deck passen.</p></div>'+
   groups.map(([heading,keys])=>'<section class="fm-perk-category"><h3>'+heading+'</h3><div class="fm-perk-grid">'+keys.map(key=>{
    const u=UPGRADES[key];if(!u)return '';
    const rank=profile.upgrades[key]||0,maxed=rank>=u.max,cost=maxed?0:upgradeCost(key);
@@ -99,8 +99,8 @@ function renderRoyalMenu(){
  }
  if(menuTab==='lexicon'){
   const entry=document.createElement('section');entry.className='menu-panel fm-lexicon-intro';
-  entry.innerHTML='<h2>📖 Schneller zu den Spielregeln</h2><p>Regelbuch und Einstieg sind ab sofort getrennt und sofort erreichbar.</p>'+
-   '<div class="fm-lexicon-links"><button type="button" data-royal="rules"><strong>📖 Regel-Lexikon</strong><small>Mechaniken & Suchfunktion</small></button>'+
+  entry.innerHTML='<h2>📖 Hier findest du Antworten</h2><p>Du bist neu? Beginne mit der Startanleitung. Im Regelhandbuch kannst du alles in Ruhe nachlesen.</p>'+
+   '<div class="fm-lexicon-links"><button type="button" data-royal="rules"><strong>📖 Regelhandbuch</strong><small>Regeln mit Beispielen</small></button>'+
    '<button type="button" data-royal="start"><strong>✧ Startanleitung</strong><small>Für Neulinge</small></button>'+
    '<button type="button" data-royal="challenges"><strong>⚔ Lernherausforderungen</strong><small>Spielend lernen</small></button></div>'+
    '<div class="royal-fate-entry"><span>Die zehn Schicksalsmonster kennenlernen</span><button class="btn" data-royal="gallery">✦ Schicksalsgalerie · Spoiler</button></div>';
@@ -161,7 +161,7 @@ function decorateRules(){
  if(!book||book.querySelector('.royal-handbook-intro'))return;
  if(!book.querySelector('#fm-perk-rule')){
   book.insertAdjacentHTML('beforeend',
-   '<details class="arcane-rule-chapter" id="fm-perk-rule"><summary>12 · Skills, Perks &amp; sichere Investitionen</summary>'+
+   '<details class="arcane-rule-chapter" id="fm-perk-rule"><summary>12 · Verbesserungen, die zu deinem Deck passen</summary>'+
    '<div class="arcane-rule-body"><h3>Ein Ausbau soll zu deinen gespielten Karten passen</h3><p>Ausbauten kosten Essenz und wirken dauerhaft im Einzelspieler-Modus. Lies vor dem Kauf, welche Karten sie betreffen. Ein Bonus auf normale Monster erhöht nicht automatisch die Referenzwerte deiner Fusionen.</p>'+
    '<p><b>Jagdinstinkt</b> verbessert normale Predatoren. <b>Schildwall</b> verbessert normale Wächter und Seelenzehrer gemeinsam. Beide haben höchstens fünf Ränge und skalieren mit der Monsterstufe. Bei Stufe 5 gibt ein Rang Jagdinstinkt beispielsweise 55 ATK und 15 DEF; ein Rang Schildwall gibt einem passenden Verteidiger 15 ATK und 60 DEF.</p>'+
    '<p>Normale Wächter und Seelenzehrer erhalten zusätzlich einen DEF-Grundbonus aus 9 % des Budgets ihrer Monsterstufe. Ab Stufe 6 erhalten normale Monster je weiterer Stufe 20 ATK und DEF. Diese Grundboni sind unabhängig davon, ob du schon eine Rollenspezialisierung gekauft hast.</p>'+

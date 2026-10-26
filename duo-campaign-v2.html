@@ -2,7 +2,7 @@
 <html lang="de"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<title>Arcane Duel · 2v2 Regelangleichung (Beta)</title>
+<title>Arcane Duel · Das Bündnis der Vier</title>
 <link rel="stylesheet" href="assets/duo-campaign-demo.css?v=duo-v166">
 <link rel="stylesheet" href="assets/duo-parity-v160.css?v=duo-v174">
 <link rel="stylesheet" href="assets/duo-cinematics-v167.css?v=duo-v167">
@@ -11,57 +11,54 @@
 <link rel="stylesheet" href="assets/duo-hand-cinema-v178.css?v=duo-v178">
 </head><body><main class="duo-wrap">
 <header class="duo-header">
- <div><p class="kicker">✧ ARCANE DUEL · 2V2 REGELANGLEICHUNG</p>
+ <div><p class="kicker">✧ ARCANE DUEL · GEMEINSAME KAMPAGNE</p>
  <h1>Das Bündnis der Vier</h1>
- <p>Eine eigene kooperative Kampagne: Zwei Menschen gegen zwei KI-Gegner – mit getrennten 2v2-Profilen.</p></div>
+ <p>Schließ dich mit einem Freund zusammen und stellt euch zu zweit den Gegnern der Arena.</p></div>
  <a href="index.html">← Zum Hauptspiel</a>
 </header>
 <aside class="notice">
- <b>Eigenständige Arcane-Duel-2v2-Kampagne – 2 Menschen gegen 2 KI-Gegner.</b>
- Singleplayer- und 2v2-Spielstände sind vollständig getrennt. Es gibt keinen Import
- oder Export von Karten, Decks, Ausbaurängen oder Belohnungen zwischen diesen Modi.
- Jeder Mensch erstellt ein eigenes kostenloses 2v2-Profil, beginnt mit einem Startdeck
- und entwickelt seine Sammlung ausschließlich über bestätigte 2v2-Erfolge.
- Online-Spielzüge werden automatisch auf dem Server gespeichert. Das Profil
- bleibt auch nach dem Ablauf eines Raumes bestehen. Gegner-KI-Forschung bleibt unverändert.
+ <b>Gemeinsam kämpfen, gemeinsam wachsen.</b>
+ Ihr tretet zu zweit gegen zwei Computergegner an. Jeder beginnt mit einem eigenen
+ 2v2-Deck und sammelt neue Karten und Verbesserungen. Dein Einzelspieler-Fortschritt
+ bleibt davon getrennt. Euer Duell wird nach jedem Zug automatisch gespeichert.
 </aside>
 <section id="duoProfilePanel" class="duo-panel duo-profile-panel">
- <h2>✧ Eigenes 2v2-Profil</h2>
- <p class="micro">Nur für 2v2. Der Singleplayer-Spielstand wird weder gelesen noch verändert.</p>
+ <h2>✧ Dein 2v2-Abenteuer</h2>
+ <p class="micro">Deine Karten und Fortschritte gehören nur zu dieser gemeinsamen Kampagne.</p>
  <div id="duoProfileCreateArea">
-  <p>Erstelle ein kostenloses 2v2-Profil mit eigenem Startdeck und dauerhaftem Fortschritt.</p>
-  <button id="duoProfileCreate" type="button">Eigenständiges 2v2-Profil erstellen</button>
+  <p>Erstelle deinen Duellanten und beginne mit einem eigenen Startdeck. Alles, was du erspielst, bleibt dir erhalten.</p>
+  <button id="duoProfileCreate" type="button">Meinen Duellanten erstellen</button>
  </div>
  <div id="duoProfileActive" hidden>
   <p id="duoProfileStats" class="duo-profile-stats"></p>
   <p id="duoProfileCleared" class="micro"></p>
   <p id="duoProfileUnlockInfo" class="micro"></p>
    <section class="duo-balance-panel" aria-label="Fortschritt und Kapitelbelohnungen">
-    <h3>Kapitelbelohnungen & nächste Ziele</h3>
+    <h3>Deine nächsten Ziele</h3>
     <p id="duoFirstClearCards" class="duo-chapter-credits"></p>
-    <button id="duoChapterCardClaim" type="button" disabled>Garantierte Kapitelkarte einlösen</button>
+    <button id="duoChapterCardClaim" type="button" disabled>Kapitelkarte abholen</button>
     <p id="duoChapterClearPreview" class="micro"></p>
-    <label>Geplantes Kartenpaket
+    <label>Für welches Kartenpaket sparst du?
      <select id="duoBalancePack"></select>
     </label>
     <p id="duoBalanceGoal" class="micro"></p>
-    <p class="micro">Erste Kapitelsiege vergeben volle Belohnungen und drei Kartenansprüche.
-     Wiederholungssiege geben weniger Ressourcen (max. drei Auszahlungen pro Kapitel und UTC-Tag).
-     Angezeigte Siege sind eine rechnerische Orientierung, keine Siegprognose.</p>
+    <p class="micro">Beim ersten Sieg in einem Kapitel erwarten dich besondere Belohnungen.
+     Du darfst frühere Kapitel wiederholen, um für neue Karten zu sparen. Bis zu drei Wiederholungssiege
+     pro Kapitel und Tag bringen zusätzliche Ressourcen.</p>
    </section>
   <div class="actions">
-   <button id="duoProfileBackup" type="button">Privaten Profil-Wiederherstellungslink kopieren</button>
-   <button id="duoProfileReload" type="button">Profil synchronisieren</button>
-   <button id="duoProfileContinue" type="button" hidden>Letzten 2v2-Raum fortsetzen</button>
+   <button id="duoProfileBackup" type="button">Profil-Zugangslink sichern</button>
+   <button id="duoProfileReload" type="button">Spielstand aktualisieren</button>
+   <button id="duoProfileContinue" type="button" hidden>Letztes Duell fortsetzen</button>
   </div>
-  <label id="duoProfileBackupBox" hidden>Privat aufbewahren – wer diesen Link besitzt, kann dein 2v2-Profil steuern.
+  <label id="duoProfileBackupBox" hidden>Bewahre diesen Link sicher auf. Wer ihn besitzt, kann auf dein Profil zugreifen.
    <input id="duoProfileBackupLink" readonly autocomplete="off" spellcheck="false">
   </label>
   <div class="duo-profile-shop">
    <div>
     <h3>Verbesserungen</h3>
     <select id="duoProfilePerk"></select>
-    <button id="duoProfileUpgrade" type="button">Rang mit Essenz erhöhen</button>
+    <button id="duoProfileUpgrade" type="button">Verbesserung kaufen</button>
    </div>
    <div>
     <h3>Kartenpakete</h3>
@@ -77,17 +74,17 @@
     <button id="duoProfileBuyPack" type="button">Paket öffnen</button>
    </div>
    <div class="duo-research">
-    <h3>Eigenständige 2v2-Forschung</h3>
-    <p class="micro" id="duoResearchLv1Status">Lv1-Forschung lädt …</p>
+    <h3>Besondere Fähigkeiten</h3>
+    <p class="micro" id="duoResearchLv1Status">Deine Fähigkeiten werden geladen …</p>
     <button type="button" id="duoResearchLv1Buy">Verbotene Forschung freischalten</button>
-    <p class="micro" id="duoResearchEssenceStatus">Essenzforschung lädt …</p>
+    <p class="micro" id="duoResearchEssenceStatus">Deine Fähigkeiten werden geladen …</p>
     <button type="button" id="duoResearchEssenceBuy">Essenzforschung freischalten</button>
     <label>Eigene Essenzbindung
       <select id="duoEssenceBindCard"></select>
     </label>
     <button type="button" id="duoEssenceBindSave">Essenzwesen binden</button>
-    <p class="micro">Nur eigene 2v2-Karten und vollständig abgeschlossene 2v2-Kapitel zählen.
-     Alle Forschungskosten werden vor dem Kauf angezeigt.</p>
+    <p class="micro">Neue Fähigkeiten schaltest du im Lauf deiner gemeinsamen Kampagne frei.
+     Was du dafür brauchst, steht direkt bei der Fähigkeit.</p>
    </div>
    <div>
     <h3>Deck bearbeiten</h3>
@@ -96,7 +93,7 @@
     <label>Platz <select id="duoProfileDeckSlot"></select></label>
     <label>Karte <select id="duoProfileDeckCard"></select></label>
     <button id="duoProfileDeckSave" type="button">Deckplatz ersetzen</button>
-    <p class="micro">Nur bereits erworbene 2v2-Karten sind einsetzbar. Laufende Duelle behalten ihr Startdeck.</p>
+    <p class="micro">Du kannst nur Karten einsetzen, die du besitzt. Änderungen gelten ab dem nächsten Duell.</p>
    </div>
   </div>
   <section class="duo-collection" aria-label="Eigene 2v2-Sammlung und Kartenschmiede">
@@ -120,7 +117,7 @@
      <tr><th>Karte</th><th>Art / Lv</th><th>Besitz</th><th>Im Deck</th><th>Frei</th><th>Verstärkung</th></tr>
     </thead><tbody id="duoCollectionRows"></tbody></table>
    </div>
-   <p class="micro">Karten in aktiven Decks und besondere Questkarten sind vor dem Zerlegen geschützt. Änderungen gelten für neu gestartete Duelle.</p>
+   <p class="micro">Karten aus deinem Deck und wichtige Questkarten bleiben geschützt. Änderungen gelten ab dem nächsten Duell.</p>
    <div class="duo-collection-actions">
     <section>
      <h4>Karte verbessern</h4>
@@ -143,7 +140,7 @@
 <div class="duo-layout">
 <section class="duo-panel">
  <h2>✦ Gemeinsam starten</h2>
-  <p class="micro duo-team-definition"><strong>2 Menschen gegen 2 KI-Gegner.</strong> Gastgeber und Partner spielen zusammen; die beiden Gegner werden vom Server gesteuert. Es gibt keine weiteren menschlichen Sitzplätze.</p>
+  <p class="micro duo-team-definition"><strong>Du und dein Partner gegen zwei Gegner.</strong> Sobald dein Freund beitritt, kann euer Abenteuer beginnen.</p>
  <ol class="duo-steps">
   <li id="duoStepCreate">Raum erstellen</li>
   <li id="duoStepInvite">Partner einladen</li>
@@ -156,7 +153,7 @@
  <label id="duoChapterSelect" hidden>Kapitel
   <select id="duoChapter"></select></label>
  <label>Spielername <input id="duoHostName" maxlength="32" value="Duellant A"></label>
- <div id="duoDeckInfo" class="duo-deck-info">Lade Karten und gespeichertes Deck …</div>
+ <div id="duoDeckInfo" class="duo-deck-info">Dein Deck wird vorbereitet …</div>
  <div class="actions">
   <button id="duoCreate" disabled>Raum erstellen</button>
   <button id="duoAccept" hidden disabled>Einladung annehmen</button>
@@ -165,83 +162,60 @@
   <label>Einmaliger Einladungslink <input id="duoInvite" readonly></label>
   <button id="duoCopy">Link kopieren</button>
  </div>
- <p class="room-code">Raumkennung: <code id="duoRoomId">—</code></p>
+ <p class="room-code">Euer Duell: <code id="duoRoomId">—</code></p>
  <div class="duo-save-state" id="duoSaveState" role="status" aria-live="polite">
-  Online-Räume speichern nach jedem akzeptierten Spielzug.</div>
+  Dein Duell wird nach jedem Zug gespeichert.</div>
  <div class="actions"><button id="duoRefresh" disabled>↻ Spielstand aktualisieren</button></div>
  <section id="duoRecoveryArea" class="duo-recovery" hidden>
   <h3>Privaten Raumzugang sichern</h3>
-  <p>Dein Duell wird automatisch auf dem Server gespeichert. Mit deinem gespeicherten 2v2-Profil kannst du denselben Raum auf einem anderen Gerät wieder öffnen. Alternativ lässt sich ein separater Raum-Wiederherstellungslink sichern.
-   Der Raum-Link steuert ausschließlich deinen Sitzplatz und ist auf den Raum begrenzt. Dein 2v2-Profil bleibt unabhängig davon gespeichert.</p>
+  <p>Du kannst später weiterspielen – sogar auf einem anderen Gerät. Sichere dafür deinen persönlichen Zugangslink.
+   Der Link gilt nur für deinen Platz in diesem Duell, nicht für dein gesamtes Profil.</p>
   <button id="duoRecoveryCopy" type="button">🔐 Privaten Wiederherstellungslink kopieren</button>
   <label id="duoRecoveryHelp" hidden>Nur für dich – niemals an Mitspieler weitergeben!
    Wer diesen Link besitzt, kann deinen Sitzplatz übernehmen.
    <input id="duoRecoveryLink" type="text" readonly hidden autocomplete="off" spellcheck="false">
   </label>
  </section>
- <details class="duo-guide"><summary>Was gilt in dieser Beta?</summary>
+ <details class="duo-guide"><summary>Wie funktioniert ein gemeinsames Duell?</summary>
+  <h3>So spielt ihr zusammen</h3>
   <ul>
-   <li>Vier Sitzplätze: Gastgeber → KI A → Partner → KI B.</li>
-   <li>Jeder hat 40 Hauptkarten, ein eigenes Fusionsdeck, fünf Handkarten und sieben Feldplätze.</li>
-   <li>Beide Teams teilen sich je 16.000 LP; Beschwörung, Angriff und Position werden geprüft.</li>
-   <li>2v2-Ausbauten, eigene Karte und Fusionsdeck werden ausschließlich aus dem
-    separaten servergespeicherten 2v2-Profil übernommen. Keine Singleplayer-Imports.</li>
-   <li>Essenzwesen, Forschung und Spezialkarten werden erst über eigenständigen
-    2v2-Fortschritt zugänglich; bestehende Solo-Freischaltungen zählen nicht.</li>
-   <li>Aschenhort in DEF zieht den ersten gegnerischen Angriff jedes Gegnerzugs
-    auf sich und halbiert dessen Angriffsstärke. Verteidigungsspezialisierung
-    mindert den Zerfall eigener Wächter und Seelenzehrer und erhöht die
-    gespeicherte Seelenenergie beim Entzug. Auf maximalem Rang
-    rettet „Letztes Bollwerk“ einmal pro Kapitel einen Verbündeten mit 1 DEF
-    und schützt ihn vor Angriffen in den nächsten zwei abgeschlossenen
-    gegnerischen Zügen.</li>
-   <li>Vorhut-Schutz beider Partner schützt die gemeinsamen Team-LP vor Schaden
-    (je Rang 25 Schildpunkte). Die Schildpunkte erneuern sich bei Kapitelwechsel.
-    Zerfall steigt mit dem Monsterlevel; Standhaftigkeit verringert ihn um bis zu 20 %.
-    Kampfdisziplin reduziert die ATK-Müdigkeit nach einem Angriff.</li>
-   <li>Fusionen nutzen ausschließlich eigene Hand-, Feld- und bei freigeschalteter
-    Forschung auch Geistermaterialien. Vorlagen aus dem
-    eigenen Fusionsdeck werden im Duell verbraucht. Kernkarte, Pokerkombination
-    (z. B. Straße oder Full House), Elementharmonie, Resonanz und echte
-    Qualitätswürfe bestimmen das Ergebnis. Die Vorschau erklärt Level und Wertebereich.</li>
-   <li>Besondere Level-1-Fusionen erfordern die später eigenständig erspielte
-    2v2-Forschung; eine Freischaltung aus dem Singleplayer kann nicht importiert werden.</li>
-   <li>Geisterzonen sind angreifbar und verhindern direkte Angriffe, solange sie
-    besetzt sind. Monster können unter Verbrauch ihrer Aktion hinein- oder
-    herauswechseln. Geisterfunken zählen als Lv2-Fusionsmaterial. Bei echten
-    Lv1-Beschwörungen entstehen kostenlose Schwarm-Echos, bei deren Tod kann
-    ein Floating-Echo oder ein zufälliges echtes Lv1-Monster aus dem eigenen
-    Deck gewählt werden. Die Zahl der Auslöser pro Zug ist begrenzt.</li>
-   <li><b>Schicksalszug ab Runde 3:</b> Ist ein Duellant wirklich bedrängt,
-    kann er mit 1 %, 3 % oder maximal 5 % Chance pro eigenem Zug fünf
-    unverschmelzbare Schicksalsmonster erhalten. Die Bedrängnis berücksichtigt
-    die gemeinsamen Team-LP, beide verbündeten Felder, beide Gegnerfelder
-    und mögliche tödliche Angriffe. Seine bisherigen Handkarten wandern
-    zurück ins Deck. Die Werte liegen jeweils 100 ATK und 100 DEF über
-    dem stärksten gegnerischen Monster (maximal 10.000). Die Karten verschwinden
-    nach dem Kapitel; jedes der vier Teammitglieder erhält höchstens einmal
-    pro Kapitel diese Chance auf eine erfolgreiche Rettung.</li>
-   <li><b>Arena-Zerfall ab Runde 10:</b> Nach jedem vollständigen Durchlauf
-    durch alle vier Sitzplätze verlieren beide Teams gemeinsam 320 LP,
-    anschließend verdoppelt sich der Schaden pro Runde (bis maximal 16.000).
-    Der Zerfall ignoriert Schilde. Bei gleichzeitigem K. o. gewinnt das Team
-    mit mehr LP vor dem Zerfall; bei Gleichstand entscheidet die zu Spielbeginn
-    ausgeloste Initiative.</li>
-   <li>Predatoren erhalten +2 % Angriffsschaden pro eigenem Predator auf dem Feld
-    (maximal +10 %) und durchdringen 10 % der DEF-Rüstung von Wächtern/Seelenzehrern.</li>
-   <li>In DEF-Position nehmen Wächter und Seelenzehrer 35 % weniger Trefferstärke
-    und kontern mit 50 % ATK. DEF-Schaden bleibt erhalten; verdichtete und gespeicherte
-    Seelenenergie wird zuerst verbraucht.</li>
-   <li>Seelenzehrer entziehen zu Beginn des eigenen Zuges Werte aus beiden gegnerischen
-    Feldern. In DEF-Position können sie verdichten, entladen und gezielt rauben.</li>
-   <li>Wächter heilen verbündete DEF-Monster bis zu deren ursprünglichem Grundwert.
-    Resonanz und Fusionen richten sich nach den eingesetzten Materialien.</li>
-   <li>Bei fehlenden Karten im Deck zu Beginn des eigenen Zuges verliert das Team.</li>
-   <li>Räume bleiben bei Aktivität bis zu 90 Tage verfügbar. Das 2v2-Profil bleibt dauerhaft gespeichert. Der Online-Spielstand wird nach jeder Aktion
-    automatisch gespeichert. Im selben Tab erfolgt die Wiederaufnahme automatisch.
-    Über den ausdrücklich angeforderten privaten Wiederherstellungslink ist eine
-    Wiederaufnahme auch in einem neuen Tab oder auf einem anderen Gerät möglich.
-    Der Link ist ein geheimer Zugangsschlüssel und darf nicht geteilt werden.</li>
+   <li>Die Reihenfolge ist immer gleich: Du → erster Gegner → dein Partner → zweiter Gegner.
+    Ihr teilt euch <b>16.000 Lebenspunkte</b>, habt aber jeweils eigene Handkarten, Monster und Fusionsvorlagen.</li>
+   <li>Jeder spielt mit 40 Hauptkarten und bis zu sieben Monstern auf dem Feld.
+    Zu Beginn und beim Nachziehen kommen die Karten sichtbar in deine Hand.
+    Du darfst normalerweise einmal pro Zug beschwören und deine bereiten Monster angreifen lassen.</li>
+   <li>Ist dein Nachziehstapel zu Beginn deines Zuges leer, verliert euer Team.
+    Ab Runde 10 verliert jedes Team zusätzlich Lebenspunkte durch die Arena.</li>
+  </ul>
+  <h3>Welche Monster passen zusammen?</h3>
+  <ul>
+   <li><b>Predatoren</b> greifen entschlossen an. Jeder eigene Predator auf dem Feld verstärkt
+    ihre Angriffe um 2 %, höchstens um 10 %. Gegen verteidigende Wächter und Seelenzehrer
+    überwinden sie einen Teil des Schutzes.</li>
+   <li><b>Wächter</b> schützen eure Stellung und heilen verbündete Verteidiger.
+    <b>Seelenzehrer</b> sammeln Kraft aus den Gegnern. Beide halten in Verteidigung
+    35 % des Treffers ab und schlagen mit der Hälfte ihrer Angriffskraft zurück.</li>
+   <li><b>Verdichten</b> stärkt beim Seelenzehrer sowohl DEF als auch ATK.
+    Die Fähigkeit verbraucht seinen Zug nicht: Er darf danach die Position wechseln und
+    angreifen, sofern seine übrigen Aktionen bereit sind. Die Abklingzeit bleibt bestehen.</li>
+  </ul>
+  <h3>Fusionen und besondere Fähigkeiten</h3>
+  <ul>
+   <li>Für eine Fusion wählst du zwei bis fünf <b>eigene</b> Karten aus Hand oder Feld.
+    Die Stufen, ihre Rollen und Kombinationen wie Straßen oder Full House beeinflussen das Ergebnis.
+    Die Vorschau zeigt dir, welche Fusionen möglich sind.</li>
+   <li>Später kannst du besondere Level-1-Karten, Geisterzonen und Essenzwesen freischalten.
+    Geister schützen vor direkten Angriffen und können dir beim Fusionieren helfen.
+    Die Fähigkeiten erspielst du in deinem eigenen 2v2-Fortschritt.</li>
+   <li>In großer Bedrängnis kann ab Runde 3 ein <b>Schicksalszug</b> mit fünf vorübergehenden
+    Monstern helfen. Er ist selten und kann pro Duellant nur einmal je Kapitel gelingen.</li>
+  </ul>
+  <h3>Karten sammeln und weiterspielen</h3>
+  <ul>
+   <li>Wiederhole ruhig frühere Kapitel, um Essenz, Splitter und neue Karten zu sammeln.
+    Deine Sammlung gehört allein dir und bleibt von deinem Einzelspieler-Deck getrennt.</li>
+   <li>Dein Spielstand wird nach jedem bestätigten Zug gespeichert. Mit deinem persönlichen
+    Profil-Link kannst du später weiterspielen. Teile diesen Link mit niemandem.</li>
   </ul>
  </details>
  <p id="duoChapterInfo" class="micro"></p>

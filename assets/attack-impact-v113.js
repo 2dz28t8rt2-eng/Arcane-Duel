@@ -32,22 +32,22 @@
   const creature=g.players[owner]?.field?.[ai];
   const fresh=creature?.summonedTurn===g.turn;
   try{
-   // Recently played creatures deliberately take a beat before attacking.
-   await delay(fresh?420:65);
+   // A short wind-up makes newly summoned monsters feel responsive as well.
+   await delay(fresh?150:40);
    if(ghost.animate){
     const motion=ghost.animate([
      {transform:'translate(0,0) scale(1)',filter:'brightness(1)'},
-     {transform:'translate('+dx*.08+'px,'+dy*.08+'px) scale(.90)',filter:'brightness(1.15)',offset:.18},
-     {transform:'translate('+dx*.75+'px,'+dy*.75+'px) scale(1.12)',filter:'brightness(1.6)',offset:.71},
-     {transform:'translate('+dx+'px,'+dy+'px) scale(.84)',filter:'brightness(2.35)'}
-    ],{duration:285,easing:'cubic-bezier(.08,.85,.12,1)',fill:'forwards'});
+     {transform:'translate('+dx*.05+'px,'+dy*.05+'px) scale(.95)',filter:'brightness(1.15)',offset:.14},
+     {transform:'translate('+dx*.38+'px,'+dy*.38+'px) scale(1.11)',filter:'brightness(1.65)',offset:.70},
+     {transform:'translate('+dx*.5+'px,'+dy*.5+'px) scale(.97)',filter:'brightness(2.35)'}
+    ],{duration:175,easing:'cubic-bezier(.12,.83,.18,1)',fill:'forwards'});
     // Hidden iframes and some browsers do not always settle WAAPI.finished.
     // Keep this strictly visual; never hold the turn or input indefinitely.
-    await Promise.race([motion.finished.catch(()=>{}),delay(390)]);
+    await Promise.race([motion.finished.catch(()=>{}),delay(250)]);
     // Keep the ghost on the target before releasing WAAPI's fill state.
-    ghost.style.transform='translate('+dx+'px,'+dy+'px) scale(.84)';
+    ghost.style.transform='translate('+dx*.5+'px,'+dy*.5+'px) scale(.97)';
     motion.cancel();
-   }else await delay(285);
+   }else await delay(175);
    const burst=document.createElement('div');
    burst.className='ad113-attack-impact'+(owner===1?' ad113-foe-impact':'');
    burst.style.left=(dst.left+dst.width/2)+'px';

@@ -1,0 +1,50 @@
+/* Calm, collapsible battlefield panels: the playing hand stays close to view. */
+#duelScreen .ad180-left-tools { margin-top:15px; border-top:1px solid #64567c; padding-top:10px; }
+#duelScreen .ad180-left-tools > summary,
+#duelScreen .ad180-fold > summary,
+#duelScreen .ad180-log > summary { cursor:pointer; list-style:none; font-weight:700; color:#f3debb; padding:9px 11px; border:1px solid #6c6088; border-radius:9px; background:linear-gradient(120deg,#292239,#192335); }
+#duelScreen .ad180-left-tools > summary::-webkit-details-marker,
+#duelScreen .ad180-fold > summary::-webkit-details-marker,
+#duelScreen .ad180-log > summary::-webkit-details-marker { display:none; }
+#duelScreen .ad180-left-tools > summary::after,
+#duelScreen .ad180-fold > summary::after,
+#duelScreen .ad180-log > summary::after {content:'＋';float:right;opacity:.8;}
+#duelScreen details[open].ad180-left-tools > summary::after,
+#duelScreen details[open].ad180-fold > summary::after,
+#duelScreen details[open].ad180-log > summary::after {content:'−';}
+#duelScreen .ad180-left-tools #fusionSideHost {padding:11px 0 2px; max-height:58vh; overflow:auto; scrollbar-width:thin;}
+#duelScreen .ad180-left-tools .ad156-coach { margin:0; max-width:100%; }
+#duelScreen .ad180-left-tools .ad156-head { flex-wrap:wrap; }
+#duelScreen .ad180-left-tools .ad156-suggestions li { display:block; }
+#duelScreen .ad180-left-tools .ad156-suggestions button {max-width:100%;white-space:normal;}
+#duelScreen .ad180-left-tools .ad120-fusion-preview {width:100%;max-width:100%;margin:10px 0;box-sizing:border-box;}
+#duelScreen .ad180-left-tools .evo-fusion-preview {white-space:normal;}
+#duelScreen .ad180-fold {margin-top:7px;}
+#duelScreen .ad180-fold > summary {padding:6px 8px;font-size:12px;}
+#duelScreen .ad180-fold p {margin:8px 0 0;}
+#duelScreen .ad180-log { display:block; }
+#duelScreen .ad180-log .side-log {max-height:260px; overflow:auto; margin-top:8px;}
+#duelScreen .ad180-log:not([open]) {padding:8px;}
+#duelScreen .card-preview-panel {max-height:calc(100dvh - 110px);overflow-y:auto;scrollbar-width:thin;box-sizing:border-box;}
+#duelScreen #summonStage {scroll-margin:20px;}
+/* The old cockpit kept 236 px empty material space and another 70 px of tags.
+   Fixed compact rows keep its height steady while every card remains removable. */
+#duelScreen #summonStage .ad56-cockpit {gap:6px;}
+#duelScreen #summonStage .ad56-steps span {padding:5px 4px;font-size:10px;}
+#duelScreen #summonStage .ad56-columns {gap:8px;align-items:stretch;}
+#duelScreen #summonStage .ad56-block {padding:8px 10px;}
+#duelScreen #summonStage .ad56-block h3 {margin-bottom:6px;}
+#duelScreen #summonStage .ad56-hint {padding-top:5px;margin-top:5px;}
+#duelScreen #summonStage .ad117-mat-viewport {height:142px;min-height:142px;max-height:142px;}
+#duelScreen #summonStage .ad56-material-status {min-height:40px;max-height:40px;margin-top:5px;gap:4px;}
+#duelScreen #summonStage .ad56-material-status > * {padding:3px 6px;}
+#duelScreen #summonStage .ad56-card-detail {grid-template-columns:56px minmax(0,1fr);gap:8px;}
+#duelScreen #summonStage .ad56-card-detail > img {width:56px;height:75px;}
+#duelScreen .ad180-predator-callout {position:absolute;top:-29px;left:50%;transform:translateX(-50%);background:linear-gradient(95deg,#512a32,#a55047);border:1px solid #ffd69e;border-radius:20px;color:#fff4d8;padding:5px 10px;z-index:120;box-shadow:0 0 21px #fba05a88;white-space:nowrap;font-size:11px;font-weight:800;pointer-events:none;animation:ad180predator 1.55s ease-out forwards;}
+@keyframes ad180predator {0%{opacity:0;transform:translate(-50%,8px) scale(.76)}17%{opacity:1;transform:translate(-50%,-3px) scale(1.08)}76%{opacity:1}100%{opacity:0;transform:translate(-50%,-32px) scale(.95)}}
+@media(min-width:1050px) and (min-height:690px) {
+ #duelScreen .cardtray {position:sticky;bottom:0;z-index:40;background:linear-gradient(180deg,#111a2df5,#101625fc);box-shadow:0 -9px 25px #050714b8;border:1px solid #8b785a;border-radius:12px;padding:10px;}
+ #duelScreen #summonStage {max-height:350px;overflow:visible;min-height:0;}
+}
+@media(max-width:1180px){#duelScreen .card-preview-panel{max-height:none;overflow:visible;}#duelScreen .ad180-left-tools{min-width:220px;}}
+@media(prefers-reduced-motion:reduce){#duelScreen .ad180-predator-callout {animation:none;opacity:1;}}

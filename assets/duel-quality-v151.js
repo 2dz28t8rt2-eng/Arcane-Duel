@@ -175,8 +175,8 @@
       (out.coreIsFusion?' · bereits fusioniertes Monster':'')+'. Nächstes passendes Material: '+
       (out.gain>=0?'+':'')+out.gain+' Beitrag zum Kernrang.'+
       (out.bonus?' · '+out.bonus+' zusätzlicher Levelbonus für passende Materialien.':'')+'</p>'+
-      '<p>Pokerkombination: <b>'+esc(out.pattern)+'</b> · zusätzliche Pokerwürfe +'+pretty(out.rollBonus)+'.</p>'+ 
-      (out.partialStreet?'<p class="ad151-fusion-note">Eine zusammenhängende Teilstraße zählt für den Pokerbonus. Für den Fusionslevelbonus gilt sie nicht als geschlossene Straße, weil zusätzliche Duplikate dabei sind.</p>':'')+
+      '<p>Spezialkombination: <b>'+esc(out.pattern)+'</b> · zusätzliche Qualitätswürfe +'+pretty(out.rollBonus)+'.</p>'+
+      (out.partialStreet?'<p class="ad151-fusion-note">Eine zusammenhängende Teilstraße bringt den Spezialbonus. Für die Fusionsstufe zählt sie nicht als vollständige Straße, wenn zusätzliche gleiche Stufen dabei sind.</p>':'')+
       (out.resonatorBonus?'<p class="ad151-fusion-note">Einmaliger Resonator-Kettenbonus: +1 Level.</p>':'')+
       (out.penalty?'<p>Große Materialabstände: bis zu '+out.weightedPenalty+' % rechnerischer Qualitätsabzug vor den Werten.</p>':'')+
       (out.prior?'<p>Letztes Material hinzugefügt: zuvor <b>'+esc(out.prior.pattern)+'</b> und Lv '+pretty(out.prior.levelCap)+

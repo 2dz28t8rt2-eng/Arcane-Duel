@@ -55,9 +55,9 @@
   starterMain=[...snapshot.starterMain];starterFusions=[...snapshot.starterFusions];
   profileDeck=[];profileFusions=[];
   profileUpgrades={};profileEnhancements={};profileEssence={};profileLv1={};
-  set('duoDeckInfo','2v2 verwendet ausschließlich ein eigenes Serverprofil. '+
-   'Erstelle oben dein 2v2-Profil oder stelle es mit dem privaten Profil-Link wieder her. '+
-   'Der Singleplayer-Spielstand wird nicht ausgelesen.');
+  set('duoDeckInfo','Für dieses Abenteuer brauchst du einen eigenen Duellanten. '+
+   'Erstelle ihn oben oder öffne dein bestehendes Profil mit deinem persönlichen Zugangslink. '+
+   'Dein Einzelspieler-Spielstand bleibt unverändert.');
  }
  async function call(payload){
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
@@ -81,6 +81,8 @@
   fusionLore:'Fusionskunde',fusionPrecision:'Runenpräzision',
   openingAegis:'Vorhut-Schutz'
  });
+ const roleNames=Object.freeze({predator:'Predator',guardian:'Wächter',
+  soul:'Seelenzehrer',resonator:'Resonator',combatant:'Allrounder',allrounder:'Allrounder'});
  function persistProfileToken(value){
   try{localStorage.setItem(duoProfileKey,value);}
   catch{set('duoProfileMessage','Browser-Speicherung blockiert. Sichere unbedingt den privaten Profil-Wiederherstellungslink.');}
@@ -197,17 +199,16 @@
   const next=chapters.find(x=>x.chapter===Math.min(4,current+1));
   const credits=duoProfile.chapterCardCredits||0;
   set('duoFirstClearCards',credits?
-   '🎁 '+credits+' garantierte Kapitelkarte'+(credits===1?'':'n')+
-   ' bereit · jeweils aus den obersten zwei freigeschalteten Stufen':
-   'Keine offenen Kapitelkarten. Ein erster Sieg in einem neuen Kapitel vergibt drei.');
+   '🎁 '+credits+' Kapitelkarte'+(credits===1?'':'n')+' wartet'+(credits===1?'':'n')+' auf dich.':
+   'Beim ersten Sieg in einem neuen Kapitel erhältst du drei Karten zur Auswahl.');
   $('duoChapterCardClaim').disabled=credits<=0;
-  set('duoChapterClearPreview','Nächstes Kapitelziel: '+
+  set('duoChapterClearPreview','Deine nächste Belohnung: '+
    (next?'Kapitel '+next.chapter+' · '+next.first.xp+' EP, '+
    next.first.essence+' Essenz, '+next.first.shards+
    ' Splitter und 3 garantierte Karten':'Alle vier Kapitel erstmals abgeschlossen')+
-   '. Wiederholung von Kapitel '+current+': '+
-   chapters[current-1].repeat.essence+' Essenz / '+
-   chapters[current-1].repeat.shards+' Splitter je Sieg (max. 3 Auszahlungen pro UTC-Tag).');
+   '. Ein weiterer Sieg in Kapitel '+current+' bringt '+
+   chapters[current-1].repeat.essence+' Essenz und '+
+   chapters[current-1].repeat.shards+' Splitter (bis zu dreimal täglich).');
   const selector=$('duoBalancePack'),currentPack=selector.value;
   selector.replaceChildren();
   for(const [key,offer] of Object.entries(duoEconomy.packs||{})){
@@ -224,20 +225,19 @@
   if(!(duoProfile.clearedChapters||[]).length){
    const missingEss=Math.max(0,offer.essence-duoProfile.essence),
     missingShards=Math.max(0,offer.shards-duoProfile.shards);
-   set('duoBalanceGoal','Für '+offer.title+' fehlen '+missingEss+
+   set('duoBalanceGoal','Für '+offer.title+' brauchst du noch '+missingEss+
     ' Essenz und '+missingShards+
-    ' Splitter. Erst Kapitel I abschließen, um Wiederholungssiege freizuschalten.');
+    ' Splitter. Nach deinem ersten Kapitelsieg kannst du gezielt dafür sammeln.');
    return;
   }
   const current=Math.max(...duoProfile.clearedChapters);
   const progress=economyRules.afford({
    essence:duoProfile.essence,shards:duoProfile.shards},offer,current);
   set('duoBalanceGoal',progress.canBuy?
-   '✓ '+offer.title+' ist jetzt finanzierbar.':
-   'Für '+offer.title+' fehlen '+progress.essenceShort+
-    ' Essenz und '+progress.shardsShort+' Splitter. Rein rechnerisch '+
-    progress.repeatsNeeded+' Wiederholungssieg(e) in Kapitel '+current+
-    ' – höchstens drei bezahlte Wiederholungen je UTC-Tag. Siege sind nicht garantiert.');
+   '✓ Du hast genug für '+offer.title+'. Du findest es bei den Kartenpaketen.':
+   'Dir fehlen noch '+progress.essenceShort+' Essenz und '+progress.shardsShort+
+    ' Splitter. Mit etwa '+progress.repeatsNeeded+' weiteren Siegen in Kapitel '+
+    current+' könntest du sie verdienen.');
  }
  function installProfile(data){
   duoProfile=data.profile;duoLastRoom=data.lastRoom??duoLastRoom;
@@ -251,24 +251,23 @@
   $('duoProfileActive').hidden=false;
   const xpNext=150-(duoProfile.xp%150);
   set('duoProfileStats',duoProfile.nickname+' · Lv '+duoProfile.level+
-   ' · '+duoProfile.xp+' EP (noch '+xpNext+' bis nächstes Level)'+
+   ' · '+duoProfile.xp+' EP (noch '+xpNext+' bis zum Aufstieg)'+
    ' · '+duoProfile.essence+' Essenz · '+duoProfile.shards+
    ' Splitter · '+duoProfile.wins+' Siege · '+
    duoProfile.ownedMain.length+' Hauptkarten / '+
    duoProfile.ownedFusions.length+' Fusionen');
   const cleared=duoProfile.clearedChapters||[];
   set('duoProfileCleared',cleared.length?
-   'Abgeschlossene 2v2-Kapitel: '+cleared.join(', '):
-   'Keine 2v2-Kapitel abgeschlossen – beginne mit Kapitel I.');
-  set('duoDeckInfo','Eigenständiges 2v2-Profil geladen: 40 Hauptkarten und '+
-   profileFusions.length+' Fusionen im aktiven Deck. '+
-   'Keine Karten, Ausbauränge oder Belohnungen aus dem Singleplayer.');
+   'Geschaffte Kapitel: '+cleared.join(', '):
+   'Dein Abenteuer beginnt in Kapitel I.');
+  set('duoDeckInfo','Dein Deck ist bereit: 40 Hauptkarten und '+
+   profileFusions.length+' Fusionsvorlagen. Änderungen gelten für das nächste Duell.');
   const perks=$('duoProfilePerk'),current=perks.value;
   perks.replaceChildren();
   for(const [key,max]of Object.entries(rules.PERK_LIMITS)){
    const rank=duoProfile.upgrades[key]||0,price=100+rank*70;
    const opt=el('option',perks,(perkNames[key]||key)+' '+rank+'/'+max+
-    (rank<max?' · '+price+' Essenz':' · MAX'));opt.value=key;
+    (rank<max?' · '+price+' Essenz':' · Vollständig verbessert'));opt.value=key;
   }
   if(current&&rules.PERK_LIMITS[current])perks.value=current;
   $('duoProfileContinue').hidden=!duoLastRoom||!!roomId;
@@ -282,12 +281,12 @@
 
   const explainResearch=(branch,id,button)=>{
    const offer=duoEconomy?.[branch],node=$(id),control=$(button);
-   if(!offer){node.textContent='Forschungsstand wird geladen …';control.disabled=true;return;}
-   if(offer.maxed){node.textContent=offer.title+': Maximalrang '+offer.rank+'/'+offer.maxRank;control.disabled=true;return;}
+   if(!offer){node.textContent='Deine Fähigkeiten werden geladen …';control.disabled=true;return;}
+   if(offer.maxed){node.textContent=offer.title+': vollständig freigeschaltet';control.disabled=true;return;}
    node.textContent=offer.title+' '+offer.rank+'/'+offer.maxRank+
     ' → Rang '+offer.nextRank+' · '+offer.essence+' Essenz + '+
     offer.shards+' Splitter · Abschluss Kapitel '+offer.requiredChapter+
-    (offer.unlocked?' ✓':' erforderlich');
+    (offer.unlocked?' ✓':' nötig');
    control.disabled=!offer.unlocked||duoProfile.essence<offer.essence||
     duoProfile.shards<offer.shards;
   };
@@ -302,9 +301,8 @@
   $('duoEssenceBindSave').disabled=!bind.options.length||
    !duoProfile.essenceBinding?.researchRank;
   const max=duoEconomy?.maxCardLevel??3,nextChapter=duoEconomy?.maxChapter??1;
-  set('duoProfileUnlockInfo','Kartenniveau bis Lv '+max+' · '+
-   'Kapitel I–'+nextChapter+' auswählbar · '+(duoProfile.clearedChapters?.length||0)+
-   ' Kapitel abgeschlossen.');
+  set('duoProfileUnlockInfo','Du kannst Karten bis Level '+max+' sammeln und bis Kapitel '+
+   nextChapter+' spielen.');
   updatePacing();
   deckEditor();
   renderCollection();
@@ -314,8 +312,8 @@
   if(!duoProfileToken)return;
   try{
    installProfile(await call({type:'profile',profileToken:duoProfileToken}));
-   set('duoProfileMessage','☁ Eigenständiger 2v2-Fortschritt synchronisiert.');
-  }catch(e){set('duoProfileMessage','Profil konnte nicht synchronisiert werden: '+e.message);}
+   set('duoProfileMessage','✓ Dein Spielstand ist auf dem neuesten Stand.');
+  }catch(e){set('duoProfileMessage','Dein Spielstand konnte nicht geladen werden: '+e.message);}
  }
  async function createDuoProfile(){
   if(profileSaving||duoProfile)return;profileSaving=true;
@@ -323,7 +321,7 @@
    const data=await call({type:'profileCreate',name:$('duoHostName').value});
    duoProfileToken=data.profileToken;persistProfileToken(duoProfileToken);
    installProfile(data);
-   set('duoProfileMessage','Neues, unabhängiges 2v2-Profil auf dem Server erstellt.');
+   set('duoProfileMessage','Dein Duellant ist bereit. Viel Spaß bei eurem ersten Abenteuer!');
   }catch(e){set('duoProfileMessage',e.message);}
   finally{profileSaving=false;}
  }
@@ -340,22 +338,20 @@
      art:card(item.id).art,
      fusion:!!item.fusion||!!card(item.id).fusionOnly,ace:!!card(item.id).ace
     }));
-    window.ArcanePackCinema178?.open(granted,{title:'2V2 · PAKET ENTSIEGELT',
-     subtitle:'Serverbestätigt · Deine Karten sind in der 2v2-Sammlung'});
+    window.ArcanePackCinema178?.open(granted,{title:'DEIN NEUES KARTENPAKET',
+     subtitle:'Diese Karten gehören jetzt zu deiner Sammlung'});
    }
    set('duoProfileMessage',Array.isArray(data.newCards)&&data.newCards.length?
-    data.newCards.length+' neue 2v2-Karten: '+
-     data.newCards.map(c=>c.name+' (Lv '+c.level+')').join(', ')+
-     '. Eigene Karten können im Deckeditor eingesetzt werden.':
-    data.chapterCard?'Garantierte Kapitelkarte erhalten: '+
-     data.chapterCard.name+' · Lv '+data.chapterCard.level+
-     '. Du kannst sie im 2v2-Deckeditor einsetzen.':
-    data.newCard?'Neue 2v2-Karte: '+data.newCard.name:
-    data.enhanced?'Karte verbessert: '+name(data.enhanced.id)+
-     ' · Rang '+data.enhanced.rank+'/5. Gilt bei neuen Duellen.':
-    data.recycled?'Ungenutzte Karte zerlegt: +'+data.recycled.essence+
-     ' Essenz und +'+data.recycled.shards+' Splitter.':
-    '2v2-Fortschritt erfolgreich auf dem Server gespeichert.');
+    '✦ '+data.newCards.length+' neue Karte'+(data.newCards.length===1?' gehört':'n gehören')+
+     ' jetzt dir! Du kannst sie vor dem nächsten Duell ins Deck legen.':
+    data.chapterCard?'✦ '+data.chapterCard.name+' (Lv '+data.chapterCard.level+
+     ') gehört jetzt dir!':
+    data.newCard?'✦ '+data.newCard.name+' gehört jetzt dir!':
+    data.enhanced?'✓ '+name(data.enhanced.id)+' ist jetzt auf Rang '+
+     data.enhanced.rank+'/5. Die Verbesserung gilt ab deinem nächsten Duell.':
+    data.recycled?'✓ Karte zerlegt. Du erhältst '+data.recycled.essence+
+     ' Essenz und '+data.recycled.shards+' Splitter.':
+    '✓ Deine Änderung wurde gespeichert.');
   }catch(e){set('duoProfileMessage',e.message);await fetchProfile();}
   finally{profileSaving=false;}
  }
@@ -374,8 +370,8 @@
    const r=await call({type:'state',roomId:id,token:duoProfileToken});
    roomId=id;token=duoProfileToken;seat=r.seat;invite='';load(r);
    history.replaceState(null,'',ownOrigin()+'#room='+roomId);
-   set('duoStatus','Gespeicherten 2v2-Raum aus deinem eigenen Profil geladen.');
-  }catch(e){set('duoProfileMessage','Raum nicht fortsetzbar: '+e.message);}
+   set('duoStatus','Willkommen zurück! Dein letztes Duell ist wieder geöffnet.');
+  }catch(e){set('duoProfileMessage','Dieses Duell lässt sich gerade nicht öffnen: '+e.message);}
  }
 
  function save(){
@@ -412,7 +408,7 @@
   busy=true;render();let conflicted=false;
   try{
    load(await call({type:'action',roomId,token,expectedRevision:game.revision,action}));
-   set('duoStatus','Zug gespeichert und online synchronisiert.');
+   set('duoStatus','✓ Dein Zug ist gespeichert.');
    if(game?.status==='finished'&&game.winner===0)await fetchProfile();
   }catch(e){
    syncError=e.message;conflicted=recovery.isConflict(e.message);
@@ -420,7 +416,7 @@
   }finally{busy=false;render();}
   if(conflicted){
    await refresh();
-   if(!syncError)set('duoStatus','Ein anderer Zug war schneller. Stand aktualisiert – bitte erneut entscheiden.');
+   if(!syncError)set('duoStatus','Das Spiel hat sich inzwischen verändert. Bitte wähle deine Aktion noch einmal.');
   }
  }
  async function createRoom(){
@@ -433,7 +429,7 @@
    const r=await call(payload);
    roomId=r.roomId;token=r.token;seat=0;invite=r.invite;save();load(r);
    location.hash='room='+roomId;
-   set('duoStatus','Online-Raum erstellt. Versende den Einladungslink.');
+   set('duoStatus','Dein Duell ist bereit! Lade jetzt deinen Partner ein.');
   }catch(e){set('duoStatus',e.message);}
   finally{busy=false;render();}
  }
@@ -445,7 +441,7 @@
     profileToken:duoProfileToken});
    roomId=id;token=r.token;seat=2;invite='';save();load(r);
    location.hash='room='+roomId;
-   set('duoStatus','Beitritt erfolgreich. Jetzt kämpft ihr gemeinsam!');
+   set('duoStatus','Du bist dabei! Jetzt kämpft ihr gemeinsam.');
   }catch(e){set('duoStatus',e.message);}
   finally{busy=false;render();}
  }
@@ -463,11 +459,11 @@
  function updateSaveState(){
   const node=$('duoSaveState');if(!node)return;
   node.dataset.sync=syncError?'offline':syncedAt?'saved':'pending';
-  node.textContent=syncError?'⚠ Synchronisierung: '+syncError+
-   ' · Verbindung wiederherstellen oder aktualisieren.':
-   syncedAt?'☁ Server bestätigt · '+new Date(syncedAt).toLocaleTimeString('de-AT')+
-    (sessionReady?'':' · Raumzugang nicht im Tab gespeichert.'):
-   '☁ Online-Spielstand wird nach jedem bestätigten Zug gespeichert.';
+  node.textContent=syncError?'⚠ Die Verbindung ist unterbrochen. '+syncError+
+   ' Versuche es gleich noch einmal.':
+   syncedAt?'☁ Gespeichert um '+new Date(syncedAt).toLocaleTimeString('de-AT')+
+    (sessionReady?'':' · Bitte sichere deinen Zugangslink.'):
+   '☁ Dein Duell wird automatisch gespeichert.';
  }
  function render(){
   const dock=$('duoActions'),track=$('duoTrack'),seats=$('duoSeats'),log=$('duoLog');
@@ -487,7 +483,7 @@
   if(!game){
    $('duoRecoveryArea').hidden=true;
    set('duoTurnName',location.hash.startsWith('#join=')?
-    'Einladung annehmen, um mitzuspielen.':'Noch kein Online-Raum');
+    'Nimm die Einladung an und kämpfe mit!':'Noch kein Duell gestartet');
    return;
   }
   set('duoRoomId',roomId);
@@ -495,17 +491,17 @@
   set('duoAlliedLP',game.teams[0].lp.toLocaleString('de-AT')+' LP'+
    (game.teams[0].shield?' · 🛡 '+game.teams[0].shield+' Schild':''));
   set('duoEnemyLP',game.teams[1].lp.toLocaleString('de-AT')+' LP');
-  set('duoTurnName',game.status==='waiting'?'Warte auf den zweiten menschlichen Spieler':
+  set('duoTurnName',game.status==='waiting'?'Dein Partner kann jetzt beitreten':
    game.status==='finished'?(game.winner===0?'Gemeinsamer Sieg!':'Gemeinsame Niederlage'):
    'Runde '+game.round+' · '+game.players[game.activeSeat].name+' am Zug');
   if(game.ruleset==='duo-v166'){
-   const arena=game.round<=9?'Arena-Zerfall ab Runde 10':
-    'Arena-Zerfall: '+rules.arenaDamage(game,game.round).toLocaleString('de-AT')+
-    ' LP pro Team nach dieser Runde · Schild schützt nicht';
+   const arena=game.round<=9?'Ab Runde 10 setzt die Arena beiden Teams zu.':
+    'Am Rundenende verliert jedes Team '+rules.arenaDamage(game,game.round).toLocaleString('de-AT')+
+    ' LP. Schilde helfen dagegen nicht.';
    el('p',track,'☄ '+arena,'duo-arena-forecast');
    if(game.fateEvent)el('p',track,'✦ Schicksalszug von '+
     game.players[game.fateEvent.ownerSeat].name+' in Runde '+game.fateEvent.round+
-    ' – fünf temporäre Schicksalsmonster!','duo-fate-banner');
+    ' – fünf Schicksalsmonster eilen zu Hilfe!','duo-fate-banner');
   }
   const milestones=$('duoChapterProgress');milestones.replaceChildren();
   for(const c of rules.CHAPTERS){
@@ -517,20 +513,20 @@
     (completed?' complete':selected?' current':skipped?' skipped':''));
    el('strong',li,'Kapitel '+c.id);
    el('span',li,c.name);
-   el('small',li,completed?'In diesem Raum gewonnen':
+   el('small',li,completed?'Geschafft':
     selected?game.winner===1?'Niederlage':game.status==='finished'?'Abgeschlossen':'Aktuelles Kapitel':
-    skipped?'Direktstart – nicht nachgewiesen':'Noch nicht begonnen');
+    skipped?'Übersprungen':'Noch nicht begonnen');
   }
   const reward=rules.packIds(catalog,game.chapter);
-  set('duoCurrentReward','Kapitel '+game.chapter+' · Bonuskarten: '+reward.map(name).join(' · '));
+  set('duoCurrentReward','Leihkarten für dieses Kapitel: '+reward.map(name).join(' · '));
   for(const p of game.players){
    el('span',track,p.name,'turn-seat '+(p.team===1?'enemy ':'')+
     (game.status==='active'&&game.activeSeat===p.seat?'current':''));
    const panel=el('article',seats,undefined,'seat '+(game.activeSeat===p.seat?'active':''));
    panel.dataset.seat=String(p.seat);
    el('h3',panel,p.name);
-   el('small',panel,p.kind==='human'?'MENSCH · '+(p.seat===0?'GASTGEBER':'PARTNER'):
-    'KI-GEGNER','duo-seat-kind');
+   el('small',panel,p.kind==='human'?(p.seat===0?'DEIN TEAM · GASTGEBER':'DEIN TEAM · PARTNER'):
+    'GEGNER','duo-seat-kind');
    el('small',panel,p.hand.length+' Handkarten · '+p.deck.length+' im Hauptdeck · '+
     p.remainingFusion.length+' Fusionen verbleibend','duo-seat-count');
    if(p.team===0){
@@ -541,7 +537,7 @@
       resilience:'Standhaftigkeit',combatDiscipline:'Kampfdisziplin',
       fusionLore:'Fusionskunde',fusionPrecision:'Runenpräzision',
       openingAegis:'Vorhut-Schutz'}[key]||key)+' '+rank).join(' · '):
-     '✧ Keine aktiven Kampf-Ausbauten','duo-perk-note');
+     '✧ Noch keine Verbesserungen','duo-perk-note');
     if(p.lv1?.perk)el('small',panel,'✧ Verbotene Forschung · Rang '+p.lv1.rank+
      '/5 · '+(p.lv1.charges||0)+' Geisterfunken','duo-perk-note');
    }
@@ -559,11 +555,11 @@
     el('span',cell,displayName(c));
     el('small',cell,'Lv '+c.level+' · '+shownAtk(c)+' ATK / '+c.def+' DEF',
      'duo-field-meta');
-    el('small',cell,(c.mode==='def'?'🛡 DEF':'⚔ ATK')+
-     (c.fusion?' · Fusion':'')+' · '+c.role,'duo-card-level');
-    if(c.role==='soul')el('small',cell,'✦ '+(c.soul||0)+' Seele · '+
-     (c.condensed||0)+' Verdichtung (+'+Math.floor((c.condensed||0)*.5)+
-     ' ATK) · CD '+(c.soulCooldown||0),
+    el('small',cell,(c.mode==='def'?'🛡 Verteidigung':'⚔ Angriff')+
+     (c.fusion?' · Fusion':'')+' · '+(roleNames[c.role]||'Monster'),'duo-card-level');
+    if(c.role==='soul')el('small',cell,'✦ Seelenkraft '+(c.soul||0)+
+     ' · Verdichtet '+(c.condensed||0)+' (+'+Math.floor((c.condensed||0)*.5)+
+     ' ATK) · '+(c.soulCooldown>0?'wieder bereit in '+c.soulCooldown+' Zügen':'bereit'),
      'duo-soul-status');
     if(!c.fate&&p.essence?.chosen===c.id){
      const kind=card(c.id).essenceSchool;
@@ -575,7 +571,7 @@
     if(c.guardLeft>0)el('small',cell,'✧ Letztes Bollwerk · '+c.guardLeft+
      ' gegnerische Züge immun','duo-soul-status');
     if(c.lv1Shield>0)el('small',cell,'◇ Schutzorb '+c.lv1Shield,'duo-soul-status');
-    if(c.lv1Echo)el('small',cell,'◇ Effektloses Lv1-Echo','duo-soul-status');
+    if(c.lv1Echo)el('small',cell,'◇ Geisterecho ohne Fähigkeit','duo-soul-status');
     if(card(c.id).lv1Special&&p.lv1?.perk)el('small',cell,
      '✦ '+card(c.id).lv1Special.toUpperCase(),'duo-soul-status');
     if(c.role==='combatant'&&c.resonance)el('small',cell,
@@ -598,7 +594,7 @@
       ' · '+(c.mode==='def'?'DEF':'ATK'));
     });
     if(p.lv1.choices?.length||p.lv1.offers?.length)el('small',reserve,
-     (p.lv1.choices?.length||0)+' Floating-Wahlen · '+
+     (p.lv1.choices?.length||0)+' Geisterwahlen · '+
      (p.lv1.offers?.length||0)+' Schwarm-Echos bereit');
    }
   }
@@ -609,20 +605,20 @@
     if(seat===0)button('✦ Kapitel '+(game.chapter+1)+' starten',
      dock,()=>send({type:'nextChapter'}));
     else el('p',dock,'Kapitel gewonnen. Der Gastgeber startet das nächste.');
-   }else el('p',dock,game.status==='waiting'?'Warte auf den Partner.':
-    game.winner===0?'Alle Kapitel geschafft!':'Partie beendet.');
+   }else el('p',dock,game.status==='waiting'?'Sobald dein Partner da ist, geht es los.':
+    game.winner===0?'Ihr habt alle Kapitel geschafft!':'Das Duell ist zu Ende.');
    return;
   }
   if(game.activeSeat!==seat){
-   el('p',dock,game.activeSeat%2===1?'Die Gegner-KI führt ihren Zug aus.':
-    'Dein Partner ist gerade am Zug.','duo-turn-note');
+   el('p',dock,game.activeSeat%2===1?'Der Gegner ist am Zug.':
+    'Dein Partner ist am Zug.','duo-turn-note');
    return;
   }
   const p=game.players[seat],legal=choices.legalChoices(game,seat);
-  el('p',dock,'Dein Zug: Beschwöre, fusioniere, wechsle die Position oder greife an.',
+  el('p',dock,'Du bist dran! Wähle eine Karte oder greife mit deinen Monstern an.',
    'duo-turn-note');
   if(legal.hand.length){
-   const part=section(dock,'✦ Beschwörung','Ein reguläres Monster pro Zug oder stattdessen eine Fusion.');
+   const part=section(dock,'✦ Monster beschwören','Wähle eine Handkarte und einen freien Platz auf deinem Feld.');
    const row=el('div',part,undefined,'duo-choices');
    const hand=selector('Handkarte',legal.hand.map(x=>[x.index,
     displayName(x)+' · Lv '+card(x.id).level+
@@ -632,8 +628,8 @@
     handIndex:Number(hand.value),slot:Number(slot.value)}));
   }
   if(!p.summoned&&p.remainingFusion.length>=1){
-   const part=section(dock,'✦ Fusion','2–5 eigene Hand-/Feld-/Geistermonster auswählen (Strg-Klick für Mehrfachauswahl). '+
-    'Du kannst ein Kernmonster bestimmen; die Vorschau erklärt den Würfelbonus vor der Fusion.');
+   const part=section(dock,'✦ Fusion','Wähle zwei bis fünf eigene Monster aus Hand, Feld oder Geisterzone. '+
+    'Halte Strg gedrückt, um mehrere auszuwählen. Danach siehst du die möglichen Fusionen.');
    const select=el('select',part,undefined,'duo-fusion-list');
    select.multiple=true;select.size=7;select.setAttribute('aria-label','Fusionsmaterialien');
    p.hand.forEach((item,i)=>{if(item?.fate)return;
@@ -658,9 +654,10 @@
    const hint=el('p',part,'Bitte 2–5 Materialien auswählen.','duo-action-status');
    const preview=el('div',part,undefined,'duo-fusion-preview');
    const details=el('details',part,undefined,'duo-fusion-details');
-   el('summary',details,'Warum entsteht dieses Level?');
+   el('summary',details,'Wie kommt dieses Fusionsergebnis zustande?');
    const explanation=el('p',details);
-   const commit=button('Ausgewählte Monster fusionieren',part,()=>send({
+   const maths=el('div',details,undefined,'duo-fusion-math');
+   const commit=button('Jetzt fusionieren',part,()=>send({
     type:'fusion',materials:selected(),slot:Number(target.value),
     templateId:Number(options.value),coreIndex:Number(core.value)}));
    const selected=()=>[...select.selectedOptions].map(opt=>{
@@ -670,7 +667,7 @@
     const keepTemplate=reset?null:options.value;
     const keepCore=reset?null:core.value;
     options.replaceChildren();target.replaceChildren();core.replaceChildren();
-    preview.replaceChildren();explanation.textContent='';
+    preview.replaceChildren();maths.replaceChildren();explanation.textContent='';
     const materials=selected();commit.disabled=true;
     if(materials.length<2||materials.length>5){
      hint.textContent='Erforderlich: 2 bis 5 eigene Materialien.';return;
@@ -705,8 +702,8 @@
      const result=availability.templates.length?rules.fusionPreview(game,seat,materials,
       catalog,{coreIndex:Number(core.value),templateId:Number(options.value)}):null;
      const analysis=result?.analysis||availability.analysis;
-     hint.textContent=analysis.pattern+' · Ziellevel '+(result?.resultingLevel??rule.level)+
-      ' · '+availability.templates.length+' passende Vorlagen.';
+     hint.textContent=analysis.pattern+' · Level '+(result?.resultingLevel??rule.level)+
+      ' · '+availability.templates.length+' mögliche Fusionen';
      const lines=['✦ '+analysis.rolls+' Würfelpaare (ATK + DEF) · '+
       'bester gemeinsamer Wurf zählt',
       '✧ Fusionsqualität '+(analysis.quality>=1?'+':'')+
@@ -722,16 +719,18 @@
      if(analysis.essenceRolls)lines.push('✦ Runenherz: +'+analysis.essenceRolls+
       ' Fusionswürfe durch das anwesende Essenzwesen');
      if(analysis.elemental)lines.push('✧ Alle Materialien teilen ein Element: Elementharmonie');
-     for(const line of lines)el('p',preview,line);
+     for(const line of lines)el('p',maths,line);
+     el('p',preview,'✦ '+(roleNames[analysis.role]||'Resonator')+
+      ' · '+analysis.rolls+' Chancen auf gute Kampfwerte');
      if(result){
       el('strong',preview,'Voraussichtliche Werte: '+
        result.atk[0]+'–'+result.atk[1]+' ATK · '+
        result.def[0]+'–'+result.def[1]+' DEF.');
-      el('small',preview,'Der Server würfelt erst bei Bestätigung; '+
-       'die Vorschau ist ein möglicher Bereich.','duo-fusion-help');
+      el('small',preview,'Die tatsächlichen Werte entstehen beim Fusionieren.',
+       'duo-fusion-help');
      }
-     if(analysis.specialLv1)el('strong',preview,
-      '✦ Verbotene Forschung: 3–5 echte Lv1-Materialstufen → exklusive Lv1-Fusion.');
+    if(analysis.specialLv1)el('strong',preview,
+      '✦ Besondere Level-1-Fusion möglich!');
      explanation.textContent='Kernmonster Lv '+rule.core+
       (rule.street?' (bei vollständiger Straße automatisch die höchste Karte)':' (frei gewählt)')+
       ' · Materialabstand '+rule.distance.toFixed(2)+
@@ -752,8 +751,8 @@
     openGhost=(state.ghostSlots||[]).flatMap((c,i)=>c?[]:[i]),
     stationed=(state.ghostSlots||[]).flatMap((c,i)=>c?[{c,i}]:[]);
    const lv=section(dock,'✧ Verbotene Forschung · Level-1-Schwarm',
-    'Geisterzonen sind zusätzliche Kampffelder. Verlegen und zurückholen verbraucht '+
-    'die Aktion des Monsters. Geisterfunken zählen als Lv2-Material, nicht als Lv1.');
+    'In den Geisterzonen kannst du zusätzliche Monster schützen und einsetzen. '+
+    'Das Verlegen kostet ihre Aktion. Geisterfunken zählen beim Fusionieren als Level 2.');
    if(free.length&&state.offers?.length){
     const box=el('div',lv,undefined,'duo-choices');
     const offer=selector('Schwarm-Echo',state.offers.map((id,i)=>
@@ -832,7 +831,7 @@
    const focus=selector('Entzugsfokus',[['atk','ATK bevorzugen'],['def','DEF bevorzugen']],actions);
    const focusButton=button('Fokus setzen',actions,()=>send({type:'soulFocus',
     slot:Number(which.value),stat:focus.value}));
-   const condense=button('Seele verdichten (75 % → DEF + 50 % ATK)',actions,
+   const condense=button('Verdichten · DEF und ATK stärken',actions,
     ()=>send({type:'soulCondense',slot:Number(which.value)}));
    const discharge=button('Seelenentladung (130 % → LP)',actions,
     ()=>send({type:'soulDischarge',slot:Number(which.value)}));
@@ -972,7 +971,7 @@
     roomId=ref.roomId;token=ref.token;seat=response.seat;invite='';
     load(response);
     history.replaceState(null,'',ownOrigin()+'#room='+roomId);
-    set('duoStatus','Sitzplatz wiederhergestellt. Spielstand online geladen.');
+    set('duoStatus','Willkommen zurück! Du kannst weiterspielen.');
    }catch(e){set('duoStatus','Wiederherstellung fehlgeschlagen: '+e.message);}
   }else if(recovery.parse(hash)?.kind==='room'){
    const id=recovery.parse(hash).roomId;

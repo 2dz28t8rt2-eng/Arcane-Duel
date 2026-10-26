@@ -37,7 +37,7 @@
     };
     add('Höhere Vorlage',[...routes].sort((a,b)=>b.highest-a.highest||a.uids.length-b.uids.length));
     add('Weniger Material',[...routes].sort((a,b)=>a.uids.length-b.uids.length||b.highest-a.highest));
-    add('Pokerkombination',[...routes].filter(r=>r.pattern!=='Freie Fusion')
+    add('Spezialkombination',[...routes].filter(r=>r.pattern!=='Freie Fusion')
       .sort((a,b)=>b.highest-a.highest||a.uids.length-b.uids.length));
     return selected.slice(0,3);
   }
@@ -135,7 +135,7 @@
     try{enhanceChoiceModal();}catch(error){console.warn('Fusionshilfe im Auswahlfenster ausgelassen:',error);}
     return result;
   };
-  $id('summonStage')?.addEventListener('click',event=>{
+  document.addEventListener('click',event=>{
     const button=event.target.closest?.('[data-ad156-apply]');
     if(!button||!validGame(game)||game.summoned||game.pending||!inputAllowed())return;
     const idea=suggestions.get(game)?.[Number(button.dataset.ad156Apply)];
