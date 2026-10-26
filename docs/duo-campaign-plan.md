@@ -1,3 +1,20 @@
+# 2v2 v17.0 – Kampfpräsentation und Kapitelanzeige (26.10.2026)
+
+**Festlegung:** Der Modus besitzt exakt **zwei menschliche Plätze** (Gastgeber 0, Partner 2) gegen **zwei serverseitig gesteuerte KI-Gegner** (1 und 3). Weitere Menschen oder echte 4-Spieler-Lobbys werden nicht eingeführt. Die gesonderte Forschung/Optimierung der Gegner-KI bleibt ausgeschlossen.
+
+**Neu auf `development`:**
+- Eigenständiger 2v2-Fusionscinema mit Material-Rollenstempel, tatsächlich vom Server berechneten ATK-/DEF-Würfelpaaren, markiertem bestem Wurf, Material-/Qualitätsbonus und Enthüllung von Kartenname, Grafik, finaler Stufe und Werten. Keine vorgetäuschten Würfel.
+- Dezent animierte, stets **verdeckte** Kartenrücken bei Zuwachs der Hand. Gegnerische Handkarten-IDs werden nicht an die Darstellung weitergegeben. Schicksalszüge werden weiterhin getrennt inszeniert, um keine doppelten Kartenanimationen auszulösen.
+- Skip-Schalter im Cinema, kurze Sequenz, beschränkte Würfel-/Kartenanzahl, mobile Layouts und `prefers-reduced-motion` (keine blockierende Animation).
+- Klar sichtbare Mensch-/KI-Rollen an jedem Sitz sowie Hinweis „2 Menschen gegen 2 KI“ bei der Raumerstellung.
+- Fortschrittsanzeige für alle vier Kapitel **ausschließlich im aktuellen Online-Raum**. Abgeschlossene Kapitel und ein übersprungener Direktstart werden unterscheidbar gekennzeichnet. Die Darstellung zahlt weder Essenz noch Splitter oder Karten aus und verändert keine Singleplayer-Sammlung.
+
+**Verifiziert mit:** Node-Regressionen zu Rollenvertrag, Fusions-Würfeltrace, nicht öffentlichem Kartenziehen, verzögerten Revisionen und Kapitelübergang; Headless-Chrome-Browsercheck für Desktop und Mobilgerät (1.200 / 410 px).
+
+**Bewusst zurückgestellt:** Echter Multi-Geräte-Abnahmetest auf Wunsch erst nach dem UI-/Regelausbau; dauerhafte Auszahlung, Kampagnenfortschritt und Spielerprofile erst nach serverseitiger Identitäts- und Besitzprüfung. Kein `main`-Merge, keine Veränderung der KI-Forschung oder des Backend-Kampfkerns.
+
+---
+
 # 2v2 v16.8 – Wiederaufnahme und Konfliktsicherheit (26.10.2026)
 
 - **Sitzplatzübernahme auf zweitem Gerät:** Gastgeber und Partner können nach bewusstem Klick jeweils einen privaten, 64-Hex-Bearer-Link erzeugen. Der Link autorisiert **nur den eigenen Sitzplatz**; der Einladungsschlüssel ist separat. Die Berechtigung wird durch die bestehende Edge-Funktion mit einem SHA-256-Hash serverseitig überprüft. Nach erfolgreicher Wiederaufnahme wird das geheime URL-Fragment durch eine harmlose Raumreferenz ersetzt.
