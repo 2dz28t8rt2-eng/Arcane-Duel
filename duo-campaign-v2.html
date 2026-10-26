@@ -4,7 +4,7 @@
 <meta name="referrer" content="no-referrer">
 <title>Arcane Duel · 2v2 Regelangleichung (Beta)</title>
 <link rel="stylesheet" href="assets/duo-campaign-demo.css?v=duo-v166">
-<link rel="stylesheet" href="assets/duo-parity-v160.css?v=duo-v171">
+<link rel="stylesheet" href="assets/duo-parity-v160.css?v=duo-v172">
 <link rel="stylesheet" href="assets/duo-cinematics-v167.css?v=duo-v167">
 <link rel="stylesheet" href="assets/duo-cinema-v170.css?v=duo-v170b">
 </head><body><main class="duo-wrap">
@@ -52,8 +52,25 @@
     <select id="duoProfilePack">
      <option value="normal">Normale Karte · 90 Essenz + 1 Splitter</option>
      <option value="fusion">Fusion · 160 Essenz + 2 Splitter</option>
+     <option value="material3">3 normale Karten · 230 Essenz + 2 Splitter</option>
+     <option value="fusion3">3er Fusionsmix · 390 Essenz + 4 Splitter</option>
+     <option value="fusion5">5er Fusionsmix · 600 Essenz + 6 Splitter</option>
+     <option value="fusion10">10er Fusionsmix · 1.100 Essenz + 10 Splitter</option>
     </select>
     <button id="duoProfileBuyPack" type="button">Paket öffnen</button>
+   </div>
+   <div class="duo-research">
+    <h3>Eigenständige 2v2-Forschung</h3>
+    <p class="micro" id="duoResearchLv1Status">Lv1-Forschung lädt …</p>
+    <button type="button" id="duoResearchLv1Buy">Verbotene Forschung freischalten</button>
+    <p class="micro" id="duoResearchEssenceStatus">Essenzforschung lädt …</p>
+    <button type="button" id="duoResearchEssenceBuy">Essenzforschung freischalten</button>
+    <label>Eigene Essenzbindung
+      <select id="duoEssenceBindCard"></select>
+    </label>
+    <button type="button" id="duoEssenceBindSave">Essenzwesen binden</button>
+    <p class="micro">Nur eigene 2v2-Karten und vollständig abgeschlossene 2v2-Kapitel zählen.
+     Alle Forschungskosten werden vor dem Kauf angezeigt.</p>
    </div>
    <div>
     <h3>Deck bearbeiten</h3>
@@ -199,5 +216,5 @@
 <script src="assets/duo-cinematics-v167.js?v=duo-v167"></script>
 <script src="assets/duo-cinema-v170.js?v=duo-v170b"></script>
 <script src="assets/duo-recovery-v168.js?v=duo-v168"></script>
-<script src="assets/duo-parity-v160.js?v=duo-v171"></script>
+<script src="assets/duo-parity-v160.js?v=duo-v172"></script>
 </body></html>
