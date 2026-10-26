@@ -140,7 +140,7 @@ Deno.serve(async request=>{
     deck:[...starter],fusions:[...snapshot.starterFusions]
    }).select("*").single();
    if(error)throw error;
-   return json({profileToken,profile:profileView(p),lastRoom:null},200,allow);
+   return json({profileToken,...await profileResult(p)},200,allow);
   }
   if(["profile","upgrade","pack","deckReplace","research","bindEssence"].includes(kind)){
    const p=await profileByToken(body.profileToken);
