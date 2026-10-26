@@ -81,3 +81,32 @@
 .duo-research button{display:block;width:100%;max-width:100%;margin:6px 0 11px}
 .duo-research button:disabled{opacity:.6;cursor:not-allowed}
 #duoProfileUnlockInfo{border-left:3px solid #92abcc;padding:6px 10px}
+
+/* v17.3 - independent card collection and safe per-card smithy */
+.duo-collection{margin:18px 0 8px;padding:16px;border:1px solid #6d6b87;
+ border-radius:12px;background:linear-gradient(140deg,#192238,#111a2a)}
+.duo-collection>h3{margin:0 0 4px;color:#f7dba8}
+.duo-collection-controls{display:grid;grid-template-columns:minmax(120px,1fr) minmax(160px,1.5fr) auto;
+ gap:12px;align-items:end;margin:12px 0}
+.duo-collection-controls label{display:grid;gap:4px;font-size:12px}
+.duo-collection-controls select,.duo-collection-controls input{width:100%;min-width:0;box-sizing:border-box}
+.duo-check{display:flex!important;gap:7px!important;align-items:center;line-height:1.4}
+.duo-check input{width:auto!important;min-width:0;accent-color:#c5a46c}
+.duo-collection-scroll{overflow-x:auto;max-height:390px;overflow-y:auto;
+ border:1px solid #4f5268;border-radius:9px}
+.duo-collection-table{width:100%;min-width:540px;border-collapse:collapse;font-size:12px;
+ font-variant-numeric:tabular-nums}
+.duo-collection-table th{position:sticky;top:0;background:#252b45;color:#f4dab9;
+ text-align:left;padding:10px 8px;white-space:nowrap;z-index:1}
+.duo-collection-table td{padding:8px;border-bottom:1px solid #343b55}
+.duo-collection-table tr.duo-card-spare{background:#263a3855}
+.duo-collection-table tbody tr:hover{background:#37425c}
+.duo-collection-empty{text-align:center;color:#c5c2d2}
+.duo-collection-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:14px}
+.duo-collection-actions section{padding:12px;background:#111a2c;border:1px solid #525c76;
+ border-radius:9px;display:grid;align-content:start;gap:7px}
+.duo-collection-actions h4{font-size:15px;margin:0;color:#ecd4ac}
+.duo-collection-actions select,.duo-collection-actions button{width:100%;min-width:0;box-sizing:border-box}
+.duo-collection-actions button:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:710px){.duo-collection-controls,.duo-collection-actions{
+ grid-template-columns:1fr}.duo-collection{padding:11px}}
