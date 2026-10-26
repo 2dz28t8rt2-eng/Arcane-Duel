@@ -1184,7 +1184,11 @@ function study(){
   const scenarios=stage===4?24:stage===7?24:stage===8?12:6;
   for(let scenario=requestedChunk*6;scenario<Math.min(scenarios,(requestedChunk+1)*6);scenario++){
    const seedA=5351+pair*157+scenario*79+pairedStage*241;
-   const seedB=5609+pair*151+scenario*91+pairedStage*231;
+   // The constructed-deck helper accepts only seed integers in 0..9999.
+   // Longer phase 7 uses a smaller fixed stage offset (no outcome-based tuning).
+   const seedB=5609+pair*151+scenario*91+pairedStage*(stage===7?170:231);
+   assert.ok(seedA>=0&&seedA<=9999&&seedB>=0&&seedB<=9999,
+    'Benchmark seed must remain within the deck builder 0..9999 contract');
    const a=makeBenchmarkDeck(catalog,tier,roleA,'balanced',seedA);
    const b=makeBenchmarkDeck(catalog,foeTier,roleB,'balanced',seedB);
    assert.equal(a.deck.length,40);assert.equal(b.deck.length,40);
@@ -1359,7 +1363,7 @@ function study(){
    [t,cases.filter(x=>x.split===t).length]))}));
  return;
  }
- assert.equal(cases.length,stage===4?4608:stage===7?4456:stage===8?2304:1152,'Stage matched selfplay games');
+ assert.equal(cases.length,stage===4?4608:stage===7?4608:stage===8?2304:1152,'Stage matched selfplay games');
  // Case-matched action traces from TRAIN only. First divergence is a diagnostic,
  // not proof of causality; validation/holdout decisions are never inspected.
  const train=cases.filter(x=>x.split==='train');
