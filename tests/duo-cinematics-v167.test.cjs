@@ -54,3 +54,11 @@ test("effects stay bounded when many server events arrive",()=>{
    "Host greift Gegner B","Host fusioniert 3 Monster"]);
  assert.ok(fx.describe(a,b).length<=3);
 });
+
+test("a destroyed target follows the confirmed attack in order",()=>{
+ const a=state(20),b=state(21,["Host greift Gegner A in ATK an"]);
+ b.players[0].field[0].used=true;b.players[1].field[0]=null;
+ const events=fx.describe(a,b);
+ assert.deepEqual(events.map(e=>e.type),["attack","destroy"]);
+ assert.equal(events[1].where.seat,1);
+});
