@@ -1,4 +1,4 @@
-/* Arcane Duel 2v2 v16.5 — read-only choices for the online 2v2 interface.
+/* Arcane Duel 2v2 v16.6 — read-only choices for the online 2v2 interface.
  * The server remains authoritative for every game action.
  */
 (function(root,factory){
@@ -12,7 +12,9 @@
   if(!p||state.status!=='active'||state.activeSeat!==seat||p.kind!=='human')
    return {canAct:false,freeSlots:[],hand:[],attackers:[],targets:[],waiting:[]};
   const freeSlots=p.field.flatMap((card,slot)=>card?[]:[slot]);
-  const hand=!p.summoned&&freeSlots.length?p.hand.map((id,index)=>({id,index})):[];
+  const hand=!p.summoned&&freeSlots.length?p.hand.map((item,index)=>({
+   id:typeof item==='number'?item:item.id,index,fate:item?.fate===true,
+   ...(item?.fate?{atk:item.atk,def:item.def}:{})})):[];
   const attackers=p.field.flatMap((card,slot)=>card&&card.mode==='atk'&&!card.used&&
    !(card.lv1LockedUntil>p.ownTurns)&&card.placedRound<state.round?[{slot,card}]:[]);
   if(p.lv1?.perk)attackers.push(...(p.lv1.ghostSlots||[]).flatMap((card,slot)=>

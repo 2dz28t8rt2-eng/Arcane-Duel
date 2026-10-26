@@ -26,3 +26,12 @@
 .duo-ghost-cell{border:1px dashed rgba(186,134,243,.66);background:rgba(122,77,174,.1)}
 .duo-ghost-cell.filled{border-style:solid}
 .duo-ghost-cell .duo-field-art{max-height:70px}
+.duo-arena-forecast,.duo-fate-banner{grid-column:1/-1;margin:0;padding:9px 12px;
+ border-radius:9px;text-align:center;font-size:.82rem;line-height:1.45}
+.duo-arena-forecast{border:1px solid rgba(226,125,78,.6);background:rgba(111,38,31,.2);
+ color:#ffdbba}
+.duo-fate-banner{border:1px solid rgba(241,204,115,.75);background:rgba(121,89,25,.2);
+ color:#ffe5a3;font-weight:700;letter-spacing:.02em}
+.field-cell.duo-fate-card{border:2px solid #f0cd7b;
+ background:linear-gradient(145deg,rgba(139,105,40,.36),rgba(75,48,95,.3));
+ box-shadow:0 0 16px rgba(235,192,94,.35)}

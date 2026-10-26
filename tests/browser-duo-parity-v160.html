@@ -1,4 +1,4 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><title>2v2 v16.5 browser QA</title></head>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>2v2 v16.6 browser QA</title></head>
 <body><pre id="result">Lädt …</pre><iframe id="duo" src="../duo-campaign-v2.html" width="1000" height="900"></iframe>
 <script>
 document.getElementById('duo').addEventListener('load',()=>{
@@ -8,7 +8,9 @@ document.getElementById('duo').addEventListener('load',()=>{
   const check=(v,t)=>{notes.push((v?'OK ':'FAIL ')+t);if(!v)ok=false;};
   try{
    check(!!f.contentWindow.ArcaneDuoRules,'Same reducer as deployed on the Edge Function');
-   check(f.contentWindow.ArcaneDuoRules?.version==='16.5-beta','Correct rules version');
+   check(f.contentWindow.ArcaneDuoRules?.version==='16.6-beta','Correct rules version');
+   check(!!f.contentWindow.ArcaneFateVisuals?.artFor(0),
+    'Singleplayer Fate illustrations are available for temporary creatures');
    check(d.getElementById('duoDeckInfo').textContent.includes('Standarddeck')||
     d.getElementById('duoDeckInfo').textContent.includes('übernommen'),
     'Singleplayer main/fusion deck load or safe fallback');
@@ -49,6 +51,10 @@ document.getElementById('duo').addEventListener('load',()=>{
     d.querySelector('.duo-guide').textContent.includes('Nekroth')&&
     d.querySelector('.duo-guide').textContent.includes('Floating'),
     'v16.5 Lv1 fusions, ghost zones and Floating explained');
+   check(d.querySelector('.duo-guide').textContent.includes('Schicksalszug')&&
+    d.querySelector('.duo-guide').textContent.includes('Arena-Zerfall')&&
+    d.querySelector('.duo-guide').textContent.includes('320 LP'),
+    'v16.6 team Fate draw and late-round arena pressure explained');
   }catch(e){check(false,e.stack||e.message);}
   document.getElementById('result').textContent=notes.join('\n');
   document.documentElement.dataset.duoParity=ok?'pass':'fail';

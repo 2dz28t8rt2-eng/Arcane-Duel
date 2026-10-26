@@ -18,6 +18,22 @@ const live=(id,changes={})=>({id,uid:1000+id,level:catalog[id].level,
  soul:0,condensed:0,soulCooldown:0,raidCooldown:0,condenseLeft:0,
  condenseSlice:0,drainPreference:0,lastSoulAction:-1,lastDrainSwitch:-1,
  decaySkipOwnTurn:-1,decayGrace:0,maxDef:catalog[id].def,resonance:0,...changes});
+const luckySeed=()=>{
+ for(let seed=1;seed<10000;seed++){
+  let x=seed;x^=x<<13;x^=x>>>17;x^=x<<5;
+  if((x>>>0)%100===0)return seed;
+ }
+ throw Error('No deterministic 0% test seed found');
+};
+function fateSetup(ownerSeat=0){
+ const state=setup();state.round=3;
+ state.activeSeat=ownerSeat===0?3:ownerSeat===1?0:ownerSeat===2?1:2;
+ state.teams[state.players[ownerSeat].team].lp=100;
+ const rivalSeat=ownerSeat===0||ownerSeat===2?1:0;
+ state.players[rivalSeat].field[0]=live(deck[0],{atk:3000,def:3000});
+ state.rngSeed=luckySeed();
+ return state;
+}
 test('current singleplayer catalog and server catalog never diverge',()=>{
  assert.equal(snapshot.cards.length,762);
  assert.ok(snapshot.cards.filter(c=>c.playable).length>420);
@@ -29,13 +45,138 @@ test('current singleplayer catalog and server catalog never diverge',()=>{
 });
 test('all four players start with 40 real cards, five in own hand, seven slots and 16k team LP',()=>{
  const state=setup();
- assert.equal(state.schema,2);assert.equal(state.players.length,4);
+ assert.equal(state.schema,2);assert.equal(state.ruleset,'duo-v166');
+ assert.ok([0,1].includes(state.tiePriority));assert.equal(state.players.length,4);
  assert.deepEqual(state.players.map(p=>p.hand.length),[5,5,5,5]);
  assert.deepEqual(state.players.map(p=>p.deck.length),[35,35,35,35]);
  assert.deepEqual(state.players.map(p=>p.field.length),[7,7,7,7]);
  assert.deepEqual(state.teams.map(t=>t.lp),[16000,16000]);
  assert.deepEqual(state.players.map(p=>p.team),[0,1,0,1]);
  assert.equal(state.activeSeat,0);
+});
+test('ten original Fate identities (including noncollectible templates) come from the singleplayer',()=>{
+ assert.equal(snapshot.fateIds.length,10);
+ assert.equal(snapshot.fateNames.length,10);
+ assert.deepEqual(snapshot.fateNames.slice(0,2),['Sternenrichter','Himmlischer Löwenwächter']);
+ assert.ok(snapshot.fateIds.every(id=>catalog[id].fateTemplate&&catalog[id].level===10));
+ assert.equal(new Set(snapshot.fateIds).size,10);
+ assert.ok(snapshot.fateIds.some(id=>!catalog[id].playable));
+ assert.ok(snapshot.fateIds.every(id=>!deck.includes(id)));
+});
+test('Fate draw starts from round 3, respects 2v2 team pressure, and returns hand to deck',()=>{
+ const before=fateSetup();before.round=1;
+ const noFate=move(before,3,{type:'end'});
+ assert.equal(noFate.players[0].fateUsed,false);
+ const eligible=fateSetup();
+ const oldHand=[...eligible.players[0].hand],oldCount=eligible.players[0].deck.length;
+ eligible.players[1].graveyard.push(live(deck[0],{atk:3800,def:4100}));
+ const next=move(eligible,3,{type:'end'});
+ assert.equal(next.activeSeat,0);assert.equal(next.round,4);
+ assert.equal(next.players[0].fateUsed,true);
+ assert.equal(next.players[0].hand.length,5);
+ assert.equal(next.players[0].deck.length,oldCount+oldHand.length);
+ assert.deepEqual(next.players[0].deck.slice().sort((a,b)=>a-b),
+  [...eligible.players[0].deck,...oldHand].sort((a,b)=>a-b));
+ assert.ok(next.players[0].hand.every(c=>c.fate&&snapshot.fateIds.includes(c.id)));
+ assert.equal(new Set(next.players[0].hand.map(c=>c.id)).size,5);
+ assert.ok(next.players[0].hand.every(c=>c.atk===3900&&c.def===4200));
+ assert.deepEqual(next.fateEvent.cardIds,next.players[0].hand.map(c=>c.id));
+ assert.equal(next.fateEvent.ownerSeat,0);
+ assert.equal(next.fateEvent.score,100);
+ assert.equal(eligible.players[0].fateUsed,false,'The reducer must not mutate a prior state');
+ const host=rules.view(next,0),guest=rules.view(next,2);
+ assert.equal(host.players[0].hand[0].fate,true);
+ assert.deepEqual(guest.players[0].hand,Array(5).fill(null));
+});
+test('Fate also triggers for opponents; its low-pressure chance stays zero',()=>{
+ const enemy=fateSetup(1);const next=move(enemy,0,{type:'end'});
+ assert.equal(next.players[1].fateUsed,true);
+ assert.equal(next.fateEvent.ownerSeat,1);
+ assert.ok(next.players[1].hand.every(c=>c.fate));
+ const calm=setup();calm.round=3;calm.activeSeat=3;calm.rngSeed=luckySeed();
+ const noFate=move(calm,3,{type:'end'});
+ assert.equal(noFate.players[0].fateUsed,false);
+ assert.equal(noFate.fateEvent,null);
+});
+test('Fate creatures summon and attack normally, but cannot fuse from hand/field or enter ghosts',()=>{
+ let g=move(fateSetup(),3,{type:'end'});
+ assert.throws(()=>rules.fusionOptions(g,0,[{from:'hand',index:0},{from:'hand',index:1}],catalog),
+  /nicht fusionierbar/);
+ const temp=g.players[0].hand[0];
+ g=move(g,0,{type:'summon',handIndex:0,slot:0});
+ assert.equal(g.players[0].field[0].fate,true);
+ assert.equal(g.players[0].field[0].atk,temp.atk);
+ assert.equal(g.players[0].field[0].maxDef,temp.def);
+ assert.throws(()=>rules.fusionOptions(g,0,[{from:'field',index:0},
+  {from:'hand',index:0}],catalog),/nicht fusionierbar/);
+ g.players[0].lv1.perk=true;g.players[0].lv1.ghostSlots=[null];
+ assert.throws(()=>move(g,0,{type:'lv1Station',slot:0,ghostSlot:0}),/Geisterslot/);
+ g.round=5;
+ const before=g.teams[1].lp;
+ // Destroy opposing obstacles to isolate normal fate direct-attack damage.
+ g.players[1].field.fill(null);g.players[3].field.fill(null);
+ const attacked=move(g,0,{type:'attack',slot:0,targetSeat:null,targetSlot:null});
+ assert.equal(attacked.teams[1].lp,before-temp.atk);
+ assert.equal(attacked.players[0].field[0].used,true);
+});
+test('Fate cards are one-time per duellant and all temporary cards disappear between chapters',()=>{
+ let g=move(fateSetup(),3,{type:'end'});
+ g.activeSeat=3;g.round=4;g.rngSeed=luckySeed();
+ const previous=g.fateEvent;
+ const noSecond=move(g,3,{type:'end'});
+ assert.deepEqual(noSecond.fateEvent,previous);
+ assert.equal(noSecond.players[0].fateUsed,true);
+ noSecond.status='finished';noSecond.winner=0;
+ const chapter=move(noSecond,0,{type:'nextChapter'});
+ assert.equal(chapter.chapter,2);
+ assert.equal(chapter.fateEvent,null);
+ assert.ok(chapter.players.every(p=>p.fateUsed===false));
+ assert.ok(chapter.players.every(p=>p.hand.every(id=>Number.isInteger(id))));
+ assert.ok(chapter.players.every(p=>p.field.every(c=>c===null)));
+});
+test('Arena damages team LP only after completed round 10 and bypasses shields',()=>{
+ let g=setup();g.activeSeat=3;g.round=9;
+ g.teams[0].shield=500;g.teams[1].shield=300;
+ const early=move(g,3,{type:'end'});
+ assert.deepEqual(early.teams.map(t=>t.lp),[16000,16000]);
+ assert.equal(early.arenaEvent,null);
+ g.round=10;
+ const after=move(g,3,{type:'end'});
+ assert.deepEqual(after.teams.map(t=>t.lp),[15680,15680]);
+ assert.deepEqual(after.teams.map(t=>t.shield),[500,300]);
+ assert.equal(after.round,11);assert.equal(after.arenaEvent.damage,320);
+ assert.deepEqual(after.arenaEvent.before,[16000,16000]);
+ assert.equal(rules.arenaDamage(g,10),320);
+ assert.equal(rules.arenaDamage(g,11),640);
+ assert.equal(rules.arenaDamage(g,16),16000);
+ assert.equal(after.log.some(s=>s.includes('Arena-Zerfall')),true);
+});
+test('Arena dual knockout uses pre-damage LP, then fixed seeded initiative on ties',()=>{
+ const state=setup();state.activeSeat=3;state.round=10;
+ state.teams[0].lp=200;state.teams[1].lp=150;
+ let next=move(state,3,{type:'end'});
+ assert.equal(next.status,'finished');assert.equal(next.winner,0);
+ assert.equal(next.activeSeat,3);assert.deepEqual(next.teams.map(t=>t.lp),[0,0]);
+ state.teams[0].lp=150;state.teams[1].lp=200;
+ next=move(state,3,{type:'end'});assert.equal(next.winner,1);
+ state.teams[0].lp=200;state.teams[1].lp=200;
+ state.tiePriority=1;
+ next=move(state,3,{type:'end'});assert.equal(next.winner,1);
+ assert.match(next.log.at(-1),/ausgeloste Entscheidungsinitiative/);
+ state.tiePriority=0;
+ next=move(state,3,{type:'end'});assert.equal(next.winner,0);
+ state.teams[0].lp=321;state.teams[1].lp=320;
+ next=move(state,3,{type:'end'});
+ assert.equal(next.status,'finished');assert.equal(next.winner,0);
+});
+test('v16.5 rooms continue without Fate or Arena changes',()=>{
+ const g=fateSetup();g.ruleset='duo-v165';g.round=10;
+ const oldHand=[...g.players[0].hand];
+ const old=move(g,3,{type:'end'});
+ assert.equal(old.fateEvent,null);assert.equal(old.arenaEvent,null);
+ assert.equal(old.players[0].fateUsed,false);
+ assert.deepEqual(old.players[0].hand,oldHand);
+ assert.equal(old.teams[0].lp,100);
 });
 test('deck validation rejects unknown IDs, fusion cards in main, invalid counts and duplication',()=>{
  assert.ok(rules.validDeck(deck,catalog));
@@ -319,7 +460,7 @@ test('old v16.0 room snapshots continue to run without new Soul fields',()=>{
  assert.equal(after.teams[1].lp,15870);
 });
 test('combat build is server-validated, bounded to the submitted decks and persists on both seats',()=>{
- assert.equal(rules.version,'16.5-beta');
+ assert.equal(rules.version,'16.6-beta');
  const opts={roomId:'build-123456',hostName:'Host',hostDeck:deck,hostFusions:fusions,
   enemyDeckA:deck,enemyDeckB:deck,enemyFusionsA:fusions,enemyFusionsB:fusions,
   chapter:1,entry:'new',catalog,hostUpgrades:{power:10,openingAegis:3},

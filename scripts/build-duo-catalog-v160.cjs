@@ -30,6 +30,7 @@ const cards=runtime.run(`CARDS.map(c=>({
  }:{atk:0,def:0},
  art:typeof c.art==='string'&&c.art.startsWith('assets/')?c.art:'',
  fusionOnly:!!c.fusionOnly,ace:!!c.ace,
+ fateTemplate:FATE_CARD_IDS.includes(c.id),
  playable:!!c.rpg&&!c.retired&&!c.enemyOnly&&!c.fateOnly,
  essenceMonster:!!c.essenceMonster,essenceSchool:c.essenceMonster?(c.essenceSchool||c.school||null):null,
  lv1Special:c.lv1Special||null,lv1Exclusive:!!c.lv1Exclusive,
@@ -39,7 +40,10 @@ for(const [i,c] of cards.entries()){
  if(c.id!==i||!Number.isInteger(c.level)||!Number.isFinite(c.atk)||!Number.isFinite(c.def))
   throw Error('The singleplayer catalog is not canonical at '+i);
 }
-const loadouts=runtime.run('({starterMain:[...RPG_DEFAULT_DECK],starterFusions:[...RPG_START_FUSIONS]})');
+const loadouts=runtime.run('({starterMain:[...RPG_DEFAULT_DECK],starterFusions:[...RPG_START_FUSIONS],fateIds:[...FATE_CARD_IDS],fateNames:[...FATE_NAMES]})');
+if(loadouts.fateIds.length!==10||new Set(loadouts.fateIds).size!==10||
+ loadouts.fateIds.some(id=>cards[id]?.fateTemplate!==true||cards[id].level!==10))
+ throw Error('Singleplayer fate templates were not imported correctly.');
 const output=JSON.stringify({schema:1,source:'Arcane-Duel/development/index.html',scriptCount:scripts.length,
  ...loadouts,cards},null,0)+'\n';
 const targets=['assets/duo-card-catalog-v160.json',

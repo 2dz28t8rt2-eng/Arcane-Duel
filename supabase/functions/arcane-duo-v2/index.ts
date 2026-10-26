@@ -1,4 +1,4 @@
-/* 2v2 v16.5 beta. Isolated from the legacy arcane-duo endpoint/room table.
+/* 2v2 v16.6 beta. Isolated from the legacy arcane-duo endpoint/room table.
  * Client sends choices only. Deck legality, fusion levels, roles, damage,
  * draw order, turn ownership and private state live on the server.
  */

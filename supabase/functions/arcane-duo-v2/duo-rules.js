@@ -1,4 +1,4 @@
-/* Arcane Duel 2v2 · server-authoritative ruleset v16.5 beta.
+/* Arcane Duel 2v2 · server-authoritative ruleset v16.6 beta.
  * The same pure reducer runs in Node tests and the Supabase Edge Function.
  * All card IDs/stats are from the generated singleplayer CARDS registry.
  * No browser-provided damage or derived stats are ever trusted.
@@ -140,7 +140,7 @@
    essence:build.essence||{chosen:null,school:null,tier:0,rank:0,type:null},
    lv1:{perk:build.lv1?.perk===true,rank:build.lv1?.rank||0,
     ghostSlots:[],charges:0,choices:[],offers:[],floatUsed:0,swarmUsed:0},
-   fusionsPerformed:0,fusionLoreChainUsed:false,hand:[],
+   fusionsPerformed:0,fusionLoreChainUsed:false,fateUsed:false,hand:[],
    field:Array(7).fill(null),graveyard:[],summoned:false,ownTurns:0};
  }
  function draw(p,n=5){while(p.hand.length<n&&p.deck.length)p.hand.push(p.deck.shift());}
@@ -157,7 +157,7 @@
    assert(validDeck(f,catalog,true),'Fusionsdeck muss aus 2–15 freigeschalteten Fusionen bestehen (maximal 3 Kopien).');
   const hostBuild=normalizedBuild(hostUpgrades,hostEnhancements,hostDeck,hostFusions,
    catalog,hostEssence,hostLv1);
-  return {schema:2,mode:'duo-campaign',ruleset:'duo-v165',roomId,chapter,entry,
+  const g={schema:2,mode:'duo-campaign',ruleset:'duo-v166',roomId,chapter,entry,
    status:'waiting',revision:0,activeSeat:0,turn:0,round:1,uid:1,
    rngSeed:Number.isSafeInteger(randomSeed)&&randomSeed>=1&&randomSeed<=0xffffffff?
     randomSeed:roomSeed(roomId), // deterministic Node QA; Edge injects secret crypto seed
@@ -167,24 +167,30 @@
    players:[player(0,safeName(hostName),chapterDeck(hostDeck,catalog,chapter,entry),hostFusions,hostBuild),
     player(1,'Gegner A',enemyDeckA,enemyFusionsA),
     player(2,'Partner (ausstehend)'),player(3,'Gegner B',enemyDeckB,enemyFusionsB)],
-   winner:null,log:['Raum erstellt. Der Partner wird erwartet.']};
+   winner:null,fateEvent:null,arenaEvent:null,
+   log:['Raum erstellt. Der Partner wird erwartet.']};
+  // Tiebreak initiative is chosen once, never supplied by a browser client.
+  g.tiePriority=randomInt(g,2);
+  return g;
  }
- function instance(g,id,catalog,{fusion=false,roleOverride=null,quality=1,ownerSeat=null}={}){
+ function instance(g,id,catalog,{fusion=false,roleOverride=null,quality=1,
+  ownerSeat=null,fate=null}={}){
   const c=definition(catalog,id);
-  assert(c&&c.playable,'Karte existiert nicht im aktuellen Singleplayer-Katalog.');
+  assert(c&&(c.playable||(fate&&c.fateTemplate)),
+   'Karte existiert nicht im aktuellen Singleplayer-Katalog.');
   const p=Number.isInteger(ownerSeat)?g.players[ownerSeat]:null;
-  let atk=Math.max(0,round10((c.atk+statBonus(c,'atk',p))*quality));
-  let def=Math.max(0,round10((c.def+statBonus(c,'def',p))*quality));
-  const companion=!!c.essenceMonster&&p?.essence?.chosen===id;
+  let atk=fate?fate.atk:Math.max(0,round10((c.atk+statBonus(c,'atk',p))*quality));
+  let def=fate?fate.def:Math.max(0,round10((c.def+statBonus(c,'def',p))*quality));
+  const companion=!fate&&!!c.essenceMonster&&p?.essence?.chosen===id;
   const level=companion?essenceLevel(p.essence.tier):c.level;
   if(companion){atk=Math.min(10000,atk+level*45+p.essence.rank*35);
    def=Math.min(10000,def+level*70+p.essence.rank*55);}
-  if(p?.lv1?.perk&&c.level===1&&!c.fusionOnly&&!c.ace&&!c.essenceMonster){
+  if(!fate&&p?.lv1?.perk&&c.level===1&&!c.fusionOnly&&!c.ace&&!c.essenceMonster){
    atk=Math.min(10000,atk+p.lv1.rank*5);def=Math.min(10000,def+p.lv1.rank*5);
   }
   // Lumira is an exact-stat story ACE, including outside the research build.
   if(c.lv1Special==='ace'){atk=111;def=111;}
-  return {uid:g.uid++,id,level,atk,def,role:roleOverride||c.role||'combatant',
+  return {uid:g.uid++,id,level,atk,def,fate:!!fate,role:roleOverride||c.role||'combatant',
    fusion,mode:'atk',used:false,switched:false,placedRound:g.round,
    essenceChoice:1,essenceAttacks:0,essenceLastToggle:-1,
    guardLeft:0,guardGrantedTurn:-1,
@@ -197,7 +203,7 @@
  }
  const hasCards=(p)=>p.field.some(Boolean)||p.lv1?.ghostSlots?.some(Boolean);
  const defensive=c=>c&&['guardian','soul'].includes(c.role);
- const essenceCompanion=(p,c,type)=>!!c&&p?.essence?.chosen===c.id&&
+ const essenceCompanion=(p,c,type)=>!!c&&!c.fate&&p?.essence?.chosen===c.id&&
   p.essence?.type===type;
  const defenseSpecialist=p=>p?.essence?.school==='defense'&&p.essence.chosen!==null;
  const defensePerk=g=>Math.max(0,...g.players.filter(p=>p.team===0&&defenseSpecialist(p))
@@ -244,6 +250,83 @@
   if(g.teams[1-team].lp===0&&g.status==='active')win(g,team,'Seelenenergie oder Angriff beendet das Duell.');
   return dealt;
  };
+ const isV166=g=>g.ruleset==='duo-v166';
+ // The solo Arena applies 200 damage at round 10 and doubles thereafter.
+ // Scale by the 2v2 team's 16,000 / 10,000 maximum LP to preserve pacing.
+ const arenaDamage=(g,round)=>round<=9?0:
+  Math.min(g.teams[0].maxLp,Math.floor(200*g.teams[0].maxLp/10000)*2**(round-10));
+ function settleArena(g){
+  if(!isV166(g)||g.status!=='active')return;
+  const damage=arenaDamage(g,g.round);
+  if(!damage)return;
+  const before=g.teams.map(t=>t.lp);
+  g.teams.forEach(t=>t.lp=Math.max(0,t.lp-damage));
+  g.arenaEvent={round:g.round,damage,before,after:g.teams.map(t=>t.lp)};
+  g.log.push('☄ Arena-Zerfall, Runde '+g.round+': Beide Teams verlieren '+
+   damage+' LP (unabhängig vom Schild).');
+  const dead=g.teams.map(t=>t.lp===0);
+  if(dead[0]&&dead[1]){
+   const winner=before[0]===before[1]?g.tiePriority:(before[0]>before[1]?0:1);
+   win(g,winner,before[0]===before[1]?
+    'Arena-Zerfall: Gleichstand, ausgeloste Entscheidungsinitiative.':
+    'Arena-Zerfall: Team mit mehr LP vor dem Zerfall gewinnt.');
+  }else if(dead[0]||dead[1])win(g,dead[0]?1:0,
+   'Arena-Zerfall: Ein Team hat keine LP mehr.');
+ }
+ function fatePressure(g,seat){
+  const team=g.players[seat].team,own=g.teams[team];
+  const allies=g.players.filter(p=>p.team===team),opponents=g.players.filter(p=>p.team!==team);
+  const allied=allies.flatMap(p=>[...p.field,...(p.lv1?.ghostSlots||[])].filter(Boolean));
+  const enemies=opponents.flatMap(p=>[...p.field,...(p.lv1?.ghostSlots||[])].filter(Boolean));
+  const ratio=own.lp/Math.max(1,own.maxLp);
+  const life=ratio<=.1?40:ratio<=.2?35:ratio<=.35?25:ratio<=.5?15:ratio<=.65?5:0;
+  const power=cards=>cards.reduce((n,c)=>n+Math.max(c.atk,c.def),0);
+  const ours=power(allied),theirs=power(enemies);
+  const field=!enemies.length?0:!allied.length?40:
+   theirs>=ours*1.7?30:theirs>=ours*.85?10:0;
+  const openThreat=Math.max(0,enemies.reduce((n,c)=>n+(c.mode==='atk'?c.atk:0),0)-ours);
+  const lethal=enemies.length>0&&openThreat>=own.lp+(own.shield||0);
+  return {score:life+field+(lethal?20:0),life,field,lethal};
+ }
+ function fateReference(g,seat,catalog){
+  const team=g.players[seat].team;
+  let strongest=null;
+  const consider=(atk,def)=>{if(!Number.isFinite(atk)||!Number.isFinite(def))return;
+   if(!strongest||atk+def>strongest.atk+strongest.def)strongest={atk,def};};
+  for(const p of g.players.filter(x=>x.team!==team)){
+   for(const id of p.deck){const c=definition(catalog,id);if(c)
+    consider(c.atk+statBonus(c,'atk',p),c.def+statBonus(c,'def',p));}
+   for(const c of [...p.field,...(p.lv1?.ghostSlots||[]),...p.graveyard].filter(Boolean)){
+    const definitionCard=definition(catalog,c.id);
+    consider(c.atk??definitionCard?.atk,c.def??definitionCard?.def);
+   }
+  }
+  return strongest||{atk:500,def:500};
+ }
+ function maybeFate(g,p,catalog){
+  if(!isV166(g)||g.round<3||p.fateUsed||g.winner!==null)return false;
+  const pressure=fatePressure(g,p.seat);
+  const chance=pressure.score>=90?5:pressure.score>=75?3:pressure.score>=60?1:0;
+  if(!chance||randomInt(g,100)>=chance)return false;
+  const candidates=Object.values(catalog).filter(c=>c.fateTemplate===true)
+   .sort((a,b)=>a.id-b.id).map(c=>c.id);
+  assert(candidates.length===10,'Der Singleplayer-Schicksalskartenpool ist unvollständig.');
+  const reference=fateReference(g,p.seat,catalog);
+  p.deck.push(...p.hand.filter(c=>Number.isInteger(c)));
+  p.hand=[];
+  for(let i=p.deck.length-1;i>0;i--){const j=randomInt(g,i+1);
+   [p.deck[i],p.deck[j]]=[p.deck[j],p.deck[i]];}
+  for(let i=candidates.length-1;i>0;i--){const j=randomInt(g,i+1);
+   [candidates[i],candidates[j]]=[candidates[j],candidates[i]];}
+  const chosen=candidates.slice(0,5);
+  for(const id of chosen)p.hand.push({id,fate:true,atk:Math.min(10000,reference.atk+100),
+   def:Math.min(10000,reference.def+100)});
+  p.fateUsed=true;
+  g.fateEvent={ownerSeat:p.seat,cardIds:chosen,round:g.round,score:pressure.score};
+  g.log.push('✦ SCHICKSALSZUG! '+p.name+
+   ' erhält fünf temporäre, unverschmelzbare Schicksalsmonster!');
+  return true;
+ }
  const lv1State=p=>{
   if(!p.lv1)p.lv1={perk:false,rank:0,ghostSlots:[],charges:0,choices:[],offers:[],
    floatUsed:0,swarmUsed:0};
@@ -479,6 +562,7 @@
   restoreAllies(g,p,catalog);
   absorbSouls(g,p,catalog);
   if(g.status!=='active')return;
+  maybeFate(g,p,catalog);
   draw(p);
   g.log.push(p.name+' ist am Zug und zieht bis auf fünf Handkarten.');
  }
@@ -540,6 +624,7 @@
     m.from==='ghost'?ghostZone(p)[m.index]:m.index<lv1State(p).charges?
      {_charge:true,id:-1,level:2,role:'combatant',fusion:false}:null;
    assert(card!==null&&card!==undefined,'Fusionsmaterial ist nicht vorhanden.');
+   assert(!card.fate,'Schicksalsmonster sind nicht fusionierbar.');
    cards.push(m.from==='hand'?{id:card,level:0,...{_hand:true}}:card);
   }
   return cards;
@@ -777,6 +862,7 @@
    assert(seat===0&&g.status==='finished'&&g.winner===0&&g.chapter<4,
     'Nur der Gastgeber kann das nächste freigeschaltete Kapitel starten.');
    g.chapter++;g.status='active';g.winner=null;g.round=1;g.turn=0;g.activeSeat=0;
+   g.fateEvent=null;g.arenaEvent=null;
    g.teams.forEach(t=>t.lp=t.maxLp);
    g.teams[0].shield=teamAegis(g);g.teams[1].shield=0;
    g.teams[0].essenceTauntTurn=-1;g.teams[0].essenceBastionUsed=false;
@@ -784,7 +870,7 @@
     pl.deck=chapterDeck(pl.baseDeck,catalog,g.chapter,'chapter');
     pl.fusionDeck=[...pl.baseFusions];pl.remainingFusion=[...pl.baseFusions];
     pl.hand=[];pl.field=Array(7).fill(null);pl.graveyard=[];
-    pl.summoned=false;pl.ownTurns=0;pl.fusionsPerformed=0;
+    pl.summoned=false;pl.ownTurns=0;pl.fusionsPerformed=0;pl.fateUsed=false;
     pl.fusionLoreChainUsed=false;draw(pl);
     const saved=lv1State(pl);
     saved.ghostSlots=[];saved.charges=0;saved.choices=[];saved.offers=[];
@@ -799,15 +885,22 @@
    assert(!p.summoned,'Dieser Zug hat bereits eine Beschwörung.');
    assert(Number.isInteger(action.handIndex)&&p.hand[action.handIndex]!==undefined,'Handkarte fehlt.');
    assert(Number.isInteger(action.slot)&&action.slot>=0&&action.slot<7&&!p.field[action.slot],'Feldplatz belegt.');
-   const id=p.hand[action.handIndex];assert(allowed(catalog,id),'Karte ist nicht regulär beschwörbar.');
-   p.hand.splice(action.handIndex,1);p.field[action.slot]=instance(g,id,catalog,{ownerSeat:seat});
+   const handCard=p.hand[action.handIndex];
+   const id=Number.isInteger(handCard)?handCard:handCard?.id;
+   const fate=handCard?.fate===true?handCard:null;
+   assert(allowed(catalog,id)||fate&&definition(catalog,id)?.fateTemplate,
+    'Karte ist nicht regulär beschwörbar.');
+   p.hand.splice(action.handIndex,1);
+   p.field[action.slot]=instance(g,id,catalog,{ownerSeat:seat,fate});
    lv1Arrival(g,p,p.field[action.slot],catalog);
-   p.summoned=true;g.log.push(p.name+' beschwört '+definition(catalog,id).name+'.');
+   p.summoned=true;g.log.push(p.name+' beschwört '+
+    (fate?'ein Schicksalsmonster':definition(catalog,id).name)+'.');
   }else if(action.type==='lv1Station'){
    const s=lv1State(p),c=p.field[action.slot],i=action.ghostSlot;
    assert(s.perk&&Number.isInteger(i)&&i>=0&&i<s.ghostSlots.length&&
     s.ghostSlots[i]===null&&c&&!c.used&&!c.switched&&
-    c.lv1MovedTurn!==g.turn,'Geisterslot ist belegt oder Monster hat bereits gehandelt.');
+    c.lv1MovedTurn!==g.turn&&!c.fate,
+    'Geisterslot ist belegt oder Monster hat bereits gehandelt.');
    p.field[action.slot]=null;s.ghostSlots[i]=c;
    c.used=true;c.switched=true;c.lv1MovedTurn=g.turn;
    syncLv1Swarm(p,catalog);
@@ -1078,6 +1171,7 @@
    if(p.team===1)for(const ally of g.players.filter(x=>x.team===0))
     for(const c of ally.field.filter(Boolean))if(c.guardLeft>0&&c.guardGrantedTurn!==g.turn)
      c.guardLeft--;
+   if(g.status==='active'&&seat===3)settleArena(g);
    if(g.status==='active')moveOn(g,catalog);
   }else fail('Unbekannte Aktion.');
   g.revision++;return g;
@@ -1087,7 +1181,8 @@
   while(g.status==='active'&&[1,3].includes(g.activeSeat)&&n++<2){
    const seat=g.activeSeat,p=g.players[seat],free=p.field.findIndex(x=>!x);
    if(!p.summoned&&free>=0&&p.hand.length){
-    const ix=p.hand.findIndex(id=>allowed(catalog,id));
+    const ix=p.hand.findIndex(item=>allowed(catalog,Number.isInteger(item)?item:item?.id)||
+     item?.fate===true&&definition(catalog,item.id)?.fateTemplate);
     if(ix>=0)g=apply(g,seat,{type:'summon',handIndex:ix,slot:free},{catalog});
    }
    const active=g.players[seat],foes=g.players.filter(x=>x.team!==active.team);
@@ -1119,7 +1214,7 @@
   }
   return v;
  }
- return Object.freeze({version:'16.5-beta',CHAPTERS,seats,allowed,validDeck,packIds,
+ return Object.freeze({version:'16.6-beta',CHAPTERS,seats,allowed,validDeck,packIds,
   chapterDeck,create,apply,aiTurn,view,fusionLevel,fusionPattern,fusionOptions,
-  fusionAnalysis,fusionPreview,fusionRole,PERK_LIMITS,normalizedBuild});
+  fusionAnalysis,fusionPreview,fusionRole,arenaDamage,fatePressure,PERK_LIMITS,normalizedBuild});
 });

@@ -9,13 +9,17 @@
   choices=window.ArcaneDuoBattleUI;
  const key=id=>'arcane-duo-v2-session-'+id;
  const ownOrigin=()=>location.href.split('#')[0].split('?')[0];
- let catalog={},starterMain=[],starterFusions=[],profileDeck=[],profileFusions=[],
+ let catalog={},starterMain=[],starterFusions=[],fateIds=[],fateNames=[],profileDeck=[],profileFusions=[],
   profileUpgrades={},profileEnhancements={},profileEssence={},profileLv1={};
  let game=null,seat=-1,roomId='',token='',invite='',busy=false,refreshing=false,
   syncError='',syncedAt=0,sessionReady=true;
  const set=(id,text)=>$(id).textContent=String(text);
  const card=id=>catalog[id]||{name:'Karte '+id,level:'?',atk:'?',def:'?',role:'?'};
  const name=id=>card(id).name;
+ const fateIndex=id=>fateIds.indexOf(id);
+ const displayName=c=>c?.fate?'✦ '+(fateNames[fateIndex(c.id)]||'Schicksalsmonster'):name(c.id);
+ const displayArt=c=>c?.fate?(window.ArcaneFateVisuals?.artFor(fateIndex(c.id))||''):
+  card(c.id).art;
  const el=(tag,parent,text,cls)=>{
   const n=document.createElement(tag);if(cls)n.className=cls;
   if(text!==undefined)n.textContent=text;
@@ -165,7 +169,7 @@
   }catch(e){set('duoStatus',e.message);}
   finally{busy=false;render();}
  }
- const format=c=>name(c.id)+' · Lv '+c.level+' · '+c.atk+'/'+c.def+
+ const format=c=>displayName(c)+' · Lv '+c.level+' · '+c.atk+'/'+c.def+
   ' · '+(c.mode==='def'?'DEF':'ATK')+(c.soul?' · ✦ '+c.soul+' Seele':'');
  function render(){
   const dock=$('duoActions'),track=$('duoTrack'),seats=$('duoSeats'),log=$('duoLog');
@@ -198,6 +202,15 @@
   set('duoTurnName',game.status==='waiting'?'Warte auf deinen Partner':
    game.status==='finished'?(game.winner===0?'Gemeinsamer Sieg!':'Gemeinsame Niederlage'):
    'Runde '+game.round+' · '+game.players[game.activeSeat].name+' am Zug');
+  if(game.ruleset==='duo-v166'){
+   const arena=game.round<=9?'Arena-Zerfall ab Runde 10':
+    'Arena-Zerfall: '+rules.arenaDamage(game,game.round).toLocaleString('de-AT')+
+    ' LP pro Team nach dieser Runde · Schild schützt nicht';
+   el('p',track,'☄ '+arena,'duo-arena-forecast');
+   if(game.fateEvent)el('p',track,'✦ Schicksalszug von '+
+    game.players[game.fateEvent.ownerSeat].name+' in Runde '+game.fateEvent.round+
+    ' – fünf temporäre Schicksalsmonster!','duo-fate-banner');
+  }
   const reward=rules.packIds(catalog,game.chapter);
   set('duoCurrentReward','Kapitel '+game.chapter+' · Bonuskarten: '+reward.map(name).join(' · '));
   for(const p of game.players){
@@ -223,11 +236,13 @@
    for(const [slot,c] of p.field.entries()){
     const cell=el('div',field,undefined,'field-cell '+(c?'filled':''));
     if(!c){el('span',cell,'◇');continue;}
-    if(card(c.id).art){
-     const img=el('img',cell,undefined,'duo-field-art');img.src=card(c.id).art;
-     img.alt='Illustration '+name(c.id);img.loading='lazy';
+    const illustration=displayArt(c);
+    if(illustration){
+     const img=el('img',cell,undefined,'duo-field-art');img.src=illustration;
+     img.alt='Illustration '+displayName(c);img.loading='lazy';
     }
-    el('span',cell,name(c.id));
+    if(c.fate)cell.classList.add('duo-fate-card');
+    el('span',cell,displayName(c));
     el('small',cell,'Lv '+c.level+' · '+c.atk+' ATK / '+c.def+' DEF',
      'duo-field-meta');
     el('small',cell,(c.mode==='def'?'🛡 DEF':'⚔ ATK')+
@@ -235,7 +250,7 @@
     if(c.role==='soul')el('small',cell,'✦ '+(c.soul||0)+' Seele · '+
      (c.condensed||0)+' Verdichtung · CD '+(c.soulCooldown||0),
      'duo-soul-status');
-    if(p.essence?.chosen===c.id){
+    if(!c.fate&&p.essence?.chosen===c.id){
      const kind=card(c.id).essenceSchool;
      el('small',cell,'✦ Gebundene Essenz · '+
       (kind==='predator'?(c.essenceChoice===2?'2 × 70 %':'1 × 100 %'):
@@ -260,9 +275,9 @@
     (p.lv1.ghostSlots||[]).forEach((c,i)=>{
      const cell=el('div',grid,undefined,'field-cell duo-ghost-cell '+(c?'filled':''));
      if(!c){el('span',cell,'◇ Slot '+(i+1));return;}
-     if(card(c.id).art){const img=el('img',cell,undefined,'duo-field-art');
-      img.src=card(c.id).art;img.alt=name(c.id);img.loading='lazy';}
-     el('span',cell,name(c.id));
+     if(displayArt(c)){const img=el('img',cell,undefined,'duo-field-art');
+      img.src=displayArt(c);img.alt=displayName(c);img.loading='lazy';}
+     el('span',cell,displayName(c));
      el('small',cell,'Zone '+(i+1)+' · Lv '+c.level+' · '+c.atk+'/'+c.def+
       ' · '+(c.mode==='def'?'DEF':'ATK'));
     });
@@ -292,7 +307,9 @@
   if(legal.hand.length){
    const part=section(dock,'✦ Beschwörung','Ein reguläres Monster pro Zug oder stattdessen eine Fusion.');
    const row=el('div',part,undefined,'duo-choices');
-   const hand=selector('Handkarte',legal.hand.map(x=>[x.index,name(x.id)+' · Lv '+card(x.id).level]),row);
+   const hand=selector('Handkarte',legal.hand.map(x=>[x.index,
+    displayName(x)+' · Lv '+card(x.id).level+
+    (x.fate?' · '+x.atk+'/'+x.def+' · unverschmelzbar':'')]),row);
    const slot=selector('Freier Feldplatz',legal.freeSlots.map(i=>[i,'Feld '+(i+1)]),row);
    button('Monster beschwören',part,()=>send({type:'summon',
     handIndex:Number(hand.value),slot:Number(slot.value)}));
@@ -302,10 +319,12 @@
     'Du kannst ein Kernmonster bestimmen; die Vorschau erklärt den Würfelbonus vor der Fusion.');
    const select=el('select',part,undefined,'duo-fusion-list');
    select.multiple=true;select.size=7;select.setAttribute('aria-label','Fusionsmaterialien');
-   p.hand.forEach((id,i)=>{const opt=el('option',select,'Hand '+(i+1)+' · '+
-    name(id)+' · Lv '+card(id).level);opt.value='hand:'+i;});
-   p.field.forEach((c,i)=>{if(!c)return;const opt=el('option',select,
-    'Feld '+(i+1)+' · '+name(c.id)+' · Lv '+c.level);opt.value='field:'+i;});
+   p.hand.forEach((item,i)=>{if(item?.fate)return;
+    const id=typeof item==='number'?item:item.id;
+    const opt=el('option',select,'Hand '+(i+1)+' · '+
+     name(id)+' · Lv '+card(id).level);opt.value='hand:'+i;});
+   p.field.forEach((c,i)=>{if(!c||c.fate)return;const opt=el('option',select,
+    'Feld '+(i+1)+' · '+displayName(c)+' · Lv '+c.level);opt.value='field:'+i;});
    if(p.lv1?.perk){
     (p.lv1.ghostSlots||[]).forEach((c,i)=>{if(!c)return;
      const opt=el('option',select,'Geisterslot '+(i+1)+' · '+name(c.id)+
@@ -548,11 +567,12 @@
  }
  async function init(){
   try{
-   const response=await fetch('assets/duo-card-catalog-v160.json?v=duo-v165');
+   const response=await fetch('assets/duo-card-catalog-v160.json?v=duo-v166');
    if(!response.ok)throw Error('Kartenkatalog fehlt.');
    const snapshot=await response.json();
    if(snapshot.schema!==1||snapshot.cards.length<400)throw Error('Kartenkatalog unvollständig.');
    catalog=Object.fromEntries(snapshot.cards.map(c=>[c.id,c]));
+   fateIds=[...(snapshot.fateIds||[])];fateNames=[...(snapshot.fateNames||[])];
    readProfile(snapshot);
   }catch(e){set('duoDeckInfo','Karten konnten nicht geladen werden: '+e.message);return;}
   for(const c of rules.CHAPTERS){

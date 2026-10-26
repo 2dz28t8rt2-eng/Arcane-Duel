@@ -1,7 +1,8 @@
 'use strict';
 /* Manual online smoke. Creates four disposable rooms with real 40-card decks,
  * verifies invite, 4-seat turn order, server validation, private hands and
- * the v16.5 DEF/Soul/Essence/Lv1 abilities, combat perk ranks, card ascensions
+ * the v16.6 DEF/Soul/Essence/Lv1 abilities, combat perk ranks, card ascensions,
+ * and initial Fate/Arena compatibility fields
  * and server-only fusion rolls without altering any existing room.
  * Requires HTTPS access and a deployed isolated arcane-duo-v2 function.
  */
@@ -26,7 +27,10 @@ const host=post({type:'create',name:'Parity QA',entry:'new',deck:hostDeck,fusion
  enhancements:{387:5}});
 assert.equal(host.state.schema,2);
 assert.equal(host.state.status,'waiting');
-assert.equal(host.state.ruleset,'duo-v165');
+assert.equal(host.state.ruleset,'duo-v166');
+assert.ok([0,1].includes(host.state.tiePriority));
+assert.equal(host.state.fateEvent,null);
+assert.equal(host.state.arenaEvent,null);
 assert.equal(host.state.teams[0].shield,75);
 assert.ok(host.invite);
 const guest=post({type:'join',roomId:host.roomId,invite:host.invite,
@@ -148,4 +152,4 @@ assert.equal(hive.id,711);assert.equal(hive.level,1);
 assert.ok(hive.qualityRolls>=3);
 assert.equal(hive.lv1Full.def,hive.def);
 assert.equal(lv1Fused.state.rngSeed,undefined);
-console.log('Online 2v2 v16.5: private hands, seat order, save, DEF, Soul, validated perks, ascension, shield, authoritative fusion rolls, Essence companions, and Lv1 special fusion OK.');
+console.log('Online 2v2 v16.6: private hands, seat order, save, DEF, Soul, validated perks, ascension, shield, authoritative fusion rolls, Essence companions, Lv1 special fusion, and Fate/Arena ruleset fields OK.');

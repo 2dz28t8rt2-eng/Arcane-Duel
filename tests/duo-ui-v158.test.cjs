@@ -82,3 +82,11 @@ test('Lv1 ghost zones contribute legal attack sources and blocked direct-attack 
    area:'ghost',targetArea:'ghost'});
  assert.equal(ui.legalChoices(game,2).canAct,false);
 });
+test('Fate hand objects remain selectable as summons with their temporary stats',()=>{
+ const game=joined();
+ game.players[0].hand=[{id:154,fate:true,atk:4200,def:5000},10,20];
+ const result=ui.legalChoices(game,0);
+ assert.deepEqual(result.hand,[
+  {id:154,index:0,fate:true,atk:4200,def:5000},
+  {id:10,index:1,fate:false},{id:20,index:2,fate:false}]);
+});

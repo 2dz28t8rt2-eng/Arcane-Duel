@@ -1,5 +1,30 @@
 # Kampagnenstart und Kapitelpakete – 18. Oktober 2026
 
+> **Fortsetzung 26. Oktober 2026 · v16.6 Schicksalszug und Arena-Zerfall auf `development`:**
+> Der serverseitige Regelkern kann ab Runde 3 je Duellant einmal pro Kapitel
+> einen seltenen Schicksalszug auslösen (1/3/5 % je nach LP-, Feld- und
+> Bedrohungslage). Im 2v2 beziehen sich die Bedrohungswerte auf die beiden
+> **gemeinsamen** Teamfelder und die 16.000 Team-LP. Die bisherige Hand wird
+> ins Deck zurückgemischt und fünf der zehn originalen, temporären
+> Singleplayer-Schicksalsmonster erscheinen. Ihre ATK/DEF übertreffen
+> den stärksten Gegner aus Deck, Feld, Geisterzone oder Friedhof je um 100,
+> maximal 10.000. Eigene Hand/verborgene Decks werden nicht an den Partner
+> gesendet. Schicksalskarten sind für jede Fusion gesperrt und verschwinden
+> beim Kapitelwechsel; auch Essenz-/Geistereffekte dürfen sie nicht
+> ungewollt aufwerten. Die zehn individuellen Singleplayer-Artworks erscheinen
+> im 2v2-Bildschirm.
+>
+> Am Ende einer vollständigen Vier-Sitzplätze-Runde setzt ab Runde 10 der
+> Arena-Zerfall ein. Passend zu den 16.000 statt 10.000 LP beträgt der erste
+> Schaden **320 LP je Team**, verdoppelt sich anschließend, wird bei 16.000
+> gedeckelt und umgeht Schilde. Bei gleichzeitigem LP-Ende entscheiden die
+> LP **vor** dem Zerfall, bei Gleichstand eine beim Erstellen serverseitig
+> geloste Initiative. Alte `duo-v165`-Räume behalten ihre alten Regeln.
+> 
+> **Offen:** echter Multi-Geräte-Abnahmetest, verifizierte Karten-/Perk-Berechtigung,
+> besondere Animationen und Feinschliff sowie Belohnungen/Ranking nach
+> sicherer Authentifizierung. Keine KI-Strategieänderung, kein `main`-Merge.
+
 > **Fortsetzung 26. Oktober 2026 · v16.5 Level-1-Forschung auf `development`:**
 > Der isolierte Online-Regelkern übernimmt nun den lokal freigeschalteten Perk
 > „Verbotene Forschung“ und dessen Rang 1–5. Der Server validiert die
