@@ -53,6 +53,8 @@
   const fusions=offer.fusions[0]+(offer.fusions[1]>offer.fusions[0]?
    randomInt(offer.fusions[1]-offer.fusions[0]+1):0);
   const nextMain=[...p.owned_main],nextFusions=[...p.owned_fusions],results=[];
+  const topTier= maxCardLevel(p)-1;
+  let drawIndex=0;
   const draw=(fusion)=>{
    const collection=fusion?nextFusions:nextMain;
    if(offer.special==='essence'&&Math.max(0,...(p.cleared_chapters||[]))<2)
@@ -60,15 +62,56 @@
    const pool=available(p,collection,fusion,catalog).filter(c=>
     offer.special==='essence'?c.essenceMonster===true:true);
    if(!pool.length)throw Error('Im freigeschalteten Kartenpool sind keine weiteren Karten verfügbar.');
-   const card=pool[randomInt(pool.length)];
+   // Upper-tier chance rises after each chapter without removing low-level
+   // creatures from the accessible pool (important for Lv1 strategies).
+   // For mixed multi-packs, make at least one slot meaningful at the new tier.
+   let selected=pool;
+   if(offer.special!=='essence'&&topTier>1){
+    const strong=pool.filter(c=>c.level>=topTier);
+    const guaranteed=offer.count>=3&&drawIndex===0;
+    if(strong.length&&(guaranteed||randomInt(100)<65))selected=strong;
+   }
+   const card=selected[randomInt(selected.length)];
    if(!card)throw Error('Ungültiges Kartenlos.');
-   collection.push(card.id);
+   collection.push(card.id);drawIndex++;
    results.push({id:card.id,name:card.name,level:card.level,fusion});
   };
   for(let i=0;i<fusions;i++)draw(true);
   for(let i=fusions;i<offer.count;i++)draw(false);
   return {offer,cards:results,owned_main:nextMain,owned_fusions:nextFusions,
    fusionCount:fusions,normalCount:offer.count-fusions};
+ }
+
+
+ // Three guaranteed stage-relevant cards for each first-time chapter clear.
+ // Credits are awarded transactionally by PostgreSQL, then claimed one at a time.
+ function chapterCardPool(p,catalog){
+  if(!(p.cleared_chapters||[]).length)return [];
+  const current=maxCardLevel(p),minimum=Math.max(2,current-1);
+  return available(p,p.owned_main,false,catalog).filter(c=>
+   !c.essenceMonster&&c.level>=minimum);
+ }
+ const REPEAT_RATE=Object.freeze({xp:0.5,essence:0.4,shards:1,dailyLimit:3});
+ function rewardTable(){
+  return [1,2,3,4].map(chapter=>{
+   const first={xp:40+20*chapter,essence:70+35*chapter,
+    shards:1+chapter,chapterCards:3};
+   const repeat={xp:Math.floor(first.xp/2),
+    essence:Math.floor(first.essence*.4),shards:1,chapterCards:0};
+   return {chapter,first,repeat};
+  });
+ }
+ function afford(p,offer,repeatChapter=1){
+  if(!offer)return null;
+  const d=rewardTable().find(x=>x.chapter===repeatChapter)?.repeat;
+  if(!d)return null;
+  const missEssence=Math.max(0,offer.essence-(p.essence||0));
+  const missShards=Math.max(0,offer.shards-(p.shards||0));
+  return {canBuy:!missEssence&&!missShards,essenceShort:missEssence,
+   shardsShort:missShards,
+   repeatsNeeded:Math.max(Math.ceil(missEssence/d.essence),
+    Math.ceil(missShards/d.shards)),
+   chapter:repeatChapter,repeatReward:d};
  }
 
  const ENHANCEMENT_MAX=5;
@@ -117,7 +160,8 @@
    a.name.localeCompare(b.name,'de')||a.id-b.id);
  }
 
- return Object.freeze({version:'17.3',PACKS,RESEARCH,
+ return Object.freeze({version:'17.4',PACKS,RESEARCH,
   maxChapter,maxCardLevel,available,researchRank,researchOffer,packDraw,
-  ENHANCEMENT_MAX,enhanceOffer,recycleOffer,collectionRows});
+  ENHANCEMENT_MAX,enhanceOffer,recycleOffer,collectionRows,
+  REPEAT_RATE,rewardTable,afford,chapterCardPool});
 });
