@@ -124,6 +124,8 @@
    if(term&&!(item.name+' '+item.level+' '+(item.fusion?'fusion':'normal'))
      .toLocaleLowerCase('de').includes(term))continue;
    const tr=el('tr',target,undefined,item.spare?'duo-card-spare':'');
+   tr.classList.toggle('ad184-duo-fusion',!!item.fusion);
+   tr.classList.toggle('ad184-duo-advanced',item.level>=7);
    el('td',tr,item.name+' · #'+item.id);
    el('td',tr,(item.fusion?'Fusion':'Normal')+' · Lv '+item.level);
    el('td',tr,String(item.quantity));
@@ -190,6 +192,7 @@
   if([...recycle.options].some(o=>o.value===selectedR))recycle.value=selectedR;
   $('duoCardRecycleConfirm').checked=false;
   renderCollectionTable();updateCollectionOffers();
+  window.ArcaneCollectionRewards184?.duoCollection?.({rows});
  }
 
  function updatePacing(){

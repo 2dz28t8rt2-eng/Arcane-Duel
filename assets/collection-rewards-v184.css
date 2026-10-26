@@ -1,0 +1,43 @@
+/* Arcane Duel v18.4 – collector presentation, without changing card rules. */
+.ad184-collection-banner,.duo-collection #ad184-duo-collection-showcase{
+  position:relative;overflow:hidden;margin:0 0 19px;padding:19px 22px;border:1px solid #af885b;
+  border-radius:14px;color:#f5e6cc;background:radial-gradient(ellipse at 100% 0%,#64513177,transparent 52%),
+    linear-gradient(145deg,#223349,#111925 75%);box-shadow:inset 0 1px #eed5a44a,0 10px 32px #05090e55;
+}
+.ad184-collection-banner::before,.duo-collection #ad184-duo-collection-showcase::before{
+  content:'✧';position:absolute;right:14px;top:-35px;font:145px Georgia,serif;
+  color:#e3c38713;pointer-events:none;
+}
+.ad184-eyebrow{display:block;font-size:11px;letter-spacing:2px;color:#e8c78c;font-weight:800}
+.ad184-banner-head h2{font:normal 23px/1.2 Georgia,serif;margin:8px 0;color:#fff1d6}
+.ad184-banner-head p,.ad184-duo-head p{margin:6px 0 0;max-width:730px;font-size:13px;line-height:1.6;color:#c5d3e0}
+.ad184-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin-top:18px}
+.ad184-stat{min-width:0;padding:11px 8px;text-align:center;background:#0b1528aa;border:1px solid #66738b77;border-radius:9px}
+.ad184-stat b{display:block;color:#f8d68c;font:normal 23px/1.1 Georgia,serif;font-variant-numeric:tabular-nums}
+.ad184-stat span{display:block;color:#b8c8d9;font-size:11px;margin-top:5px}
+.ad184-recent{margin:13px 0 0;font-size:12px;color:#b6c7d9}.ad184-recent strong{color:#eace99;font-weight:600}
+.ad184-quick-filters{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 12px}
+.ad184-filter{cursor:pointer;border:1px solid #6f7790;border-radius:999px;background:#172639;color:#f0e1cb;padding:8px 14px;font-size:12px;font-weight:600}
+.ad184-filter:hover,.ad184-filter[aria-pressed="true"]{background:#694f30;border-color:#e3c287;color:#fff4d7}
+.ad184-filter-empty{margin:12px;color:#c2d2e3;font-size:13px}
+.deck-editor-grid .collection-item.ad184-new,.deck-editor-grid .collection-item.ad184-special{position:relative}
+.deck-editor-grid .collection-item.ad184-new{box-shadow:inset 0 0 0 1px #a5d4c0,0 0 14px #5cdbb330}
+.deck-editor-grid .collection-item.ad184-special{border-color:#d5ad69;box-shadow:0 0 15px #cd904a35}
+.deck-editor-grid .collection-item.ad184-fusion{background-image:linear-gradient(140deg,#51396927,transparent 60%)}
+.ad184-card-ribbon{display:block;position:relative;z-index:1;padding:5px 8px;margin:0 0 7px;color:#ffedc6;
+  background:linear-gradient(90deg,#725536,#34243f);border:1px solid #d9b87c;border-radius:5px;
+  font:700 11px Georgia,serif;letter-spacing:.3px;text-align:center}
+.deck-editor-grid .collection-item[hidden]{display:none!important}
+.duo-collection #ad184-duo-collection-showcase{margin-top:12px;padding:17px 18px}
+.duo-collection #ad184-duo-collection-showcase .ad184-stats{grid-template-columns:repeat(5,minmax(0,1fr))}
+.duo-collection #ad184-duo-collection-showcase h4{margin:16px 0 9px;color:#eed7a3;font:17px Georgia,serif}
+.ad184-duo-highlights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.ad184-duo-trophy{display:flex;flex-direction:column;gap:3px;position:relative;min-width:0;padding:11px 14px;
+  background:linear-gradient(125deg,#3a304a,#17253a);border:1px solid #aa8b6d;border-radius:9px}
+.ad184-trophy-star{position:absolute;right:8px;top:6px;color:#e5bb72;font-size:22px}
+.ad184-duo-trophy strong{padding-right:15px;color:#fff0d5;font:15px Georgia,serif;overflow-wrap:anywhere}
+.ad184-duo-trophy small{color:#c5ccde;font-size:11px}.ad184-duo-empty{color:#cad5e0;font-size:12px}
+.duo-collection tr.ad184-duo-fusion td:first-child{color:#e9c7ff;font-weight:600}
+.duo-collection tr.ad184-duo-advanced td:first-child::before{content:'✧ ';color:#edc781}
+@media(max-width:810px){.ad184-stats,.duo-collection #ad184-duo-collection-showcase .ad184-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.ad184-duo-highlights{grid-template-columns:1fr}}
+@media(max-width:460px){.ad184-collection-banner,.duo-collection #ad184-duo-collection-showcase{padding:14px}.ad184-stats,.duo-collection #ad184-duo-collection-showcase .ad184-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}

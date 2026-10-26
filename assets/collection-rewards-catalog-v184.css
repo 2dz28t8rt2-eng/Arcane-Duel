@@ -1,0 +1,19 @@
+/* v18.4 – explorer-friendly presentation of the public card gallery. */
+.ad184-catalog-kicker{color:#e8be7f;font:700 11px Segoe UI,Arial,sans-serif;letter-spacing:1.8px}
+.intro h2{margin-top:7px}
+.ad184-catalog-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0 4px;max-width:875px}
+.ad184-catalog-stats>div{padding:12px 14px;border:1px solid #8f734c;border-radius:10px;background:linear-gradient(140deg,#243349,#101a2c);box-shadow:inset 0 1px #e7cb8850}
+.ad184-catalog-stats b{display:block;color:#f4d28e;font:28px/1.1 Georgia,serif}
+.ad184-catalog-stats span{display:block;color:#aebfd4;margin-top:5px;font-size:12px}
+.ad184-view-card{width:100%;margin:9px 0 0;padding:8px 5px;background:#222f43;border:1px solid #9f855b;border-radius:6px;color:#eed6a4;cursor:pointer;font-size:11px;font-weight:700}
+.ad184-view-card:hover,.ad184-view-card:focus-visible{background:#695234;color:#fff6df;border-color:#f8d9a1;outline-offset:2px}
+.ad184-catalog-spotlight{display:grid;grid-template-columns:minmax(120px,185px) minmax(0,1fr);gap:20px;padding:16px;margin-top:14px;
+  background:radial-gradient(ellipse at 0% 0%,#493b5f,#15243a 60%,#0e182a);border:1px solid #d4af75;border-radius:12px;box-shadow:0 10px 27px #0008}
+.ad184-catalog-spotlight[hidden]{display:none}
+.ad184-spotlight-art{aspect-ratio:4/5;overflow:hidden;border:2px solid #d2b079;background:#11182b;border-radius:6px}
+.ad184-spotlight-art img{height:100%;width:100%;display:block;object-fit:contain}
+.ad184-spotlight-copy h2{font:26px Georgia,serif;color:#ffe5aa;margin:9px 0}
+.ad184-spotlight-copy p{color:#c7d5e6;line-height:1.6;font-size:14px}
+.ad184-spotlight-copy button{border:1px solid #c4a46d;border-radius:7px;background:#354055;color:#fae5ba;padding:8px 12px;cursor:pointer}
+@media(max-width:740px){.ad184-catalog-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.ad184-catalog-spotlight{grid-template-columns:105px 1fr;gap:10px}.ad184-spotlight-copy h2{font-size:21px}}
+@media(max-width:435px){.ad184-catalog-spotlight{grid-template-columns:1fr}.ad184-spotlight-art{max-width:170px}}

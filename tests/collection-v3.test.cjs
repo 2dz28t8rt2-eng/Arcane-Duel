@@ -38,5 +38,6 @@ test('Collection view has working filter hooks and never changes saved profile',
  for(const hook of ['tierList','artFilter','search','sort','cards'])assert.ok(html.includes('id="'+hook+'"'));
  assert.ok(!js.includes('localStorage'));
  assert.ok(html.includes('assets/art-engine.js')&&html.includes('assets/collection-v3-data.js')&&html.includes('assets/collection-v3-lategame-v71.js'));
- assert.match(html,/(?:376|386|396|406) Kartenvorlagen/);
+ assert.ok(html.includes('id="catalogStats"'),'The full catalog count is calculated from live entries');
+ assert.ok(!html.includes('406 Kartenvorlagen'),'An old fixed count must not mislead players');
 });
