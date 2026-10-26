@@ -9,7 +9,7 @@ const profile=(chapters=[])=>({
  essence:5000,shards:70
 });
 test('pack menu has 1, 3, 5 and 10 cards with intended fusion ranges',()=>{
- const expectations={normal:[1,0,0],fusion:[1,1,1],material3:[3,0,0],
+ const expectations={normal:[1,0,0],fusion:[1,1,1],essence:[1,0,0],material3:[3,0,0],
   fusion3:[3,1,2],fusion5:[5,2,3],fusion10:[10,3,5]};
  for(const [kind,[count,min,max]] of Object.entries(expectations)){
   const o=e.PACKS[kind];assert.equal(o.count,count);assert.deepEqual(o.fusions,[min,max]);
@@ -73,4 +73,12 @@ test('essence monsters are obtainable only after 2v2 chapter two',()=>{
  const high=e.available(profile([1,2]),d.starterMain,false,catalog);
  assert.ok(low.every(c=>!c.essenceMonster));
  assert.ok(high.some(c=>c.essenceMonster));
+});
+
+test('essence companion pack is chapter-II gated and guarantees its type',()=>{
+ assert.throws(()=>e.packDraw(profile([1]),'essence',catalog,n=>0),/Kapitel II/);
+ const drawn=e.packDraw(profile([1,2]),'essence',catalog,n=>0);
+ assert.equal(drawn.cards.length,1);
+ assert.equal(drawn.fusionCount,0);
+ assert.equal(catalog[drawn.cards[0].id].essenceMonster,true);
 });
