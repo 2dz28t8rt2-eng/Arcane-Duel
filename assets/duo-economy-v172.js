@@ -70,6 +70,54 @@
   return {offer,cards:results,owned_main:nextMain,owned_fusions:nextFusions,
    fusionCount:fusions,normalCount:offer.count-fusions};
  }
- return Object.freeze({version:'17.2',PACKS,RESEARCH,
-  maxChapter,maxCardLevel,available,researchRank,researchOffer,packDraw});
+
+ const ENHANCEMENT_MAX=5;
+ function enhanceOffer(p,id,catalog){
+  const c=catalog?.[id],rank=Number(p.enhancements?.[id]||0);
+  if(!Number.isInteger(id)||!c?.playable||!Number.isInteger(rank)||
+    rank<0||rank>ENHANCEMENT_MAX)return null;
+  const collection=c.fusionOnly?p.owned_fusions:p.owned_main;
+  const deck=c.fusionOnly?p.fusions:p.deck;
+  if(!collection.includes(id)||!deck.includes(id))return null;
+  if(rank===ENHANCEMENT_MAX)return {id,rank,maxed:true,maxRank:ENHANCEMENT_MAX};
+  return {id,rank,maxRank:ENHANCEMENT_MAX,nextRank:rank+1,
+   essence:75+55*rank+(c.fusionOnly?35:0),
+   shards:1+Math.floor(rank/2)+(c.fusionOnly?1:0),
+   bonusPerStat:(id<20?10:c.fusionOnly?20:30)};
+ }
+ function recycleOffer(p,id,catalog){
+  const c=catalog?.[id];
+  if(!Number.isInteger(id)||!c?.playable||c.ace||c.lv1Exclusive||
+   c.essenceMonster||c.fateOnly)return null;
+  const collection=c.fusionOnly?p.owned_fusions:p.owned_main;
+  const deck=c.fusionOnly?p.fusions:p.deck;
+  const quantity=collection.filter(x=>x===id).length;
+  const used=deck.filter(x=>x===id).length;
+  const spare=quantity-used;
+  if(spare<=0)return null;
+  return {id,quantity,used,spare,fusion:!!c.fusionOnly,
+   essence:(c.fusionOnly?42:18)+Math.max(1,Number(c.level)||1)*5,
+   shards:c.fusionOnly?2:1};
+ }
+ function collectionRows(p,catalog,zone='all'){
+  const result=[];
+  for(const fusion of [false,true]){
+   if(zone!=='all'&&zone!==(fusion?'fusion':'main'))continue;
+   const owned=fusion?p.owned_fusions:p.owned_main,deck=fusion?p.fusions:p.deck;
+   for(const [id,quantity] of copies(owned)){
+    const c=catalog?.[id];if(!c)continue;
+    const used=deck.filter(x=>x===id).length,offer=recycleOffer(p,id,catalog);
+    result.push({id,name:c.name,level:c.level,role:c.role,
+     fusion,quantity,used,spare:Math.max(0,quantity-used),
+     enhancement:Number(p.enhancements?.[id]||0),
+     recyclable:!!offer,protected:!!c.lv1Exclusive||!!c.essenceMonster});
+   }
+  }
+  return result.sort((a,b)=>b.level-a.level||a.fusion-b.fusion||
+   a.name.localeCompare(b.name,'de')||a.id-b.id);
+ }
+
+ return Object.freeze({version:'17.3',PACKS,RESEARCH,
+  maxChapter,maxCardLevel,available,researchRank,researchOffer,packDraw,
+  ENHANCEMENT_MAX,enhanceOffer,recycleOffer,collectionRows});
 });
