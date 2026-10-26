@@ -10,6 +10,7 @@
  const PACKS=Object.freeze({
   normal:Object.freeze({title:'Einzelkarte',count:1,fusions:[0,0],essence:90,shards:1}),
   fusion:Object.freeze({title:'Einzelfusion',count:1,fusions:[1,1],essence:160,shards:2}),
+  essence:Object.freeze({title:'Essenzwesen-Paket',count:1,fusions:[0,0],essence:350,shards:4,special:'essence'}),
   material3:Object.freeze({title:'3er Materialpaket',count:3,fusions:[0,0],essence:230,shards:2}),
   fusion3:Object.freeze({title:'3er Fusionsmix',count:3,fusions:[1,2],essence:390,shards:4}),
   fusion5:Object.freeze({title:'5er Fusionsmix',count:5,fusions:[2,3],essence:600,shards:6}),
@@ -54,7 +55,10 @@
   const nextMain=[...p.owned_main],nextFusions=[...p.owned_fusions],results=[];
   const draw=(fusion)=>{
    const collection=fusion?nextFusions:nextMain;
-   const pool=available(p,collection,fusion,catalog);
+   if(offer.special==='essence'&&Math.max(0,...(p.cleared_chapters||[]))<2)
+    throw Error('Essenzwesen-Pakete benötigen einen Sieg in 2v2-Kapitel II.');
+   const pool=available(p,collection,fusion,catalog).filter(c=>
+    offer.special==='essence'?c.essenceMonster===true:true);
    if(!pool.length)throw Error('Im freigeschalteten Kartenpool sind keine weiteren Karten verfügbar.');
    const card=pool[randomInt(pool.length)];
    if(!card)throw Error('Ungültiges Kartenlos.');
