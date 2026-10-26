@@ -38,6 +38,9 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster
  ctx.__arcaneX128Mode=x128Mode;
  vm.createContext(ctx);
  for(const file of scripts){
+  // Render-only cinematic title has no duel mechanics and needs a real DOM.
+  // Keep gameplay identical while running the headless benchmark.
+  if(file==='assets/arcane-title-v196.js')continue;
   // Only the offline matched-career control disables the optional v11.8 NPC roster.
   if(withoutRoster118&&file==='assets/opponent-roster-balance-v118.js')continue;
   // Regression-only control retains all other balances while leaving IV unchanged.
