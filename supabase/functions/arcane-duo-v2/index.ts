@@ -15,6 +15,7 @@ const db=createClient(Deno.env.get("SUPABASE_URL")||"",
  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"",
  {auth:{persistSession:false,autoRefreshToken:false}});
 const TABLE="arcane_duo_v2_rooms";
+const PROFILE_TABLE="arcane_duo_v2_profiles";
 const origins=new Set(["https://raw.githack.com","https://2dz28t8rt2-eng.github.io",
  "http://localhost:8757","http://127.0.0.1:8757"]);
 function assert(v,message){if(!v)throw Error(message);}
@@ -55,6 +56,52 @@ function json(body,status=200,origin=""){
   "Access-Control-Allow-Headers":"Content-Type,apikey,authorization",
   "Access-Control-Allow-Methods":"POST,OPTIONS","Vary":"Origin"}});
 }
+
+const isToken=x=>typeof x==="string"&&/^[a-f0-9]{64}$/.test(x);
+const counts=arr=>arr.reduce((m,x)=>(m.set(x,(m.get(x)||0)+1),m),new Map());
+const inventoryAllows=(deck,collection)=>{
+ const owned=counts(collection);return [...counts(deck)].every(([id,n])=>n<=(owned.get(id)||0));
+};
+const profileView=p=>({
+ id:p.id,nickname:p.nickname,revision:p.revision,xp:p.xp,
+ level:1+Math.floor(p.xp/150),essence:p.essence,shards:p.shards,wins:p.wins,
+ clearedChapters:p.cleared_chapters||[],
+ ownedMain:p.owned_main,ownedFusions:p.owned_fusions,
+ deck:p.deck,fusions:p.fusions,upgrades:p.upgrades,
+ enhancements:p.enhancements,essenceBinding:p.essence_binding,
+ lv1Research:p.lv1_research,updatedAt:p.updated_at
+});
+async function profileByToken(token){
+ assert(isToken(token),"2v2-Profilzugang fehlt.");
+ const {data:p,error}=await db.from(PROFILE_TABLE).select("*")
+  .eq("token_hash",await hash(token)).maybeSingle();
+ if(error)throw error;assert(p,"2v2-Profil nicht gefunden.");
+ return p;
+}
+async function writeProfile(p,patch){
+ const {data:next,error}=await db.from(PROFILE_TABLE).update({
+  ...patch,revision:p.revision+1,updated_at:new Date().toISOString()
+ }).eq("id",p.id).eq("revision",p.revision).select("*").maybeSingle();
+ if(error)throw error;
+ assert(next,"2v2-Profil gleichzeitig geändert. Bitte synchronisieren.");
+ return next;
+}
+async function newestRoom(p){
+ const {data,error}=await db.from(TABLE)
+  .select("id,status,revision,host_profile_id")
+  .or("host_profile_id.eq."+p.id+",guest_profile_id.eq."+p.id)
+  .gte("expires_at",new Date().toISOString())
+  .order("updated_at",{ascending:false}).limit(1);
+ if(error)throw error;
+ const room=data?.[0];
+ return room?{roomId:room.id,seat:room.host_profile_id===p.id?0:2,
+  status:room.status,revision:room.revision}:null;
+}
+const maxChapter=p=>Math.min(4,Math.max(1,...(p.cleared_chapters||[]).map(x=>x+1)));
+const capLevel=p=>Math.min(10,3+2*Math.max(0,...(p.cleared_chapters||[])));
+const profileResult=async(p,extra={})=>({profile:profileView(p),
+ lastRoom:await newestRoom(p),...extra});
+
 Deno.serve(async request=>{
  const origin=request.headers.get("origin")||"";
  const allow=origins.has(origin)?origin:"";
@@ -63,62 +110,138 @@ Deno.serve(async request=>{
  let body;
  try{
   body=await request.json();
-  assert(body&&typeof body==="object"&&JSON.stringify(body).length<=12000,"Anfrage zu groß.");
+  assert(body&&typeof body==="object"&&JSON.stringify(body).length<=12000,
+   "Anfrage zu groß.");
  }catch{return json({error:"Ungültiges Anfrageformat."},400,allow);}
  try{
   const kind=body.type,roomId=body.roomId,token=body.token;
-  if(kind==="create"){
-   const entry=body.entry||"new";
-   assert(entry==="new"||entry==="chapter","Unbekannter Kampagnenstart.");
-   const chapter=entry==="new"?1:body.chapter;
-   assert(Number.isInteger(chapter)&&chapter>=1&&chapter<=4,"Ungültiges Kapitel.");
+  if(kind==="profileCreate"){
    const ip=request.headers.get("cf-connecting-ip")||
     request.headers.get("x-forwarded-for")?.split(",")[0]||"unknown";
-   const fingerprint=await hash("arcane-duo-v2-"+ip);
+   const fp=await hash("arcane-duo-v2-profile-"+ip);
+   const {count:created,error:limitError}=await db.from(PROFILE_TABLE)
+    .select("id",{count:"exact",head:true}).eq("creator_fingerprint",fp)
+    .gte("created_at",new Date(Date.now()-3600000).toISOString());
+   if(limitError)throw limitError;
+   assert((created||0)<5,"Maximal fünf neue Profile pro Stunde.");
+   const id=uuid(),profileToken=secret();
+   const {data:p,error}=await db.from(PROFILE_TABLE).insert({
+    id,token_hash:await hash(profileToken),
+    nickname:safeName(body.name),creator_fingerprint:fp,
+    owned_main:[...starter],owned_fusions:[...snapshot.starterFusions],
+    deck:[...starter],fusions:[...snapshot.starterFusions]
+   }).select("*").single();
+   if(error)throw error;
+   return json({profileToken,profile:profileView(p),lastRoom:null},200,allow);
+  }
+  if(["profile","upgrade","pack","deckReplace"].includes(kind)){
+   const p=await profileByToken(body.profileToken);
+   if(kind==="profile")return json(await profileResult(p),200,allow);
+   assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===p.revision,
+    "2v2-Profil geändert. Bitte synchronisieren.");
+   if(kind==="upgrade"){
+    assert(typeof body.key==="string","Ungültige Verbesserung.");
+    const max=game.PERK_LIMITS[body.key]||0,rank=p.upgrades?.[body.key]||0;
+    assert(max>0&&Number.isInteger(rank)&&rank>=0&&rank<max,
+     "Verbesserung ungültig oder bereits auf Maximalrang.");
+    const price=100+70*rank;
+    assert(p.essence>=price,"Nicht genug 2v2-Essenz.");
+    const next=await writeProfile(p,{essence:p.essence-price,
+     upgrades:{...p.upgrades,[body.key]:rank+1}});
+    return json(await profileResult(next),200,allow);
+   }
+   if(kind==="pack"){
+    const fusion=body.pack==="fusion";
+    assert(["fusion","normal"].includes(body.pack),"Unbekanntes Kartenpaket.");
+    const price=fusion?160:90,shards=fusion?2:1;
+    assert(p.essence>=price&&p.shards>=shards,"Zu wenig Essenz oder Splitter.");
+    const inventory=fusion?"owned_fusions":"owned_main";
+    const have=counts(p[inventory]);
+    const pool=snapshot.cards.filter(c=>c.playable&&!c.ace&&
+     !!c.fusionOnly===fusion&&c.level<=capLevel(p)&&
+     (fusion||!c.essenceMonster)&&(have.get(c.id)||0)<3);
+    assert(pool.length>0,"Keine geeignete Karte mehr im Paketpool.");
+    const card=pool[crypto.getRandomValues(new Uint32Array(1))[0]%pool.length];
+    const next=await writeProfile(p,{essence:p.essence-price,shards:p.shards-shards,
+     [inventory]:[...p[inventory],card.id]});
+    return json(await profileResult(next,{newCard:{id:card.id,name:card.name,
+     level:card.level,fusion}}),200,allow);
+   }
+   assert(["main","fusion"].includes(body.zone)&&Number.isInteger(body.slot)&&
+    Number.isInteger(body.cardId),"Ungültige Deckänderung.");
+   const fusion=body.zone==="fusion",deck=fusion?[...p.fusions]:[...p.deck];
+   assert(body.slot>=0&&body.slot<deck.length,"Ungültiger Deckplatz.");
+   deck[body.slot]=body.cardId;
+   assert(game.validDeck(deck,catalog,fusion)&&
+    inventoryAllows(deck,fusion?p.owned_fusions:p.owned_main),
+    "Karte fehlt in deiner 2v2-Sammlung oder verletzt Deckregeln.");
+   const next=await writeProfile(p,{[fusion?"fusions":"deck"]:deck});
+   return json(await profileResult(next),200,allow);
+  }
+  if(kind==="create"){
+   const p=await profileByToken(body.profileToken);
+   const entry=body.entry||"new",chapter=entry==="new"?1:body.chapter;
+   assert(["new","chapter"].includes(entry)&&Number.isInteger(chapter)&&
+    chapter>=1&&chapter<=maxChapter(p),"2v2-Kapitel nicht freigeschaltet.");
+   const ip=request.headers.get("cf-connecting-ip")||
+    request.headers.get("x-forwarded-for")?.split(",")[0]||"unknown";
+   const fp=await hash("arcane-duo-v2-"+ip);
    const {count,error:limitError}=await db.from(TABLE).select("id",{count:"exact",head:true})
-    .eq("creator_fingerprint",fingerprint)
+    .eq("creator_fingerprint",fp)
     .gte("created_at",new Date(Date.now()-3600000).toISOString());
    if(limitError)throw limitError;
    assert((count||0)<10,"Maximal zehn neue Räume pro Stunde.");
    const id=uuid(),host=secret(),invite=secret();
-   const state=game.create({roomId:id,hostName:safeName(body.name),
-    hostDeck:body.deck,hostFusions:body.fusions,
-    hostUpgrades:body.upgrades,hostEnhancements:body.enhancements,
-    hostEssence:body.essence,hostLv1:body.lv1,
+   const state=game.create({roomId:id,hostName:p.nickname,
+    hostDeck:p.deck,hostFusions:p.fusions,
+    hostUpgrades:p.upgrades,hostEnhancements:p.enhancements,
+    hostEssence:p.essence_binding,hostLv1:p.lv1_research,
     enemyDeckA:enemyDeck(chapter,1),enemyDeckB:enemyDeck(chapter,3),
     enemyFusionsA:enemyFusions(chapter),enemyFusionsB:enemyFusions(chapter),
-    chapter,entry,catalog,
-    randomSeed:crypto.getRandomValues(new Uint32Array(1))[0]||1});
+    chapter,entry,catalog,randomSeed:crypto.getRandomValues(new Uint32Array(1))[0]||1});
    const {error}=await db.from(TABLE).insert({id,status:"waiting",revision:0,state,
     host_token_hash:await hash(host),invitation_hash:await hash(invite),
-    creator_fingerprint:fingerprint});
+    host_profile_id:p.id,creator_fingerprint:fp,
+    expires_at:new Date(Date.now()+90*86400000).toISOString()});
    if(error)throw error;
-   return json({roomId:id,token:host,invite,seat:0,state:game.view(state,0)},200,allow);
+   return json({roomId:id,token:host,invite,seat:0,
+    state:game.view(state,0)},200,allow);
   }
   assert(typeof roomId==="string"&&/^[0-9a-f-]{36}$/.test(roomId),"Ungültige Raumkennung.");
   const {data:room,error}=await db.from(TABLE).select("*").eq("id",roomId).maybeSingle();
   if(error)throw error;
   assert(room&&new Date(room.expires_at).getTime()>Date.now(),"Raum fehlt oder ist abgelaufen.");
-  assert(room.state?.schema===2,"Der Raum gehört zu einer anderen Regelversion.");
+  assert(room.state?.schema===2,"Raum hat keine gültigen 2v2-Regeln.");
   if(kind==="join"){
-   assert(typeof body.invite==="string"&&/^[0-9a-f]{64}$/.test(body.invite),"Einladung ungültig.");
+   assert(isToken(body.invite),"Einladung ungültig.");
    assert(room.status==="waiting"&&!room.guest_token_hash,"Raum bereits besetzt.");
    assert(await hash(body.invite)===room.invitation_hash,"Einladung ungültig.");
-   const guest=secret(),next=game.apply(room.state,2,
-    {type:"join",name:body.name,deck:body.deck,fusions:body.fusions,
-     upgrades:body.upgrades,enhancements:body.enhancements,
-     essence:body.essence,lv1:body.lv1},{catalog});
-   const {data:updated,error:writeError}=await db.from(TABLE).update({state:next,
-    status:next.status,revision:next.revision,guest_token_hash:await hash(guest),
-    invitation_hash:await hash(secret())}).eq("id",roomId)
-    .eq("revision",room.revision).is("guest_token_hash",null).select("id").maybeSingle();
+   const p=await profileByToken(body.profileToken);
+   assert(p.id!==room.host_profile_id,"Du kannst nicht beide Plätze übernehmen.");
+   assert(room.state.chapter<=maxChapter(p),"Partner hat dieses Kapitel noch nicht freigeschaltet.");
+   const guest=secret(),next=game.apply(room.state,2,{
+    type:"join",name:p.nickname,deck:p.deck,fusions:p.fusions,
+    upgrades:p.upgrades,enhancements:p.enhancements,
+    essence:p.essence_binding,lv1:p.lv1_research},{catalog});
+   const {data:updated,error:writeError}=await db.from(TABLE).update({
+    state:next,status:next.status,revision:next.revision,
+    guest_token_hash:await hash(guest),guest_profile_id:p.id,
+    invitation_hash:await hash(secret()),
+    updated_at:new Date().toISOString(),
+    expires_at:new Date(Date.now()+90*86400000).toISOString()
+   }).eq("id",roomId).eq("revision",room.revision).is("guest_token_hash",null)
+    .select("id").maybeSingle();
    if(writeError)throw writeError;
-   assert(updated,"Ein anderer Spieler hat den Raum bereits betreten.");
+   assert(updated,"Ein anderer Spieler ist bereits beigetreten.");
    return json({roomId,token:guest,seat:2,state:game.view(next,2)},200,allow);
   }
-  assert(typeof token==="string"&&/^[0-9a-f]{64}$/.test(token),"Sitzung fehlt.");
+  assert(isToken(token),"Sitzung fehlt.");
   const digest=await hash(token);
-  const seat=digest===room.host_token_hash?0:digest===room.guest_token_hash?2:-1;
+  let seat=digest===room.host_token_hash?0:digest===room.guest_token_hash?2:-1;
+  if(seat<0&&room.host_profile_id){
+   const p=await profileByToken(token);
+   seat=p.id===room.host_profile_id?0:p.id===room.guest_profile_id?2:-1;
+  }
   assert(seat>=0,"Keine Berechtigung.");
   if(kind==="state")return json({seat,state:game.view(room.state,seat)},200,allow);
   assert(kind==="action","Unbekannte Anfrage.");
@@ -130,9 +253,11 @@ Deno.serve(async request=>{
    "Aktion nicht erlaubt.");
   let next=game.apply(room.state,seat,body.action,{catalog});
   next=game.aiTurn(next,{catalog});
-  const {data:updated,error:writeError}=await db.from(TABLE).update({state:next,
-   status:next.status,revision:next.revision}).eq("id",roomId).eq("revision",room.revision)
-   .select("id").maybeSingle();
+  const {data:updated,error:writeError}=await db.from(TABLE).update({
+   state:next,status:next.status,revision:next.revision,
+   updated_at:new Date().toISOString(),
+   expires_at:new Date(Date.now()+90*86400000).toISOString()
+  }).eq("id",roomId).eq("revision",room.revision).select("id").maybeSingle();
   if(writeError)throw writeError;
   assert(updated,"Konkurrierender Zug. Bitte synchronisieren.");
   return json({seat,state:game.view(next,seat)},200,allow);
