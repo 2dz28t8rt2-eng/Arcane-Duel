@@ -274,6 +274,16 @@ jobs:
             fi
           done
 
+                    echo "Checking 2v2 v16.8 recovery links and cross-device UI on desktop and mobile..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=13000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-duo-recovery-v168.html >"/tmp/arcane-duo-recovery-${size}.html" 2>/tmp/arcane-duo-recovery.log
+            if ! grep -q 'data-duo-recovery="pass"' "/tmp/arcane-duo-recovery-${size}.html"; then
+              echo "2v2 v16.8 recovery browser QA failed at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/arcane-duo-recovery-${size}.html" | head -90 || true
+              exit 1
+            fi
+          done
+
                     echo "Checking beginner-friendly v15.6 fusion assistant on desktop and mobile..."
           for size in 1200 410; do
             "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=14000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-fusion-coach-v156.html >"/tmp/arcane-fusion-coach-${size}.html" 2>/tmp/arcane-fusion-coach.log
