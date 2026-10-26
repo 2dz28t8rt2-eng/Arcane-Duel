@@ -14,6 +14,9 @@ jobs:
           node-version: '22'
       - name: Run tests
         run: npm test
+      - name: Verify live 2v2 independent progression once
+        if: contains(github.event.head_commit.message, '[duo-live-v171]')
+        run: node scripts/smoke-duo-progression-v171.cjs
       - name: Render cards in headless Chrome
         shell: bash
         run: |
