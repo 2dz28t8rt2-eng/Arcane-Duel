@@ -135,7 +135,7 @@ function career(seed,plan,extraCredits=0){
  }
  for(const [p,rand] of [[a,randomA],[b,randomB]]){
   spendCredits(p,rand);
-  if(plan==='normal')purchases(p,'normal',rand);
+  if(plan==='normal'&&purchases(p,'normal',rand))rebuild(p);
  }
  if(plan==='farm-material'||plan==='farm-upgrade'){
   for(let i=0;i<3;i++){
