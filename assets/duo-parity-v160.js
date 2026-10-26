@@ -13,7 +13,7 @@
   profileUpgrades={},profileEnhancements={},profileEssence={},profileLv1={};
  let game=null,seat=-1,roomId='',token='',invite='',busy=false,refreshing=false,
   syncError='',syncedAt=0,sessionReady=true,syncFailures=0,lastPollAt=0;
- let duoProfile=null,duoProfileToken='',duoLastRoom=null,profileSaving=false;
+ let duoProfile=null,duoProfileToken='',duoLastRoom=null,profileSaving=false,duoEconomy=null;
  const set=(id,text)=>$(id).textContent=String(text);
  const card=id=>catalog[id]||{name:'Karte '+id,level:'?',atk:'?',def:'?',role:'?'};
  const name=id=>card(id).name;
@@ -102,6 +102,7 @@
  }
  function installProfile(data){
   duoProfile=data.profile;duoLastRoom=data.lastRoom??duoLastRoom;
+  duoEconomy=data.economy??duoEconomy;
   profileDeck=[...duoProfile.deck];profileFusions=[...duoProfile.fusions];
   profileUpgrades={...duoProfile.upgrades};
   profileEnhancements={...duoProfile.enhancements};
@@ -139,6 +140,32 @@
   }
   if($('duoChapter').selectedOptions[0]?.disabled)$('duoChapter').value='1';
   updateChapter();
+
+  const explainResearch=(branch,id,button)=>{
+   const offer=duoEconomy?.[branch],node=$(id),control=$(button);
+   if(!offer){node.textContent='Forschungsstand wird geladen …';control.disabled=true;return;}
+   if(offer.maxed){node.textContent=offer.title+': Maximalrang '+offer.rank+'/'+offer.maxRank;control.disabled=true;return;}
+   node.textContent=offer.title+' '+offer.rank+'/'+offer.maxRank+
+    ' → Rang '+offer.nextRank+' · '+offer.essence+' Essenz + '+
+    offer.shards+' Splitter · Abschluss Kapitel '+offer.requiredChapter+
+    (offer.unlocked?' ✓':' erforderlich');
+   control.disabled=!offer.unlocked||duoProfile.essence<offer.essence||
+    duoProfile.shards<offer.shards;
+  };
+  explainResearch('lv1','duoResearchLv1Status','duoResearchLv1Buy');
+  explainResearch('essence','duoResearchEssenceStatus','duoResearchEssenceBuy');
+  const bind=$('duoEssenceBindCard'),prior=bind.value;bind.replaceChildren();
+  for(const id of [...new Set(duoProfile.deck.filter(id=>
+   duoProfile.ownedMain.includes(id)&&card(id).essenceMonster))]){
+   const o=el('option',bind,name(id));o.value=String(id);
+  }
+  if(prior&&[...bind.options].some(o=>o.value===prior))bind.value=prior;
+  $('duoEssenceBindSave').disabled=!bind.options.length||
+   !duoProfile.essenceBinding?.researchRank;
+  const max=duoEconomy?.maxCardLevel??3,nextChapter=duoEconomy?.maxChapter??1;
+  set('duoProfileUnlockInfo','Kartenniveau bis Lv '+max+' · '+
+   'Kapitel I–'+nextChapter+' auswählbar · '+(duoProfile.clearedChapters?.length||0)+
+   ' Kapitel abgeschlossen.');
   deckEditor();
   render();
  }
@@ -166,10 +193,12 @@
    const data=await call({type,profileToken:duoProfileToken,
     expectedRevision:duoProfile.revision,...extra});
    installProfile(data);
-   set('duoProfileMessage',data.newCard?
-    'Neue 2v2-Karte erhalten: '+data.newCard.name+' · Lv '+data.newCard.level+
-     '. Ersetze im Deck-Editor einen Platz, um sie zu verwenden.':
-    '2v2-Profil erfolgreich auf dem Server gespeichert.');
+   set('duoProfileMessage',Array.isArray(data.newCards)&&data.newCards.length?
+    data.newCards.length+' neue 2v2-Karten: '+
+     data.newCards.map(c=>c.name+' (Lv '+c.level+')').join(', ')+
+     '. Eigene Karten können im Deckeditor eingesetzt werden.':
+    data.newCard?'Neue 2v2-Karte: '+data.newCard.name:
+    '2v2-Fortschritt erfolgreich auf dem Server gespeichert.');
   }catch(e){set('duoProfileMessage',e.message);await fetchProfile();}
   finally{profileSaving=false;}
  }
@@ -719,6 +748,10 @@
    $('duoProfileBuyPack').onclick=()=>profileOperation('pack',
     {pack:$('duoProfilePack').value});
    $('duoProfileDeckZone').onchange=deckEditor;
+   $('duoResearchLv1Buy').onclick=()=>profileOperation('research',{branch:'lv1'});
+   $('duoResearchEssenceBuy').onclick=()=>profileOperation('research',{branch:'essence'});
+   $('duoEssenceBindSave').onclick=()=>profileOperation('bindEssence',{
+    cardId:Number($('duoEssenceBindCard').value)});
    $('duoProfileDeckSave').onclick=()=>profileOperation('deckReplace',{
     zone:$('duoProfileDeckZone').value,
     slot:Number($('duoProfileDeckSlot').value),
