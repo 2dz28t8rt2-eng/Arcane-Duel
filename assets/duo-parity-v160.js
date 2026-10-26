@@ -470,6 +470,7 @@
  }
  function render(){
   const dock=$('duoActions'),track=$('duoTrack'),seats=$('duoSeats'),log=$('duoLog');
+  dock.classList.remove('ad186-enhanced');
   for(const n of [dock,track,seats,log])n.replaceChildren();
   $('duoCreate').hidden=!!roomId||location.hash.startsWith('#join=');
   $('duoCreate').disabled=busy||!Object.keys(catalog).length||!duoProfile;
@@ -886,6 +887,7 @@
   }
   button('Zug beenden →',el('div',dock,undefined,'duo-actions-footer'),
    ()=>send({type:'end'}));
+  window.ArcaneDuoCombatFlow186?.enhance?.({dock,roomId,seat,game});
  }
  async function init(){
   try{
