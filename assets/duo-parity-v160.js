@@ -389,6 +389,7 @@
   save();render();
   window.ArcaneDuoCinematics167?.onState(previous,game);
   window.ArcaneDuoCinema170?.onState(previous,game,catalog,seat);
+  window.ArcaneDuoStanceCinema191?.onState(previous,game,catalog);
   if(previous&&previous.status!=='finished'&&game.status==='finished'&&
    game.winner===0&&duoProfileToken)fetchProfile();
  }

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcane Duel · Kampfposition wechseln · v19.1</title>
+<link rel="stylesheet" href="../assets/duo-campaign-demo.css">
+<link rel="stylesheet" href="../assets/duo-stance-cinema-v191.css">
+<style>
+ .ad191-demo{max-width:1160px;margin:0 auto;padding:24px 18px 55px;color:#ecdec9}
+ .ad191-demo .kicker{color:#e7c18b;letter-spacing:.15em;font:700 11px system-ui}
+ .ad191-demo header{display:flex;align-items:start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+ .ad191-demo h1{font-size:clamp(24px,3vw,38px);margin:5px 0 12px;color:#fff0ce}
+ .ad191-demo .intro{color:#cbbfae;line-height:1.65;max-width:780px}
+ .ad191-demo .controls{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:21px 0}
+ .ad191-demo button{font:700 13px system-ui;border:1px solid #dbb579;border-radius:9px;background:linear-gradient(135deg,#55462c,#302a33);color:#ffeed1;min-height:43px;padding:10px 16px;cursor:pointer;box-shadow:inset 0 1px #fff4}
+ .ad191-demo button:hover:not(:disabled){filter:brightness(1.18)}
+ .ad191-demo button:disabled{opacity:.56;cursor:wait}
+ .ad191-demo .arena{padding:20px;background:linear-gradient(160deg,#23273b,#121822);border:1px solid #a58a61;border-radius:14px}
+ .ad191-demo .four-seats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:stretch}
+ .ad191-demo .seat{border-radius:11px;border:1px solid #766347;background:#151c2b;padding:14px;min-width:0}
+ .ad191-demo .seat h3{font-size:17px;margin:0 0 5px;color:#f7d9a7}
+ .ad191-demo .seat small{display:block;font-size:11px;color:#b5b9c4;margin-bottom:12px}
+ .ad191-demo .seat .field{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+ .ad191-demo .seat .field-cell{display:grid;place-items:center;min-height:115px;min-width:0;padding:6px;text-align:center;border:1px dashed #6a7391;border-radius:9px;background:#1d2839;color:#d8c8a7}
+ .ad191-demo .seat .field-cell.filled{display:flex;flex-direction:column;gap:5px;border:1px solid #bf935e;background:linear-gradient(145deg,#58422d,#20263c);font-size:11px}
+ .ad191-demo .field-cell .art{font-size:32px;line-height:1.2;filter:drop-shadow(0 0 7px #d6b67a70)}
+ .ad191-demo .field-cell .mode{font:700 10px system-ui;color:#ffaf8c}
+ .ad191-demo .field-cell .mode.def{color:#91d8eb}
+ .ad191-demo .field-cell small{margin:0;font-size:10px}
+ .ad191-demo #demoStatus{margin:15px 0 19px;padding:12px 14px;border-radius:9px;border:1px solid #957852;background:#171d2e;color:#f5dfa9;min-height:22px}
+ .ad191-demo .foot{font-size:12px;color:#cbbd9e;margin-top:16px;line-height:1.6}
+ @media(max-width:700px){.ad191-demo .four-seats{grid-template-columns:1fr}.ad191-demo .seat .field-cell{min-height:84px}}
+</style></head><body>
+<main class="ad191-demo duo-battle">
+ <header><div><p class="kicker">✧ ARCANE DUEL · VORSCHAU V19.1</p>
+ <h1>Angriff oder Verteidigung?</h1>
+ <p class="intro">Bei einem Positionswechsel dreht sich die Karte auf dem Feld. Ein warmer Lichtschein begleitet den Wechsel in den Angriff, ein kühler Schutzschein den Wechsel in die Verteidigung. Beides passiert im 2v2 erst nach der Bestätigung durch den Server.</p></div>
+ <a href="../duo-campaign-v2.html" style="color:#f4d6a2">← Zur 2v2-Kampagne</a></header>
+ <div class="controls"><button id="own" type="button">🛡 Silberfuchs: Position wechseln</button>
+ <button id="enemy" type="button">⚔ KI-Positionswechsel ansehen</button></div>
+ <p id="demoStatus" role="status" aria-live="polite">Bereit! Teste den Positionswechsel beim Silberfuchs oder beim KI-Gegner.</p>
+ <section class="arena" aria-label="Spielfeldvorschau"><div id="duoSeats" class="four-seats"></div></section>
+ <p class="foot">Dies ist eine rein optische Vorschau ohne Serververbindung. Im eigentlichen Duell gelten die normalen Regeln für Positionswechsel. Bei reduzierter Bewegung zeigt das Spiel sofort die neue Position.</p>
+</main>
+<script src="../assets/duo-stance-cinema-v191.js"></script>
+<script>
+(()=>{
+ const mk=(tag,parent,cls,txt)=>{const el=document.createElement(tag);
+  if(cls)el.className=cls;if(txt!==undefined)el.textContent=txt;parent.append(el);return el;};
+ const names=['Du · Gastgeber','KI · Aschenheer','Dein Partner','KI · Schattenheer'];
+ const cards=['Silberfuchs','Aschehüter','Mondritter','Schattenwolf'];
+ const symbols=['🦊','🔥','✧','🐺'];
+ const mode=['atk','atk','def','atk'],seats=[],buttons=[document.getElementById('own'),document.getElementById('enemy')];
+ const status=document.getElementById('demoStatus');
+ for(let i=0;i<4;i++){
+  const seat=mk('article',document.getElementById('duoSeats'),'seat');seat.dataset.seat=String(i);
+  mk('h3',seat,'',names[i]);mk('small',seat,'',i%2?'COMPUTERGEGNER':'VERBÜNDET');
+  const field=mk('div',seat,'field');
+  for(let slot=0;slot<4;slot++){
+   const cell=mk('div',field,slot===0?'field-cell filled':'field-cell');cell.dataset.slot=String(slot);
+   if(slot===0){mk('span',cell,'art',symbols[i]);mk('strong',cell,'',cards[i]);
+    mk('span',cell,'mode'+(mode[i]==='def'?' def':''),mode[i]==='def'?'🛡 Verteidigung':'⚔ Angriff');}
+   else mk('span',cell,'','◇');
+  }
+  seats.push(seat);
+ }
+ let serial=20,busy=false;
+ function snapshot(seat,newMode,switched){
+  return {seat,field:[{id:seat+1,uid:seat+100,mode:newMode,switched},null,null,null],
+   lv1:{ghostSlots:[]}};
+ }
+ function trigger(which){
+  if(busy)return;
+  busy=true;buttons.forEach(button=>button.disabled=true);
+  const from=mode[which],to=from==='atk'?'def':'atk';
+  const before={roomId:'v191-preview',chapter:1,revision:serial,
+   players:mode.map((m,seat)=>snapshot(seat,m,false))};
+  serial++;mode[which]=to;
+  const after={...before,revision:serial,players:mode.map((m,seat)=>
+   snapshot(seat,m,seat===which))};
+  const cell=seats[which].querySelector('.field-cell[data-slot="0"]');
+  const label=cell.querySelector('.mode');label.textContent=to==='def'?'🛡 Verteidigung':'⚔ Angriff';
+  label.className='mode'+(to==='def'?' def':'');
+  const events=window.ArcaneDuoStanceCinema191.onState(before,after,
+   Object.fromEntries(cards.map((name,index)=>[index+1,{name}])));
+  status.textContent=events.length?cards[which]+' wechselt in '+
+    (to==='def'?'die Verteidigung. 🛡':'den Angriff. ⚔'):'Position wurde aktualisiert.';
+  setTimeout(()=>{busy=false;buttons.forEach(button=>button.disabled=false);},1320);
+ }
+ buttons[0].addEventListener('click',()=>trigger(0));
+ buttons[1].addEventListener('click',()=>trigger(1));
+})();
+</script></body></html>
