@@ -20,6 +20,9 @@ jobs:
       - name: Verify live 2v2 economy once
         if: contains(github.event.head_commit.message, '[duo-live-v172]')
         run: node scripts/smoke-duo-economy-v172.cjs
+      - name: Verify 2v2 v17.3 card upgrade and recycle safety live
+        if: contains(github.event.head_commit.message, '[duo-live-v173]')
+        run: node scripts/smoke-duo-economy-v173.cjs
       - name: Render cards in headless Chrome
         shell: bash
         run: |
