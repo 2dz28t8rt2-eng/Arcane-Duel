@@ -192,7 +192,7 @@ Deno.serve(async request=>{
        ...granted.map(c=>c.id).slice(0,Math.max(0,15-p.fusions.length))];
      }
     }else{
-     patch.essence_binding={...p.essence_binding,researchRank:offer.nextRank};
+     patch.essence_binding={...p.essence_binding,researchRank:offer.nextRank,rank:offer.nextRank};
     }
     const next=await writeProfile(p,patch);
     return json(await profileResult(next,{researchUnlocked:body.branch,
