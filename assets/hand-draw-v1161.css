@@ -12,3 +12,5 @@
  #duelScreen #hand [data-hand].ad117-hand-incoming{animation:none!important;will-change:auto}
 }
 body.ad-motion-disabled #duelScreen #hand [data-hand].ad117-hand-incoming{animation:none!important;will-change:auto}
+/* The initial five real cards exist, but the arena visually starts empty. */
+#duelScreen.ad-opening-hand-wait #hand{visibility:hidden}

@@ -334,6 +334,15 @@
    const data=await call({type,profileToken:duoProfileToken,
     expectedRevision:duoProfile.revision,...extra});
    installProfile(data);
+   if(type==='pack'&&Array.isArray(data.newCards)&&data.newCards.length){
+    const granted=data.newCards.map(item=>({
+     name:item.name||name(item.id),level:item.level||card(item.id).level,
+     art:card(item.id).art,
+     fusion:!!item.fusion||!!card(item.id).fusionOnly,ace:!!card(item.id).ace
+    }));
+    window.ArcanePackCinema178?.open(granted,{title:'2V2 · PAKET ENTSIEGELT',
+     subtitle:'Serverbestätigt · Deine Karten sind in der 2v2-Sammlung'});
+   }
    set('duoProfileMessage',Array.isArray(data.newCards)&&data.newCards.length?
     data.newCards.length+' neue 2v2-Karten: '+
      data.newCards.map(c=>c.name+' (Lv '+c.level+')').join(', ')+
@@ -380,7 +389,7 @@
   if(game.status!=='waiting')invite='';
   save();render();
   window.ArcaneDuoCinematics167?.onState(previous,game);
-  window.ArcaneDuoCinema170?.onState(previous,game,catalog);
+  window.ArcaneDuoCinema170?.onState(previous,game,catalog,seat);
   if(previous&&previous.status!=='finished'&&game.status==='finished'&&
    game.winner===0&&duoProfileToken)fetchProfile();
  }
@@ -523,7 +532,7 @@
    el('small',panel,p.kind==='human'?'MENSCH · '+(p.seat===0?'GASTGEBER':'PARTNER'):
     'KI-GEGNER','duo-seat-kind');
    el('small',panel,p.hand.length+' Handkarten · '+p.deck.length+' im Hauptdeck · '+
-    p.remainingFusion.length+' Fusionen verbleibend');
+    p.remainingFusion.length+' Fusionen verbleibend','duo-seat-count');
    if(p.team===0){
     const buffs=Object.entries(p.upgrades||{}).filter(([,rank])=>rank>0);
     el('small',panel,buffs.length?
@@ -594,6 +603,7 @@
    }
   }
   for(const line of [...game.log].slice(-10).reverse())el('li',log,line);
+  window.ArcaneDuoHand178?.sync({game,seat,roomId,catalog});
   if(game.status!=='active'){
    if(game.status==='finished'&&game.winner===0&&game.chapter<4){
     if(seat===0)button('✦ Kapitel '+(game.chapter+1)+' starten',

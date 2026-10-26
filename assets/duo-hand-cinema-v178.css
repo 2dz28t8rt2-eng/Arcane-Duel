@@ -1,0 +1,34 @@
+/* Arcane Duel v17.8 – 2v2 LP charge and visible private card arrivals. */
+.duo178-lp-meter{height:11px;border:1px solid #b8a075;border-radius:100px;margin-top:10px;
+ background:#17131e;overflow:hidden;box-shadow:inset 0 0 8px #0008}
+.duo178-lp-fill{height:100%;width:0%;border-radius:inherit;
+ background:linear-gradient(90deg,#7b432f,#e1ab54 72%,#ffebac);
+ box-shadow:0 0 14px #ffcd6b88;transition:width .35s ease-out}
+.stats>div:nth-child(2) .duo178-lp-fill{background:linear-gradient(90deg,#562851,#c06e9a 75%,#f7b0d4)}
+.duo178-intro-active .duo178-lp-fill{transition:none}
+.duo178-hand{margin:14px 0 8px;padding:10px;border:1px solid #a0804e77;
+ border-radius:12px;background:radial-gradient(ellipse at top,#242743,#0b1525)}
+.duo178-hand-title{font:700 11px system-ui;letter-spacing:.18em;color:#f2d499;margin:0 0 8px}
+.duo178-hand-cards{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;min-height:110px}
+.duo178-hand-card{box-sizing:border-box;min-width:82px;width:clamp(82px,16%,128px);
+ border:2px solid #be9b63;border-radius:9px;padding:5px;text-align:center;
+ background:linear-gradient(145deg,#3a3149,#15243a);color:#f6dfaa;
+ box-shadow:0 5px 14px #0007;display:flex;flex-direction:column;gap:4px;overflow:hidden}
+.duo178-hand-art{aspect-ratio:4/3;display:grid;place-items:center;background:#1a1b33;
+ color:#f9da9b;font-size:24px;border-radius:4px;overflow:hidden}
+.duo178-hand-art img{width:100%;height:100%;object-fit:cover}
+.duo178-hand-card strong{font:700 10px/1.2 Georgia,serif;overflow-wrap:anywhere}
+.duo178-hand-card small{color:#e6bc73;font-size:10px}
+.duo178-empty-hand{margin:auto;color:#decfae;font-size:12px}
+.duo178-intro-active .duo178-hand-cards{visibility:hidden}
+.duo178-intro-active .duo-actions,.duo178-intro-active .action-dock{pointer-events:none;opacity:.52}
+.duo178-revealing .action-dock{pointer-events:none;opacity:.72}
+.duo178-hand-card.duo178-arriving{animation:duo178CardArrive .64s cubic-bezier(.12,.78,.25,1)
+ calc(var(--duo178-i,0)*135ms) both}
+@keyframes duo178CardArrive{
+ 0%{transform:translateX(110vw) rotate(12deg) scale(.92);opacity:0;filter:brightness(1.7)}
+ 78%{transform:translateX(-9px) rotate(-2deg) scale(1.035);opacity:1}
+ 100%{transform:none;opacity:1;filter:brightness(1)}
+}
+@media(prefers-reduced-motion:reduce){.duo178-hand-card.duo178-arriving{animation:none!important}
+ .duo178-lp-fill{transition:none}}

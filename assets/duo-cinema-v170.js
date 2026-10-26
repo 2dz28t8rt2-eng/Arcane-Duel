@@ -150,13 +150,17 @@
   make('p','duo-cinema170-note','Karteninhalte bleiben nur dem Besitzer bekannt.',content);
   schedule(clear,1500,stamp);
  }
- function onState(previous,current,catalog){
+ function onState(previous,current,catalog,viewerSeat){
   const events=observed(previous,current);
   sequence++;
   clear();
   if(!enabled||!events.length||typeof document==='undefined'||reduced()||
      document.visibilityState==='hidden')return events;
-  const event=events.find(x=>x.kind==='fusion')||events[0];
+  const event=events.find(x=>x.kind==='fusion')||
+   events.find(x=>x.kind==='draw'&&x.seat!==viewerSeat);
+  // Our actual hand row already animates own draws; the separate covered-card
+  // overlay is reserved for teammates and enemies, whose cards stay private.
+  if(!event)return events;
   if(event.kind==='fusion')fusionSequence(event,catalog);
   else drawSequence(event);
   return events;

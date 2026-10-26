@@ -1,0 +1,56 @@
+/* Arcane Duel – sealed pack, fracture, and card reveal (solo + 2v2). */
+.ad178-pack-cinema{position:fixed;inset:0;z-index:25000;display:grid;place-items:center;
+ padding:18px;overflow-y:auto;background:radial-gradient(circle at 50% 40%,#372447f2,#060b18f8 67%);
+ backdrop-filter:blur(12px);color:#f7e9c5;box-sizing:border-box}
+.ad178-pack-stage{position:relative;text-align:center;width:min(960px,100%);padding:18px 12px 26px;
+ border:1px solid #bf98496b;border-radius:22px;
+ background:radial-gradient(ellipse at top,#2d2944e0,#090f1ee6 72%);
+ box-shadow:0 0 100px #b1824b44,inset 0 0 50px #baa06312}
+.ad178-pack-eyebrow{letter-spacing:.24em;font-weight:700;color:#dabd86}
+.ad178-pack-stage h2{font:700 clamp(23px,4vw,43px) Georgia,serif;letter-spacing:.13em;
+ margin:9px 0 2px;text-shadow:0 0 24px #e5c37b88}
+.ad178-pack{width:170px;height:238px;margin:22px auto 14px;position:relative;
+ transform:rotate(-5deg);filter:drop-shadow(0 17px 16px #000c);
+ animation:ad178Float 2.2s ease-in-out infinite alternate}
+.ad178-pack-face{height:100%;display:flex;align-items:center;justify-content:center;
+ flex-direction:column;gap:12px;border:4px double #f3d692;border-radius:13px;
+ background:linear-gradient(137deg,#354061,#14152a 53%,#4e2a53 83%,#1c1e34);
+ box-shadow:inset 0 0 0 5px #130e27,inset 0 0 23px #eab85b85,0 0 30px #dcad5499}
+.ad178-pack-sigil{font-size:68px;color:#f4d287;text-shadow:0 0 22px #ffe7a1,0 0 42px #7c8fee}
+.ad178-pack-face b{font:700 23px/1.15 Georgia,serif;letter-spacing:.15em}
+.ad178-pack-face span{font-size:9px;letter-spacing:.2em;color:#ffe9b3}
+.ad178-pack-rift{position:absolute;inset:-7px 40% -7px 47%;opacity:0;
+ background:linear-gradient(90deg,transparent,#fffcd6,#edbb60,transparent);
+ transform:skewX(-16deg);filter:blur(3px);pointer-events:none}
+.ad178-pack-breaking .ad178-pack-rift{opacity:1;animation:ad178Crack .8s ease-in forwards}
+.ad178-pack-breaking .ad178-pack{animation:ad178Break .7s ease-in forwards}
+.ad178-pack-status{color:#ecd8a5;min-height:1.6em;letter-spacing:.04em}
+.ad178-pack-results{display:none;gap:12px;flex-wrap:wrap;justify-content:center;margin:16px auto;
+ max-height:min(56vh,525px);overflow:auto;padding:8px 12px}
+.ad178-pack-opened .ad178-pack{display:none}
+.ad178-pack-opened .ad178-pack-results{display:flex}
+.ad178-reward-card{display:flex;flex-direction:column;gap:5px;align-items:center;
+ flex:0 1 130px;min-width:105px;max-width:145px;padding:8px;border-radius:11px;
+ background:linear-gradient(150deg,#493c5b,#162238 66%,#2a1b3d);
+ border:2px solid #c9a862;box-shadow:0 0 18px #f2bb5933,inset 0 0 16px #dab87919;
+ animation:ad178CardFlip .48s cubic-bezier(.2,.75,.2,1.1) calc(var(--pack-index)*75ms) both}
+.ad178-reward-art{width:100%;aspect-ratio:3/3.3;display:grid;place-items:center;
+ background:radial-gradient(circle,#634d81,#121a2f);font-size:40px;overflow:hidden;border-radius:6px}
+.ad178-reward-art img{width:100%;height:100%;object-fit:cover}
+.ad178-reward-card strong{font:700 12px/1.3 Georgia,serif;overflow-wrap:anywhere}
+.ad178-reward-card small{font-size:10px;letter-spacing:.1em;color:#f1cf81}
+.ad178-pack-controls{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:20px}
+.ad178-pack-controls button{cursor:pointer;color:#f8e9c5;background:#263149;
+ border:1px solid #c19d67;border-radius:9px;padding:10px 22px;font-weight:700}
+.ad178-pack-controls button.ad178-primary{background:linear-gradient(125deg,#7a5732,#4a3262);
+ box-shadow:0 0 20px #d8aa5755}
+.ad178-pack-controls button:focus-visible{outline:3px solid #f5cb6b;outline-offset:3px}
+@keyframes ad178Float{to{transform:rotate(4deg) translateY(-9px)}}
+@keyframes ad178Crack{to{transform:skewX(-16deg) scaleX(4);opacity:0}}
+@keyframes ad178Break{to{transform:rotate(15deg) scale(1.2);opacity:0;filter:brightness(4)}}
+@keyframes ad178CardFlip{0%{opacity:0;transform:translateY(-28px) rotateY(85deg) scale(.6)}
+ 72%{opacity:1;transform:translateY(6px) rotateY(-8deg) scale(1.05)}
+ 100%{opacity:1;transform:none}}
+@media(max-width:540px){.ad178-reward-card{flex-basis:105px}.ad178-pack-results{max-height:56vh}}
+@media(prefers-reduced-motion:reduce){.ad178-pack,.ad178-reward-card,.ad178-pack-breaking .ad178-pack,
+ .ad178-pack-breaking .ad178-pack-rift{animation:none!important}}

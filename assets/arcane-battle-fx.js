@@ -32,7 +32,8 @@
   sparks('ad-sparks-dust',rect.left+rect.width/2,rect.bottom-5,heavy?36:22,heavy);
  }
  function beginCinema(){
-  if(reduced()||!game||uiMode!=='duel')return Promise.resolve();
+  if(reduced()||!game||uiMode!=='duel')
+   return window.ArcaneHandDraw1161?.revealOpeningHand?.()||Promise.resolve();
   const g=game,t=++key,fromLP=g.players.map(p=>Math.max(0,p.lp)),full=g.maxLP||8000;
   const pane=document.createElement('div');
   pane.className='ad-battle-intro';pane.setAttribute('role','status');
@@ -53,9 +54,13 @@
   render();draw(0);if(screen)screen.dataset.lpPhase='intro';
   return new Promise(resolve=>{
    let done=false,raf=0;
-   const close=()=>{
+   const close=async()=>{
     if(done)return;done=true;cancelAnimationFrame(raf);pane.remove();
-    if(game===g&&t===key){screen?.removeAttribute('data-lp-phase');busy=false;render();}
+    if(game===g&&t===key){
+     screen?.removeAttribute('data-lp-phase');render();
+     try{await window.ArcaneHandDraw1161?.revealOpeningHand?.();}
+     finally{if(game===g&&t===key){busy=false;render();}}
+    }
     resolve();
    };
    // Keep LP at zero while the start screen is visible. Only then reveal
@@ -81,6 +86,9 @@
  startDuel=function(...args){
   const result=oldStart(...args),go=document.getElementById('modalGo');
   if(!game||!go||uiMode!=='duel'||go.dataset.adIntroBound)return result;
+  document.getElementById('duelScreen')?.classList.add('ad-opening-hand-wait');
+  document.getElementById('hand')?.setAttribute('aria-hidden','true');
+  const count=document.getElementById('handCount');if(count)count.textContent='(0 / 5)';
   go.dataset.adIntroBound='1';
   go.onclick=async()=>{
    const g=game;hideModal();
