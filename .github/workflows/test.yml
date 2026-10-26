@@ -263,3 +263,20 @@ jobs:
               exit 1
             fi
           done
+
+          echo "Checking event-driven v15.7 effects, particle limits and reduced motion..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --disable-background-timer-throttling --virtual-time-budget=16000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-element-events-v157.html >"/tmp/arcane-event-fx-${size}.html" 2>/tmp/arcane-event-fx.log
+            if ! grep -q 'data-event-effects-test="pass"' "/tmp/arcane-event-fx-${size}.html"; then
+              echo "v15.7 event FX FAILED at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/arcane-event-fx-${size}.html" | head -100 || true
+              tail -25 /tmp/arcane-event-fx.log || true
+              exit 1
+            fi
+          done
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --force-prefers-reduced-motion=reduce --virtual-time-budget=12000 --window-size="410,980" --dump-dom http://127.0.0.1:8757/tests/browser-element-events-v157.html >/tmp/arcane-event-fx-reduced.html 2>/tmp/arcane-event-fx.log
+          if ! grep -q 'data-event-effects-test="pass"' /tmp/arcane-event-fx-reduced.html; then
+            echo "v15.7 reduced motion FAILED" >&2
+            sed -n '/<pre id="result"/,/<\/pre>/p' /tmp/arcane-event-fx-reduced.html | head -100 || true
+            exit 1
+          fi

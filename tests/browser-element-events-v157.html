@@ -1,0 +1,57 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Arcane Duel – Event-FX v15.7</title>
+<style>body{font:14px system-ui;color:#edf3fa;background:#101725;padding:12px}iframe{width:100%;height:520px;border:1px solid #8795ba}pre{white-space:pre-wrap}</style>
+</head><body><h1>Event-FX · Browser- und Partikelbudget-Prüfung</h1><pre id="result">Test läuft …</pre>
+<iframe id="app" src="../index.html" title="Arcane Duel Eventeffekte"></iframe>
+<script>
+const frame=document.getElementById('app'),out=document.getElementById('result');
+frame.addEventListener('load',async()=>{
+  const reports=[],failures=[];
+  function check(ok,message){reports.push((ok?'OK: ':'FEHLER: ')+message);if(!ok)failures.push(message);}
+  const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  try{
+    const w=frame.contentWindow,d=w.document,reduced=w.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    d.getElementById('guideClose')?.click();d.getElementById('helpDismiss')?.click();
+    w.eval(`(()=>{
+      hideModal();uiMode='duel';game=createGame({mode:'pve',opponentId:1,starter:0,seed:1577});
+      game.active=0;game.turn=5;game.summoned=false;animationSpeed='fast';
+      const p=game.players[0],normal=RPG_BASE_CARDS.find(c=>c.level===2&&!c.retired&&!c.fusionOnly);
+      p.field=[newInstance(game,normal.id,0),null,null,null,null];render();
+      document.body.classList.remove('ad-motion-disabled');
+      window.__ad157Before=JSON.stringify({players:game.players,seed:game.seed,turn:game.turn});
+    })()`);
+    d.getElementById('duelScreen').hidden=false;
+    const api=w.ArcaneEventFX157;
+    check(api?.version==='15.7.0','v15.7 ist im echten Spiel geladen');
+    check(api.classify('Materialresonanz: +4 % Qualität')?.kind==='resonance','Resonanz wird erkannt');
+    check(api.classify('Seelenraub: -120 DEF')?.kind==='soul','Seelenraub wird erkannt');
+    const before=performance.now();
+    const didPulse=w.eval(`window.ArcaneEventFX157.burst(game,{
+      kind:'fusion',label:'Mächtige Fusion · Test (Lv 9)',level:9,element:'FEUER'})`);
+    const cost=performance.now()-before;
+    const present=!!d.querySelector('.ad157-event'),count=d.querySelectorAll('.ad157-event .ad157-particles i').length;
+    check(didPulse===!reduced,'Bewegungspräferenz respektiert');
+    check(reduced?!present:present,'Temporäre Hervorhebung nur mit erlaubter Bewegung');
+    check(count<=18,'Partikelobergrenze von 18 eingehalten');
+    check(w.eval('JSON.stringify({players:game.players,seed:game.seed,turn:game.turn})')===w.__ad157Before,
+      'VFX verändert weder Duellkarten noch RNG oder Zugnummer');
+    if(!reduced){
+      await delay(470);
+      w.eval(`logEvent(game,'Materialresonanz: +4 % Fusionsqualität')`);
+      await delay(170);
+      check(!!d.querySelector('.ad157-resonance'),'Echte Spiellogeinträge lösen Resonanzfeedback aus');
+      check((d.querySelectorAll('.ad157-event').length||0)<=1,'Höchstens ein aktiver Ereigniseffekt');
+      await delay(490);
+      w.eval(`(()=>{
+        const ace=CARDS.find(c=>c.ace===true);
+        if(ace){game.players[0].field[0]=newInstance(game,ace.id,0);render();}
+      })()`);
+      await delay(200);
+      check(!!d.querySelector('.ad157-ace'),'ACE-Auftritt erhält eigenes kurzes Feldhighlight');
+    }
+    const metrics=api.metrics();
+    check(metrics.peakSparks<=18,'Metrik bestätigt die feste Obergrenze');
+    reports.push('Messwert: Einzeleffekt '+cost.toFixed(2)+' ms, maximal '+metrics.peakSparks+' Partikel, '+metrics.shown+' angezeigt.');
+  }catch(error){failures.push(error.message);reports.push('EXCEPTION: '+(error.stack||error.message).slice(0,1000));}
+  out.textContent=reports.join('\n');document.body.dataset.eventEffectsTest=failures.length?'fail':'pass';
+},{once:true});
+</script></body></html>

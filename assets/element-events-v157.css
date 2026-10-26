@@ -1,0 +1,30 @@
+/* Short-lived, capped event bursts. Decorative layers never intercept play. */
+.ad157-event{position:fixed;z-index:15700;width:0;height:0;pointer-events:none;
+  color:var(--ad157-color,#dec2ff);isolation:isolate}
+.ad157-halo{position:absolute;left:0;top:0;display:block;width:130px;height:78px;
+  margin:-39px 0 0 -65px;border-radius:50%;border:2px solid currentColor;
+  box-shadow:0 0 12px currentColor,inset 0 0 10px currentColor;
+  opacity:0;animation:ad157-ring 1050ms cubic-bezier(.16,.7,.4,1) both}
+.ad157-event[data-tier="1"] .ad157-halo{width:80px;height:56px;margin:-28px 0 0 -40px;border-width:1px}
+.ad157-event[data-tier="4"] .ad157-halo{width:164px;height:112px;margin:-56px 0 0 -82px;border-width:3px}
+.ad157-particles{position:absolute;inset:0;display:block}
+.ad157-particles i{position:absolute;left:-2px;top:-2px;display:block;width:4px;height:4px;
+  border-radius:50%;background:currentColor;box-shadow:0 0 5px currentColor;
+  animation:ad157-spark 970ms ease-out var(--delay,0ms) both}
+.ad157-event[data-tier="3"] .ad157-particles i,
+.ad157-event[data-tier="4"] .ad157-particles i{width:5px;height:5px}
+.ad157-notice{position:absolute;top:-84px;left:0;display:block;min-width:140px;max-width:min(320px,78vw);
+  width:max-content;padding:6px 10px;transform:translateX(-50%);border-radius:8px;
+  border:1px solid color-mix(in srgb,currentColor 75%,transparent);background:#101a2fe8;
+  font:700 12px/1.45 system-ui,sans-serif;letter-spacing:.02em;text-align:center;
+  color:#fff6dc;text-shadow:0 1px 2px #000;box-shadow:0 4px 16px #020611c9;
+  animation:ad157-caption 1550ms ease-out both}
+.ad157-soul .ad157-halo{border-style:dashed}
+.ad157-resonance .ad157-halo{border-style:double}
+.ad157-ace .ad157-notice{border-color:#ffe0a2;color:#fff5cb}
+@keyframes ad157-ring{0%{opacity:0;transform:scale(.35)}24%{opacity:.92}80%{opacity:.65}100%{opacity:0;transform:scale(1.65)}}
+@keyframes ad157-spark{0%{opacity:0;transform:translate(0,0) scale(.4)}22%{opacity:1}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(.55)}}
+@keyframes ad157-caption{0%{opacity:0;translate:0 10px}15%,70%{opacity:1;translate:0 0}100%{opacity:0;translate:0 -8px}}
+@media(max-width:600px){.ad157-notice{font-size:11px;max-width:230px;padding:5px 8px;top:-65px}}
+@media(prefers-reduced-motion:reduce){.ad157-event{display:none!important}}
+body.ad-motion-disabled .ad157-event{display:none!important}
