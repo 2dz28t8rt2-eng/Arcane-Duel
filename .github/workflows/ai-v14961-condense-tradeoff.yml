@@ -22,7 +22,7 @@ jobs:
       - name: Verify new research scripts and real combat regression tests
         run: |
           set -euo pipefail
-          for f in tests/ai-v1561-{history,Q,condense-strike-selfplay,condense-strike-aggregate}.cjs; do
+          for f in tests/ai-v1561-{history,Q,condense-tradeoff-selfplay,condense-tradeoff-aggregate}.cjs; do
             test -f "$f"
             node --check "$f"
           done
