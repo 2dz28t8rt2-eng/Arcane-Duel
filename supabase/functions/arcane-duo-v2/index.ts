@@ -142,7 +142,7 @@ Deno.serve(async request=>{
    if(error)throw error;
    return json({profileToken,...await profileResult(p)},200,allow);
   }
-  if(["profile","upgrade","pack","deckReplace","research","bindEssence"].includes(kind)){
+  if(["profile","upgrade","pack","deckReplace","research","bindEssence","enhance","recycle"].includes(kind)){
    const p=await profileByToken(body.profileToken);
    if(kind==="profile")return json(await profileResult(p),200,allow);
    assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===p.revision,
@@ -198,6 +198,39 @@ Deno.serve(async request=>{
     return json(await profileResult(next,{researchUnlocked:body.branch,
      newCards:granted}),200,allow);
    }
+   if(kind==="enhance"){
+    assert(Number.isInteger(body.cardId),"Ungültige 2v2-Karte.");
+    const offer=economy.enhanceOffer(p,body.cardId,catalog);
+    assert(offer&&!offer.maxed,"Karte nicht im aktiven Deck oder bereits auf Verstärkungsrang 5.");
+    assert(p.essence>=offer.essence&&p.shards>=offer.shards,
+     "Nicht genug 2v2-Essenz oder Splitter.");
+    const next=await writeProfile(p,{
+     essence:p.essence-offer.essence,
+     shards:p.shards-offer.shards,
+     enhancements:{...p.enhancements,[body.cardId]:offer.nextRank}
+    });
+    return json(await profileResult(next,{enhanced:{
+     id:body.cardId,rank:offer.nextRank,bonusPerStat:offer.bonusPerStat}
+    }),200,allow);
+   }
+   if(kind==="recycle"){
+    assert(Number.isInteger(body.cardId),"Ungültige 2v2-Karte.");
+    const offer=economy.recycleOffer(p,body.cardId,catalog);
+    assert(offer,"Diese Karte ist geschützt oder es gibt kein freies Exemplar.");
+    const column=offer.fusion?"owned_fusions":"owned_main",
+     collection=[...p[column]];
+    const idx=collection.indexOf(body.cardId);
+    assert(idx>=0,"Karte nicht im Inventar.");
+    collection.splice(idx,1);
+    const next=await writeProfile(p,{
+     essence:p.essence+offer.essence,
+     shards:p.shards+offer.shards,
+     [column]:collection
+    });
+    return json(await profileResult(next,{recycled:{
+     id:body.cardId,essence:offer.essence,shards:offer.shards}
+    }),200,allow);
+   }
    if(kind==="bindEssence"){
     const id=body.cardId,card=catalog[id];
     assert(economy.researchRank(p,"essence")>=1,
@@ -221,7 +254,18 @@ Deno.serve(async request=>{
    assert(game.validDeck(deck,catalog,fusion)&&
     inventoryAllows(deck,fusion?p.owned_fusions:p.owned_main),
     "Karte fehlt in deiner 2v2-Sammlung oder verletzt Deckregeln.");
-   const next=await writeProfile(p,{[fusion?"fusions":"deck"]:deck});
+   const main=fusion?p.deck:deck,side=fusion?deck:p.fusions;
+   const remaining=new Set([...main,...side]),enhancements={};
+   for(const [id,rank] of Object.entries(p.enhancements||{}))
+    if(remaining.has(Number(id)))enhancements[id]=rank;
+   // Do not let editing a deck silently remove a currently bound creature.
+   if(p.essence_binding?.chosen!=null)
+    assert(main.includes(p.essence_binding.chosen),
+     "Das gebundene Essenzwesen muss im 2v2-Hauptdeck bleiben.");
+   // Ensure the modified deck is still a valid combat build, not merely an inventory list.
+   game.normalizedBuild(p.upgrades,enhancements,main,side,catalog,
+    p.essence_binding,p.lv1_research);
+   const next=await writeProfile(p,{[fusion?"fusions":"deck"]:deck,enhancements});
    return json(await profileResult(next),200,allow);
   }
   if(kind==="create"){
