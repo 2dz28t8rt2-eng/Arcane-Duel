@@ -65,10 +65,18 @@ document.getElementById('runtime').addEventListener('load',async()=>{
    check(name.scrollHeight<=name.clientHeight+1,'Name fits card title '+id);
   }
   if(!reduced){
+   // Headless Chrome may throttle an entirely off-screen iframe. Measure a
+   // genuinely visible card, which is also the user-facing animation case.
+   const runtimeFrame=document.getElementById('runtime'),holder=byId.get(53).parentElement;
+   const oldFrameLeft=runtimeFrame.style.left,oldFixtureLeft=fixture.style.left,oldHolderStyle=holder.style.cssText;
+   runtimeFrame.style.left='0px';fixture.style.left='0px';
+   holder.style.cssText='position:fixed;left:14px;top:35px;width:180px;z-index:3';
+   await wait(240);
    const target=byId.get(53).querySelector('.hand-type');
    const animation=target.getAnimations().find(x=>x.animationName==='ad405-element-breath');
-   const before=animation?.currentTime;await wait(120);
-   check(animation?.playState==='running'&&animation.currentTime>before,'Element glow advances over time');
+   const before=animation?.currentTime;await wait(360);
+   check(animation?.playState==='running'&&animation.currentTime>before,'Visible element glow advances over time');
+   holder.style.cssText=oldHolderStyle;fixture.style.left=oldFixtureLeft;runtimeFrame.style.left=oldFrameLeft;
   }
   win.ArcanePreviewMotion.enhanceTraits(fixture);await wait(80);
   for(const [id,element] of byId){
