@@ -421,7 +421,10 @@
   const amount=Math.floor(e.soul*.75);
   e.soul-=amount;e.condensed=Math.min(9000,e.condensed+amount);
   e.condenseLeft=3;e.condenseSlice=Math.ceil(e.condensed/3);e.cooldown=3;e.lastSoulAction=game.turn;
-  logEvent(game,dataOf(c).name+' verdichtet '+amount+' Seelenessenz (3 eigene Züge Cooldown).');
+  // Only the Soul active ability is spent. Movement and normal attack are NOT
+  // consumed; the 3-turn cooldown and shield decay are unchanged. The attack
+  // bonus is computed from the SAME remaining condensed pool, never stored twice.
+  logEvent(game,dataOf(c).name+' verdichtet '+amount+' Seelenessenz: +'+Math.floor(e.condensed*.5)+' ATK, 3 eigene Züge Schild/Buff, 3 Züge Cooldown. Angriff und Positionswechsel bleiben möglich.');
   saveDuelSnapshot();render();return true;
  }
  function discharge(idx){
