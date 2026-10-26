@@ -187,6 +187,56 @@
   $('duoCardRecycleConfirm').checked=false;
   renderCollectionTable();updateCollectionOffers();
  }
+
+ function updatePacing(){
+  if(!duoProfile||!duoEconomy||!economyRules)return;
+  const chapters=duoEconomy.rewards||economyRules.rewardTable(),
+   current=Math.max(1,...(duoProfile.clearedChapters||[]));
+  const next=chapters.find(x=>x.chapter===Math.min(4,current+1));
+  const credits=duoProfile.chapterCardCredits||0;
+  set('duoFirstClearCards',credits?
+   '🎁 '+credits+' garantierte Kapitelkarte'+(credits===1?'':'n')+
+   ' bereit · jeweils aus den obersten zwei freigeschalteten Stufen':
+   'Keine offenen Kapitelkarten. Ein erster Sieg in einem neuen Kapitel vergibt drei.');
+  $('duoChapterCardClaim').disabled=credits<=0;
+  set('duoChapterClearPreview','Nächstes Kapitelziel: '+
+   (next?'Kapitel '+next.chapter+' · '+next.first.xp+' EP, '+
+   next.first.essence+' Essenz, '+next.first.shards+
+   ' Splitter und 3 garantierte Karten':'Alle vier Kapitel erstmals abgeschlossen')+
+   '. Wiederholung von Kapitel '+current+': '+
+   chapters[current-1].repeat.essence+' Essenz / '+
+   chapters[current-1].repeat.shards+' Splitter je Sieg (max. 3 Auszahlungen pro UTC-Tag).');
+  const selector=$('duoBalancePack'),currentPack=selector.value;
+  selector.replaceChildren();
+  for(const [key,offer] of Object.entries(duoEconomy.packs||{})){
+   const opt=el('option',selector,offer.title+' · '+offer.essence+
+    ' Essenz + '+offer.shards+' Splitter');opt.value=key;
+  }
+  if(duoEconomy.packs?.[currentPack])selector.value=currentPack;
+  updatePacingGoal();
+ }
+ function updatePacingGoal(){
+  if(!duoProfile||!duoEconomy||!economyRules)return;
+  const choice=$('duoBalancePack').value,offer=duoEconomy.packs?.[choice];
+  if(!offer)return;
+  if(!(duoProfile.clearedChapters||[]).length){
+   const missingEss=Math.max(0,offer.essence-duoProfile.essence),
+    missingShards=Math.max(0,offer.shards-duoProfile.shards);
+   set('duoBalanceGoal','Für '+offer.title+' fehlen '+missingEss+
+    ' Essenz und '+missingShards+
+    ' Splitter. Erst Kapitel I abschließen, um Wiederholungssiege freizuschalten.');
+   return;
+  }
+  const current=Math.max(...duoProfile.clearedChapters);
+  const progress=economyRules.afford({
+   essence:duoProfile.essence,shards:duoProfile.shards},offer,current);
+  set('duoBalanceGoal',progress.canBuy?
+   '✓ '+offer.title+' ist jetzt finanzierbar.':
+   'Für '+offer.title+' fehlen '+progress.essenceShort+
+    ' Essenz und '+progress.shardsShort+' Splitter. Rein rechnerisch '+
+    progress.repeatsNeeded+' Wiederholungssieg(e) in Kapitel '+current+
+    ' – höchstens drei bezahlte Wiederholungen je UTC-Tag. Siege sind nicht garantiert.');
+ }
  function installProfile(data){
   duoProfile=data.profile;duoLastRoom=data.lastRoom??duoLastRoom;
   duoEconomy=data.economy??duoEconomy;
@@ -253,6 +303,7 @@
   set('duoProfileUnlockInfo','Kartenniveau bis Lv '+max+' · '+
    'Kapitel I–'+nextChapter+' auswählbar · '+(duoProfile.clearedChapters?.length||0)+
    ' Kapitel abgeschlossen.');
+  updatePacing();
   deckEditor();
   renderCollection();
   render();
@@ -285,6 +336,9 @@
     data.newCards.length+' neue 2v2-Karten: '+
      data.newCards.map(c=>c.name+' (Lv '+c.level+')').join(', ')+
      '. Eigene Karten können im Deckeditor eingesetzt werden.':
+    data.chapterCard?'Garantierte Kapitelkarte erhalten: '+
+     data.chapterCard.name+' · Lv '+data.chapterCard.level+
+     '. Du kannst sie im 2v2-Deckeditor einsetzen.':
     data.newCard?'Neue 2v2-Karte: '+data.newCard.name:
     data.enhanced?'Karte verbessert: '+name(data.enhanced.id)+
      ' · Rang '+data.enhanced.rank+'/5. Gilt bei neuen Duellen.':
@@ -325,6 +379,8 @@
   save();render();
   window.ArcaneDuoCinematics167?.onState(previous,game);
   window.ArcaneDuoCinema170?.onState(previous,game,catalog);
+  if(previous&&previous.status!=='finished'&&game.status==='finished'&&
+   game.winner===0&&duoProfileToken)fetchProfile();
  }
  async function refresh(){
   if(!roomId||!token||refreshing||busy)return;
@@ -837,6 +893,8 @@
    $('duoProfileContinue').onclick=()=>continueLastRoom();
    $('duoProfileUpgrade').onclick=()=>profileOperation('upgrade',
     {key:$('duoProfilePerk').value});
+   $('duoChapterCardClaim').onclick=()=>profileOperation('chapterCard',{});
+   $('duoBalancePack').onchange=updatePacingGoal;
    $('duoProfileBuyPack').onclick=()=>profileOperation('pack',
     {pack:$('duoProfilePack').value});
    $('duoProfileDeckZone').onchange=deckEditor;
