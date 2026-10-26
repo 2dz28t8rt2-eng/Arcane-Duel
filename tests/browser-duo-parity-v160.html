@@ -1,0 +1,42 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>2v2 v16.0 browser QA</title></head>
+<body><pre id="result">Lädt …</pre><iframe id="duo" src="../duo-campaign-v2.html" width="1000" height="900"></iframe>
+<script>
+document.getElementById('duo').addEventListener('load',()=>{
+ setTimeout(()=>{
+  const f=document.getElementById('duo'),d=f.contentDocument,notes=[];
+  let ok=true;
+  const check=(v,t)=>{notes.push((v?'OK ':'FAIL ')+t);if(!v)ok=false;};
+  try{
+   check(!!f.contentWindow.ArcaneDuoRules,'Same reducer as deployed on the Edge Function');
+   check(f.contentWindow.ArcaneDuoRules?.version==='16.0-beta','Correct rules version');
+   check(d.getElementById('duoDeckInfo').textContent.includes('Standarddeck')||
+    d.getElementById('duoDeckInfo').textContent.includes('übernommen'),
+    'Singleplayer main/fusion deck load or safe fallback');
+   check(!!d.getElementById('duoCreate')&&!d.getElementById('duoCreate').disabled,
+    'Room creation enabled when catalog loads');
+   check(d.getElementById('duoEntry').value==='new','Chapter I is default');
+   check(d.getElementById('duoChapterSelect').hidden,'Optional chapter chooser hidden by default');
+   check(d.getElementById('duoChapter').options.length===4,'Four chapters from shared rules');
+   check(d.getElementById('duoChapterInfo').textContent.includes('Level 2'),
+    'Chapter preview uses real catalog');
+   d.getElementById('duoEntry').value='chapter';
+   d.getElementById('duoEntry').dispatchEvent(new Event('change',{bubbles:true}));
+   d.getElementById('duoChapter').value='4';
+   d.getElementById('duoChapter').dispatchEvent(new Event('change',{bubbles:true}));
+   check(!d.getElementById('duoChapterSelect').hidden&&
+    d.getElementById('duoChapterInfo').textContent.includes('Level 8'),
+    'Late chapter preview and chooser');
+   check(d.querySelectorAll('#duoSeats .seat').length===0,
+    'No room information before authorization');
+   check(d.getElementById('duoAlliedLP').textContent.includes('16.000'),
+    'Expected shared team LP');
+   check(!!d.getElementById('duoInviteBox')&&!!d.getElementById('duoRefresh'),
+    'Invite, save and refresh controls exist');
+   check(d.querySelector('.notice').textContent.includes('Beta'),
+    'Feature coverage and limitations clearly marked');
+  }catch(e){check(false,e.stack||e.message);}
+  document.getElementById('result').textContent=notes.join('\n');
+  document.documentElement.dataset.duoParity=ok?'pass':'fail';
+ },1200);
+});
+</script></body></html>

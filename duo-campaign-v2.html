@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="de"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Arcane Duel · 2v2 Regelangleichung (Beta)</title>
+<link rel="stylesheet" href="assets/duo-campaign-demo.css?v=duo-v160">
+<link rel="stylesheet" href="assets/duo-parity-v160.css?v=duo-v160">
+</head><body><main class="duo-wrap">
+<header class="duo-header">
+ <div><p class="kicker">✧ ARCANE DUEL · 2V2 REGELANGLEICHUNG</p>
+ <h1>Das Bündnis der Vier</h1>
+ <p>Deine Monster aus dem Einzelspieler-Deck treten erstmals gemeinsam mit einem Freund an.</p></div>
+ <a href="index.html">← Zum Hauptspiel</a>
+</header>
+<aside class="notice">
+ <b>Beta der neuen Online-Spielregeln – getrennt von bestehenden 2v2-Räumen.</b>
+ Aktive Haupt- und Fusionsdecks werden lokal aus deinem Singleplayer-Profil gelesen; die
+ Originalsammlung wird nicht verändert. Karten, Angriffe, Positionswechsel und erste
+ Fusionen laufen serverseitig. Komplexe Rollenskills, alle Fusions-Spezialwürfe,
+ Perks und die trainierte Einzelspieler-KI sind noch in Arbeit.
+</aside>
+<div class="duo-layout">
+<section class="duo-panel">
+ <h2>✦ Gemeinsam starten</h2>
+ <ol class="duo-steps">
+  <li id="duoStepCreate">Raum erstellen</li>
+  <li id="duoStepInvite">Partner einladen</li>
+  <li id="duoStepBattle">Kämpfen</li>
+ </ol>
+ <label>Spielstart
+  <select id="duoEntry"><option value="new">Kampagne mit Kapitel I beginnen</option>
+   <option value="chapter">Kapitel direkt auswählen</option></select>
+ </label>
+ <label id="duoChapterSelect" hidden>Kapitel
+  <select id="duoChapter"></select></label>
+ <label>Spielername <input id="duoHostName" maxlength="32" value="Duellant A"></label>
+ <div id="duoDeckInfo" class="duo-deck-info">Lade Karten und gespeichertes Deck …</div>
+ <div class="actions">
+  <button id="duoCreate" disabled>Raum erstellen</button>
+  <button id="duoAccept" hidden disabled>Einladung annehmen</button>
+ </div>
+ <div id="duoInviteBox" hidden>
+  <label>Einmaliger Einladungslink <input id="duoInvite" readonly></label>
+  <button id="duoCopy">Link kopieren</button>
+ </div>
+ <p class="room-code">Raumkennung: <code id="duoRoomId">—</code></p>
+ <div class="duo-save-state" id="duoSaveState" role="status" aria-live="polite">
+  Online-Räume speichern nach jedem akzeptierten Spielzug.</div>
+ <div class="actions"><button id="duoRefresh" disabled>↻ Spielstand aktualisieren</button></div>
+ <details class="duo-guide"><summary>Was gilt in dieser Beta?</summary>
+  <ul>
+   <li>Vier Sitzplätze: Gastgeber → KI A → Partner → KI B.</li>
+   <li>Jeder hat 40 Hauptkarten, ein eigenes Fusionsdeck, fünf Handkarten und sieben Feldplätze.</li>
+   <li>Beide Teams teilen sich je 16.000 LP; Beschwörung, Angriff und Position werden geprüft.</li>
+   <li>Fusionen nutzen ausschließlich eigene Hand- und Feldmaterialien. Vorlagen aus dem
+    eigenen Fusionsdeck werden im Duell verbraucht.</li>
+   <li>Bei fehlenden Karten im Deck zu Beginn des eigenen Zuges verliert das Team.</li>
+   <li>Räume laufen nach 48 Stunden ab. Die Wiederaufnahme funktioniert mit diesem Tab.</li>
+  </ul>
+ </details>
+ <p id="duoChapterInfo" class="micro"></p>
+ <p id="duoStatus" role="status" aria-live="polite"></p>
+</section>
+<section class="duo-panel duo-battle">
+ <div class="stats">
+  <div><small>TEAM VERBÜNDETE</small><strong id="duoAlliedLP">16.000 LP</strong></div>
+  <div><small>TEAM GEGNER</small><strong id="duoEnemyLP">16.000 LP</strong></div>
+ </div>
+ <div class="turn-track" id="duoTrack"></div>
+ <h2 id="duoTurnName">Noch kein Raum</h2>
+ <p id="duoCurrentReward" class="duo-chapter-rewards"></p>
+ <div class="four-seats" id="duoSeats"></div>
+ <div class="action-dock" id="duoActions"></div>
+ <div class="duo-log"><h3>Kampfprotokoll</h3><ol id="duoLog"></ol></div>
+</section>
+</div></main>
+<script src="assets/duo-shared-rules-v160.js?v=duo-v160"></script>
+<script src="assets/duo-battle-ui-v158.js?v=duo-v160"></script>
+<script src="assets/duo-parity-v160.js?v=duo-v160"></script>
+</body></html>

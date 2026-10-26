@@ -1,0 +1,322 @@
+/* Online 2v2 beta: own real singleplayer deck, canonical card art, explicit
+ * fusion/attack/position controls, server-owned state and private hands.
+ * This intentionally does NOT modify the user's singleplayer save.
+ */
+'use strict';
+(()=>{
+ const api='https://cvmtmvruutdneyblumgf.supabase.co/functions/v1/arcane-duo-v2';
+ const $=id=>document.getElementById(id),rules=window.ArcaneDuoRules,
+  choices=window.ArcaneDuoBattleUI;
+ const key=id=>'arcane-duo-v2-session-'+id;
+ const ownOrigin=()=>location.href.split('#')[0].split('?')[0];
+ let catalog={},starterMain=[],starterFusions=[],profileDeck=[],profileFusions=[];
+ let game=null,seat=-1,roomId='',token='',invite='',busy=false,refreshing=false,
+  syncError='',syncedAt=0,sessionReady=true;
+ const set=(id,text)=>$(id).textContent=String(text);
+ const card=id=>catalog[id]||{name:'Karte '+id,level:'?',atk:'?',def:'?',role:'?'};
+ const name=id=>card(id).name;
+ const el=(tag,parent,text,cls)=>{
+  const n=document.createElement(tag);if(cls)n.className=cls;
+  if(text!==undefined)n.textContent=text;
+  parent.append(n);return n;
+ };
+ const button=(text,parent,fn)=>{const b=el('button',parent,text,'primary');b.onclick=fn;b.disabled=busy||!!syncError;return b;};
+ const selector=(label,options,parent)=>{
+  const line=el('label',parent,undefined,'duo-choice');
+  el('span',line,label);
+  const input=el('select',line);
+  for(const [value,text] of options){const opt=el('option',input,text);opt.value=String(value);}
+  return input;
+ };
+ const section=(parent,title,help)=>{
+  const node=el('section',parent,undefined,'duo-action-group');
+  el('h3',node,title);if(help)el('p',node,help,'duo-action-help');
+  return node;
+ };
+ const chapter=()=>rules.CHAPTERS.find(c=>c.id===Number($('duoChapter').value))||rules.CHAPTERS[0];
+ function updateChapter(){
+  const entry=$('duoEntry').value;
+  $('duoChapterSelect').hidden=entry!=='chapter';
+  const chosen=entry==='new'?rules.CHAPTERS[0]:chapter();
+  $('duoCreate').textContent=entry==='new'?'Neue Kampagne erstellen':'Kapitel '+chosen.id+' starten';
+  set('duoChapterInfo','Kapitel '+chosen.id+' · '+chosen.name+
+   '. Je drei Leihkarten auf Level '+chosen.level+' ersetzen vorhandene Deckplätze.');
+ }
+ function readProfile(snapshot){
+  starterMain=[...snapshot.starterMain];starterFusions=[...snapshot.starterFusions];
+  profileDeck=[...starterMain];profileFusions=[...starterFusions];
+  let message='Noch kein Singleplayer-Spielstand in diesem Browser gefunden. '+
+   'Für die Beta wird ein gültiges Standarddeck verwendet.';
+  try{
+   const raw=localStorage.getItem('arcane-duel-rpg-profile-v4-reborn');
+   if(raw){
+    const p=JSON.parse(raw);
+    if(rules.validDeck(p.activeDeck,catalog)&&rules.validDeck(p.fusionDeck,catalog,true)){
+     profileDeck=[...p.activeDeck];profileFusions=[...p.fusionDeck];
+     message='✓ Aktives Einzelspieler-Deck übernommen: 40 Hauptkarten, '+
+      profileFusions.length+' Fusionskarten. Keine Änderungen an deiner Sammlung.';
+    }else message='Das gespeicherte Deck entspricht nicht den gültigen Karten-/Kopienregeln. '+
+      'Die Beta nutzt ein Standarddeck; deine Sammlung bleibt unverändert.';
+   }
+  }catch{message='Lokaler Spielstand nicht lesbar. Standarddeck aktiv; nichts überschrieben.';}
+  set('duoDeckInfo',message);
+ }
+ async function call(payload){
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+  try{
+   const response=await fetch(api,{method:'POST',cache:'no-store',credentials:'omit',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:controller.signal});
+   const data=await response.json();
+   if(!response.ok||data.error)throw Error(data.error||'Serverfehler '+response.status);
+   return data;
+  }catch(e){
+   if(e.name==='AbortError')throw Error('Der Online-Server antwortet nicht.');
+   if(e instanceof TypeError)throw Error('Verbindung zum Online-Server fehlgeschlagen.');
+   throw e;
+  }finally{clearTimeout(timer);}
+ }
+ function save(){
+  try{sessionStorage.setItem(key(roomId),JSON.stringify({token,seat,invite:seat===0?invite:''}));}
+  catch{sessionReady=false;}
+ }
+ function load(payload){
+  game=payload.state;seat=payload.seat;syncedAt=Date.now();syncError='';
+  if(game.status!=='waiting')invite='';
+  save();render();
+ }
+ async function refresh(){
+  if(!roomId||!token||refreshing||busy)return;
+  refreshing=true;
+  try{
+   const response=await call({type:'state',roomId,token});
+   if(!game||response.state.revision!==game.revision)load(response);
+   else{syncedAt=Date.now();syncError='';render();}
+  }catch(e){syncError=e.message;set('duoStatus',e.message);render();}
+  finally{refreshing=false;}
+ }
+ async function send(action){
+  if(!game||busy)return;
+  if(!(game.activeSeat===seat&&game.status==='active')&&
+    !(action.type==='nextChapter'&&seat===0&&game.winner===0))return;
+  busy=true;render();
+  try{
+   load(await call({type:'action',roomId,token,expectedRevision:game.revision,action}));
+   set('duoStatus','Zug gespeichert und online synchronisiert.');
+  }catch(e){syncError=e.message;set('duoStatus',e.message);}
+  finally{busy=false;render();}
+ }
+ async function createRoom(){
+  if(busy)return;busy=true;
+  try{
+   const entry=$('duoEntry').value;
+   const payload={type:'create',name:$('duoHostName').value,entry,
+    deck:profileDeck,fusions:profileFusions,
+    ...(entry==='chapter'?{chapter:chapter().id}:{})};
+   const r=await call(payload);
+   roomId=r.roomId;token=r.token;seat=0;invite=r.invite;save();load(r);
+   location.hash='room='+roomId;
+   set('duoStatus','Online-Raum erstellt. Versende den Einladungslink.');
+  }catch(e){set('duoStatus',e.message);}
+  finally{busy=false;render();}
+ }
+ async function joinRoom(id,invitation){
+  if(busy)return;busy=true;
+  try{
+   const r=await call({type:'join',roomId:id,invite:invitation,
+    name:$('duoHostName').value,deck:profileDeck,fusions:profileFusions});
+   roomId=id;token=r.token;seat=2;invite='';save();load(r);
+   location.hash='room='+roomId;
+   set('duoStatus','Beitritt erfolgreich. Jetzt kämpft ihr gemeinsam!');
+  }catch(e){set('duoStatus',e.message);}
+  finally{busy=false;render();}
+ }
+ const format=c=>name(c.id)+' · Lv '+c.level+' · '+c.atk+'/'+c.def+
+  ' · '+(c.mode==='def'?'DEF':'ATK');
+ function render(){
+  const dock=$('duoActions'),track=$('duoTrack'),seats=$('duoSeats'),log=$('duoLog');
+  for(const n of [dock,track,seats,log])n.replaceChildren();
+  $('duoCreate').hidden=!!roomId||location.hash.startsWith('#join=');
+  $('duoCreate').disabled=busy||!Object.keys(catalog).length;
+  $('duoAccept').hidden=!!roomId||!location.hash.startsWith('#join=');
+  $('duoAccept').disabled=busy||!Object.keys(catalog).length;
+  $('duoRefresh').disabled=!roomId||busy||refreshing;
+  const phase=choices.phase(game,seat),step=phase==='not-created'?0:phase==='waiting'?1:2;
+  ['duoStepCreate','duoStepInvite','duoStepBattle'].forEach((id,i)=>{
+   $(id).classList.toggle('current',step===i);$(id).classList.toggle('done',step>i);
+  });
+  set('duoSaveState',syncError?'⚠ Synchronisierung: '+syncError+' · erst Stand aktualisieren.':
+   syncedAt?'☁ Auf dem Server gespeichert · letzte Bestätigung '+
+    new Date(syncedAt).toLocaleTimeString('de-AT')+
+    (sessionReady?'':' · Browser speichert Raumzugang nicht.') :
+   '☁ Online-Spielstand wird nach jedem bestätigten Zug gespeichert.');
+  $('duoInviteBox').hidden=!(game?.status==='waiting'&&seat===0&&invite);
+  if(!$('duoInviteBox').hidden)$('duoInvite').value=ownOrigin()+'#join='+roomId+'.'+invite;
+  if(!game){
+   set('duoTurnName',location.hash.startsWith('#join=')?
+    'Einladung annehmen, um mitzuspielen.':'Noch kein Online-Raum');
+   return;
+  }
+  set('duoRoomId',roomId);
+  set('duoAlliedLP',game.teams[0].lp.toLocaleString('de-AT')+' LP');
+  set('duoEnemyLP',game.teams[1].lp.toLocaleString('de-AT')+' LP');
+  set('duoTurnName',game.status==='waiting'?'Warte auf deinen Partner':
+   game.status==='finished'?(game.winner===0?'Gemeinsamer Sieg!':'Gemeinsame Niederlage'):
+   'Runde '+game.round+' · '+game.players[game.activeSeat].name+' am Zug');
+  const reward=rules.packIds(catalog,game.chapter);
+  set('duoCurrentReward','Kapitel '+game.chapter+' · Bonuskarten: '+reward.map(name).join(' · '));
+  for(const p of game.players){
+   el('span',track,p.name,'turn-seat '+(p.team===1?'enemy ':'')+
+    (game.status==='active'&&game.activeSeat===p.seat?'current':''));
+   const panel=el('article',seats,undefined,'seat '+(game.activeSeat===p.seat?'active':''));
+   el('h3',panel,p.name);
+   el('small',panel,p.hand.length+' Handkarten · '+p.deck.length+' im Hauptdeck · '+
+    p.remainingFusion.length+' Fusionen verbleibend');
+   const field=el('div',panel,undefined,'field');
+   for(const [slot,c] of p.field.entries()){
+    const cell=el('div',field,undefined,'field-cell '+(c?'filled':''));
+    if(!c){el('span',cell,'◇');continue;}
+    if(card(c.id).art){
+     const img=el('img',cell,undefined,'duo-field-art');img.src=card(c.id).art;
+     img.alt='Illustration '+name(c.id);img.loading='lazy';
+    }
+    el('span',cell,name(c.id));
+    el('small',cell,'Lv '+c.level+' · '+c.atk+' ATK / '+c.def+' DEF',
+     'duo-field-meta');
+    el('small',cell,(c.mode==='def'?'🛡 DEF':'⚔ ATK')+
+     (c.fusion?' · Fusion':'')+' · '+c.role,'duo-card-level');
+    cell.title='Feld '+(slot+1)+(c.used?' · Angriff verbraucht':'')+
+     (c.placedRound>=game.round?' · noch nicht bereit':'');
+   }
+  }
+  for(const line of [...game.log].slice(-10).reverse())el('li',log,line);
+  if(game.status!=='active'){
+   if(game.status==='finished'&&game.winner===0&&game.chapter<4){
+    if(seat===0)button('✦ Kapitel '+(game.chapter+1)+' starten',
+     dock,()=>send({type:'nextChapter'}));
+    else el('p',dock,'Kapitel gewonnen. Der Gastgeber startet das nächste.');
+   }else el('p',dock,game.status==='waiting'?'Warte auf den Partner.':
+    game.winner===0?'Alle Kapitel geschafft!':'Partie beendet.');
+   return;
+  }
+  if(game.activeSeat!==seat){
+   el('p',dock,game.activeSeat%2===1?'Die Gegner-KI führt ihren Zug aus.':
+    'Dein Partner ist gerade am Zug.','duo-turn-note');
+   return;
+  }
+  const p=game.players[seat],legal=choices.legalChoices(game,seat);
+  el('p',dock,'Dein Zug: Beschwöre, fusioniere, wechsle die Position oder greife an.',
+   'duo-turn-note');
+  if(legal.hand.length){
+   const part=section(dock,'✦ Beschwörung','Ein reguläres Monster pro Zug oder stattdessen eine Fusion.');
+   const row=el('div',part,undefined,'duo-choices');
+   const hand=selector('Handkarte',legal.hand.map(x=>[x.index,name(x.id)+' · Lv '+card(x.id).level]),row);
+   const slot=selector('Freier Feldplatz',legal.freeSlots.map(i=>[i,'Feld '+(i+1)]),row);
+   button('Monster beschwören',part,()=>send({type:'summon',
+    handIndex:Number(hand.value),slot:Number(slot.value)}));
+  }
+  if(!p.summoned&&p.remainingFusion.length>=1){
+   const part=section(dock,'✦ Fusion','2–5 eigene Hand-/Feldmonster auswählen (Strg-Klick für Mehrfachauswahl).');
+   const select=el('select',part,undefined,'duo-fusion-list');
+   select.multiple=true;select.size=7;select.setAttribute('aria-label','Fusionsmaterialien');
+   p.hand.forEach((id,i)=>{const opt=el('option',select,'Hand '+(i+1)+' · '+
+    name(id)+' · Lv '+card(id).level);opt.value='hand:'+i;});
+   p.field.forEach((c,i)=>{if(!c)return;const opt=el('option',select,
+    'Feld '+(i+1)+' · '+name(c.id)+' · Lv '+c.level);opt.value='field:'+i;});
+   const outputs=el('div',part,undefined,'duo-choices');
+   const options=selector('Fusionsvorlage',[],outputs);
+   const target=selector('Ergebnis-Feld',[],outputs);
+   const hint=el('p',part,'Bitte 2–5 Materialien auswählen.','duo-action-status');
+   const commit=button('Ausgewählte Monster fusionieren',part,()=>send({
+    type:'fusion',materials:selected(),slot:Number(target.value),
+    templateId:Number(options.value)}));
+   const selected=()=>[...select.selectedOptions].map(opt=>{
+    const [from,index]=opt.value.split(':');return {from,index:Number(index)};
+   });
+   const update=()=>{
+    options.replaceChildren();target.replaceChildren();
+    const materials=selected();commit.disabled=true;
+    if(materials.length<2||materials.length>5){
+     hint.textContent='Erforderlich: 2 bis 5 eigene Materialien.';return;
+    }
+    try{
+     const availability=rules.fusionOptions(game,seat,materials,catalog);
+     const slots=p.field.flatMap((c,i)=>!c||materials.some(m=>m.from==='field'&&m.index===i)?[i]:[]);
+     for(const id of availability.templates){
+      const op=el('option',options,name(id)+' · Lv '+card(id).level);op.value=id;
+     }
+     for(const id of slots){const op=el('option',target,'Feld '+(id+1));op.value=id;}
+     commit.disabled=!availability.templates.length||!slots.length||busy||!!syncError;
+     hint.textContent='Fusionsgrenze Lv '+availability.rule.level+
+      ' · '+availability.templates.length+' passende Vorlagen · '+
+      (availability.rule.street?'Straßen-Kombination.':'Werte-/Level-Kombination.');
+    }catch(e){hint.textContent=e.message;}
+   };
+   select.onchange=update;update();
+  }
+  const switchables=p.field.flatMap((c,slot)=>c&&!c.used&&!c.switched?[{c,slot}]:[]);
+  if(switchables.length){
+   const part=section(dock,'🛡 Position wechseln','Ein Positionswechsel ist pro Monster und eigenem Zug möglich.');
+   const which=selector('Eigenes Monster',switchables.map(x=>[x.slot,
+    'Feld '+(x.slot+1)+' · '+name(x.c.id)+' → '+(x.c.mode==='def'?'ATK':'DEF')]),part);
+   button('Position ändern',part,()=>send({type:'switch',slot:Number(which.value)}));
+  }
+  if(legal.attackers.length){
+   const part=section(dock,'⚔ Angriff','Gegnerische Monster blockieren direkte Angriffe.');
+   const row=el('div',part,undefined,'duo-choices');
+   const attack=selector('Angreifer',legal.attackers.map(x=>[x.slot,
+    'Feld '+(x.slot+1)+' · '+format(x.card)]),row);
+   const target=selector('Ziel',legal.targets.length?
+    legal.targets.map(x=>[x.seat+':'+x.slot,x.name+' · Feld '+(x.slot+1)+
+     ' · '+format(x.card)]):[['direct','Direkt gegen Team-LP']],row);
+   button('Angriff bestätigen',part,()=>{
+    const src=legal.attackers.find(x=>x.slot===Number(attack.value));
+    const dst=target.value==='direct'?null:
+     legal.targets.find(x=>x.seat+':'+x.slot===target.value);
+    send(choices.attackCommand(src,dst));
+   });
+  }
+  button('Zug beenden →',el('div',dock,undefined,'duo-actions-footer'),
+   ()=>send({type:'end'}));
+ }
+ async function init(){
+  try{
+   const response=await fetch('assets/duo-card-catalog-v160.json?v=duo-v160');
+   if(!response.ok)throw Error('Kartenkatalog fehlt.');
+   const snapshot=await response.json();
+   if(snapshot.schema!==1||snapshot.cards.length<400)throw Error('Kartenkatalog unvollständig.');
+   catalog=Object.fromEntries(snapshot.cards.map(c=>[c.id,c]));
+   readProfile(snapshot);
+  }catch(e){set('duoDeckInfo','Karten konnten nicht geladen werden: '+e.message);return;}
+  for(const c of rules.CHAPTERS){
+   const o=el('option',$('duoChapter'),c.id+' · '+c.name);o.value=c.id;
+  }
+  $('duoChapter').onchange=updateChapter;$('duoEntry').onchange=updateChapter;
+  updateChapter();
+  $('duoCreate').onclick=createRoom;
+  $('duoRefresh').onclick=refresh;
+  $('duoCopy').onclick=()=>navigator.clipboard.writeText($('duoInvite').value)
+   .then(()=>set('duoStatus','Einladungslink kopiert.'))
+   .catch(()=>set('duoStatus','Bitte den Link im Eingabefeld manuell kopieren.'));
+  let hash='';try{hash=decodeURIComponent(location.hash.slice(1));}
+  catch{set('duoStatus','Ungültiger URL-Code.');}
+  if(hash.startsWith('join=')){
+   const raw=hash.slice(5),i=raw.lastIndexOf('.'),id=raw.slice(0,i),secret=raw.slice(i+1);
+   if(i>0&&/^[a-f0-9-]{36}$/.test(id)&&/^[a-f0-9]{64}$/.test(secret)){
+    $('duoAccept').onclick=()=>joinRoom(id,secret);
+    set('duoStatus','Einladung erkannt. Namen eingeben und beitreten.');
+   }else set('duoStatus','Ungültige Einladung.');
+  }else if(hash.startsWith('room=')){
+   const id=hash.slice(5);
+   try{
+    const stored=JSON.parse(sessionStorage.getItem(key(id))||'null');
+    if(/^[a-f0-9]{64}$/.test(stored?.token||'')&&[0,2].includes(stored?.seat)){
+     roomId=id;token=stored.token;seat=stored.seat;invite=stored.invite||'';
+     await refresh();
+    }
+   }catch{set('duoStatus','Raumzugang konnte nicht wiederhergestellt werden.');}
+  }
+  render();
+ }
+ init();
+ setInterval(()=>{if(document.visibilityState!=='hidden'&&!busy)refresh();},2500);
+})();

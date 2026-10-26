@@ -1,0 +1,8 @@
+.duo-deck-info{border:1px solid #6f6b96;border-radius:10px;padding:12px;margin:12px 0;
+ background:rgba(123,105,190,.13);font-size:.9rem;line-height:1.55}
+.duo-field-art{display:block;width:100%;max-height:100px;object-fit:cover;border-radius:7px;margin:5px 0}
+.duo-card-level{font-size:.76rem;opacity:.83}
+.duo-fusion-list{min-width:min(100%,320px);height:175px;white-space:normal}
+.duo-action-status{padding:6px 10px;border-radius:8px;border:1px solid #676280;margin:8px 0}
+.duo-selected{border-color:#e0c58a!important;box-shadow:0 0 0 1px #e0c58a}
+.duo-panel button:disabled{opacity:.6;cursor:not-allowed}

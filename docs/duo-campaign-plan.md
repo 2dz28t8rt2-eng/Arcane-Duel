@@ -1,5 +1,34 @@
 # Kampagnenstart und Kapitelpakete – 18. Oktober 2026
 
+> **Stand 26. Oktober 2026 · v16.0 Beta:** Die neue Testseite
+> [duo-campaign-v2.html](../duo-campaign-v2.html) verwendet eine getrennte
+> Supabase-Funktion `arcane-duo-v2` und die private Tabelle
+> `arcane_duo_v2_rooms`. Die alte `arcane-duo`-Funktion, ihre Spielstände
+> und das 1v1 bleiben unverändert. Im Hauptmenü zeigt der bisherige 2v2-Link
+> weiterhin die stabile v15.8-Seite; von dort ist die Beta erreichbar.
+>
+> **Fortschritt der Regelangleichung:** Der Spielkarten-Katalog wird mit
+> `npm run duo:catalog` reproduzierbar aus allen 93 aktuellen Skripten
+> einschließlich Erweiterungen generiert: 762 Karteneinträge, 429 spielbar.
+> Host und Gast schicken je ihr aktives 40-Karten-Hauptdeck und ihr separates
+> 2–15-Karten-Fusionsdeck. Der Server kontrolliert Karten-IDs, Fusionstyp und
+> Kopienzahlen; der Gegner erhält Kapitel-dependente reale Karten. Eigene
+> Hand- und Feldmaterialien können fusioniert werden, Fusionslevel folgen dem
+> v11.3-Kernlevelmodell, Fusionen verbrauchen vorhandene Vorlagen im Duell.
+> Persönliche Ziehphase bis fünf Karten, Deckleer-Niederlage bei Zugbeginn,
+> eigene Cooldowns/Zerfall, Positionswechsel, erste Predator-/Wächter- und
+> Resonanzberechnungen, sieben Zonen und Team-LP sind als neue reine
+> Serverregeln implementiert. Acht neue Regeltests laufen grün.
+>
+> **Wichtige Grenzen der Beta:** Noch *keine* vollständige Gleichheit:
+> vollständiger Seelenzehrer-Aktivzyklus, alle Fusion-Würfel/Elementboni,
+> 1v1-Perks/Essenzwesen/Quest-Ausnahmen, trainierte Gegner-KI,
+> Echtnachweis des serverseitigen Kartenbesitzes und dauerhafte
+> Fortschrittsbelohnungen fehlen. Aus dem lokalen Spielstand gelesene
+> Decklisten sind in diesem privaten *unranked* Testmodus nicht
+> serverseitig an einen authentifizierten Spieler gebunden. Das ist keine
+> Freigabe für Belohnungs-/Wettkampfsysteme. Zwei-Geräte-Praxistest ausstehend.
+>
 > **Stand 26. Oktober 2026 · Online-Ausbau v15.8:** Das Supabase-Projekt
 > `cvmtmvruutdneyblumgf` und `arcane-duo` (Version 2) sind aktiv. Der frühere
 > Hinweis am Ende dieses Dokuments, es gebe keinen Server, beschreibt nur
