@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcane Duel · Fusion durch Kartenklick · v18.8</title>
+<link rel="stylesheet" href="../assets/duo-campaign-demo.css">
+<link rel="stylesheet" href="../assets/duo-hand-cinema-v178.css">
+<link rel="stylesheet" href="../assets/duo-combat-flow-v186.css">
+<link rel="stylesheet" href="../assets/duo-direct-cards-v187.css">
+<link rel="stylesheet" href="../assets/duo-fusion-cards-v188.css">
+<style>
+.duo-wrap{max-width:1120px}.demo-note{margin:15px 0;padding:13px;border:1px solid #a38e68;border-radius:11px;background:#20273b}
+.demo-note p{margin:5px 0}.demo-note strong{color:#fce0a0}#demoStatus{margin:10px 0;color:#ffe2a6;min-height:20px}
+.seat .field-cell{height:72px}.seat .field-cell.filled{padding:4px;gap:4px}.seat .field-cell small{font-size:10px}
+.duo178-hand{margin:9px 0;padding:8px}.duo178-hand-cards{justify-content:flex-start;min-height:90px}
+.duo178-hand-card{min-height:83px;min-width:93px}.duo178-hand-art{display:none}
+.duo-ghost-reserve{margin-top:10px}.duo-ghost-reserve .field{margin-top:8px}
+</style></head><body><main class="duo-wrap">
+<header class="duo-header"><div><p class="kicker">✧ ARCANE DUEL · KLICKBARE VORSCHAU</p>
+<h1>Fusionsmaterial per Kartenklick · v18.8</h1>
+<p>Wähle 2–5 eigene Karten. Die Fusion passt sich sofort an – ohne Springen oder Scrollen zur Materialliste.</p></div>
+<a href="../duo-campaign-v2.html">← Zur 2v2-Kampagne</a></header>
+<section class="duo-panel duo-battle">
+<div class="demo-note"><p><strong>So geht’s:</strong> Öffne „Fusionieren“, klicke mehrere eigene Karten in der Hand oder auf dem Feld an und bestätige erst, wenn du mit deiner Auswahl zufrieden bist.</p>
+<p>Ein zweiter Klick entfernt eine Karte. Geisterzonen und Geisterfunken lassen sich ebenfalls verwenden. „Angreifen“ bleibt als eigener Modus verfügbar.</p>
+<p id="demoStatus" role="status" aria-live="polite">Noch keine Fusion ausgeführt – dies ist nur eine Vorschau.</p></div>
+<div id="duoSeats" class="four-seats"></div>
+<div id="ad187-attack-guide" class="ad187-attack-guide" hidden></div>
+<div id="ad188-fusion-guide" class="ad188-fusion-guide" hidden></div>
+<div id="duoActions" class="action-dock"></div>
+</section></main>
+<script src="../assets/duo-combat-flow-v186.js"></script>
+<script src="../assets/duo-direct-cards-v187.js"></script>
+<script src="../assets/duo-fusion-cards-v188.js"></script>
+<script>
+(()=>{
+ const make=(tag,parent,text,cls)=>{const n=document.createElement(tag);if(cls)n.className=cls;
+  if(text!==undefined)n.textContent=text;parent.append(n);return n;};
+ const catalog={11:{name:'Mondritter',level:3},12:{name:'Silberfuchs',level:2},13:{name:'Glutwolf',level:4},
+  14:{name:'Waldgeist',level:2},15:{name:'Geisterritter',level:1},21:{name:'Aschehüter',level:4},
+  31:{name:'Sonnenwächter',level:3}};
+ const player={seat:0,ownTurns:2,hand:[12,14],field:[{id:11},{id:13},null],
+  lv1:{ghostSlots:[{id:15}],charges:2}};
+ const game={status:'active',activeSeat:0,round:3,roomId:'v188-preview',players:[player]};
+ const seats=document.getElementById('duoSeats'),dock=document.getElementById('duoActions');
+ const status=document.getElementById('demoStatus');
+ function seat(index,name,field,withHand=false){
+  const panel=make('article',seats,undefined,'seat');panel.dataset.seat=String(index);
+  make('h3',panel,name);make('small',panel,index===0?'DEIN TEAM':'GEGNER','duo-seat-kind');
+  if(withHand){const hand=make('div',panel,undefined,'duo178-hand');
+   make('div',hand,'✦ DEINE HANDKARTEN','duo178-hand-title');
+   const cards=make('div',hand,undefined,'duo178-hand-cards');
+   player.hand.forEach((id,i)=>{const card=make('div',cards,undefined,'duo178-hand-card');
+    card.dataset.index=String(i);make('strong',card,catalog[id].name);
+    make('small',card,'LV '+catalog[id].level);});}
+  const grid=make('div',panel,undefined,'field');
+  field.forEach((id,i)=>{const cell=make('div',grid,undefined,'field-cell'+(id?' filled':''));
+   cell.dataset.slot=String(i);make('span',cell,id?catalog[id].name:'◇');
+   if(id)make('small',cell,'Lv '+catalog[id].level+' · ⚔ ATK');});
+  if(withHand){const reserve=make('div',panel,undefined,'duo-ghost-reserve');
+   make('strong',reserve,'✧ Geisterzone');const slots=make('div',reserve,undefined,'field');
+   const cell=make('div',slots,undefined,'field-cell duo-ghost-cell filled');cell.dataset.slot='0';
+   make('span',cell,catalog[15].name);make('small',cell,'Lv 1 · Geistermonster');}
+ }
+ seat(0,'Du · Gastgeber',[11,13,null],true);
+ seat(1,'KI · Aschenheer',[21,null,null]);
+ seat(2,'Dein Partner',[31,null,null]);
+ seat(3,'KI · Schattenheer',[null,null,null]);
+ const addSelect=(parent,label,values,tag)=>{const field=make('label',parent,undefined,'duo-choice');
+  make('span',field,label);const select=make('select',field);if(tag)select.dataset[tag]='true';
+  values.forEach(([value,name])=>{const option=make('option',select,name);option.value=value;});return select;};
+ const group=(label,help)=>{const part=make('section',dock,undefined,'duo-action-group');
+  make('h3',part,label);make('p',part,help,'duo-action-help');return part;};
+ make('p',dock,'Du bist dran! Wähle eine Aktion.','duo-turn-note');
+ const summon=group('✦ Monster beschwören','Alternativ kannst du eine Karte normal beschwören.');
+ addSelect(summon,'Handkarte',[['0','Silberfuchs'],['1','Waldgeist']]);
+ const fusion=group('✦ Fusion','Klicke eigene Karten an, um sie für eine Fusion zu verwenden.');
+ const list=make('select',fusion,undefined,'duo-fusion-list');list.multiple=true;list.size=7;
+ for(const [key,name] of [['hand:0','Hand 1 · Silberfuchs'],['hand:1','Hand 2 · Waldgeist'],
+  ['field:0','Feld 1 · Mondritter'],['field:1','Feld 2 · Glutwolf'],
+  ['ghost:0','Geisterzone 1 · Geisterritter'],['charge:0','Geisterfunke 1'],
+  ['charge:1','Geisterfunke 2']]){const option=make('option',list,name);option.value=key;}
+ const choices=make('div',fusion,undefined,'duo-choices');
+ const core=addSelect(choices,'Kernmonster',[['0','Mondritter'],['1','Glutwolf']],'ad188Core');
+ const templates=addSelect(choices,'Fusionsvorlage',
+  [['501','Sternenjäger · Lv 5'],['502','Runenwächter · Lv 4']],'ad188Template');
+ const slot=addSelect(choices,'Ergebnis-Feld',[['0','Feld 1'],['1','Feld 2']],'ad188Slot');
+ const hint=make('p',fusion,'Wähle mindestens zwei Materialien.','duo-action-status');
+ const preview=make('div',fusion,undefined,'duo-fusion-preview');
+ const commit=make('button',fusion,'Jetzt fusionieren','primary');
+ commit.dataset.ad188Commit='true';commit.disabled=true;
+ const selected=()=>[...list.selectedOptions].map(option=>option.value);
+ const refresh=()=>{
+  const keys=selected(),count=keys.length;
+  hint.textContent=count<2?'Wähle mindestens zwei Materialien.':
+   count+' Materialien · Spezialbonus möglich · Level '+(count+2)+' · 2 mögliche Fusionen';
+  preview.textContent=count>=2?'✦ Vorschau: '+keys.join(' + '):'Noch keine Fusion vorbereitet.';
+  commit.disabled=count<2||count>5;
+ };
+ list.onchange=refresh;refresh();
+ commit.onclick=()=>{if(!commit.disabled)status.textContent='✓ Vorschau: '+selected().length+
+  ' Materialien → '+templates.selectedOptions[0].textContent+' auf '+slot.selectedOptions[0].textContent+
+  '. Es wurde kein echtes Spiel ausgeführt.';};
+ const attack=group('⚔ Angriff','Wähle alternativ einen Angreifer und ein Ziel.');
+ const row=make('div',attack,undefined,'duo-choices');
+ const attacker=addSelect(row,'Angreifer',[['field:0','Mondritter']],'ad187Source');
+ const target=addSelect(row,'Ziel',[['1:field:0','Aschehüter']],'ad187Target');
+ const attackCommit=make('button',attack,'Angriff bestätigen','primary');attackCommit.dataset.ad187Commit='true';
+ attackCommit.onclick=()=>{status.textContent='✓ Angriffsvorschau: '+attacker.value+' gegen '+target.value+'.';};
+ window.ArcaneDuoCombatFlow186.enhance({dock,game,seat:0,roomId:game.roomId});
+ window.ArcaneDuoDirectCards187.enhance({dock,game,seat:0,legal:{attackers:[{slot:0,card:{id:11}}],
+  targets:[{seat:1,slot:0,card:{id:21}}]},catalog});
+ window.ArcaneDuoFusion188.enhance({dock,game,seat:0,roomId:game.roomId});
+ const panel=dock.querySelector('#ad186-fusion');
+ if(panel)panel.open=true;
+ const summonPanel=dock.querySelector('#ad186-summon');if(summonPanel)summonPanel.open=false;
+})();
+</script></body></html>

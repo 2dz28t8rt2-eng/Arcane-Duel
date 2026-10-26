@@ -472,6 +472,8 @@
   const dock=$('duoActions'),track=$('duoTrack'),seats=$('duoSeats'),log=$('duoLog');
   const directGuide=$('ad187-attack-guide');
   if(directGuide){directGuide.hidden=true;directGuide.replaceChildren();}
+  const fusionGuide=$('ad188-fusion-guide');
+  if(fusionGuide){fusionGuide.hidden=true;fusionGuide.replaceChildren();}
   dock.classList.remove('ad186-enhanced');
   for(const n of [dock,track,seats,log])n.replaceChildren();
   $('duoCreate').hidden=!!roomId||location.hash.startsWith('#join=');
@@ -637,8 +639,8 @@
     handIndex:Number(hand.value),slot:Number(slot.value)}));
   }
   if(!p.summoned&&p.remainingFusion.length>=1){
-   const part=section(dock,'✦ Fusion','Wähle zwei bis fünf eigene Monster aus Hand, Feld oder Geisterzone. '+
-    'Halte Strg gedrückt, um mehrere auszuwählen. Danach siehst du die möglichen Fusionen.');
+   const part=section(dock,'✦ Fusion','Wähle zwei bis fünf eigene Monster. '+
+    'Klicke sie in der Hand oder auf deinem Spielfeld an. Die Materialliste bleibt als Alternative verfügbar.');
    const select=el('select',part,undefined,'duo-fusion-list');
    select.multiple=true;select.size=7;select.setAttribute('aria-label','Fusionsmaterialien');
    p.hand.forEach((item,i)=>{if(item?.fate)return;
@@ -660,6 +662,9 @@
    const core=selector('Kernmonster',[],outputs);
    const options=selector('Fusionsvorlage',[],outputs);
    const target=selector('Ergebnis-Feld',[],outputs);
+   core.dataset.ad188Core='true';
+   options.dataset.ad188Template='true';
+   target.dataset.ad188Slot='true';
    const hint=el('p',part,'Bitte 2–5 Materialien auswählen.','duo-action-status');
    const preview=el('div',part,undefined,'duo-fusion-preview');
    const details=el('details',part,undefined,'duo-fusion-details');
@@ -669,6 +674,7 @@
    const commit=button('Jetzt fusionieren',part,()=>send({
     type:'fusion',materials:selected(),slot:Number(target.value),
     templateId:Number(options.value),coreIndex:Number(core.value)}));
+   commit.dataset.ad188Commit='true';
    const selected=()=>[...select.selectedOptions].map(opt=>{
     const [from,index]=opt.value.split(':');return {from,index:Number(index)};
    });
@@ -894,6 +900,7 @@
    ()=>send({type:'end'}));
   window.ArcaneDuoCombatFlow186?.enhance?.({dock,roomId,seat,game});
   window.ArcaneDuoDirectCards187?.enhance?.({game,seat,legal,dock,catalog,busy,syncError});
+  window.ArcaneDuoFusion188?.enhance?.({game,seat,roomId,dock,busy,syncError});
  }
  async function init(){
   try{

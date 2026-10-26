@@ -1,0 +1,54 @@
+/* Arcane Duel v18.8 – direct fusion material selection, no automatic fusion. */
+.duo-battle .field-cell.ad188-material-eligible,
+.duo-battle .duo178-hand-card.ad188-material-eligible{cursor:pointer;touch-action:manipulation;
+ outline:2px solid #9d80d5;outline-offset:1px;box-shadow:0 0 12px #b79bea70;transition:filter .16s,box-shadow .16s}
+.duo-battle .field-cell.ad188-material-eligible:hover,
+.duo-battle .duo178-hand-card.ad188-material-eligible:hover{filter:brightness(1.18)}
+.duo-battle .field-cell.ad188-material-selected,
+.duo-battle .duo178-hand-card.ad188-material-selected{outline:3px solid #ffe2a2!important;outline-offset:1px;
+ border-color:#f4cc75!important;background-image:linear-gradient(140deg,#51334cc9,#292c4baa)!important;
+ box-shadow:0 0 0 2px #fff2b188,0 0 24px #ffc76599!important;filter:brightness(1.1)}
+.duo-battle .field-cell.ad188-material-selected::after,
+.duo-battle .duo178-hand-card.ad188-material-selected::after{content:'✦';position:absolute;top:3px;right:3px;
+ background:#76501de8;color:#ffe5a5;border:1px solid #f8d08a;border-radius:50%;width:21px;height:21px;
+ display:grid;place-items:center;z-index:35;pointer-events:none;font-size:13px}
+.duo-battle .duo178-hand-card.ad188-material-selected{position:relative}
+.duo-battle .ad188-material-eligible:focus-visible{outline:3px solid #fff5c9!important;outline-offset:4px}
+.ad188-material-instruction{font-size:13px;line-height:1.55;color:#e8d9b7;margin:7px 0}
+.ad188-selected-materials{display:flex;flex-wrap:wrap;gap:7px;margin:9px 0;min-height:26px;align-items:center}
+.ad188-empty{font-size:12px;color:#bfc7d7;font-style:italic}
+.ad188-chip,.ad188-spark{padding:6px 9px!important;border:1px solid #d2aa6c!important;border-radius:17px!important;
+ color:#ffe8b3!important;background:linear-gradient(145deg,#64422e,#3c3049)!important;
+ font-size:11px!important;line-height:1.3;min-height:32px!important}
+.ad188-chip:hover,.ad188-spark:hover{filter:brightness(1.16)}
+.ad188-spark-options{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:8px 0}
+.ad188-spark-options strong{font-size:11px;color:#eeddb5}
+.ad188-spark.selected{border-color:#fff1a9!important;box-shadow:0 0 9px #f9d27999}
+.ad188-list-fold{margin:10px 0;border-radius:9px;border:1px solid #706781;background:#171d30aa;padding:9px 12px}
+.ad188-list-fold summary{cursor:pointer;color:#d0c7f3;font-size:12px;font-weight:650}
+.ad188-list-fold select{display:block;margin:9px 0 0;min-width:min(100%,280px);width:min(100%,450px)}
+.ad188-fusion-guide{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:230;
+ width:min(750px,calc(100vw - 26px));padding:12px 15px;border-radius:15px;
+ border:2px solid #cbb3fa;background:linear-gradient(125deg,#252b48f8,#1a2134fa 85%);
+ box-shadow:0 15px 35px #020611db,0 0 28px #ac8bff40;color:#f4eaff;
+ backdrop-filter:blur(8px);display:grid;grid-template-columns:1fr auto;column-gap:16px;row-gap:5px;
+ animation:ad188Enter .18s ease-out both}
+.ad188-fusion-guide[hidden]{display:none!important}
+.ad188-floating-heading{font:800 13px system-ui;grid-column:1;color:#f5dcac}
+.ad188-floating-message{font:600 12px/1.5 system-ui;grid-column:1;margin:0;color:#e9dff9}
+.ad188-floating-notice{font:650 11px/1.4 system-ui;grid-column:1;color:#ffc6bd}
+.ad188-floating-notice:empty{display:none}
+.ad188-floating-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center;justify-content:flex-end;
+ grid-column:2;grid-row:1/4}
+.ad188-floating-actions button{font:700 11px system-ui;padding:8px 10px;border-radius:8px;
+ min-height:40px;border:1px solid #9c8aaf;background:#303c57;color:#f8eeff}
+.ad188-floating-actions .ad188-confirm{background:linear-gradient(135deg,#936444,#65452d);
+ border-color:#ffe0a3;color:#ffebc1}
+.ad188-floating-actions button:disabled{opacity:.45;cursor:not-allowed}
+@keyframes ad188Enter{from{opacity:0;transform:translate(-50%,9px)}to{opacity:1;transform:translate(-50%,0)}}
+@media(max-width:730px){.ad188-fusion-guide{grid-template-columns:1fr;bottom:7px;padding:10px 12px;gap:7px}
+ .ad188-floating-actions{grid-column:1;grid-row:auto;justify-content:stretch;gap:5px}
+ .ad188-floating-actions button{flex:1 1 auto;padding:8px 6px;font-size:10px;min-width:0}
+ .ad188-floating-heading{font-size:12px}.ad188-floating-message{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.ad188-fusion-guide{animation:none!important}
+ .duo-battle .ad188-material-eligible{transition:none!important}}
