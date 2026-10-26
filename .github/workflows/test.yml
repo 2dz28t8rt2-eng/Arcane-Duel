@@ -14,6 +14,8 @@ jobs:
           node-version: '22'
       - name: Run tests
         run: npm test
+      - name: Compare all four 2v2 chapters with unchanged AI
+        run: node scripts/bench-duo-progression-v174.cjs
       - name: Verify live 2v2 independent progression once
         if: contains(github.event.head_commit.message, '[duo-live-v171]')
         run: node scripts/smoke-duo-progression-v171.cjs
@@ -319,6 +321,16 @@ jobs:
             if ! grep -q 'data-duo-collection="pass"' "/tmp/duo-collection-${size}.html"; then
               echo "2v2 collection browser test failed at ${size}px" >&2
               sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/duo-collection-${size}.html" | head -80 || true
+              exit 1
+            fi
+          done
+
+                    echo "Checking 2v2 v17.4 chapter rewards and pacing guidance on desktop/mobile..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=14000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-duo-progression-v174.html >"/tmp/duo-v174-${size}.html" 2>/tmp/duo-v174-chrome.log
+            if ! grep -q 'data-duo-pacing="pass"' "/tmp/duo-v174-${size}.html"; then
+              echo "v17.4 2v2 pacing browser test failed at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/duo-v174-${size}.html" | head -90 || true
               exit 1
             fi
           done
