@@ -239,6 +239,20 @@
     game.players[game.fateEvent.ownerSeat].name+' in Runde '+game.fateEvent.round+
     ' – fünf temporäre Schicksalsmonster!','duo-fate-banner');
   }
+  const milestones=$('duoChapterProgress');milestones.replaceChildren();
+  for(const c of rules.CHAPTERS){
+   const completed=game.entry==='new'&&c.id<game.chapter||
+    game.winner===0&&game.status==='finished'&&c.id===game.chapter;
+   const selected=c.id===game.chapter;
+   const skipped=!selected&&c.id<game.chapter&&!completed;
+   const li=el('li',milestones,undefined,'duo-chapter-step'+
+    (completed?' complete':selected?' current':skipped?' skipped':''));
+   el('strong',li,'Kapitel '+c.id);
+   el('span',li,c.name);
+   el('small',li,completed?'In diesem Raum gewonnen':
+    selected?game.winner===1?'Niederlage':game.status==='finished'?'Abgeschlossen':'Aktuelles Kapitel':
+    skipped?'Direktstart – nicht nachgewiesen':'Noch nicht begonnen');
+  }
   const reward=rules.packIds(catalog,game.chapter);
   set('duoCurrentReward','Kapitel '+game.chapter+' · Bonuskarten: '+reward.map(name).join(' · '));
   for(const p of game.players){
