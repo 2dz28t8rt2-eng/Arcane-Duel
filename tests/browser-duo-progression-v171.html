@@ -26,7 +26,7 @@ document.getElementById('duo').addEventListener('load',()=>{
     'Solo storage is not imported');
    check(doc.querySelector('.notice').textContent.includes('keinen Import'),
     'No import or export between game modes');
-   check(doc.getElementById('duoProfilePack').options.length===6,
+   check(doc.getElementById('duoProfilePack').options.length===7,
     'Single, material and three mixed fusion pack sizes supported');
    check(!!doc.getElementById('duoResearchLv1Buy')&&!!doc.getElementById('duoResearchEssenceBuy'),
     'Independent 2v2 research branches are visible');
