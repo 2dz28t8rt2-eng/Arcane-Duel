@@ -1,3 +1,31 @@
+# 2v2 v17.4 – Progressionsbalance und garantierte Kapitelkarten (26.10.2026)
+
+**Produktregel bleibt unverändert:** 2 Menschen (Sitz 0/2) gegen die 2 bestehenden KI-Gegner (1/3); **keine** Übertragung zwischen 2v2 und Singleplayer. Kein KI-Training, kein Merge nach `main`, keine echte Zwei-Geräte-Abnahme in diesem Schritt.
+
+## Ausgangsanalyse
+
+- Eine reguläre erste Kapitel-I-Belohnung gibt 60 EP, 105 Essenz, 2 Splitter.
+- Ein Einzelmonster kostet 90 Essenz/1 Splitter. Die erste normale Verstärkung kostet 75 Essenz/1 Splitter. Für eine Einzelfusion fehlen nach dem ersten Kapitel-I-Sieg noch 55 Essenz; rechnerisch sind dafür zwei wiederholte Siege mit je 42 Essenz erforderlich. Das 3er-Materialpaket erfordert nach diesem Sieg drei bezahlte Wiederholungen.
+- Bisherige Paketpools enthielten nach Kapitel III fast gleich viele Lv1-Karten wie Lv9-Karten. Ein nach Kapitelabschluss teuer gekauftes Paket konnte daher komplett aus niedrigstufigen Karten bestehen.
+- Ein deterministischer Benchmark mit **zwei einfachen geskripteten menschlichen Entscheidungsregeln** (beste Handkarte beschwören, nur günstige Angriffe) und der **unveränderten** bisherigen NPC-AI zeigte mit Startdeck in Kapitel II–IV einen klaren Härtesprung; das stark aufgewertete theoretische Vergleichsdeck gewann dieselben Stichproben. Dies **ist keine reale Spieler-Winrate**, und das Vergleichsdeck wurde nur für QA künstlich zusammengestellt.
+
+## Balancing-Anpassungen
+
+- **Drei nicht handelbare Kapitelkarten-Ansprüche je erstmaligem Kapitelabschluss und menschlichem Profil.** Diese werden **atomar im vorhandenen PostgreSQL-Belohnungstrigger** gutgeschrieben. Wiederholungssiege liefern keine weiteren Ansprüche, sondern weiterhin die reduzierten Tageslimit-Belohnungen.
+- Ein eingelöster Anspruch vergibt **genau eine normale, nicht essenzgebundene Karte aus den zwei höchsten bereits freigeschalteten Kartenstufen**, mit serverseitiger Zufallsauswahl, Kopienlimit 3 und revisionsgesicherter Profilaktualisierung. Die Karte wird der eigenen 2v2-Sammlung hinzugefügt, nicht automatisch ins laufende Deck. Alle neuen Duelle lesen ausschließlich dieses Profil.
+- Normale Kartenpakete wählen nach einem Kapitelabschluss mit **65 % Chance** eine Karte aus den obersten zwei Kartenstufen, sonst aus dem gesamten erlaubten Pool. **Mehrkartenpakete garantieren mindestens einen** solchen oberen Fund – und behalten zugleich die festgelegten Fusionen-Ratios (3er 1–2, 5er 2–3, 10er 3–5). Vor dem ersten Kapitel bleiben die normalen Lv1–3-Pools wie bisher.
+- Niedrige Kartenstufen bleiben für Lv1-Spezialstrategien erreichbar. Schicksals- und unfreigeschaltete Questkarten bleiben ausgeschlossen.
+- Auf der Profilseite gibt es ein **Kapitelkarten-Konto**, eine Einlösen-Schaltfläche, den nächsten Erstabschluss-Bonus und einen **Essenz-/Splitter-Kostenrechner** für ausgewählte Booster. Rechenwerte zu fehlenden Wiederholungssiegen sind ausdrücklich **keine Prognose einer Siegchance**. Das 3er-Wiederholungs-Tageslimit (pro Kapitel, UTC-Tag) wird angezeigt.
+
+## Technische Grenzen und QA
+
+- Bestehende Profile: Der neue Zähler beginnt bei 0; im aktuellen Entwicklungssystem existierten beim Schemawechsel keine bereits abgeschlossenen 2v2-Profile, daher war keine rückwirkende Vergabe erforderlich.
+- Mit einer **zurückgerollten Transaktion** wurden zwei menschliche Testprofile und ein gewonnener Raum geprüft: Jedes erhielt genau **3 Ansprüche**, 105 Essenz, 2 Splitter, 60 EP; ein zusätzliches Speichern vergab nichts doppelt.
+- Neue Economy-Regressionen kontrollieren Kapitelstufen, Fusionsquoten, obere Kartenwahrscheinlichkeiten, niedrigstufige Erreichbarkeit, Kopienlimit und die serverseitige Anspruchsverbuchung. Zusätzlicher Headless-Chrome-Test (Desktop/410 px Smartphone) kontrolliert die Profilbedienung. Ein reproduzierbarer Vier-Kapitel-KI-Benchmark ist `node scripts/bench-duo-progression-v174.cjs`, ohne jede Änderung an der KI.
+- Langfristiger End-to-End-Test mit zwei echten Menschen auf getrennten Geräten erfolgt erst nach dem gewünschten weiteren Funktionsausbau.
+
+---
+
 # 2v2 v17.3 – Wiederholung, Kartenschmiede, Sammlung und Zerlegung (26.10.2026)
 
 **Gilt ausschließlich für den eigenständigen 2v2-Modus:** zwei Menschen gegen zwei KI-Gegner, kein Import aus dem Singleplayer, kein KI-Training und kein `main`-Merge.
