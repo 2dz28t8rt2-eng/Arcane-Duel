@@ -1,3 +1,35 @@
+# 2v2 v17.2 – Pakete, Freischaltungen und 2v2-Forschung (26.10.2026)
+
+Ziel: den **ausschließlich eigenständigen** Fortschritt für **zwei Menschen gegen zwei KI** mit langfristigen Währungsausgaben, Karten- und Forschungsentscheidungen vertiefen. Kein Import aus dem Singleplayer, keine Änderungen an `main` oder der laufenden Gegner-KI-Forschung.
+
+## Servergeprüfte Kartenpakete
+
+| Paket | Erhaltene Karten | Fusionen | Essenz | Splitter |
+|---|---:|---:|---:|---:|
+| Einzelkarte | 1 | 0 | 90 | 1 |
+| Einzelfusion | 1 | 1 | 160 | 2 |
+| Essenzwesen | 1 | 0, garantiert ein Essenzwesen (ab Kapitel II) | 350 | 4 |
+| Materialpaket | 3 | 0 | 230 | 2 |
+| 3er Fusionsmix | 3 | 1–2 | 390 | 4 |
+| 5er Fusionsmix | 5 | 2–3 | 600 | 6 |
+| 10er Fusionsmix | 10 | 3–5 | 1.100 | 10 |
+
+Die anderen Karten in gemischten Paketen sind normale Monster. Gewichte, Fusionenzahl, Kartenpool, Level-Obergrenze und Kopienzahl maximal 3 werden in der Supabase-Funktion bestimmt und geprüft. Ein Paket wird vollständig in **einer revisionsgebundenen Profilaktualisierung** bezahlt und verbucht (kein halbes Paket). Schicksals- und Quest-Spezialkarten werden nicht zufällig gezogen.
+
+Der Kartenlevel-Pool wächst durch selbst erspielte Kapitel: Start bis Lv3, nach Kapitel I Lv5, nach II Lv7, nach III Lv9, nach IV Lv10.
+
+## Eigenständige Forschungen
+
+- **Verbotene Forschung:** Ränge 1–5 (jeweils mit Kapitel- und Währungsvoraussetzung). Erster Rang erteilt dauerhaft die drei tatsächlichen Lv1-Spezialfusionskarten Nekroth, Aegurion und Nyxar im **2v2-Inventar**; aktive Fusionsdeckplätze werden nur innerhalb des Maximums 15 ergänzt. Die bisherige Lv1-Fähigkeit wird mit dem Rang aus dem 2v2-Profil aktiviert. Keine Solo-Freischaltungen zählen.
+- **Essenzforschung:** Ränge 1–3 mit Kapitelvoraussetzungen und steigenden Kosten. Erst mit Rang 1 darf ein ausschließlich im eigenen 2v2-Inventar und aktivem Deck befindliches Essenzwesen gebunden werden. Der Rang fließt in die bereits vorhandenen serverseitigen Essenzkampffähigkeiten ein. Ein Essenzwesen-Paket wird nach bestandenem 2v2-Kapitel II angeboten.
+- Die Oberfläche zeigt Ränge, Kosten, Voraussetzungen und aktuellen Kartenlevel sowie alle neu erhaltenen Karten.
+
+## Testabnahme
+
+Gezielte reine Regeltests für Fusionsquoten, Kartenpools, Besitzgrenzen, Levelschranken, Essenzwesen-Verfügbarkeit und Forschungs-Voraussetzungen. Node-/Browserregressionen kontrollieren außerdem, dass ausschließlich die neue 2v2-Serverprofil-Lösung genutzt wird. Ein Echtgeld- oder Solo-Import wird nicht angeboten. Echte Zwei-Geräte-Abnahme weiterhin bewusst verschoben.
+
+---
+
 # 2v2 v17.1 – Eigener Spielstand und unabhängige Progression (26.10.2026)
 
 **Verbindliche Produktentscheidung:** Zwei Menschen (Sitz 0 und 2) spielen zusammen gegen genau zwei KI-Gegner (Sitz 1 und 3). **Es gibt keinerlei Einzelspieler↔2v2-Import.** Die vorhandene gemeinsame Kartenbibliothek liefert nur unveränderliche Grafik-, Karten- und Regeldefinitionen. Keine Sammlung, Karte, Perk, Essenzbindung oder Quest-Freischaltung wird aus einem Solo-Speicher gelesen.
