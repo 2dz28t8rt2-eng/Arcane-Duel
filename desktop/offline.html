@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcane Duel · Verbindung verloren</title>
+<style>
+ *{box-sizing:border-box}body{min-height:100vh;margin:0;padding:25px;
+  display:grid;place-items:center;background:radial-gradient(ellipse at 50% 20%,#403054,#111829 75%);
+  color:#fff1d7;text-align:center;font:16px/1.6 system-ui,sans-serif}
+ main{width:min(500px,100%);padding:36px 28px;border:1px solid #d2ad7077;border-radius:20px;
+  background:#131b2de8;box-shadow:0 24px 80px #0009}
+ .sigil{font-size:68px;color:#f2c77c;text-shadow:0 0 30px #eab770}
+ h1{font:700 clamp(25px,4vw,36px) Georgia,serif;margin:6px 0 12px}
+ p{color:#e4d5bd;margin:15px 0 24px}
+ button{font:700 15px system-ui;color:#261c2c;padding:13px 27px;cursor:pointer;
+  border:0;border-radius:9px;background:linear-gradient(120deg,#fff0c7,#dbb573)}
+ button:focus-visible{outline:3px solid white;outline-offset:5px}
+</style></head>
+<body><main>
+ <div class="sigil" aria-hidden="true">✧</div>
+ <h1>Die Verbindung ist unterbrochen</h1>
+ <p>Arcane Duel konnte gerade nicht geladen werden. Prüfe deine Internetverbindung und versuche es noch einmal.</p>
+ <button type="button" id="retry">Erneut verbinden</button>
+</main>
+<script>
+ document.getElementById('retry').addEventListener('click',()=>{
+  location.assign('https://raw.githack.com/2dz28t8rt2-eng/Arcane-Duel/development/index.html?arcane-desktop=1');
+ });
+</script></body></html>
