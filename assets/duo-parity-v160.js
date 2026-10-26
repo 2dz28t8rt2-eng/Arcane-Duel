@@ -624,14 +624,24 @@
     $('duoAccept').onclick=()=>joinRoom(id,secret);
     set('duoStatus','Einladung erkannt. Namen eingeben und beitreten.');
    }else set('duoStatus','Ungültige Einladung.');
-  }else if(hash.startsWith('room=')){
-   const id=hash.slice(5);
+  }else if(recovery.parse(hash)?.kind==='resume'){
+   const ref=recovery.parse(hash);
+   try{
+    const response=await call({type:'state',roomId:ref.roomId,token:ref.token});
+    if(![0,2].includes(response.seat))throw Error('Sitzplatz nicht bestätigt.');
+    roomId=ref.roomId;token=ref.token;seat=response.seat;invite='';
+    load(response);
+    history.replaceState(null,'',ownOrigin()+'#room='+roomId);
+    set('duoStatus','Sitzplatz wiederhergestellt. Spielstand online geladen.');
+   }catch(e){set('duoStatus','Wiederherstellung fehlgeschlagen: '+e.message);}
+  }else if(recovery.parse(hash)?.kind==='room'){
+   const id=recovery.parse(hash).roomId;
    try{
     const stored=JSON.parse(sessionStorage.getItem(key(id))||'null');
     if(/^[a-f0-9]{64}$/.test(stored?.token||'')&&[0,2].includes(stored?.seat)){
      roomId=id;token=stored.token;seat=stored.seat;invite=stored.invite||'';
      await refresh();
-    }
+    }else set('duoStatus','Dieser Tab kennt den Raumzugang nicht. Bitte privaten Wiederherstellungslink nutzen.');
    }catch{set('duoStatus','Raumzugang konnte nicht wiederhergestellt werden.');}
   }
   render();
