@@ -29,7 +29,7 @@
  #duelScreen .ad182-inspector[open]{padding-bottom:8px}
 }
 .ad197-screen-curtain{position:fixed;inset:0;background:#000;z-index:2147482500;opacity:0;pointer-events:none;transition:opacity .18s ease}
-.ad197-screen-curtain.ad197-active{opacity:1;pointer-events:all}
+.ad197-screen-curtain.ad197-active{opacity:1;pointer-events:all;transition:none}
 .ad196-title.ad196-exiting{animation:none!important;background:#000!important}
 .ad196-title.ad196-exiting .ad196-panel,.ad196-title.ad196-exiting .ad196-bottom{transition:opacity .24s ease;opacity:0!important}
 .ad197-damage{position:fixed;z-index:16000;pointer-events:none;transform:translate(-50%,-50%);font:900 clamp(26px,3.6vw,50px)/1 Georgia,serif;white-space:nowrap;color:#ffeac4;text-shadow:0 2px 1px #2c0808,0 0 16px #f44a35,0 0 32px #ed7359;animation:ad197-number-rise .16s ease-out both}
