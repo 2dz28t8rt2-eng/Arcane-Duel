@@ -40,9 +40,40 @@
 <link rel="stylesheet" href="assets/duel-comfort-v182.css?v=20261026-v182">
 <link rel="stylesheet" href="assets/combat-identity-v183.css?v=20261026-v183">
 <link rel="stylesheet" href="assets/collection-rewards-v184.css?v=20261026-v184">
+<link rel="stylesheet" href="assets/arcane-soundscape-v196.css?v=20261026-v196">
+<link rel="stylesheet" href="assets/arcane-title-v196.css?v=20261026-v196">
 </head>
 <body>
-<div class="app" id="app">
+<div id="ad196-title" class="ad196-title" role="dialog" aria-modal="true" aria-label="Arcane Duel Titelmenü">
+ <span class="ad196-star" style="--x:12%;--y:21%;--s:2px;--delay:3.2s"></span>
+ <span class="ad196-star" style="--x:83%;--y:17%;--s:3px;--delay:2.7s"></span>
+ <span class="ad196-star" style="--x:24%;--y:65%;--s:2px;--delay:4s"></span>
+ <span class="ad196-star" style="--x:73%;--y:75%;--s:2px;--delay:3.7s"></span>
+ <span class="ad196-star" style="--x:91%;--y:49%;--s:2px;--delay:3s"></span>
+ <div class="ad196-panel">
+  <img class="ad196-crest" src="desktop/build/icon.png" alt="" aria-hidden="true">
+  <p class="ad196-kicker">Das Vermächtnis der Duellanten</p>
+  <h1 class="ad196-wordmark">Arcane <span>Duel</span></h1>
+  <div class="ad196-mark" aria-hidden="true"></div>
+  <p class="ad196-subtitle">Ein Reich aus Karten, Schicksal und Magie</p>
+  <nav class="ad196-nav" aria-label="Startmenü">
+   <button type="button" class="ad196-selected" data-ad196-action="solo">Einzelspieler</button>
+   <button type="button" data-ad196-action="resume" hidden>Duell fortsetzen</button>
+   <button type="button" data-ad196-action="duo">2 gegen 2</button>
+   <button type="button" data-ad196-action="collection">Monsterlexikon</button>
+   <button type="button" data-ad196-action="settings">Optionen</button>
+  </nav>
+  <small class="ad196-bottom">▲ ▼ Auswahl · Enter Bestätigen · Musik startet nach der ersten Eingabe</small>
+  <section class="ad196-settings" id="ad196-settings" aria-label="Musikeinstellungen" hidden>
+   <h2>Optionen</h2>
+   <label><input type="checkbox" id="ad196-music-enabled" checked> Hintergrundmusik aktiv</label>
+   <label>Musiklautstärke <output id="ad196-volume-label">35 %</output><input type="range" min="0" max="100" value="35" id="ad196-volume"></label>
+   <label><input type="checkbox" id="ad196-skip-intro"> Intro künftig überspringen</label>
+   <button type="button" data-ad196-action="back">Zurück</button>
+  </section>
+ </div>
+</div>
+<div class="app" id="app" inert>
 <header class="mast">
  <div class="branding"><div class="logo">✧</div><div><div class="brandtitle">ARCANE DUEL <small>4.1 · BESTIARIUM</small></div><div class="subtitle">Sammlung · Fusion · Training</div></div></div>
  <div class="mast-actions"><button class="btn tiny" id="manualSaveBtn">⇩ Speichern</button><button class="btn tiny" id="homeBtn" hidden>↶ Menü</button><button class="btn ghost tiny" id="iphoneHelpBtn">📱 iPhone-Hilfe</button><button class="btn ghost tiny" id="rulesBtn">? Regeln</button><button class="btn ghost tiny" id="deckBtn">▤ Deck ansehen</button><button class="btn ghost tiny" id="poolBtn">✦ Kartenpool</button><a class="btn ghost tiny" href="collection-v3.html" title="Monsterlexikon mit 32 Monsterfamilien und Turnierstufen bis Level 10 öffnen">✧ Monsterlexikon 4.1</a><button class="btn ghost tiny" id="soundBtn">♪ Ton: Aus</button><button class="btn ghost tiny" id="speedBtn">✧ Animationen: An</button><button class="btn tiny" id="restartBtn">↻ Neustart</button></div>
@@ -141,4 +172,6 @@
 <script src="assets/duel-comfort-v182.js?v=20261026-v182" defer></script>
 <script src="assets/combat-identity-v183.js?v=20261026-v183" defer></script>
 <script src="assets/collection-rewards-v184.js?v=20261026-v184" defer></script>
+<script src="assets/arcane-soundscape-v196.js?v=20261026-v196" defer></script>
+<script src="assets/arcane-title-v196.js?v=20261026-v196" defer></script>
 </body></html>
