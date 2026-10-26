@@ -600,6 +600,7 @@
   }
   for(const line of [...game.log].slice(-10).reverse())el('li',log,line);
   window.ArcaneDuoHand178?.sync({game,seat,roomId,catalog});
+  window.ArcaneCombatIdentity183?.duoDidRender?.({game,roomId});
   if(game.status!=='active'){
    if(game.status==='finished'&&game.winner===0&&game.chapter<4){
     if(seat===0)button('✦ Kapitel '+(game.chapter+1)+' starten',
