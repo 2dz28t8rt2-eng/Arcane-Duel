@@ -1,5 +1,26 @@
 # Kampagnenstart und Kapitelpakete – 18. Oktober 2026
 
+> **Stand 26. Oktober 2026 · Online-Ausbau v15.8:** Das Supabase-Projekt
+> `cvmtmvruutdneyblumgf` und `arcane-duo` (Version 2) sind aktiv. Der frühere
+> Hinweis am Ende dieses Dokuments, es gebe keinen Server, beschreibt nur
+> den ursprünglichen Offline-Prototyp vom 18. Oktober.
+>
+> **Neu auf `development`:** die verbundene Seite `duo-campaign.html` bietet
+> eine klarere dreistufige Lobby, 2v2-Kurzregeln, wählbare eigene Beschwörungszonen,
+> freie Angreifer- und Zielwahl auf *beiden* gegnerischen Feldern,
+> serverbestätigten Speicherstatus, manuelles Aktualisieren und die Wiederanzeige
+> eines noch gültigen Einladungslinks nach Neuladen im **gleichen Tab**.
+> Tokens werden nicht in `localStorage` übertragen; die Sitzung bleibt im
+> flüchtigeren `sessionStorage` des Tabs. Das Hauptmenü bietet zusätzlich
+> einen deutlich sichtbaren Komplett-Export für den **separaten 1v1-Spielstand**.
+>
+> **Noch offen vor `main`:** Echter Zwei-Geräte-Test; Einbindung der realen
+> 1v1-Sammlung und Decks mit serverseitiger Besitz-/Kartenvalidierung;
+> Fusions-, Resonanz-, Wächter-, Seelenzehrer- und Predator-Regeln;
+> verlässliche geräteübergreifende Wiederaufnahme und klares Kapitel-/Bossdesign.
+> KI-Forschung der bestehenden Turniergegner bleibt unberührt. Erst nach den
+> Praxis- und Regressionstests soll der große Stand nach `main`.
+
 **Standard:** Ohne jede Kapitelauswahl beginnt »Neue Kampagne« automatisch in **Kapitel I**. Ein optionales Feld »Kapitel direkt auswählen« erlaubt Einstieg in Kapitel I–IV.
 
 | Kapitel | Kapitelstart-Level der Bonuskarten | Kartenpaket (je 3 Karten pro Verbündetem) |

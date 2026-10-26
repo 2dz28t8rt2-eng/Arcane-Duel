@@ -1,21 +1,25 @@
 <!doctype html>
 <html lang="de">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Arcane Duel · 2v2 Kampagnenlabor</title>
-<link rel="stylesheet" href="assets/duo-campaign-demo.css?v=duo-chapters-2">
+<title>Arcane Duel · 2v2 Online-Kampagne</title>
+<meta name="referrer" content="no-referrer">
+<link rel="stylesheet" href="assets/duo-campaign-demo.css?v=duo-v158">
 </head>
 <body>
 <main class="duo-wrap">
 <header class="duo-header">
- <div><p class="kicker">✧ ARCANE DUEL · KAMPAGNENLABOR</p><h1>Das Bündnis der Vier</h1>
- <p>Teste den Zugwechsel zwischen zwei Verbündeten und zwei KI-Gegnern.</p></div>
+ <div><p class="kicker">✧ ARCANE DUEL · 2V2 ONLINE-TEST</p><h1>Das Bündnis der Vier</h1>
+ <p>Zwei Freunde, zwei Gegner, ein gemeinsames Team. Erst Raum erstellen, dann zusammen kämpfen.</p></div>
  <a href="index.html">← Zum Hauptspiel</a>
 </header>
-<aside class="notice"><b>Online-Raum mit Einladungslink – technische Vorschau.</b>
- Die beiden menschlichen Spieler können von unterschiedlichen Geräten beitreten. Der Server prüft alle Aktionen und synchronisiert die Partie. Dies ist weiterhin ein vereinfachter Kampagnen-Prototyp, kein vollständiger 1v1-Regelimport. Deine Einzelspielerstände bleiben unverändert.</aside>
+<aside class="notice"><b>2v2-Testphase · echter Online-Raum mit Einladungslink.</b>
+ Die Spieler können von unterschiedlichen Geräten beitreten. Spielzüge werden auf dem Server geprüft und gespeichert. Es gelten derzeit vereinfachte Testkarten und Kampfregeln; deine 1v1-Sammlung wird weder eingelesen noch verändert.</aside>
 <div class="duo-layout">
 <section class="duo-panel" id="setupPanel">
  <h2>✦ Kampagne & Raum</h2>
+ <ol class="duo-steps" id="duoSteps" aria-label="Schritte zum gemeinsamen Duell">
+  <li id="duoStepCreate">Raum erstellen</li><li id="duoStepInvite">Partner einladen</li><li id="duoStepBattle">Zusammen kämpfen</li>
+ </ol>
  <label>Spielstart
   <select id="duoEntry">
    <option value="new" selected>Neue Kampagne – von Kapitel I beginnen</option>
@@ -25,9 +29,19 @@
  <label id="duoChapterSelect" hidden>Gewünschtes Kapitel <select id="duoChapter"></select></label>
  <label>Dein Name <input id="duoHostName" maxlength="32" value="Duellant A"></label>
  
- <div class="actions"><button id="duoCreate">Neue Kampagne erstellen</button><button id="duoAccept" hidden>Einladung annehmen</button><button id="duoJoin" disabled hidden>Partnerbeitritt</button></div><div id="duoInviteBox" hidden><label>Einladungslink <input id="duoInvite" readonly aria-label="Einladungslink"></label><button id="duoCopy">Einladungslink kopieren</button></div>
+ <div class="actions"><button id="duoCreate">Neue Kampagne erstellen</button><button id="duoAccept" hidden>Einladung annehmen und beitreten</button><button id="duoJoin" disabled hidden>Partnerbeitritt</button></div><div id="duoInviteBox" hidden><label>Privater Einladungslink <input id="duoInvite" readonly aria-label="Einladungslink"></label><button id="duoCopy">Einladungslink kopieren</button><p class="micro">Nur an deinen Mitspieler senden. Die Einladung funktioniert einmalig.</p></div>
  <div class="room-code">Raumkennung: <code id="duoRoomId">—</code></div>
- <p class="micro">Privater Raum · Einladung für genau einen Partner · bis zu 48 Stunden gültig. Bewahre den Link wie ein Zugangstoken auf. Sitzungsdaten bleiben in diesem Browser-Tab.</p>
+ <div class="duo-save-state" id="duoSaveState" role="status" aria-live="polite">☁ Noch kein Online-Spielstand. Nach dem Erstellen wird jeder bestätigte Spielzug automatisch gespeichert.</div>
+ <div class="actions"><button id="duoRefresh" type="button" disabled>↻ Raumstand aktualisieren</button></div>
+ <p class="micro">Räume laufen nach 48 Stunden ab. Du kannst die Partie im selben Browser-Tab aktualisieren oder über den Raumlink wieder öffnen. Zugangsdaten liegen ausschließlich in diesem Tab – ein neuer Tab hat ohne Einladung keinen Zugang. Der 1v1-Spielstand bleibt separat.</p>
+ <details class="duo-guide"><summary>Wie funktioniert 2v2? · Kurzregeln</summary>
+  <ul><li><b>Zugfolge:</b> Du → Gegner A → Partner → Gegner B.</li>
+   <li><b>Team-LP:</b> Beide Verbündeten teilen 16.000 LP; beide Gegner ebenfalls.</li>
+   <li><b>Felder & Karten:</b> Jeder hat ein eigenes 40-Karten-Deck, eine eigene Hand und sieben Feldplätze.</li>
+   <li><b>Beschwören:</b> Wähle eine Handkarte und einen freien eigenen Feldplatz. Ein Monster greift frühestens in der nächsten Runde an.</li>
+   <li><b>Angreifen:</b> Wähle Angreifer und gegnerisches Ziel. Ein direkter Angriff ist nur möglich, wenn beide Gegnerfelder frei sind.</li>
+   <li><b>Kapitel:</b> Kapitelwahl ist optional. Drei Bonuskarten je Verbündetem ersetzen drei Karten im 40er-Deck.</li></ul>
+ </details>
  <h3>Dein Kampagnenstart</h3><p id="duoChapterInfo"></p>
  <div class="duo-chapter-rewards" id="duoRewardInfo" aria-live="polite"></div>
  <div id="duoStatus" role="status" aria-live="polite"></div>
@@ -35,7 +49,7 @@
 <section class="duo-panel duo-battle">
  <div class="stats"><div><small>TEAM VERBÜNDETE</small><strong id="duoAlliedLP">16.000 LP</strong></div><div><small>TEAM GEGNER</small><strong id="duoEnemyLP">16.000 LP</strong></div></div>
  <div class="turn-track" id="duoTrack"></div>
- <h2 id="duoTurnName">Auf einen Raum warten</h2>
+  <h2 id="duoTurnName" aria-live="polite">Auf einen Raum warten</h2>
  <p class="duo-chapter-rewards" id="duoCurrentReward" hidden></p>
  <div class="four-seats" id="duoSeats"></div>
  <div class="action-dock" id="duoActions"></div>
@@ -44,5 +58,6 @@
 </div>
 </main>
 <script src="assets/duo-campaign-core.js?v=duo-chapters-2"></script>
-<script src="assets/duo-campaign-demo.js?v=duo-chapters-2"></script>
+<script src="assets/duo-battle-ui-v158.js?v=duo-v158"></script>
+<script src="assets/duo-campaign-demo.js?v=duo-v158"></script>
 </body></html>
