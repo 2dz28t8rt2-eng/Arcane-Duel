@@ -1,4 +1,4 @@
-name: Arcane Duel - v14.9.58 Defender Future Value and Condense Training
+name: Arcane Duel - v14.9.58 Ability Timing and Seed-Safe H2H Research
 on:
   push:
     branches: [development]
@@ -27,7 +27,23 @@ jobs:
             node --check "$f"
           done
           node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
-      - name: Restore successful v14.9.56 checkpoint and forty-six-run TRAIN-only history
+          # Check all constructed-deck seeds up front, including the new phase 7.
+          # The deck builder rejects integers outside [0, 9999].
+          node - <<'JS'
+          const assert=require('node:assert/strict');
+          for(let stage=0;stage<9;stage++){
+            const scenarios=stage===4||stage===7?24:stage===8?12:6;
+            for(let pair=0;pair<8;pair++)for(let scenario=0;scenario<scenarios;scenario++){
+              const pairedStage=stage===6?5:stage;
+              const seedA=5351+pair*157+scenario*79+pairedStage*241;
+              const seedB=5609+pair*151+scenario*91+pairedStage*(stage===7?170:231);
+              assert.ok(seedA>=0&&seedA<=9999&&seedB>=0&&seedB<=9999,
+                'Invalid benchmark seed in '+JSON.stringify({stage,pair,scenario,seedA,seedB}));
+            }
+          }
+          console.log('ARCANE_V1558_SEED_PREFLIGHT_PASS');
+          JS
+      - name: Restore successful v14.9.57 checkpoint and forty-six-run TRAIN-only history
         env:
           GH_TOKEN: ${{ github.token }}
           ARCANE_PREVIOUS_ARTIFACT_DIR: /tmp/arcane-v1558-prior
@@ -79,7 +95,7 @@ jobs:
           set -euo pipefail
           for pair in 0 1 2 3 4 5 6 7; do node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 6 "$pair"; done
           node "$SELFPLAY" 6 finalize
-      - name: Phase 7 - Triple-sized mirrored direct comparison with frozen v14.9.55 champion
+      - name: Phase 7 - Four-chunk mirrored direct comparison with frozen v14.9.55 champion
         run: |
           set -euo pipefail
           for pair in 0 1 2 3 4 5 6 7; do
@@ -93,7 +109,7 @@ jobs:
             for chunk in 0 1; do node --expose-gc --max-old-space-size=2400 "$SELFPLAY" 8 "$pair" "$chunk"; done
           done
           node "$SELFPLAY" 8 finalize
-      - name: Aggregate future-essence and tactical-condense ablations
+      - name: Aggregate discharge-window and tactical-condense timing
         run: node --max-old-space-size=3200 tests/ai-v1558-ability-timing-aggregate.cjs
       - name: Validate complete 18432-duel report and sealed holdout
         run: |
