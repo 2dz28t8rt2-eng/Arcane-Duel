@@ -319,7 +319,7 @@ test('old v16.0 room snapshots continue to run without new Soul fields',()=>{
  assert.equal(after.teams[1].lp,15870);
 });
 test('combat build is server-validated, bounded to the submitted decks and persists on both seats',()=>{
- assert.equal(rules.version,'16.3-beta');
+ assert.equal(rules.version,'16.4-beta');
  const opts={roomId:'build-123456',hostName:'Host',hostDeck:deck,hostFusions:fusions,
   enemyDeckA:deck,enemyDeckB:deck,enemyFusionsA:fusions,enemyFusionsB:fusions,
   chapter:1,entry:'new',catalog,hostUpgrades:{power:10,openingAegis:3},
@@ -438,4 +438,145 @@ test('pre-v16.3 rooms without perk fields still accept actions and chapter trans
  state=move(state,0,{type:'nextChapter'});
  assert.equal(state.status,'active');
  assert.equal(state.teams[0].shield,0);
+});
+const bondDeck=id=>{const out=[...deck];out[3]=id;return out;};
+const withEssence=(id,school,tier=10,rank=5)=>{
+ const main=bondDeck(id);
+ const g=rules.create({roomId:'essence-123456',hostName:'Essence Host',
+  hostDeck:main,hostFusions:fusions,enemyDeckA:deck,enemyDeckB:deck,
+  enemyFusionsA:fusions,enemyFusionsB:fusions,catalog,
+  hostEssence:{chosen:id,school,tier,rank}});
+ return move(g,2,{type:'join',name:'Partner',deck,fusions});
+};
+test('canonical catalog labels exact bonded essence identities and sealed Level-1 fusions',()=>{
+ assert.deepEqual([396,397,398].map(id=>catalog[id].essenceSchool),
+  ['predator','fusion','defense']);
+ assert.ok(Object.values(catalog).filter(c=>c.lv1Exclusive).length>=3);
+ const bound=withEssence(396,'predator');
+ assert.equal(bound.players[0].essence.chosen,396);
+ assert.equal(bound.players[0].essence.rank,5);
+ assert.throws(()=>rules.create({roomId:'test-123456',hostName:'X',
+  hostDeck:bondDeck(396),hostFusions:fusions,enemyDeckA:deck,enemyDeckB:deck,
+  enemyFusionsA:fusions,enemyFusionsB:fusions,catalog}),/Essenzmonster erfordert/);
+ const forged={chosen:398,school:'defense',tier:10,rank:5};
+ assert.throws(()=>rules.normalizedBuild({}, {},bondDeck(396),fusions,catalog,forged),
+  /Gebundenes Essenzmonster/);
+ assert.throws(()=>rules.normalizedBuild({}, {},bondDeck(396),fusions,catalog,
+  {chosen:396,school:'predator',tier:3,rank:5}),/Essenzstufe/);
+ assert.throws(()=>rules.normalizedBuild({}, {},bondDeck(396),fusions,catalog,
+  {chosen:396,school:'hidden',tier:10,rank:5}),/Spezialisierung/);
+});
+test('Essence Reißzahn evolves by progress and chooses exactly two legal 70% attacks',()=>{
+ let state=withEssence(396,'predator');state.players[0].hand=[396];
+ state=move(state,0,{type:'summon',handIndex:0,slot:0});
+ const creature=state.players[0].field[0];
+ assert.equal(creature.level,10);
+ assert.equal(creature.atk,catalog[396].atk+10*45+5*35);
+ assert.equal(creature.def,catalog[396].def+10*70+5*55);
+ state.round=2;state.players[0].field[0].placedRound=1;
+ state=move(state,0,{type:'essencePredatorMode',slot:0,mode:2});
+ assert.equal(state.players[0].field[0].essenceChoice,2);
+ assert.throws(()=>move(state,0,{type:'essencePredatorMode',slot:0,mode:1}),/verbraucht/);
+ const firstPower=Math.floor(Math.floor(creature.atk*1.02)*.7);
+ state=move(state,0,{type:'attack',slot:0,targetSeat:null,targetSlot:null});
+ assert.equal(state.teams[1].lp,16000-firstPower);
+ assert.equal(state.players[0].field[0].essenceAttacks,1);
+ assert.equal(state.players[0].field[0].used,false);
+ assert.throws(()=>move(state,0,{type:'switch',slot:0}),/Positionswechsel/);
+ const nextAtk=state.players[0].field[0].atk;
+ state=move(state,0,{type:'attack',slot:0,targetSeat:null,targetSlot:null});
+ assert.equal(state.teams[1].lp,16000-firstPower-
+  Math.floor(Math.floor(nextAtk*1.02)*.7));
+ assert.equal(state.players[0].field[0].essenceAttacks,2);
+ assert.equal(state.players[0].field[0].used,true);
+ assert.throws(()=>move(state,0,{type:'attack',slot:0,targetSeat:null,targetSlot:null}),
+  /nicht bereit/);
+});
+test('Essence Runenherz grants 1–2 independent fusion rolls only while present',()=>{
+ const state=withEssence(397,'fusion',7,3);
+ state.players[0].hand=[4,5];
+ const materials=[{from:'hand',index:0},{from:'hand',index:1}];
+ const plain=rules.fusionOptions(state,0,materials,catalog).analysis;
+ state.players[0].field[2]=live(397,{role:'weaver',level:5});
+ const powered=rules.fusionOptions(state,0,materials,catalog).analysis;
+ assert.equal(plain.essenceRolls,0);
+ assert.equal(powered.essenceRolls,2);
+ assert.equal(powered.rolls,Math.min(7,plain.rolls+2));
+ const fused=move(state,0,{type:'fusion',materials,slot:0,templateId:41});
+ assert.equal(fused.players[0].field[0].qualityRolls,powered.rolls);
+ assert.equal(fused.players[0].field[0].rollTrace.length,powered.rolls);
+ assert.equal(fused.players[0].field[2].id,397);
+});
+test('Essence Aschenhort redirects the first attack of each enemy turn at half strength',()=>{
+ let state=withEssence(398,'defense');state.round=2;
+ state.players[0].field[0]=live(398,{mode:'def',def:1200,maxDef:1200});
+ state.players[2].field[0]=live(7,{mode:'def',def:700,maxDef:700});
+ state.players[1].field[0]=live(9,{atk:600});
+ state.activeSeat=1;
+ state=move(state,1,{type:'attack',slot:0,targetSeat:2,targetSlot:0});
+ assert.equal(state.players[2].field[0].def,700);
+ assert.ok(state.players[0].field[0].def<1200);
+ assert.equal(state.teams[0].essenceTauntTurn,state.turn);
+ const afterFirst=state.players[0].field[0].def;
+ state.players[1].field[1]=live(9,{atk:600});
+ state=move(state,1,{type:'attack',slot:1,targetSeat:2,targetSlot:0});
+ assert.equal(state.players[0].field[0].def,afterFirst);
+ assert.ok(state.players[2].field[0].def<700);
+ state.activeSeat=3;state.turn++;
+ state.players[3].field[0]=live(9,{atk:600});
+ state=move(state,3,{type:'attack',slot:0,targetSeat:2,targetSlot:0});
+ assert.ok(state.players[0].field[0].def<afterFirst,
+  'The second enemy seat starts a new turn with its own first-attack taunt');
+});
+test('Defense essence saves one allied defender as a chapter-limited Last Bastion',()=>{
+ let state=withEssence(398,'defense');state.round=2;
+ state.players[0].field[0]=live(7,{mode:'def',def:50,maxDef:50});
+ state.players[1].field[0]=live(9,{atk:1000});state.activeSeat=1;
+ state=move(state,1,{type:'attack',slot:0,targetSeat:0,targetSlot:0});
+ assert.equal(state.players[0].field[0].def,1);
+ assert.equal(state.players[0].field[0].guardLeft,2);
+ assert.equal(state.teams[0].essenceBastionUsed,true);
+ const lp=state.teams[1].lp;
+ state.players[1].field[1]=live(9,{atk:1000});
+ state=move(state,1,{type:'attack',slot:1,targetSeat:0,targetSlot:0});
+ assert.equal(state.players[0].field[0].def,1);
+ assert.equal(state.teams[1].lp,lp,'Immune defender no longer counters');
+ state=move(state,1,{type:'end'});
+ assert.equal(state.players[0].field[0].guardLeft,2);
+ state.activeSeat=3;state.turn++;
+ state=move(state,3,{type:'end'});
+ assert.equal(state.players[0].field[0].guardLeft,1);
+ state.players[0].field[1]=live(7,{mode:'def',def:1});
+ state.players[1].field[2]=live(9,{atk:1000});state.activeSeat=1;state.turn++;
+ state=move(state,1,{type:'attack',slot:2,targetSeat:0,targetSlot:1});
+ assert.equal(state.players[0].field[1],null,
+  'Second allied defender cannot claim an already-used chapter safeguard');
+ state.status='finished';state.winner=0;state.activeSeat=0;
+ state=move(state,0,{type:'nextChapter'});
+ assert.equal(state.teams[0].essenceBastionUsed,false);
+ assert.equal(state.teams[0].essenceTauntTurn,-1);
+});
+test('Defense essence increases stored Soul conversion without overriding fusion conversion',()=>{
+ const baseline=setup(),buffed=withEssence(398,'defense',8,4);
+ for(const state of [baseline,buffed]){
+  state.players[0].field[0]=live(387,{role:'soul',mode:'def'});
+  state.players[1].field[0]=live(9,{atk:1000,def:1000});
+ }
+ const action={type:'soulRaid',slot:0,targetSeat:1,targetSlot:0};
+ const plain=move(baseline,0,action),boosted=move(buffed,0,action);
+ assert.ok(boosted.players[0].field[0].soul>plain.players[0].field[0].soul);
+ assert.equal(boosted.players[0].field[0].soul,
+  Math.floor(plain.players[0].field[0].soul*1.22));
+});
+test('Defense specialization reduces only defensive creature decay and old rooms remain playable',()=>{
+ let state=withEssence(398,'defense',10,5);
+ state.players[0].field[0]=live(700,{mode:'def',atk:500,def:500,maxDef:500});
+ state.players[0].field[1]=live(9,{mode:'atk',atk:500,def:500,maxDef:500});
+ state=move(state,0,{type:'end'});
+ assert.equal(state.players[0].field[0].atk,451);
+ assert.equal(state.players[0].field[0].def,451);
+ assert.equal(state.players[0].field[1].atk,475);
+ let old=setup();for(const p of old.players)delete p.essence;
+ old=move(old,0,{type:'summon',handIndex:0,slot:0});
+ assert.ok(old.players[0].field[0]);
 });

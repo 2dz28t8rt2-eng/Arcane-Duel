@@ -31,7 +31,9 @@ const cards=runtime.run(`CARDS.map(c=>({
  art:typeof c.art==='string'&&c.art.startsWith('assets/')?c.art:'',
  fusionOnly:!!c.fusionOnly,ace:!!c.ace,
  playable:!!c.rpg&&!c.retired&&!c.enemyOnly&&!c.fateOnly,
- essenceMonster:!!c.essenceMonster,source:c.source??null
+ essenceMonster:!!c.essenceMonster,essenceSchool:c.essenceMonster?(c.essenceSchool||c.school||null):null,
+ lv1Special:c.lv1Special||null,lv1Exclusive:!!c.lv1Exclusive,
+ source:c.source??null
 }))`).map(c=>c.fusionOnly?{...c,fusionReference:fusionReferences[c.level-1]}:c);
 for(const [i,c] of cards.entries()){
  if(c.id!==i||!Number.isInteger(c.level)||!Number.isFinite(c.atk)||!Number.isFinite(c.def))

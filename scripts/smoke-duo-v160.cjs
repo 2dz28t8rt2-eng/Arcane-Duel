@@ -1,8 +1,8 @@
 'use strict';
-/* Manual online smoke. Creates two disposable rooms with real 40-card decks,
+/* Manual online smoke. Creates three disposable rooms with real 40-card decks,
  * verifies invite, 4-seat turn order, server validation, private hands and
- * the v16.3 DEF/Soul abilities, combat perk ranks, card ascensions and
- * server-only fusion rolls without altering any existing room.
+ * the v16.4 DEF/Soul/Essence abilities, combat perk ranks, card ascensions
+ * and server-only fusion rolls without altering any existing room.
  * Requires HTTPS access and a deployed isolated arcane-duo-v2 function.
  */
 const {execFileSync}=require('node:child_process');
@@ -26,7 +26,7 @@ const host=post({type:'create',name:'Parity QA',entry:'new',deck:hostDeck,fusion
  enhancements:{387:5}});
 assert.equal(host.state.schema,2);
 assert.equal(host.state.status,'waiting');
-assert.equal(host.state.ruleset,'duo-v163');
+assert.equal(host.state.ruleset,'duo-v164');
 assert.equal(host.state.teams[0].shield,75);
 assert.ok(host.invite);
 const guest=post({type:'join',roomId:host.roomId,invite:host.invite,
@@ -100,4 +100,24 @@ assert.equal(fused.state.rngSeed,undefined);
 const invalid=post({type:'create',name:'Tamper QA',entry:'new',deck,fusions,
  upgrades:{power:99}},400);
 assert.match(invalid.error,/Ungültiger Rang/);
-console.log('Online 2v2 v16.3: private hands, seat order, save, DEF, Soul, validated perks, ascension, shield, and server-only fusion rolls OK.');
+const essenceDeck=[...deck.slice(0,3),396,...deck.slice(4)];
+const essenceHost=post({type:'create',name:'Essence QA',entry:'new',deck:essenceDeck,
+ fusions,essence:{chosen:396,school:'predator',tier:10,rank:5}});
+assert.equal(essenceHost.state.players[0].essence.chosen,396);
+const essenceGuest=post({type:'join',roomId:essenceHost.roomId,invite:essenceHost.invite,
+ name:'Essence Partner',deck,fusions});
+const essenceSummon=post({type:'action',roomId:essenceHost.roomId,token:essenceHost.token,
+ expectedRevision:essenceGuest.state.revision,
+ action:{type:'summon',handIndex:3,slot:0}});
+const essenceCard=essenceSummon.state.players[0].field[0];
+assert.equal(essenceCard.id,396);
+assert.equal(essenceCard.level,10);
+assert.equal(essenceCard.atk,1345);
+const essenceDouble=post({type:'action',roomId:essenceHost.roomId,token:essenceHost.token,
+ expectedRevision:essenceSummon.state.revision,
+ action:{type:'essencePredatorMode',slot:0,mode:2}});
+assert.equal(essenceDouble.state.players[0].field[0].essenceChoice,2);
+const invalidEssence=post({type:'create',name:'Essence Tamper QA',entry:'new',
+ deck:essenceDeck,fusions,essence:{chosen:396,school:'predator',tier:3,rank:5}},400);
+assert.match(invalidEssence.error,/Essenzstufe/);
+console.log('Online 2v2 v16.4: private hands, seat order, save, DEF, Soul, validated perks, ascension, shield, server-only fusion rolls and server-side Essence companion actions OK.');

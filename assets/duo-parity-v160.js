@@ -10,7 +10,7 @@
  const key=id=>'arcane-duo-v2-session-'+id;
  const ownOrigin=()=>location.href.split('#')[0].split('?')[0];
  let catalog={},starterMain=[],starterFusions=[],profileDeck=[],profileFusions=[],
-  profileUpgrades={},profileEnhancements={};
+  profileUpgrades={},profileEnhancements={},profileEssence={};
  let game=null,seat=-1,roomId='',token='',invite='',busy=false,refreshing=false,
   syncError='',syncedAt=0,sessionReady=true;
  const set=(id,text)=>$(id).textContent=String(text);
@@ -46,7 +46,7 @@
  function readProfile(snapshot){
   starterMain=[...snapshot.starterMain];starterFusions=[...snapshot.starterFusions];
   profileDeck=[...starterMain];profileFusions=[...starterFusions];
-  profileUpgrades={};profileEnhancements={};
+  profileUpgrades={};profileEnhancements={};profileEssence={};
   let message='Noch kein Singleplayer-Spielstand in diesem Browser gefunden. '+
    'Für die Beta wird ein gültiges Standarddeck verwendet.';
   try{
@@ -64,15 +64,29 @@
       if(used.has(Number(key))&&Number.isInteger(rank)&&rank>=1&&rank<=5)
        profileEnhancements[key]=rank;
      }
+     if(p.essence?.chosen!==null&&p.essence?.chosen!==undefined&&
+      profileDeck.includes(p.essence.chosen)&&catalog[p.essence.chosen]?.essenceMonster){
+      const tier=Math.max(0,...(Array.isArray(p.cleared)?p.cleared:[]));
+      profileEssence={chosen:p.essence.chosen,school:p.essence.school??null,
+       tier,rank:p.essence.rank??0};
+     }
+     rules.normalizedBuild(profileUpgrades,profileEnhancements,profileDeck,
+      profileFusions,catalog,profileEssence);
      const active=Object.values(profileUpgrades).filter(Boolean).length;
      message='✓ Einzelspieler-Deck übernommen: 40 Hauptkarten, '+
       profileFusions.length+' Fusionen, '+active+' aktive Kampf-Ausbauten und '+
       Object.keys(profileEnhancements).length+' Kartenverstärkungen. '+
+      (profileEssence.chosen!==undefined?'Essenzbindung aktiv. ':'')+
       'Diese Beta liest die Ränge nur beim Raumbeitritt; dein Spielstand bleibt unverändert.';
     }else message='Das gespeicherte Deck entspricht nicht den gültigen Karten-/Kopienregeln. '+
       'Die Beta nutzt ein Standarddeck; deine Sammlung bleibt unverändert.';
    }
-  }catch{message='Lokaler Spielstand nicht lesbar. Standarddeck aktiv; nichts überschrieben.';}
+  }catch{
+   profileDeck=[...starterMain];profileFusions=[...starterFusions];
+   profileUpgrades={};profileEnhancements={};profileEssence={};
+   message='Lokaler Spielstand beziehungsweise Essenzbindung nicht verwendbar. '+
+    'Sicheres Standarddeck aktiv; nichts überschrieben.';
+  }
   set('duoDeckInfo',message);
  }
  async function call(payload){
@@ -125,7 +139,7 @@
    const entry=$('duoEntry').value;
    const payload={type:'create',name:$('duoHostName').value,entry,
     deck:profileDeck,fusions:profileFusions,
-    upgrades:profileUpgrades,enhancements:profileEnhancements,
+    upgrades:profileUpgrades,enhancements:profileEnhancements,essence:profileEssence,
     ...(entry==='chapter'?{chapter:chapter().id}:{})};
    const r=await call(payload);
    roomId=r.roomId;token=r.token;seat=0;invite=r.invite;save();load(r);
@@ -139,7 +153,7 @@
   try{
    const r=await call({type:'join',roomId:id,invite:invitation,
     name:$('duoHostName').value,deck:profileDeck,fusions:profileFusions,
-    upgrades:profileUpgrades,enhancements:profileEnhancements});
+    upgrades:profileUpgrades,enhancements:profileEnhancements,essence:profileEssence});
    roomId=id;token=r.token;seat=2;invite='';save();load(r);
    location.hash='room='+roomId;
    set('duoStatus','Beitritt erfolgreich. Jetzt kämpft ihr gemeinsam!');
@@ -214,6 +228,15 @@
     if(c.role==='soul')el('small',cell,'✦ '+(c.soul||0)+' Seele · '+
      (c.condensed||0)+' Verdichtung · CD '+(c.soulCooldown||0),
      'duo-soul-status');
+    if(p.essence?.chosen===c.id){
+     const kind=card(c.id).essenceSchool;
+     el('small',cell,'✦ Gebundene Essenz · '+
+      (kind==='predator'?(c.essenceChoice===2?'2 × 70 %':'1 × 100 %'):
+       kind==='fusion'?'Zusätzliche Fusionswürfe':'Erstangriff-Schutz'),
+      'duo-soul-status');
+    }
+    if(c.guardLeft>0)el('small',cell,'✧ Letztes Bollwerk · '+c.guardLeft+
+     ' gegnerische Züge immun','duo-soul-status');
     if(c.role==='combatant'&&c.resonance)el('small',cell,
      '✧ Resonanz +'+(4+4*c.resonance)+' %','duo-card-level');
     cell.title='Feld '+(slot+1)+(c.used?' · Angriff verbraucht':'')+
@@ -318,6 +341,8 @@
      if(analysis.precisionPct)lines.push('✧ Runenpräzision +'+analysis.precisionPct+' % Qualität');
      if(analysis.loreOpeningRoll)lines.push('✦ Fusionskunde: +1 echter Wurf bei der ersten Fusion');
      if(analysis.loreChainApplied)lines.push('✦ Fusionskunde: +3 % Kettenqualität (einmalig)');
+     if(analysis.essenceRolls)lines.push('✦ Runenherz: +'+analysis.essenceRolls+
+      ' Fusionswürfe durch das anwesende Essenzwesen');
      if(analysis.elemental)lines.push('✧ Alle Materialien teilen ein Element: Elementharmonie');
      for(const line of lines)el('p',preview,line);
      if(availability.templates.length){
@@ -344,12 +369,27 @@
    options.onchange=()=>update(false);
    update(true);
   }
-  const switchables=p.field.flatMap((c,slot)=>c&&!c.used&&!c.switched?[{c,slot}]:[]);
+  const switchables=p.field.flatMap((c,slot)=>c&&!c.used&&!c.switched&&
+   !(c.essenceAttacks>0)?[{c,slot}]:[]);
   if(switchables.length){
    const part=section(dock,'🛡 Position wechseln','Ein Positionswechsel ist pro Monster und eigenem Zug möglich.');
    const which=selector('Eigenes Monster',switchables.map(x=>[x.slot,
     'Feld '+(x.slot+1)+' · '+name(x.c.id)+' → '+(x.c.mode==='def'?'ATK':'DEF')]),part);
    button('Position ändern',part,()=>send({type:'switch',slot:Number(which.value)}));
+  }
+  const predators=p.field.flatMap((c,slot)=>c&&c.id===p.essence?.chosen&&
+   card(c.id).essenceSchool==='predator'&&c.mode==='atk'?[{c,slot}]:[]);
+  if(predators.length){
+   const part=section(dock,'✦ Reißzahn · Angriffswahl',
+    'Entscheide vor dem ersten Angriff: einmal mit 100 % oder zweimal mit je 70 % Stärke. '+
+    'Zwei Angriffe verbrauchen auch zweimal ATK durch Angriffsmüdigkeit.');
+   for(const {c,slot}of predators){
+    const mode=c.essenceChoice===2?1:2;
+    const b=button('Feld '+(slot+1)+' · '+(mode===2?'2 × 70 % wählen':'1 × 100 % wählen'),
+     part,()=>send({type:'essencePredatorMode',slot,mode}));
+    b.disabled=busy||!!syncError||c.used||(c.essenceAttacks||0)>0||
+     c.essenceLastToggle===p.ownTurns;
+   }
   }
   const souls=p.field.flatMap((c,slot)=>c?.role==='soul'&&c.mode==='def'?
    [{c,slot}]:[]);
@@ -412,7 +452,7 @@
  }
  async function init(){
   try{
-   const response=await fetch('assets/duo-card-catalog-v160.json?v=duo-v161');
+   const response=await fetch('assets/duo-card-catalog-v160.json?v=duo-v164');
    if(!response.ok)throw Error('Kartenkatalog fehlt.');
    const snapshot=await response.json();
    if(snapshot.schema!==1||snapshot.cards.length<400)throw Error('Kartenkatalog unvollständig.');

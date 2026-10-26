@@ -1,5 +1,26 @@
 # Kampagnenstart und Kapitelpakete – 18. Oktober 2026
 
+> **Fortsetzung 26. Oktober 2026 · v16.4 Essenzbindung auf `development`:**
+> Die getrennte Online-Beta liest zusätzlich die aktive Essenzbindung (Art,
+> Spezialisierung, Fortschrittsstufe und Rang) aus dem lokalen Einzelspielerprofil,
+> sofern das entsprechende Essenzwesen einmal im 40-Karten-Deck steckt. Der
+> Server prüft die Kombination und die vom Fortschritt abhängigen Maximalränge.
+> Reißzahn entwickelt seine Werte und wählt einmal 100 % oder zweimal 70 %
+> Angriffsstärke; pro Schlag tritt Müdigkeit auf. Runenherz gewährt bei Präsenz
+> auf dem Feld ein bis zwei zusätzliche unabhängige Qualitätswürfe für Fusionen.
+> Aschenhort lenkt den ersten Angriff eines gegnerischen Zuges in DEF auf sich,
+> halbiert dessen Stärke; Verteidigungsspezialisierung senkt den Zerfall von
+> Wächtern/Seelenzehrern, stärkt deren Seelenspeicherung und schützt auf
+> maximalem Rang einmal pro Kapitel
+> einen Verbündeten durch „Letztes Bollwerk“.
+>
+> **Weiterhin offen:** Das lokale Profil ist in dieser unranked Beta nicht
+> authentifiziert; die Servervalidierung bestätigt plausible Grenzen, aber
+> noch keinen echten Kartenbesitz. Lv1-Spezialfusionen benötigen das gesamte
+> Geister-/Wiederbelebungs- und Questregelsystem und folgen als separates Update.
+> Echte Geräte-übergreifende QA ist weiter ausständig. `main`, bestehende Räume,
+> Singleplayer-Gegner und KI-Forschung bleiben unverändert.
+
 > **Fortsetzung 26. Oktober 2026 · v16.3 Kampf-Ausbaustufen auf `development`:**
 > Der isolierte 2v2-Regelkern berechnet nun acht persönliche, bereits aus dem
 > Singleplayer bekannte Kampfausbauten: Monstertraining (10), Jagdinstinkt (5),

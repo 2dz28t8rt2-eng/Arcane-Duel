@@ -1,4 +1,4 @@
-/* Arcane Duel 2v2 · server-authoritative ruleset v16.3 beta.
+/* Arcane Duel 2v2 · server-authoritative ruleset v16.4 beta.
  * The same pure reducer runs in Node tests and the Supabase Edge Function.
  * All card IDs/stats are from the generated singleplayer CARDS registry.
  * No browser-provided damage or derived stats are ever trusted.
@@ -32,10 +32,15 @@
  const definition=(catalog,id)=>catalog[id]||catalog[String(id)]||null;
  const PERK_LIMITS=Object.freeze({power:10,jagdinstinkt:5,schildwall:5,
   resilience:2,combatDiscipline:3,fusionLore:1,fusionPrecision:3,openingAegis:3});
+ const ESSENCE_SCHOOLS=['predator','fusion','defense'];
+ const essencePerkRank=tier=>1+(tier>=5?1:0)+(tier>=7?1:0)+
+  (tier>=8?1:0)+(tier>=10?1:0);
+ const essenceLevel=tier=>tier>=10?10:tier>=8?7:tier>=5?5:3;
+ const essenceRankCap=tier=>tier>=10?5:tier>=8?4:tier>=5?3:tier>=3?2:0;
  const TRAINING_BONUSES=[35,25,15,10,8,6,4,3,2,2];
  const DECAY_BY_LEVEL=[0,20,25,30,40,55,65,80,105,135,170];
  const perk=(p,key)=>clamp(p?.upgrades?.[key]||0,0,PERK_LIMITS[key]||0);
- function normalizedBuild(upgrades={},enhancements={},deck=[],fusions=[],catalog={}){
+ function normalizedBuild(upgrades={},enhancements={},deck=[],fusions=[],catalog={},essence={}){
   assert(upgrades&&typeof upgrades==='object'&&!Array.isArray(upgrades),
    'Ausbauten haben ein ungültiges Format.');
   assert(enhancements&&typeof enhancements==='object'&&!Array.isArray(enhancements),
@@ -58,7 +63,25 @@
     'Kartenverstärkung ist ungültig.');
    if(rank)e[id]=rank;
   }
-  return {upgrades:u,enhancements:e};
+  assert(essence&&typeof essence==='object'&&!Array.isArray(essence),
+   'Essenzbindung hat ein ungültiges Format.');
+  const essenceIds=deck.filter(id=>definition(catalog,id)?.essenceMonster===true);
+  assert(essenceIds.length<=1,'Es darf nur ein gebundenes Essenzwesen im Hauptdeck sein.');
+  const chosen=essence.chosen??null,school=essence.school??null;
+  const tier=essence.tier??0,rank=essence.rank??0;
+  assert(Number.isInteger(tier)&&tier>=0&&tier<=10&&
+   Number.isInteger(rank)&&rank>=0&&rank<=essenceRankCap(tier),
+   'Essenzstufe oder Verstärkung ist ungültig.');
+  assert(school===null||ESSENCE_SCHOOLS.includes(school),
+   'Unbekannte Essenz-Spezialisierung.');
+  if(chosen===null){
+   assert(!essenceIds.length&&school===null&&tier===0&&rank===0,
+    'Essenzmonster erfordert die passende aktive Bindung.');
+  }else assert(Number.isInteger(chosen)&&essenceIds.length===1&&
+   essenceIds[0]===chosen&&definition(catalog,chosen)?.essenceSchool,
+   'Gebundenes Essenzmonster muss einmal im eigenen Deck sein.');
+  return {upgrades:u,enhancements:e,essence:{chosen,school,tier,rank,
+   type:chosen===null?null:definition(catalog,chosen).essenceSchool}};
  }
  const trainingBonus=p=>TRAINING_BONUSES.slice(0,perk(p,'power')).reduce((a,b)=>a+b,0);
  const ascensionStep=c=>c.id<20?10:c.fusionOnly?20:30;
@@ -107,13 +130,14 @@
   return {...seats[seat],name,baseDeck:[...deck],baseFusions:[...fusions],
    deck:[...deck],fusionDeck:[...fusions],remainingFusion:[...fusions],
    upgrades:build.upgrades,enhancements:build.enhancements,
+   essence:build.essence||{chosen:null,school:null,tier:0,rank:0,type:null},
    fusionsPerformed:0,fusionLoreChainUsed:false,hand:[],
    field:Array(7).fill(null),graveyard:[],summoned:false,ownTurns:0};
  }
  function draw(p,n=5){while(p.hand.length<n&&p.deck.length)p.hand.push(p.deck.shift());}
  function create({roomId,hostName,hostDeck,hostFusions,enemyDeckA,enemyDeckB,
     enemyFusionsA,enemyFusionsB,chapter=1,entry='new',catalog,randomSeed,
-    hostUpgrades={},hostEnhancements={}}){
+    hostUpgrades={},hostEnhancements={},hostEssence={}}){
   assert(typeof roomId==='string'&&roomId.length>=6,'Raumkennung fehlt.');
   assert(CHAPTERS.some(c=>c.id===chapter),'Ungültiges Kapitel.');
   assert(['new','chapter'].includes(entry),'Ungültiger Einstieg.');
@@ -122,12 +146,14 @@
    assert(validDeck(d,catalog),'Hauptdeck muss aus 40 gültigen Einzelspieler-Karten bestehen (maximal 3 Kopien).');
   for(const f of [hostFusions,enemyFusionsA,enemyFusionsB])
    assert(validDeck(f,catalog,true),'Fusionsdeck muss aus 2–15 freigeschalteten Fusionen bestehen (maximal 3 Kopien).');
-  const hostBuild=normalizedBuild(hostUpgrades,hostEnhancements,hostDeck,hostFusions,catalog);
-  return {schema:2,mode:'duo-campaign',ruleset:'duo-v163',roomId,chapter,entry,
+  const hostBuild=normalizedBuild(hostUpgrades,hostEnhancements,hostDeck,hostFusions,
+   catalog,hostEssence);
+  return {schema:2,mode:'duo-campaign',ruleset:'duo-v164',roomId,chapter,entry,
    status:'waiting',revision:0,activeSeat:0,turn:0,round:1,uid:1,
    rngSeed:Number.isSafeInteger(randomSeed)&&randomSeed>=1&&randomSeed<=0xffffffff?
     randomSeed:roomSeed(roomId), // deterministic Node QA; Edge injects secret crypto seed
-   teams:[{lp:16000,maxLp:16000,shield:maxAegis(hostBuild)},
+   teams:[{lp:16000,maxLp:16000,shield:maxAegis(hostBuild),
+    essenceTauntTurn:-1,essenceBastionUsed:false},
     {lp:16000,maxLp:16000,shield:0}],
    players:[player(0,safeName(hostName),chapterDeck(hostDeck,catalog,chapter,entry),hostFusions,hostBuild),
     player(1,'Gegner A',enemyDeckA,enemyFusionsA),
@@ -138,10 +164,16 @@
   const c=definition(catalog,id);
   assert(c&&c.playable,'Karte existiert nicht im aktuellen Singleplayer-Katalog.');
   const p=Number.isInteger(ownerSeat)?g.players[ownerSeat]:null;
-  const atk=Math.max(0,round10((c.atk+statBonus(c,'atk',p))*quality));
-  const def=Math.max(0,round10((c.def+statBonus(c,'def',p))*quality));
-  return {uid:g.uid++,id,level:c.level,atk,def,role:roleOverride||c.role||'combatant',
+  let atk=Math.max(0,round10((c.atk+statBonus(c,'atk',p))*quality));
+  let def=Math.max(0,round10((c.def+statBonus(c,'def',p))*quality));
+  const companion=!!c.essenceMonster&&p?.essence?.chosen===id;
+  const level=companion?essenceLevel(p.essence.tier):c.level;
+  if(companion){atk=Math.min(10000,atk+level*45+p.essence.rank*35);
+   def=Math.min(10000,def+level*70+p.essence.rank*55);}
+  return {uid:g.uid++,id,level,atk,def,role:roleOverride||c.role||'combatant',
    fusion,mode:'atk',used:false,switched:false,placedRound:g.round,
+   essenceChoice:1,essenceAttacks:0,essenceLastToggle:-1,
+   guardLeft:0,guardGrantedTurn:-1,
    resonance:0,soul:0,condensed:0,soulCooldown:0,raidCooldown:0,
    condenseLeft:0,condenseSlice:0,drainPreference:0,lastSoulAction:-1,
    lastDrainSwitch:-1,decaySkipOwnTurn:-1,maxDef:def,
@@ -149,6 +181,21 @@
  }
  const hasCards=(p)=>p.field.some(Boolean);
  const defensive=c=>c&&['guardian','soul'].includes(c.role);
+ const essenceCompanion=(p,c,type)=>!!c&&p?.essence?.chosen===c.id&&
+  p.essence?.type===type;
+ const defenseSpecialist=p=>p?.essence?.school==='defense'&&p.essence.chosen!==null;
+ const defensePerk=g=>Math.max(0,...g.players.filter(p=>p.team===0&&defenseSpecialist(p))
+  .map(p=>essencePerkRank(p.essence.tier)));
+ const protectBastion=(g,p,slot,catalog)=>{
+  const c=p.field[slot];
+  if(!c||c.mode!=='def'||c.def>0||p.team!==0||!defensive(c)||
+   defensePerk(g)<5||g.teams[0].essenceBastionUsed)return false;
+  g.teams[0].essenceBastionUsed=true;
+  c.def=1;c.guardLeft=2;c.guardGrantedTurn=g.turn;
+  g.log.push('✦ Letztes Bollwerk: '+definition(catalog,c.id).name+
+   ' überlebt mit 1 DEF und schützt sich zwei weitere gegnerische Züge.');
+  return true;
+ };
  const roleName={predator:'Predator',guardian:'Wächter',soul:'Seelenzehrer',
   resonator:'Resonator',combatant:'Allrounder'};
  function combat(c){
@@ -184,6 +231,7 @@
  function removeIfEmpty(g,p,slot,catalog){
   const c=p.field[slot];
   if(c&&c.mode==='def'&&c.def<=0){
+   if(protectBastion(g,p,slot,catalog))return;
    p.graveyard.push(c);p.field[slot]=null;
    g.log.push(definition(catalog,c.id).name+' hat keine DEF mehr und wird zerstört.');
   }
@@ -212,7 +260,11 @@
     if(c.decayGrace>0)c.decayGrace--;
     else{
      const base=DECAY_BY_LEVEL[clamp(c.level,1,10)];
-     const lost=Math.max(1,Math.round(base*(1-.1*perk(p,'resilience'))));
+     let lost=Math.max(1,Math.round(base*(1-.1*perk(p,'resilience'))));
+     if(defenseSpecialist(p)&&c.mode==='def'&&defensive(c)){
+      const reduction=essencePerkRank(p.essence.tier)>=3?.25:.15;
+      lost-=Math.floor(lost*reduction);
+     }
      c.atk=Math.max(0,c.atk-lost);c.def=Math.max(0,c.def-lost);
     }
    }
@@ -236,10 +288,14 @@
   }
  }
  function soulCapacity(c){return 250+c.level*125;}
- function storeSoul(c,amount){
+ const essenceSoulFactor=(g,p)=>{
+  const rank=p.team===0?defensePerk(g):0;
+  return rank>=4?1.22:rank>=2?1.08:1;
+ };
+ function storeSoul(c,amount,schoolFactor=1){
   combat(c);
   const gain=Math.min(Math.max(0,soulCapacity(c)-c.soul),
-   Math.floor(amount*(c.fusion?1.5:1)));
+   Math.floor(amount*Math.max(c.fusion?1.5:1,schoolFactor)));
   c.soul+=gain;return gain;
  }
  function absorbSouls(g,p,catalog){
@@ -266,7 +322,7 @@
     }
    }
    if(!earned)continue;
-   const gain=storeSoul(source,earned);
+   const gain=storeSoul(source,earned,essenceSoulFactor(g,p));
    score(g,p.team,Math.min(60+source.level*60,Math.floor(earned*1.75)),
     definition(catalog,source.id).name+' · Seelenbrand');
    if(source.level>=5&&source.drainPreference===2)
@@ -288,6 +344,7 @@
    if(!c)continue;
    combat(c);
    c.used=false;c.switched=false;
+   c.essenceAttacks=0;
    if(c.role==='combatant')c.resonance=Math.min(3,c.resonance+1);
    if(c.fusion&&c.role==='resonator')c.resonance=Math.min(2,c.resonance+1);
   }
@@ -438,11 +495,14 @@
   const loreChainApplied=perk(p,'fusionLore')>0&&
    !p.fusionLoreChainUsed&&cards.some(c=>c.fusion===true);
   const loreOpeningRoll=perk(p,'fusionLore')>0&&!p.fusionsPerformed;
+  const runeCompanion=p?.field?.some(c=>essenceCompanion(p,c,'fusion'));
+  const essenceRolls=runeCompanion?1+
+   (p.essence?.school==='fusion'&&essencePerkRank(p.essence.tier)>=3?1:0):0;
   const factor=clamp(protectedBase+resonancePct/100+pureRolePct/100+
    heritagePct/100+(loreChainApplied?.03:0),.72,2.2);
   const ordinaryRolls=1+Math.min(3,Math.floor((levels.reduce((a,b)=>a+b,0)-
    Math.max(...levels))/2));
-  const rolls=clamp(ordinaryRolls+bonusRolls+(loreOpeningRoll?1:0)+
+  const rolls=clamp(ordinaryRolls+bonusRolls+(loreOpeningRoll?1:0)+essenceRolls+
    cards.filter(c=>c.ability==='guide').length,1,7);
   const materialBlocks=Math.min(24,cards.reduce((sum,c)=>
    sum+(c.fusion?Math.min(12,c.level):0),0));
@@ -453,7 +513,7 @@
    baseQuality:protectedBase,elemental:pattern.elemental,lowLevelBonus:pattern.lowLevelBonus,
    resonancePct,normalPct,resonatorPct,pureRolePct,heritagePct,
    materialBlocks,soulOdds,comboLevelBonus:pattern.levelBonus,precisionPct,
-   loreChainApplied,loreOpeningRoll};
+   loreChainApplied,loreOpeningRoll,essenceRolls};
  }
  function fusionPreview(g,seat,materials,catalog,{coreIndex,templateId}={}){
   const {rule,cards,analysis,templates}=fusionOptions(g,seat,materials,catalog,{coreIndex});
@@ -534,7 +594,7 @@
    take(first,Math.ceil(budget*Math.max(ratio,1-ratio)));
    take(second,remaining);if(remaining>0)take(first,remaining);
    assert(atk+def>0,'Dieses Ziel besitzt keine entziehbaren Werte mehr.');
-   const gained=storeSoul(c,atk+def);
+   const gained=storeSoul(c,atk+def,essenceSoulFactor(g,p));
    c.raidCooldown=3;c.decaySkipOwnTurn=p.ownTurns;
    g.log.push(label+' raubt '+definition(catalog,target.id).name+' '+atk+
     ' ATK / '+def+' DEF und speichert '+gained+' Seele.');
@@ -552,7 +612,7 @@
    assert(validDeck(action.deck,catalog),'Das Partnerdeck ist ungültig.');
    assert(validDeck(action.fusions,catalog,true),'Das Partner-Fusionsdeck ist ungültig.');
    const build=normalizedBuild(action.upgrades,action.enhancements,
-    action.deck,action.fusions,catalog);
+    action.deck,action.fusions,catalog,action.essence);
    const partner=player(2,safeName(action.name),
     chapterDeck(action.deck,catalog,g.chapter,g.entry),action.fusions,build);
    g.players[2]=partner;g.status='active';
@@ -567,6 +627,7 @@
    g.chapter++;g.status='active';g.winner=null;g.round=1;g.turn=0;g.activeSeat=0;
    g.teams.forEach(t=>t.lp=t.maxLp);
    g.teams[0].shield=teamAegis(g);g.teams[1].shield=0;
+   g.teams[0].essenceTauntTurn=-1;g.teams[0].essenceBastionUsed=false;
    for(const pl of g.players){
     pl.deck=chapterDeck(pl.baseDeck,catalog,g.chapter,'chapter');
     pl.fusionDeck=[...pl.baseFusions];pl.remainingFusion=[...pl.baseFusions];
@@ -588,9 +649,21 @@
    p.summoned=true;g.log.push(p.name+' beschwört '+definition(catalog,id).name+'.');
   }else if(action.type==='switch'){
    const c=p.field[action.slot];
-   assert(c&&!c.used&&!c.switched,'Positionswechsel nicht möglich.');
+   assert(c&&!c.used&&!c.switched&&!(c.essenceAttacks>0),
+    'Positionswechsel nicht möglich.');
    c.mode=c.mode==='atk'?'def':'atk';c.switched=true;
    g.log.push(p.name+' ändert die Position von '+definition(catalog,c.id).name+'.');
+  }else if(action.type==='essencePredatorMode'){
+   const c=p.field[action.slot];
+   assert(essenceCompanion(p,c,'predator')&&c.mode==='atk',
+    'Nur deine gebundene Predatoren-Essenz kann diese Angriffswahl treffen.');
+   assert(Number.isInteger(action.mode)&&[1,2].includes(action.mode)&&
+    action.mode!==c.essenceChoice,'Ungültige Angriffswahl.');
+   assert(!c.used&&!(c.essenceAttacks>0)&&c.essenceLastToggle!==p.ownTurns,
+    'Angriffswahl ist in diesem Zug bereits verbraucht.');
+   c.essenceChoice=action.mode;c.essenceLastToggle=p.ownTurns;
+   g.log.push(p.name+' wählt für '+definition(catalog,c.id).name+
+    (action.mode===2?' zwei Angriffe mit je 70 % Stärke.':' einen Angriff mit 100 % Stärke.'));
   }else if(action.type==='fusion'){
    assert(!p.summoned,'Dieser Zug hat bereits eine Beschwörung.');
    assert(Number.isInteger(action.slot)&&action.slot>=0&&action.slot<7,'Ungültiger Zielfeldplatz.');
@@ -670,29 +743,44 @@
    const src=p.field[action.slot];
    assert(src&&src.mode==='atk'&&!src.used&&src.placedRound<g.round,'Angreifer ist nicht bereit.');
    const foes=g.players.filter(x=>x.team!==p.team);
-   const enemy=foes.find(x=>x.seat===action.targetSeat);
+   let enemy=foes.find(x=>x.seat===action.targetSeat);
    // Swarm includes only the active player's own field, capped at five.
    const predators=p.field.filter(x=>x?.role==='predator').length;
-   const raw=Math.max(0,Math.floor(src.atk*(src.role==='predator'?
+   let raw=Math.max(0,Math.floor(src.atk*(src.role==='predator'?
     1+.02*Math.min(5,predators):1)));
+   if(essenceCompanion(p,src,'predator')&&src.essenceChoice===2)
+    raw=Math.floor(raw*.7);
    if(action.targetSeat===null){
     assert(foes.every(x=>!hasCards(x)),'Direkter Angriff ist durch Gegnerkarten blockiert.');
     score(g,p.team,raw,p.name+' · direkter Angriff');
    }else{
     assert(enemy&&Number.isInteger(action.targetSlot)&&
      action.targetSlot>=0&&action.targetSlot<7,'Gegnerischer Feldplatz fehlt.');
-    const target=enemy.field[action.targetSlot];assert(target,'Ziel ist leer.');
+    let targetSlot=action.targetSlot;
+    let target=enemy.field[targetSlot];assert(target,'Ziel ist leer.');
+    let taunt=false;
+    if(p.team===1&&g.teams[0].essenceTauntTurn!==g.turn){
+     const guard=g.players.filter(owner=>owner.team===0)
+      .flatMap(owner=>owner.field.map((c,slot)=>({owner,c,slot})))
+      .find(x=>essenceCompanion(x.owner,x.c,'defense')&&
+       x.owner.essence.school==='defense'&&x.c.mode==='def'&&!(x.c.guardLeft>0));
+     if(guard){enemy=guard.owner;targetSlot=guard.slot;target=guard.c;
+      taunt=true;g.teams[0].essenceTauntTurn=g.turn;
+      g.log.push('✦ Aschenhort lenkt den ersten Gegnerangriff auf sich und halbiert ihn.');}
+    }
     if(target.mode==='atk'){
      const diff=raw-target.atk;
-     if(diff>=0){enemy.graveyard.push(target);enemy.field[action.targetSlot]=null;}
+     if(diff>=0){enemy.graveyard.push(target);enemy.field[targetSlot]=null;}
      if(diff<=0){p.graveyard.push(src);p.field[action.slot]=null;}
      if(diff!==0)score(g,diff>0?p.team:enemy.team,Math.abs(diff),
       p.name+' · ATK-Duell gegen '+enemy.name);
      g.log.push(p.name+' greift '+enemy.name+' in ATK an (Differenz '+diff+').');
     }else{
      combat(target);
+     const guarded=target.guardLeft>0;
      const mitigation=defensive(target)?(src.role==='predator'?.25:.35):0;
-     let remaining=Math.max(0,Math.floor(raw*(1-mitigation)));
+     let remaining=guarded?0:Math.max(0,
+      Math.floor((taunt?Math.floor(raw*.5):raw)*(1-mitigation)));
      const original=remaining;
      const condensedLost=Math.min(target.condensed,remaining);
      target.condensed-=condensedLost;remaining-=condensedLost;
@@ -702,16 +790,20 @@
      target.def-=defLost;
      if(soulLost)score(g,enemy.team,Math.floor(soulLost*.5),
       definition(catalog,target.id).name+' · erzwungener Seelenverlust');
-     removeIfEmpty(g,enemy,action.targetSlot,catalog);
-     if(defensive(target))score(g,enemy.team,Math.floor(target.atk*.5),
+     removeIfEmpty(g,enemy,targetSlot,catalog);
+     if(defensive(target)&&!guarded)score(g,enemy.team,Math.floor(target.atk*.5),
       definition(catalog,target.id).name+' · Gegenschlag');
      g.log.push(p.name+' greift '+enemy.name+' in DEF an: '+original+
       ' Trefferstärke, −'+condensedLost+' Verdichtung / −'+soulLost+
-      ' Seele / −'+defLost+' Grund-DEF ('+Math.round(mitigation*100)+' % Rüstung).');
+      ' Seele / −'+defLost+' Grund-DEF ('+Math.round(mitigation*100)+' % Rüstung)'+
+      (guarded?' · Letztes Bollwerk immun.':'')+'.');
     }
    }
    if(p.field[action.slot]){
-    p.field[action.slot].used=true;
+    if(essenceCompanion(p,src,'predator')){
+     src.essenceAttacks=(src.essenceAttacks||0)+1;
+     src.used=src.essenceChoice!==2||src.essenceAttacks>=2;
+    }else src.used=true;
     p.field[action.slot].atk=Math.max(0,p.field[action.slot].atk-
      (30-2*perk(p,'combatDiscipline')));
    }
@@ -719,6 +811,9 @@
    soulAction(g,p,action,catalog);
   }else if(action.type==='end'){
    endOwnerTurn(g,p,catalog);
+   if(p.team===1)for(const ally of g.players.filter(x=>x.team===0))
+    for(const c of ally.field.filter(Boolean))if(c.guardLeft>0&&c.guardGrantedTurn!==g.turn)
+     c.guardLeft--;
    if(g.status==='active')moveOn(g,catalog);
   }else fail('Unbekannte Aktion.');
   g.revision++;return g;
@@ -757,7 +852,7 @@
   }
   return v;
  }
- return Object.freeze({version:'16.3-beta',CHAPTERS,seats,allowed,validDeck,packIds,
+ return Object.freeze({version:'16.4-beta',CHAPTERS,seats,allowed,validDeck,packIds,
   chapterDeck,create,apply,aiTurn,view,fusionLevel,fusionPattern,fusionOptions,
   fusionAnalysis,fusionPreview,fusionRole,PERK_LIMITS,normalizedBuild});
 });
