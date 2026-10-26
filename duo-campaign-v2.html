@@ -4,7 +4,7 @@
 <meta name="referrer" content="no-referrer">
 <title>Arcane Duel · 2v2 Regelangleichung (Beta)</title>
 <link rel="stylesheet" href="assets/duo-campaign-demo.css?v=duo-v166">
-<link rel="stylesheet" href="assets/duo-parity-v160.css?v=duo-v172">
+<link rel="stylesheet" href="assets/duo-parity-v160.css?v=duo-v173">
 <link rel="stylesheet" href="assets/duo-cinematics-v167.css?v=duo-v167">
 <link rel="stylesheet" href="assets/duo-cinema-v170.css?v=duo-v170b">
 </head><body><main class="duo-wrap">
@@ -84,6 +84,44 @@
     <p class="micro">Nur bereits erworbene 2v2-Karten sind einsetzbar. Laufende Duelle behalten ihr Startdeck.</p>
    </div>
   </div>
+  <section class="duo-collection" aria-label="Eigene 2v2-Sammlung und Kartenschmiede">
+   <h3>Sammlung und Kartenschmiede</h3>
+   <p id="duoCollectionTotals" class="micro">Sammlung wird geladen …</p>
+   <div class="duo-collection-controls">
+    <label>Kartentyp
+     <select id="duoCollectionFilter">
+      <option value="all">Alle Karten</option>
+      <option value="main">Normale Monster</option>
+      <option value="fusion">Fusionen</option>
+     </select>
+    </label>
+    <label>Suche
+     <input id="duoCollectionSearch" type="search" placeholder="Monstername oder Level" autocomplete="off">
+    </label>
+    <label class="duo-check"><input id="duoCollectionOnlySpare" type="checkbox"> Nur freie Exemplare</label>
+   </div>
+   <div class="duo-collection-scroll">
+    <table class="duo-collection-table"><thead>
+     <tr><th>Karte</th><th>Art / Lv</th><th>Besitz</th><th>Im Deck</th><th>Frei</th><th>Verstärkung</th></tr>
+    </thead><tbody id="duoCollectionRows"></tbody></table>
+   </div>
+   <p class="micro">Karten in aktiven Decks und besondere Questkarten sind vor dem Zerlegen geschützt. Änderungen gelten für neu gestartete Duelle.</p>
+   <div class="duo-collection-actions">
+    <section>
+     <h4>Karte verbessern</h4>
+     <label>Aktive Deckkarte <select id="duoCardEnhanceSelect"></select></label>
+     <p id="duoCardEnhanceOffer" class="micro"></p>
+     <button id="duoCardEnhanceBuy" type="button">Verstärkung kaufen</button>
+    </section>
+    <section>
+     <h4>Überzählige Karte zerlegen</h4>
+     <label>Freies Exemplar <select id="duoCardRecycleSelect"></select></label>
+     <p id="duoCardRecycleOffer" class="micro"></p>
+     <label class="duo-check"><input id="duoCardRecycleConfirm" type="checkbox"> Ein freies Exemplar dauerhaft zerlegen</label>
+     <button id="duoCardRecycleApply" type="button" disabled>Zerlegen und Ressourcen erhalten</button>
+    </section>
+   </div>
+  </section>
   <p id="duoProfileMessage" role="status" aria-live="polite"></p>
  </div>
 </section>
@@ -218,5 +256,6 @@
 <script src="assets/duo-cinematics-v167.js?v=duo-v167"></script>
 <script src="assets/duo-cinema-v170.js?v=duo-v170b"></script>
 <script src="assets/duo-recovery-v168.js?v=duo-v168"></script>
-<script src="assets/duo-parity-v160.js?v=duo-v172"></script>
+<script src="assets/duo-economy-v172.js?v=duo-v173"></script>
+<script src="assets/duo-parity-v160.js?v=duo-v173"></script>
 </body></html>
