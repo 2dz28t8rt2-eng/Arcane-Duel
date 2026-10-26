@@ -53,13 +53,15 @@
   window.clearTimeout(readyTimer);
   title.classList.add('ad196-exiting');
   write(sessionStorage,seenKey,'1');
+  audio()?.setTransientMuted?.(true);
   audio()?.setScene?.('');
   window.setTimeout(()=>{
    title.hidden=true;title.classList.remove('ad196-exiting');
    app.inert=false;closing=false;
    if(typeof callback==='function')callback();
    else if(returnButton&&document.contains(returnButton))returnButton.focus({preventScroll:true});
-  },reduceMotion()?0:550);
+   audio()?.setTransientMuted?.(false);
+  },reduceMotion()?0:1450);
  }
  function action(type){
   if(!title.classList.contains('ad196-ready')||closing)return;

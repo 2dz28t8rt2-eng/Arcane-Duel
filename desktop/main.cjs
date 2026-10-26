@@ -6,6 +6,11 @@ const {app,BrowserWindow,Menu,shell,session}=require('electron');
 const {GAME_ENTRY,REVISION_PATTERN,entryForRevision,isGameUrl,isRepositoryUrl}=require('./url-policy.cjs');
 const {resolveRevision}=require('./revision-resolver.cjs');
 
+// Only this dedicated game window exists in the shell. Its original title
+// theme must begin during the black opening, ahead of the fading wordmark.
+// Applied before app.whenReady; renderer sandbox and site restrictions stay on.
+app.commandLine.appendSwitch('autoplay-policy','no-user-gesture-required');
+
 const DESKTOP_PARTITION='persist:arcane-duel-development';
 let window=null;
 let currentRevision='development';

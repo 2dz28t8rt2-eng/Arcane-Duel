@@ -70,6 +70,7 @@ test('the desktop browser cannot expose native APIs to the remote page',()=>{
  assert.match(source,/contextIsolation:true/);
  assert.match(source,/sandbox:true/);
  assert.match(source,/webSecurity:true/);
+ assert.match(source,/app\.commandLine\.appendSwitch\('autoplay-policy','no-user-gesture-required'\)/);
  assert.match(source,/webviewTag:false/);
  assert.match(source,/persist:arcane-duel-development/);
  assert.match(source,/setWindowOpenHandler/);
@@ -92,7 +93,7 @@ test('offline retry loads the same approved game and includes no native bridge',
 
 test('the executable target is portable and the bundled contents are minimal',()=>{
  const pkg=JSON.parse(read('package.json'));
- assert.equal(pkg.version,'0.1.2');
+ assert.equal(pkg.version,'0.1.3');
  assert.deepEqual(pkg.build.win.target,['portable']);
  assert.equal(pkg.build.win.icon,'build/icon.ico');
  assert.ok(pkg.build.files.includes('build/icon.ico'));

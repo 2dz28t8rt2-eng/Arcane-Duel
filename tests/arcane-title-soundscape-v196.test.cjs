@@ -58,15 +58,16 @@ test('four original instrumental score profiles are musically distinct',()=>{
  }
 });
 
-test('no audio context or scheduled notes before the first user interaction',()=>{
+test('title music tries to start immediately, while interaction remains a fallback',()=>{
  const f=soundscapeHarness();
- assert.equal(f.constructed,0);
- assert.equal(f.notes,0);
- assert.equal(f.api.getSettings().enabled,true);
- assert.equal(f.host.last.textContent,'♫ Musik: An');
- f.events.get('pointerdown')();
  assert.equal(f.constructed,1);
  assert.ok(f.notes>0);
+ assert.equal(f.api.getSettings().enabled,true);
+ assert.equal(f.host.last.textContent,'♫ Musik: An');
+ const before=f.notes;
+ f.events.get('pointerdown')();
+ assert.equal(f.constructed,1);
+ assert.ok(f.notes>=before);
 });
 
 test('title, exploration, early duel and high-tier duel select correct scores',()=>{

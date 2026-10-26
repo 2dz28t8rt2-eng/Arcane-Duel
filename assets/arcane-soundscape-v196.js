@@ -8,7 +8,7 @@
  const STORE='arcane-duel-soundscape-v1';
  const read=()=>{try{return JSON.parse(localStorage.getItem(STORE))||{};}catch{return {};}};
  const saved=read();
- const state={enabled:saved.enabled!==false,volume:Number.isFinite(saved.volume)?Math.max(0,Math.min(1,saved.volume)):0.35,scene:'title',running:false};
+ const state={enabled:saved.enabled!==false,volume:Number.isFinite(saved.volume)?Math.max(0,Math.min(1,saved.volume)):0.35,scene:'title',running:false,transientMuted:false};
  const bar=(root,chord,melody)=>({root,chord,melody});
  // Each score is an original composition. Notes are MIDI pitches, offsets and
  // durations in beats. Chord movement and thematic contour change by scene.
@@ -31,15 +31,15 @@
    bar(57,[64,69,72,76],[[.5,76,.8],[1.5,72,.65],[3,81,.6]]),
    bar(53,[60,65,69,72],[[0,77,1.2],[2,76,.55],[3,72,.8]]),
    bar(52,[64,67,71,76],[[0,76,.65],[1,71,1.2],[3,76,.75]])]},
-  duel:{bpm:116,beats:4,character:'pulse',bars:[
-   bar(45,[57,60,64,69],[[.25,72,.55],[1,76,.5],[2,79,.7],[3.25,76,.45]]),
-   bar(41,[53,57,60,65],[[0,77,.75],[1.25,76,.45],[2.25,72,.55],[3,69,.6]]),
-   bar(48,[60,64,67,72],[[.25,76,.5],[1,79,.55],[2,81,.55],[3,79,.65]]),
-   bar(43,[55,59,62,67],[[0,74,.75],[1.75,76,.4],[2.5,79,.5],[3.25,83,.55]]),
-   bar(45,[57,60,64,69],[[0,81,.65],[.75,79,.45],[2,76,.5],[3,72,.65]]),
-   bar(41,[53,57,60,65],[[.25,77,.6],[1.25,81,.5],[2,79,.7],[3,76,.45]]),
-   bar(43,[55,59,62,67],[[0,74,.6],[1,76,.55],[2.5,79,.7],[3.25,76,.4]]),
-   bar(40,[52,56,59,64],[[0,71,.9],[1.5,73,.45],[2.5,76,.65],[3.3,73,.5]])]},
+  duel:{bpm:104,beats:4,character:'pulse',bars:[
+   bar(50,[62,65,69,72],[[0,74,1.1],[1.5,77,.7],[2.5,76,.65],[3.25,74,.55]]),
+   bar(46,[58,62,65,69],[[0,72,1],[1.6,74,.8],[3,70,.65]]),
+   bar(43,[55,58,62,65],[[.25,70,1],[1.75,74,.8],[3,77,.6]]),
+   bar(45,[57,61,64,67],[[0,76,.9],[1.5,73,.85],[3,69,.65]]),
+   bar(50,[62,65,69,72],[[0,74,.7],[1,77,1.1],[2.5,81,.7]]),
+   bar(48,[60,64,67,70],[[0,79,.95],[1.5,76,.75],[3,72,.65]]),
+   bar(46,[58,62,65,69],[[0,74,.8],[1.25,70,.6],[2.25,72,.9]]),
+   bar(45,[57,61,64,67],[[0,73,1.1],[1.75,69,.6],[2.75,74,.9]])]},
   shadow:{bpm:103,beats:4,character:'shadow',bars:[
    bar(49,[61,64,68,71],[[0,73,1],[1.5,71,.5],[3,68,.5]]),
    bar(45,[57,61,64,69],[[.25,69,.75],[2,73,.8],[3.25,76,.5]]),
@@ -86,7 +86,7 @@
   const tail=warm?1.1:(short?0.14:(bass?0.26:0.65));
   const loud=velocity*(warm?0.065:(bass?0.16:(short?0.105:0.13)));
   const env=envelope(when,loud,duration,tail,warm?0.32:0.014);
-  const filter=ctx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=warm?1300:bass?760:short?3000:4800;filter.Q.value=.5;
+  const filter=ctx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=warm?1050:bass?670:short?1750:2800;filter.Q.value=.5;
   filter.connect(env);
   const spec=warm?[[1,'sawtooth',.6], [1.003,'triangle',.4]]:bass?[[1,'sine',.92],[2,'triangle',.08]]:short?[[1,'triangle',.8],[2,'sine',.2]]:[[1,'sine',.62],[2,'sine',.26],[3,'sine',.12]];
   for(const [multiple,wave,level] of spec){
@@ -116,10 +116,10 @@
   if(battle){
    note(b.root,start,1.2,beat,'bass',.9);
    note(b.root,start+2*beat,.9,beat,'bass',.75);
-   for(let i=0;i<8;i++)noise(start+i*beat*.5,beat,i%4===2);
+   // Gentle rhythm rather than bright chiptune percussion; keep space for the piano.
    kick(start);kick(start+2*beat);
-   for(const offset of [0,1.5,2.75]){
-    for(const tone of b.chord.slice(0,3))note(tone,start+offset*beat,.38,beat,'pluck',score.character==='pulse'?0.53:0.35);
+   for(const offset of [0,2]){
+    for(const tone of b.chord.slice(0,3))note(tone,start+offset*beat,1.0,beat,'pad',score.character==='pulse'?0.23:0.28);
    }
    if(score.character==='shadow')note(b.chord[0]-12,start,beats-.3,beat,'pad',.24);
   }else{
@@ -129,7 +129,7 @@
    for(const pitch of b.chord.slice(0,3))note(pitch,start+.12*beat,beats-.25,beat,'pad',.12);
   }
   for(const [offset,pitch,length] of b.melody){
-   note(pitch,start+offset*beat,length,beat,score.character==='mystery'?'pluck':'piano',battle?0.59:0.62);
+   note(pitch,start+offset*beat,length,beat,score.character==='mystery'?'pluck':'piano',battle?0.50:0.62);
    if(score.character==='piano'&&offset===0)note(pitch+12,start+offset*beat,length*.8,beat,'pluck',.09);
   }
  }
@@ -156,6 +156,7 @@
  }
  function tick(){
   if(!ctx||ctx.state!=='running'||!state.enabled)return;
+  if(state.transientMuted){output.gain.setTargetAtTime(0,ctx.currentTime,.045);current='';nextBarAt=ctx.currentTime+.2;return;}
   const scene=sceneForPage();state.scene=scene;
   if(scene!==current){current=scene;barIndex=0;nextBarAt=ctx.currentTime+.18;output.gain.setTargetAtTime(0,ctx.currentTime,.06);}
   const volume=(!document.hidden?state.volume:0)*.9;
@@ -173,6 +174,7 @@
  function setEnabled(value){state.enabled=!!value;save();updateButton();if(!state.enabled&&output&&ctx){output.gain.setTargetAtTime(0,ctx.currentTime,.06);}else start();}
  function setVolume(value){state.volume=Math.max(0,Math.min(1,Number(value)||0));save();updateButton();if(state.enabled)start();}
  function setScene(value){forced=value&&scores[value]?value:'';current='';if(state.enabled)tick();}
+ function setTransientMuted(value){state.transientMuted=!!value;if(ctx&&output){output.gain.setTargetAtTime(0,ctx.currentTime,.045);}if(!state.transientMuted&&state.enabled)tick();}
  let button=null;
  function updateButton(){if(button){button.textContent='♫ Musik: '+(state.enabled?'An':'Aus');button.setAttribute('aria-pressed',String(state.enabled));button.title='Hintergrundmusik '+(state.enabled?'ausschalten':'einschalten');}}
  function installToggle(){
@@ -183,9 +185,13 @@
   button.addEventListener('click',()=>setEnabled(!state.enabled));host.append(button);updateButton();
  }
  function settings(){return Object.freeze({enabled:state.enabled,volume:state.volume,scene:state.scene,running:!!ctx&&ctx.state==='running'});}
- window.ArcaneSoundscape=Object.freeze({start,setEnabled,setVolume,setScene,refresh:tick,getSettings:settings,scores});
+ window.ArcaneSoundscape=Object.freeze({start,setEnabled,setVolume,setScene,setTransientMuted,refresh:tick,getSettings:settings,scores});
  function ready(){
   installToggle();
+  // Try to begin during the initial black frame, before the title typography
+  // fades in. Ordinary browsers may require the first real user gesture;
+  // the dedicated desktop shell explicitly permits this opening music.
+  if(state.enabled)start();
   document.addEventListener('pointerdown',()=>{if(state.enabled)start();},{once:true,capture:true});
   document.addEventListener('keydown',()=>{if(state.enabled)start();},{once:true,capture:true});
   document.addEventListener('visibilitychange',tick);
