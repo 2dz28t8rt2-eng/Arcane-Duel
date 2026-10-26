@@ -1,4 +1,4 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><title>2v2 v16.2 browser QA</title></head>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>2v2 v16.3 browser QA</title></head>
 <body><pre id="result">Lädt …</pre><iframe id="duo" src="../duo-campaign-v2.html" width="1000" height="900"></iframe>
 <script>
 document.getElementById('duo').addEventListener('load',()=>{
@@ -8,7 +8,7 @@ document.getElementById('duo').addEventListener('load',()=>{
   const check=(v,t)=>{notes.push((v?'OK ':'FAIL ')+t);if(!v)ok=false;};
   try{
    check(!!f.contentWindow.ArcaneDuoRules,'Same reducer as deployed on the Edge Function');
-   check(f.contentWindow.ArcaneDuoRules?.version==='16.2-beta','Correct rules version');
+   check(f.contentWindow.ArcaneDuoRules?.version==='16.3-beta','Correct rules version');
    check(d.getElementById('duoDeckInfo').textContent.includes('Standarddeck')||
     d.getElementById('duoDeckInfo').textContent.includes('übernommen'),
     'Singleplayer main/fusion deck load or safe fallback');
@@ -36,6 +36,11 @@ document.getElementById('duo').addEventListener('load',()=>{
     'Feature coverage and limitations clearly marked');
    check(d.querySelector('.notice').textContent.includes('Qualitätswürfe'),
     'v16.2 fusion dice, defensive roles and limitations explained in the beta');
+   check(d.querySelector('.notice').textContent.includes('Kampf-Ausbauten')&&
+    d.querySelector('.duo-guide').textContent.includes('Kartenaufstiege'),
+    'v16.3 combat builds and card enhancements explained');
+   check(d.querySelector('.duo-guide').textContent.includes('automatisch gespeichert'),
+    'Automatic room saving is discoverable');
   }catch(e){check(false,e.stack||e.message);}
   document.getElementById('result').textContent=notes.join('\n');
   document.documentElement.dataset.duoParity=ok?'pass':'fail';

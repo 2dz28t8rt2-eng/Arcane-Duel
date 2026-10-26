@@ -1,5 +1,26 @@
 # Kampagnenstart und Kapitelpakete – 18. Oktober 2026
 
+> **Fortsetzung 26. Oktober 2026 · v16.3 Kampf-Ausbaustufen auf `development`:**
+> Der isolierte 2v2-Regelkern berechnet nun acht persönliche, bereits aus dem
+> Singleplayer bekannte Kampfausbauten: Monstertraining (10), Jagdinstinkt (5),
+> Schildwall (5), Standhaftigkeit (2), Kampfdisziplin (3), Fusionskunde (1),
+> Runenpräzision (3) und Vorhut-Schutz (3). Normale Monster erhalten dieselben
+> level- und rollenabhängigen Grundboni. Aufstiegsränge 0–5 erhöhen die Werte
+> der eingesetzten Monster und die Basiswerte der Fusionsvorlagen. Der Zerfall
+> steigt nun abhängig vom Level (L1: 20 bis L10: 170 ATK/DEF je eigenem Zug),
+> reduzierbar durch Standhaftigkeit. Partner-Vorhut-Schutz addiert sich als
+> gemeinsamer Schild vor die 16.000 Team-LP. Bei neuen Kapiteln wird der
+> Schild neu aufgebaut. Fusionskunde und Runenpräzision wirken auf die
+> serverseitig gewürfelten ATK-/DEF-Fusionen.
+>
+> **Sicherheitsgrenze:** Eingaben und maximale Ausbauränge werden am Server
+> validiert, die Besitzberechtigung der aus dem lokalen Profil übertragenen
+> Stufen ist mangels Spieler-Login jedoch noch nicht belegbar. Diese Beta ist
+> weiterhin ohne Ranglisten, Spielprämien und Übertragung ins Einzelspielerprofil.
+> Offen bleiben Lv1-Questfusionen mit vollständigem Sonderfähigkeitssystem,
+> Essenz-Sonderfähigkeiten, Besitzprüfung und Zwei-Geräte-Abnahmetest.
+> `main` und die KI-Forschung sind nicht Teil dieses Updates.
+
 > **Fortsetzung 26. Oktober 2026 · v16.2 Fusionsabgleich auf `development`:**
 > Die isolierte Online-Beta berechnet nun dieselben zentralen
 > Fusionskomponenten wie der Singleplayer: Pokerkombinationen inklusive

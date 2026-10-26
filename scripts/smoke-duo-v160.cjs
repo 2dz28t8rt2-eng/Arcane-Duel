@@ -1,8 +1,8 @@
 'use strict';
-/* Manual online smoke. Creates ONE disposable room with real 40-card decks,
+/* Manual online smoke. Creates two disposable rooms with real 40-card decks,
  * verifies invite, 4-seat turn order, server validation, private hands and
- * the v16.2 DEF/Soul abilities and server-only fusion rolls without altering
- * any existing room.
+ * the v16.3 DEF/Soul abilities, combat perk ranks, card ascensions and
+ * server-only fusion rolls without altering any existing room.
  * Requires HTTPS access and a deployed isolated arcane-duo-v2 function.
  */
 const {execFileSync}=require('node:child_process');
@@ -21,13 +21,19 @@ function post(data,expected=200){
 const deck=snapshot.starterMain,fusions=snapshot.starterFusions;
 // Slots 0–2 are chapter loan cards; put Soul in slot 3 so it survives replacement.
 const hostDeck=[...deck.slice(0,3),387,...deck.slice(4)];
-const host=post({type:'create',name:'Parity QA',entry:'new',deck:hostDeck,fusions});
+const host=post({type:'create',name:'Parity QA',entry:'new',deck:hostDeck,fusions,
+ upgrades:{power:10,openingAegis:3,resilience:2,combatDiscipline:3},
+ enhancements:{387:5}});
 assert.equal(host.state.schema,2);
 assert.equal(host.state.status,'waiting');
+assert.equal(host.state.ruleset,'duo-v163');
+assert.equal(host.state.teams[0].shield,75);
 assert.ok(host.invite);
 const guest=post({type:'join',roomId:host.roomId,invite:host.invite,
- name:'Partner QA',deck,fusions});
+ name:'Partner QA',deck,fusions,upgrades:{openingAegis:3}});
 assert.equal(guest.seat,2);
+assert.equal(guest.state.teams[0].shield,150);
+assert.equal(guest.state.players[2].upgrades.openingAegis,3);
 assert.deepEqual(guest.state.players.map(p=>p.hand.length),[5,5,5,5]);
 assert.equal(guest.state.players[0].hand[0],null);
 const blocked=post({type:'action',roomId:host.roomId,token:guest.token,
@@ -37,6 +43,8 @@ const summoned=post({type:'action',roomId:host.roomId,token:host.token,
  expectedRevision:guest.state.revision,action:{type:'summon',handIndex:3,slot:0}});
 assert.equal(snapshot.cards[summoned.state.players[0].field[0].id].playable,true);
 assert.equal(summoned.state.players[0].field[0].role,'soul');
+assert.equal(summoned.state.players[0].field[0].atk,440);
+assert.equal(summoned.state.players[0].field[0].def,960);
 const defended=post({type:'action',roomId:host.roomId,token:host.token,
  expectedRevision:summoned.state.revision,action:{type:'switch',slot:0}});
 assert.equal(defended.state.players[0].field[0].mode,'def');
@@ -66,7 +74,8 @@ assert.equal(checked.state.players[2].hand.every(c=>c===null),true);
 assert.equal(checked.state.rngSeed,undefined,'Clients must never see the next roll seed');
 // The chapter loans in positions 0 and 1 are guaranteed Lv2 material.
 // Test real independent ATK/DEF rolls in a second disposable lobby.
-const fuseHost=post({type:'create',name:'Fusion QA',entry:'new',deck,fusions});
+const fuseHost=post({type:'create',name:'Fusion QA',entry:'new',deck,fusions,
+ upgrades:{fusionLore:1,fusionPrecision:3},enhancements:{41:5}});
 const fuseGuest=post({type:'join',roomId:fuseHost.roomId,invite:fuseHost.invite,
  name:'Fusion Partner',deck,fusions});
 const fused=post({type:'action',roomId:fuseHost.roomId,token:fuseHost.token,
@@ -81,5 +90,14 @@ assert.equal(f.rollMath.winnerIndex,f.rollTrace.findIndex(x=>
  x.atk+x.def===Math.max(...f.rollTrace.map(c=>c.atk+c.def))));
 assert.equal(f.atk,f.rollMath.winner.atk+f.materialBonus.atk);
 assert.equal(f.def,f.rollMath.winner.def+f.materialBonus.def);
+const fusionTemplate=snapshot.cards[41];
+const ascentBase=fusionTemplate.fusionReference.atk*
+ (fusionTemplate.atk+5*20)/fusionTemplate.atk*
+ f.rollMath.roleWeights.atk*f.rollMath.quality;
+assert.equal(f.rollMath.base.atk,Math.round(ascentBase/10)*10,
+ 'Template ascent must feed the authoritative roll baseline before role and quality factors');
 assert.equal(fused.state.rngSeed,undefined);
-console.log('Online 2v2 v16.2: private hands, seat order, save, DEF, Soul, and server-only fusion rolls OK.');
+const invalid=post({type:'create',name:'Tamper QA',entry:'new',deck,fusions,
+ upgrades:{power:99}},400);
+assert.match(invalid.error,/Ungültiger Rang/);
+console.log('Online 2v2 v16.3: private hands, seat order, save, DEF, Soul, validated perks, ascension, shield, and server-only fusion rolls OK.');

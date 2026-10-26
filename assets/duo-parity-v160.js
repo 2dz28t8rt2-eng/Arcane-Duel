@@ -9,7 +9,8 @@
   choices=window.ArcaneDuoBattleUI;
  const key=id=>'arcane-duo-v2-session-'+id;
  const ownOrigin=()=>location.href.split('#')[0].split('?')[0];
- let catalog={},starterMain=[],starterFusions=[],profileDeck=[],profileFusions=[];
+ let catalog={},starterMain=[],starterFusions=[],profileDeck=[],profileFusions=[],
+  profileUpgrades={},profileEnhancements={};
  let game=null,seat=-1,roomId='',token='',invite='',busy=false,refreshing=false,
   syncError='',syncedAt=0,sessionReady=true;
  const set=(id,text)=>$(id).textContent=String(text);
@@ -45,6 +46,7 @@
  function readProfile(snapshot){
   starterMain=[...snapshot.starterMain];starterFusions=[...snapshot.starterFusions];
   profileDeck=[...starterMain];profileFusions=[...starterFusions];
+  profileUpgrades={};profileEnhancements={};
   let message='Noch kein Singleplayer-Spielstand in diesem Browser gefunden. '+
    'Für die Beta wird ein gültiges Standarddeck verwendet.';
   try{
@@ -53,8 +55,20 @@
     const p=JSON.parse(raw);
     if(rules.validDeck(p.activeDeck,catalog)&&rules.validDeck(p.fusionDeck,catalog,true)){
      profileDeck=[...p.activeDeck];profileFusions=[...p.fusionDeck];
-     message='✓ Aktives Einzelspieler-Deck übernommen: 40 Hauptkarten, '+
-      profileFusions.length+' Fusionskarten. Keine Änderungen an deiner Sammlung.';
+     for(const [key,max]of Object.entries(rules.PERK_LIMITS)){
+      const rank=p.upgrades?.[key];
+      if(Number.isInteger(rank)&&rank>=0&&rank<=max)profileUpgrades[key]=rank;
+     }
+     const used=new Set([...profileDeck,...profileFusions]);
+     for(const [key,rank]of Object.entries(p.enhancements||{})){
+      if(used.has(Number(key))&&Number.isInteger(rank)&&rank>=1&&rank<=5)
+       profileEnhancements[key]=rank;
+     }
+     const active=Object.values(profileUpgrades).filter(Boolean).length;
+     message='✓ Einzelspieler-Deck übernommen: 40 Hauptkarten, '+
+      profileFusions.length+' Fusionen, '+active+' aktive Kampf-Ausbauten und '+
+      Object.keys(profileEnhancements).length+' Kartenverstärkungen. '+
+      'Diese Beta liest die Ränge nur beim Raumbeitritt; dein Spielstand bleibt unverändert.';
     }else message='Das gespeicherte Deck entspricht nicht den gültigen Karten-/Kopienregeln. '+
       'Die Beta nutzt ein Standarddeck; deine Sammlung bleibt unverändert.';
    }
@@ -111,6 +125,7 @@
    const entry=$('duoEntry').value;
    const payload={type:'create',name:$('duoHostName').value,entry,
     deck:profileDeck,fusions:profileFusions,
+    upgrades:profileUpgrades,enhancements:profileEnhancements,
     ...(entry==='chapter'?{chapter:chapter().id}:{})};
    const r=await call(payload);
    roomId=r.roomId;token=r.token;seat=0;invite=r.invite;save();load(r);
@@ -123,7 +138,8 @@
   if(busy)return;busy=true;
   try{
    const r=await call({type:'join',roomId:id,invite:invitation,
-    name:$('duoHostName').value,deck:profileDeck,fusions:profileFusions});
+    name:$('duoHostName').value,deck:profileDeck,fusions:profileFusions,
+    upgrades:profileUpgrades,enhancements:profileEnhancements});
    roomId=id;token=r.token;seat=2;invite='';save();load(r);
    location.hash='room='+roomId;
    set('duoStatus','Beitritt erfolgreich. Jetzt kämpft ihr gemeinsam!');
@@ -157,7 +173,8 @@
    return;
   }
   set('duoRoomId',roomId);
-  set('duoAlliedLP',game.teams[0].lp.toLocaleString('de-AT')+' LP');
+  set('duoAlliedLP',game.teams[0].lp.toLocaleString('de-AT')+' LP'+
+   (game.teams[0].shield?' · 🛡 '+game.teams[0].shield+' Schild':''));
   set('duoEnemyLP',game.teams[1].lp.toLocaleString('de-AT')+' LP');
   set('duoTurnName',game.status==='waiting'?'Warte auf deinen Partner':
    game.status==='finished'?(game.winner===0?'Gemeinsamer Sieg!':'Gemeinsame Niederlage'):
@@ -171,6 +188,16 @@
    el('h3',panel,p.name);
    el('small',panel,p.hand.length+' Handkarten · '+p.deck.length+' im Hauptdeck · '+
     p.remainingFusion.length+' Fusionen verbleibend');
+   if(p.team===0){
+    const buffs=Object.entries(p.upgrades||{}).filter(([,rank])=>rank>0);
+    el('small',panel,buffs.length?
+     '✧ '+buffs.map(([key,rank])=>({
+      power:'Training',jagdinstinkt:'Jagdinstinkt',schildwall:'Schildwall',
+      resilience:'Standhaftigkeit',combatDiscipline:'Kampfdisziplin',
+      fusionLore:'Fusionskunde',fusionPrecision:'Runenpräzision',
+      openingAegis:'Vorhut-Schutz'}[key]||key)+' '+rank).join(' · '):
+     '✧ Keine aktiven Kampf-Ausbauten','duo-perk-note');
+   }
    const field=el('div',panel,undefined,'field');
    for(const [slot,c] of p.field.entries()){
     const cell=el('div',field,undefined,'field-cell '+(c?'filled':''));
@@ -288,6 +315,9 @@
        'soul':'Seelenzehrer','resonator':'Resonator'}[analysis.role]||'Resonator')+
        (analysis.soulOdds?' · Seelenzehrer-Erwachen möglich':'')];
      if(analysis.resonancePct)lines.push('✧ Resonanzbonus +'+analysis.resonancePct+' %');
+     if(analysis.precisionPct)lines.push('✧ Runenpräzision +'+analysis.precisionPct+' % Qualität');
+     if(analysis.loreOpeningRoll)lines.push('✦ Fusionskunde: +1 echter Wurf bei der ersten Fusion');
+     if(analysis.loreChainApplied)lines.push('✦ Fusionskunde: +3 % Kettenqualität (einmalig)');
      if(analysis.elemental)lines.push('✧ Alle Materialien teilen ein Element: Elementharmonie');
      for(const line of lines)el('p',preview,line);
      if(availability.templates.length){

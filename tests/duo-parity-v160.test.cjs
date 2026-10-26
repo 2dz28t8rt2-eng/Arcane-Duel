@@ -318,3 +318,124 @@ test('old v16.0 room snapshots continue to run without new Soul fields',()=>{
  assert.equal(after.players[0].field[0].lastSoulAction,0);
  assert.equal(after.teams[1].lp,15870);
 });
+test('combat build is server-validated, bounded to the submitted decks and persists on both seats',()=>{
+ assert.equal(rules.version,'16.3-beta');
+ const opts={roomId:'build-123456',hostName:'Host',hostDeck:deck,hostFusions:fusions,
+  enemyDeckA:deck,enemyDeckB:deck,enemyFusionsA:fusions,enemyFusionsB:fusions,
+  chapter:1,entry:'new',catalog,hostUpgrades:{power:10,openingAegis:3},
+  hostEnhancements:{[deck[0]]:5,[fusions[0]]:2}};
+ const g=rules.create(opts);
+ assert.equal(g.teams[0].shield,75);
+ assert.equal(g.players[0].upgrades.power,10);
+ assert.equal(g.players[0].enhancements[deck[0]],5);
+ assert.equal(g.players[0].enhancements[fusions[0]],2);
+ assert.throws(()=>rules.create({...opts,hostUpgrades:{power:11}}),/Ungültiger Rang/);
+ assert.throws(()=>rules.create({...opts,hostUpgrades:{power:-1}}),/Ungültiger Rang/);
+ assert.throws(()=>rules.create({...opts,hostUpgrades:{power:1.5}}),/Ungültiger Rang/);
+ assert.throws(()=>rules.create({...opts,hostUpgrades:{loot:5}}),/Unbekannter Kampf-Ausbau/);
+ assert.throws(()=>rules.create({...opts,hostEnhancements:{9:6}}),/Kartenverstärkung/);
+ assert.throws(()=>rules.create({...opts,hostEnhancements:{700:5}}),/Kartenverstärkung/);
+ const joined=move(g,2,{type:'join',name:'Guest',deck,fusions,
+  upgrades:{openingAegis:3,jagdinstinkt:2},enhancements:{[deck[0]]:3}});
+ assert.equal(joined.players[2].upgrades.jagdinstinkt,2);
+ assert.equal(joined.teams[0].shield,150);
+ assert.equal(rules.view(joined,0).rngSeed,undefined);
+});
+test('normal monster role bonuses, personal perks, training and individual card ascension combine correctly',()=>{
+ let state=rules.create({roomId:'stats-123456',hostName:'Host',hostDeck:deck,
+  hostFusions:fusions,enemyDeckA:deck,enemyDeckB:deck,enemyFusionsA:fusions,
+  enemyFusionsB:fusions,catalog,hostUpgrades:{power:10,jagdinstinkt:5,schildwall:5},
+  hostEnhancements:{9:5,7:5}});
+ state=move(state,2,{type:'join',name:'Guest',deck,fusions});
+ state.players[0].hand=[9,7];
+ const wolf=move(state,0,{type:'summon',handIndex:0,slot:0}).players[0].field[0];
+ assert.equal(wolf.atk,Math.round((catalog[9].atk+110+5*10+5*(20+10*2))/10)*10);
+ assert.equal(wolf.def,Math.round((catalog[9].def+110+5*10+5*(6+3*2))/10)*10);
+ let guardian=setup();guardian.players[0].hand=[7];
+ guardian.players[0].upgrades={power:10,schildwall:5};
+ guardian.players[0].enhancements={7:5};
+ guardian=move(guardian,0,{type:'summon',handIndex:0,slot:0});
+ assert.equal(guardian.players[0].field[0].atk,
+  Math.round((catalog[7].atk+110+5*10+5*(6+3*2))/10)*10);
+ assert.equal(guardian.players[0].field[0].def,
+  Math.round((catalog[7].def+catalog[7].pveBaseBonus.def+110+5*10+5*(28+10*2))/10)*10);
+});
+test('partner shield is shared and server-authoritative before LP damage',()=>{
+ let state=setup();
+ state.players[0].upgrades={openingAegis:3};
+ state.teams[0].shield=75;
+ state.activeSeat=1;
+ state.players[1].field[0]=live(7,{mode:'def',soul:100});
+ const after=move(state,1,{type:'soulDischarge',slot:0});
+ assert.equal(after.teams[0].shield,0);
+ assert.equal(after.teams[0].lp,16000-55);
+ assert.ok(after.log.some(x=>x.includes('75 Schaden durch Vorhut-Schutz')));
+});
+test('level-sensitive creature decay and Standhaftigkeit match singleplayer, independently of attack fatigue',()=>{
+ let state=setup();
+ state.players[0].upgrades={resilience:2,combatDiscipline:3};
+ state.players[0].field[0]=live(700,{atk:500,def:500,maxDef:500});
+ const after=move(state,0,{type:'end'});
+ assert.equal(after.players[0].field[0].atk,448);
+ assert.equal(after.players[0].field[0].def,448);
+ assert.equal(after.players[0].field[0].maxDef,500);
+ let attack=setup();attack.players[0].upgrades={combatDiscipline:3};
+ attack.round=2;attack.players[0].field[0]=live(9,{atk:500});
+ attack=move(attack,0,{type:'attack',slot:0,targetSeat:null,targetSlot:null});
+ assert.equal(attack.players[0].field[0].atk,476);
+});
+test('fusion perks add opening roll, completed street precision and one-time chain quality',()=>{
+ const base=setup(),boost=setup();
+ const materials=[0,1,2,3,4].map(index=>({from:'hand',index}));
+ base.players[0].hand=[9,9,9,9,9];
+ boost.players[0].hand=[9,9,9,9,9];
+ boost.players[0].upgrades={fusionLore:1,fusionPrecision:3};
+ const normal=rules.fusionOptions(base,0,materials,catalog).analysis;
+ const improved=rules.fusionOptions(boost,0,materials,catalog).analysis;
+ assert.equal(improved.loreOpeningRoll,true);
+ assert.equal(improved.rolls,Math.min(7,normal.rolls+1));
+ assert.ok(improved.quality>normal.quality);
+ assert.equal(improved.precisionPct,4.5);
+ const chainA=live(41,{fusion:true,level:2,quality:1.2});
+ const chainB=live(41,{fusion:true,level:2,quality:1.2});
+ const chain=rules.fusionAnalysis([chainA,chainB],rules.fusionLevel([chainA,chainB]),
+  boost.players[0]);
+ assert.equal(chain.loreChainApplied,true);
+ boost.players[0].fusionLoreChainUsed=true;
+ const second=rules.fusionAnalysis([chainA,chainB],rules.fusionLevel([chainA,chainB]),
+  boost.players[0]);
+ assert.equal(second.loreChainApplied,false);
+ assert.ok(chain.quality>second.quality);
+ const straightCards=[1,2,3,4,5].map(level=>({level,role:'predator',fusion:false}));
+ const straightRule=rules.fusionLevel(straightCards);
+ const normalStreet=rules.fusionAnalysis(straightCards,straightRule);
+ const poweredStreet=rules.fusionAnalysis(straightCards,straightRule,boost.players[0]);
+ assert.equal(poweredStreet.precisionPct,6);
+ assert.equal(poweredStreet.rolls,Math.min(7,normalStreet.rolls+2));
+});
+test('ascended fusion template raises server-authoritative preview and real roll baseline',()=>{
+ const base=setup(),boost=setup();
+ base.players[0].hand=[4,5];boost.players[0].hand=[4,5];
+ boost.players[0].enhancements={41:5};
+ const materials=[{from:'hand',index:0},{from:'hand',index:1}];
+ const a=rules.fusionPreview(base,0,materials,catalog,{templateId:41});
+ const b=rules.fusionPreview(boost,0,materials,catalog,{templateId:41});
+ assert.ok(b.atk[0]>a.atk[0]);
+ assert.ok(b.def[1]>a.def[1]);
+ const fused=move(boost,0,{type:'fusion',materials,slot:0,templateId:41});
+ assert.ok(fused.players[0].field[0].rollMath.base.atk>a.atk[0]);
+});
+test('pre-v16.3 rooms without perk fields still accept actions and chapter transition',()=>{
+ let state=setup();state.ruleset='duo-v162';
+ for(const p of state.players){delete p.upgrades;delete p.enhancements;
+  delete p.fusionsPerformed;delete p.fusionLoreChainUsed;}
+ for(const t of state.teams)delete t.shield;
+ state=move(state,0,{type:'summon',handIndex:0,slot:0});
+ assert.ok(state.players[0].field[0].atk>0);
+ state.players[1].deck=[];
+ state=move(state,0,{type:'end'});
+ assert.equal(state.status,'finished');
+ state=move(state,0,{type:'nextChapter'});
+ assert.equal(state.status,'active');
+ assert.equal(state.teams[0].shield,0);
+});

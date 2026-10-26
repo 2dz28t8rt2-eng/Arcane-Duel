@@ -24,6 +24,10 @@ const cards=runtime.run(`CARDS.map(c=>({
  id:c.id,name:c.name,level:c.level,atk:c.atk,def:c.def,
  role:c.role||'combatant',element:c.element||'',
  ability:typeof c.ability==='string'?c.ability:'',
+ pveBaseBonus:!c.fusionOnly&&!c.essenceMonster?{
+  atk:normalRoleBonus(c,'atk',1,{}),
+  def:normalRoleBonus(c,'def',1,{})
+ }:{atk:0,def:0},
  art:typeof c.art==='string'&&c.art.startsWith('assets/')?c.art:'',
  fusionOnly:!!c.fusionOnly,ace:!!c.ace,
  playable:!!c.rpg&&!c.retired&&!c.enemyOnly&&!c.fateOnly,

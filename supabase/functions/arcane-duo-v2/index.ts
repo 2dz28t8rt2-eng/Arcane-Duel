@@ -1,4 +1,4 @@
-/* 2v2 v16.2 beta. Isolated from the legacy arcane-duo endpoint/room table.
+/* 2v2 v16.3 beta. Isolated from the legacy arcane-duo endpoint/room table.
  * Client sends choices only. Deck legality, fusion levels, roles, damage,
  * draw order, turn ownership and private state live on the server.
  */
@@ -83,6 +83,7 @@ Deno.serve(async request=>{
    const id=uuid(),host=secret(),invite=secret();
    const state=game.create({roomId:id,hostName:safeName(body.name),
     hostDeck:body.deck,hostFusions:body.fusions,
+    hostUpgrades:body.upgrades,hostEnhancements:body.enhancements,
     enemyDeckA:enemyDeck(chapter,1),enemyDeckB:enemyDeck(chapter,3),
     enemyFusionsA:enemyFusions(chapter),enemyFusionsB:enemyFusions(chapter),
     chapter,entry,catalog,
@@ -103,7 +104,8 @@ Deno.serve(async request=>{
    assert(room.status==="waiting"&&!room.guest_token_hash,"Raum bereits besetzt.");
    assert(await hash(body.invite)===room.invitation_hash,"Einladung ungültig.");
    const guest=secret(),next=game.apply(room.state,2,
-    {type:"join",name:body.name,deck:body.deck,fusions:body.fusions},{catalog});
+    {type:"join",name:body.name,deck:body.deck,fusions:body.fusions,
+     upgrades:body.upgrades,enhancements:body.enhancements},{catalog});
    const {data:updated,error:writeError}=await db.from(TABLE).update({state:next,
     status:next.status,revision:next.revision,guest_token_hash:await hash(guest),
     invitation_hash:await hash(secret())}).eq("id",roomId)

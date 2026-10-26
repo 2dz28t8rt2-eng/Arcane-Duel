@@ -3,8 +3,8 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>Arcane Duel · 2v2 Regelangleichung (Beta)</title>
-<link rel="stylesheet" href="assets/duo-campaign-demo.css?v=duo-v162">
-<link rel="stylesheet" href="assets/duo-parity-v160.css?v=duo-v162">
+<link rel="stylesheet" href="assets/duo-campaign-demo.css?v=duo-v163">
+<link rel="stylesheet" href="assets/duo-parity-v160.css?v=duo-v163">
 </head><body><main class="duo-wrap">
 <header class="duo-header">
  <div><p class="kicker">✧ ARCANE DUEL · 2V2 REGELANGLEICHUNG</p>
@@ -16,9 +16,11 @@
  <b>Beta der neuen Online-Spielregeln – getrennt von bestehenden 2v2-Räumen.</b>
  Aktive Haupt- und Fusionsdecks werden lokal aus deinem Singleplayer-Profil gelesen; die
  Originalsammlung wird nicht verändert. Karten, Angriffe, DEF-Kampf, Rollenvererbung,
- Seelenzehrer sowie Fusionskombinationen und ATK-/DEF-Qualitätswürfe werden serverseitig
- berechnet. Persönliche Perks und einige Sonderfertigkeiten benötigen noch einen
- weiteren Abgleich. Die Forschung
+ Seelenzehrer, Fusionskombinationen, ATK-/DEF-Qualitätswürfe und die acht persönlichen
+ Kampf-Ausbauten werden serverseitig berechnet. Aufstiegsränge deiner Deckkarten werden
+ mit übernommen. <strong>Unrangierte Beta:</strong> Da die Übertragung aus dem lokalen
+ Profil noch keinen bestätigten Kartenbesitz belegt, gibt es weder Belohnungen noch Ranglisten.
+ Besondere Lv1-Questfusionen und Essenz-Sonderfertigkeiten folgen später. Die Forschung
  an der Einzelspieler-KI bleibt unberührt.
 </aside>
 <div class="duo-layout">
@@ -54,6 +56,15 @@
    <li>Vier Sitzplätze: Gastgeber → KI A → Partner → KI B.</li>
    <li>Jeder hat 40 Hauptkarten, ein eigenes Fusionsdeck, fünf Handkarten und sieben Feldplätze.</li>
    <li>Beide Teams teilen sich je 16.000 LP; Beschwörung, Angriff und Position werden geprüft.</li>
+   <li>Persönliche Werkstatt-Ausbaustufen aus dem aktiven Profil gelten für eigene Karten:
+    Monstertraining, Jagdinstinkt, Schildwall, Standhaftigkeit, Kampfdisziplin,
+    Fusionskunde, Runenpräzision und Vorhut-Schutz. Kartenaufstiege (0–5) gelten
+    auch für deine eingesetzten Fusionsvorlagen. Der Server begrenzt die Ränge.
+    Ohne lesbares Profil spielen diese Boni auf Rang 0.</li>
+   <li>Vorhut-Schutz beider Partner schützt die gemeinsamen Team-LP vor Schaden
+    (je Rang 25 Schildpunkte). Die Schildpunkte erneuern sich bei Kapitelwechsel.
+    Zerfall steigt mit dem Monsterlevel; Standhaftigkeit verringert ihn um bis zu 20 %.
+    Kampfdisziplin reduziert die ATK-Müdigkeit nach einem Angriff.</li>
    <li>Fusionen nutzen ausschließlich eigene Hand- und Feldmaterialien. Vorlagen aus dem
     eigenen Fusionsdeck werden im Duell verbraucht. Kernkarte, Pokerkombination
     (z. B. Straße oder Full House), Elementharmonie, Resonanz und echte
@@ -68,7 +79,8 @@
    <li>Wächter heilen verbündete DEF-Monster bis zu deren ursprünglichem Grundwert.
     Resonanz und Fusionen richten sich nach den eingesetzten Materialien.</li>
    <li>Bei fehlenden Karten im Deck zu Beginn des eigenen Zuges verliert das Team.</li>
-   <li>Räume laufen nach 48 Stunden ab. Die Wiederaufnahme funktioniert mit diesem Tab.</li>
+   <li>Räume laufen nach 48 Stunden ab. Der Online-Spielstand wird nach jeder Aktion
+    automatisch gespeichert; die Wiederaufnahme funktioniert mit diesem Tab.</li>
   </ul>
  </details>
  <p id="duoChapterInfo" class="micro"></p>
@@ -87,7 +99,7 @@
  <div class="duo-log"><h3>Kampfprotokoll</h3><ol id="duoLog"></ol></div>
 </section>
 </div></main>
-<script src="assets/duo-shared-rules-v160.js?v=duo-v162"></script>
-<script src="assets/duo-battle-ui-v158.js?v=duo-v162"></script>
-<script src="assets/duo-parity-v160.js?v=duo-v162"></script>
+<script src="assets/duo-shared-rules-v160.js?v=duo-v163"></script>
+<script src="assets/duo-battle-ui-v158.js?v=duo-v163"></script>
+<script src="assets/duo-parity-v160.js?v=duo-v163"></script>
 </body></html>
