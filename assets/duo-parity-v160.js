@@ -121,6 +121,7 @@
   if(game.status!=='waiting')invite='';
   save();render();
   window.ArcaneDuoCinematics167?.onState(previous,game);
+  window.ArcaneDuoCinema170?.onState(previous,game);
  }
  async function refresh(){
   if(!roomId||!token||refreshing||busy)return;
@@ -226,7 +227,7 @@
   set('duoAlliedLP',game.teams[0].lp.toLocaleString('de-AT')+' LP'+
    (game.teams[0].shield?' · 🛡 '+game.teams[0].shield+' Schild':''));
   set('duoEnemyLP',game.teams[1].lp.toLocaleString('de-AT')+' LP');
-  set('duoTurnName',game.status==='waiting'?'Warte auf deinen Partner':
+  set('duoTurnName',game.status==='waiting'?'Warte auf den zweiten menschlichen Spieler':
    game.status==='finished'?(game.winner===0?'Gemeinsamer Sieg!':'Gemeinsame Niederlage'):
    'Runde '+game.round+' · '+game.players[game.activeSeat].name+' am Zug');
   if(game.ruleset==='duo-v166'){
@@ -246,6 +247,8 @@
    const panel=el('article',seats,undefined,'seat '+(game.activeSeat===p.seat?'active':''));
    panel.dataset.seat=String(p.seat);
    el('h3',panel,p.name);
+   el('small',panel,p.kind==='human'?'MENSCH · '+(p.seat===0?'GASTGEBER':'PARTNER'):
+    'KI-GEGNER','duo-seat-kind');
    el('small',panel,p.hand.length+' Handkarten · '+p.deck.length+' im Hauptdeck · '+
     p.remainingFusion.length+' Fusionen verbleibend');
    if(p.team===0){
