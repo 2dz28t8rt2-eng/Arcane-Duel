@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcane Duel · Karten direkt auswählen · v18.7</title>
+<link rel="stylesheet" href="../assets/duo-campaign-demo.css">
+<link rel="stylesheet" href="../assets/duo-combat-flow-v186.css">
+<link rel="stylesheet" href="../assets/duo-direct-cards-v187.css">
+<style>
+ .duo-wrap{max-width:1100px}.duo-battle{position:relative}
+ .demo-instruction{border:1px solid #8a7650;border-radius:12px;padding:15px;margin:14px 0;background:#20273b}
+ .demo-instruction p{margin:6px 0}.demo-controls{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+ .demo-controls button{min-height:43px}.demo-battle-status{color:#ffe4ae;font-weight:650;min-height:24px}
+ .four-seats{margin-top:13px}.seat .field{min-height:72px}.seat .field-cell{height:74px}
+ .seat .field-cell.filled{padding:5px}.seat .field-cell small{font-size:10px;opacity:.85}
+ .seat .duo-ghost-reserve{margin-top:7px}.seat .duo-ghost-reserve .field{margin-top:7px}
+ .duo-attack-note{font-size:12px;color:#d9dfed}.ad186-action-card{margin-top:8px}
+</style>
+</head><body><main class="duo-wrap">
+<header class="duo-header"><div><p class="kicker">✧ ARCANE DUEL · KLICKBARE VORSCHAU</p>
+<h1>Angriff per Kartenklick · v18.7</h1>
+<p>Wähle deine Karte auf dem Feld, danach das gegnerische Monster. Erst ein Klick auf „Angriff bestätigen“ löst die Aktion aus.</p></div>
+<a href="../duo-campaign-v2.html">← Zur 2v2-Kampagne</a></header>
+<div class="duo-panel duo-battle">
+<div class="demo-instruction"><p>⚔ Türkis markiert Monster, die angreifen dürfen. Gold zeigt deine Auswahl, Rot die möglichen Ziele.</p>
+<p>Probiere auch die <strong>Geisterzone</strong>, einen <strong>Direktangriff</strong> oder die Bedienung über die Dropdown-Menüs.</p>
+<div class="demo-controls"><button id="ad187-demo-field">Monster auf dem Feld</button>
+<button id="ad187-demo-ghost">Geisterzonen</button>
+<button id="ad187-demo-direct">Direkter Angriff</button></div>
+<p class="demo-battle-status" role="status" aria-live="polite" id="ad187-demo-status">Noch kein Angriff ausgeführt. Dies ist nur eine Vorschau.</p></div>
+<div class="four-seats" id="duoSeats"></div>
+<div id="ad187-attack-guide" class="ad187-attack-guide" aria-label="Angriffsauswahl" hidden></div>
+<div id="duoActions" class="action-dock"></div></div>
+</main>
+<script src="../assets/duo-combat-flow-v186.js"></script>
+<script src="../assets/duo-direct-cards-v187.js"></script>
+<script>
+(()=>{
+ const seats=document.getElementById('duoSeats');
+ const dock=document.getElementById('duoActions');
+ const status=document.getElementById('ad187-demo-status');
+ const game={status:'active',activeSeat:0,roomId:'v187-preview'};
+ const catalog={101:{name:'Mondwächter'},102:{name:'Geisterritter'},201:{name:'Aschewolf'},202:{name:'Nachtgeist'},301:{name:'Sonnenhüter'},401:{name:'Schattenritter'}};
+ const make=(tag,parent,text,cls)=>{const result=document.createElement(tag);if(cls)result.className=cls;
+  if(text!==undefined)result.textContent=text;parent.append(result);return result;};
+ let scenario='field';
+ function card(slot,id){return {slot,card:{id}};}
+ function seat(name,index,field,ghost=[]){
+  const panel=make('article',seats,undefined,'seat');panel.dataset.seat=String(index);
+  make('h3',panel,name);make('small',panel,index%2===0?'VERBÜNDETE':'GEGNER','duo-seat-kind');
+  const grid=make('div',panel,undefined,'field');
+  for(let slot=0;slot<3;slot++){
+   const cell=make('div',grid,undefined,'field-cell'+(field[slot]?' filled':''));cell.dataset.slot=String(slot);
+   if(field[slot]){make('span',cell,catalog[field[slot]].name);make('small',cell,'Lv 4 · ⚔ ATK');}
+   else make('span',cell,'◇');
+  }
+  if(ghost.length){
+   const reserve=make('div',panel,undefined,'duo-ghost-reserve');
+   make('strong',reserve,'✧ Geisterzone');const row=make('div',reserve,undefined,'field');
+   for(let slot=0;slot<3;slot++){
+    const cell=make('div',row,undefined,'field-cell duo-ghost-cell'+(ghost[slot]?' filled':''));cell.dataset.slot=String(slot);
+    if(ghost[slot]){make('span',cell,catalog[ghost[slot]].name);make('small',cell,'Geistermonster');}
+    else make('span',cell,'◇');
+   }
+  }
+ }
+ function selector(row,label,items,tag){
+  const wrapper=make('label',row,undefined,'duo-choice');make('span',wrapper,label);
+  const select=make('select',wrapper);select.dataset[tag]='true';
+  for(const item of items){const option=make('option',select,item[1]);option.value=item[0];}
+  return select;
+ }
+ function render(){
+  seats.replaceChildren();dock.replaceChildren();dock.classList.remove('ad186-enhanced');
+  document.getElementById('ad187-attack-guide').hidden=true;
+  const onlyGhost=scenario==='ghost',direct=scenario==='direct';
+  seat('Du · Gastgeber',0,onlyGhost?[]:[101],onlyGhost?[102]:[]);
+  seat('KI · Aschenheer',1,direct?[]:onlyGhost?[]:[201],onlyGhost?[202]:[]);
+  seat('Dein Partner',2,[301]);
+  seat('KI · Schattenheer',3,direct?[]:[401]);
+  const sources=onlyGhost?[{...card(0,102),area:'ghost'}]:[card(0,101)];
+  const targets=direct?[]:onlyGhost?
+   [{...card(0,202),seat:1,area:'ghost'},{...card(0,401),seat:3}]:
+   [{...card(0,201),seat:1},{...card(0,401),seat:3}];
+  const legal={attackers:sources,targets};
+  make('p',dock,'Du bist dran! Klicke deinen Angreifer direkt auf dem Feld an.','duo-turn-note');
+  const group=make('section',dock,undefined,'duo-action-group');
+  make('h3',group,'⚔ Angriff');make('p',group,'Du kannst auch die herkömmliche Auswahl verwenden.','duo-attack-note');
+  const row=make('div',group,undefined,'duo-choices');
+  const sourceSelect=selector(row,'Angreifer',sources.map(item=>[(item.area||'field')+':'+item.slot,
+   catalog[item.card.id].name]),'ad187Source');
+  const targetSelect=selector(row,'Ziel',targets.length?targets.map(item=>[item.seat+':'+(item.area||'field')+':'+item.slot,
+   catalog[item.card.id].name]):[['direct','Direkt auf die Lebenspunkte']],'ad187Target');
+  const action=make('button',group,'Angriff bestätigen','primary');action.dataset.ad187Commit='true';
+  action.onclick=()=>{
+   const attacker=sources.find(item=>(item.area||'field')+':'+item.slot===sourceSelect.value);
+   const target=targets.find(item=>item.seat+':'+(item.area||'field')+':'+item.slot===targetSelect.value);
+   if(!attacker||targets.length&&!target)return;
+   status.textContent='✓ Vorschau: '+catalog[attacker.card.id].name+' greift '+
+    (target?catalog[target.card.id].name:'direkt die gegnerischen Lebenspunkte')+' an. Kein echter Spielzug.';
+  };
+  window.ArcaneDuoCombatFlow186.enhance({dock,game,seat:0,roomId:game.roomId});
+  window.ArcaneDuoDirectCards187.enhance({dock,game,seat:0,legal,catalog});
+ }
+ document.getElementById('ad187-demo-field').onclick=()=>{scenario='field';status.textContent='Monster auf dem Feld. Wähle Mondwächter.';render();};
+ document.getElementById('ad187-demo-ghost').onclick=()=>{scenario='ghost';status.textContent='Geisterzonen. Wähle Geisterritter.';render();};
+ document.getElementById('ad187-demo-direct').onclick=()=>{scenario='direct';status.textContent='Direktangriff. Die Gegner haben keine Monster.';render();};
+ render();
+})();
+</script></body></html>

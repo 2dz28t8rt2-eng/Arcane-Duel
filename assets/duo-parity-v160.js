@@ -470,6 +470,8 @@
  }
  function render(){
   const dock=$('duoActions'),track=$('duoTrack'),seats=$('duoSeats'),log=$('duoLog');
+  const directGuide=$('ad187-attack-guide');
+  if(directGuide){directGuide.hidden=true;directGuide.replaceChildren();}
   dock.classList.remove('ad186-enhanced');
   for(const n of [dock,track,seats,log])n.replaceChildren();
   $('duoCreate').hidden=!!roomId||location.hash.startsWith('#join=');
@@ -874,20 +876,24 @@
    const attack=selector('Angreifer',legal.attackers.map(x=>[
     (x.area||'field')+':'+x.slot,
     (x.area==='ghost'?'Geisterzone ':'Feld ')+(x.slot+1)+' · '+format(x.card)]),row);
+   attack.dataset.ad187Source='true';
    const target=selector('Ziel',legal.targets.length?
     legal.targets.map(x=>[x.seat+':'+(x.area||'field')+':'+x.slot,
      x.name+' · '+(x.area==='ghost'?'Geisterzone ':'Feld ')+(x.slot+1)+
      ' · '+format(x.card)]):[['direct','Direkt gegen Team-LP']],row);
-   button('Angriff bestätigen',part,()=>{
+   target.dataset.ad187Target='true';
+   const attackCommit=button('Angriff bestätigen',part,()=>{
     const src=legal.attackers.find(x=>(x.area||'field')+':'+x.slot===attack.value);
     const dst=target.value==='direct'?null:
      legal.targets.find(x=>x.seat+':'+(x.area||'field')+':'+x.slot===target.value);
     send(choices.attackCommand(src,dst));
    });
+   attackCommit.dataset.ad187Commit='true';
   }
   button('Zug beenden →',el('div',dock,undefined,'duo-actions-footer'),
    ()=>send({type:'end'}));
   window.ArcaneDuoCombatFlow186?.enhance?.({dock,roomId,seat,game});
+  window.ArcaneDuoDirectCards187?.enhance?.({game,seat,legal,dock,catalog,busy,syncError});
  }
  async function init(){
   try{
