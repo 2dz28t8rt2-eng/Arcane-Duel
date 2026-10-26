@@ -6,7 +6,8 @@
 (()=>{
  const api='https://cvmtmvruutdneyblumgf.supabase.co/functions/v1/arcane-duo-v2';
  const $=id=>document.getElementById(id),rules=window.ArcaneDuoRules,
-  choices=window.ArcaneDuoBattleUI,recovery=window.ArcaneDuoRecovery168;
+  choices=window.ArcaneDuoBattleUI,recovery=window.ArcaneDuoRecovery168,
+   economyRules=window.ArcaneDuoEconomy172;
  const key=id=>'arcane-duo-v2-session-'+id;
  const ownOrigin=()=>location.href.split('#')[0].split('?')[0];
  let catalog={},starterMain=[],starterFusions=[],fateIds=[],fateNames=[],profileDeck=[],profileFusions=[],
@@ -100,6 +101,92 @@
   currentCard.value=String(deck[Number(place.value)]??owned[0]??'');
   place.onchange=()=>{currentCard.value=String(deck[Number(place.value)]);};
  }
+
+ const economyProfile=()=>({
+  ...duoProfile,owned_main:duoProfile?.ownedMain||[],
+  owned_fusions:duoProfile?.ownedFusions||[],
+  cleared_chapters:duoProfile?.clearedChapters||[]
+ });
+ function renderCollectionTable(){
+  if(!duoProfile||!economyRules)return;
+  const zone=$('duoCollectionFilter').value;
+  const term=$('duoCollectionSearch').value.trim().toLocaleLowerCase('de');
+  const onlySpare=$('duoCollectionOnlySpare').checked;
+  const target=$('duoCollectionRows');target.replaceChildren();
+  const rows=economyRules.collectionRows(economyProfile(),catalog,zone);
+  let shown=0;
+  for(const item of rows){
+   if(onlySpare&&!item.spare)continue;
+   if(term&&!(item.name+' '+item.level+' '+(item.fusion?'fusion':'normal'))
+     .toLocaleLowerCase('de').includes(term))continue;
+   const tr=el('tr',target,undefined,item.spare?'duo-card-spare':'');
+   el('td',tr,item.name+' · #'+item.id);
+   el('td',tr,(item.fusion?'Fusion':'Normal')+' · Lv '+item.level);
+   el('td',tr,String(item.quantity));
+   el('td',tr,String(item.used));
+   el('td',tr,String(item.spare));
+   el('td',tr,item.enhancement+'/5'+(item.protected?' · geschützt':''));
+   shown++;
+  }
+  if(!shown){
+   const tr=el('tr',target);const td=el('td',tr,
+    'Keine passenden Karten.','duo-collection-empty');td.colSpan=6;
+  }
+ }
+ function updateCollectionOffers(){
+  if(!duoProfile||!economyRules)return;
+  const p=economyProfile(),active=Number($('duoCardEnhanceSelect').value),
+   available=Number($('duoCardRecycleSelect').value);
+  const enhance=economyRules.enhanceOffer(p,active,catalog);
+  if(!enhance){
+   set('duoCardEnhanceOffer','Wähle eine Karte aus deinem aktiven Deck.');
+   $('duoCardEnhanceBuy').disabled=true;
+  }else if(enhance.maxed){
+   set('duoCardEnhanceOffer','Maximalrang 5 erreicht.');
+   $('duoCardEnhanceBuy').disabled=true;
+  }else{
+   set('duoCardEnhanceOffer','Rang '+enhance.rank+' → '+enhance.nextRank+
+    ' · +'+enhance.bonusPerStat+' ATK / DEF je Rang · '+
+    enhance.essence+' Essenz + '+enhance.shards+' Splitter');
+   $('duoCardEnhanceBuy').disabled=duoProfile.essence<enhance.essence||
+    duoProfile.shards<enhance.shards;
+  }
+  const recycle=economyRules.recycleOffer(p,available,catalog);
+  if(!recycle){
+   set('duoCardRecycleOffer','Keine zerlegbare Karte ausgewählt.');
+   $('duoCardRecycleApply').disabled=true;
+  }else{
+   set('duoCardRecycleOffer','Noch '+recycle.spare+
+    ' freie Exemplare · Rückgabe: '+recycle.essence+
+    ' Essenz + '+recycle.shards+' Splitter');
+   $('duoCardRecycleApply').disabled=!$('duoCardRecycleConfirm').checked;
+  }
+ }
+ function renderCollection(){
+  if(!duoProfile||!economyRules)return;
+  const p=economyProfile(),rows=economyRules.collectionRows(p,catalog);
+  const total=rows.reduce((n,x)=>n+x.quantity,0);
+  const spare=rows.reduce((n,x)=>n+x.spare,0);
+  set('duoCollectionTotals',total+' eigene Karten · '+rows.length+
+   ' verschiedene Vorlagen · '+spare+' Exemplare außerhalb der Decks');
+  const enhance=$('duoCardEnhanceSelect'),recycle=$('duoCardRecycleSelect'),
+   selectedA=enhance.value,selectedR=recycle.value;
+  enhance.replaceChildren();recycle.replaceChildren();
+  for(const row of rows){
+   if(row.used){
+    const o=el('option',enhance,row.name+' (Lv '+row.level+
+     ', Rang '+row.enhancement+'/5)');o.value=String(row.id);
+   }
+   if(row.recyclable){
+    const o=el('option',recycle,row.name+' · '+row.spare+' frei');
+    o.value=String(row.id);
+   }
+  }
+  if([...enhance.options].some(o=>o.value===selectedA))enhance.value=selectedA;
+  if([...recycle.options].some(o=>o.value===selectedR))recycle.value=selectedR;
+  $('duoCardRecycleConfirm').checked=false;
+  renderCollectionTable();updateCollectionOffers();
+ }
  function installProfile(data){
   duoProfile=data.profile;duoLastRoom=data.lastRoom??duoLastRoom;
   duoEconomy=data.economy??duoEconomy;
@@ -167,6 +254,7 @@
    'Kapitel I–'+nextChapter+' auswählbar · '+(duoProfile.clearedChapters?.length||0)+
    ' Kapitel abgeschlossen.');
   deckEditor();
+  renderCollection();
   render();
  }
  async function fetchProfile(){
@@ -198,6 +286,10 @@
      data.newCards.map(c=>c.name+' (Lv '+c.level+')').join(', ')+
      '. Eigene Karten können im Deckeditor eingesetzt werden.':
     data.newCard?'Neue 2v2-Karte: '+data.newCard.name:
+    data.enhanced?'Karte verbessert: '+name(data.enhanced.id)+
+     ' · Rang '+data.enhanced.rank+'/5. Gilt bei neuen Duellen.':
+    data.recycled?'Ungenutzte Karte zerlegt: +'+data.recycled.essence+
+     ' Essenz und +'+data.recycled.shards+' Splitter.':
     '2v2-Fortschritt erfolgreich auf dem Server gespeichert.');
   }catch(e){set('duoProfileMessage',e.message);await fetchProfile();}
   finally{profileSaving=false;}
@@ -752,6 +844,21 @@
    $('duoResearchEssenceBuy').onclick=()=>profileOperation('research',{branch:'essence'});
    $('duoEssenceBindSave').onclick=()=>profileOperation('bindEssence',{
     cardId:Number($('duoEssenceBindCard').value)});
+   $('duoCollectionFilter').onchange=renderCollectionTable;
+   $('duoCollectionSearch').oninput=renderCollectionTable;
+   $('duoCollectionOnlySpare').onchange=renderCollectionTable;
+   $('duoCardEnhanceSelect').onchange=updateCollectionOffers;
+   $('duoCardRecycleSelect').onchange=()=>{
+    $('duoCardRecycleConfirm').checked=false;updateCollectionOffers();
+   };
+   $('duoCardRecycleConfirm').onchange=updateCollectionOffers;
+   $('duoCardEnhanceBuy').onclick=()=>profileOperation('enhance',{
+    cardId:Number($('duoCardEnhanceSelect').value)});
+   $('duoCardRecycleApply').onclick=()=>{
+    if(!$('duoCardRecycleConfirm').checked)return;
+    $('duoCardRecycleConfirm').checked=false;
+    profileOperation('recycle',{cardId:Number($('duoCardRecycleSelect').value)});
+   };
    $('duoProfileDeckSave').onclick=()=>profileOperation('deckReplace',{
     zone:$('duoProfileDeckZone').value,
     slot:Number($('duoProfileDeckSlot').value),
