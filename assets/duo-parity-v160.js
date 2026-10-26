@@ -392,6 +392,7 @@
   window.ArcaneDuoStanceCinema191?.onState(previous,game,catalog);
   window.ArcaneDuoImpactCinema192?.onState(previous,game,catalog);
   window.ArcaneDuoAbilitiesCinema193?.onState(previous,game,catalog);
+  window.ArcaneDuoSound194?.onState(previous,game,catalog,seat);
   if(previous&&previous.status!=='finished'&&game.status==='finished'&&
    game.winner===0&&duoProfileToken)fetchProfile();
  }

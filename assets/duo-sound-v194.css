@@ -1,0 +1,11 @@
+/* Arcane Duel v19.4: small, accessible and deliberately opt-in audio controls. */
+.ad194-sound-controls{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:9px;min-height:35px;margin:0 0 11px;padding:6px 10px;border:1px solid #73638b80;border-radius:11px;background:linear-gradient(115deg,#211c36bf,#141e34ac)}
+.ad194-sound-controls button{padding:6px 11px;border:1px solid #9b8fac;border-radius:9px;background:linear-gradient(145deg,#372d4b,#242139);font:700 12px/1.35 system-ui,sans-serif;color:#f5eafa;cursor:pointer;white-space:nowrap}
+.ad194-sound-controls[data-enabled="true"] button{color:#ffeec5;border-color:#e4bd78;box-shadow:inset 0 0 10px #bd914634}
+.ad194-sound-controls button:focus-visible,.ad194-sound-controls input:focus-visible{outline:2px solid #f7d083;outline-offset:3px}
+.ad194-sound-controls .ad194-sound-level{display:flex;align-items:center;gap:8px;font:650 11px/1.2 system-ui,sans-serif;color:#e1d8ed;white-space:nowrap}
+.ad194-sound-controls input[type="range"]{width:100px;max-width:23vw;accent-color:#d9b7ee;cursor:pointer}
+.ad194-sound-controls output{min-width:34px;color:#fff1cd;font-variant-numeric:tabular-nums}
+.ad194-sound-controls[data-enabled="false"] .ad194-sound-level{display:none}
+.ad194-sound-hint{font:11px/1.35 system-ui,sans-serif;color:#bcb1ca;flex:0 1 auto;text-align:right}
+@media(max-width:650px){.ad194-sound-controls{justify-content:flex-start}.ad194-sound-hint{text-align:left;width:100%}}

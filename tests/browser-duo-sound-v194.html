@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcane Duel · v19.4 Klangprobe</title>
+<link rel="stylesheet" href="../assets/duo-sound-v194.css">
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 15%,#3c2c55,#161b30 55%,#10141f);color:#f6f0ff;font:15px/1.55 system-ui,sans-serif}
+main{max-width:1080px;margin:0 auto;padding:30px 18px 65px}.eyebrow{color:#dfbc85;font-size:12px;font-weight:750;letter-spacing:.2em}h1{font:750 clamp(28px,4.3vw,46px)/1.1 Georgia,serif;color:#ffe9c7;margin:8px 0 13px}h2{font:750 23px Georgia,serif;margin:25px 0 10px}p{color:#d6ccdf;margin:0 0 17px}.hero{border:1px solid #8b76a5;border-radius:16px;background:linear-gradient(145deg,#30243ebd,#191e30d8);padding:22px;margin-top:22px;box-shadow:0 15px 35px #0006}.tag{display:inline-block;font:750 12px system-ui,sans-serif;padding:4px 9px;border-radius:10px;border:1px solid #ab956c;color:#f7d6a7}
+.ad194-sound-controls{justify-content:flex-start;margin-top:15px;margin-bottom:0;padding:13px}.ad194-sound-hint{text-align:left}.ad194-sound-controls button{font-size:15px;padding:10px 16px}.ad194-sound-controls input[type=range]{width:180px;max-width:40vw}
+.samples{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}.sample{display:flex;flex-direction:column;gap:9px;min-height:148px;padding:18px;border:1px solid #78698c;border-radius:13px;background:linear-gradient(155deg,#29243af0,#1a2136d7)}.sample h3{font-size:16px;margin:0;color:#f5daaa}.sample p{font-size:13px;line-height:1.45;flex:1;margin:0;color:#cfc4dc}.sample button{padding:9px 12px;border:1px solid #b99ec1;border-radius:9px;color:#ffead4;background:#40314f;font-weight:700;cursor:pointer}.sample button:hover,.sample button:focus-visible{outline:2px solid #e8ca8c;outline-offset:2px;background:#56416e}.sample button:disabled{opacity:.47;cursor:not-allowed}.notice{padding:11px 15px;margin:16px 0;border:1px solid #827592;border-radius:10px;color:#f5e4c7;background:#332c3bc7}footer{font-size:12px;color:#b8acc7;margin-top:26px}
+</style></head><body><main>
+<div class="eyebrow">✧ ARCANE DUEL · QUALITY UPDATE 19.4</div>
+<h1>Eine eigene Klangwelt für jedes Duell</h1>
+<p>Karten rascheln, Schutzschilde klingen hell und schwere Angriffe erzeugen einen deutlich tieferen Aufprall. Hier kannst du die neuen Klänge selbst beurteilen.</p>
+<section class="hero"><span class="tag">🎧 Klanglabor</span><h2>Du entscheidest, wann es losgeht</h2>
+ <p>Der Ton bleibt ausgeschaltet, bis du ihn einschaltest. Die Lautstärke kannst du direkt hier ändern; deine Einstellung wird für den 2v2-Modus gespeichert.</p>
+ <div id="ad194-sound-controls" class="ad194-sound-controls" data-enabled="false" role="group" aria-label="Duellklänge">
+  <button type="button" id="ad194-sound-toggle" aria-pressed="false">🔇 Ton aus</button>
+  <label for="ad194-sound-volume" class="ad194-sound-level">Lautstärke
+   <input id="ad194-sound-volume" type="range" min="0" max="100" step="5" value="35" aria-label="Lautstärke der Duellklänge">
+   <output id="ad194-sound-value" for="ad194-sound-volume">35 %</output>
+  </label><small id="ad194-sound-hint" class="ad194-sound-hint" role="status" aria-live="polite"></small>
+ </div>
+</section>
+<p id="preview-message" class="notice" role="status" aria-live="polite">Aktiviere oben den Ton. Danach kannst du jeden Effekt einzeln anhören.</p>
+<h2>Karten und Kämpfe</h2>
+<div class="samples">
+ <article class="sample"><h3>🃏 Karten ziehen</h3><p>Ein leichter, schneller Papierklang beim neuen Handkarten-Zug.</p><button type="button" data-sound="draw" disabled>Anhören</button></article>
+ <article class="sample"><h3>✧ Beschwörung</h3><p>Ein kurzer magischer Ton begleitet das Erscheinen eines Monsters.</p><button type="button" data-sound="summon" disabled>Anhören</button></article>
+ <article class="sample"><h3>✦ Fusion</h3><p>Drei aufsteigende Stimmen stimmen auf das Fusionsritual ein.</p><button type="button" data-sound="fusion" disabled>Anhören</button></article>
+ <article class="sample"><h3>⚔ Angriff</h3><p>Eine schnelle Bewegung kündigt den Einschlag an.</p><button type="button" data-sound="attack" disabled>Anhören</button></article>
+ <article class="sample"><h3>💥 Treffer</h3><p>Ein fester Aufprall für normalen Schaden.</p><button type="button" data-sound="hit" disabled>Anhören</button></article>
+ <article class="sample"><h3>🔥 Schwerer Treffer</h3><p>Ein tieferer und kraftvollerer Einschlag.</p><button type="button" data-sound="heavy" disabled>Anhören</button></article>
+ <article class="sample"><h3>🛡 Schild</h3><p>Ein heller Schutzklang, wenn Schaden abgefangen wird.</p><button type="button" data-sound="shield" disabled>Anhören</button></article>
+ <article class="sample"><h3>↩ Gegenschlag</h3><p>Ein eigener kurzer Kampfruf für den Wächter-Gegenschlag.</p><button type="button" data-sound="counter" disabled>Anhören</button></article>
+</div>
+<h2>Monsterfähigkeiten</h2>
+<div class="samples">
+ <article class="sample"><h3>◆ Verdichten</h3><p>Mehrere steigende, gebündelte Energietöne.</p><button type="button" data-sound="condense" disabled>Anhören</button></article>
+ <article class="sample"><h3>✦ Seelenentzug</h3><p>Ein abwärts fließender Klang wie eingesogene Energie.</p><button type="button" data-sound="siphon" disabled>Anhören</button></article>
+ <article class="sample"><h3>◎ Seelenfokus</h3><p>Ein kurzer heller Klang beim Wechsel des Entzugsfokus.</p><button type="button" data-sound="focus" disabled>Anhören</button></article>
+ <article class="sample"><h3>✴ Resonanz</h3><p>Zwei helle Töne vermitteln den wachsenden Fusionsbonus.</p><button type="button" data-sound="resonance" disabled>Anhören</button></article>
+ <article class="sample"><h3>☄ Seelenentladung</h3><p>Eine beschleunigende Energiewelle mit tiefem Nachhall.</p><button type="button" data-sound="discharge" disabled>Anhören</button></article>
+ <article class="sample"><h3>🏆 Sieg</h3><p>Eine kurze aufsteigende Siegesfolge.</p><button type="button" data-sound="win" disabled>Anhören</button></article>
+</div>
+<footer>Alle Beispiele werden direkt im Browser erzeugt. Kein Download, keine Anmeldung und kein Einfluss auf deinen Spielstand.</footer>
+</main>
+<script src="../assets/duo-sound-v194.js"></script>
+<script>
+(()=>{
+ const audio=window.ArcaneDuoSound194;
+ const buttons=[...document.querySelectorAll('button[data-sound]')];
+ const message=document.getElementById('preview-message');
+ const toggle=document.getElementById('ad194-sound-toggle');
+ function sync(){
+  const active=audio.isEnabled();
+  buttons.forEach(button=>button.disabled=!active);
+  message.textContent=active?'Wähle einen Klang aus. Für den besten Eindruck nutze Kopfhörer bei angenehmer Lautstärke.':
+   'Schalte zuerst den Ton ein, um die Effekte anzuhören.';
+ }
+ toggle.addEventListener('click',sync);
+ buttons.forEach(button=>button.addEventListener('click',()=>{
+  if(audio.isEnabled())audio.playPreview(button.dataset.sound);
+ }));
+ sync();
+})();
+</script></body></html>

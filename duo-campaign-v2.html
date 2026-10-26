@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="assets/duo-stance-cinema-v191.css?v=20261026-v191">
 <link rel="stylesheet" href="assets/duo-impact-cinema-v192.css?v=20261026-v192">
 <link rel="stylesheet" href="assets/duo-abilities-cinema-v193.css?v=20261026-v193">
+<link rel="stylesheet" href="assets/duo-sound-v194.css?v=20261026-v194">
 </head><body><main class="duo-wrap">
 <header class="duo-header">
  <div><p class="kicker">✧ ARCANE DUEL · GEMEINSAME KAMPAGNE</p>
@@ -236,6 +237,14 @@
  <p id="duoStatus" role="status" aria-live="polite"></p>
 </section>
 <section class="duo-panel duo-battle" id="duoBattleArena">
+ <div id="ad194-sound-controls" class="ad194-sound-controls" data-enabled="false" role="group" aria-label="Duellklänge">
+  <button type="button" id="ad194-sound-toggle" aria-pressed="false">🔇 Ton aus</button>
+  <label for="ad194-sound-volume" class="ad194-sound-level">Lautstärke
+   <input id="ad194-sound-volume" type="range" min="0" max="100" step="5" value="35" aria-label="Lautstärke der Duellklänge">
+   <output id="ad194-sound-value" for="ad194-sound-volume">35 %</output>
+  </label>
+  <small id="ad194-sound-hint" class="ad194-sound-hint" role="status" aria-live="polite"></small>
+ </div>
  <div class="stats">
   <div><small>EUER TEAM</small><strong id="duoAlliedLP">16.000 LP</strong><div id="ad185-allied-bar" class="ad185-lp-gauge" role="progressbar" aria-label="Lebenspunkte der Verbündeten" aria-valuemin="0" aria-valuemax="16000" aria-valuenow="16000"><span id="ad185-allied-fill"></span></div><span id="ad185-allied-ratio" class="ad185-lp-ratio">100 %</span></div>
   <div><small>DIE GEGNER</small><strong id="duoEnemyLP">16.000 LP</strong><div id="ad185-enemy-bar" class="ad185-lp-gauge ad185-lp-foe" role="progressbar" aria-label="Lebenspunkte der Gegner" aria-valuemin="0" aria-valuemax="16000" aria-valuenow="16000"><span id="ad185-enemy-fill"></span></div><span id="ad185-enemy-ratio" class="ad185-lp-ratio">100 %</span></div>
@@ -284,5 +293,6 @@
 <script src="assets/duo-stance-cinema-v191.js?v=20261026-v191"></script>
 <script src="assets/duo-impact-cinema-v192.js?v=20261026-v192"></script>
 <script src="assets/duo-abilities-cinema-v193.js?v=20261026-v193"></script>
+<script src="assets/duo-sound-v194.js?v=20261026-v194"></script>
 <script src="assets/duo-parity-v160.js?v=duo-v174"></script>
 </body></html>
