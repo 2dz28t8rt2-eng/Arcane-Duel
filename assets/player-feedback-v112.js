@@ -85,7 +85,17 @@
    if(success){
     const ids=[...profile.lastBooster.cards];
     renderMenu();
-    showBoosterCards(ids,fusion?'Gemischtes Fusionspack':'Monster-Booster');
+    // Ordinary boosters are opened by the solo pack bridge as soon as their
+    // real rewards are granted. Fusion packs use the same cinema here.
+    if(fusion&&window.ArcanePackCinema178?.open){
+     window.ArcanePackCinema178.open(ids.map(id=>{
+      const c=CARDS[id];
+      return {name:c.name,level:c.level,art:typeof dataOf==='function'?dataOf({id}).art:c.art,
+       fusion:!!c.fusionOnly,ace:!!c.ace};
+     }),{title:'GEMISCHTES FUSIONSPACK',subtitle:'Deine neuen Karten'});
+    }else if(!window.ArcanePackCinema178?.open){
+     showBoosterCards(ids,fusion?'Gemischtes Fusionspack':'Monster-Booster');
+    }
     return;
    }
    return oldAction(d);
