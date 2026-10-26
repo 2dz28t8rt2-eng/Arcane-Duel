@@ -121,7 +121,7 @@
   if(game.status!=='waiting')invite='';
   save();render();
   window.ArcaneDuoCinematics167?.onState(previous,game);
-  window.ArcaneDuoCinema170?.onState(previous,game);
+  window.ArcaneDuoCinema170?.onState(previous,game,catalog);
  }
  async function refresh(){
   if(!roomId||!token||refreshing||busy)return;
