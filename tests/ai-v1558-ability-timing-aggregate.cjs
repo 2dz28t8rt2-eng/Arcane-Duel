@@ -84,7 +84,7 @@ for(let stage=0;stage<9;stage++){
  assert.deepEqual(t.validationCandidate,baseline.validation);
  assert.deepEqual(t.holdoutCandidate,baseline.holdout);
  for(const arm of t.summaries)for(const split of ['train','validation','holdout']){
-  assert.equal(arm[split].games,stage===4?256:stage===7?192:stage===8?128:64);
+  assert.equal(arm[split].games,stage===4?256:stage===7?256:stage===8?128:64);
  }
  stages.push({stage,name:t.name,selected:'guardian-champion',promoted:false,
   selectedRolePolicy:t.summaries[0].rolePolicy,baseline:t.summaries[0],
@@ -98,7 +98,7 @@ for(let stage=0;stage<9;stage++){
 assert.equal(rows.length,9216);
 assert.equal(noDecayRows.length,1152);
 assert.equal(decayRows.length,1152);
-assert.equal(headToHeadRows.length,3456);
+assert.equal(headToHeadRows.length,4608);
 assert.equal(focusedRows.length,2304);
 for(const split of ['train','validation','holdout'])
  assert.equal(rows.filter(r=>r.split===split).length,3072);
@@ -534,7 +534,7 @@ const decisionDiagnostics=names.slice(3).map(arm=>{
 const report={schema:'arcane-v1558-defender-sequences-report',status:'completed',
  sourceSha:process.env.GITHUB_SHA||'unknown',
  totalDuels:18432,primaryDuels:9216,decayDiagnosticDuels:1152,noDecayDiagnosticDuels:1152,
- headToHeadDiagnosticDuels:3456,focusedDiagnosticDuels:2304,
+ headToHeadDiagnosticDuels:4608,focusedDiagnosticDuels:2304,
  trainDuels:3072,validationDuels:3072,holdoutDuels:3072,
  controls:{bothSeatsUseFullStrategicAI:true,noIllegalMoves:true,
   trainValidationHoldoutSeparated:true,holdoutNeverUsedForSelection:true,
@@ -596,7 +596,7 @@ const report={schema:'arcane-v1558-defender-sequences-report',status:'completed'
  'Selective defense only invokes legal preview when current visible enemy attack threatens an unswitched own attacker; candidate threshold fixed before run, not tuned on holdout.',
  'New attack-vs-defense planner executes up to two own legal attacks before up to two visible opponent replies for both options, as a partial forecast, not an entire turn or hidden-hand search.',
  'Defender action evaluation considers only legal visible Soul raids, releases, attacks and research-only tactical condense; it cannot anticipate hidden opposing cards or a complete future turn.',
- 'Stage 7 uses the verified frozen v14.9.55 guarded research champion as the opposing strategy. It spans 18 scenarios per pair (6 each TRAIN/VALIDATION/HOLDOUT), with 192 distinct validation duels per arm. Holdout and Q training are excluded.',
+ 'Stage 7 uses the verified frozen v14.9.55 guarded research champion as the opposing strategy. It spans 24 scenarios per pair (8 each TRAIN/VALIDATION/HOLDOUT), with 256 distinct validation duels per arm. Holdout and Q training are excluded.',
  'New sequence-worst branch prioritizes visible enemy attack/target options by legal public board danger and probes at most ten first replies per candidate fusion; bounded counterfactual, not full minimax.',
  'New fusion sequencing simulates up to two legal own attacks then two legal replies, not a complete turn or hidden-hand game tree.',
  'Condense is enabled only for the tactical-condense candidate, and its 3-turn cooldown, guarded soul transfer and opportunity scoring are checked in the research simulator against public essence-combat rules. It has not yet been validated as a production AI ability.',
