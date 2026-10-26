@@ -487,6 +487,7 @@
    $('duoRecoveryArea').hidden=true;
    set('duoTurnName',location.hash.startsWith('#join=')?
     'Nimm die Einladung an und kämpfe mit!':'Noch kein Duell gestartet');
+   window.ArcaneDuoExperience185?.didRender?.({game,seat,roomId});
    return;
   }
   set('duoRoomId',roomId);
@@ -604,6 +605,7 @@
   for(const line of [...game.log].slice(-10).reverse())el('li',log,line);
   window.ArcaneDuoHand178?.sync({game,seat,roomId,catalog});
   window.ArcaneCombatIdentity183?.duoDidRender?.({game,roomId});
+  window.ArcaneDuoExperience185?.didRender?.({game,seat,roomId});
   if(game.status!=='active'){
    if(game.status==='finished'&&game.winner===0&&game.chapter<4){
     if(seat===0)button('✦ Kapitel '+(game.chapter+1)+' starten',

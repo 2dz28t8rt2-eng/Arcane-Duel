@@ -13,12 +13,13 @@
 <link rel="stylesheet" href="assets/duo-comfort-v182.css?v=20261026-v182">
 <link rel="stylesheet" href="assets/collection-rewards-v184.css?v=20261026-v184">
 <link rel="stylesheet" href="assets/combat-identity-v183.css?v=20261026-v183">
+<link rel="stylesheet" href="assets/duo-experience-v185.css?v=20261026-v185">
 </head><body><main class="duo-wrap">
 <header class="duo-header">
  <div><p class="kicker">✧ ARCANE DUEL · GEMEINSAME KAMPAGNE</p>
  <h1>Das Bündnis der Vier</h1>
  <p>Schließ dich mit einem Freund zusammen und stellt euch zu zweit den Gegnern der Arena.</p></div>
- <a href="index.html">← Zum Hauptspiel</a>
+ <nav class="ad185-header-nav" aria-label="Schnellnavigation"><a class="ad185-jump-to-battle" href="#duoBattleArena">⚔ Zum Duell</a><a href="index.html">← Zum Hauptspiel</a></nav>
 </header>
 <aside class="notice">
  <b>Gemeinsam kämpfen, gemeinsam wachsen.</b>
@@ -226,11 +227,17 @@
  <p id="duoChapterInfo" class="micro"></p>
  <p id="duoStatus" role="status" aria-live="polite"></p>
 </section>
-<section class="duo-panel duo-battle">
+<section class="duo-panel duo-battle" id="duoBattleArena">
  <div class="stats">
-  <div><small>TEAM VERBÜNDETE</small><strong id="duoAlliedLP">16.000 LP</strong></div>
-  <div><small>TEAM GEGNER</small><strong id="duoEnemyLP">16.000 LP</strong></div>
+  <div><small>EUER TEAM</small><strong id="duoAlliedLP">16.000 LP</strong><div id="ad185-allied-bar" class="ad185-lp-gauge" role="progressbar" aria-label="Lebenspunkte der Verbündeten" aria-valuemin="0" aria-valuemax="16000" aria-valuenow="16000"><span id="ad185-allied-fill"></span></div><span id="ad185-allied-ratio" class="ad185-lp-ratio">100 %</span></div>
+  <div><small>DIE GEGNER</small><strong id="duoEnemyLP">16.000 LP</strong><div id="ad185-enemy-bar" class="ad185-lp-gauge ad185-lp-foe" role="progressbar" aria-label="Lebenspunkte der Gegner" aria-valuemin="0" aria-valuemax="16000" aria-valuenow="16000"><span id="ad185-enemy-fill"></span></div><span id="ad185-enemy-ratio" class="ad185-lp-ratio">100 %</span></div>
  </div>
+ <section id="ad185-turn-banner" class="ad185-turn-banner" aria-label="Aktuelle Zuganzeige" hidden>
+  <span class="ad185-turn-crest" aria-hidden="true">✧</span>
+  <div class="ad185-turn-content"><span id="ad185-turn-eyebrow" class="ad185-turn-eyebrow"></span>
+   <h3 id="ad185-turn-title"></h3><p id="ad185-turn-hint"></p></div>
+ </section>
+ <p id="ad185-team-event" class="ad185-team-event" role="status" aria-live="polite" hidden></p>
  <div class="turn-track" id="duoTrack"></div>
  <h2 id="duoTurnName">Noch kein Raum</h2>
  <p id="duoCurrentReward" class="duo-chapter-rewards"></p>
@@ -244,6 +251,7 @@
  <details class="duo-log ad182-duo-fold"><summary>▤ Kampfprotokoll <small>Duellverlauf ansehen</small></summary><ol id="duoLog"></ol></details>
 </section>
 </div></main>
+<div id="ad185-turn-cue" class="ad185-turn-cue" aria-hidden="true" hidden></div>
 <script src="assets/fate-illustrations.js?v=duo-v166"></script>
 <script src="assets/duo-shared-rules-v160.js?v=duo-v166"></script>
 <script src="assets/duo-battle-ui-v158.js?v=duo-v166"></script>
@@ -256,5 +264,6 @@
 <script src="assets/duo-hand-cinema-v178.js?v=duo-v178"></script>
 <script src="assets/combat-identity-v183.js?v=20261026-v183"></script>
 <script src="assets/collection-rewards-v184.js?v=20261026-v184"></script>
+<script src="assets/duo-experience-v185.js?v=20261026-v185"></script>
 <script src="assets/duo-parity-v160.js?v=duo-v174"></script>
 </body></html>

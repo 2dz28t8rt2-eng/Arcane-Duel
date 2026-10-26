@@ -1,0 +1,82 @@
+/* v18.5 – team identity, clear turn order and unobtrusive cooperative feedback. */
+.duo-battle{--ad185-ally:#6cd7d9;--ad185-foe:#ef8b8e;--ad185-gold:#efc989}
+.ad185-header-nav{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+.ad185-header-nav a{white-space:nowrap}
+.ad185-header-nav a.ad185-jump-to-battle{background:linear-gradient(135deg,#30525a,#1f3442);border-color:#7dc2b7;color:#d9fff3}
+#duoBattleArena{scroll-margin-top:16px}
+.duo-battle .stats>div:first-child{border-color:#65cbca9c;background:linear-gradient(145deg,#163945,#102132)}
+.duo-battle .stats>div:last-child{border-color:#bc677a93;background:linear-gradient(145deg,#3c233c,#201d31)}
+.duo-battle .stats>div:first-child strong{color:#c2fff0}
+.duo-battle .stats>div:last-child strong{color:#ffd0d3}
+.ad185-lp-gauge{display:block;position:relative;margin:10px 0 5px;height:10px;overflow:hidden;border:1px solid #ffffff43;
+  border-radius:99px;background:#09131fde;box-shadow:inset 0 2px 4px #030a10cc}
+.ad185-lp-gauge>span{display:block;width:100%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#3996b1,#8ce6ca);
+  box-shadow:0 0 10px #7ce6d484;transition:width .55s ease-out}
+.ad185-lp-gauge.ad185-lp-foe>span{background:linear-gradient(90deg,#d25c72,#ecaaa4);box-shadow:0 0 10px #f4878c84}
+.ad185-lp-ratio{font:700 11px system-ui;color:#bbd5e1}
+.ad185-lp-gauge.ad185-lp-hit{animation:ad185Hit .75s ease-out 1}
+.ad185-turn-banner{position:relative;display:grid;grid-template-columns:auto 1fr;gap:15px;align-items:center;
+  border:1px solid #749a9f;border-radius:13px;background:linear-gradient(120deg,#1a3741,#112233 75%);
+  padding:15px 17px;margin-top:15px;box-shadow:inset 0 1px #a7f6ea21,0 7px 17px #050a1780;overflow:hidden}
+.ad185-turn-banner::after{position:absolute;right:-12px;top:-49px;font:150px/1 Georgia,serif;color:#ffffff08;
+  content:'✧';pointer-events:none}
+.ad185-turn-crest{display:grid;place-items:center;width:54px;height:54px;border:2px solid #70bfc4;border-radius:50%;
+  font:31px Georgia,serif;color:#abf5e3;background:radial-gradient(circle,#2e6b70,#14323e 75%);
+  box-shadow:0 0 19px #59c6b33b;z-index:1}
+.ad185-turn-content{position:relative;z-index:1;min-width:0}
+.ad185-turn-eyebrow{display:block;color:#8be2d8;font:800 10px/1.4 system-ui;letter-spacing:2px}
+.ad185-turn-content h3{font:24px/1.18 Georgia,serif;color:#e9fff2;margin:5px 0 4px}
+.ad185-turn-content p{color:#bfdbdf;font-size:12px;margin:0}
+.ad185-turn-banner.ad185-turn-ally{border-color:#71bb99;background:linear-gradient(110deg,#173f3c,#152c32 80%)}
+.ad185-turn-ally .ad185-turn-crest{color:#defbc4;border-color:#a2dca7;background:radial-gradient(circle,#3c7863,#254737 75%)}
+.ad185-turn-banner.ad185-turn-enemy,.ad185-turn-banner.ad185-turn-defeat{
+  border-color:#a86877;background:linear-gradient(110deg,#422836,#252335 80%)}
+.ad185-turn-enemy .ad185-turn-crest,.ad185-turn-defeat .ad185-turn-crest{
+  color:#ffd4cd;border-color:#d97f85;background:radial-gradient(circle,#783b4a,#452835 75%)}
+.ad185-turn-enemy .ad185-turn-eyebrow,.ad185-turn-defeat .ad185-turn-eyebrow{color:#f2afb5}
+.ad185-turn-banner.ad185-turn-victory{border-color:#ead49a;background:linear-gradient(110deg,#594b2b,#242b34 80%)}
+.ad185-turn-victory .ad185-turn-crest{color:#fff1ac;border-color:#ffe3a2;background:radial-gradient(circle,#a8893f,#594826 75%)}
+.ad185-turn-victory .ad185-turn-eyebrow{color:#ffda83}
+.ad185-turn-banner.ad185-turn-waiting{border-color:#897da2;background:linear-gradient(110deg,#2a2843,#172239 80%)}
+.ad185-team-event{position:relative;display:block;margin:9px 0 0;padding:10px 14px;
+  border:1px solid #9ccfc0;border-left:4px solid #86e4ba;border-radius:8px;
+  background:#133b36;color:#ebfff3;font:600 13px/1.4 system-ui;box-shadow:0 4px 18px #0008}
+.ad185-team-event.ad185-event-impact,.ad185-team-event.ad185-event-defeat{
+  border-color:#b87b78;border-left-color:#f09990;background:#402832;color:#ffe0d9}
+.ad185-team-event.ad185-event-victory,.ad185-team-event.ad185-event-fusion{
+  border-color:#d9bd87;border-left-color:#ffdb8e;background:#39322c;color:#ffedc9}
+.duo-battle .turn-seat.ad185-seat{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:71px;
+  padding:11px 6px 7px;transition:background .2s,border-color .2s,transform .2s}
+.duo-battle .turn-seat.ad185-self,.duo-battle .turn-seat.ad185-ally{border-color:#509d9e;background:#162c39;color:#e5fff5}
+.duo-battle .turn-seat.ad185-enemy{border-color:#93546b;background:#2b2135;color:#f8d5dc}
+.duo-battle .turn-seat.ad185-taking-turn{border-width:2px;box-shadow:0 0 0 1px #ffdf9a55,0 0 19px #dfbb6966;
+  background:linear-gradient(135deg,#564531,#2b2935);color:#fff4d9}
+.ad185-track-number{position:absolute;left:7px;top:7px;color:#a3b7c5;font:800 11px system-ui}
+.ad185-track-role{font:800 9px/1.3 system-ui;letter-spacing:.6px;color:#91d9d7}
+.turn-seat.ad185-enemy .ad185-track-role{color:#efadba}
+.duo-battle .seat.ad185-seat{border-width:2px;position:relative;padding-top:31px;transition:border-color .25s,background .25s}
+.duo-battle .seat.ad185-self{border-color:#7acbcb;background:linear-gradient(145deg,#173b45,#101e31 60%)}
+.duo-battle .seat.ad185-ally{border-color:#5b9e8d;background:linear-gradient(145deg,#1b3535,#0f1f31 60%)}
+.duo-battle .seat.ad185-enemy{border-color:#9c6576;background:linear-gradient(145deg,#3b273c,#121c2d 70%)}
+.duo-battle .seat.ad185-taking-turn{box-shadow:0 0 0 2px #edcf91,0 0 23px #dfba6970}
+.ad185-seat-badge{position:absolute;top:7px;left:12px;padding:2px 8px;border-radius:5px;background:#275762;
+  color:#d9fff2;font:800 10px system-ui;letter-spacing:.7px}
+.ad185-ally .ad185-seat-badge{background:#245646}.ad185-enemy .ad185-seat-badge{background:#6a3248;color:#ffe2e1}
+.duo-battle .seat.ad185-partner-action{animation:ad185Partner 1.55s ease-out 1}
+.duo-battle .ad185-turn-banner.ad185-turn-arrival{animation:ad185Arrival 1s ease-out 1}
+.ad185-turn-cue{position:fixed;z-index:125;top:29vh;left:50%;transform:translate(-50%,-50%);pointer-events:none;
+  max-width:min(560px,86vw);min-width:min(300px,86vw);padding:23px 25px;
+  text-align:center;border:2px solid #e6c283;border-radius:14px;
+  color:#fff6dd;font:800 clamp(17px,3vw,29px) Georgia,serif;letter-spacing:2px;text-shadow:0 1px 12px #ffdbb399;
+  background:linear-gradient(135deg,#213b40f5,#322839f5);box-shadow:0 0 45px #e9c78255,0 16px 50px #000a;
+  animation:ad185Cue 1.25s ease-out both}
+.ad185-turn-cue.ad185-cue-enemy{border-color:#d98b90;color:#ffd8d8;box-shadow:0 0 38px #f0878a42,0 16px 45px #000a}
+@keyframes ad185Arrival{0%{filter:brightness(1.6)}100%{filter:brightness(1)}}
+@keyframes ad185Partner{0%,100%{filter:brightness(1)}30%{filter:brightness(1.45);outline:3px solid #e6d08a}80%{outline:1px solid transparent}}
+@keyframes ad185Hit{0%{filter:brightness(1.8)}50%{filter:brightness(.65)}100%{filter:brightness(1)}}
+@keyframes ad185Cue{0%{opacity:0;transform:translate(-50%,-33%) scale(.82)}17%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}73%{opacity:1;transform:translate(-50%,-51%) scale(1)}100%{opacity:0;transform:translate(-50%,-66%) scale(.96)}}
+@media(max-width:550px){.ad185-turn-banner{padding:12px 10px;gap:10px}.ad185-turn-crest{width:42px;height:42px;font-size:25px}
+ .ad185-turn-content h3{font-size:19px}.ad185-turn-content p{font-size:11px}.duo-battle .turn-seat.ad185-seat{min-height:68px}}
+@media(prefers-reduced-motion:reduce){.ad185-turn-cue{display:none!important}.duo-battle .ad185-turn-banner.ad185-turn-arrival,
+ .duo-battle .seat.ad185-partner-action,.ad185-lp-gauge.ad185-lp-hit{animation:none!important}
+ .ad185-lp-gauge>span{transition:none!important}}
