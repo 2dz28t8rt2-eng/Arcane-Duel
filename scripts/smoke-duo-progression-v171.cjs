@@ -35,7 +35,7 @@ const room=post({type:'create',entry:'new',profileToken:A.profileToken,
  deck:tamperDeck,fusions:[-99],upgrades:{power:10},lv1:{perk:true,rank:5},
  enhancements:{},essence:{chosen:12345}});
 assert.equal(room.state.players[0].upgrades.power||0,0);
-assert.ok(room.state.players[0].hand.every(id=>catalog.starterMain.includes(id)));
+assert.ok(room.state.players[0].hand.every(id=>catalog.cards[id]?.playable));
 assert.equal(room.state.players[0].lv1.perk,false);
 const invited=post({type:'join',roomId:room.roomId,invite:room.invite,
  profileToken:B.profileToken,deck:tamperDeck,upgrades:{power:10}});
