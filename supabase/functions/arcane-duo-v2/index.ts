@@ -72,7 +72,8 @@ const profileView=p=>({
  ownedMain:p.owned_main,ownedFusions:p.owned_fusions,
  deck:p.deck,fusions:p.fusions,upgrades:p.upgrades,
  enhancements:p.enhancements,essenceBinding:p.essence_binding,
- lv1Research:p.lv1_research,updatedAt:p.updated_at
+ lv1Research:p.lv1_research,chapterCardCredits:p.chapter_card_credits||0,
+ updatedAt:p.updated_at
 });
 async function profileByToken(token){
  assert(isToken(token),"2v2-Profilzugang fehlt.");
@@ -107,7 +108,8 @@ const profileResult=async(p,extra={})=>({profile:profileView(p),
  economy:{packs:economy.PACKS,
   lv1:economy.researchOffer(p,"lv1"),
   essence:economy.researchOffer(p,"essence"),
-  maxCardLevel:capLevel(p),maxChapter:maxChapter(p)},
+  maxCardLevel:capLevel(p),maxChapter:maxChapter(p),
+  rewards:economy.rewardTable()},
  ...extra});
 
 Deno.serve(async request=>{
@@ -142,7 +144,7 @@ Deno.serve(async request=>{
    if(error)throw error;
    return json({profileToken,...await profileResult(p)},200,allow);
   }
-  if(["profile","upgrade","pack","deckReplace","research","bindEssence","enhance","recycle"].includes(kind)){
+  if(["profile","upgrade","pack","deckReplace","research","bindEssence","enhance","recycle","chapterCard"].includes(kind)){
    const p=await profileByToken(body.profileToken);
    if(kind==="profile")return json(await profileResult(p),200,allow);
    assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===p.revision,
@@ -197,6 +199,20 @@ Deno.serve(async request=>{
     const next=await writeProfile(p,patch);
     return json(await profileResult(next,{researchUnlocked:body.branch,
      newCards:granted}),200,allow);
+   }
+   if(kind==="chapterCard"){
+    assert((p.chapter_card_credits||0)>=1,
+     "Keine offenen Kapitel-Kartenbelohnungen.");
+    const pool=economy.chapterCardPool(p,catalog);
+    assert(pool.length>0,"Alle Karten der freigeschalteten Stufe sind ausgeschöpft.");
+    const id=pool[crypto.getRandomValues(new Uint32Array(1))[0]%pool.length].id;
+    const next=await writeProfile(p,{
+     chapter_card_credits:p.chapter_card_credits-1,
+     owned_main:[...p.owned_main,id]
+    });
+    return json(await profileResult(next,{chapterCard:{
+     id,name:catalog[id].name,level:catalog[id].level
+    }}),200,allow);
    }
    if(kind==="enhance"){
     assert(Number.isInteger(body.cardId),"Ungültige 2v2-Karte.");
