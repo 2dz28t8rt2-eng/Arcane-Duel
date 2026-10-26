@@ -74,8 +74,14 @@ document.getElementById('runtime').addEventListener('load',async()=>{
    await wait(240);
    const target=byId.get(53).querySelector('.hand-type');
    const animation=target.getAnimations().find(x=>x.animationName==='ad405-element-breath');
-   const before=animation?.currentTime;await wait(360);
-   check(animation?.playState==='running'&&animation.currentTime>before,'Visible element glow advances over time');
+   // Chrome's --virtual-time-budget may freeze the compositor clock even for
+   // visible iframes. Verify a live, infinite keyframe effect with differing
+   // glow frames; elapsed compositor milliseconds are not deterministic here.
+   const frames=animation?.effect?.getKeyframes()||[],timing=animation?.effect?.getTiming();
+   const shades=new Set(frames.map(f=>f.filter).filter(Boolean));
+   const halos=new Set(frames.map(f=>f.boxShadow).filter(Boolean));
+   check(animation?.playState==='running'&&timing?.iterations===Infinity&&frames.length>=2&&
+    (shades.size>1||halos.size>1),'Visible element glow has continuous, changing keyframes');
    holder.style.cssText=oldHolderStyle;fixture.style.left=oldFixtureLeft;runtimeFrame.style.left=oldFrameLeft;
   }
   win.ArcanePreviewMotion.enhanceTraits(fixture);await wait(80);
