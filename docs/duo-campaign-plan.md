@@ -1,3 +1,32 @@
+# 2v2 v17.1 – Eigener Spielstand und unabhängige Progression (26.10.2026)
+
+**Verbindliche Produktentscheidung:** Zwei Menschen (Sitz 0 und 2) spielen zusammen gegen genau zwei KI-Gegner (Sitz 1 und 3). **Es gibt keinerlei Einzelspieler↔2v2-Import.** Die vorhandene gemeinsame Kartenbibliothek liefert nur unveränderliche Grafik-, Karten- und Regeldefinitionen. Keine Sammlung, Karte, Perk, Essenzbindung oder Quest-Freischaltung wird aus einem Solo-Speicher gelesen.
+
+## Neues eigenständiges Profil
+
+- Beim ersten Start erstellt der Spieler ausdrücklich ein 2v2-Profil, das auf dem Supabase-Server unter einer zufälligen Kennung gespeichert wird. Das Profil besitzt ein normales Startdeck und ein Fusionsstartdeck – nur dieses Profil bestimmt die Karten und Upgrades neuer Online-Räume.
+- Jedes der beiden menschlichen Profile speichert Erfahrung, Level, 2v2-Essenz, Splitter, Siege, abgeschlossene Kapitel, erworbene Karten, Fusionskarten, Ausbauränge und aktive Decks. Die Modi teilen keine Speicher-Keys.
+- Der persönliche Profilzugang liegt für einfaches Fortsetzen im lokalen Browser. Über einen ausdrücklich angeforderten **privaten Profil-Wiederherstellungslink** kann auf einem anderen Gerät weitergespielt werden. Der Link ist ein geheimes Kontotoken: Wer ihn besitzt, kontrolliert das gesamte 2v2-Profil. Nicht weitergeben, nicht öffentlich posten. Ein späterer Login mit persönlichem Konto/Passkey wäre für langfristige Sicherheit wünschenswert.
+- Duelle werden nach bestätigten Aktionen automatisch gespeichert und bei Aktivität auf 90 Tage erneuert. Das 2v2-Profil bleibt unabhängig davon bestehen und speichert freigeschaltete Kapitel und Inventar dauerhaft.
+- Ein Profil kann genau einen menschlichen Sitzplatz pro Raum belegen; der Partner benötigt ein eigenes Profil. Die Original-Singleplayer-KI-Forschung und `main` bleiben unverändert.
+
+## Belohnungen, Kaufen und Bauen
+
+- Ein gemeinsamer Sieg wird beiden berechtigten Profilen **transaktional und höchstens einmal pro Kapitel/Raum** gutgeschrieben. Kapitel `k` gibt jeweils `40+20k` Erfahrung, `70+35k` 2v2-Essenz und `1+k` Splitter. Ein durch Reconnect wiederholter Server-Update kann die Auszahlung nicht doppeln (unique ledger).
+- Erfahrung ergibt `Level = 1+floor(xp/150)`. Höhere Kapitel werden durch eigene 2v2-Siege freigeschaltet. Stärkere Kartenpakete werden erst mit höherem Kapitel-Fortschritt erreichbar.
+- Ein normales Paket kostet 90 Essenz + 1 Splitter und gibt eine regelkonforme Hauptkarte; ein Fusionspaket kostet 160 Essenz + 2 Splitter und gibt eine regelkonforme Fusionskarte. Alle Auslosungen und Kosten werden vom Server bestimmt und gespeichert.
+- Kampf-Ausbauränge werden mit ausschließlich eigenständiger 2v2-Essenz erhöht (Kosten `100+70*Rang`); der Server beachtet die Rangobergrenzen.
+- Der 40-Karten-Deckeditor sowie Fusionsdeckeditor können ausschließlich eigene, im 2v2 verdiente Karten verwenden. Bestands- und Kopienlimit werden serverseitig validiert. Das Deck eines bereits gestarteten Duells ändert sich dadurch nicht.
+
+## Sicherheit und Teststatus
+
+- Neue Tabellen `arcane_duo_v2_profiles` und `arcane_duo_v2_reward_ledger` sind RLS-gesperrt und haben keine öffentlichen Data-API-Rechte. Ausschließlich die getrennte Edge-Funktion verwendet serverseitig die Service-Role-Verbindung. Nur Hashes von Profil-/Raumzugangstokens liegen in der Datenbank, niemals deren Klartext.
+- Der Kapitel-Belohnungstrigger wurde mit zwei Testprofilen, einem Testduell und einer doppelten Revisionsaktualisierung in einer **zurückgerollten** DB-Transaktion überprüft: zwei getrennte Auszahlungen, keine doppelte Buchung.
+- Separate Node-/Browserprüfungen verifizieren die vollständige Trennung vom Solo-Profil, private Kartensammlungen, Solo-Tampering-Schutz, Deckvalidierung sowie die Profil-Erstellung. Ein einmaliger Live-Online-Smoke ist `scripts/smoke-duo-progression-v171.cjs`, über einen expliziten GitHub-Actions-Marker ausführbar.
+- Bewusst noch offen: echter Test mit zwei physischen Geräten (erst nach weiterem Ausbau auf Wunsch), dauerhaftes Account-Login statt privater Recovery-Links und zusätzliche 2v2-spezifische Quest-/Essenzprogression.
+
+---
+
 # 2v2 v17.0 – Kampfpräsentation und Kapitelanzeige (26.10.2026)
 
 **Festlegung:** Der Modus besitzt exakt **zwei menschliche Plätze** (Gastgeber 0, Partner 2) gegen **zwei serverseitig gesteuerte KI-Gegner** (1 und 3). Weitere Menschen oder echte 4-Spieler-Lobbys werden nicht eingeführt. Die gesonderte Forschung/Optimierung der Gegner-KI bleibt ausgeschlossen.
