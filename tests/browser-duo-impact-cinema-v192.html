@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcane Duel · Treffereffekte · v19.2</title>
+<link rel="stylesheet" href="../assets/duo-campaign-demo.css">
+<link rel="stylesheet" href="../assets/duo-impact-cinema-v192.css">
+<style>
+.ad192-demo{max-width:1160px;margin:0 auto;padding:24px 18px 65px;color:#ecdec9}
+.ad192-demo header{display:flex;align-items:start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.ad192-demo .kicker{font:800 11px system-ui;letter-spacing:.13em;color:#e8bd7e}
+.ad192-demo h1{font-size:clamp(23px,3vw,38px);margin:5px 0 12px;color:#fff0ce}
+.ad192-demo .intro{color:#cbbfae;max-width:760px;line-height:1.6}
+.ad192-demo .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:20px 0}
+.ad192-demo button{font:750 13px system-ui;min-height:44px;padding:9px 15px;border:1px solid #e5bd78;border-radius:9px;background:linear-gradient(145deg,#56442c,#2d2c37);color:#f9e5bf;cursor:pointer}
+.ad192-demo button:disabled{opacity:.55;cursor:wait}.ad192-demo button:hover:not(:disabled){filter:brightness(1.2)}
+.ad192-demo #demoStatus{padding:12px 14px;margin:16px 0;border:1px solid #967b53;border-radius:9px;background:#171e2f;color:#f8dfad;min-height:20px}
+.ad192-demo .arena{padding:20px;background:linear-gradient(160deg,#23273b,#131a27);border:1px solid #a58a61;border-radius:14px}
+.ad192-demo .stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0 0 18px}
+.ad192-demo .stats>div{padding:13px 17px;border:1px solid #7e6b4d;border-radius:9px;background:#19243a}
+.ad192-demo .stats small{display:block;font-size:11px;color:#e2c28e}.ad192-demo .stats strong{display:block;font-size:21px;color:#f5e7cc}
+.ad192-demo .meter{height:7px;background:#364155;border-radius:8px;margin-top:10px;overflow:hidden}
+.ad192-demo .meter>span{display:block;height:100%;width:100%;background:linear-gradient(90deg,#e8bb69,#a6dbe6)}
+.ad192-demo .four-seats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:stretch}
+.ad192-demo .seat{padding:13px;border:1px solid #705f43;border-radius:10px;background:#141d2d;min-width:0}
+.ad192-demo .seat h3{font-size:15px;color:#ffe2b7;margin:0 0 4px}.ad192-demo .seat small{display:block;font-size:11px;color:#b8b5bb;margin:0 0 9px}
+.ad192-demo .seat .field{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.ad192-demo .field-cell{display:grid;place-items:center;min-height:112px;min-width:0;border:1px dashed #67758a;border-radius:8px;background:#1f2837;color:#e6d0a7;text-align:center}
+.ad192-demo .field-cell.filled{display:flex;flex-direction:column;gap:4px;padding:6px;border:1px solid #c69a5a;background:linear-gradient(140deg,#59452c,#22283b);font-size:11px}
+.ad192-demo .field-cell .art{font-size:27px;line-height:1.2}.ad192-demo .field-cell small{font-size:10px;margin:0;color:#9bd9e9}
+.ad192-demo .foot{font-size:12px;color:#bdad90;margin-top:17px;line-height:1.6}
+@media(max-width:680px){.ad192-demo .four-seats{grid-template-columns:1fr}.ad192-demo .field-cell{min-height:85px}}
+</style></head><body>
+<main class="ad192-demo duo-battle">
+<header><div><p class="kicker">✧ ARCANE DUEL · VORSCHAU V19.2</p>
+<h1>Jeder Treffer soll sich anfühlen wie einer.</h1>
+<p class="intro">Karten verlieren Schutz und DEF, Teams verlieren Lebenspunkte, Wächter schlagen zurück. Die neuen Anzeigen unterscheiden genau diese Vorgänge und erscheinen kurz nach dem Einschlag.</p></div>
+<a href="../duo-campaign-v2.html" style="color:#f5d4a0">← Zur 2v2-Kampagne</a></header>
+<div class="controls"><button data-scene="def">⚔ Wächter angreifen</button>
+<button data-scene="shield">🛡 Schutzschild testen</button>
+<button data-scene="heavy">✦ Wuchtigen Treffer ansehen</button></div>
+<p id="demoStatus" role="status" aria-live="polite">Wähle ein Beispiel aus. Es wird ein bestätigter Kampfzustand simuliert – ohne Einfluss auf deinen Spielstand.</p>
+<section class="arena" aria-label="Kampfvorschau">
+<div class="stats"><div><small>EUER TEAM</small><strong id="duoAlliedLP">16.000 LP</strong><div class="meter"><span id="ownMeter"></span></div></div>
+<div><small>DIE GEGNER</small><strong id="duoEnemyLP">16.000 LP</strong><div class="meter"><span id="enemyMeter"></span></div></div></div>
+<div id="duoSeats" class="four-seats"></div></section>
+<p class="foot">Die Vorschau nutzt dieselbe Animation wie der 2v2-Modus. Im echten Duell kommen alle Werte ausschließlich aus dem bestätigten Spielstand. Keine Veränderungen an Balance, KI oder Progression.</p>
+</main>
+<script src="../assets/duo-impact-cinema-v192.js"></script>
+<script>
+(()=>{
+ const mk=(tag,parent,cls,txt)=>{const node=document.createElement(tag);if(cls)node.className=cls;
+  if(txt!==undefined)node.textContent=txt;parent.append(node);return node;};
+ const seats=document.getElementById('duoSeats'),status=document.getElementById('demoStatus');
+ const buttons=[...document.querySelectorAll('[data-scene]')];
+ const people=['Hannes','Gegner A','Partner','Gegner B'];
+ const cards=[['🦊','Silberfuchs'],['🛡','Aschewächter'],['✧','Mondritter'],['🐺','Schattenwolf']];
+ const cells=[];
+ for(let seat=0;seat<4;seat++){
+  const panel=mk('article',seats,'seat');panel.dataset.seat=String(seat);
+  mk('h3',panel,'',people[seat]);mk('small',panel,'',seat%2?'COMPUTERGEGNER':'VERBÜNDET');
+  const field=mk('div',panel,'field');
+  for(let slot=0;slot<4;slot++){
+   const cell=mk('div',field,slot===0?'field-cell filled':'field-cell');cell.dataset.slot=String(slot);
+   if(slot===0){mk('span',cell,'art',cards[seat][0]);mk('strong',cell,'',cards[seat][1]);
+    mk('small',cell,'',seat===1?'800 DEF · Schutz 150':'⚔ Angriff');}
+   else mk('span',cell,'','◇');
+   if(slot===0)cells.push(cell);
+  }
+ }
+ const baseCard=(id,uid,extra={})=>({id,uid,mode:id===8?'def':'atk',
+  def:id===8?800:500,soul:0,condensed:0,lv1Shield:0,guardLeft:0,...extra});
+ const players=()=>people.map((name,seat)=>({seat,name,team:seat%2,
+  field:[baseCard(seat===1?8:seat+1,100+seat),null,null,null],lv1:{ghostSlots:[]}}));
+ const copy=state=>JSON.parse(JSON.stringify(state));let revision=1,busy=false;
+ const refreshBars=game=>{
+  document.getElementById('duoAlliedLP').textContent=game.teams[0].lp.toLocaleString('de-AT')+' LP';
+  document.getElementById('duoEnemyLP').textContent=game.teams[1].lp.toLocaleString('de-AT')+' LP';
+  document.getElementById('ownMeter').style.width=100*game.teams[0].lp/16000+'%';
+  document.getElementById('enemyMeter').style.width=100*game.teams[1].lp/16000+'%';
+ };
+ function demo(scene){
+  if(busy)return;busy=true;buttons.forEach(b=>b.disabled=true);
+  window.ArcaneDuoImpactCinema192.clear();
+  const before={roomId:'v192-preview',chapter:1,revision:revision++,players:players(),
+   teams:[{lp:16000,maxLp:16000,shield:500},{lp:16000,maxLp:16000,shield:0}],log:[]};
+  before.players[1].field[0]=baseCard(8,101,{mode:'def',def:800,soul:50,condensed:100});
+  const after=copy(before);after.revision=revision++;
+  const catalog={8:{name:'Aschewächter'}};
+  if(scene==='def'){
+   before.teams[0].shield=0;after.teams[0].shield=0;
+   after.players[1].field[0].condensed=0;after.players[1].field[0].soul=0;
+   after.players[1].field[0].def=550;after.teams[0].lp=15800;
+   after.log=['Aschewächter · Gegenschlag: 200 LP Schaden.',
+    'Hannes greift Gegner A in DEF an: 400 Trefferstärke, −100 Verdichtung / −50 Seele / −250 Grund-DEF (35 % Rüstung).'];
+   status.textContent='Der Aschewächter verliert 400 Schutz-/DEF-Werte und kontert mit 200 LP Schaden.';
+  }else if(scene==='shield'){
+   after.teams[0].shield=180;after.teams[0].lp=15880;
+   after.log=['Gegner A · direkter Angriff: 320 Schaden durch Vorhut-Schutz abgefangen.',
+    'Gegner A · direkter Angriff: 120 LP Schaden.'];
+   status.textContent='320 Schaden werden vom Vorhut-Schutz abgefangen. Nur 120 erreichen die Lebenspunkte.';
+  }else{
+   after.teams[1].lp=13700;
+   after.log=['Hannes · direkter Angriff: 2300 LP Schaden.'];
+   status.textContent='Ein besonders schwerer Treffer: 2.300 gegnerische LP gehen verloren.';
+  }
+  const events=window.ArcaneDuoImpactCinema192.onState(before,after,catalog);
+  refreshBars(after);
+  const defenderLabel=cells[1].querySelector('small');
+  defenderLabel.textContent=scene==='def'?'550 DEF · Schutz 0':'800 DEF · Schutz 150';
+  if(!events.length)status.textContent='Keine passenden Kampfereignisse erkannt.';
+  setTimeout(()=>{busy=false;buttons.forEach(b=>b.disabled=false);},2400);
+ }
+ buttons.forEach(button=>button.addEventListener('click',()=>demo(button.dataset.scene)));
+})();
+</script></body></html>
