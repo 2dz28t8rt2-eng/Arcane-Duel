@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcane Duel · Beschwörungsanimation · v19.0</title>
+<link rel="stylesheet" href="../assets/duo-campaign-demo.css">
+<link rel="stylesheet" href="../assets/duo-parity-v160.css">
+<link rel="stylesheet" href="../assets/duo-hand-cinema-v178.css">
+<link rel="stylesheet" href="../assets/duo-summon-cinema-v190.css">
+<style>
+ .ad190-demo{max-width:1150px;margin:0 auto;padding:25px 18px 70px;color:#f0e3ca}
+ .ad190-demo header{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;flex-wrap:wrap}
+ .ad190-demo h1{font-size:clamp(1.6rem,3vw,2.5rem);margin:3px 0 12px}
+ .ad190-demo h2{font-size:1.13rem;margin:0 0 12px;color:#ffdf9c}
+ .ad190-demo .kicker{color:#eebc75;letter-spacing:.14em;font-size:.76rem}
+ .ad190-demo .intro{max-width:720px;line-height:1.6;color:#d9cab1}
+ .ad190-demo .demo-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:20px 0}
+ .ad190-demo button{padding:12px 19px;border:1px solid #f3cd84;border-radius:8px;background:linear-gradient(#74562b,#413021);color:#fff1d2;font-weight:700;cursor:pointer}
+ .ad190-demo button:hover{filter:brightness(1.2)}
+ .ad190-demo button:disabled{opacity:.5;cursor:wait}
+ .ad190-demo #demoStatus{padding:12px 15px;background:#171b2bd9;border:1px solid #a68a61;border-radius:9px;min-height:22px}
+ .ad190-demo .arena{background:linear-gradient(145deg,#1d2333,#131723);border:1px solid #81673e;border-radius:14px;padding:17px}
+ .ad190-demo .four-seats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;align-items:stretch}
+ .ad190-demo .seat{background:#171b28;border:1px solid #57482f;border-radius:10px;padding:13px;min-width:0}
+ .ad190-demo .seat h3{margin:0 0 3px;font-size:16px;color:#f8dcad}
+ .ad190-demo .seat small{display:block;margin-bottom:8px;color:#bda988}
+ .ad190-demo .seat .field{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+ .ad190-demo .seat .field-cell{display:grid;place-items:center;min-height:83px;border:1px dashed #70674d;border-radius:8px;min-width:0;background:#232a39;color:#e5d2a6;font-size:18px}
+ .ad190-demo .seat .field-cell.filled{border:1px solid #c59c61;background:linear-gradient(140deg,#54472e,#252d38);font-size:12px;text-align:center;line-height:1.4;padding:4px}
+ .ad190-demo .seat .field-cell.preview-target{border:1px solid #80d1c9;box-shadow:inset 0 0 12px #46b7a12d}
+ .ad190-demo .duo178-hand{padding:4px 0 12px;position:static;background:transparent;box-shadow:none}
+ .ad190-demo .duo178-hand-cards{justify-content:flex-start;gap:10px;min-height:136px}
+ .ad190-demo .duo178-hand-card{width:106px;min-width:106px;min-height:118px;box-sizing:border-box;border:1px solid #b68e56;border-radius:8px;padding:7px;background:linear-gradient(145deg,#524027,#1a1a2a);color:#f9e3b6;text-align:center}
+ .ad190-demo .duo178-hand-art{display:grid;place-items:center;height:73px;background:radial-gradient(circle,#6e6080,#262033);color:#ffe5b0;font-size:36px}
+ .ad190-demo .duo178-hand-card strong{display:block;font-size:11px;margin-top:3px}
+ .ad190-demo .duo178-hand-card small{font-size:10px;margin:0}
+ .ad190-demo .detail{color:#c2b39b;font-size:12px;margin-top:14px}
+ @media(max-width:650px){.ad190-demo .four-seats{grid-template-columns:1fr}.ad190-demo .seat .field-cell{min-height:64px}}
+</style>
+</head><body><main class="ad190-demo duo-battle">
+ <header><div><p class="kicker">✧ ARCANE DUEL · VORSCHAU V19.0</p><h1>Die Beschwörung wird lebendig</h1>
+ <p class="intro">Die Karte fliegt aus deiner Hand zu ihrem Feldplatz, leuchtet auf und erscheint mit einem kurzen Partikeleffekt. Im echten 2v2 beginnt diese Animation erst, wenn der Server die Beschwörung bestätigt hat.</p></div>
+ <a href="../duo-campaign-v2.html" style="color:#f4cf91">← Zur 2v2-Kampagne</a></header>
+ <div class="demo-row"><button type="button" id="replay">✦ Monster beschwören</button>
+ <span style="color:#cfbda1;font-size:13px">Vorschau ohne Netzwerkzugriff · Keine Änderung am Spielstand</span></div>
+ <p id="demoStatus" aria-live="polite" role="status">Bereit: Der Silberfuchs wird auf deinen zweiten Feldplatz beschworen.</p>
+ <section class="arena" aria-label="2v2-Vorschau"><h2>Das Bündnis der Vier</h2><div class="four-seats" id="duoSeats"></div></section>
+ <p class="detail">Bei Teammitgliedern und Gegnern bleibt die Hand verborgen. Ist die Bewegungsreduktion des Systems aktiviert, entfällt der Flug automatisch.</p>
+</main>
+<script src="../assets/duo-summon-cinema-v190.js"></script>
+<script>
+(()=>{
+ const seats=document.getElementById('duoSeats'),button=document.getElementById('replay'),status=document.getElementById('demoStatus');
+ const api=window.ArcaneDuoSummonCinema190,all=[];
+ const create=(tag,parent,cls,txt)=>{const el=document.createElement(tag);if(cls)el.className=cls;
+  if(txt!==undefined)el.textContent=txt;parent.append(el);return el;};
+ const seatTitles=['Du · Gastgeber','KI · Aschenheer','Dein Partner','KI · Schattenheer'];
+ for(let i=0;i<4;i++){
+  const seat=create('article',seats,'seat');seat.dataset.seat=String(i);
+  create('h3',seat,'',seatTitles[i]);create('small',seat,'',i%2?'GEGNER':'VERBÜNDETE');
+  if(i===0){const hand=create('div',seat,'duo178-hand');create('div',hand,'duo178-hand-title','✦ DEINE HANDKARTEN');
+   const cards=create('div',hand,'duo178-hand-cards');
+   const first=create('div',cards,'duo178-hand-card');first.dataset.index='0';
+   create('div',first,'duo178-hand-art','🦊');create('strong',first,'','Silberfuchs');create('small',first,'','LV 3');
+   const second=create('div',cards,'duo178-hand-card');second.dataset.index='1';
+   create('div',second,'duo178-hand-art','✧');create('strong',second,'','Runenlehrling');create('small',second,'','LV 2');
+  }
+  const field=create('div',seat,'field');
+  for(let n=0;n<4;n++){const cell=create('div',field,'field-cell',i===0&&n===0?'Sternenwächter':
+   i===1&&n===0?'Aschegeist':i===2&&n===0?'Runenhüter':i===3&&n===0?'Dunkelgeist':'◇');
+   cell.dataset.slot=String(n);if(n===0)cell.classList.add('filled');
+   if(i===0&&n===1)cell.classList.add('preview-target');}
+  all.push(seat);
+ }
+ const own=all[0],hand=own.querySelector('.duo178-hand-cards'),target=own.querySelector('.field-cell[data-slot="1"]');
+ const before=()=>({roomId:'v19-preview',chapter:1,revision:1,status:'active',activeSeat:0,
+  players:[{seat:0,hand:[12,14],field:[{id:7},null,null,null]},
+   {seat:1,hand:[],field:[{id:20},null,null,null]},
+   {seat:2,hand:[],field:[{id:30},null,null,null]},
+   {seat:3,hand:[],field:[{id:40},null,null,null]}]});
+ let locked=false;
+ button.addEventListener('click',()=>{
+  if(locked)return;locked=true;button.disabled=true;
+  target.replaceChildren();target.textContent='◇';target.classList.remove('filled','ad190-awaiting','ad190-arrived');
+  if(!hand.querySelector('[data-index="0"]')){
+   const card=create('div',hand,'duo178-hand-card');card.dataset.index='0';
+   create('div',card,'duo178-hand-art','🦊');create('strong',card,'','Silberfuchs');
+   create('small',card,'','LV 3');hand.prepend(card);
+  }
+  const old=before();const ticket=api.capture({action:{type:'summon',handIndex:0,slot:1},
+   game:old,seat:0,catalog:{12:{name:'Silberfuchs',level:3}}});
+  if(!ticket){status.textContent='Die Karte ist gerade nicht sichtbar. Bitte versuche es erneut.';
+   button.disabled=false;locked=false;return;}
+  // Simulate a successful server reply. The real campaign uses its actual reply.
+  const next={...old,revision:2,players:old.players.map((p,i)=>i===0?
+   {...p,hand:[14],field:[{id:7},{id:12},null,null]}:p)};
+  hand.querySelector('[data-index="0"]').remove();
+  target.classList.add('filled');target.textContent='Silberfuchs · LV 3';
+  const played=api.play({ticket,before:old,after:next});
+  status.textContent=played?'✦ Beschwörung bestätigt! Der Silberfuchs erscheint auf deinem Feld.':
+   '✦ Beschwörung bestätigt! Der Silberfuchs ist auf deinem Feld.';
+  button.textContent='↻ Animation wiederholen';
+  setTimeout(()=>{locked=false;button.disabled=false;},1450);
+ });
+})();
+</script></body></html>

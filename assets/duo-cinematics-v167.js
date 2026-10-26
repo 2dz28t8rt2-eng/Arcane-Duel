@@ -152,7 +152,12 @@
   }
   else if(e.type==="arena"){burst(center(document.querySelector("#duoAlliedLP")),"arena");}
   else if(e.type==="fusion"||e.type==="fate"||e.type==="summon"||
-    e.type==="destroy")burst(to,e.type);
+    e.type==="destroy"){
+   // v19.0 owns only confirmed summons from this player's visible hand.
+   // Keep the familiar burst for partner and opponent summons.
+   if(e.type!=="summon"||!window.ArcaneDuoSummonCinema190?.ownsSummon?.(e.where))
+    burst(to,e.type);
+  }
  }
  function onState(previous,current){
   const events=describe(previous,current);

@@ -1,0 +1,20 @@
+/* Arcane Duel v19.0 – a short, non-interactive summon flight after server confirmation. */
+.ad190-summon-stage{position:fixed;inset:0;z-index:300;pointer-events:none;overflow:hidden;isolation:isolate}
+.ad190-flight-card{position:absolute;display:flex;flex-direction:column;gap:3px;box-sizing:border-box;padding:5px 6px;border:2px solid #caa76b;border-radius:9px;background:linear-gradient(145deg,#40311b,#110f1c 63%,#45321e);box-shadow:0 0 0 1px #f4d28a66,inset 0 0 11px #f5c36c44,0 0 24px #ffc571ae,0 18px 33px #0009;color:#ffebbd;text-align:center;overflow:hidden;animation:ad190Fly .56s cubic-bezier(.19,.77,.32,1) both;transform-origin:center center;will-change:transform,opacity}
+.ad190-card-art{flex:1;min-height:0;display:grid;place-items:center;overflow:hidden;border-radius:4px;background:radial-gradient(circle,#806b51,#201c28);font-size:34px;color:#f9da91;text-shadow:0 0 12px #f9c36d}
+.ad190-card-art img{display:block;width:100%;height:100%;object-fit:cover}
+.ad190-card-name{font-size:11px;line-height:1.1;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.ad190-card-level{font:700 9px/1.1 system-ui,sans-serif;color:#e7ba70;letter-spacing:.09em}
+.ad190-flight-card.ad190-flight-landed{opacity:0;visibility:hidden}
+@keyframes ad190Fly{0%{transform:translate(0,0) rotate(-8deg) scale(.91);opacity:.87;filter:brightness(1)}42%{transform:translate(var(--ad190-half-x),var(--ad190-half-y)) rotate(5deg) scale(1.14);opacity:1;filter:brightness(1.2)}85%{opacity:1}100%{transform:translate(var(--ad190-dx),var(--ad190-dy)) rotate(0) scale(.65);opacity:.95;filter:brightness(1.5)}}
+.duo-battle .field-cell.ad190-awaiting>*{opacity:.08}
+.duo-battle .field-cell.ad190-arrived{animation:ad190Arrival .58s ease-out both}
+@keyframes ad190Arrival{0%{box-shadow:inset 0 0 20px #fff3ad,0 0 0 1px #fff6bd}50%{box-shadow:inset 0 0 25px #fbd478,0 0 23px 6px #ffcb72a6}100%{box-shadow:none}}
+.ad190-summon-burst{position:absolute;width:1px;height:1px;pointer-events:none;overflow:visible;filter:drop-shadow(0 0 5px #ffda86)}
+.ad190-burst-ring{position:absolute;inset:-11px;display:block;border:3px solid #ffedb4;border-radius:50%;box-shadow:0 0 19px #f9b952,inset 0 0 13px #fff0be;animation:ad190Ring .49s ease-out both}
+.ad190-burst-core{position:absolute;display:block;left:-13px;top:-19px;width:27px;height:35px;color:#fff5c8;font:700 33px/1 Georgia,serif;text-shadow:0 0 15px #fff9b8,0 0 36px #eeaf43;animation:ad190Core .52s ease-out both}
+.ad190-summon-particle{position:absolute;left:-3px;top:-3px;display:block;width:6px;height:6px;background:radial-gradient(circle,#fff 0,#ffdf89 35%,#ffa942 80%,transparent 100%);border-radius:50%;box-shadow:0 0 7px #fff1bd;animation:ad190Spark .58s ease-out both}
+@keyframes ad190Ring{0%{transform:scale(.4);opacity:1}70%{opacity:.93}100%{transform:scale(5.1);opacity:0}}
+@keyframes ad190Core{0%{transform:scale(.3);opacity:0}22%{opacity:1}100%{transform:scale(1.75);opacity:0}}
+@keyframes ad190Spark{0%{transform:rotate(var(--ad190-angle)) translateY(0) scale(.5);opacity:0}18%{opacity:1}100%{transform:rotate(var(--ad190-angle)) translateY(calc(-1 * var(--ad190-radius))) scale(.25);opacity:0}}
+@media(prefers-reduced-motion:reduce){.ad190-flight-card,.ad190-summon-burst,.duo-battle .field-cell.ad190-arrived{animation:none!important}}

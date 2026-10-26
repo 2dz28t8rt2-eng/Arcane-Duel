@@ -408,15 +408,26 @@
   if(!game||busy)return;
   if(!(game.activeSeat===seat&&game.status==='active')&&
     !(action.type==='nextChapter'&&seat===0&&game.winner===0))return;
-  busy=true;render();let conflicted=false;
+  // Capture the visible, local handcard before render() rebuilds the hand.
+  // This ticket is visual-only and is discarded if the server rejects the action.
+  const summonTicket=window.ArcaneDuoSummonCinema190?.capture?.({action,game,seat,catalog});
+  busy=true;render();let conflicted=false,confirmedSummon=null;
   try{
-   load(await call({type:'action',roomId,token,expectedRevision:game.revision,action}));
+   const previous=game;
+   const response=await call({type:'action',roomId,token,expectedRevision:game.revision,action});
+   load(response);
+   if(summonTicket&&window.ArcaneDuoSummonCinema190?.confirmed?.({ticket:summonTicket,
+     before:previous,after:game}))confirmedSummon={ticket:summonTicket,before:previous,after:game};
    set('duoStatus','✓ Dein Zug ist gespeichert.');
    if(game?.status==='finished'&&game.winner===0)await fetchProfile();
   }catch(e){
    syncError=e.message;conflicted=recovery.isConflict(e.message);
    set('duoStatus',e.message);
-  }finally{busy=false;render();}
+  }finally{
+   busy=false;render();
+   // The second render has finished; the destination now has stable geometry.
+   if(confirmedSummon)window.ArcaneDuoSummonCinema190?.play?.(confirmedSummon);
+  }
   if(conflicted){
    await refresh();
    if(!syncError)set('duoStatus','Das Spiel hat sich inzwischen verändert. Bitte wähle deine Aktion noch einmal.');
