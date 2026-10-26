@@ -25,6 +25,9 @@ jobs:
       - name: Verify 2v2 v17.3 card upgrade and recycle safety live
         if: contains(github.event.head_commit.message, '[duo-live-v173]')
         run: node scripts/smoke-duo-economy-v173.cjs
+      - name: Verify 2v2 chapter claims online
+        if: contains(github.event.head_commit.message, '[duo-live-v174]')
+        run: node scripts/smoke-duo-progression-v174.cjs
       - name: Render cards in headless Chrome
         shell: bash
         run: |
