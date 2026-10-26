@@ -198,6 +198,59 @@ test('Low-rank Soul Eater can deliberately discharge stored energy once per turn
 });
 
 
+
+test('Verdichten grants temporary ATK, preserves normal switch and attack, and decays with its shield',()=>{
+ const {g,ctx}=start();
+ const duel=g.createGame({mode:'pve',context:'free',opponentId:4,seed:930278,
+  deck:g.RPG_DEFAULT_DECK,fusionDeck:g.RPG_START_FUSIONS});
+ duel.players[0].field.fill(null);duel.players[1].field.fill(null);
+ const soul=g.CARDS.find(c=>c.role==='soul'&&!c.fusionOnly&&c.level<=3);
+ const c=g.newInstance(duel,soul.id,0);c.mode='def';duel.players[0].field[0]=c;
+ const layer=g.statLayer(c);layer.soul=200;
+ duel.active=0;duel.turn=4;duel.players[1].shield=0;
+ ctx.__testCondenseDuel=duel;
+ ctx.document.getElementById('overlay').classList.contains=key=>key==='hidden';
+ const baseAtk=c.card.atk;
+ assert.equal(vm.runInContext('game=__testCondenseDuel;uiMode="duel";window.ArcaneEssenceCombat.condense(0)',ctx),true);
+ assert.equal(layer.condensed,150);assert.equal(layer.soul,50);
+ assert.equal(layer.cooldown,3);assert.equal(layer.condenseLeft,3);
+ assert.equal(vm.runInContext('dataOf(game.players[0].field[0]).atk',ctx),baseAtk+75);
+ assert.equal(c.attacked,false);assert.equal(c.switched,false);
+ assert.equal(vm.runInContext('switchPosition(game,0)',ctx),true,'May switch to ATK in same turn');
+ assert.equal(c.mode,'atk');assert.equal(vm.runInContext('canAttack(game,game.players[0].field[0])',ctx),true);
+ const beforeLP=duel.players[1].lp;
+ assert.ok(g.attack(duel,0,null),'Normal attack is still legal immediately after condense');
+ assert.equal(beforeLP-duel.players[1].lp,baseAtk+75);
+ assert.equal(layer.condensed,150,'Attacking does not prematurely expire buff');
+ g.advanceTurn(duel);
+ assert.equal(layer.condensed,100,'Original three-slice shield decay retained');
+ assert.equal(layer.cooldown,2,'Original cooldown countdown retained');
+ assert.equal(vm.runInContext('dataOf(__testCondenseDuel.players[0].field[0]).atk',ctx),c.card.atk+50);
+});
+test('Verdichten boosts surviving Soul counterstrikes using remaining shield, without multiplying base ATK',()=>{
+ const {g,ctx}=start();
+ const duel=g.createGame({mode:'pve',context:'free',opponentId:4,seed:930279,
+  deck:g.RPG_DEFAULT_DECK,fusionDeck:g.RPG_START_FUSIONS});
+ duel.players[0].field.fill(null);duel.players[1].field.fill(null);
+ const soul=g.CARDS.find(c=>c.role==='soul'&&!c.fusionOnly&&c.level<=3);
+ const predator=g.CARDS.find(c=>c.role==='predator'&&!c.fusionOnly);
+ const c=g.newInstance(duel,soul.id,0);c.mode='def';duel.players[0].field[0]=c;
+ const enemy=g.newInstance(duel,predator.id,1);enemy.card.atk=100;duel.players[1].field[0]=enemy;
+ const layer=g.statLayer(c);layer.soul=200;
+ duel.active=0;duel.turn=4;duel.players[1].shield=0;
+ ctx.__testCondenseDuel=duel;
+ ctx.document.getElementById('overlay').classList.contains=key=>key==='hidden';
+ assert.equal(vm.runInContext('game=__testCondenseDuel;uiMode="duel";window.ArcaneEssenceCombat.condense(0)',ctx),true);
+ const baseAtk=c.card.atk;
+ duel.active=1;
+ const before=duel.players[1].lp;
+ assert.ok(g.attack(duel,0,0));
+ const remaining=layer.condensed;
+ assert.ok(remaining<150&&remaining>=0);
+ assert.equal(before-duel.players[1].lp,Math.floor((baseAtk+Math.floor(remaining*.5))*.5));
+ assert.equal(c.card.atk,baseAtk,'Permanent stats are never modified by condense');
+});
+
 test('Guardians absorb 35 percent of PvE DEF-HP damage but do not become invulnerable',()=>{
  const {g}=start();
  const duel=g.createGame({id:'guardian-mitigation',mode:'pve',context:'free',opponentId:1,
