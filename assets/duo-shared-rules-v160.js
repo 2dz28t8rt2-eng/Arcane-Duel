@@ -132,7 +132,23 @@
    .sort((a,b)=>(a.source??0)-(b.source??0)||a.id-b.id)
    .slice(0,3).map(c=>c.id);
  };
- const chapterDeck=(ids,catalog,chapter)=>[...packIds(catalog,chapter),...ids.slice(3)];
+ // Temporary chapter loaners are catch-up cards, not a penalty for improving
+ // the first three slots of an owned 40-card deck. Only replace a weaker
+ // template, and never push a template over the three-copy deck limit.
+ function chapterDeck(ids,catalog,chapter){
+  const deck=[...ids],value=id=>{
+   const c=definition(catalog,id);
+   return c?Math.max(c.atk,c.def)+c.level*10:0;
+  };
+  for(const id of packIds(catalog,chapter)){
+   if(deck.filter(owned=>owned===id).length>=3)continue;
+   const candidates=deck.map((owned,index)=>({index,value:value(owned)}))
+    .filter(item=>item.value<value(id))
+    .sort((a,b)=>a.value-b.value||a.index-b.index);
+   if(candidates.length)deck[candidates[0].index]=id;
+  }
+  return deck;
+ }
  function player(seat,name,deck=[],fusions=[],build={upgrades:{},enhancements:{}}){
   return {...seats[seat],name,baseDeck:[...deck],baseFusions:[...fusions],
    deck:[...deck],fusionDeck:[...fusions],remainingFusion:[...fusions],

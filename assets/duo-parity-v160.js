@@ -47,7 +47,8 @@
   const chosen=entry==='new'?rules.CHAPTERS[0]:chapter();
   $('duoCreate').textContent=entry==='new'?'Neue Kampagne erstellen':'Kapitel '+chosen.id+' starten';
   set('duoChapterInfo','Kapitel '+chosen.id+' · '+chosen.name+
-   '. Je drei Leihkarten auf Level '+chosen.level+' ersetzen vorhandene Deckplätze.');
+   '. Bis zu drei Leihkarten auf Level '+chosen.level+
+   ' verbessern die schwächsten Deckplätze. Stärkere eigene Karten bleiben erhalten.');
  }
  function readProfile(snapshot){
   starterMain=[...snapshot.starterMain];starterFusions=[...snapshot.starterFusions];

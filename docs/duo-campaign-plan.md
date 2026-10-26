@@ -1,3 +1,21 @@
+# 2v2 v17.5 – Erspielte Progression und Leihkarten-Schutz (26.10.2026)
+
+**Unverändert:** maximal zwei Menschen gegen zwei bestehende KI-Gegner; eigene 2v2-Profile ohne Solo-Import, `development` statt `main`, keine neue KI-Forschung. Die v17.4-Erstabschluss-Prämien (drei Kartenansprüche) und Kosten bleiben unverändert.
+
+## Konkreter Befund
+
+- Der vorherige v17.4-Benchmark verglich das Startdeck mit einem künstlich starken, nicht tatsächlich erspielten Deck. Die Ergebnisse zeigten die Deck-Stärke-Spanne, aber keinen erreichbaren Karriereverlauf.
+- Der neue reproduzierbare Offline-Benchmark `node scripts/bench-duo-earned-v175.cjs 40` verwendet **nur echte Startkarten plus über die vorhandenen Economy-Regeln gewonnene Kapitelkarten und finanzierbare Käufe**. Zwei einfache geskriptete Spielweisen nutzen nur Beschwörung/Angriff/Ende, nicht alle Möglichkeiten echter Menschen. In 40 Seeds je Einkaufsstrategie erreichte der direkte Übergang I→II **0/40**, nach drei zusätzlichen Kapitel-I-Siegen + Materialpaket **2/40**, mit Kartenverstärkung + Einzelpaket **1/40**. Das ist **keine reale Spieler-Winrate** und ausdrücklich noch keine belastbare Begründung, die Live-Belohnungen zu vervielfachen.
+- Dabei zeigte sich ein separater, reproduzierbarer Konstruktionsfehler: Die bisherige Kapitel-Leihkartenregel ersetzte starr die **ersten drei Deckslots**, auch wenn dort gerade die stärksten permanent erworbenen Karten lagen. Das wirkte wie eine unbeabsichtigte Bestrafung von Verbesserungen und konnte ein Deck über das Limit von drei identischen Karten schieben.
+
+## Korrektur
+
+- Bis zu drei Kapitel-Leihkarten verbessern jetzt **nur schwächere Deckkarten**, unabhängig von ihrer Position. Bereits stärkere erworbene Karten werden nicht verdrängt; das Gesamtdeck bleibt bei 40 Karten und das Maximal-3-Kopien-Limit gilt auch nach dem automatischen Leihkartentausch. Diese temporären Kapitelkarten werden weiterhin **nicht** zur privaten Sammlung hinzugefügt.
+- Browser und serverseitiger 2v2-Regelkern teilen dieselbe Auswahlregel. Die UI erklärt die neue Funktionsweise ausdrücklich. Neue automatische Tests prüfen leistungsstarke Karten auf den ersten Slots, Kopienlimits, bereits durchgehend starke Decks und die Übereinstimmung von Browser- und Serverregeln.
+- Der oben genannte Offline-Benchmark behält zwei schwache, regelgebundene menschliche Skript-Policies und unveränderte Gegner-KI. Selbst mit der Korrektur besteht weiter ein deutlicher Kapitel-I→II-Härtesprung; bevor Währungsbeträge, Kartenzahlen oder Gegnerstärke neu festgelegt werden, braucht es eine zweite Benchmark-Policy mit realistischen Fusionen, Positionswechseln und Rolleneffekten.
+
+---
+
 # 2v2 v17.4 – Progressionsbalance und garantierte Kapitelkarten (26.10.2026)
 
 **Produktregel bleibt unverändert:** 2 Menschen (Sitz 0/2) gegen die 2 bestehenden KI-Gegner (1/3); **keine** Übertragung zwischen 2v2 und Singleplayer. Kein KI-Training, kein Merge nach `main`, keine echte Zwei-Geräte-Abnahme in diesem Schritt.
