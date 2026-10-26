@@ -36,6 +36,7 @@
 <link rel="stylesheet" href="assets/fusion-coach-v156.css?v=20261026-1">
 <link rel="stylesheet" href="assets/element-events-v157.css?v=20261026-1">
 <link rel="stylesheet" href="assets/duel-layout-v180.css?v=20261026-1">
+<link rel="stylesheet" href="assets/duel-comfort-v182.css?v=20261026-v182">
 </head>
 <body>
 <div class="app" id="app">
@@ -43,7 +44,10 @@
  <div class="branding"><div class="logo">✧</div><div><div class="brandtitle">ARCANE DUEL <small>4.1 · BESTIARIUM</small></div><div class="subtitle">Sammlung · Fusion · Training</div></div></div>
  <div class="mast-actions"><button class="btn tiny" id="manualSaveBtn">⇩ Speichern</button><button class="btn tiny" id="homeBtn" hidden>↶ Menü</button><button class="btn ghost tiny" id="iphoneHelpBtn">📱 iPhone-Hilfe</button><button class="btn ghost tiny" id="rulesBtn">? Regeln</button><button class="btn ghost tiny" id="deckBtn">▤ Deck ansehen</button><button class="btn ghost tiny" id="poolBtn">✦ Kartenpool</button><a class="btn ghost tiny" href="collection-v3.html" title="Monsterlexikon mit 32 Monsterfamilien und Turnierstufen bis Level 10 öffnen">✧ Monsterlexikon 4.1</a><button class="btn ghost tiny" id="soundBtn">♪ Ton: Aus</button><button class="btn ghost tiny" id="speedBtn">✧ Animationen: An</button><button class="btn tiny" id="restartBtn">↻ Neustart</button></div>
 </header>
-<div class="profile-hud" id="profileHud"></div><div class="storage-notice" id="storageNotice" role="status" hidden></div><nav class="menu-nav" id="menuNav" aria-label="Hauptmenü"></nav><section id="menuScreen"><div class="menu-hero" id="menuHero"></div><div id="menuContent"></div></section><div class="layout" id="duelScreen" hidden><aside class="card-preview-panel"><h2>Kartenansicht</h2><div id="largeCardPreview"><p>Wähle eine Karte.</p></div><details class="ad180-left-tools" id="ad180-fusion-details"><summary>✧ Fusionen &amp; Tipps</summary><div id="fusionSideHost"></div></details></aside>
+<div class="profile-hud" id="profileHud"></div><div class="storage-notice" id="storageNotice" role="status" hidden></div><nav class="menu-nav" id="menuNav" aria-label="Hauptmenü"></nav><section id="menuScreen"><div class="menu-hero" id="menuHero"></div><div id="menuContent"></div></section><div class="layout" id="duelScreen" hidden><aside class="card-preview-panel" aria-label="Karten und Fusionen">
+ <details class="ad182-inspector" id="ad182-inspector"><summary>▤ <span id="ad182-preview-label">Kartenansicht</span></summary><div id="largeCardPreview"><p>Wähle eine Karte.</p></div></details>
+ <details class="ad182-fusion-workspace" id="ad182-workspace"><summary>✧ Beschwörung <span id="ad182-material-count">Material auswählen</span></summary><section class="summon-stage" id="summonStage" aria-label="Beschwörungsauswahl"></section></details>
+ <details class="ad180-left-tools" id="ad180-fusion-details"><summary>✧ Fusionen &amp; Tipps</summary><div id="fusionSideHost"></div></details></aside>
  <main>
   <section class="table-surface" aria-label="Duellfeld">
    <div class="duelist-banner opponent" id="enemyBanner"><div class="portrait" id="enemyPortrait">Ⅱ</div><div class="duelist-info"><div class="duelist-topline"><span class="duelist-name" id="enemyName">DUELLANT 2</span><span class="duelist-label">GEGNER</span></div><div class="lp-track"><span id="enemyLPBar"></span></div></div><div class="duelist-numbers"><div class="lp-number"><small>LP</small><span id="enemyLP">4000</span></div><div class="deck-count"><b id="enemyDeck">35</b>DECK</div></div></div>
@@ -58,13 +62,16 @@
    </div>
    <div class="duelist-banner mine" id="myBanner"><div class="portrait" id="myPortrait">Ⅰ</div><div class="duelist-info"><div class="duelist-topline"><span class="duelist-name" id="myName">DUELLANT 1</span><span class="duelist-label">AKTIVER SPIELER</span></div><div class="lp-track"><span id="myLPBar"></span></div></div><div class="duelist-numbers"><div class="lp-number"><small>LP</small><span id="myLP">4000</span></div><div class="deck-count"><b id="myDeck">35</b>DECK</div></div></div>
   </section>
-  <section class="summon-stage" id="summonStage" aria-label="Beschwörungsauswahl"></section>
+  <section class="ad182-quickbar" id="ad182-quickbar" aria-label="Deine nächsten Spielzüge">
+   <div class="ad182-next"><span class="ad182-eyebrow">✦ DEIN NÄCHSTER SCHRITT</span><strong id="ad182-next-title">Wähle eine Handkarte</strong><span id="ad182-next-hint">Dann kannst du sie beschwören oder für eine Fusion markieren.</span></div>
+   <div class="ad182-quick-actions"><button type="button" class="btn primary" id="ad182-primary" hidden>Beschwören</button><button type="button" class="btn" id="ad182-secondary" hidden>Auswahl löschen</button><button type="button" class="btn ghost ad182-fusion-toggle" id="ad182-open-workspace" aria-controls="ad182-workspace" aria-expanded="false">✧ Fusionen ansehen</button></div>
+  </section>
   <section class="cardtray" aria-label="Handkarten"><div class="tray-top"><span class="tray-title">✦ DEINE HAND <span id="handCount">(5 / 5)</span></span><span class="tray-hint">Karte antippen: beschwören · Für Fusion zuerst Touch-Modus aktivieren</span></div><button class="btn touch-fusion" id="touchFusionBtn">✧ Touch-Fusion aktivieren</button><div class="hand" id="hand"></div></section>
   <div class="notice">Dein Deck · 40 Karten · bis zu 15 Fusionsvorlagen</div>
  </main>
  <aside class="sidebar" aria-label="Duellsteuerung">
   <div class="side-section"><div class="side-kicker">Du bist am Zug</div><div class="turn-panel"><span class="turn-seal" id="turnSeal">Ⅰ</span><div><div class="turn-title" id="turnName">Duellant 1</div><div class="turn-sub" id="turnNumber">Zug 1 · Hauptphase</div></div></div><details class="ad180-fold"><summary>Was kann ich jetzt tun?</summary><p class="side-help" id="turnAdvice">Wähle eine Monsterkarte aus deiner Hand und beschwöre sie auf einen freien Platz.</p></details></div>
-  <div class="side-section"><div class="side-kicker">Kartenaktionen</div><div class="control-stack"><button class="btn wide" id="surrenderBtn">⚑ Aufgeben</button><div class="selected-info" id="selectedInfo">Noch keine Karte ausgewählt.</div><button class="btn primary wide" id="summonBtn" disabled>✦ Beschwören</button><button class="btn fusion-btn wide" id="fusionBtn" disabled>✧ Fusionieren [F]</button><button class="btn ghost wide" id="clearBtn" disabled>Auswahl löschen</button><button class="btn wide" id="switchBtn" disabled>↻ Position wechseln</button><div class="action-hint" id="actionHint">Klicke eine Karte auf deiner Hand.</div><button class="btn wide" id="directBtn" disabled>⚡ Direkter Angriff [D]</button></div></div>
+  <details class="side-section ad182-advanced"><summary>Weitere Duellaktionen</summary><div class="control-stack"><div class="selected-info" id="selectedInfo">Noch keine Karte ausgewählt.</div><button class="btn primary wide" id="summonBtn" disabled>✦ Beschwören</button><button class="btn fusion-btn wide" id="fusionBtn" disabled>✧ Fusionieren [F]</button><button class="btn ghost wide" id="clearBtn" disabled>Auswahl löschen</button><button class="btn wide" id="switchBtn" disabled>↻ Position wechseln</button><div class="action-hint" id="actionHint">Klicke eine Karte auf deiner Hand.</div><button class="btn wide" id="directBtn" disabled>⚡ Direkter Angriff [D]</button><button class="btn wide ad182-surrender" id="surrenderBtn">⚑ Duell aufgeben</button></div></details>
   <div class="side-section"><button class="btn primary wide big" id="endTurnBtn">ZUG BEENDEN [LEERTASTE] →</button><button class="btn wide" id="retryAiBtn" hidden>KI-Zug fortsetzen</button></div>
   <details class="side-section ad180-log"><summary>▤ Duellverlauf ansehen</summary><ul class="side-log" id="duelLog"></ul></details>
  </aside>
@@ -126,4 +133,5 @@
 <script src="assets/element-events-v157.js?v=20261026-1" defer></script>
 <script src="assets/handbook-human-v180.js?v=20261026-1" defer></script>
 <script src="assets/duel-layout-v180.js?v=20261026-1" defer></script>
+<script src="assets/duel-comfort-v182.js?v=20261026-v182" defer></script>
 </body></html>

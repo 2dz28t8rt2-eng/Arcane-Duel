@@ -1,0 +1,18 @@
+/* v18.2 – Optional chapter and battle details stay out of the 2v2 arena. */
+.duo-battle .ad182-duo-fold{
+ border:1px solid #6c6082;border-radius:12px;
+ background:linear-gradient(120deg,#22263b,#161e30);
+ margin:12px 0;overflow:hidden;
+}
+.duo-battle .ad182-duo-fold>summary{
+ display:block;cursor:pointer;list-style:none;padding:12px 14px;
+ min-height:44px;box-sizing:border-box;color:#f0d8a7;font-weight:750;
+}
+.duo-battle .ad182-duo-fold>summary::-webkit-details-marker{display:none}
+.duo-battle .ad182-duo-fold>summary small{font-size:11px;font-weight:400;color:#b4bfd6;margin-left:6px}
+.duo-battle .ad182-duo-fold>summary::after{content:'＋';float:right}
+.duo-battle .ad182-duo-fold[open]>summary::after{content:'−'}
+.duo-battle .ad182-duo-fold>summary:focus-visible{outline:3px solid #ffe0a3;outline-offset:-4px}
+.duo-battle .ad182-duo-fold .duo-chapter-progress{margin:0 12px 12px}
+.duo-battle .ad182-duo-fold p.micro{margin:4px 14px 12px}
+.duo-battle .ad182-duo-fold #duoLog{margin:3px 12px 12px;max-height:175px;overflow:auto}

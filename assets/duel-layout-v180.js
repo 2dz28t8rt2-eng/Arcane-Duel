@@ -3,7 +3,6 @@
 (()=>{
   const $id=id=>document.getElementById(id);
   const seen=new WeakMap();
-  let previousSignature='';
 
   function placeFusionHelp(){
     const source=$id('summonStage'),host=$id('fusionSideHost'),fold=$id('ad180-fusion-details');
@@ -16,10 +15,8 @@
     host.replaceChildren(...moved);
     const nested=host.querySelector('.ad156-suggestions');
     if(nested&&typeof nestedOpen==='boolean')nested.open=nestedOpen;
-    // Open the tips automatically when a fusion is prepared, once per selection.
-    const signature=game&&uiMode==='duel'?(game.materials||[]).join(','):'';
-    if(signature&&signature!==previousSignature&&game?.materials?.length>=2)fold.open=true;
-    previousSignature=signature;
+    // Keep the player's chosen fold state. Changing materials must not
+    // expand the advice panel and shove other battlefield controls aside.
   }
 
   function celebratePredators(){
