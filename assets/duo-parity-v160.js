@@ -13,6 +13,7 @@
   profileUpgrades={},profileEnhancements={},profileEssence={},profileLv1={};
  let game=null,seat=-1,roomId='',token='',invite='',busy=false,refreshing=false,
   syncError='',syncedAt=0,sessionReady=true,syncFailures=0,lastPollAt=0;
+ let duoProfile=null,duoProfileToken='',duoLastRoom=null,profileSaving=false;
  const set=(id,text)=>$(id).textContent=String(text);
  const card=id=>catalog[id]||{name:'Karte '+id,level:'?',atk:'?',def:'?',role:'?'};
  const name=id=>card(id).name;
@@ -49,52 +50,11 @@
  }
  function readProfile(snapshot){
   starterMain=[...snapshot.starterMain];starterFusions=[...snapshot.starterFusions];
-  profileDeck=[...starterMain];profileFusions=[...starterFusions];
+  profileDeck=[];profileFusions=[];
   profileUpgrades={};profileEnhancements={};profileEssence={};profileLv1={};
-  let message='Noch kein Singleplayer-Spielstand in diesem Browser gefunden. '+
-   'Für die Beta wird ein gültiges Standarddeck verwendet.';
-  try{
-   const raw=localStorage.getItem('arcane-duel-rpg-profile-v4-reborn');
-   if(raw){
-    const p=JSON.parse(raw);
-    if(rules.validDeck(p.activeDeck,catalog)&&rules.validDeck(p.fusionDeck,catalog,true)){
-     profileDeck=[...p.activeDeck];profileFusions=[...p.fusionDeck];
-     for(const [key,max]of Object.entries(rules.PERK_LIMITS)){
-      const rank=p.upgrades?.[key];
-      if(Number.isInteger(rank)&&rank>=0&&rank<=max)profileUpgrades[key]=rank;
-     }
-     const used=new Set([...profileDeck,...profileFusions]);
-     for(const [key,rank]of Object.entries(p.enhancements||{})){
-      if(used.has(Number(key))&&Number.isInteger(rank)&&rank>=1&&rank<=5)
-       profileEnhancements[key]=rank;
-     }
-     if(p.essence?.chosen!==null&&p.essence?.chosen!==undefined&&
-      profileDeck.includes(p.essence.chosen)&&catalog[p.essence.chosen]?.essenceMonster){
-      const tier=Math.max(0,...(Array.isArray(p.cleared)?p.cleared:[]));
-      profileEssence={chosen:p.essence.chosen,school:p.essence.school??null,
-       tier,rank:p.essence.rank??0};
-     }
-     if(p.lv1Saga?.perk===true){profileLv1={perk:true,
-      rank:Number.isInteger(p.lv1Saga.skillRank)?p.lv1Saga.skillRank:1};}
-     rules.normalizedBuild(profileUpgrades,profileEnhancements,profileDeck,
-      profileFusions,catalog,profileEssence,profileLv1);
-     const active=Object.values(profileUpgrades).filter(Boolean).length;
-     message='✓ Einzelspieler-Deck übernommen: 40 Hauptkarten, '+
-      profileFusions.length+' Fusionen, '+active+' aktive Kampf-Ausbauten und '+
-      Object.keys(profileEnhancements).length+' Kartenverstärkungen. '+
-      (profileEssence.chosen!==undefined?'Essenzbindung aktiv. ':'')+
-      (profileLv1.perk?'Verbotene Forschung Rang '+profileLv1.rank+' aktiv. ':'')+
-      'Diese Beta liest die Ränge nur beim Raumbeitritt; dein Spielstand bleibt unverändert.';
-    }else message='Das gespeicherte Deck entspricht nicht den gültigen Karten-/Kopienregeln. '+
-      'Die Beta nutzt ein Standarddeck; deine Sammlung bleibt unverändert.';
-   }
-  }catch{
-   profileDeck=[...starterMain];profileFusions=[...starterFusions];
-   profileUpgrades={};profileEnhancements={};profileEssence={};profileLv1={};
-   message='Lokaler Spielstand beziehungsweise Essenzbindung nicht verwendbar. '+
-    'Sicheres Standarddeck aktiv; nichts überschrieben.';
-  }
-  set('duoDeckInfo',message);
+  set('duoDeckInfo','2v2 verwendet ausschließlich ein eigenes Serverprofil. '+
+   'Erstelle oben dein 2v2-Profil oder stelle es mit dem privaten Profil-Link wieder her. '+
+   'Der Singleplayer-Spielstand wird nicht ausgelesen.');
  }
  async function call(payload){
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
@@ -110,6 +70,128 @@
    throw e;
   }finally{clearTimeout(timer);}
  }
+
+ const duoProfileKey='arcane-duel-duo-v171-profile-key';
+ const perkNames=Object.freeze({
+  power:'Monstertraining',jagdinstinkt:'Jagdinstinkt',schildwall:'Schildwall',
+  resilience:'Standhaftigkeit',combatDiscipline:'Kampfdisziplin',
+  fusionLore:'Fusionskunde',fusionPrecision:'Runenpräzision',
+  openingAegis:'Vorhut-Schutz'
+ });
+ function persistProfileToken(value){
+  try{localStorage.setItem(duoProfileKey,value);}
+  catch{set('duoProfileMessage','Browser-Speicherung blockiert. Sichere unbedingt den privaten Profil-Wiederherstellungslink.');}
+ }
+ function deckEditor(){
+  if(!duoProfile)return;
+  const zone=$('duoProfileDeckZone').value;
+  const deck=zone==='main'?duoProfile.deck:duoProfile.fusions;
+  const owned=zone==='main'?duoProfile.ownedMain:duoProfile.ownedFusions;
+  const place=$('duoProfileDeckSlot'),chosen=Number(place.value),currentCard=$('duoProfileDeckCard');
+  place.replaceChildren();
+  for(let i=0;i<deck.length;i++){
+   const opt=el('option',place,(i+1)+': '+name(deck[i]));opt.value=String(i);
+  }
+  place.value=chosen>=0&&chosen<deck.length?String(chosen):'0';
+  currentCard.replaceChildren();
+  for(const id of new Set(owned)){
+   const opt=el('option',currentCard,name(id)+' · Lv '+card(id).level);opt.value=String(id);
+  }
+  currentCard.value=String(deck[Number(place.value)]??owned[0]??'');
+  place.onchange=()=>{currentCard.value=String(deck[Number(place.value)]);};
+ }
+ function installProfile(data){
+  duoProfile=data.profile;duoLastRoom=data.lastRoom??duoLastRoom;
+  profileDeck=[...duoProfile.deck];profileFusions=[...duoProfile.fusions];
+  profileUpgrades={...duoProfile.upgrades};
+  profileEnhancements={...duoProfile.enhancements};
+  profileEssence={...duoProfile.essenceBinding};
+  profileLv1={...duoProfile.lv1Research};
+  $('duoProfileCreateArea').hidden=true;
+  $('duoProfileActive').hidden=false;
+  const xpNext=150-(duoProfile.xp%150);
+  set('duoProfileStats',duoProfile.nickname+' · Lv '+duoProfile.level+
+   ' · '+duoProfile.xp+' EP (noch '+xpNext+' bis nächstes Level)'+
+   ' · '+duoProfile.essence+' Essenz · '+duoProfile.shards+
+   ' Splitter · '+duoProfile.wins+' Siege · '+
+   duoProfile.ownedMain.length+' Hauptkarten / '+
+   duoProfile.ownedFusions.length+' Fusionen');
+  const cleared=duoProfile.clearedChapters||[];
+  set('duoProfileCleared',cleared.length?
+   'Abgeschlossene 2v2-Kapitel: '+cleared.join(', '):
+   'Keine 2v2-Kapitel abgeschlossen – beginne mit Kapitel I.');
+  set('duoDeckInfo','Eigenständiges 2v2-Profil geladen: 40 Hauptkarten und '+
+   profileFusions.length+' Fusionen im aktiven Deck. '+
+   'Keine Karten, Ausbauränge oder Belohnungen aus dem Singleplayer.');
+  const perks=$('duoProfilePerk'),current=perks.value;
+  perks.replaceChildren();
+  for(const [key,max]of Object.entries(rules.PERK_LIMITS)){
+   const rank=duoProfile.upgrades[key]||0,price=100+rank*70;
+   const opt=el('option',perks,(perkNames[key]||key)+' '+rank+'/'+max+
+    (rank<max?' · '+price+' Essenz':' · MAX'));opt.value=key;
+  }
+  if(current&&rules.PERK_LIMITS[current])perks.value=current;
+  $('duoProfileContinue').hidden=!duoLastRoom||!!roomId;
+  for(const c of rules.CHAPTERS){
+   const option=Array.from($('duoChapter').options).find(o=>Number(o.value)===c.id);
+   if(option)option.disabled=c.id>Math.min(4,Math.max(1,
+    ...cleared.map(n=>n+1)));
+  }
+  if($('duoChapter').selectedOptions[0]?.disabled)$('duoChapter').value='1';
+  updateChapter();
+  deckEditor();
+  render();
+ }
+ async function fetchProfile(){
+  if(!duoProfileToken)return;
+  try{
+   installProfile(await call({type:'profile',profileToken:duoProfileToken}));
+   set('duoProfileMessage','☁ Eigenständiger 2v2-Fortschritt synchronisiert.');
+  }catch(e){set('duoProfileMessage','Profil konnte nicht synchronisiert werden: '+e.message);}
+ }
+ async function createDuoProfile(){
+  if(profileSaving||duoProfile)return;profileSaving=true;
+  try{
+   const data=await call({type:'profileCreate',name:$('duoHostName').value});
+   duoProfileToken=data.profileToken;persistProfileToken(duoProfileToken);
+   installProfile(data);
+   set('duoProfileMessage','Neues, unabhängiges 2v2-Profil auf dem Server erstellt.');
+  }catch(e){set('duoProfileMessage',e.message);}
+  finally{profileSaving=false;}
+ }
+ async function profileOperation(type,extra){
+  if(!duoProfile||profileSaving)return;
+  profileSaving=true;
+  try{
+   const data=await call({type,profileToken:duoProfileToken,
+    expectedRevision:duoProfile.revision,...extra});
+   installProfile(data);
+   set('duoProfileMessage',data.newCard?
+    'Neue 2v2-Karte erhalten: '+data.newCard.name+' · Lv '+data.newCard.level+
+     '. Ersetze im Deck-Editor einen Platz, um sie zu verwenden.':
+    '2v2-Profil erfolgreich auf dem Server gespeichert.');
+  }catch(e){set('duoProfileMessage',e.message);await fetchProfile();}
+  finally{profileSaving=false;}
+ }
+ async function backupProfile(){
+  if(!duoProfileToken)return;
+  const url=ownOrigin()+'#duoprofile='+duoProfileToken;
+  $('duoProfileBackupBox').hidden=false;
+  $('duoProfileBackupLink').value=url;
+  try{await navigator.clipboard.writeText(url);
+   set('duoProfileMessage','Privaten 2v2-Profil-Link kopiert. Nicht weitergeben!');
+  }catch{set('duoProfileMessage','Bitte den privaten Profil-Link aus dem Eingabefeld kopieren.');}
+ }
+ async function continueLastRoom(id=duoLastRoom?.roomId){
+  if(!duoProfileToken||!id||busy)return;
+  try{
+   const r=await call({type:'state',roomId:id,token:duoProfileToken});
+   roomId=id;token=duoProfileToken;seat=r.seat;invite='';load(r);
+   history.replaceState(null,'',ownOrigin()+'#room='+roomId);
+   set('duoStatus','Gespeicherten 2v2-Raum aus deinem eigenen Profil geladen.');
+  }catch(e){set('duoProfileMessage','Raum nicht fortsetzbar: '+e.message);}
+ }
+
  function save(){
   try{sessionStorage.setItem(key(roomId),JSON.stringify({token,seat,invite:seat===0?invite:''}));}
   catch{sessionReady=false;}
