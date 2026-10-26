@@ -73,6 +73,11 @@
     events.push({type:"summon",text,where:newly.shift()?.where});
    }
   }
+  if(events.some(e=>e.type==="attack")){
+   const destroyed=harmed.find(x=>x.kind==="destroyed");
+   if(destroyed)events.push({type:"destroy",
+    text:"Ein Monster wurde durch den Angriff zerstört.",where:destroyed.where});
+  }
   if(!events.length&&newly.length)events.push({type:"summon",
    text:"Ein Monster ist auf dem Spielfeld erschienen.",where:newly[0].where});
   if(!events.length&&harmed.some(x=>x.kind==="destroyed"))
@@ -139,7 +144,12 @@
   if(reduced()||document.visibilityState==="hidden")return;
   stage.replaceChildren();
   const to=center(endpoint(e.where)),from=center(endpoint(e.from));
-  if(e.type==="attack"){travel(from,to);burst(to||from,"hit");}
+  if(e.type==="attack"){
+   travel(from,to);
+   pending.push(setTimeout(()=>{
+    if(sequence===serial)burst(to||from,"hit");
+   },290));
+  }
   else if(e.type==="arena"){burst(center(document.querySelector("#duoAlliedLP")),"arena");}
   else if(e.type==="fusion"||e.type==="fate"||e.type==="summon"||
     e.type==="destroy")burst(to,e.type);
