@@ -11,50 +11,32 @@ document.getElementById('duo').addEventListener('load',()=>{
    check(f.contentWindow.ArcaneDuoRules?.version==='16.6-beta','Correct rules version');
    check(!!f.contentWindow.ArcaneFateVisuals?.artFor(0),
     'Singleplayer Fate illustrations are available for temporary creatures');
-   check(d.getElementById('duoDeckInfo').textContent.includes('Standarddeck')||
-    d.getElementById('duoDeckInfo').textContent.includes('übernommen'),
-    'Singleplayer main/fusion deck load or safe fallback');
-   check(!!d.getElementById('duoCreate')&&!d.getElementById('duoCreate').disabled,
-    'Room creation enabled when catalog loads');
+   check(d.getElementById('duoDeckInfo').textContent.includes('nicht ausgelesen'),
+    '2v2 no longer reads the singleplayer profile');
+   check(!!d.getElementById('duoProfileCreate')&&
+    d.getElementById('duoCreate').disabled,
+    'Creating a room requires an independent server profile');
+   check(!!d.getElementById('duoProfileStats')&&
+    !!d.getElementById('duoProfileDeckSave')&&
+    !!d.getElementById('duoProfileBuyPack')&&
+    !!d.getElementById('duoProfileUpgrade'),
+    'Dedicated 2v2 progression, deck builder and store are present');
    check(d.getElementById('duoEntry').value==='new','Chapter I is default');
-   check(d.getElementById('duoChapterSelect').hidden,'Optional chapter chooser hidden by default');
-   check(d.getElementById('duoChapter').options.length===4,'Four chapters from shared rules');
+   check(d.getElementById('duoChapterSelect').hidden,'Chapter picker hidden by default');
+   check(d.getElementById('duoChapter').options.length===4,'Four chapter definitions remain');
    check(d.getElementById('duoChapterInfo').textContent.includes('Level 2'),
-    'Chapter preview uses real catalog');
-   d.getElementById('duoEntry').value='chapter';
-   d.getElementById('duoEntry').dispatchEvent(new Event('change',{bubbles:true}));
-   d.getElementById('duoChapter').value='4';
-   d.getElementById('duoChapter').dispatchEvent(new Event('change',{bubbles:true}));
-   check(!d.getElementById('duoChapterSelect').hidden&&
-    d.getElementById('duoChapterInfo').textContent.includes('Level 8'),
-    'Late chapter preview and chooser');
+    'Chapter I preview uses canonical level');
    check(d.querySelectorAll('#duoSeats .seat').length===0,
-    'No room information before authorization');
-   check(d.getElementById('duoAlliedLP').textContent.includes('16.000'),
-    'Expected shared team LP');
+    'No opponent or hidden information before authorization');
    check(!!d.getElementById('duoInviteBox')&&!!d.getElementById('duoRefresh'),
-    'Invite, save and refresh controls exist');
-   check(d.querySelector('.notice').textContent.includes('Beta'),
-    'Feature coverage and limitations clearly marked');
-   check(d.querySelector('.notice').textContent.includes('Qualitätswürfe'),
-    'v16.2 fusion dice, defensive roles and limitations explained in the beta');
-   check(d.querySelector('.notice').textContent.includes('Kampf-Ausbauten')&&
-    d.querySelector('.duo-guide').textContent.includes('Kartenaufstiege'),
-    'v16.3 combat builds and card enhancements explained');
-   check(d.querySelector('.duo-guide').textContent.includes('automatisch gespeichert'),
-    'Automatic room saving is discoverable');
-   check(d.querySelector('.notice').textContent.includes('Essenzbindung')&&
-    d.querySelector('.duo-guide').textContent.includes('Letztes Bollwerk')&&
-    d.querySelector('.duo-guide').textContent.includes('Reißzahn'),
-    'v16.4 Essence companions and special abilities explained');
-   check(d.querySelector('.duo-guide').textContent.includes('Verbotene Forschung')&&
-    d.querySelector('.duo-guide').textContent.includes('Nekroth')&&
-    d.querySelector('.duo-guide').textContent.includes('Floating'),
-    'v16.5 Lv1 fusions, ghost zones and Floating explained');
+    'Invitations, autosave and refresh remain present');
+   check(d.querySelector('.notice').textContent.includes('keinen Import'),
+    'No solo/duo import is explicitly stated');
    check(d.querySelector('.duo-guide').textContent.includes('Schicksalszug')&&
-    d.querySelector('.duo-guide').textContent.includes('Arena-Zerfall')&&
-    d.querySelector('.duo-guide').textContent.includes('320 LP'),
-    'v16.6 team Fate draw and late-round arena pressure explained');
+    d.querySelector('.duo-guide').textContent.includes('Arena-Zerfall'),
+    'Core 2v2 combat rules remain documented');
+   check(d.querySelector('.duo-team-definition').textContent.includes('2 Menschen gegen 2 KI'),
+    'Exactly two humans play against two AI opponents');
   }catch(e){check(false,e.stack||e.message);}
   document.getElementById('result').textContent=notes.join('\n');
   document.documentElement.dataset.duoParity=ok?'pass':'fail';
