@@ -6,9 +6,12 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {createClient} from "npm:@supabase/supabase-js@2";
 import snapshot from "./catalog.json" with {type:"json"};
 import "./duo-rules.js";
+import "./duo-economy-v172.js";
 
 const game=globalThis.ArcaneDuoRules;
 if(!game)throw Error("Missing authoritative 2v2 rules");
+const economy=globalThis.ArcaneDuoEconomy172;
+if(!economy)throw Error("Missing standalone 2v2 economy rules");
 const catalog=Object.fromEntries(snapshot.cards.map(c=>[c.id,c]));
 const starter=snapshot.starterMain;
 const db=createClient(Deno.env.get("SUPABASE_URL")||"",
@@ -97,10 +100,15 @@ async function newestRoom(p){
  return room?{roomId:room.id,seat:room.host_profile_id===p.id?0:2,
   status:room.status,revision:room.revision}:null;
 }
-const maxChapter=p=>Math.min(4,Math.max(1,...(p.cleared_chapters||[]).map(x=>x+1)));
-const capLevel=p=>Math.min(10,3+2*Math.max(0,...(p.cleared_chapters||[])));
+const maxChapter=p=>economy.maxChapter(p);
+const capLevel=p=>economy.maxCardLevel(p);
 const profileResult=async(p,extra={})=>({profile:profileView(p),
- lastRoom:await newestRoom(p),...extra});
+ lastRoom:await newestRoom(p),
+ economy:{packs:economy.PACKS,
+  lv1:economy.researchOffer(p,"lv1"),
+  essence:economy.researchOffer(p,"essence"),
+  maxCardLevel:capLevel(p),maxChapter:maxChapter(p)},
+ ...extra});
 
 Deno.serve(async request=>{
  const origin=request.headers.get("origin")||"";
@@ -134,7 +142,7 @@ Deno.serve(async request=>{
    if(error)throw error;
    return json({profileToken,profile:profileView(p),lastRoom:null},200,allow);
   }
-  if(["profile","upgrade","pack","deckReplace"].includes(kind)){
+  if(["profile","upgrade","pack","deckReplace","research","bindEssence"].includes(kind)){
    const p=await profileByToken(body.profileToken);
    if(kind==="profile")return json(await profileResult(p),200,allow);
    assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===p.revision,
@@ -151,21 +159,59 @@ Deno.serve(async request=>{
     return json(await profileResult(next),200,allow);
    }
    if(kind==="pack"){
-    const fusion=body.pack==="fusion";
-    assert(["fusion","normal"].includes(body.pack),"Unbekanntes Kartenpaket.");
-    const price=fusion?160:90,shards=fusion?2:1;
-    assert(p.essence>=price&&p.shards>=shards,"Zu wenig Essenz oder Splitter.");
-    const inventory=fusion?"owned_fusions":"owned_main";
-    const have=counts(p[inventory]);
-    const pool=snapshot.cards.filter(c=>c.playable&&!c.ace&&
-     !!c.fusionOnly===fusion&&c.level<=capLevel(p)&&
-     (fusion||!c.essenceMonster)&&(have.get(c.id)||0)<3);
-    assert(pool.length>0,"Keine geeignete Karte mehr im Paketpool.");
-    const card=pool[crypto.getRandomValues(new Uint32Array(1))[0]%pool.length];
-    const next=await writeProfile(p,{essence:p.essence-price,shards:p.shards-shards,
-     [inventory]:[...p[inventory],card.id]});
-    return json(await profileResult(next,{newCard:{id:card.id,name:card.name,
-     level:card.level,fusion}}),200,allow);
+    const offer=economy.PACKS[body.pack];
+    assert(offer,"Unbekanntes 2v2-Kartenpaket.");
+    assert(p.essence>=offer.essence&&p.shards>=offer.shards,
+     "Nicht genug 2v2-Essenz oder Splitter.");
+    const rng=max=>crypto.getRandomValues(new Uint32Array(1))[0]%max;
+    const reward=economy.packDraw(p,body.pack,catalog,rng);
+    const next=await writeProfile(p,{essence:p.essence-offer.essence,
+     shards:p.shards-offer.shards,
+     owned_main:reward.owned_main,owned_fusions:reward.owned_fusions});
+    return json(await profileResult(next,{
+     newCards:reward.cards,fusionCount:reward.fusionCount,
+     normalCount:reward.normalCount}),200,allow);
+   }
+   if(kind==="research"){
+    assert(["lv1","essence"].includes(body.branch),"Unbekannter 2v2-Forschungszweig.");
+    const offer=economy.researchOffer(p,body.branch);
+    assert(offer&&!offer.maxed,"Forschungszweig bereits abgeschlossen.");
+    assert(offer.unlocked,"Für diesen Forschungsrang fehlt ein abgeschlossenes 2v2-Kapitel.");
+    assert(p.essence>=offer.essence&&p.shards>=offer.shards,
+     "Nicht genügend 2v2-Essenz oder Splitter.");
+    const patch:any={essence:p.essence-offer.essence,shards:p.shards-offer.shards};
+    let granted:any[]=[];
+    if(body.branch==="lv1"){
+     patch.lv1_research={...p.lv1_research,perk:true,rank:offer.nextRank};
+     if(offer.nextRank===1){
+      granted=snapshot.cards.filter(c=>c.lv1Exclusive&&c.playable).map(c=>({
+       id:c.id,name:c.name,level:c.level,fusion:true
+      }));
+      patch.owned_fusions=[...p.owned_fusions,...granted.map(c=>c.id)];
+      patch.fusions=[...p.fusions,
+       ...granted.map(c=>c.id).slice(0,Math.max(0,15-p.fusions.length))];
+     }
+    }else{
+     patch.essence_binding={...p.essence_binding,researchRank:offer.nextRank};
+    }
+    const next=await writeProfile(p,patch);
+    return json(await profileResult(next,{researchUnlocked:body.branch,
+     newCards:granted}),200,allow);
+   }
+   if(kind==="bindEssence"){
+    const id=body.cardId,card=catalog[id];
+    assert(economy.researchRank(p,"essence")>=1,
+     "Erst Essenzforschung in der 2v2-Kampagne freischalten.");
+    assert(Number.isInteger(id)&&card?.essenceMonster===true&&
+     p.owned_main.includes(id)&&p.deck.includes(id),
+     "Essenzwesen muss dir gehören und im 2v2-Hauptdeck sein.");
+    const next=await writeProfile(p,{
+     essence_binding:{...p.essence_binding,chosen:id,
+      school:card.essenceSchool||null,
+      rank:economy.researchRank(p,"essence"),
+      tier:Math.max(0,...(p.cleared_chapters||[]))}
+    });
+    return json(await profileResult(next),200,allow);
    }
    assert(["main","fusion"].includes(body.zone)&&Number.isInteger(body.slot)&&
     Number.isInteger(body.cardId),"Ungültige Deckänderung.");
