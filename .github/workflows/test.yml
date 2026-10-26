@@ -284,6 +284,16 @@ jobs:
             fi
           done
 
+                    echo "Checking 2v2 v17.0 confirmed fusion dice, concealed draws, and seat contract..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=14000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-duo-cinema-v170.html >"/tmp/arcane-duo-cinema170-${size}.html" 2>/tmp/arcane-duo-cinema170-chrome.log
+            if ! grep -q 'data-duo-cinema170="pass"' "/tmp/arcane-duo-cinema170-${size}.html"; then
+              echo "2v2 v17.0 cinema/seat QA failed at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/arcane-duo-cinema170-${size}.html" | head -100 || true
+              exit 1
+            fi
+          done
+
                     echo "Checking beginner-friendly v15.6 fusion assistant on desktop and mobile..."
           for size in 1200 410; do
             "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=14000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-fusion-coach-v156.html >"/tmp/arcane-fusion-coach-${size}.html" 2>/tmp/arcane-fusion-coach.log
