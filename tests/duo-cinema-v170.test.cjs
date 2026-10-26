@@ -77,3 +77,18 @@ test('visual queue bounds dice (12) and draws (5) without altering actual game s
  assert.equal(e.find(x=>x.kind==='draw').count,5);
  assert.deepEqual(next,copy,'cinema must not write to authoritative state');
 });
+
+test('actual online rule engine has exactly two human seats against two AI seats',()=>{
+ const rules=require('../assets/duo-shared-rules-v160.js');
+ const snapshot=require('../assets/duo-card-catalog-v160.json');
+ const catalog=Object.fromEntries(snapshot.cards.map(c=>[c.id,c]));
+ const deck=[...snapshot.starterMain],fusions=[...snapshot.starterFusions];
+ const game=rules.create({roomId:'two-humans-two-ai',hostName:'Gastgeber',
+  hostDeck:deck,hostFusions:fusions,enemyDeckA:deck,enemyDeckB:deck,
+  enemyFusionsA:fusions,enemyFusionsB:fusions,chapter:1,entry:'new',catalog});
+ assert.deepEqual(game.players.map(p=>p.kind),['human','ai','human','ai']);
+ assert.deepEqual(game.players.map(p=>p.team),[0,1,0,1]);
+ const next=rules.apply(game,2,{type:'join',name:'Partner',deck,fusions},{catalog});
+ assert.equal(next.players.filter(p=>p.kind==='human').length,2);
+ assert.equal(next.players.filter(p=>p.kind==='ai').length,2);
+});
