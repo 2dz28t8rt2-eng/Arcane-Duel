@@ -4,7 +4,7 @@
 <meta name="referrer" content="no-referrer">
 <title>Arcane Duel · 2v2 Regelangleichung (Beta)</title>
 <link rel="stylesheet" href="assets/duo-campaign-demo.css?v=duo-v166">
-<link rel="stylesheet" href="assets/duo-parity-v160.css?v=duo-v173">
+<link rel="stylesheet" href="assets/duo-parity-v160.css?v=duo-v174">
 <link rel="stylesheet" href="assets/duo-cinematics-v167.css?v=duo-v167">
 <link rel="stylesheet" href="assets/duo-cinema-v170.css?v=duo-v170b">
 </head><body><main class="duo-wrap">
@@ -34,6 +34,19 @@
   <p id="duoProfileStats" class="duo-profile-stats"></p>
   <p id="duoProfileCleared" class="micro"></p>
   <p id="duoProfileUnlockInfo" class="micro"></p>
+   <section class="duo-balance-panel" aria-label="Fortschritt und Kapitelbelohnungen">
+    <h3>Kapitelbelohnungen & nächste Ziele</h3>
+    <p id="duoFirstClearCards" class="duo-chapter-credits"></p>
+    <button id="duoChapterCardClaim" type="button" disabled>Garantierte Kapitelkarte einlösen</button>
+    <p id="duoChapterClearPreview" class="micro"></p>
+    <label>Geplantes Kartenpaket
+     <select id="duoBalancePack"></select>
+    </label>
+    <p id="duoBalanceGoal" class="micro"></p>
+    <p class="micro">Erste Kapitelsiege vergeben volle Belohnungen und drei Kartenansprüche.
+     Wiederholungssiege geben weniger Ressourcen (max. drei Auszahlungen pro Kapitel und UTC-Tag).
+     Angezeigte Siege sind eine rechnerische Orientierung, keine Siegprognose.</p>
+   </section>
   <div class="actions">
    <button id="duoProfileBackup" type="button">Privaten Profil-Wiederherstellungslink kopieren</button>
    <button id="duoProfileReload" type="button">Profil synchronisieren</button>
@@ -256,6 +269,6 @@
 <script src="assets/duo-cinematics-v167.js?v=duo-v167"></script>
 <script src="assets/duo-cinema-v170.js?v=duo-v170b"></script>
 <script src="assets/duo-recovery-v168.js?v=duo-v168"></script>
-<script src="assets/duo-economy-v172.js?v=duo-v173"></script>
-<script src="assets/duo-parity-v160.js?v=duo-v173"></script>
+<script src="assets/duo-economy-v172.js?v=duo-v174"></script>
+<script src="assets/duo-parity-v160.js?v=duo-v174"></script>
 </body></html>
