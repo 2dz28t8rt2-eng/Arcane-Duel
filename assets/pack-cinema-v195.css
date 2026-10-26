@@ -1,0 +1,126 @@
+/* Arcane Duel v19.5 – a visible seal, a clear opening beat and rare-card payoff. */
+.ad195-pack-cinema .ad178-pack-stage{isolation:isolate;}
+.ad195-pack-cinema .ad178-pack-face{position:relative;}
+.ad195-pack-cinema .ad195-sigil-seal{
+ position:absolute;left:50%;top:48%;z-index:6;width:76px;height:76px;
+ display:grid;place-items:center;border:4px double #ffe4a1;border-radius:50%;
+ background:radial-gradient(circle at 38% 28%,#edca83,#955b34 64%,#49314f);
+ box-shadow:0 2px 13px #05091fcc,inset 0 0 14px #ffeba375,0 0 0 5px #231b32cc,
+  0 0 22px #e9b96e7b;color:#fff4c9;font-size:38px;
+ transform:translate(-50%,-50%) rotate(-16deg);
+ text-shadow:0 1px 8px #fff4b8;pointer-events:none;
+ animation:ad195-seal-breathe 2.1s ease-in-out infinite alternate;
+}
+.ad195-pack-cinema .ad195-sigil-seal::before,
+.ad195-pack-cinema .ad195-sigil-seal::after{
+ content:'';position:absolute;inset:6px;border:1px dashed #fff1c29c;
+ border-radius:50%;pointer-events:none;
+}
+.ad195-pack-cinema .ad195-sigil-seal::after{inset:-9px;border:1px solid #ffcc7a7a;}
+.ad195-pack-cinema.ad195-seal-breaking .ad195-sigil-seal{
+ animation:ad195-seal-shatter .5s cubic-bezier(.35,.02,.68,.95) both;
+}
+.ad195-pack-cinema .ad195-seal-flash{
+ position:absolute;z-index:2;pointer-events:none;top:31%;left:50%;width:240px;height:240px;
+ border-radius:50%;opacity:0;transform:translate(-50%,-50%) scale(.2);
+ background:radial-gradient(circle,#fff3d6 0%,#ffd58db8 16%,#cb7ff67a 35%,transparent 72%);
+ mix-blend-mode:screen;
+}
+.ad195-pack-cinema.ad195-pack-rifted .ad195-seal-flash{
+ animation:ad195-seal-burst .85s ease-out both;
+}
+.ad195-pack-cinema .ad195-special-notice{
+ display:none;position:relative;z-index:4;margin:7px auto 4px;
+ padding:7px 15px;width:fit-content;max-width:90%;min-height:20px;
+ color:#ffe9b6;font:700 clamp(13px,2.7vw,19px)/1.3 Georgia,serif;
+ letter-spacing:.06em;border-radius:50px;
+ background:linear-gradient(90deg,transparent,#5e3a6eaa,transparent);
+ text-shadow:0 0 15px #f5ba78;
+}
+.ad195-pack-cinema.ad195-special-reveal .ad195-special-notice,
+.ad195-pack-cinema.ad195-pack-finished .ad195-special-notice:not(:empty){display:block;}
+.ad195-pack-cinema.ad195-special-reveal .ad195-special-notice{
+ animation:ad195-rare-headline .6s cubic-bezier(.17,.81,.35,1) both;
+}
+.ad195-pack-cinema .ad178-reward-card{isolation:isolate;}
+.ad195-pack-cinema .ad178-reward-card.ad195-card-reveal.ad195-tier-1 .ad178-card-face{
+ outline:1px solid #b889e28c;outline-offset:1px;
+}
+.ad195-pack-cinema .ad178-reward-card.ad195-card-reveal.ad195-tier-2 .ad178-card-face{
+ box-shadow:0 0 23px #f4c66aaa,0 0 43px #b884b355,inset 0 0 23px #f0ba622e;
+}
+.ad195-pack-cinema .ad178-reward-card.ad195-card-reveal.ad195-tier-3 .ad178-card-face{
+ box-shadow:0 0 18px #d4a6ffee,0 0 43px #b28fff9e,inset 0 0 24px #b28fff4d;
+}
+.ad195-pack-cinema .ad178-reward-card.ad195-card-reveal.ad195-tier-4 .ad178-card-face{
+ box-shadow:0 0 13px #fff4cf,0 0 30px #ffce7ff2,0 0 59px #f4a55faa,
+  inset 0 0 27px #ffe7a65c;
+}
+.ad195-pack-cinema .ad195-rarity-tag{
+ pointer-events:none;position:absolute;z-index:8;left:50%;top:-8px;
+ max-width:95%;padding:3px 8px;border-radius:4px;
+ transform:translateX(-50%);white-space:nowrap;
+ color:#fff3d7;background:linear-gradient(95deg,#312443,#785a3d,#312443);
+ border:1px solid #f0cb83a8;box-shadow:0 4px 15px #0009;
+ font:800 9px/1.5 system-ui,sans-serif;letter-spacing:.04em;
+}
+.ad195-pack-cinema .ad195-tier-3 .ad195-rarity-tag{
+ background:linear-gradient(95deg,#432f68,#70578e,#432f68);border-color:#e0baff;
+}
+.ad195-pack-cinema .ad195-tier-4 .ad195-rarity-tag{
+ color:#2e1b29;background:linear-gradient(105deg,#f6c46a,#fff4d4,#f6ba60);
+ border-color:#fff7d7;font-weight:900;
+}
+.ad195-pack-cinema .ad178-reward-card.ad195-card-reveal.ad195-tier-2::after,
+.ad195-pack-cinema .ad178-reward-card.ad195-card-reveal.ad195-tier-3::after,
+.ad195-pack-cinema .ad178-reward-card.ad195-card-reveal.ad195-tier-4::after{
+ content:'✦';position:absolute;z-index:3;inset:-16px auto auto -14px;
+ color:#ffdfa3;font-size:33px;text-shadow:0 0 9px #fff4bc,0 0 27px #f5b965;
+ pointer-events:none;animation:ad195-rare-spark 1.1s ease-out both;
+}
+.ad195-pack-cinema .ad178-reward-card.ad195-tier-3::after{color:#e2bdff;}
+.ad195-pack-cinema .ad178-reward-card.ad195-tier-4::before{
+ content:'';position:absolute;z-index:-1;inset:-17px;border-radius:16px;
+ background:conic-gradient(from 8deg,transparent,#ffd794a6,transparent,#ffe8afa6,transparent);
+ opacity:0;pointer-events:none;animation:ad195-ace-halo 1.6s ease-out both;
+}
+.ad195-pack-cinema .ad195-audio-panel{
+ position:relative;z-index:5;display:flex;align-items:center;justify-content:center;
+ flex-wrap:wrap;gap:9px;margin:9px auto 1px;color:#dfc9a1;font:600 12px system-ui,sans-serif;
+}
+.ad195-pack-cinema .ad195-audio-toggle{
+ appearance:none;background:#27253b;color:#f4dfb4;border:1px solid #aa946e;
+ border-radius:18px;padding:6px 12px;min-height:32px;font:700 12px system-ui,sans-serif;
+ cursor:pointer;
+}
+.ad195-pack-cinema .ad195-audio-toggle[aria-pressed='true']{border-color:#e5c17c;background:#4b3850;}
+.ad195-pack-cinema .ad195-audio-toggle:focus-visible,
+.ad195-pack-cinema .ad195-volume-slider:focus-visible{outline:3px solid #ffd98c;outline-offset:3px;}
+.ad195-pack-cinema .ad195-volume-label{display:flex;align-items:center;gap:7px;}
+.ad195-pack-cinema .ad195-volume-label[hidden]{display:none;}
+.ad195-pack-cinema .ad195-volume-slider{accent-color:#edc57c;max-width:100px;cursor:pointer;}
+.ad195-pack-cinema .ad195-volume-value{min-width:36px;font-variant-numeric:tabular-nums;}
+@keyframes ad195-seal-breathe{to{filter:brightness(1.3);box-shadow:0 2px 13px #05091fcc,
+ inset 0 0 20px #ffeba3a6,0 0 0 5px #231b32cc,0 0 35px #f9cb94c9;}}
+@keyframes ad195-seal-shatter{0%{opacity:1;transform:translate(-50%,-50%) rotate(-16deg) scale(1)}
+ 35%{opacity:1;filter:brightness(2.3);transform:translate(-50%,-50%) rotate(6deg) scale(1.24)}
+ 100%{opacity:0;filter:brightness(4);transform:translate(-50%,-50%) rotate(47deg) scale(2.9)}}
+@keyframes ad195-seal-burst{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}
+ 17%{opacity:.94}100%{opacity:0;transform:translate(-50%,-50%) scale(3.3)}}
+@keyframes ad195-rare-headline{from{opacity:0;transform:translateY(8px) scale(.91)}
+ to{opacity:1;transform:none}}
+@keyframes ad195-rare-spark{0%{opacity:0;transform:scale(.2) rotate(-30deg)}
+ 25%{opacity:1}100%{opacity:.65;transform:scale(1.5) rotate(65deg)}}
+@keyframes ad195-ace-halo{20%{opacity:.9}100%{opacity:0;transform:rotate(125deg) scale(1.4)}}
+@media(max-width:540px){
+ .ad195-pack-cinema .ad195-sigil-seal{width:68px;height:68px;}
+ .ad195-pack-cinema .ad195-audio-panel{gap:7px;font-size:11px;}
+ .ad195-pack-cinema .ad195-rarity-tag{font-size:8px;padding:2px 4px;}
+ .ad195-pack-cinema .ad195-special-notice{font-size:13px;}
+}
+@media(prefers-reduced-motion:reduce){
+ .ad195-pack-cinema .ad195-sigil-seal,.ad195-pack-cinema .ad195-seal-flash,
+ .ad195-pack-cinema .ad195-special-notice,
+ .ad195-pack-cinema .ad178-reward-card::before,
+ .ad195-pack-cinema .ad178-reward-card::after{animation:none!important;transition:none!important;}
+}

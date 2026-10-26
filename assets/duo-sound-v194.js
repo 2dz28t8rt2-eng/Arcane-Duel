@@ -179,6 +179,20 @@
    case 'discharge':
     tone(155,540,t,.29,'sawtooth',.19);tone(620,80,t+.25,.37,'triangle',.34);
     rustle(t+.22,.25,820,.2);break;
+   case 'packBreak':
+    tone(390,115,t,.31,'triangle',.23);rustle(t+.065,.16,1750,.18);break;
+   case 'packOpen':
+    tone(220,580,t,.43,'sine',.22);tone(460,990,t+.09,.45,'triangle',.12);
+    rustle(t+.05,.22,2600,.12);break;
+   case 'packFlip':
+    rustle(t,.1,1500,.12);tone(600,930,t+.03,.12,'sine',.08);break;
+   case 'packRare':
+    tone(440,660,t,.34,'sine',.18);tone(660,990,t+.13,.4,'sine',.18);
+    tone(990,1320,t+.25,.4,'sine',.09);break;
+   case 'packAce':
+    tone(196,392,t,.64,'triangle',.22);
+    [523,659,784,1046].forEach((freq,i)=>
+     tone(freq,freq*1.025,t+.12+i*.13,.45,'sine',.18));break;
    case 'win':
     [392,494,587].forEach((freq,i)=>tone(freq,freq*1.03,t+i*.155,.36,'sine',.22));break;
    case 'lose':
@@ -243,6 +257,9 @@
  window.ArcaneDuoSound194=Object.freeze({version:'19.4.0',analyze,linesSince,
   onState,mount,setEnabled,setVolume,playPreview,
   isEnabled:()=>enabled,getVolume:()=>volume,cancel});
+ // On pages without a 2v2 battle panel, the pack ritual can still share
+ // the same saved sound preference; playback remains gesture-gated.
+ loadSetting();
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
  else mount();
 })();

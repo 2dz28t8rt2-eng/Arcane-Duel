@@ -65,6 +65,11 @@
     (item.ace?' · ACE':item.fusion?' · Fusion':'');face.append(detail);
    card.append(face);results.append(card);rewardNodes.push(card);
   }
+  // Reveal rare cards last without moving cards or changing rewards/choices.
+  const rarity=card=>card.ace?4:card.fusion&&card.level>=7?3:
+   card.level>=8?2:card.fusion?1:0;
+  const revealOrder=rewards.map((_,i)=>i).sort((a,b)=>
+   rarity(rewards[a])-rarity(rewards[b])||a-b);
   const controls=doc.createElement('div');controls.className='ad178-pack-controls';scene.append(controls);
   const openButton=doc.createElement('button');openButton.type='button';openButton.className='ad178-primary';
   openButton.textContent='✦ Siegel brechen';controls.append(openButton);
@@ -79,10 +84,15 @@
   const done=new Promise(r=>resolve=r);
   const later=(callback,ms)=>timers.push(root.setTimeout(callback,ms));
   const clear=()=>{for(const id of timers)root.clearTimeout(id);timers=[];};
+  const cinematic=(phase,extra={})=>{
+   try{root.ArcanePackExperience195?.onPhase?.(phase,{overlay,scene,pack,
+    rewards,rewardNodes,selection,...extra});}catch(_){/* Never block a reward. */}
+  };
   const titleEnd=selection?'Wähle jetzt deine Karte aus. Die erste ist kostenlos.':
    'Diese Karten gehören bereits zu deiner Sammlung.';
   function finish(){
    if(finished)return;finished=true;clear();
+   cinematic('close');
    doc.removeEventListener('keydown',onKey);overlay.remove();
    if(active?.finish===finish)active=null;
    const choice=selection?doc.querySelector?.('[data-pack-pick]:not([disabled])'):null;
@@ -90,33 +100,38 @@
    else if(oldFocus?.isConnected&&typeof oldFocus.focus==='function')oldFocus.focus();
    resolve(true);
   }
-  function complete(){
+  function complete(skipped=false){
    if(finished||opened)return;opened=true;clear();
    overlay.classList.add('ad178-pack-dealt','ad178-pack-opened');
    status.textContent=titleEnd;
    for(const card of rewardNodes){card.classList.add('ad178-is-revealed');card.removeAttribute('aria-hidden');}
+   cinematic('complete',{skipped});
    openButton.hidden=true;skip.hidden=true;pack.disabled=true;close.hidden=false;close.focus();
   }
-  function revealCard(index){
+  function revealCard(index,position){
    if(finished||opened)return;
    const card=rewardNodes[index];
    card.classList.add('ad178-is-revealed');card.removeAttribute('aria-hidden');
-   if(index===rewardNodes.length-1){
+   cinematic('reveal',{index,position,item:rewards[index]});
+   if(position===rewardNodes.length-1){
     status.textContent=titleEnd;
     later(complete,420);
-   }else status.textContent='Karte '+(index+1)+' von '+rewardNodes.length+' enthüllt …';
+   }else status.textContent='Karte '+(position+1)+' von '+rewardNodes.length+' enthüllt …';
   }
   function begin(){
    if(finished||breaking||opened)return;
    breaking=true;pack.disabled=true;openButton.hidden=true;
    overlay.classList.add('ad178-pack-breaking');status.textContent='Das Siegel bricht auf …';
+   cinematic('break');
    const spacing=staggerFor(rewardNodes.length);
-   later(()=>{overlay.classList.add('ad178-pack-dealt');status.textContent='Welche Monster verbergen sich darin?'},500);
-   for(let i=0;i<rewardNodes.length;i++)later(()=>revealCard(i),760+i*spacing);
+   later(()=>{overlay.classList.add('ad178-pack-dealt');
+    status.textContent='Welche Monster verbergen sich darin?';cinematic('rift');},500);
+   revealOrder.forEach((index,position)=>later(()=>revealCard(index,position),
+    760+position*spacing));
   }
   function onKey(e){
    if(e.key==='Escape'){
-    e.preventDefault();e.stopPropagation();opened?finish():complete();return;
+    e.preventDefault();e.stopPropagation();opened?finish():complete(true);return;
    }
    if(e.key!=='Tab')return;
    const choices=[...overlay.querySelectorAll('button:not([hidden]):not([disabled]),input:not([disabled])')];
@@ -125,9 +140,10 @@
    if(e.shiftKey&&doc.activeElement===first){e.preventDefault();last.focus();}
    else if(!e.shiftKey&&doc.activeElement===last){e.preventDefault();first.focus();}
   }
-  pack.onclick=begin;openButton.onclick=begin;skip.onclick=complete;close.onclick=finish;
+  pack.onclick=begin;openButton.onclick=begin;skip.onclick=()=>complete(true);close.onclick=finish;
   doc.addEventListener('keydown',onKey);doc.body.append(overlay);active={finish};
-  if(reduced()||fast())complete();else pack.focus();
+  cinematic('ready');
+  if(reduced()||fast())complete(true);else pack.focus();
   return done;
  }
  return Object.freeze({version:'18.1',normalize,glowFor,staggerFor,open});

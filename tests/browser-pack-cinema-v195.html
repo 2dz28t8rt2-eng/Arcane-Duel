@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#151629">
+<title>Arcane Duel · Booster-Siegel &amp; seltene Karten – Vorschau v19.5</title>
+<link rel="stylesheet" href="../assets/pack-cinema-v178.css?v=19.5">
+<link rel="stylesheet" href="../assets/pack-cinema-v181.css?v=19.5">
+<link rel="stylesheet" href="../assets/pack-cinema-v195.css?v=19.5">
+<style>
+ *{box-sizing:border-box}
+ body{margin:0;min-height:100vh;display:grid;place-items:center;padding:25px;
+  background:radial-gradient(ellipse at 50% 15%,#3a314a,#131a2b 54%,#090c19);
+  color:#f9ebce;font:16px/1.6 system-ui,sans-serif}
+ main{width:min(740px,100%);padding:34px 27px;text-align:center;border:1px solid #d4af7749;
+  border-radius:23px;background:linear-gradient(130deg,#181a31c7,#21172fbd);
+  box-shadow:0 15px 75px #060812c9}
+ .eyebrow{color:#e4c38a;font-size:12px;letter-spacing:.22em;font-weight:800}
+ h1{font:700 clamp(27px,4vw,44px)/1.2 Georgia,serif;margin:10px 0 14px}
+ p{color:#d6c8b4;max-width:580px;margin:12px auto}
+ .actions{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin:25px 0 15px}
+ button{cursor:pointer;padding:12px 20px;border-radius:9px;border:1px solid #d8b178;
+  background:linear-gradient(135deg,#65466b,#55402f);color:#fff1d3;font:700 14px system-ui}
+ button:hover{filter:brightness(1.15)}button:focus-visible{outline:3px solid #ffe2a3;outline-offset:3px}
+ .minor{background:#29283c;font-weight:500}
+ small{color:#c3ae95}
+ output{display:block;margin:15px auto;color:#d5e9c0;min-height:22px}
+</style></head><body>
+<main>
+ <div class="eyebrow">✦ ARCANE DUEL · QUALITÄTSUPDATE 19.5 ✦</div>
+ <h1>Ein Booster. Ein Geheimnis.</h1>
+ <p>Brich das Siegel, entdecke deine Karten und erlebe den besonderen Moment, wenn eine mächtige Fusion oder ein ACE erscheint.</p>
+ <div class="actions">
+  <button id="three" type="button">✦ Charakterpack · 3 Karten</button>
+  <button id="five" type="button">✦ Booster · 5 Karten</button>
+  <button id="ten" type="button">✦ Großes Pack · 10 Karten</button>
+ </div>
+ <button class="minor" type="button" id="reset">Direkte Enthüllung ausschalten</button>
+ <p><small>Reine Vorschau: Hier werden keine Karten vergeben und keine Spielstände verändert. Der Ton ist zunächst ausgeschaltet und kann beim Öffnen aktiviert werden.</small></p>
+ <output id="status" role="status" aria-live="polite"></output>
+</main>
+<script src="../assets/pack-cinema-v178.js?v=19.5"></script>
+<script src="../assets/pack-cinema-v181.js?v=19.5"></script>
+<script src="../assets/duo-sound-v194.js?v=19.5"></script>
+<script src="../assets/pack-cinema-v195.js?v=19.5"></script>
+<script>
+ const base=[
+  {name:'Nekroth, König des Seelenschwarms',level:1,
+   art:'https://raw.githack.com/2dz28t8rt2-eng/Arcane-Duel/development/assets/custom-art/lv1-necro-hive-illustration.webp'},
+  {name:'Himmlischer Löwenwächter',level:10,ace:true},
+  {name:'Lichtfunke',level:2},
+  {name:'Nyxar, Klinge des Schwarms',level:7,fusion:true,
+   art:'https://raw.githack.com/2dz28t8rt2-eng/Arcane-Duel/development/assets/custom-art/lv1-attacker-illustration.webp'},
+  {name:'Goldener Wächter',level:9},
+  {name:'Schattenruferin',level:4},
+  {name:'Erwachte Dämmerung',level:4,fusion:true},
+  {name:'Funkenritter',level:3},
+  {name:'Dornenspeer',level:6},
+  {name:'Schicksalsdrache',level:10,ace:true}
+ ];
+ const status=document.getElementById('status');
+ function preview(count,selection){
+  status.textContent='Das Pack wartet auf dich …';
+  ArcanePackCinema181.open(base.slice(0,count),{
+   title:selection?'DEIN CHARAKTERPACK':'DEIN NEUES BOOSTERPACK',
+   subtitle:selection?'Welche Karte wirst du wählen?':'Was verbirgt sich hinter dem Siegel?',
+   selection
+  }).then(()=>status.textContent='Vorschau beendet. Lust auf noch ein Pack?');
+ }
+ document.getElementById('three').onclick=()=>preview(3,true);
+ document.getElementById('five').onclick=()=>preview(5,false);
+ document.getElementById('ten').onclick=()=>preview(10,false);
+ document.getElementById('reset').onclick=()=>{
+  try{localStorage.setItem('arcane-pack-cinema-fast-v181','false');
+   status.textContent='Die nächste Enthüllung wird wieder vollständig abgespielt.';}
+  catch{status.textContent='Öffne ein Pack und entferne den Haken bei „Weitere Packs sofort öffnen“.';}
+ };
+</script></body></html>
