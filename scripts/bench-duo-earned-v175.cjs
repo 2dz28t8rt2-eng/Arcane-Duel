@@ -106,7 +106,7 @@ function humanTurn(g,seat){
  if(g.status==='active')g=rules.apply(g,seat,{type:'end'},{catalog});
  return rules.aiTurn(g,{catalog});
 }
-function duel(a,b,chapter,seed){
+function duel(a,b,chapter,seed,policy=humanTurn){
  let g=rules.create({roomId:'earned-'+chapter+'-'+seed,
   hostName:'Scripted A',hostDeck:a.deck,hostFusions:a.fusions,
   hostUpgrades:a.upgrades,hostEnhancements:a.enhancements,
@@ -118,14 +118,16 @@ function duel(a,b,chapter,seed){
  let turns=0;
  while(g.status==='active'&&turns++<95){
   if(![0,2].includes(g.activeSeat)){g=rules.aiTurn(g,{catalog});continue;}
-  g=humanTurn(g,g.activeSeat);
+  g=policy(g,g.activeSeat);
  }
  if(g.status==='active')throw Error('Unresolved seeded duel');
- return {win:g.winner===0,round:g.round};
+ return {win:g.winner===0,round:g.round,
+  fusions:g.players[0].fusionsPerformed+g.players[2].fusionsPerformed,
+  condenses:g.log.filter(x=>x.includes(' verdichtet ')).length};
 }
-function career(seed,plan,extraCredits=0){
+function career(seed,plan,extraCredits=0,policy=humanTurn){
  const a=profile(),b=profile(),randomA=rng(seed*17+1),randomB=rng(seed*17+2);
- const first=duel(a,b,1,seed*29+1);
+ const first=duel(a,b,1,seed*29+1,policy);
  if(!first.win)return {stage:0,round:first.round};
  for(const p of [a,b]){
   award(p,1);
@@ -139,7 +141,7 @@ function career(seed,plan,extraCredits=0){
  }
  if(plan==='farm-material'||plan==='farm-upgrade'){
   for(let i=0;i<3;i++){
-   const repeat=duel(a,b,1,seed*29+2+i);
+   const repeat=duel(a,b,1,seed*29+2+i,policy);
    if(!repeat.win)return {stage:1,repeatFailure:true};
    for(const p of [a,b])award(p,1,true);
   }
@@ -158,7 +160,7 @@ function career(seed,plan,extraCredits=0){
    rebuild(p);
   }
  }
- const second=duel(a,b,2,seed*29+5);
+ const second=duel(a,b,2,seed*29+5,policy);
  return {stage:second.win?2:1,round:second.round,
   highCards:[a,b].map(p=>p.deck.filter(id=>catalog[id].level>=4).length),
   currencies:[a,b].map(p=>({essence:p.essence,shards:p.shards}))};
@@ -185,4 +187,4 @@ if(require.main===module){
  console.log('Earned-inventory v17.5 offline pacing; scripted humans, unchanged NPC AI:');
  console.log(JSON.stringify(run(games),null,2));
 }
-module.exports={rng,profile,aiDeck,rebuild,claim,award,purchases,spendCredits,duel,career,run};
+module.exports={rng,profile,aiDeck,rebuild,claim,award,purchases,spendCredits,humanTurn,duel,career,run};

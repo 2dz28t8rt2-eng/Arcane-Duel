@@ -251,6 +251,11 @@
   if(c.condensed===undefined)c.condensed=0;
   return c;
  }
+ // Match solo Verdichten: the same remaining shield pool grants half as
+ // much temporary ATK. Never write that bonus into base ATK, or decay and
+ // incoming DEF damage would leave behind permanent/off-by-one attack.
+ const attackValue=c=>Math.min(10000,Math.max(0,Number(c?.atk)||0)+
+  (c?.role==='soul'?Math.floor(Math.max(0,Number(c.condensed)||0)*.5):0));
  function win(g,team,reason){
   g.status='finished';g.winner=team;g.log.push(reason);
  }
@@ -296,11 +301,11 @@
   const enemies=opponents.flatMap(p=>[...p.field,...(p.lv1?.ghostSlots||[])].filter(Boolean));
   const ratio=own.lp/Math.max(1,own.maxLp);
   const life=ratio<=.1?40:ratio<=.2?35:ratio<=.35?25:ratio<=.5?15:ratio<=.65?5:0;
-  const power=cards=>cards.reduce((n,c)=>n+Math.max(c.atk,c.def),0);
+  const power=cards=>cards.reduce((n,c)=>n+Math.max(attackValue(c),c.def),0);
   const ours=power(allied),theirs=power(enemies);
   const field=!enemies.length?0:!allied.length?40:
    theirs>=ours*1.7?30:theirs>=ours*.85?10:0;
-  const openThreat=Math.max(0,enemies.reduce((n,c)=>n+(c.mode==='atk'?c.atk:0),0)-ours);
+  const openThreat=Math.max(0,enemies.reduce((n,c)=>n+(c.mode==='atk'?attackValue(c):0),0)-ours);
   const lethal=enemies.length>0&&openThreat>=own.lp+(own.shield||0);
   return {score:life+field+(lethal?20:0),life,field,lethal};
  }
@@ -314,7 +319,7 @@
     consider(c.atk+statBonus(c,'atk',p),c.def+statBonus(c,'def',p));}
    for(const c of [...p.field,...(p.lv1?.ghostSlots||[]),...p.graveyard].filter(Boolean)){
     const definitionCard=definition(catalog,c.id);
-    consider(c.atk??definitionCard?.atk,c.def??definitionCard?.def);
+    consider(c.atk===undefined?definitionCard?.atk:attackValue(c),c.def??definitionCard?.def);
    }
   }
   return strongest||{atk:500,def:500};
@@ -823,7 +828,8 @@
    const amount=Math.floor(c.soul*.75);
    c.soul-=amount;c.condensed=Math.min(9000,c.condensed+amount);
    c.condenseLeft=3;c.condenseSlice=Math.ceil(c.condensed/3);c.soulCooldown=3;
-   g.log.push(label+' verdichtet '+amount+' Seele zu vorübergehender DEF.');
+   g.log.push(label+' verdichtet '+amount+' Seele: +'+Math.floor(c.condensed*.5)+
+    ' ATK und vorübergehende DEF (drei eigene Züge). Angriff und Positionswechsel bleiben möglich.');
   }else if(action.type==='soulDischarge'){
    assert(c.soul>=40,'Für die Entladung werden mindestens 40 Seelenpunkte benötigt.');
    const amount=c.soul;c.soul=0;
@@ -1084,7 +1090,7 @@
    let enemy=foes.find(x=>x.seat===action.targetSeat);
    // Swarm includes only the active player's own field, capped at five.
    const predators=p.field.filter(x=>x?.role==='predator').length;
-   let raw=Math.max(0,Math.floor(src.atk*(src.role==='predator'?
+   let raw=Math.max(0,Math.floor(attackValue(src)*(src.role==='predator'?
     1+.02*Math.min(5,predators):1)));
    if(essenceCompanion(p,src,'predator')&&src.essenceChoice===2)
     raw=Math.floor(raw*.7);
@@ -1124,7 +1130,7 @@
     const lifeInAtk=activeLv1(enemy,target,catalog)&&
      (!!lv1Key(target,catalog)||hasLv1Class(enemy,'protector',catalog));
     if(target.mode==='atk'&&!lifeInAtk){
-     const diff=raw-target.atk;
+     const diff=raw-attackValue(target);
      if(diff>=0){enemy.graveyard.push(target);targetZone[targetSlot]=null;
       lv1Leave(g,enemy,target,catalog);}
      if(diff<=0){p.graveyard.push(src);sourceZone[action.slot]=null;
@@ -1153,7 +1159,7 @@
       definition(catalog,target.id).name+' · erzwungener Seelenverlust');
      removeIfEmpty(g,enemy,targetSlot,catalog,targetArea);
      if(target.mode==='def'&&defensive(target)&&!guarded)
-      score(g,enemy.team,Math.floor(target.atk*.5),
+      score(g,enemy.team,Math.floor(attackValue(target)*.5),
       definition(catalog,target.id).name+' · Gegenschlag');
      g.log.push(p.name+' greift '+enemy.name+' in DEF an: '+original+
       ' Trefferstärke, −'+condensedLost+' Verdichtung / −'+soulLost+
@@ -1209,7 +1215,8 @@
       {cards:ghostZone(x),area:'ghost'}].flatMap(zone=>
       zone.cards.map((c,i)=>c?{seat:x.seat,slot:i,area:zone.area,card:c}:null)
        .filter(Boolean)))
-     .sort((a,b)=>Math.max(a.card.atk,a.card.def)-Math.max(b.card.atk,b.card.def))[0];
+     .sort((a,b)=>Math.max(attackValue(a.card),a.card.def)-
+      Math.max(attackValue(b.card),b.card.def))[0];
     g=apply(g,seat,{type:'attack',slot:attacker.i,targetSeat:goal?.seat??null,
      targetSlot:goal?.slot??null,targetArea:goal?.area??null},{catalog});
     if(g.status!=='active')break;
@@ -1231,6 +1238,6 @@
   return v;
  }
  return Object.freeze({version:'16.6-beta',CHAPTERS,seats,allowed,validDeck,packIds,
-  chapterDeck,create,apply,aiTurn,view,fusionLevel,fusionPattern,fusionOptions,
+  chapterDeck,create,apply,aiTurn,view,attackValue,fusionLevel,fusionPattern,fusionOptions,
   fusionAnalysis,fusionPreview,fusionRole,arenaDamage,fatePressure,PERK_LIMITS,normalizedBuild});
 });

@@ -1,3 +1,31 @@
+# 2v2 v17.6 – Seelenzehrer-Verdichten und strategischer Progressionstest (26.10.2026)
+
+**Produktgrenzen bleiben:** maximal zwei Menschen gegen zwei bestehende KIs; ausschließlich eigene 2v2-Sammlung und serverseitige Spielstände, kein Singleplayer-Import, kein KI-Training und kein Merge nach `main`.
+
+## Verdichten: vollständige mechanische Parität
+
+- Die Singleplayer-Änderung fehlte bislang im 2v2-Regelkern: Verdichten erzeugte nur temporäre DEF, aber **keine ATK**. Ab v17.6 zählt **50 % der jeweils noch vorhandenen Verdichtung** auch als temporäre ATK, bis zur Gesamtkappung von 10.000 ATK.
+- Die tatsächliche ATK wird nur bei Bedarf aus Grund-ATK und verbleibender Verdichtung berechnet, **nicht zusätzlich gespeichert**. Eingehender DEF-Schaden und der bisherige dreistufige automatische Buff-Abbau verringern dadurch sofort auch den Bonus auf ATK. Angriff, ATK-Duell, Gegenschlag, Bedrohungsbewertung, KI-Zielwahl und die sichtbaren Kartenwerte verwenden denselben Wert.
+- Verdichten belegt weiterhin **nur die aktive Seelenfähigkeit**, keine normale Angriffsaktion. Ein Seelenzehrer kann im selben eigenen Zug in ATK wechseln und angreifen, soweit die üblichen Angriffsbedingungen erfüllt sind. Die bisherige Wirkung über drei eigene Züge, das Auflösen in Dritteln und der Cooldown von drei eigenen Zügen wurden nicht geändert.
+- Der serverseitige und der Browser-Regelkern sind identisch, die UI benennt DEF + 50 % ATK und zeigt den ATK-Bonus. Eigene Regressionstests decken Verdichten → Wechsel → Angriff, den um den getroffenen Schild verringerten Gegenschlag, ATK-Duelle, die unveränderte Cooldown-Logik und die fehlende permanente Grundwert-Veränderung ab.
+
+## Neuer Offline-Karrieretest mit tatsächlich erspielten Karten
+
+`node scripts/bench-duo-tactics-v176.cjs 30` prüft je **30 deterministische Karrieren** und drei Investitionsarten (nur Kapitelkarten, zusätzlich eine Einzelkarte, oder drei legitime Kapitel-I-Wiederholungen + Materialpaket). Die beiden menschlichen Plätze sind geskriptet; sie spielen mit echten 40-Karten-Decks, erworbenen Gegenständen, Geld und Fusionsvorlagen gegen die zwei **unveränderten** vorhandenen NPC-Policies. Die Skripte dürfen keine Karte direkt herbeizaubern und dürfen keine KI trainieren.
+
+| Menschliche Heuristik | Kapitel II (nur Ansprüche) | Kapitel IV (nur Ansprüche) | Kapitel II (3× Kapitel I + Materialpaket) | Kapitel IV (mit Farming) |
+|---|---:|---:|---:|---:|
+| Einfaches Angreifen | 2/30 | 0/30 | 4/30 | 0/30 |
+| Handfusionen + Angriff | 0/30 | 0/30 | 2/30 | 0/30 |
+| Wächter-/Seelenzehrer-DEF | 30/30 | 19/30 | 30/30 | 20/30 |
+| Gemischte Fusion-/DEF-Taktik | 6/30 | 0/30 | 10/30 | 0/30 |
+
+Der Test hat aktive Taktiken auch tatsächlich ausgeführt: z. B. in den 30 Fusion-only-Karrieren **240 echte Fusionen**, im defensiven Zweig **800 Verdichtungen** (jeweils ohne Farming). Damit werden nicht bloß theoretische Deckstärken verglichen. Die Resultate sind **keine menschlichen Gewinnwahrscheinlichkeiten** und kein E2E-Test auf zwei Geräten: Die heuristischen Spielweisen treffen begrenzte, reproduzierbare Entscheidungen, und die aktuellen Gegner nutzen nicht die separat erforschte neue KI.
+
+**Fazit:** Der extreme Abstand zwischen reinen Angriffs-/Fusionsstrategien und defensiven Seelenzehrer-/Wächterdecks ist ein wichtigerer nächster Balancing-Kandidat als blind mehr Essenz oder Karten zu verteilen. Die Live-Belohnungstabellen und Gegnerdecks bleiben bis zu einer vertieften Taktik-/Kapitelprüfung unverändert.
+
+---
+
 # 2v2 v17.5 – Erspielte Progression und Leihkarten-Schutz (26.10.2026)
 
 **Unverändert:** maximal zwei Menschen gegen zwei bestehende KI-Gegner; eigene 2v2-Profile ohne Solo-Import, `development` statt `main`, keine neue KI-Forschung. Die v17.4-Erstabschluss-Prämien (drei Kartenansprüche) und Kosten bleiben unverändert.

@@ -17,6 +17,7 @@
  let duoProfile=null,duoProfileToken='',duoLastRoom=null,profileSaving=false,duoEconomy=null;
  const set=(id,text)=>$(id).textContent=String(text);
  const card=id=>catalog[id]||{name:'Karte '+id,level:'?',atk:'?',def:'?',role:'?'};
+ const shownAtk=c=>rules.attackValue?rules.attackValue(c):c.atk;
  const name=id=>card(id).name;
  const fateIndex=id=>fateIds.indexOf(id);
  const displayName=c=>c?.fate?'✦ '+(fateNames[fateIndex(c.id)]||'Schicksalsmonster'):name(c.id);
@@ -448,7 +449,7 @@
    set('duoStatus','Privater Wiederherstellungslink kopiert. Nicht mit anderen teilen!');
   }catch{set('duoStatus','Bitte privaten Wiederherstellungslink manuell kopieren.');}
  }
- const format=c=>displayName(c)+' · Lv '+c.level+' · '+c.atk+'/'+c.def+
+ const format=c=>displayName(c)+' · Lv '+c.level+' · '+shownAtk(c)+'/'+c.def+
   ' · '+(c.mode==='def'?'DEF':'ATK')+(c.soul?' · ✦ '+c.soul+' Seele':'');
  function updateSaveState(){
   const node=$('duoSaveState');if(!node)return;
@@ -547,12 +548,13 @@
     }
     if(c.fate)cell.classList.add('duo-fate-card');
     el('span',cell,displayName(c));
-    el('small',cell,'Lv '+c.level+' · '+c.atk+' ATK / '+c.def+' DEF',
+    el('small',cell,'Lv '+c.level+' · '+shownAtk(c)+' ATK / '+c.def+' DEF',
      'duo-field-meta');
     el('small',cell,(c.mode==='def'?'🛡 DEF':'⚔ ATK')+
      (c.fusion?' · Fusion':'')+' · '+c.role,'duo-card-level');
     if(c.role==='soul')el('small',cell,'✦ '+(c.soul||0)+' Seele · '+
-     (c.condensed||0)+' Verdichtung · CD '+(c.soulCooldown||0),
+     (c.condensed||0)+' Verdichtung (+'+Math.floor((c.condensed||0)*.5)+
+     ' ATK) · CD '+(c.soulCooldown||0),
      'duo-soul-status');
     if(!c.fate&&p.essence?.chosen===c.id){
      const kind=card(c.id).essenceSchool;
@@ -583,7 +585,7 @@
      if(displayArt(c)){const img=el('img',cell,undefined,'duo-field-art');
       img.src=displayArt(c);img.alt=displayName(c);img.loading='lazy';}
      el('span',cell,displayName(c));
-     el('small',cell,'Zone '+(i+1)+' · Lv '+c.level+' · '+c.atk+'/'+c.def+
+     el('small',cell,'Zone '+(i+1)+' · Lv '+c.level+' · '+shownAtk(c)+'/'+c.def+
       ' · '+(c.mode==='def'?'DEF':'ATK'));
     });
     if(p.lv1.choices?.length||p.lv1.offers?.length)el('small',reserve,
@@ -820,7 +822,7 @@
    const focus=selector('Entzugsfokus',[['atk','ATK bevorzugen'],['def','DEF bevorzugen']],actions);
    const focusButton=button('Fokus setzen',actions,()=>send({type:'soulFocus',
     slot:Number(which.value),stat:focus.value}));
-   const condense=button('Seele verdichten (75 % → DEF)',actions,
+   const condense=button('Seele verdichten (75 % → DEF + 50 % ATK)',actions,
     ()=>send({type:'soulCondense',slot:Number(which.value)}));
    const discharge=button('Seelenentladung (130 % → LP)',actions,
     ()=>send({type:'soulDischarge',slot:Number(which.value)}));
