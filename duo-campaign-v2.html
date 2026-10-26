@@ -15,21 +15,59 @@
  <a href="index.html">← Zum Hauptspiel</a>
 </header>
 <aside class="notice">
- <b>Beta der neuen Online-Spielregeln – getrennt von bestehenden 2v2-Räumen.</b>
- Aktive Haupt- und Fusionsdecks werden lokal aus deinem Singleplayer-Profil gelesen; die
- Originalsammlung wird nicht verändert. Karten, Angriffe, DEF-Kampf, Rollenvererbung,
- Seelenzehrer, Fusionskombinationen, ATK-/DEF-Qualitätswürfe und die acht persönlichen
- Kampf-Ausbauten werden serverseitig berechnet. Aufstiegsränge und die aktive
- Essenzbindung deiner Deckkarten werden mit übernommen. Reißzahn, Runenherz und
- Aschenhort erhalten ihre besonderen Kampffähigkeiten. Mit freigeschalteter
- „Verbotener Forschung“ können außerdem die drei besonderen Level-1-Fusionen,
- Floating-/Schwarm-Echos und die Geisterzonen genutzt werden. <strong>Unrangierte Beta:</strong>
- Da die Übertragung aus dem lokalen
- Profil noch keinen bestätigten Kartenbesitz belegt, gibt es weder Belohnungen noch Ranglisten.
- Die mehrteilige Level-1-Quest selbst bleibt im Einzelspieler: Im 2v2 gelten nur
- bereits lokal freigeschaltete Forschungsränge. Die Forschung an der
- Einzelspieler-KI bleibt unberührt.
+ <b>Eigenständige Arcane-Duel-2v2-Kampagne – 2 Menschen gegen 2 KI-Gegner.</b>
+ Singleplayer- und 2v2-Spielstände sind vollständig getrennt. Es gibt keinen Import
+ oder Export von Karten, Decks, Ausbaurängen oder Belohnungen zwischen diesen Modi.
+ Jeder Mensch erstellt ein eigenes kostenloses 2v2-Profil, beginnt mit einem Startdeck
+ und entwickelt seine Sammlung ausschließlich über bestätigte 2v2-Erfolge.
+ Online-Spielzüge werden automatisch auf dem Server gespeichert. Das Profil
+ bleibt auch nach dem Ablauf eines Raumes bestehen. Gegner-KI-Forschung bleibt unverändert.
 </aside>
+<section id="duoProfilePanel" class="duo-panel duo-profile-panel">
+ <h2>✧ Eigenes 2v2-Profil</h2>
+ <p class="micro">Nur für 2v2. Der Singleplayer-Spielstand wird weder gelesen noch verändert.</p>
+ <div id="duoProfileCreateArea">
+  <p>Erstelle ein kostenloses 2v2-Profil mit eigenem Startdeck und dauerhaftem Fortschritt.</p>
+  <button id="duoProfileCreate" type="button">Eigenständiges 2v2-Profil erstellen</button>
+ </div>
+ <div id="duoProfileActive" hidden>
+  <p id="duoProfileStats" class="duo-profile-stats"></p>
+  <p id="duoProfileCleared" class="micro"></p>
+  <div class="actions">
+   <button id="duoProfileBackup" type="button">Privaten Profil-Wiederherstellungslink kopieren</button>
+   <button id="duoProfileReload" type="button">Profil synchronisieren</button>
+   <button id="duoProfileContinue" type="button" hidden>Letzten 2v2-Raum fortsetzen</button>
+  </div>
+  <label id="duoProfileBackupBox" hidden>Privat aufbewahren – wer diesen Link besitzt, kann dein 2v2-Profil steuern.
+   <input id="duoProfileBackupLink" readonly autocomplete="off" spellcheck="false">
+  </label>
+  <div class="duo-profile-shop">
+   <div>
+    <h3>Verbesserungen</h3>
+    <select id="duoProfilePerk"></select>
+    <button id="duoProfileUpgrade" type="button">Rang mit Essenz erhöhen</button>
+   </div>
+   <div>
+    <h3>Kartenpakete</h3>
+    <select id="duoProfilePack">
+     <option value="normal">Normale Karte · 90 Essenz + 1 Splitter</option>
+     <option value="fusion">Fusion · 160 Essenz + 2 Splitter</option>
+    </select>
+    <button id="duoProfileBuyPack" type="button">Paket öffnen</button>
+   </div>
+   <div>
+    <h3>Deck bearbeiten</h3>
+    <label>Deck <select id="duoProfileDeckZone"><option value="main">Hauptdeck</option>
+     <option value="fusion">Fusionsdeck</option></select></label>
+    <label>Platz <select id="duoProfileDeckSlot"></select></label>
+    <label>Karte <select id="duoProfileDeckCard"></select></label>
+    <button id="duoProfileDeckSave" type="button">Deckplatz ersetzen</button>
+    <p class="micro">Nur bereits erworbene 2v2-Karten sind einsetzbar. Laufende Duelle behalten ihr Startdeck.</p>
+   </div>
+  </div>
+  <p id="duoProfileMessage" role="status" aria-live="polite"></p>
+ </div>
+</section>
 <div class="duo-layout">
 <section class="duo-panel">
  <h2>✦ Gemeinsam starten</h2>
@@ -63,7 +101,7 @@
   <h3>Privaten Raumzugang sichern</h3>
   <p>Dein Duell wird automatisch auf dem Server gespeichert. Für einen <strong>neuen Tab
    oder ein anderes Gerät</strong> benötigst du deinen persönlichen Wiederherstellungslink.
-   Er steuert ausschließlich deinen Sitzplatz und gilt nur bis zum Ablauf des Raums (48 Stunden).</p>
+   Er steuert ausschließlich deinen Sitzplatz und gilt nur bis zum Ablauf des Raums (90 Tage bei aktiver Nutzung).</p>
   <button id="duoRecoveryCopy" type="button">🔐 Privaten Wiederherstellungslink kopieren</button>
   <label id="duoRecoveryHelp" hidden>Nur für dich – niemals an Mitspieler weitergeben!
    Wer diesen Link besitzt, kann deinen Sitzplatz übernehmen.
@@ -75,17 +113,10 @@
    <li>Vier Sitzplätze: Gastgeber → KI A → Partner → KI B.</li>
    <li>Jeder hat 40 Hauptkarten, ein eigenes Fusionsdeck, fünf Handkarten und sieben Feldplätze.</li>
    <li>Beide Teams teilen sich je 16.000 LP; Beschwörung, Angriff und Position werden geprüft.</li>
-   <li>Persönliche Werkstatt-Ausbaustufen aus dem aktiven Profil gelten für eigene Karten:
-    Monstertraining, Jagdinstinkt, Schildwall, Standhaftigkeit, Kampfdisziplin,
-    Fusionskunde, Runenpräzision und Vorhut-Schutz. Kartenaufstiege (0–5) gelten
-    auch für deine eingesetzten Fusionsvorlagen. Der Server begrenzt die Ränge.
-    Ohne lesbares Profil spielen diese Boni auf Rang 0.</li>
-   <li>Essenzbindung aus dem lokalen Einzelspielerprofil: Steckt dein gebundenes
-    Essenzwesen im aktiven Deck, werden dessen Fortschrittslevel und Bindungsrang
-    übernommen. Reißzahn kann vor seinem ersten Angriff zwischen einmal 100 %
-    und zweimal 70 % Trefferstärke wählen. Jeder Schlag verursacht Müdigkeit.
-    Runenherz ermöglicht in deinem Feld einen zusätzlichen Fusionswurf; bei
-    passender Fusionsspezialisierung ab Rang 3 sind es zwei.</li>
+   <li>2v2-Ausbauten, eigene Karte und Fusionsdeck werden ausschließlich aus dem
+    separaten servergespeicherten 2v2-Profil übernommen. Keine Singleplayer-Imports.</li>
+   <li>Essenzwesen, Forschung und Spezialkarten werden erst über eigenständigen
+    2v2-Fortschritt zugänglich; bestehende Solo-Freischaltungen zählen nicht.</li>
    <li>Aschenhort in DEF zieht den ersten gegnerischen Angriff jedes Gegnerzugs
     auf sich und halbiert dessen Angriffsstärke. Verteidigungsspezialisierung
     mindert den Zerfall eigener Wächter und Seelenzehrer und erhöht die
@@ -102,13 +133,8 @@
     eigenen Fusionsdeck werden im Duell verbraucht. Kernkarte, Pokerkombination
     (z. B. Straße oder Full House), Elementharmonie, Resonanz und echte
     Qualitätswürfe bestimmen das Ergebnis. Die Vorschau erklärt Level und Wertebereich.</li>
-   <li>„Verbotene Forschung“ (Rang 1–5) übernimmt den Questfortschritt aus deinem
-    lokalen Einzelspielerprofil. Jede Rangstufe stärkt normale Lv1-Karten um
-    +5 ATK / +5 DEF. Die Spezialfusionen Nekroth, Aegurion und Nyxar benötigen
-    3–5 echte Lv1-Materialstufen, bleiben selbst Lv1 und benutzen ihre eigenen
-    Effekte: Nekroth erweitert bis zu fünf Geisterzonen und kann für seine
-    Wiederbelebung einen Geisterplatz opfern; Aegurion leitet Einzelangriffe um
-    und schützt eigene Lv1-Monster; Nyxar führt bis zu zwei Angriffe aus.</li>
+   <li>Besondere Level-1-Fusionen erfordern die später eigenständig erspielte
+    2v2-Forschung; eine Freischaltung aus dem Singleplayer kann nicht importiert werden.</li>
    <li>Geisterzonen sind angreifbar und verhindern direkte Angriffe, solange sie
     besetzt sind. Monster können unter Verbrauch ihrer Aktion hinein- oder
     herauswechseln. Geisterfunken zählen als Lv2-Fusionsmaterial. Bei echten
@@ -140,7 +166,7 @@
    <li>Wächter heilen verbündete DEF-Monster bis zu deren ursprünglichem Grundwert.
     Resonanz und Fusionen richten sich nach den eingesetzten Materialien.</li>
    <li>Bei fehlenden Karten im Deck zu Beginn des eigenen Zuges verliert das Team.</li>
-   <li>Räume laufen nach 48 Stunden ab. Der Online-Spielstand wird nach jeder Aktion
+   <li>Räume bleiben bei Aktivität bis zu 90 Tage verfügbar. Das 2v2-Profil bleibt dauerhaft gespeichert. Der Online-Spielstand wird nach jeder Aktion
     automatisch gespeichert. Im selben Tab erfolgt die Wiederaufnahme automatisch.
     Über den ausdrücklich angeforderten privaten Wiederherstellungslink ist eine
     Wiederaufnahme auch in einem neuen Tab oder auf einem anderen Gerät möglich.
