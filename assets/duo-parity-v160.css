@@ -110,3 +110,15 @@
 .duo-collection-actions button:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:710px){.duo-collection-controls,.duo-collection-actions{
  grid-template-columns:1fr}.duo-collection{padding:11px}}
+
+/* v17.4 - chapter-clear card reward, pacing and controlled goal hints */
+.duo-balance-panel{margin:12px 0;padding:14px;border:1px solid #b49566;border-radius:12px;
+ background:linear-gradient(135deg,#2b2b3e,#182333)}
+.duo-balance-panel h3{margin:0 0 9px;color:#ffe0a5}
+.duo-chapter-credits{font-weight:700;color:#f7deab;padding:6px 0}
+.duo-balance-panel label{display:grid;gap:5px;font-size:12px;font-weight:600}
+.duo-balance-panel select{width:100%;max-width:430px}
+.duo-balance-panel button{margin:6px 0}
+.duo-balance-panel button:disabled{opacity:.58;cursor:not-allowed}
+#duoBalanceGoal{border-left:3px solid #acbfdc;padding:8px 10px;background:#182338}
+@media(max-width:530px){.duo-balance-panel{padding:10px}}
