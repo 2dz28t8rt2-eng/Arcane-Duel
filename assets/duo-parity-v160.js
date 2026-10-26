@@ -225,6 +225,7 @@
   try{
    load(await call({type:'action',roomId,token,expectedRevision:game.revision,action}));
    set('duoStatus','Zug gespeichert und online synchronisiert.');
+   if(game?.status==='finished'&&game.winner===0)await fetchProfile();
   }catch(e){
    syncError=e.message;conflicted=recovery.isConflict(e.message);
    set('duoStatus',e.message);
@@ -238,10 +239,8 @@
   if(busy)return;busy=true;
   try{
    const entry=$('duoEntry').value;
-   const payload={type:'create',name:$('duoHostName').value,entry,
-    deck:profileDeck,fusions:profileFusions,
-    upgrades:profileUpgrades,enhancements:profileEnhancements,
-    essence:profileEssence,lv1:profileLv1,
+   if(!duoProfileToken||!duoProfile)throw Error('Bitte zuerst ein eigenes 2v2-Profil erstellen.');
+   const payload={type:'create',profileToken:duoProfileToken,entry,
     ...(entry==='chapter'?{chapter:chapter().id}:{})};
    const r=await call(payload);
    roomId=r.roomId;token=r.token;seat=0;invite=r.invite;save();load(r);
@@ -253,10 +252,9 @@
  async function joinRoom(id,invitation){
   if(busy)return;busy=true;
   try{
+   if(!duoProfileToken||!duoProfile)throw Error('Bitte zuerst ein eigenes 2v2-Profil erstellen.');
    const r=await call({type:'join',roomId:id,invite:invitation,
-    name:$('duoHostName').value,deck:profileDeck,fusions:profileFusions,
-    upgrades:profileUpgrades,enhancements:profileEnhancements,
-    essence:profileEssence,lv1:profileLv1});
+    profileToken:duoProfileToken});
    roomId=id;token=r.token;seat=2;invite='';save();load(r);
    location.hash='room='+roomId;
    set('duoStatus','Beitritt erfolgreich. Jetzt kämpft ihr gemeinsam!');
@@ -287,9 +285,9 @@
   const dock=$('duoActions'),track=$('duoTrack'),seats=$('duoSeats'),log=$('duoLog');
   for(const n of [dock,track,seats,log])n.replaceChildren();
   $('duoCreate').hidden=!!roomId||location.hash.startsWith('#join=');
-  $('duoCreate').disabled=busy||!Object.keys(catalog).length;
+  $('duoCreate').disabled=busy||!Object.keys(catalog).length||!duoProfile;
   $('duoAccept').hidden=!!roomId||!location.hash.startsWith('#join=');
-  $('duoAccept').disabled=busy||!Object.keys(catalog).length;
+  $('duoAccept').disabled=busy||!Object.keys(catalog).length||!duoProfile;
   $('duoRefresh').disabled=!roomId||busy||refreshing;
   const phase=choices.phase(game,seat),step=phase==='not-created'?0:phase==='waiting'?1:2;
   ['duoStepCreate','duoStepInvite','duoStepBattle'].forEach((id,i)=>{
@@ -712,11 +710,43 @@
   $('duoCreate').onclick=createRoom;
   $('duoRefresh').onclick=refresh;
    $('duoRecoveryCopy').onclick=copyRecovery;
+   $('duoProfileCreate').onclick=createDuoProfile;
+   $('duoProfileBackup').onclick=backupProfile;
+   $('duoProfileReload').onclick=fetchProfile;
+   $('duoProfileContinue').onclick=()=>continueLastRoom();
+   $('duoProfileUpgrade').onclick=()=>profileOperation('upgrade',
+    {key:$('duoProfilePerk').value});
+   $('duoProfileBuyPack').onclick=()=>profileOperation('pack',
+    {pack:$('duoProfilePack').value});
+   $('duoProfileDeckZone').onchange=deckEditor;
+   $('duoProfileDeckSave').onclick=()=>profileOperation('deckReplace',{
+    zone:$('duoProfileDeckZone').value,
+    slot:Number($('duoProfileDeckSlot').value),
+    cardId:Number($('duoProfileDeckCard').value)});
   $('duoCopy').onclick=()=>navigator.clipboard.writeText($('duoInvite').value)
    .then(()=>set('duoStatus','Einladungslink kopiert.'))
    .catch(()=>set('duoStatus','Bitte den Link im Eingabefeld manuell kopieren.'));
   let hash='';try{hash=decodeURIComponent(location.hash.slice(1));}
   catch{set('duoStatus','Ungültiger URL-Code.');}
+  if(hash.startsWith('duoprofile=')){
+   const recovered=hash.slice('duoprofile='.length);
+   if(/^[a-f0-9]{64}$/.test(recovered)){
+    duoProfileToken=recovered;
+    const response=await call({type:'profile',profileToken:duoProfileToken}).catch(e=>{
+     set('duoProfileMessage','Privater Profilzugang ungültig: '+e.message);return null;
+    });
+    if(response){
+     persistProfileToken(duoProfileToken);installProfile(response);
+     history.replaceState(null,'',ownOrigin());
+    }
+   }else set('duoProfileMessage','Ungültiger 2v2-Profil-Link.');
+  }else{
+   try{
+    duoProfileToken=localStorage.getItem(duoProfileKey)||'';
+    if(!/^[a-f0-9]{64}$/.test(duoProfileToken))duoProfileToken='';
+    if(duoProfileToken)await fetchProfile();
+   }catch{duoProfileToken='';}
+  }
   if(hash.startsWith('join=')){
    const raw=hash.slice(5),i=raw.lastIndexOf('.'),id=raw.slice(0,i),secret=raw.slice(i+1);
    if(i>0&&/^[a-f0-9-]{36}$/.test(id)&&/^[a-f0-9]{64}$/.test(secret)){
@@ -740,8 +770,11 @@
     if(/^[a-f0-9]{64}$/.test(stored?.token||'')&&[0,2].includes(stored?.seat)){
      roomId=id;token=stored.token;seat=stored.seat;invite=stored.invite||'';
      await refresh();
-    }else set('duoStatus','Dieser Tab kennt den Raumzugang nicht. Bitte privaten Wiederherstellungslink nutzen.');
+    }else if(duoProfileToken)await continueLastRoom(id);
+    else set('duoStatus','Bitte das persönliche 2v2-Profil wiederherstellen.');
    }catch{set('duoStatus','Raumzugang konnte nicht wiederhergestellt werden.');}
+  }else if(!hash&&duoLastRoom?.roomId&&duoProfileToken){
+   await continueLastRoom(duoLastRoom.roomId);
   }
   render();
  }
