@@ -57,6 +57,17 @@
  <div class="duo-save-state" id="duoSaveState" role="status" aria-live="polite">
   Online-Räume speichern nach jedem akzeptierten Spielzug.</div>
  <div class="actions"><button id="duoRefresh" disabled>↻ Spielstand aktualisieren</button></div>
+ <section id="duoRecoveryArea" class="duo-recovery" hidden>
+  <h3>Privaten Raumzugang sichern</h3>
+  <p>Dein Duell wird automatisch auf dem Server gespeichert. Für einen <strong>neuen Tab
+   oder ein anderes Gerät</strong> benötigst du deinen persönlichen Wiederherstellungslink.
+   Er steuert ausschließlich deinen Sitzplatz und gilt nur bis zum Ablauf des Raums (48 Stunden).</p>
+  <button id="duoRecoveryCopy" type="button">🔐 Privaten Wiederherstellungslink kopieren</button>
+  <label id="duoRecoveryHelp" hidden>Nur für dich – niemals an Mitspieler weitergeben!
+   Wer diesen Link besitzt, kann deinen Sitzplatz übernehmen.
+   <input id="duoRecoveryLink" type="text" readonly hidden autocomplete="off" spellcheck="false">
+  </label>
+ </section>
  <details class="duo-guide"><summary>Was gilt in dieser Beta?</summary>
   <ul>
    <li>Vier Sitzplätze: Gastgeber → KI A → Partner → KI B.</li>
@@ -128,7 +139,10 @@
     Resonanz und Fusionen richten sich nach den eingesetzten Materialien.</li>
    <li>Bei fehlenden Karten im Deck zu Beginn des eigenen Zuges verliert das Team.</li>
    <li>Räume laufen nach 48 Stunden ab. Der Online-Spielstand wird nach jeder Aktion
-    automatisch gespeichert; die Wiederaufnahme funktioniert mit diesem Tab.</li>
+    automatisch gespeichert. Im selben Tab erfolgt die Wiederaufnahme automatisch.
+    Über den ausdrücklich angeforderten privaten Wiederherstellungslink ist eine
+    Wiederaufnahme auch in einem neuen Tab oder auf einem anderen Gerät möglich.
+    Der Link ist ein geheimer Zugangsschlüssel und darf nicht geteilt werden.</li>
   </ul>
  </details>
  <p id="duoChapterInfo" class="micro"></p>
@@ -151,5 +165,6 @@
 <script src="assets/duo-shared-rules-v160.js?v=duo-v166"></script>
 <script src="assets/duo-battle-ui-v158.js?v=duo-v166"></script>
 <script src="assets/duo-cinematics-v167.js?v=duo-v167"></script>
-<script src="assets/duo-parity-v160.js?v=duo-v166"></script>
+<script src="assets/duo-recovery-v168.js?v=duo-v168"></script>
+<script src="assets/duo-parity-v160.js?v=duo-v168"></script>
 </body></html>
