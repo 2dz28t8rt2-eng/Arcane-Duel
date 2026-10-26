@@ -115,9 +115,11 @@
   catch{sessionReady=false;}
  }
  function load(payload){
+  const previous=game;
   game=payload.state;seat=payload.seat;syncedAt=Date.now();syncError='';
   if(game.status!=='waiting')invite='';
   save();render();
+  window.ArcaneDuoCinematics167?.onState(previous,game);
  }
  async function refresh(){
   if(!roomId||!token||refreshing||busy)return;
@@ -125,7 +127,8 @@
   try{
    const response=await call({type:'state',roomId,token});
    if(!game||response.state.revision!==game.revision)load(response);
-   else{syncedAt=Date.now();syncError='';render();}
+   else{const recovered=!!syncError;syncedAt=Date.now();syncError='';
+    if(recovered)render();else updateSaveState();}
   }catch(e){syncError=e.message;set('duoStatus',e.message);render();}
   finally{refreshing=false;}
  }
@@ -171,6 +174,15 @@
  }
  const format=c=>displayName(c)+' · Lv '+c.level+' · '+c.atk+'/'+c.def+
   ' · '+(c.mode==='def'?'DEF':'ATK')+(c.soul?' · ✦ '+c.soul+' Seele':'');
+ function updateSaveState(){
+  const node=$('duoSaveState');if(!node)return;
+  node.dataset.sync=syncError?'offline':syncedAt?'saved':'pending';
+  node.textContent=syncError?'⚠ Synchronisierung: '+syncError+
+   ' · Verbindung wiederherstellen oder aktualisieren.':
+   syncedAt?'☁ Server bestätigt · '+new Date(syncedAt).toLocaleTimeString('de-AT')+
+    (sessionReady?'':' · Raumzugang nicht im Tab gespeichert.'):
+   '☁ Online-Spielstand wird nach jedem bestätigten Zug gespeichert.';
+ }
  function render(){
   const dock=$('duoActions'),track=$('duoTrack'),seats=$('duoSeats'),log=$('duoLog');
   for(const n of [dock,track,seats,log])n.replaceChildren();
@@ -183,11 +195,7 @@
   ['duoStepCreate','duoStepInvite','duoStepBattle'].forEach((id,i)=>{
    $(id).classList.toggle('current',step===i);$(id).classList.toggle('done',step>i);
   });
-  set('duoSaveState',syncError?'⚠ Synchronisierung: '+syncError+' · erst Stand aktualisieren.':
-   syncedAt?'☁ Auf dem Server gespeichert · letzte Bestätigung '+
-    new Date(syncedAt).toLocaleTimeString('de-AT')+
-    (sessionReady?'':' · Browser speichert Raumzugang nicht.') :
-   '☁ Online-Spielstand wird nach jedem bestätigten Zug gespeichert.');
+  updateSaveState();
   $('duoInviteBox').hidden=!(game?.status==='waiting'&&seat===0&&invite);
   if(!$('duoInviteBox').hidden)$('duoInvite').value=ownOrigin()+'#join='+roomId+'.'+invite;
   if(!game){
@@ -217,6 +225,7 @@
    el('span',track,p.name,'turn-seat '+(p.team===1?'enemy ':'')+
     (game.status==='active'&&game.activeSeat===p.seat?'current':''));
    const panel=el('article',seats,undefined,'seat '+(game.activeSeat===p.seat?'active':''));
+   panel.dataset.seat=String(p.seat);
    el('h3',panel,p.name);
    el('small',panel,p.hand.length+' Handkarten · '+p.deck.length+' im Hauptdeck · '+
     p.remainingFusion.length+' Fusionen verbleibend');
@@ -235,6 +244,7 @@
    const field=el('div',panel,undefined,'field');
    for(const [slot,c] of p.field.entries()){
     const cell=el('div',field,undefined,'field-cell '+(c?'filled':''));
+    cell.dataset.slot=String(slot);
     if(!c){el('span',cell,'◇');continue;}
     const illustration=displayArt(c);
     if(illustration){
@@ -274,6 +284,7 @@
     const grid=el('div',reserve,undefined,'field');
     (p.lv1.ghostSlots||[]).forEach((c,i)=>{
      const cell=el('div',grid,undefined,'field-cell duo-ghost-cell '+(c?'filled':''));
+     cell.dataset.slot=String(i);
      if(!c){el('span',cell,'◇ Slot '+(i+1));return;}
      if(displayArt(c)){const img=el('img',cell,undefined,'duo-field-art');
       img.src=displayArt(c);img.alt=displayName(c);img.loading='lazy';}
@@ -606,5 +617,13 @@
   render();
  }
  init();
+ window.addEventListener('online',()=>{if(roomId)refresh();});
+ window.addEventListener('offline',()=>{
+  if(roomId){syncError='Keine Internetverbindung';render();}
+ });
+ window.addEventListener('focus',()=>{if(roomId)refresh();});
+ document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&roomId)refresh();
+ });
  setInterval(()=>{if(document.visibilityState!=='hidden'&&!busy)refresh();},2500);
 })();
