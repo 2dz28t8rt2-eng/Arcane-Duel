@@ -1,3 +1,13 @@
+# 2v2 v16.7 – Darstellung und Synchronisation (26.10.2026)
+
+- **Optisches Update:** Die Online-Beta liest bestätigte öffentliche Ereignisse aus dem Server-Spielstand. Angriffe, Fusionen, Beschwörungen, Schicksalszüge, Zerstörungen und Arena-Zerfall erhalten begrenzte, nicht spielrelevante Effekte. Bei reduzierter Bewegung bleiben verständliche Texthinweise.
+- **Keine Änderungen am Regelkern:** Kartenwerte, Fusionswürfe, KI-Entscheidungen und serverseitige Zugberechtigungen bleiben unverändert. `main` wird nicht angerührt.
+- **Client-Synchronisierung:** Unveränderte Revisionen bauen die Oberfläche nicht mehr unnötig neu auf. Auf `focus`, `online` und Rückkehr des sichtbaren Tabs wird sofort aktualisiert; bei Verbindungsverlust zeigt der Raum den Fehler.
+- **Tests:** Eigene Node-Regressionen für bestätigte Ereignisse, private Sicht pro Sitzplatz, Turn-Rechte und Revisionen; Browser-Smoke-Test mit 1200/410 px.
+- **Noch offen:** Echte Zweigeräte-E2E-Abnahme mit zwei Menschen, langfristige Anmeldung/geräteübergreifende Wiederaufnahme, dauerhaft verifizierte Sammlung/Belohnungen und vollständige Singleplayer-Animationsparität. Der 2v2-Beta-Server sowie alte Räume bleiben unverändert.
+
+---
+
 # Kampagnenstart und Kapitelpakete – 18. Oktober 2026
 
 > **Fortsetzung 26. Oktober 2026 · v16.6 Schicksalszug und Arena-Zerfall auf `development`:**
