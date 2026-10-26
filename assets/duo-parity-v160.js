@@ -6,13 +6,13 @@
 (()=>{
  const api='https://cvmtmvruutdneyblumgf.supabase.co/functions/v1/arcane-duo-v2';
  const $=id=>document.getElementById(id),rules=window.ArcaneDuoRules,
-  choices=window.ArcaneDuoBattleUI;
+  choices=window.ArcaneDuoBattleUI,recovery=window.ArcaneDuoRecovery168;
  const key=id=>'arcane-duo-v2-session-'+id;
  const ownOrigin=()=>location.href.split('#')[0].split('?')[0];
  let catalog={},starterMain=[],starterFusions=[],fateIds=[],fateNames=[],profileDeck=[],profileFusions=[],
   profileUpgrades={},profileEnhancements={},profileEssence={},profileLv1={};
  let game=null,seat=-1,roomId='',token='',invite='',busy=false,refreshing=false,
-  syncError='',syncedAt=0,sessionReady=true;
+  syncError='',syncedAt=0,sessionReady=true,syncFailures=0,lastPollAt=0;
  const set=(id,text)=>$(id).textContent=String(text);
  const card=id=>catalog[id]||{name:'Karte '+id,level:'?',atk:'?',def:'?',role:'?'};
  const name=id=>card(id).name;
@@ -116,32 +116,40 @@
  }
  function load(payload){
   const previous=game;
-  game=payload.state;seat=payload.seat;syncedAt=Date.now();syncError='';
+  if(previous&&payload.state?.revision<previous.revision)return;
+  game=payload.state;seat=payload.seat;syncedAt=Date.now();syncError='';syncFailures=0;
   if(game.status!=='waiting')invite='';
   save();render();
   window.ArcaneDuoCinematics167?.onState(previous,game);
  }
  async function refresh(){
   if(!roomId||!token||refreshing||busy)return;
-  refreshing=true;
+  refreshing=true;lastPollAt=Date.now();
   try{
    const response=await call({type:'state',roomId,token});
    if(!game||response.state.revision!==game.revision)load(response);
-   else{const recovered=!!syncError;syncedAt=Date.now();syncError='';
+   else{const recovered=!!syncError;syncedAt=Date.now();syncError='';syncFailures=0;
     if(recovered)render();else updateSaveState();}
-  }catch(e){syncError=e.message;set('duoStatus',e.message);render();}
+  }catch(e){syncFailures=Math.min(syncFailures+1,4);syncError=e.message;
+    set('duoStatus',e.message);render();}
   finally{refreshing=false;}
  }
  async function send(action){
   if(!game||busy)return;
   if(!(game.activeSeat===seat&&game.status==='active')&&
     !(action.type==='nextChapter'&&seat===0&&game.winner===0))return;
-  busy=true;render();
+  busy=true;render();let conflicted=false;
   try{
    load(await call({type:'action',roomId,token,expectedRevision:game.revision,action}));
    set('duoStatus','Zug gespeichert und online synchronisiert.');
-  }catch(e){syncError=e.message;set('duoStatus',e.message);}
-  finally{busy=false;render();}
+  }catch(e){
+   syncError=e.message;conflicted=recovery.isConflict(e.message);
+   set('duoStatus',e.message);
+  }finally{busy=false;render();}
+  if(conflicted){
+   await refresh();
+   if(!syncError)set('duoStatus','Ein anderer Zug war schneller. Stand aktualisiert – bitte erneut entscheiden.');
+  }
  }
  async function createRoom(){
   if(busy)return;busy=true;
@@ -172,6 +180,15 @@
   }catch(e){set('duoStatus',e.message);}
   finally{busy=false;render();}
  }
+ async function copyRecovery(){
+  if(!roomId||!token||![0,2].includes(seat))return;
+  const url=recovery.link(ownOrigin(),roomId,token);
+  const input=$('duoRecoveryLink');input.value=url;input.hidden=false;
+  $('duoRecoveryHelp').hidden=false;
+  try{await navigator.clipboard.writeText(url);
+   set('duoStatus','Privater Wiederherstellungslink kopiert. Nicht mit anderen teilen!');
+  }catch{set('duoStatus','Bitte privaten Wiederherstellungslink manuell kopieren.');}
+ }
  const format=c=>displayName(c)+' · Lv '+c.level+' · '+c.atk+'/'+c.def+
   ' · '+(c.mode==='def'?'DEF':'ATK')+(c.soul?' · ✦ '+c.soul+' Seele':'');
  function updateSaveState(){
@@ -199,11 +216,13 @@
   $('duoInviteBox').hidden=!(game?.status==='waiting'&&seat===0&&invite);
   if(!$('duoInviteBox').hidden)$('duoInvite').value=ownOrigin()+'#join='+roomId+'.'+invite;
   if(!game){
+   $('duoRecoveryArea').hidden=true;
    set('duoTurnName',location.hash.startsWith('#join=')?
     'Einladung annehmen, um mitzuspielen.':'Noch kein Online-Raum');
    return;
   }
   set('duoRoomId',roomId);
+  $('duoRecoveryArea').hidden=![0,2].includes(seat);
   set('duoAlliedLP',game.teams[0].lp.toLocaleString('de-AT')+' LP'+
    (game.teams[0].shield?' · 🛡 '+game.teams[0].shield+' Schild':''));
   set('duoEnemyLP',game.teams[1].lp.toLocaleString('de-AT')+' LP');
@@ -593,6 +612,7 @@
   updateChapter();
   $('duoCreate').onclick=createRoom;
   $('duoRefresh').onclick=refresh;
+   $('duoRecoveryCopy').onclick=copyRecovery;
   $('duoCopy').onclick=()=>navigator.clipboard.writeText($('duoInvite').value)
    .then(()=>set('duoStatus','Einladungslink kopiert.'))
    .catch(()=>set('duoStatus','Bitte den Link im Eingabefeld manuell kopieren.'));
@@ -625,5 +645,9 @@
  document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&roomId)refresh();
  });
- setInterval(()=>{if(document.visibilityState!=='hidden'&&!busy)refresh();},2500);
+ setInterval(()=>{
+   if(document.visibilityState==='hidden'||busy||!roomId||!token)return;
+   if(navigator.onLine===false)return;
+   if(Date.now()-lastPollAt>=recovery.pollDelay(syncFailures))refresh();
+  },2500);
 })();
