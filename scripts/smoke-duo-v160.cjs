@@ -1,7 +1,8 @@
 'use strict';
 /* Manual online smoke. Creates ONE disposable room with real 40-card decks,
  * verifies invite, 4-seat turn order, server validation, private hands and
- * the v16.1 DEF/Soul active abilities without altering any existing room.
+ * the v16.2 DEF/Soul abilities and server-only fusion rolls without altering
+ * any existing room.
  * Requires HTTPS access and a deployed isolated arcane-duo-v2 function.
  */
 const {execFileSync}=require('node:child_process');
@@ -62,4 +63,23 @@ assert.equal(raided.state.players[0].field[0].decaySkipOwnTurn,raided.state.play
 const checked=post({type:'state',roomId:host.roomId,token:host.token});
 assert.equal(checked.state.revision,raided.state.revision);
 assert.equal(checked.state.players[2].hand.every(c=>c===null),true);
-console.log('Online 2v2 v16.1: invite, sealed hands, seat order, persistence, DEF, focus, Soulbrand and Soul raid OK.');
+assert.equal(checked.state.rngSeed,undefined,'Clients must never see the next roll seed');
+// The chapter loans in positions 0 and 1 are guaranteed Lv2 material.
+// Test real independent ATK/DEF rolls in a second disposable lobby.
+const fuseHost=post({type:'create',name:'Fusion QA',entry:'new',deck,fusions});
+const fuseGuest=post({type:'join',roomId:fuseHost.roomId,invite:fuseHost.invite,
+ name:'Fusion Partner',deck,fusions});
+const fused=post({type:'action',roomId:fuseHost.roomId,token:fuseHost.token,
+ expectedRevision:fuseGuest.state.revision,
+ action:{type:'fusion',materials:[{from:'hand',index:0},{from:'hand',index:1}],
+  coreIndex:0,slot:0,templateId:41}});
+const f=fused.state.players[0].field[0];
+assert.equal(f.fusion,true);
+assert.ok(f.qualityRolls>=1&&f.qualityRolls<=7);
+assert.equal(f.rollTrace.length,f.qualityRolls);
+assert.equal(f.rollMath.winnerIndex,f.rollTrace.findIndex(x=>
+ x.atk+x.def===Math.max(...f.rollTrace.map(c=>c.atk+c.def))));
+assert.equal(f.atk,f.rollMath.winner.atk+f.materialBonus.atk);
+assert.equal(f.def,f.rollMath.winner.def+f.materialBonus.def);
+assert.equal(fused.state.rngSeed,undefined);
+console.log('Online 2v2 v16.2: private hands, seat order, save, DEF, Soul, and server-only fusion rolls OK.');

@@ -1,4 +1,4 @@
-/* 2v2 v16.1 beta. Isolated from the legacy arcane-duo endpoint/room table.
+/* 2v2 v16.2 beta. Isolated from the legacy arcane-duo endpoint/room table.
  * Client sends choices only. Deck legality, fusion levels, roles, damage,
  * draw order, turn ownership and private state live on the server.
  */
@@ -85,7 +85,8 @@ Deno.serve(async request=>{
     hostDeck:body.deck,hostFusions:body.fusions,
     enemyDeckA:enemyDeck(chapter,1),enemyDeckB:enemyDeck(chapter,3),
     enemyFusionsA:enemyFusions(chapter),enemyFusionsB:enemyFusions(chapter),
-    chapter,entry,catalog});
+    chapter,entry,catalog,
+    randomSeed:crypto.getRandomValues(new Uint32Array(1))[0]||1});
    const {error}=await db.from(TABLE).insert({id,status:"waiting",revision:0,state,
     host_token_hash:await hash(host),invitation_hash:await hash(invite),
     creator_fingerprint:fingerprint});

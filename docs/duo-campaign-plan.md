@@ -1,5 +1,25 @@
 # Kampagnenstart und Kapitelpakete – 18. Oktober 2026
 
+> **Fortsetzung 26. Oktober 2026 · v16.2 Fusionsabgleich auf `development`:**
+> Die isolierte Online-Beta berechnet nun dieselben zentralen
+> Fusionskomponenten wie der Singleplayer: Pokerkombinationen inklusive
+> längster Teil-Straße mit zusätzlichen Duplikaten, Elementharmonie,
+> abgestufte Materialqualität, wählbares Kernmonster (außer bei
+> vollständigen Straßen), Allrounder-/Resonator-Boni,
+> Qualitätserbe aus Kettenfusionen und einmaligen
+> Resonator-Levelaufstieg. Der Server würfelt pro Fusion mehrere unabhängige
+> ATK-/DEF-Paare mit jeweils 88–112 % und wählt den stärksten Summenwurf.
+> Die Basiswerte stammen vom normalen Kartenlevel-Mittelpunkt,
+> Materialverstärkungen werden erst nach dem Wurf verteilt.
+> Die Benutzeroberfläche zeigt verständlich Kombination, Würfelzahl,
+> Rolle, Kernlevel, Levelherleitung und mögliche Werte **vor** der Fusion.
+> Der Zufallszustand bleibt ausschließlich auf dem Server.
+> Bestehende 2v2-Räume bleiben mit ihren bisherigen Karten spielbar.
+> Die KI-Forschung, die 2v2-Aktionsplanung und `main` bleiben unverändert.
+> **Noch offen:** besondere Lv1-Questfusionen, persönliche Perks,
+> Essenz-/Sonderfähigkeiten, Besitznachweis und Zwei-Geräte-Praxistests;
+> die Beta bleibt ohne Ranglisten und Fortschrittsbelohnungen.
+
 > **Fortsetzung 26. Oktober 2026 · v16.1 Regelabgleich auf `development`:**
 > Der gemeinsame serverseitige 2v2-Regelkern hat jetzt echte DEF-Lebenspunkte,
 > Schutzschichten (verdichtete Seele → gespeicherte Seele → Grund-DEF),

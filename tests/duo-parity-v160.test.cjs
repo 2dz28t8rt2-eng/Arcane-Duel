@@ -54,6 +54,7 @@ test('room views never disclose other players hands, deck contents, or fusion te
  assert.equal(host.players[0].baseDeck,undefined);
  assert.equal(guest.players[2].baseFusions,undefined);
  assert.equal(host.uid,undefined);
+ assert.equal(host.rngSeed,undefined,'Future fusion rolls must remain server-owned');
 });
 test('turn ownership, summon limits, position restrictions, draw to five and correct seat cycle',()=>{
  let state=setup();
@@ -135,11 +136,93 @@ test('fusion majority ignores neutral quality materials and never inherits a ran
  const materials=[{from:'hand',index:0},{from:'hand',index:1}];
  const templateId=rules.fusionOptions(state,0,materials,catalog).templates[0];
  assert.ok(templateId);
+ const forecast=rules.fusionPreview(state,0,materials,catalog,{templateId});
  state=move(state,0,{type:'fusion',materials,slot:0,templateId});
  const monster=state.players[0].field[0];
  assert.equal(monster.role,'predator');
- assert.equal(monster.atk,Math.round(catalog[templateId].atk*1.2));
- assert.equal(monster.def,Math.round(catalog[templateId].def*.75));
+ assert.equal(monster.qualityRolls,forecast.analysis.rolls);
+ assert.equal(monster.rollTrace.length,forecast.analysis.rolls);
+ assert.ok(monster.atk>=forecast.atk[0]&&monster.atk<=forecast.atk[1]);
+ assert.ok(monster.def>=forecast.def[0]&&monster.def<=forecast.def[1]);
+ assert.deepEqual(monster.rollTrace[monster.rollMath.winnerIndex],monster.rollMath.winner);
+ assert.equal(monster.atk,monster.rollMath.winner.atk+monster.materialBonus.atk);
+ assert.equal(monster.def,monster.rollMath.winner.def+monster.materialBonus.def);
+});
+test('fusion poker patterns prefer the longest real street over repeated lower levels',()=>{
+ const cards=(levels,elements=[])=>levels.map((level,i)=>({
+  level,element:elements[i]||'',role:'predator',fusion:false}));
+ assert.equal(rules.fusionPattern(cards([1,1,2,3,4])).name,'Große Straße');
+ assert.equal(rules.fusionPattern(cards([1,1,1,2,2])).name,'Full House');
+ assert.equal(rules.fusionPattern(cards([1,2,3,4,5])).name,'Gigantische Straße');
+ assert.equal(rules.fusionPattern(cards([1,1,1,1,1])).name,'Fünfling');
+ assert.equal(rules.fusionPattern(cards([1,1,2,2])).name,'Zwei Paare');
+ assert.equal(rules.fusionPattern(cards([1,1,2,3,4],
+  Array(5).fill('fire'))).name,'Große Straße · Elementharmonie');
+ assert.equal(rules.fusionPattern(cards([1,1,2,3,4],
+  ['fire','fire','fire','water','fire'])).name,'Große Straße');
+});
+test('a full straight fixes its strongest core, otherwise the player may choose it',()=>{
+ const cards=[3,6,7].map(level=>({level,role:'predator',fusion:false}));
+ const weak=rules.fusionLevel(cards,{coreIndex:0});
+ const strong=rules.fusionLevel(cards,{coreIndex:2});
+ assert.equal(weak.core,3);
+ assert.equal(strong.core,7);
+ assert.ok(strong.level>weak.level);
+ const straight=[1,2,3,4,5].map(level=>({level}));
+ const a=rules.fusionLevel(straight,{coreIndex:0});
+ const b=rules.fusionLevel(straight,{coreIndex:4});
+ assert.equal(a.core,5);
+ assert.deepEqual(a,b);
+});
+test('resonator chains give at most one extra level across generations',()=>{
+ const base=[{level:4,role:'resonator',fusion:true},
+  {level:4,role:'resonator',fusion:true}];
+ const result=rules.fusionLevel(base);
+ assert.equal(result.resonatorAscent,true);
+ const already=[{...base[0],fusionResonatorLineage:{count:2,used:true}},
+  {level:4,role:'predator',fusion:false}];
+ assert.equal(rules.fusionLevel(already).resonatorAscent,false);
+});
+test('server-authoritative fusion preview agrees with roll trace and reference midpoint',()=>{
+ let state=setup();
+ state.players[0].hand=[9,9,9,9,9];
+ const materials=[0,1,2,3,4].map(index=>({from:'hand',index}));
+ const availability=rules.fusionOptions(state,0,materials,catalog);
+ assert.ok(availability.analysis.pattern.startsWith('Fünfling'));
+ const templateId=availability.templates[0];
+ assert.ok(templateId);
+ const preview=rules.fusionPreview(state,0,materials,catalog,{templateId});
+ const expected=rules.fusionAnalysis(availability.cards,availability.rule);
+ assert.deepEqual(preview.analysis,expected);
+ assert.ok(preview.atk[1]>preview.atk[0]);
+ const before=JSON.stringify(state);
+ state=move(state,0,{type:'fusion',materials,slot:0,templateId});
+ const fused=state.players[0].field[0];
+ assert.equal(fused.rollTrace.length,preview.analysis.rolls);
+ assert.equal(fused.pattern,availability.analysis.pattern);
+ assert.equal(fused.role,'predator');
+ assert.equal(fused.rollMath.base.atk,
+  Math.round(catalog[templateId].fusionReference.atk*1.2*expected.quality/10)*10);
+ assert.equal(fused.rollMath.winnerIndex,fused.rollTrace.findIndex(x=>
+  x.atk+x.def===Math.max(...fused.rollTrace.map(c=>c.atk+c.def))));
+ assert.ok(fused.atk>=preview.atk[0]&&fused.atk<=preview.atk[1]);
+ assert.ok(fused.def>=preview.def[0]&&fused.def<=preview.def[1]);
+ assert.notEqual(JSON.stringify(state),before);
+});
+test('a fusion inherits only its own materials and consumes exactly one real template',()=>{
+ let state=setup();
+ state.players[0].hand=[4,4];
+ const materials=[{from:'hand',index:0},{from:'hand',index:1}];
+ const preview=rules.fusionOptions(state,0,materials,catalog);
+ assert.ok(preview.templates.length);
+ assert.throws(()=>move(state,0,{type:'fusion',materials:[
+  {from:'hand',index:0},{from:'field',index:0}],slot:0,
+  templateId:preview.templates[0]}),/nicht vorhanden/);
+ const t=preview.templates[0];
+ const count=state.players[0].remainingFusion.filter(id=>id===t).length;
+ const result=move(state,0,{type:'fusion',materials,slot:0,templateId:t});
+ assert.equal(result.players[0].remainingFusion.filter(id=>id===t).length,count-1);
+ assert.equal(result.players[2].field.filter(Boolean).length,0);
 });
 test('DEF attacks are persistent, armoured, layered and counterattack with both defender roles',()=>{
  let state=setup();state.round=2;

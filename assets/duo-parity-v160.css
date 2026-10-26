@@ -4,6 +4,14 @@
 .duo-card-level{font-size:.76rem;opacity:.83}
 .duo-fusion-list{min-width:min(100%,320px);height:175px;white-space:normal}
 .duo-action-status{padding:6px 10px;border-radius:8px;border:1px solid #676280;margin:8px 0}
+.duo-fusion-preview{padding:12px 14px;margin:8px 0;border-radius:11px;
+ border:1px solid rgba(219,186,119,.62);background:rgba(124,92,46,.16);line-height:1.45}
+.duo-fusion-preview p{margin:5px 0}
+.duo-fusion-preview strong{display:block;margin:10px 0 2px;color:#f5dc9a}
+.duo-fusion-help{display:block;opacity:.78;line-height:1.45;margin-top:5px}
+.duo-fusion-details{border-radius:9px;border:1px solid #676280;padding:9px 12px;margin:10px 0}
+.duo-fusion-details summary{cursor:pointer;font-weight:600}
+.duo-fusion-details p{margin:8px 0 0;line-height:1.5}
 .duo-selected{border-color:#e0c58a!important;box-shadow:0 0 0 1px #e0c58a}
 .duo-panel button:disabled{opacity:.6;cursor:not-allowed}
 .duo-soul-status{display:block;margin-top:4px;color:#e2c0ff;font-size:.76rem;line-height:1.35}

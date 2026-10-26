@@ -220,7 +220,8 @@
     handIndex:Number(hand.value),slot:Number(slot.value)}));
   }
   if(!p.summoned&&p.remainingFusion.length>=1){
-   const part=section(dock,'✦ Fusion','2–5 eigene Hand-/Feldmonster auswählen (Strg-Klick für Mehrfachauswahl).');
+   const part=section(dock,'✦ Fusion','2–5 eigene Hand-/Feldmonster auswählen (Strg-Klick für Mehrfachauswahl). '+
+    'Du kannst ein Kernmonster bestimmen; die Vorschau erklärt den Würfelbonus vor der Fusion.');
    const select=el('select',part,undefined,'duo-fusion-list');
    select.multiple=true;select.size=7;select.setAttribute('aria-label','Fusionsmaterialien');
    p.hand.forEach((id,i)=>{const opt=el('option',select,'Hand '+(i+1)+' · '+
@@ -228,35 +229,90 @@
    p.field.forEach((c,i)=>{if(!c)return;const opt=el('option',select,
     'Feld '+(i+1)+' · '+name(c.id)+' · Lv '+c.level);opt.value='field:'+i;});
    const outputs=el('div',part,undefined,'duo-choices');
+   const core=selector('Kernmonster',[],outputs);
    const options=selector('Fusionsvorlage',[],outputs);
    const target=selector('Ergebnis-Feld',[],outputs);
    const hint=el('p',part,'Bitte 2–5 Materialien auswählen.','duo-action-status');
+   const preview=el('div',part,undefined,'duo-fusion-preview');
+   const details=el('details',part,undefined,'duo-fusion-details');
+   el('summary',details,'Warum entsteht dieses Level?');
+   const explanation=el('p',details);
    const commit=button('Ausgewählte Monster fusionieren',part,()=>send({
     type:'fusion',materials:selected(),slot:Number(target.value),
-    templateId:Number(options.value)}));
+    templateId:Number(options.value),coreIndex:Number(core.value)}));
    const selected=()=>[...select.selectedOptions].map(opt=>{
     const [from,index]=opt.value.split(':');return {from,index:Number(index)};
    });
-   const update=()=>{
-    options.replaceChildren();target.replaceChildren();
+   const update=(reset=true)=>{
+    const keepTemplate=reset?null:options.value;
+    const keepCore=reset?null:core.value;
+    options.replaceChildren();target.replaceChildren();core.replaceChildren();
+    preview.replaceChildren();explanation.textContent='';
     const materials=selected();commit.disabled=true;
     if(materials.length<2||materials.length>5){
      hint.textContent='Erforderlich: 2 bis 5 eigene Materialien.';return;
     }
     try{
-     const availability=rules.fusionOptions(game,seat,materials,catalog);
+     const sources=materials.map(m=>m.from==='hand'?
+      {id:p.hand[m.index],level:card(p.hand[m.index]).level}:
+      p.field[m.index]);
+     const initial=rules.fusionLevel(sources);
+     materials.forEach((m,i)=>{
+      const label=(m.from==='hand'?'Hand ':'Feld ')+(m.index+1)+
+       ' · '+name(sources[i].id)+' (Lv '+sources[i].level+')';
+      const op=el('option',core,label);op.value=i;
+     });
+     core.value=keepCore!==null&&Number(keepCore)<materials.length?
+      keepCore:String(initial.coreIndex);
+     const availability=rules.fusionOptions(game,seat,materials,catalog,
+      {coreIndex:Number(core.value)});
+     if(availability.rule.street)core.value=String(availability.rule.coreIndex);
+     core.disabled=availability.rule.street;
      const slots=p.field.flatMap((c,i)=>!c||materials.some(m=>m.from==='field'&&m.index===i)?[i]:[]);
      for(const id of availability.templates){
       const op=el('option',options,name(id)+' · Lv '+card(id).level);op.value=id;
      }
+     if(keepTemplate!==null&&availability.templates.includes(Number(keepTemplate)))
+      options.value=keepTemplate;
      for(const id of slots){const op=el('option',target,'Feld '+(id+1));op.value=id;}
      commit.disabled=!availability.templates.length||!slots.length||busy||!!syncError;
-     hint.textContent='Fusionsgrenze Lv '+availability.rule.level+
-      ' · '+availability.templates.length+' passende Vorlagen · '+
-      (availability.rule.street?'Straßen-Kombination.':'Werte-/Level-Kombination.');
+     const {rule,analysis}=availability;
+     hint.textContent=analysis.pattern+' · Ziellevel maximal '+rule.level+
+      ' · '+availability.templates.length+' passende Vorlagen.';
+     const lines=['✦ '+analysis.rolls+' Würfelpaare (ATK + DEF) · '+
+      'bester gemeinsamer Wurf zählt',
+      '✧ Fusionsqualität '+(analysis.quality>=1?'+':'')+
+       Math.round((analysis.quality-1)*100)+' % · '+analysis.materialBlocks+
+       ' verteilbare Materialpunkte à 10',
+      '⚔ Rolle: '+({'predator':'Predator','guardian':'Wächter',
+       'soul':'Seelenzehrer','resonator':'Resonator'}[analysis.role]||'Resonator')+
+       (analysis.soulOdds?' · Seelenzehrer-Erwachen möglich':'')];
+     if(analysis.resonancePct)lines.push('✧ Resonanzbonus +'+analysis.resonancePct+' %');
+     if(analysis.elemental)lines.push('✧ Alle Materialien teilen ein Element: Elementharmonie');
+     for(const line of lines)el('p',preview,line);
+     if(availability.templates.length){
+      const result=rules.fusionPreview(game,seat,materials,catalog,
+       {coreIndex:Number(core.value),templateId:Number(options.value)});
+      el('strong',preview,'Voraussichtliche Werte: '+
+       result.atk[0]+'–'+result.atk[1]+' ATK · '+
+       result.def[0]+'–'+result.def[1]+' DEF.');
+      el('small',preview,'Der Server würfelt erst bei Bestätigung; '+
+       'die Vorschau ist ein möglicher Bereich.','duo-fusion-help');
+     }
+     explanation.textContent='Kernmonster Lv '+rule.core+
+      (rule.street?' (bei vollständiger Straße automatisch die höchste Karte)':' (frei gewählt)')+
+      ' · Materialabstand '+rule.distance.toFixed(2)+
+      ' · Ranggewinn '+(rule.gain>=0?'+':'')+rule.gain+
+      ' · Material-/Straßenbonus +'+rule.bonus+
+      (rule.resonatorAscent?' · Resonator-Kette +1 (einmalig)':'')+
+      ' · maximal Lv '+rule.level+
+      '. Die Vorlagen-Auswahl beschränkt sich auf freigeschaltete Fusionen dieses Levels oder darunter.';
     }catch(e){hint.textContent=e.message;}
    };
-   select.onchange=update;update();
+   select.onchange=()=>update(true);
+   core.onchange=()=>update(false);
+   options.onchange=()=>update(false);
+   update(true);
   }
   const switchables=p.field.flatMap((c,slot)=>c&&!c.used&&!c.switched?[{c,slot}]:[]);
   if(switchables.length){

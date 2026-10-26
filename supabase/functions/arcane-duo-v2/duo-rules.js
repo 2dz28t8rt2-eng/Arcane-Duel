@@ -1,4 +1,4 @@
-/* Arcane Duel 2v2 · server-authoritative ruleset v16.1 beta.
+/* Arcane Duel 2v2 · server-authoritative ruleset v16.2 beta.
  * The same pure reducer runs in Node tests and the Supabase Edge Function.
  * All card IDs/stats are from the generated singleplayer CARDS registry.
  * No browser-provided damage or derived stats are ever trusted.
@@ -17,6 +17,18 @@
  const assert=(v,m)=>{if(!v)fail(m);};
  const copy=value=>JSON.parse(JSON.stringify(value));
  const safeName=n=>String(n||'Duellant').replace(/[<>\x00-\x1f]/g,'').trim().slice(0,32)||'Duellant';
+ const clamp=(n,low,high)=>Math.max(low,Math.min(high,n));
+ const round10=n=>Math.round(n/10)*10;
+ const roomSeed=id=>{let h=2166136261;for(const ch of String(id)){
+  h=Math.imul(h^ch.charCodeAt(0),16777619);
+ }return h>>>0||1;};
+ function randomInt(g,bound){
+  assert(Number.isInteger(bound)&&bound>0&&bound<=10000,'Ungültige Würfelgröße.');
+  let x=(g.rngSeed??roomSeed(g.roomId))>>>0;
+  x^=x<<13;x^=x>>>17;x^=x<<5;
+  g.rngSeed=x>>>0||1;
+  return g.rngSeed%bound;
+ }
  const definition=(catalog,id)=>catalog[id]||catalog[String(id)]||null;
  const allowed=(catalog,id,fusion=false)=>{
   const c=definition(catalog,id);
@@ -48,7 +60,7 @@
  }
  function draw(p,n=5){while(p.hand.length<n&&p.deck.length)p.hand.push(p.deck.shift());}
  function create({roomId,hostName,hostDeck,hostFusions,enemyDeckA,enemyDeckB,
-    enemyFusionsA,enemyFusionsB,chapter=1,entry='new',catalog}){
+    enemyFusionsA,enemyFusionsB,chapter=1,entry='new',catalog,randomSeed}){
   assert(typeof roomId==='string'&&roomId.length>=6,'Raumkennung fehlt.');
   assert(CHAPTERS.some(c=>c.id===chapter),'Ungültiges Kapitel.');
   assert(['new','chapter'].includes(entry),'Ungültiger Einstieg.');
@@ -57,8 +69,10 @@
    assert(validDeck(d,catalog),'Hauptdeck muss aus 40 gültigen Einzelspieler-Karten bestehen (maximal 3 Kopien).');
   for(const f of [hostFusions,enemyFusionsA,enemyFusionsB])
    assert(validDeck(f,catalog,true),'Fusionsdeck muss aus 2–15 freigeschalteten Fusionen bestehen (maximal 3 Kopien).');
-  return {schema:2,mode:'duo-campaign',ruleset:'duo-v161',roomId,chapter,entry,
+  return {schema:2,mode:'duo-campaign',ruleset:'duo-v162',roomId,chapter,entry,
    status:'waiting',revision:0,activeSeat:0,turn:0,round:1,uid:1,
+   rngSeed:Number.isSafeInteger(randomSeed)&&randomSeed>=1&&randomSeed<=0xffffffff?
+    randomSeed:roomSeed(roomId), // deterministic Node QA; Edge injects secret crypto seed
    teams:[{lp:16000,maxLp:16000},{lp:16000,maxLp:16000}],
    players:[player(0,safeName(hostName),chapterDeck(hostDeck,catalog,chapter,entry),hostFusions),
     player(1,'Gegner A',enemyDeckA,enemyFusionsA),
@@ -219,23 +233,48 @@
   draw(p);
   g.log.push(p.name+' ist am Zug und zieht bis auf fünf Handkarten.');
  }
- function fusionLevel(materials){
-  const lv=materials.map(c=>c.level),street=lv.length>=3&&new Set(lv).size===lv.length&&
-   [...lv].sort((a,b)=>a-b).every((v,i,a)=>i===0||v===a[i-1]+1);
-  const strongest=Math.max(...lv),coreIndex=lv.indexOf(strongest),core=lv[coreIndex];
-  const other=lv.filter((_,i)=>i!==coreIndex).sort((a,b)=>Math.abs(a-core)-Math.abs(b-core)||b-a);
-  const gap=Math.abs(core-other[0]),base=core>=5?3:core>=3?2:core===2?1:0;
+ const isStreet=lv=>lv.length>=3&&new Set(lv).size===lv.length&&
+  [...lv].sort((a,b)=>a-b).every((v,i,a)=>i===0||v===a[i-1]+1);
+ function resonatorLineage(materials){
+  let count=0,used=false;
+  for(const card of materials){
+   const prior=card.fusionResonatorLineage;
+   if(prior&&Number.isInteger(prior.count)){
+    count+=clamp(prior.count,0,2);used=used||prior.used===true;
+   }else if(card.fusion&&card.role==='resonator')count++;
+   used=used||card.resonatorAscentUsed===true; // v16.1 saved rooms
+  }
+  count=Math.min(2,count);return {count,used,granted:count>=2&&!used};
+ }
+ function fusionLevel(materials,{coreIndex:chosen}={}){
+  const lv=materials.map(c=>c.level);
+  assert(lv.length>=2&&lv.length<=5&&lv.every(n=>Number.isInteger(n)&&n>=1&&n<=12),
+   'Fusion benötigt zwei bis fünf gültige Materiallevel.');
+  const street=isStreet(lv),strongest=Math.max(...lv);
+  // Full streets use their highest card; for other patterns core is selectable.
+  const coreIndex=street?lv.indexOf(strongest):Number.isInteger(chosen)&&
+   chosen>=0&&chosen<lv.length?chosen:lv.indexOf(strongest);
+  const core=lv[coreIndex],others=lv.filter((_,i)=>i!==coreIndex)
+   .sort((a,b)=>Math.abs(a-core)-Math.abs(b-core)||b-a);
+  const gap=Math.abs(core-others[0]),base=core>=5?3:core>=3?2:core===2?1:0;
   const gain=gap<=1?base:gap===2?Math.min(base,2):gap===3?Math.min(base,1):gap>=5?-2:-1;
   const chain=materials[coreIndex].fusion===true,floor=chain?core:Math.max(1,core-1);
   const initial=core<=2?Math.min(core,Math.max(1,floor+Math.max(0,gain))):
    Math.max(floor,floor+gain-(chain?1:0));
-  const strong=other.length>=2&&other.every(x=>Math.abs(x-core)<=2)&&core>=3;
+  const strong=others.length>=2&&others.every(x=>Math.abs(x-core)<=2)&&core>=3;
   const bonus=street?(lv.length===5&&core>=4?1:0):(strong?1:0);
-  const pair=core===1&&lv.length===2?2:initial+bonus;
-  const r=materials.filter(c=>c.fusion&&c.role==='resonator');
-  const ascent=r.length>=2&&!materials.some(c=>c.resonatorAscentUsed);
-  return {level:Math.max(1,Math.min(10,Math.min(lv.reduce((a,b)=>a+b,0),pair)+(ascent?1:0))),
-   street,resonatorAscent:ascent};
+  const pair=core===1&&lv.length===2&&lv.every(n=>n===1)?2:initial+bonus;
+  const lineage=resonatorLineage(materials),natural=clamp(
+   Math.min(lv.reduce((a,b)=>a+b,0),pair),1,10);
+  const level=clamp(natural+(lineage.granted?1:0),1,10);
+  const weights=[1,.75,.55,.4],weighted=others.reduce((sum,n,i)=>
+   sum+Math.max(0,Math.abs(core-n)-1)*weights[i],0);
+  const distance=weighted/others.reduce((sum,_,i)=>sum+weights[i],0);
+  return {level,core,coreIndex,coreIsFusion:chain,floor,gain,bonus,
+   street,streetName:street?(lv.length===5?'Gigantische Straße':
+    lv.length===4?'Große Straße':'Kleine Straße'):null,
+   distance,penalty:street?0:Math.min(.22,distance*.055),
+   resonatorAscent:lineage.granted,resonatorLineage:lineage};
  }
  function materialSelection(p,materials){
   assert(Array.isArray(materials)&&materials.length>=2&&materials.length<=5,
@@ -251,13 +290,116 @@
   }
   return cards;
  }
- function fusionOptions(g,seat,materials,catalog){
+ function fusionOptions(g,seat,materials,catalog,{coreIndex}={}){
   const p=g.players[seat];
-  const cards=materialSelection(p,materials).map(c=>c._hand?{id:c.id,level:definition(catalog,c.id).level,
-   role:definition(catalog,c.id).role||'combatant',fusion:false,resonance:0}:c);
-  const rule=fusionLevel(cards);
-  return {rule,cards,templates:[...new Set(p.remainingFusion)].filter(id=>
+  const cards=materialSelection(p,materials).map(c=>c._hand?{
+   id:c.id,level:definition(catalog,c.id).level,
+   role:definition(catalog,c.id).role||'combatant',fusion:false,resonance:0,
+   element:definition(catalog,c.id).element,ability:definition(catalog,c.id).ability}:
+   {...c,element:definition(catalog,c.id).element,
+    ability:definition(catalog,c.id).ability});
+  const rule=fusionLevel(cards,{coreIndex});
+  const analysis=fusionAnalysis(cards,rule);
+  return {rule,cards,analysis,templates:[...new Set(p.remainingFusion)].filter(id=>
    definition(catalog,id)?.level<=rule.level&&definition(catalog,id)?.level>=2)};
+ }
+ function fusionPattern(cards){
+  const levels=cards.map(c=>c.level),counts=new Map();
+  for(const level of levels)counts.set(level,(counts.get(level)||0)+1);
+  const groups=[...counts.values()].sort((a,b)=>b-a),unique=[...counts.keys()].sort((a,b)=>a-b);
+  let streak=1,longest=1;
+  for(let i=1;i<unique.length;i++){
+   streak=unique[i]===unique[i-1]+1?streak+1:1;
+   longest=Math.max(longest,streak);
+  }
+  longest=Math.min(5,longest);
+  let name='Freie Fusion',rollBonus=0,levelBonus=0,qualityBonus=0;
+  const levelOnePair=(counts.get(1)||0)>=2;
+  if(groups[0]===5){name='Fünfling';rollBonus=3;levelBonus=2;qualityBonus=.18;}
+  else if(groups[0]===4){name='Vierling';rollBonus=2;levelBonus=1;qualityBonus=.13;}
+  else if(groups[0]===3&&groups[1]===2){name='Full House';rollBonus=2;levelBonus=2;qualityBonus=.14;}
+  else if(longest>=3){
+   name=longest===5?'Gigantische Straße':longest===4?'Große Straße':'Kleine Straße';
+   rollBonus=longest===5?4:longest===4?3:1;
+   levelBonus=longest===5?3:longest===4?2:1;
+   qualityBonus=longest===5?.36:longest===4?.30:.20;
+  }else if(groups[0]===3){name='Drilling';rollBonus=1;levelBonus=1;qualityBonus=.08;}
+  else if(groups[0]===2&&groups[1]===2){name='Zwei Paare';rollBonus=1;
+   levelBonus=1;qualityBonus=.12+(levelOnePair?.05:0);}
+  else if(groups[0]===2){name='Paar';qualityBonus=.04+(levelOnePair?.015:0);}
+  const lowLevelBonus=levels.length>=3&&name!=='Freie Fusion'?
+   Math.min(.08,levels.filter(l=>l===1).length*.02+
+    levels.filter(l=>l===2).length*.01):0;
+  qualityBonus+=lowLevelBonus;
+  const elemental=cards.length>=2&&!!cards[0].element&&
+   cards.every(c=>c.element===cards[0].element);
+  if(elemental){qualityBonus+=.025;name+=' · Elementharmonie';}
+  return {name,rollBonus,levelBonus,qualityBonus,lowLevelBonus,elemental,
+   hasCombo:name!=='Freie Fusion'};
+ }
+ function fusionAnalysis(cards,rule){
+  const pattern=fusionPattern(cards),levels=cards.map(c=>c.level);
+  const baseFactor=clamp(1+.045*(cards.length-2)-rule.penalty+
+   pattern.qualityBonus,.72,1.48);
+  const normal=cards.filter(c=>c.role==='combatant'&&!c.fusion);
+  const resonators=cards.filter(c=>c.role==='resonator'&&c.fusion);
+  const normalPct=Math.min(24,normal.reduce((sum,c)=>
+   sum+4+4*clamp(c.resonance||0,0,3),0));
+  const resonatorPct=Math.min(60,resonators.reduce((sum,c)=>
+   sum+10+10*clamp(c.resonance||0,0,2),0));
+  const resonancePct=normalPct+resonatorPct;
+  // Allrounders enhance a valid chain; the addition cannot erase prior quality.
+  const specialists=cards.filter(c=>c.role!=='combatant'&&!(c.role==='resonator'&&c.fusion));
+  let protectedBase=baseFactor,bonusRolls=pattern.rollBonus;
+  if(resonancePct&&specialists.length>=2){
+   const specialistPattern=fusionPattern(specialists),specialistRule=fusionLevel(specialists);
+   protectedBase=Math.max(baseFactor,clamp(1+.045*(specialists.length-2)-
+    specialistRule.penalty+specialistPattern.qualityBonus,.72,1.48));
+   bonusRolls=Math.max(bonusRolls,specialistPattern.rollBonus);
+  }
+  const roles=cards.map(c=>c.role),pureRolePct=
+   ['predator','guardian','soul'].includes(roles[0])&&
+   roles.every(r=>r===roles[0])?5:0;
+  const heritagePct=Math.min(15,cards.reduce((sum,c)=>{
+   if(!c.fusion)return sum;
+   const earned=Number.isFinite(c.fusionHeritage?.earnedPct)?
+    c.fusionHeritage.earnedPct:clamp(((c.quality||1)-1)*100,0,30);
+   return sum+clamp(earned,0,30)*.35;
+  },0));
+  const factor=clamp(protectedBase+resonancePct/100+pureRolePct/100+
+   heritagePct/100,.72,2.2);
+  const ordinaryRolls=1+Math.min(3,Math.floor((levels.reduce((a,b)=>a+b,0)-
+   Math.max(...levels))/2));
+  const rolls=clamp(ordinaryRolls+bonusRolls+
+   cards.filter(c=>c.ability==='guide').length,1,7);
+  const materialBlocks=Math.min(24,cards.reduce((sum,c)=>
+   sum+(c.fusion?Math.min(12,c.level):0),0));
+  const role=fusionRole(cards);
+  const soulOdds=role==='guardian'&&cards.length>=3?
+   Math.min(.75,.20+cards.reduce((sum,c)=>sum+.035+.007*Math.min(12,c.level),0)):0;
+  return {pattern:pattern.name,rolls,role,quality:factor,
+   baseQuality:protectedBase,elemental:pattern.elemental,lowLevelBonus:pattern.lowLevelBonus,
+   resonancePct,normalPct,resonatorPct,pureRolePct,heritagePct,
+   materialBlocks,soulOdds,comboLevelBonus:pattern.levelBonus};
+ }
+ function fusionPreview(g,seat,materials,catalog,{coreIndex,templateId}={}){
+  const {rule,cards,analysis,templates}=fusionOptions(g,seat,materials,catalog,{coreIndex});
+  const chosen=templateId??templates[0];
+  assert(templates.includes(chosen),'Keine passende Fusionsvorlage verfügbar.');
+  const template=definition(catalog,chosen),ref=template.fusionReference||template,
+   weight=roleWeights(analysis.role);
+  const fieldSoul=cards.reduce((sum,c,i)=>sum+
+   (materials[i].from==='field'?Math.max(0,Math.min(2000,c.soul||0)):0),0);
+  const soulDef=Math.min(250,Math.floor(fieldSoul*.3/10)*10);
+  const bounds=stat=>{
+   const midpoint=ref[stat]*weight[stat]*analysis.quality;
+   const carry=stat==='def'?soulDef:0;
+   const low=Math.max(0,round10(midpoint*.88)+carry);
+   const high=Math.max(0,round10(midpoint*1.12)+analysis.materialBlocks*10+carry);
+   return [low,high];
+  };
+  return {rule,analysis,templateId:chosen,atk:bounds('atk'),def:bounds('def'),
+   soulDef,remaining:g.players[seat].remainingFusion.filter(id=>id===chosen).length};
  }
  function fusionRole(cards){
   const specialist=cards.map(c=>c.role).filter(r=>['predator','guardian','soul'].includes(r));
@@ -371,7 +513,8 @@
   }else if(action.type==='fusion'){
    assert(!p.summoned,'Dieser Zug hat bereits eine Beschwörung.');
    assert(Number.isInteger(action.slot)&&action.slot>=0&&action.slot<7,'Ungültiger Zielfeldplatz.');
-   const {rule,cards,templates}=fusionOptions(g,seat,action.materials,catalog);
+   const {rule,cards,analysis,templates}=fusionOptions(g,seat,action.materials,catalog,
+    {coreIndex:action.coreIndex});
    assert(templates.includes(action.templateId),'Fusionskarte nicht verfügbar oder Stufe zu hoch.');
    const removingField=new Set(action.materials.filter(m=>m.from==='field').map(m=>m.index));
    assert(!p.field[action.slot]||removingField.has(action.slot),'Fusions-Zielfeld ist nicht frei.');
@@ -382,27 +525,65 @@
    for(const index of removingField)p.field[index]=null;
    p.graveyard.push(...types.map(c=>({id:c.id,from:'fusion'})));
    p.remainingFusion.splice(p.remainingFusion.indexOf(action.templateId),1);
-   const inherited=fusionRole(types),weights=roleWeights(inherited);
-   const normalBonus=types.reduce((sum,c)=>sum+(c.role==='combatant'&&!c.fusion?4+4*(c.resonance||0):0),0);
-   const resonatorBonus=types.reduce((sum,c)=>sum+(c.role==='resonator'&&c.fusion?10+10*(c.resonance||0):0),0);
-   const quality=1+Math.min(.24,normalBonus/100)+Math.min(.6,resonatorBonus/100);
-   const result=instance(g,action.templateId,catalog,{fusion:true,roleOverride:inherited,quality});
-   result.atk=Math.round(result.atk*weights.atk);
-   result.def=Math.round(result.def*weights.def);
+   const guaranteedSoul=types.filter(c=>c.from==='field').length>=3&&
+    types.filter(c=>c.from==='field').every(c=>defensive(c));
+   const awakened=analysis.role==='guardian'&&(guaranteedSoul||
+    (analysis.soulOdds>0&&randomInt(g,10000)<Math.floor(analysis.soulOdds*10000)));
+   const inherited=awakened?'soul':analysis.role,weights=roleWeights(inherited);
+   const template=definition(catalog,action.templateId);
+   const reference=template.fusionReference||template;
+   const baseline={atk:reference.atk*weights.atk*analysis.quality,
+    def:reference.def*weights.def*analysis.quality};
+   let best=null,winnerIndex=-1;
+   const trace=[];
+   for(let i=0;i<analysis.rolls;i++){
+    const roll={atk:round10(baseline.atk*(.88+randomInt(g,25)/100)),
+     def:round10(baseline.def*(.88+randomInt(g,25)/100))};
+    trace.push(roll);
+    if(!best||roll.atk+roll.def>best.atk+best.def){best=roll;winnerIndex=i;}
+   }
+   const bonus={atk:0,def:0};
+   for(let i=0;i<analysis.materialBlocks;i++)
+    bonus[randomInt(g,2)?'atk':'def']+=10;
+   const result=instance(g,action.templateId,catalog,{fusion:true,roleOverride:inherited});
+   result.atk=Math.max(0,best.atk+bonus.atk);
+   result.def=Math.max(0,best.def+bonus.def);
    result.maxDef=result.def;
-   result.quality=Math.round(quality*1000)/1000;
+   result.quality=Math.round(analysis.quality*1000)/1000;
    result.roleOrigin='material';
-   const charged=types.filter(c=>c.from==='field').reduce((v,c)=>v+Math.max(0,c.soul||0),0);
+   result.pattern=analysis.pattern;
+   result.qualityRolls=analysis.rolls;
+   result.materialBonus=bonus;
+   result.rollTrace=trace;
+   result.rollMath={base:{atk:round10(baseline.atk),def:round10(baseline.def)},
+    winnerIndex,winner:{...best},bonus:{...bonus},role:inherited,roleWeights:weights,
+    quality:analysis.quality,resonancePct:analysis.resonancePct,
+    pattern:analysis.pattern,coreLevel:rule.core};
+   result.fusionCoreLevel=rule.core;
+   result.fusionResonatorLineage={count:rule.resonatorLineage.count,
+    used:rule.resonatorLineage.used||rule.resonatorAscent};
+   result.soulOdds=analysis.soulOdds;
+   result.soulAwakened=awakened;
+   const carriedPct=analysis.heritagePct;
+   const earnedPct=clamp((analysis.quality-1)*100-carriedPct,0,30);
+   result.fusionHeritage={earnedPct:Math.round(earnedPct*100)/100,
+    carriedPct:Math.round(carriedPct*100)/100};
+   const charged=types.filter(c=>c.from==='field').reduce((v,c)=>
+    v+Math.max(0,Math.min(2000,c.soul||0)),0);
    if(charged){
     const defGain=Math.min(250,Math.floor(charged*.3/10)*10);
     result.def+=defGain;result.maxDef=result.def;
     if(inherited==='soul')result.soul=Math.min(soulCapacity(result),Math.floor(charged*.3));
+    result.soulInheritance={energy:charged,defBonus:defGain,carried:result.soul};
    }
+   result.used=types.some(c=>c.used===true);
+   result.switched=types.some(c=>c.switched===true);
    if(rule.resonatorAscent)result.resonatorAscentUsed=true;
    p.field[action.slot]=result;p.summoned=true;
    g.log.push(p.name+' fusioniert '+cards.length+' eigene Monster zu '+
     definition(catalog,action.templateId).name+' (Lv '+result.level+', Rolle '+
-    (roleName[inherited]||inherited)+', Qualität +'+Math.round((quality-1)*100)+' %).');
+    (roleName[inherited]||inherited)+', '+analysis.pattern+', '+
+    analysis.rolls+' Würfelpaare, Qualität '+Math.round((analysis.quality-1)*100)+' %).');
   }else if(action.type==='attack'){
    const src=p.field[action.slot];
    assert(src&&src.mode==='atk'&&!src.used&&src.placedRound<g.round,'Angreifer ist nicht bereit.');
@@ -483,7 +664,7 @@
  }
  function view(g,seat){
   const v=copy(g);
-  delete v.uid;
+  delete v.uid;delete v.rngSeed; // Never disclose upcoming server-side dice.
   for(const p of v.players){
    delete p.baseDeck;delete p.baseFusions;
    p.deck=Array(p.deck.length).fill(null);
@@ -493,6 +674,7 @@
   }
   return v;
  }
- return Object.freeze({version:'16.1-beta',CHAPTERS,seats,allowed,validDeck,packIds,
-  chapterDeck,create,apply,aiTurn,view,fusionLevel,fusionOptions,fusionRole});
+ return Object.freeze({version:'16.2-beta',CHAPTERS,seats,allowed,validDeck,packIds,
+  chapterDeck,create,apply,aiTurn,view,fusionLevel,fusionPattern,fusionOptions,
+  fusionAnalysis,fusionPreview,fusionRole});
 });
