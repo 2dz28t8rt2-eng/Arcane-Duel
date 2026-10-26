@@ -474,6 +474,9 @@
   if(directGuide){directGuide.hidden=true;directGuide.replaceChildren();}
   const fusionGuide=$('ad188-fusion-guide');
   if(fusionGuide){fusionGuide.hidden=true;fusionGuide.replaceChildren();}
+  const summonGuide=$('ad189-summon-guide');
+  if(summonGuide){summonGuide.hidden=true;summonGuide.replaceChildren();}
+  $('duoBattleArena')?.classList.remove('ad189-summon-mode');
   dock.classList.remove('ad186-enhanced');
   for(const n of [dock,track,seats,log])n.replaceChildren();
   $('duoCreate').hidden=!!roomId||location.hash.startsWith('#join=');
@@ -629,14 +632,17 @@
   el('p',dock,'Du bist dran! Wähle eine Karte oder greife mit deinen Monstern an.',
    'duo-turn-note');
   if(legal.hand.length){
-   const part=section(dock,'✦ Monster beschwören','Wähle eine Handkarte und einen freien Platz auf deinem Feld.');
+   const part=section(dock,'✦ Monster beschwören','Klicke eine Handkarte und danach einen freien Platz auf deinem Feld an.');
    const row=el('div',part,undefined,'duo-choices');
    const hand=selector('Handkarte',legal.hand.map(x=>[x.index,
     displayName(x)+' · Lv '+card(x.id).level+
     (x.fate?' · '+x.atk+'/'+x.def+' · unverschmelzbar':'')]),row);
    const slot=selector('Freier Feldplatz',legal.freeSlots.map(i=>[i,'Feld '+(i+1)]),row);
-   button('Monster beschwören',part,()=>send({type:'summon',
+   hand.dataset.ad189Hand='true';
+   slot.dataset.ad189Slot='true';
+   const summonCommit=button('Monster beschwören',part,()=>send({type:'summon',
     handIndex:Number(hand.value),slot:Number(slot.value)}));
+   summonCommit.dataset.ad189Commit='true';
   }
   if(!p.summoned&&p.remainingFusion.length>=1){
    const part=section(dock,'✦ Fusion','Wähle zwei bis fünf eigene Monster. '+
@@ -901,6 +907,7 @@
   window.ArcaneDuoCombatFlow186?.enhance?.({dock,roomId,seat,game});
   window.ArcaneDuoDirectCards187?.enhance?.({game,seat,legal,dock,catalog,busy,syncError});
   window.ArcaneDuoFusion188?.enhance?.({game,seat,roomId,dock,busy,syncError});
+  window.ArcaneDuoSummon189?.enhance?.({game,seat,legal,dock,catalog,busy,syncError});
  }
  async function init(){
   try{

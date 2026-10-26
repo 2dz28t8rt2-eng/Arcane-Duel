@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcane Duel · Beschwören durch Kartenklick · v18.9</title>
+<link rel="stylesheet" href="../assets/duo-campaign-demo.css">
+<link rel="stylesheet" href="../assets/duo-hand-cinema-v178.css">
+<link rel="stylesheet" href="../assets/duo-combat-flow-v186.css">
+<link rel="stylesheet" href="../assets/duo-direct-cards-v187.css">
+<link rel="stylesheet" href="../assets/duo-fusion-cards-v188.css">
+<link rel="stylesheet" href="../assets/duo-summon-cards-v189.css">
+<style>
+.duo-wrap{max-width:1100px}.demo-note{background:#20263a;border:1px solid #9d865d;border-radius:11px;
+ padding:14px;margin:12px 0}.demo-note p{margin:5px 0}.demo-note strong{color:#f8dfa1}
+#demoStatus{font-size:13px;font-weight:650;color:#ffe6b7;min-height:20px;margin:10px 0}
+.duo178-hand{margin:8px 0}.duo178-hand-cards{justify-content:flex-start;min-height:95px}
+.duo178-hand-card{width:105px;min-width:86px;min-height:89px}.duo178-hand-art{display:none}
+.seat .field-cell{height:75px}.seat .field-cell.filled{gap:3px;padding:5px}
+.seat .field-cell small{font-size:10px}.duo-choices label{margin:4px 0}
+</style>
+</head><body><main class="duo-wrap">
+<header class="duo-header"><div><p class="kicker">✧ ARCANE DUEL · KLICKBARE VORSCHAU</p>
+<h1>Beschwören per Kartenklick · v18.9</h1>
+<p>Eine Handkarte wählen, einen freien Feldplatz anklicken, bewusst bestätigen. Das ist alles.</p></div>
+<a href="../duo-campaign-v2.html">← Zur 2v2-Kampagne</a></header>
+<section class="duo-panel duo-battle">
+<div class="demo-note"><p><strong>Probiere es aus:</strong> Klicke auf eine Karte in deiner Hand und dann auf einen türkis markierten freien Platz.</p>
+<p>Alternativ kannst du erst den Feldplatz wählen. Unter „Fusionieren“ werden dieselben Handkarten wieder als Fusionsmaterial ausgewählt.</p>
+<p id="demoStatus" role="status" aria-live="polite">Noch keine Beschwörung – dies ist eine reine Oberflächenvorschau.</p></div>
+<div id="duoSeats" class="four-seats"></div>
+<div id="ad187-attack-guide" class="ad187-attack-guide" hidden></div>
+<div id="ad188-fusion-guide" class="ad188-fusion-guide" hidden></div>
+<div id="ad189-summon-guide" class="ad189-summon-guide" hidden></div>
+<div id="duoActions" class="action-dock"></div>
+</section></main>
+<script src="../assets/duo-combat-flow-v186.js"></script>
+<script src="../assets/duo-direct-cards-v187.js"></script>
+<script src="../assets/duo-fusion-cards-v188.js"></script>
+<script src="../assets/duo-summon-cards-v189.js"></script>
+<script>
+(()=>{
+ const mk=(tag,parent,content,css)=>{const n=document.createElement(tag);if(css)n.className=css;
+  if(content!==undefined)n.textContent=content;parent.append(n);return n;};
+ const names={10:'Mondritter',11:'Glutwolf',12:'Silberfuchs',13:'Waldgeist',14:'Runenlehrling',
+  20:'Aschehüter',30:'Sonnenwächter'};
+ const catalog=Object.fromEntries(Object.entries(names).map(([id,name])=>[id,{name,level:3}]));
+ const p={seat:0,ownTurns:3,hand:[12,13,14],field:[{id:10},null,{id:11},null,null,null,null]};
+ const game={status:'active',activeSeat:0,round:3,roomId:'v189-preview',players:[p]};
+ const seats=document.getElementById('duoSeats'),dock=document.getElementById('duoActions');
+ const status=document.getElementById('demoStatus');
+ function seat(index,title,field,own){
+  const panel=mk('article',seats,undefined,'seat');panel.dataset.seat=String(index);
+  mk('h3',panel,title);mk('small',panel,own?'DEIN TEAM':'GEGNER','duo-seat-kind');
+  if(own){const hand=mk('div',panel,undefined,'duo178-hand');
+   mk('div',hand,'✦ DEINE HANDKARTEN','duo178-hand-title');
+   const row=mk('div',hand,undefined,'duo178-hand-cards');
+   for(const [i,id] of p.hand.entries()){
+    const card=mk('div',row,undefined,'duo178-hand-card');card.dataset.index=String(i);
+    mk('strong',card,names[id]);mk('small',card,'LV 3');
+   }}
+  const row=mk('div',panel,undefined,'field');
+  field.forEach((id,i)=>{const cell=mk('div',row,undefined,'field-cell'+(id?' filled':''));
+   cell.dataset.slot=String(i);mk('span',cell,id?names[id]:'◇');
+   if(id)mk('small',cell,'Lv 3 · ⚔ ATK');});
+ }
+ seat(0,'Du · Gastgeber',[10,null,11,null,null,null,null],true);
+ seat(1,'KI · Aschenheer',[20,null,null,null,null,null,null],false);
+ seat(2,'Dein Partner',[30,null,null,null,null,null,null],false);
+ seat(3,'KI · Schattenheer',[null,null,null,null,null,null,null],false);
+ const group=(title,help)=>{const section=mk('section',dock,undefined,'duo-action-group');
+  mk('h3',section,title);mk('p',section,help,'duo-action-help');return section;};
+ const selection=(parent,label,choices,marker)=>{
+  const box=mk('label',parent,undefined,'duo-choice');mk('span',box,label);
+  const input=mk('select',box);if(marker)input.dataset[marker]='true';
+  for(const [value,name] of choices){const option=mk('option',input,name);option.value=String(value);}
+  return input;
+ };
+ mk('p',dock,'Du bist dran! Klicke eine Karte an oder wähle eine Aktion.','duo-turn-note');
+ const summon=group('✦ Monster beschwören','Wähle eine Handkarte und einen freien Feldplatz.');
+ const summoning=mk('div',summon,undefined,'duo-choices');
+ const hand=selection(summoning,'Handkarte',p.hand.map((id,i)=>[i,names[id]]),'ad189Hand');
+ const free=[1,3,4,5,6];
+ const slot=selection(summoning,'Freier Feldplatz',free.map(i=>[i,'Feld '+(i+1)]),'ad189Slot');
+ const summonCommit=mk('button',summon,'Monster beschwören','primary');summonCommit.dataset.ad189Commit='true';
+ summonCommit.onclick=()=>{status.textContent='✓ Vorschau: '+names[p.hand[Number(hand.value)]]+
+  ' auf Feld '+(Number(slot.value)+1)+' beschworen. Kein echter Spielzug.';};
+ const fusion=group('✦ Fusion','Klicke Karten an, um Materialien für eine Fusion zu wählen.');
+ const materials=mk('select',fusion,undefined,'duo-fusion-list');materials.multiple=true;materials.size=5;
+ for(const [value,name] of [['hand:0','Hand 1 · Silberfuchs'],['hand:1','Hand 2 · Waldgeist'],
+  ['hand:2','Hand 3 · Runenlehrling'],['field:0','Feld 1 · Mondritter'],['field:2','Feld 3 · Glutwolf']]){
+  const option=mk('option',materials,name);option.value=value;
+ }
+ const row=mk('div',fusion,undefined,'duo-choices');
+ selection(row,'Kernmonster',[['0','Silberfuchs']],'ad188Core');
+ selection(row,'Fusionsvorlage',[['401','Runengeist · Lv 4']],'ad188Template');
+ selection(row,'Ergebnis-Feld',[['1','Feld 2']],'ad188Slot');
+ const hint=mk('p',fusion,'Bitte 2–5 Materialien wählen.','duo-action-status');
+ const fuseCommit=mk('button',fusion,'Jetzt fusionieren','primary');fuseCommit.dataset.ad188Commit='true';fuseCommit.disabled=true;
+ materials.onchange=()=>{const count=materials.selectedOptions.length;
+  hint.textContent=count>=2?count+' Materialien · Fusion möglich':'Wähle mindestens zwei Materialien.';
+  fuseCommit.disabled=count<2;};
+ fuseCommit.onclick=()=>{status.textContent='✓ Fusionsvorschau: '+materials.selectedOptions.length+
+  ' Materialien. Kein echter Spielzug.';};
+ const attack=group('⚔ Angriff','Wähle einen Angreifer und sein Ziel.');
+ const atRow=mk('div',attack,undefined,'duo-choices');
+ const source=selection(atRow,'Angreifer',[['field:0','Mondritter']],'ad187Source');
+ const target=selection(atRow,'Ziel',[['1:field:0','Aschehüter']],'ad187Target');
+ const attackCommit=mk('button',attack,'Angriff bestätigen','primary');attackCommit.dataset.ad187Commit='true';
+ attackCommit.onclick=()=>{status.textContent='✓ Angriffsvorschau: '+source.value+' → '+target.value;};
+ window.ArcaneDuoCombatFlow186.enhance({dock,game,seat:0,roomId:game.roomId});
+ window.ArcaneDuoDirectCards187.enhance({game,seat:0,legal:{attackers:[{slot:0,card:{id:10}}],
+  targets:[{seat:1,slot:0,card:{id:20}}]},dock,catalog});
+ window.ArcaneDuoFusion188.enhance({game,seat:0,roomId:game.roomId,dock});
+ window.ArcaneDuoSummon189.enhance({game,seat:0,legal:{
+  hand:p.hand.map((id,index)=>({id,index})),freeSlots:free},dock,catalog});
+})();
+</script></body></html>
