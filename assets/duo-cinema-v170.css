@@ -29,6 +29,7 @@
  border:2px solid #e2bf80;border-radius:14px;padding:14px 18px;width:max-content;max-width:100%;
  margin:12px auto;background:#312a37;opacity:0;transform:scale(.9)}
 .duo-cinema170-reveal.visible{animation:duo170Reveal .43s ease-out both}
+.duo-cinema170-art{display:block;width:100%;max-width:120px;max-height:140px;object-fit:contain;border-radius:8px;box-shadow:0 4px 18px #000a}
 .duo-cinema170-level{font-size:12px;color:#dbb4ec;letter-spacing:.15em}
 .duo-cinema170-name{font:800 23px Georgia,serif}
 .duo-cinema170-stats{font-variant-numeric:tabular-nums;color:#ffddaa;font-size:16px}
