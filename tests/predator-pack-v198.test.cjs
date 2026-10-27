@@ -87,7 +87,7 @@ test('saved duel restores alpha powers, weakened Token level and active hunt mar
  'g.players[0].field[1]=token;'+
  'const target=newInstance(g,guard.id,1);target.mode="def";g.players[1].field[0]=target;'+
  'g.predatorPursuit={turn:12,owner:0,targetUid:target.uid,attackers:[a.uid]};'+
- 'const saved=JSON.parse(JSON.stringify(g));'+
+ 'g.players.forEach(p=>p.lp=g.maxLP);const saved=JSON.parse(JSON.stringify(g));'+
  'const loaded=validateDuelSnapshot(saved);'+
  'const alpha=loaded.players[0].field[0],t=loaded.players[0].field[1];'+
  'return {powers:alpha.predatorLeader?.powers,round:alpha.predatorLeader?.ownTurns,'+
