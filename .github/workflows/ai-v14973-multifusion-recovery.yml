@@ -1,0 +1,82 @@
+name: Arcane Duel - v14.9.73 Recover Completed Fusion Research Report
+on:
+  push:
+    branches: [development]
+    paths: ['.github/workflows/ai-v14973-multifusion-recovery.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  recover-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore the already-completed 23040-duel dataset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # The original job failed ONLY at its outdated aggregate invariant.
+          # All 11 simulation phases completed and the original ZIP was archived.
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40543688941" --jq '.conclusion')" = failure
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40543688941/jobs" \
+            --jq '.jobs[0].steps[] | select(.name=="Execute 11 seed-matched TRAIN/VALIDATION/HOLDOUT research phases") | .conclusion')" = success
+          mkdir -p artifacts/v1573
+          gh run download 40543688941 --repo "$GITHUB_REPOSITORY" \
+            --name arcane-v14973-multifusion --dir artifacts/v1573
+          for stage in 0 1 2 3 4 5 6 7 8 9 10; do
+            test -s "artifacts/v1573/stage-$stage.json"
+            test -s "artifacts/v1573/stage-$stage-decision-diffs.json"
+          done
+          node --check tests/ai-v1573-multifusion-aggregate.cjs
+      - name: Aggregate original results with targeted role-safety correction
+        run: node --max-old-space-size=3200 tests/ai-v1573-multifusion-aggregate.cjs
+      - name: Validate frozen gates, distinct fusion opportunities and sealed HOLDOUT
+        run: |
+          set -euo pipefail
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const root='artifacts/v1573/';
+          const r=JSON.parse(fs.readFileSync(root+'report.json'));
+          a.equal(r.status,'completed');a.equal(r.totalDuels,23040);
+          a.equal(r.stages.length,11);a.equal(r.arms.length,6);
+          a.equal(r.primaryDuels,9216);a.equal(r.authenticPredatorSwarmDuels,2304);
+          a.ok(r.controls.holdoutNeverUsedForSelection);
+          a.equal(r.globalSelection.holdoutSeenBySelector,false);
+          a.equal(r.controls.noProductionChanges,true);
+          a.deepEqual(r.globalSelection.selectionGateStages,[0,1,2,3,4,7,8]);
+          if(r.globalSelection.promoted){
+            const p=r.globalSelection.candidates.find(x=>x.arm===r.globalSelection.arm);
+            a.ok(p?.qualifies&&p.guardianGate&&p.seatNonRegressionVsFrozen);
+          }else a.equal(r.globalSelection.arm,'l10-guarded-worst-reply');
+          const fusionStage=JSON.parse(fs.readFileSync(root+'stage-9.json'));
+          const rows=fusionStage.allCases.filter(x=>x.arm==='fusion-v1573-multimaterial');
+          a.ok(rows.length>0);
+          const metrics={};
+          for(const size of [3,4,5]){
+            metrics[size]={opportunities:rows.reduce((v,x)=>v+(x.multiFusionBySize?.[size]?.accepted||0),0),
+              selected:rows.reduce((v,x)=>v+(x.multiFusionChosenBySize?.[size]||0),0)};
+            a.ok(metrics[size].opportunities>0);
+          }
+          console.log('ARCANE_V1573_REPORT_RECOVERED '+JSON.stringify({
+            originalRun:40543688941,totalDuels:r.totalDuels,
+            selected:r.globalSelection.arm,promoted:r.globalSelection.promoted,
+            multiFusionMetrics:metrics,
+            candidates:r.globalSelection.candidates.map(x=>({arm:x.arm,qualifies:x.qualifies,
+              validationGainVsFrozen:x.validationGainVsFrozen,
+              h2hValidationGain:x.h2hValidationGain,
+              fusionFocusValidationGain:x.fusionFocusValidationGain}))}));
+          JS
+      - name: Upload recovered report (original game data remains in prior artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v14973-multifusion-recovered-report
+          path: artifacts/v1573/report.json
+          retention-days: 90
+          if-no-files-found: warn
