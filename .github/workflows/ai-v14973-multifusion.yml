@@ -20,12 +20,7 @@ jobs:
         run: |
           set -euo pipefail
           for file in tests/ai-v1573-multifusion-{selfplay,aggregate}.cjs tests/helpers/ai-multifusion-v1573.cjs; do node --check "$file"; done
-          node --test tests/ai-v1573-multifusion.test.cjs tests/essence-combat.test.cjs
-          # The v19.9 asset-order check hardcodes the older v198 script as the
-          # final asset. The v199 showdown overlay now legitimately follows it.
-          # Keep every Predator mechanics assertion while excluding only this
-          # unrelated obsolete DOM script-order assertion from AI research.
-          node --test --test-name-pattern='^(?!assets loaded, skill reveal attached and chapter 22 updated$)' tests/predator-pack-v198.test.cjs
+          node --test tests/ai-v1573-multifusion.test.cjs tests/essence-combat.test.cjs tests/predator-pack-v198.test.cjs
           node tests/helpers/game-runtime.cjs
       - name: Restore sealed previous TRAIN-only checkpoints (not prior HOLDOUT)
         env:
