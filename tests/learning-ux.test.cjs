@@ -13,9 +13,9 @@ function boot(persisted=false){
  vm.runInContext(fs.readFileSync(path.join(root,'assets/learning.js'),'utf8'),ctx,{timeout:20000});
  return expr=>JSON.parse(vm.runInContext(`JSON.stringify(${expr})`,ctx,{timeout:20000}));
 }
-test('11 guided lessons supply legal 40-card loan decks with no more than 3 copies each',()=>{
+test('13 guided lessons supply legal 40-card loan decks with no more than 3 copies each',()=>{
  const run=boot();const r=run('window.ArcaneLearning.lessons.map(l=>({id:l.id,weights:l.weights,deck:window.ArcaneLearning.buildDeck(l.id)}))');
- assert.equal(r.length,11);
+ assert.equal(r.length,13);
  for(const x of r){assert.equal(x.deck.length,40,x.id);const freq=Object.values(x.deck.reduce((a,v)=>(a[v]=(a[v]||0)+1,a),{}));assert.ok(Math.max(...freq)<=3,x.id);}
 });
 test('lesson duel uses loan deck without changing player inventory or deck and remains resumable',()=>{

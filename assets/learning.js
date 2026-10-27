@@ -14,7 +14,9 @@ const LESSONS=[
  {id:'four',title:'Der Vierling',icon:'Ⅳ',levels:[1,1,1,1],weights:{1:21,2:19},goal:'Vierling',tip:'Vier Materialien mit derselben Stufe erzeugen einen Vierling.'},
  {id:'five',title:'Der Fünfling',icon:'Ⅴ',levels:[1,1,1,1,1],weights:{1:21,2:19},goal:'Fünfling',tip:'Fünf Monster derselben Stufe – fünf Materialien, ein seltener Qualitätsbonus.'},
  {id:'lowlevels',title:'Niedrigstufen-Synergie',icon:'✷',levels:[1,1,1],weights:{1:21,2:19},goal:'lowlevels',tip:'Ab drei Materialien geben Stufe 1 und 2 zusätzliche Prozentpunkte Qualität. Versuche zum Beispiel einen Drilling aus Stufe 1.'},
- {id:'elements',title:'Elementharmonie',icon:'◇',levels:[1,2,3],weights:{1:15,2:15,3:10},goal:'elements',tip:'Nimm für eine Fusion ausschließlich Monster desselben Elements. Die Elemente siehst du auf den Karten.'}
+ {id:'elements',title:'Elementharmonie',icon:'◇',levels:[1,2,3],weights:{1:15,2:15,3:10},goal:'elements',tip:'Nimm für eine Fusion ausschließlich Monster desselben Elements. Die Elemente siehst du auf den Karten.'},
+ {id:'stomp3',title:'Der geteilte Strahl',icon:'⚡',levels:[1,2,3],weights:{1:13,2:13,3:14},goal:'stomp3',tip:'Erschaffe eine Fusion aus mindestens drei Materialien. Lass den Gegner mindestens zwei Monster aufstellen und treffe mit einem Angriff sowohl das Hauptziel als auch ein Nebenziel. Gewinne anschließend.'},
+ {id:'stomp5',title:'Prisma der Fünf',icon:'✺',levels:[1,2,3,4,5],weights:{1:8,2:8,3:8,4:8,5:8},goal:'stomp5',tip:'Fusioniere genau fünf Materialien. Lass mindestens drei Gegner auf dem Feld stehen und triff mit einem Angriff zwei verschiedene Nebenziele. Beachte den erhöhten ATK- und DEF-Verschleiß.'}
 ];
 const LESSON_MAP=new Map(LESSONS.map(x=>[x.id,x]));
 let selectedLesson=null;

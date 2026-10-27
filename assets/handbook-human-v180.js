@@ -100,7 +100,7 @@
   ['duo','19 · Gemeinsam spielen: 2 Menschen gegen 2 Gegner',
    `<h3>Ein Team, zwei eigene Decks</h3>
     <p>Im 2v2 kämpfst du mit einem Freund gegen zwei Computergegner.
-    Ihr teilt euch <b>16.000 Lebenspunkte</b> und dürft jeweils bis zu sieben
+    Ihr teilt euch <b>doppelt so viele Lebenspunkte wie in der jeweiligen Solo-Turnierstufe</b> (8.000 / 12.000 / 14.000 / 20.000) und dürft jeweils bis zu sieben
     Monster auf dem Feld haben. Die Zugfolge ist immer gleich:
     <b>Gastgeber → Gegner → Partner → Gegner</b>.</p>
     <p>Ihr ergänzt euch gegenseitig: Einer kann eine schützende Stellung aufbauen,
@@ -128,7 +128,7 @@
     Später muss dein Monster bereit sein und in Angriffsposition liegen.
     Ein bereits verbrauchter Angriff wird durch einen Positionswechsel nicht erneuert.</p>
     <h3>Warum wird mein Monster schwächer?</h3>
-    <p>Angriffe kosten normalerweise etwas ATK. Außerdem verlieren Monster nach
+    <p>Im Einzelspieler-PvE kosten Angriffe seit dem Fusions-Stomp-Update <b>3 % ATK und DEF je tatsächlich getroffenem Ziel</b>. Im 2v2 gelten vorerst noch die eigenen bisherigen Regeln. Außerdem verlieren Monster nach
     ihrem geschützten ersten Zug mit der Zeit ATK und DEF. Das ist der
     <b>Kreaturenzerfall</b>. Auf höheren Stufen ist er stärker.</p>
     <h3>Warum sehe ich eine Fusion, kann sie aber nicht beschwören?</h3>
