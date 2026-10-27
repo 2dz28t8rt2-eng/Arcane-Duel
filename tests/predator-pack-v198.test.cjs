@@ -23,9 +23,12 @@ test('alpha leader updates 2% to 3%, perk to 3.5%, only latest alpha counts',()=
  'const upgraded=effectiveAttack(g,a,null);'+
  'const b=newInstance(g,pred.id,0);b.fusion=true;b.roleOverride="predator";'+
  'b.predatorLeader={materials:5,powers:["mark"],bornUid:b.uid,createdTurn:g.turn};'+
- 'g.players[0].field[1]=b;return {base,normal,upgraded,latest:window.ArcanePredatorPack.leader(g,0)?.uid,b:b.uid};');
+ 'g.players[0].field[1]=b;const active=window.ArcanePredatorPack.leader(g,0);'+
+ 'const retired=!a.predatorLeader;g.players[0].field[1]=null;'+
+ 'return {base,normal,upgraded,latest:active?.uid,b:b.uid,retired,'+
+ 'reappears:!!window.ArcanePredatorPack.leader(g,0)};');
  assert.equal(r.base,1060);assert.equal(r.normal,1090);assert.equal(r.upgraded,1105);
- assert.equal(r.latest,r.b);
+ assert.equal(r.latest,r.b);assert.equal(r.retired,true);assert.equal(r.reappears,false);
 });
 test('mark distinct follow-up attacks +5%, +10%, capped, clear when turn changes',()=>{
  const r=run(
