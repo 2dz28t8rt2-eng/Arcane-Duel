@@ -53,15 +53,18 @@
   window.clearTimeout(readyTimer);
   title.classList.add('ad196-exiting');
   write(sessionStorage,seenKey,'1');
+  // Cut the title theme at the click; leave breathing room before the next piece.
   audio()?.setTransientMuted?.(true);
-  audio()?.setScene?.('');
+  audio()?.setScene?.('mystery');
+  const duration=reduceMotion()?550:2600;
+  window.setTimeout(()=>audio()?.setTransientMuted?.(false),reduceMotion()?450:1750);
   window.setTimeout(()=>{
    title.hidden=true;title.classList.remove('ad196-exiting');
    app.inert=false;closing=false;
    if(typeof callback==='function')callback();
    else if(returnButton&&document.contains(returnButton))returnButton.focus({preventScroll:true});
-   audio()?.setTransientMuted?.(false);
-  },reduceMotion()?0:1450);
+   audio()?.setScene?.('');
+  },duration);
  }
  function action(type){
   if(!title.classList.contains('ad196-ready')||closing)return;

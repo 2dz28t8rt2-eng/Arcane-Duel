@@ -6,25 +6,42 @@
  const id=name=>document.getElementById(name);
  const reduce=()=>!!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
  const delay=ms=>new Promise(done=>setTimeout(done,ms));
- let curtain=null,transition=0,lastDuelState=null,fxCtx=null;
+ let curtain=null,trackLabel=null,transition=0,lastDuelState=null,fxCtx=null;
  function ensureCurtain(){
   if(curtain)return curtain;
   curtain=document.createElement('div');curtain.className='ad197-screen-curtain';
   curtain.setAttribute('aria-hidden','true');document.body.append(curtain);
+  trackLabel=document.createElement('div');trackLabel.className='ad197-now-playing';
+  curtain.append?.(trackLabel);
   return curtain;
  }
- async function blackout(duration=1200){
+ function updateTrackLabel(){
+  if(!trackLabel)return;
+  const track=window.ArcaneSoundscape?.getNowPlaying?.();
+  trackLabel.textContent=track?.title&&track?.artist?'♫ '+track.title+' — '+track.artist:'';
+  trackLabel.classList.remove('ad197-now-playing-active');
+  if(trackLabel.textContent){void trackLabel.offsetWidth;trackLabel.classList.add('ad197-now-playing-active');}
+ }
+ async function blackout(duration=2100,enteringDuel=false){
   const token=++transition,layer=ensureCurtain(),audio=window.ArcaneSoundscape;
   layer.classList.add('ad197-active');audio?.setTransientMuted?.(true);
-  await delay(reduce()?70:duration);
+  if(trackLabel){trackLabel.textContent='';trackLabel.classList.remove('ad197-now-playing-active');}
+  const total=reduce()?70:duration;
+  // Duel music begins behind the long black frame, not when it is lifted.
+  await delay(enteringDuel&&!reduce()?330:Math.min(total,600));
   if(token!==transition)return;
-  layer.classList.remove('ad197-active');audio?.setTransientMuted?.(false);
+  audio?.setTransientMuted?.(false);
+  if(enteringDuel)updateTrackLabel();
+  await delay(enteringDuel&&!reduce()?Math.max(0,total-330):Math.max(0,total-Math.min(total,600)));
+  if(token!==transition)return;
+  layer.classList.remove('ad197-active');
+  if(trackLabel)trackLabel.classList.remove('ad197-now-playing-active');
  }
  function syncDuel(){
   const root=id('duelScreen');if(!root)return;
   const active=!root.hidden;
   if(lastDuelState===null){lastDuelState=active;return;}
-  if(lastDuelState!==active){lastDuelState=active;void blackout(1250);}
+  if(lastDuelState!==active){lastDuelState=active;void blackout(active?2850:1950,active);}
  }
  const root=id('duelScreen');
  if(root){new MutationObserver(syncDuel).observe(root,{attributes:true,attributeFilter:['hidden']});syncDuel();}
@@ -80,7 +97,7 @@
  const oldFinished=typeof showFinished==='function'?showFinished:null;
  if(oldFinished)showFinished=function(...args){
   const wasShown=game?.finishShown,result=oldFinished.apply(this,args);
-  if(game?.finishShown&&!wasShown)void blackout(1250);
+  if(game?.finishShown&&!wasShown)void blackout(1900);
   return result;
  };
  window.ArcaneDuelPolish197=Object.freeze({version:'19.7.0',blackout});

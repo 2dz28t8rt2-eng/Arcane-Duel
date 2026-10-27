@@ -93,7 +93,7 @@ test('offline retry loads the same approved game and includes no native bridge',
 
 test('the executable target is portable and the bundled contents are minimal',()=>{
  const pkg=JSON.parse(read('package.json'));
- assert.equal(pkg.version,'0.1.3');
+ assert.equal(pkg.version,'0.1.4');
  assert.deepEqual(pkg.build.win.target,['portable']);
  assert.equal(pkg.build.win.icon,'build/icon.ico');
  assert.ok(pkg.build.files.includes('build/icon.ico'));

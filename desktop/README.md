@@ -22,7 +22,7 @@ abgeschottet.
 - F11 schaltet zwischen Fenster und Vollbild um.
 - Bei Verbindungsproblemen erscheint eine deutschsprachige Fehlerseite mit
   einer Schaltfläche zum erneuten Laden.
-- Die Windows-Version wird als portable **`ArcaneDuel-0.1.2-portable.exe`**
+- Die Windows-Version wird als portable **`ArcaneDuel-0.1.4-portable.exe`**
   erstellt. Es ist keine Installation erforderlich.
 - Ein eigenes arkanes Wappen ist als Programmsymbol in der EXE eingebettet
   und erscheint auch am Desktop und in der Taskleiste.

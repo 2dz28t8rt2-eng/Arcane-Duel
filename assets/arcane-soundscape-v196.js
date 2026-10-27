@@ -1,5 +1,5 @@
-/* Arcane Duel v19.6 · Original, procedural instrumental themes.
- * No samples, external streams, borrowed melodies, or privileged APIs.
+/* Arcane Duel v19.6 / desktop 0.1.4 · Licensed music and procedural fallback.
+ * Music is locally hosted and credited by the ArcaneTrackCatalog.
  * Audio starts on interaction when the browser's autoplay rules require it.
  */
 'use strict';
@@ -51,6 +51,57 @@
    bar(44,[56,61,64,68],[[0,80,.9],[1.75,75,.6],[3,73,.6]])]}
  };
  let ctx=null,output=null,wet=null,limiter=null,loop=null,current='',nextBarAt=0,barIndex=0,forced='';
+ const catalog=window.ArcaneTrackCatalog?.tracks||null;
+ let media=null,mediaTrack=null,battleMatch='',battleTheme=null;
+ const missingFiles=new Set();
+ function bossDialogVisible(){
+  const overlay=document.getElementById('overlay');
+  return !!overlay&&!overlay.classList.contains('hidden')&&
+   !!(overlay.querySelector('#showcaseBegin')||overlay.querySelector('#showcaseGo'));
+ }
+ function matchId(){
+  try{if(typeof game!=='undefined'&&game?.id)return String(game.id);}catch{}
+  const duoRoom=document.getElementById('duoRoomId')?.textContent?.trim()||'';
+  const duoChapter=document.getElementById('duoChapter')?.value||'';
+  return duoRoom?`duo:${duoRoom}:${duoChapter}`:'duel:session';
+ }
+ function chooseLicensedTrack(scene){
+  if(!catalog)return null;
+  if(scene==='title')return catalog.title;
+  if(scene==='mystery')return catalog.menu;
+  if(scene==='boss')return catalog.boss;
+  const match=matchId();
+  if(!battleTheme||battleMatch!==match){
+   battleMatch=match;
+   battleTheme=catalog.battle[Math.floor(Math.random()*catalog.battle.length)];
+  }
+  return battleTheme;
+ }
+ function muteLicensed(){if(media){media.pause();}}
+ function licensedPlayer(){
+  if(media)return media;
+  if(typeof window.Audio!=='function')return null;
+  media=new window.Audio();media.preload='auto';media.loop=true;
+  media.addEventListener('error',()=>{
+   if(mediaTrack)missingFiles.add(mediaTrack.file);
+   media.pause();mediaTrack=null;
+   // A missing file never silences the game: the original composed scores remain available.
+   if(state.enabled)tick();
+  });
+  return media;
+ }
+ function playLicensed(scene){
+  const song=chooseLicensedTrack(scene),player=licensedPlayer();
+  if(!song||!player||missingFiles.has(song.file))return false;
+  if(mediaTrack?.id!==song.id){
+   mediaTrack=song;player.pause();player.src=song.file;player.load?.();
+   try{window.dispatchEvent?.(new CustomEvent('arcane:music-change',{detail:{...song}}));}catch{}
+  }
+  player.volume=(!document.hidden&&state.enabled&&!state.transientMuted)?state.volume:0;
+  if(state.transientMuted||!state.enabled||document.hidden){player.pause();return true;}
+  if(player.paused){try{const promise=player.play();promise?.catch?.(()=>{});}catch{}}
+  return true;
+ }
  const hz=n=>440*Math.pow(2,(n-69)/12);
  function save(){try{localStorage.setItem(STORE,JSON.stringify({enabled:state.enabled,volume:state.volume}));}catch{}}
  function impulse(audio){
@@ -137,10 +188,11 @@
   if(forced)return forced;
   const title=document.getElementById('ad196-title');
   if(title&&!title.hidden)return 'title';
+  if(bossDialogVisible())return 'boss';
   const solo=document.getElementById('duelScreen');
   if(solo&&!solo.hidden){
    let tier=0;
-   try{if(typeof game!=='undefined'&&game)tier=Number(game.opponentId)||0;}catch{}
+   try{if(typeof game!=='undefined'&&game){if(game.showcase)return 'boss';tier=Number(game.opponentId)||0;}}catch{}
    return tier>=7?'shadow':'duel';
   }
   const duo=document.getElementById('duoBattleArena');
@@ -155,9 +207,14 @@
   return 'mystery';
  }
  function tick(){
-  if(!ctx||ctx.state!=='running'||!state.enabled)return;
-  if(state.transientMuted){output.gain.setTargetAtTime(0,ctx.currentTime,.045);current='';nextBarAt=ctx.currentTime+.2;return;}
   const scene=sceneForPage();state.scene=scene;
+  if(!state.enabled){muteLicensed();if(ctx&&output)output.gain.setTargetAtTime(0,ctx.currentTime,.045);return;}
+  if(playLicensed(scene)){
+   if(ctx&&output)output.gain.setTargetAtTime(0,ctx.currentTime,.045);
+   return;
+  }
+  if(!ctx||ctx.state!=='running')return;
+  if(state.transientMuted){output.gain.setTargetAtTime(0,ctx.currentTime,.045);current='';nextBarAt=ctx.currentTime+.2;return;}
   if(scene!==current){current=scene;barIndex=0;nextBarAt=ctx.currentTime+.18;output.gain.setTargetAtTime(0,ctx.currentTime,.06);}
   const volume=(!document.hidden?state.volume:0)*.9;
   output.gain.setTargetAtTime(volume,ctx.currentTime+.25,.2);
@@ -166,15 +223,15 @@
  }
  function start(){
   if(!state.enabled)return false;
-  if(!init())return false;
+  if(!init()&&!catalog)return false;
   try{const result=ctx.resume();if(result&&typeof result.catch==='function')result.catch(()=>{});}catch{}
   if(!loop)loop=setInterval(tick,120);
   tick();return true;
  }
- function setEnabled(value){state.enabled=!!value;save();updateButton();if(!state.enabled&&output&&ctx){output.gain.setTargetAtTime(0,ctx.currentTime,.06);}else start();}
+ function setEnabled(value){state.enabled=!!value;save();updateButton();if(!state.enabled){muteLicensed();if(output&&ctx)output.gain.setTargetAtTime(0,ctx.currentTime,.06);}else start();}
  function setVolume(value){state.volume=Math.max(0,Math.min(1,Number(value)||0));save();updateButton();if(state.enabled)start();}
  function setScene(value){forced=value&&scores[value]?value:'';current='';if(state.enabled)tick();}
- function setTransientMuted(value){state.transientMuted=!!value;if(ctx&&output){output.gain.setTargetAtTime(0,ctx.currentTime,.045);}if(!state.transientMuted&&state.enabled)tick();}
+ function setTransientMuted(value){state.transientMuted=!!value;if(ctx&&output){output.gain.setTargetAtTime(0,ctx.currentTime,.045);}if(state.transientMuted)muteLicensed();else if(state.enabled)tick();}
  let button=null;
  function updateButton(){if(button){button.textContent='♫ Musik: '+(state.enabled?'An':'Aus');button.setAttribute('aria-pressed',String(state.enabled));button.title='Hintergrundmusik '+(state.enabled?'ausschalten':'einschalten');}}
  function installToggle(){
@@ -184,8 +241,9 @@
   button=document.createElement('button');button.type='button';button.id='ad196-music-toggle';button.className='ad196-music-toggle';
   button.addEventListener('click',()=>setEnabled(!state.enabled));host.append(button);updateButton();
  }
- function settings(){return Object.freeze({enabled:state.enabled,volume:state.volume,scene:state.scene,running:!!ctx&&ctx.state==='running'});}
- window.ArcaneSoundscape=Object.freeze({start,setEnabled,setVolume,setScene,setTransientMuted,refresh:tick,getSettings:settings,scores});
+ function settings(){return Object.freeze({enabled:state.enabled,volume:state.volume,scene:state.scene,running:!!(media&&!media.paused)||!!ctx&&ctx.state==='running'});}
+ function nowPlaying(){return mediaTrack?Object.freeze({...mediaTrack}):null;}
+ window.ArcaneSoundscape=Object.freeze({start,setEnabled,setVolume,setScene,setTransientMuted,refresh:tick,getSettings:settings,getNowPlaying:nowPlaying,scores});
  function ready(){
   installToggle();
   // Try to begin during the initial black frame, before the title typography
@@ -195,9 +253,13 @@
   document.addEventListener('pointerdown',()=>{if(state.enabled)start();},{once:true,capture:true});
   document.addEventListener('keydown',()=>{if(state.enabled)start();},{once:true,capture:true});
   document.addEventListener('visibilitychange',tick);
+  const overlay=document.getElementById('overlay');
+  if(overlay&&typeof MutationObserver!=='undefined')new MutationObserver(()=>{
+   if(state.enabled)tick();
+  }).observe(overlay,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
   // Low-frequency checks also catch combat transitions made by the base game
   // without changing its savegame, networking or combat functions.
-  setInterval(()=>{if(ctx)tick();},850);
+  setInterval(()=>{if(ctx||media)tick();},850);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
