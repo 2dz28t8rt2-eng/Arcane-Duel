@@ -71,5 +71,7 @@ test('three-own-turn decay/cooldown are unchanged and UI/server show same bonus'
   read('supabase/functions/arcane-duo-v2/duo-rules.js'));
  const ui=read('assets/duo-parity-v160.js');
  assert.match(ui,/shownAtk\(c\)/);
- assert.match(ui,/DEF \+ 50 % ATK/);
+ assert.match(ui,/shownAtk\(c\)\+' ATK/);
+ assert.match(ui,/Math\.floor\(\(c\.condensed\|\|0\)\*\.5\)/);
+ assert.match(ui,/Verdichten · DEF und ATK stärken/);
 });

@@ -27,8 +27,10 @@ test('the attack charges halfway and the duel guidance no longer expands above t
   const attack=read('assets/attack-impact-v113.js');
   const view=read('assets/duel-layout-v180.js');
   const styles=read('assets/duel-layout-v180.css');
-  assert.match(attack,/dx\*\.5/);
-  assert.match(attack,/duration:175/);
+  assert.match(attack,/dx\*\.85/);
+  assert.match(attack,/duration:125/);
+  assert.match(attack,/duration:110/);
+  assert.match(attack,/Return the striking card to its zone BEFORE combat changes the board/);
   assert.match(view,/source\.querySelector\('#ad156-fusion-coach'\)/);
   assert.match(view,/host\.replaceChildren\(\.\.\.moved\)/);
   assert.match(styles,/\.ad117-mat-viewport \{height:142px/);

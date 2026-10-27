@@ -27,7 +27,8 @@ test('material cockpit retains stable scroll position, keeps all chip controls',
 });
 test('hand entrance animates only newly drawn UIDs with accessibility fallback',()=>{
  const s=read('assets/hand-draw-v1161.js'),css=read('assets/hand-draw-v1161.css');
- assert.match(s,/!last\.ids\.has\(uid\)/);assert.match(s,/data-hand/);
+ assert.match(s,/!last\.ids\[viewer\]\.has\(uid\)/);assert.match(s,/data-hand/);
+ assert.match(s,/ids:g\.players\.map\(/);
  assert.doesNotMatch(s,/drawToFive\(/);assert.match(css,/ad117HandArrive/);
  assert.match(css,/prefers-reduced-motion/);
 });
