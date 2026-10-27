@@ -165,7 +165,11 @@
      const crown=document.createElement('span');
      crown.className='ad198-leader-crown';crown.setAttribute('aria-label','Rudelführer');
      crown.title='Rudelführer · '+c.predatorLeader.materials+' Materialien';
-     crown.textContent='♛';card.append(crown);
+     crown.innerHTML='<svg viewBox="0 0 32 28" width="29" height="27" aria-hidden="true" focusable="false">'+
+      '<path d="M3 7l6.5 7L16 3l6.5 11L29 7l-3 16H6z" fill="#f4b94e" stroke="#fff2b7" stroke-width="1.5" stroke-linejoin="round"/>'+
+      '<path d="M7 19h18M8 23h16" stroke="#9d481d" stroke-width="1.2"/>'+
+      '<circle cx="16" cy="13" r="2.2" fill="#fff2b6"/>'+
+      '</svg>';card.append(crown);
      card.classList.add('ad198-alpha-card');
     }
     if(c.predatorToken){
