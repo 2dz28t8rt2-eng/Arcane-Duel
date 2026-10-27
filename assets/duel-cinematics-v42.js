@@ -4,7 +4,11 @@
  const motion=()=>animationSpeed!=='instant'&&!document.body.classList.contains('ad-motion-disabled')&&!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
  const delay=ms=>new Promise(r=>setTimeout(r,ms));
  const colors={FEUER:'#ff9864',WASSER:'#76d9ff',ERDE:'#a9e58d',WIND:'#b1f5df',LICHT:'#ffe6a3',DUNKEL:'#cf9dff'};
- const role=c=>window.ArcaneEssenceCombat.roleOf(c);
+ // Rendering must remain usable if the optional essence role helper has not
+ // loaded (or an older save/module does not expose it). The same resolved role
+ // is already available from the instance override and immutable card data.
+ const role=c=>window.ArcaneEssenceCombat?.roleOf?.(c)||
+  c?.roleOverride||CARDS[c?.id]?.role||'combatant';
  const defender=c=>['guardian','soul'].includes(role(c));
  function charge(c){
   const max=c?.essenceCombat?.maxDef,current=c?dataOf(c).def:0;
