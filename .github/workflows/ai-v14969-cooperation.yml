@@ -25,7 +25,7 @@ jobs:
           node --check tests/helpers/defender-cooperation-v1569.cjs
           node tests/helpers/game-runtime.cjs
           node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
-      - name: Restore sealed previous TRAIN checkpoint
+      - name: Restore sealed v14.9.68 TRAIN checkpoint and corrected role cohort
         env:
           GH_TOKEN: ${{ github.token }}
           ARCANE_PREVIOUS_ARTIFACT_DIR: /tmp/arcane-v1569-prior
