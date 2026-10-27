@@ -1888,7 +1888,7 @@ function study(){
    'fusion-mixed','fusion-allrounder','fusion-predator','predator-swarm'];
   const focusMode=stage===8?mixModes[pair]:null;
   const fusionMode=stage===9?fusionModes[pair]:stage===10?'predator-swarm':null;
-  const sameOpponentPair=stage===8?mixGroups[pair]:stage===9||stage===10?Math.floor(pair/4):pair;
+  const sameOpponentPair=stage===8?mixGroups[pair]:stage===9?Math.floor(pair/4):pair;
   const tier=stage===0?8:stage===1?9:stage===2?10:stage===3?8:10;
   const decayActive=stage===3||stage===6;
   // Stages 5 and 6 intentionally share ALL deck, matchup, RNG, seat, starter and policy inputs.
