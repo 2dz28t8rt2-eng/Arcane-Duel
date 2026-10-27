@@ -11,8 +11,9 @@ document.getElementById('duo').addEventListener('load',()=>{
    check(f.contentWindow.ArcaneDuoRules?.version==='16.6-beta','Correct rules version');
    check(!!f.contentWindow.ArcaneFateVisuals?.artFor(0),
     'Singleplayer Fate illustrations are available for temporary creatures');
-   check(d.getElementById('duoDeckInfo').textContent.includes('nicht ausgelesen'),
-    '2v2 no longer reads the singleplayer profile');
+   check(d.querySelector('.notice').textContent.includes('Einzelspieler-Fortschritt')&&
+    d.querySelector('.notice').textContent.includes('getrennt'),
+    '2v2 progression is explicitly separated from singleplayer');
    check(!!d.getElementById('duoProfileCreate')&&
     d.getElementById('duoCreate').disabled,
     'Creating a room requires an independent server profile');
@@ -33,9 +34,11 @@ document.getElementById('duo').addEventListener('load',()=>{
    check(d.querySelector('.notice').textContent.includes('keinen Import'),
     'No solo/duo import is explicitly stated');
    check(d.querySelector('.duo-guide').textContent.includes('Schicksalszug')&&
-    d.querySelector('.duo-guide').textContent.includes('Arena-Zerfall'),
+    d.querySelector('.duo-guide').textContent.includes('Ab Runde 10')&&
+    d.querySelector('.duo-guide').textContent.includes('Lebenspunkte durch die Arena'),
     'Core 2v2 combat rules remain documented');
-   check(d.querySelector('.duo-team-definition').textContent.includes('2 Menschen gegen 2 KI'),
+   check(d.querySelector('.duo-team-definition').textContent.includes('Du und dein Partner gegen zwei Gegner')&&
+    d.querySelector('.notice').textContent.includes('zwei Computergegner'),
     'Exactly two humans play against two AI opponents');
   }catch(e){check(false,e.stack||e.message);}
   document.getElementById('result').textContent=notes.join('\n');
