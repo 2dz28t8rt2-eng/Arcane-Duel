@@ -13,9 +13,18 @@
  const enabled=g=>!!g&&g.mode==='pve'&&!g.strategicTraining?.symmetricSides;
  const role=c=>c?.roleOverride||CARDS[c?.id]?.role||'combatant';
  const isPredator=c=>role(c)==='predator';
- const leader=(g,side)=>g?.players?.[side]?.field?.filter(c=>
-  c?.fusion&&c.predatorLeader&&isPredator(c))
-  .sort((a,b)=>Number(b.predatorLeader?.bornUid||b.uid)-Number(a.predatorLeader?.bornUid||a.uid))[0]||null;
+ function leader(g,side){
+  const candidates=g?.players?.[side]?.field?.filter(c=>
+   c?.fusion&&c.predatorLeader&&isPredator(c))||[];
+  if(!candidates.length)return null;
+  candidates.sort((a,b)=>Number(b.predatorLeader?.bornUid||b.uid)-
+   Number(a.predatorLeader?.bornUid||a.uid));
+  const alpha=candidates[0];
+  // The newer alpha permanently replaces the old alpha's STATUS, not merely
+  // its current aura. A former alpha must not revive if the newer one dies.
+  for(const predecessor of candidates.slice(1))delete predecessor.predatorLeader;
+  return alpha;
+ }
  const has=(c,name)=>!!c?.predatorLeader?.powers?.includes(name);
  const round10=n=>Math.max(10,Math.round(n/10)*10);
  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
