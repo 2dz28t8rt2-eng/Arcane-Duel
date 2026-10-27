@@ -405,6 +405,7 @@
   window.ArcaneDuoCinema170?.onState(previous,game,catalog,seat);
   window.ArcaneDuoStanceCinema191?.onState(previous,game,catalog);
   window.ArcaneDuoImpactCinema192?.onState(previous,game,catalog);
+  window.ArcaneDuoStompCinema202?.onState(previous,game);
   window.ArcaneDuoAbilitiesCinema193?.onState(previous,game,catalog);
   window.ArcaneDuoPredator198?.onState(previous,game,catalog);
   window.ArcaneDuoSound194?.onState(previous,game,catalog,seat);
@@ -613,6 +614,12 @@
      'duo-field-meta');
     el('small',cell,(c.mode==='def'?'🛡 Verteidigung':'⚔ Angriff')+
      (c.fusion?' · Fusion':'')+' · '+(roleNames[c.role]||'Monster'),'duo-card-level');
+    if(c.fusion&&(c.materialsUsed||2)>=3){
+     const shares={3:[70],4:[50,50],5:[50,50,30]}[c.materialsUsed]||[];
+     const bonus=rules.stompBonus(c);
+     el('small',cell,'✦ Stomp '+shares.map(pct=>(pct+bonus)+' %').join(' / ')+
+      ' · −3 % ATK/DEF je Treffer','duo-soul-status');
+    }
     if(c.role==='soul')el('small',cell,'✦ Seelenkraft '+(c.soul||0)+
      ' · Verdichtet '+(c.condensed||0)+' (+'+Math.floor((c.condensed||0)*.5)+
      ' ATK) · '+(c.soulCooldown>0?'wieder bereit in '+c.soulCooldown+' Zügen':'bereit'),
@@ -789,6 +796,12 @@
      if(analysis.essenceRolls)lines.push('✦ Runenherz: +'+analysis.essenceRolls+
       ' Fusionswürfe durch das anwesende Essenzwesen');
      if(analysis.elemental)lines.push('✧ Alle Materialien teilen ein Element: Elementharmonie');
+     if(materials.length>=3){
+      const shares={3:[70],4:[50,50],5:[50,50,30]}[materials.length]||[];
+      lines.push('✦ Fusions-Stomp: Hauptziel 100 % · Nebenziele '+shares.join(' / ')+
+       ' % (+1–2 Prozentpunkte je Allrounder, +2–4 je Resonator, maximal +12). ' +
+       'Jeder tatsächlich getroffene Gegner kostet 3 % eigene ATK UND DEF.');
+     }
      if(analysis.role==='predator')lines.push('🐾 Rudelführer: '+
       (materials.length===2?'Basisbonus +3 % je Predator':
        materials.length===3?'1 zufällige Rudelführer-Fähigkeit':

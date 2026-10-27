@@ -525,3 +525,33 @@ Der Kern nutzt einen reinen Reducer für Raum- und Zugzustand, ohne DOM oder 1v1
   werden. Alte 4-Kapitel-Spielstände bleiben lesbar.
 - Weiterhin **außen vor**: neuer KI-Forschungsstand, Solo-Speicherstände,
   Freigabe nach `main` und Live-Mehrgeräte-Abnahme.
+# Fusions-Stomp im 2v2 (v20.2)
+
+Die Fusionsangriffe verwenden denselben Regelkern wie der Singleplayer.
+Nach einem Haupttreffer mit 100 % Schaden treffen Fusionen mit drei
+Materialien ein weiteres Ziel (70 %), mit vier Materialien zwei Ziele
+(50 % / 50 %) und mit fünf Materialien drei Ziele (50 % / 50 % / 30 %).
+Pro Allrounder-Material werden +1 bis +2 Prozentpunkte und pro
+Resonator-Material +2 bis +4 Prozentpunkte ausgewürfelt, maximal +12
+Prozentpunkte; die einmalig bei der Fusion ausgewürfelten Boni gelten für
+alle Nebentreffer. Die beiden gegnerischen 7er-Felder bilden für die
+Entfernungssuche eine zusammenhängende 14er-Reihe. Aus Sicht von Team 0
+wird bei Gleichstand die rechte Richtung bevorzugt, aus Sicht von Team 1
+die linke. Belegte Gegnerfelder haben Vorrang; Verbündete, Geisterzonen
+und bereits getroffene Karten werden nicht als Nebenziele ausgewählt.
+
+Nebentreffer zerstören ATK-Karten, wenn sie genug Schaden verursachen;
+andernfalls greifen sie die verbliebene DEF an. Bei DEF-Monstern greifen
+die normalen Schutzschichten und 35 % Rüstung für Wächter und
+Seelenzehrer. Ihre Gegenschläge durch Nebentreffer sind nur 40 % des
+üblichen Gegenschlags stark. Für jedes tatsächlich getroffene Ziel
+(einschließlich Hauptziel) verliert der angreifende Überlebende 3 % seiner
+vorherigen ATK **und** DEF; der frühere feste −30-ATK-Abzug entfällt.
+Direktangriffe und Zweierfusionen bezahlen entsprechend einen Treffer.
+Alte gespeicherte Monster ohne Materialsangabe bleiben Zweierfusionen.
+
+**Balance-Hinweis:** Kampfdisziplin und der alte Nyxar-Halbierungsbonus
+senken den neuen prozentualen Magieverschleiß derzeit nicht. Dies
+entspricht dem aktuellen Singleplayer-Verhalten, sollte aber bei einer
+späteren Perk-Anpassung gemeinsam in beiden Modi geändert werden.
+

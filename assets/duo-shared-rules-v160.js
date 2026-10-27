@@ -1,4 +1,4 @@
-/* Arcane Duel 2v2 · server-authoritative ruleset v16.6 beta.
+/* Arcane Duel 2v2 · server-authoritative ruleset v20.2 beta.
  * The same pure reducer runs in Node tests and the Supabase Edge Function.
  * All card IDs/stats are from the generated singleplayer CARDS registry.
  * No browser-provided damage or derived stats are ever trusted.
@@ -433,6 +433,85 @@
  // incoming DEF damage would leave behind permanent/off-by-one attack.
  const attackValue=c=>Math.min(10000,Math.max(0,Number(c?.atk)||0)+
   (c?.role==='soul'?Math.floor(Math.max(0,Number(c.condensed)||0)*.5):0));
+ // v20.2: the same material-scaled Stomp and symmetric attack attrition as
+ // singleplayer, with the two opposing seven-slot fields treated as one
+ // fourteen-slot enemy line. The server owns all dice, hits and casualties.
+ const STOMP_PERCENTS=Object.freeze({3:[70],4:[50,50],5:[50,50,30]});
+ const stompCount=c=>c?.fusion?clamp(Number.isInteger(c.materialsUsed)?c.materialsUsed:2,2,5):2;
+ const stompBonus=c=>Number.isInteger(c?.stompBonusPP)?clamp(c.stompBonusPP,0,12):
+  Math.min(12,Math.max(0,c?.stompMaterials?.resonator||0)*3+
+   Math.max(0,c?.stompMaterials?.combatant||0));
+ const stompFatigue=(atk,def,hits)=>({atk:Math.ceil(Math.max(0,atk)*.03*hits),
+  def:Math.ceil(Math.max(0,def)*.03*hits)});
+ function stompLine(g,p,enemy,slot,count){
+  if(!enemy||!Number.isInteger(slot)||slot<0||slot>6)return [];
+  const foes=g.players.filter(x=>x.team!==p.team).sort((a,b)=>a.seat-b.seat);
+  const row=foes.flatMap(foe=>foe.field.map((card,i)=>({seat:foe.seat,
+   slot:i,uid:card?.uid??null})));
+  const middle=foes.findIndex(foe=>foe.seat===enemy.seat)*7+slot;
+  if(middle<0)return [];
+  const already=new Set([middle]),towards=p.team===0?1:-1,out=[];
+  const choices=count===3?[[towards,-towards]]:count===4?
+   [[towards,-towards],[-towards,towards]]:count===5?
+   [[towards,-towards],[-towards,towards],[towards,-towards]]:[];
+  for(const directions of choices){
+   let next=-1;
+   for(const direction of directions){for(let gap=1;gap<row.length;gap++){
+    const index=middle+gap*direction;
+    if(index>=0&&index<row.length&&row[index].uid!==null&&!already.has(index)){
+     next=index;break;
+    }
+   }if(next>=0)break;}
+   if(next>=0){already.add(next);out.push(row[next]);}
+  }
+  return out;
+ }
+ function stompSecondary(g,p,src,candidate,power,pct,catalog){
+  const enemy=g.players[candidate.seat],target=enemy?.field?.[candidate.slot];
+  // Stale snapshots must never damage a different monster that has moved in.
+  if(!target||target.uid!==candidate.uid)return null;
+  combat(target);
+  const immune=target.guardLeft>0,defender=defensive(target),mode=target.mode;
+  const raw=Math.max(0,Math.floor(power*pct/100)),oldAttack=attackValue(target);
+  let dealt=raw,shieldLost=0,condensedLost=0,soulLost=0,defLost=0;
+  let destroyed=false;
+  const lifeInAtk=activeLv1(enemy,target,catalog)&&
+   (!!lv1Key(target,catalog)||hasLv1Class(enemy,'protector',catalog));
+  if(mode==='atk'&&!lifeInAtk&&!immune&&raw>=oldAttack){
+   enemy.graveyard.push(target);enemy.field[candidate.slot]=null;
+   lv1Leave(g,enemy,target,catalog);destroyed=true;
+  }else if(!immune){
+   if(mode==='def'&&defender)dealt=Math.floor(raw*.65);
+   let remaining=dealt;
+   shieldLost=Math.min(Math.max(0,target.lv1Shield||0),remaining);
+   target.lv1Shield=(target.lv1Shield||0)-shieldLost;remaining-=shieldLost;
+   condensedLost=Math.min(target.condensed,remaining);
+   target.condensed-=condensedLost;remaining-=condensedLost;
+   soulLost=Math.min(target.soul,remaining);
+   target.soul-=soulLost;remaining-=soulLost;
+   defLost=Math.min(Math.max(0,target.def),remaining);target.def-=defLost;
+   if(soulLost)score(g,enemy.team,Math.floor(soulLost*.5),
+    definition(catalog,target.id).name+' · Stomp-Seelenverlust');
+   removeIfEmpty(g,enemy,candidate.slot,catalog);
+   if(enemy.field[candidate.slot]===target&&target.def<=0&&mode==='atk'){
+    enemy.graveyard.push(target);enemy.field[candidate.slot]=null;
+    lv1Leave(g,enemy,target,catalog);
+   }
+   destroyed=enemy.field[candidate.slot]!==target;
+  }
+  let counter=0;
+  if(mode==='def'&&defender&&!immune){
+   // 40 % of the normal 50 %-ATK counter, even on a lethal splash.
+   counter=score(g,enemy.team,Math.floor(Math.floor(oldAttack*.5)*.4),
+    definition(catalog,target.id).name+' · Stomp-Gegenschlag');
+  }
+  g.log.push('✦ FUSIONS-STOMP · '+definition(catalog,target.id).name+' ('+pct+
+   ' %): '+(destroyed?'vernichtet':immune?'Letztes Bollwerk blockiert':
+   '−'+defLost+' DEF'+(condensedLost?' / −'+condensedLost+' Verdichtung':'')+
+   (soulLost?' / −'+soulLost+' Seele':''))+'.');
+  return {...candidate,pct,raw:dealt,shieldLost,condensedLost,soulLost,defLost,
+   destroyed,counter};
+ }
  function win(g,team,reason){
   g.status='finished';g.winner=team;g.log.push(reason);
   if(team===0&&isQuest(g.chapter)){
@@ -1294,6 +1373,18 @@
     quality:analysis.quality,resonancePct:analysis.resonancePct,
     pattern:analysis.pattern,coreLevel:rule.core};
    result.fusionCoreLevel=rule.core;
+   result.materialsUsed=cards.length;
+   result.stompMaterials={};
+   for(const card of cards){
+    const role=card.role==='allrounder'?'combatant':card.role;
+    result.stompMaterials[role]=(result.stompMaterials[role]||0)+1;
+   }
+   let stompIncrease=0;
+   for(let i=0;i<(result.stompMaterials.resonator||0);i++)
+    stompIncrease+=2+randomInt(g,3);
+   for(let i=0;i<(result.stompMaterials.combatant||0);i++)
+    stompIncrease+=1+randomInt(g,2);
+   result.stompBonusPP=Math.min(12,stompIncrease);
    result.fusionResonatorLineage={count:rule.resonatorLineage.count,
     used:rule.resonatorLineage.used||rule.resonatorAscent};
    result.soulOdds=analysis.soulOdds;
@@ -1326,7 +1417,7 @@
     (roleName[inherited]||inherited)+', '+analysis.pattern+', '+
     analysis.rolls+' Würfelpaare, Qualität '+Math.round((analysis.quality-1)*100)+' %).');
   }else if(action.type==='attack'){
-   g.predatorImpact=null;
+   g.predatorImpact=null;g.stompEvent=null;
    const sourceArea=action.area==='ghost'?'ghost':'field';
    const sourceZone=sourceArea==='ghost'?ghostZone(p):p.field;
    assert(sourceArea!=='ghost'||lv1State(p).perk,'Geisterangriffe sind nicht freigeschaltet.');
@@ -1343,6 +1434,9 @@
     1+swarmPct*Math.min(5,predators):1)));
    if(essenceCompanion(p,src,'predator')&&src.essenceChoice===2)
     raw=Math.floor(raw*.7);
+   const stompPower=raw,stompBefore={atk:Math.max(0,src.atk),
+    def:Math.max(0,src.def)};
+   let stompCandidates=[],stompPrimary=null;
    if(action.targetSeat===null){
     assert(foes.every(x=>!hasCards(x)),'Direkter Angriff ist durch Gegnerkarten blockiert.');
     score(g,p.team,raw,p.name+' · direkter Angriff');
@@ -1375,6 +1469,10 @@
       targetArea='field';targetZone=enemy.field;
       taunt=true;g.teams[0].essenceTauntTurn=g.turn;
       g.log.push('✦ Aschenhort lenkt den ersten Gegnerangriff auf sich und halbiert ihn.');}
+    }
+    if(targetArea==='field'&&stompCount(src)>=3){
+     stompCandidates=stompLine(g,p,enemy,targetSlot,stompCount(src));
+     stompPrimary={seat:enemy.seat,slot:targetSlot,uid:target.uid};
     }
     const chase=predatorBonus(g,p,src,target);
     if(chase.bonusPct>0)raw=Math.floor(raw*(1+chase.bonusPct));
@@ -1436,6 +1534,15 @@
      if(!survived)g.predatorPursuit=null;
     }
    }
+   const stompHits=[];
+   if(stompPrimary&&stompCandidates.length){
+    const patterns=STOMP_PERCENTS[stompCount(src)],bonus=stompBonus(src);
+    for(let i=0;i<stompCandidates.length;i++){
+     const hit=stompSecondary(g,p,src,stompCandidates[i],stompPower,
+      patterns[i]+bonus,catalog);
+     if(hit)stompHits.push(hit);
+    }
+   }
    if(sourceZone[action.slot]){
     if(essenceCompanion(p,src,'predator')){
      src.essenceAttacks=(src.essenceAttacks||0)+1;
@@ -1449,10 +1556,19 @@
       if(Number.isInteger(id))lv1State(p).offers.push(id);
      }
     }else src.used=true;
-    let fatigue=30-2*perk(p,'combatDiscipline');
-    if(activeLv1(p,src,catalog)&&hasLv1Class(p,'attacker',catalog))
-     fatigue=Math.floor(fatigue*.5);
-    src.atk=Math.max(0,src.atk-fatigue);
+    const fatigue=stompFatigue(stompBefore.atk,stompBefore.def,1+stompHits.length);
+    src.atk=Math.max(0,src.atk-fatigue.atk);
+    src.def=Math.max(0,src.def-fatigue.def);
+    src.stompDecayTotal=(src.stompDecayTotal||0)+fatigue.def;
+    g.log.push(definition(catalog,src.id).name+' · Magieverschleiß ('+
+     (1+stompHits.length)+' Ziel(e)): −'+fatigue.atk+' ATK / −'+fatigue.def+' DEF.');
+   }
+   if(stompPrimary){
+    const source=definition(catalog,src.id);
+    g.stompEvent={revision:g.revision+1,sourceSeat:seat,sourceSlot:action.slot,
+     sourceUid:src.uid,primary:stompPrimary,materials:stompCount(src),
+     bonusPP:stompBonus(src),element:source.element||src.element||'LICHT',
+     hits:stompHits};
    }
   }else if(['soulCondense','soulDischarge','soulRaid','soulFocus'].includes(action.type)){
    soulAction(g,p,action,catalog);
@@ -1506,8 +1622,9 @@
   }
   return v;
  }
- return Object.freeze({version:'16.8-beta',CHAPTERS,QUESTS,ENCOUNTERS,seats,allowed,validDeck,
+ return Object.freeze({version:'20.2-beta',CHAPTERS,QUESTS,ENCOUNTERS,seats,allowed,validDeck,
   validNpcFusionDeck,soloStartingLp,duoStartingLp,packIds,
   chapterDeck,create,apply,aiTurn,view,attackValue,fusionLevel,fusionPattern,fusionOptions,
-  fusionAnalysis,fusionPreview,fusionRole,arenaDamage,fatePressure,PERK_LIMITS,normalizedBuild});
+  fusionAnalysis,fusionPreview,fusionRole,arenaDamage,fatePressure,PERK_LIMITS,normalizedBuild,
+  stompCount,stompBonus,stompFatigue,stompLine});
 });

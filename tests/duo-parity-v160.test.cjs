@@ -461,7 +461,7 @@ test('old v16.0 room snapshots continue to run without new Soul fields',()=>{
  assert.equal(after.teams[1].lp,INITIAL_LP-130);
 });
 test('combat build is server-validated, bounded to the submitted decks and persists on both seats',()=>{
- assert.equal(rules.version,'16.8-beta');
+ assert.equal(rules.version,'20.2-beta');
  const opts={roomId:'build-123456',hostName:'Host',hostDeck:deck,hostFusions:fusions,
   enemyDeckA:deck,enemyDeckB:deck,enemyFusionsA:fusions,enemyFusionsB:fusions,
   chapter:1,entry:'new',catalog,hostUpgrades:{power:10,openingAegis:3},
@@ -513,7 +513,7 @@ test('partner shield is shared and server-authoritative before LP damage',()=>{
  assert.equal(after.teams[0].lp,INITIAL_LP-55);
  assert.ok(after.log.some(x=>x.includes('75 Schaden durch Vorhut-Schutz')));
 });
-test('level-sensitive creature decay and Standhaftigkeit match singleplayer, independently of attack fatigue',()=>{
+test('level-sensitive creature decay and Standhaftigkeit match singleplayer and attack costs 3% of both stats',()=>{
  let state=setup();
  state.players[0].upgrades={resilience:2,combatDiscipline:3};
  state.players[0].field[0]=live(700,{atk:500,def:500,maxDef:500});
@@ -524,7 +524,8 @@ test('level-sensitive creature decay and Standhaftigkeit match singleplayer, ind
  let attack=setup();attack.players[0].upgrades={combatDiscipline:3};
  attack.round=2;attack.players[0].field[0]=live(9,{atk:500});
  attack=move(attack,0,{type:'attack',slot:0,targetSeat:null,targetSlot:null});
- assert.equal(attack.players[0].field[0].atk,476);
+ assert.equal(attack.players[0].field[0].atk,485);
+ assert.equal(attack.players[0].field[0].def,Math.max(0,live(9).def-Math.ceil(live(9).def*.03)));
 });
 test('fusion perks add opening roll, completed street precision and one-time chain quality',()=>{
  const base=setup(),boost=setup();
@@ -838,18 +839,20 @@ test('Aegurion redirects attacks across partner boards and uses DEF for survival
  state.activeSeat=3;state=move(state,3,{type:'end'});
  assert.ok(state.players[0].field[0].def>194,'protection regenerates lost DEF');
 });
-test('Nyxar grants two attacks, an echo offer, and half fatigue to level-one swarm',()=>{
+test('Nyxar grants two attacks and an echo offer, paying symmetric 3% fatigue per attack',()=>{
  let state=withResearch();state.round=2;
  state.players[0].field[0]=live(713,{fusion:true,level:1,atk:300,def:300});
  state.players[0].field[1]=live(4);
  state=move(state,0,{type:'attack',slot:0,targetSeat:null,targetSlot:null});
  assert.equal(state.players[0].field[0].used,false);
  assert.equal(state.players[0].field[0].lv1Attacks,1);
- assert.equal(state.players[0].field[0].atk,285);
+ assert.equal(state.players[0].field[0].atk,291);
+ assert.equal(state.players[0].field[0].def,291);
  assert.ok(state.players[0].lv1.offers.includes(4));
  state=move(state,0,{type:'attack',slot:0,targetSeat:null,targetSlot:null});
  assert.equal(state.players[0].field[0].used,true);
- assert.equal(state.players[0].field[0].atk,270);
+ assert.equal(state.players[0].field[0].atk,282);
+ assert.equal(state.players[0].field[0].def,282);
  state=move(state,0,{type:'lv1UseOffer',index:0,slot:2});
  assert.equal(state.players[0].field[2].lv1Effectless,true);
  assert.equal(state.players[0].field[2].id,4);
