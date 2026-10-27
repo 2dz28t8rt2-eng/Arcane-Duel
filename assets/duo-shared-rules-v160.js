@@ -670,7 +670,8 @@
    combat(c);
    c.used=false;c.switched=false;
    c.essenceAttacks=0;
-   if(c.role==='combatant')c.resonance=Math.min(3,c.resonance+1);
+   if(c.role==='combatant'||c.role==='allrounder')
+    c.resonance=Math.min(3,c.resonance+1);
    if(c.fusion&&c.role==='resonator')c.resonance=Math.min(2,c.resonance+1);
   }
   beginPredatorTurn(g,p,catalog);
@@ -813,7 +814,7 @@
    precision*(fullStreet?2:1.5):0;
   const baseFactor=clamp(1+.045*(cards.length-2)-rule.penalty+
    pattern.qualityBonus+precisionPct/100,.72,1.48);
-  const normal=cards.filter(c=>c.role==='combatant'&&!c.fusion);
+  const normal=cards.filter(c=>['combatant','allrounder'].includes(c.role)&&!c.fusion);
   const resonators=cards.filter(c=>c.role==='resonator'&&c.fusion);
   const normalPct=Math.min(24,normal.reduce((sum,c)=>
    sum+4+4*clamp(c.resonance||0,0,3),0));
@@ -821,7 +822,8 @@
    sum+10+10*clamp(c.resonance||0,0,2),0));
   const resonancePct=normalPct+resonatorPct;
   // Allrounders enhance a valid chain; the addition cannot erase prior quality.
-  const specialists=cards.filter(c=>c.role!=='combatant'&&!(c.role==='resonator'&&c.fusion));
+  const specialists=cards.filter(c=>!['combatant','allrounder'].includes(c.role)&&
+   !(c.role==='resonator'&&c.fusion));
   let protectedBase=baseFactor,bonusRolls=pattern.rollBonus+
    (fullStreet&&precision>=3?1:0);
   if(resonancePct&&specialists.length>=2){

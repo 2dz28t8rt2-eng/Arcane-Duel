@@ -121,10 +121,11 @@
   const resonance=rows.filter(r=>r.after.resonance>r.before.resonance&&
    r.owner.ownTurns>(before.players||[]).find(p=>p.seat===r.owner.seat)?.ownTurns&&
    nextTurn.has(r.owner.name)&&
-   (r.after.role==='combatant'||(r.after.role==='resonator'&&r.after.fusion)))
+   (['combatant','allrounder'].includes(r.after.role)||
+    (r.after.role==='resonator'&&r.after.fusion)))
    .sort((a,b)=>a.where.seat-b.where.seat||a.where.slot-b.where.slot);
   for(const row of resonance.slice(0,Math.max(0,MAX_EVENTS-events.length))){
-   const pct=row.after.role==='combatant'?4+4*row.after.resonance:
+   const pct=['combatant','allrounder'].includes(row.after.role)?4+4*row.after.resonance:
     10+10*row.after.resonance;
    events.push({kind:'resonance',where:row.where,pct});
   }

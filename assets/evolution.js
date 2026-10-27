@@ -488,7 +488,7 @@ validateDuelSnapshot=function(raw){const projected=JSON.parse(JSON.stringify(raw
  // only bounded per-instance ALLROUNDER charge counters, never template data.
  function restoreCharge(to,from){
   if(to&&from&&to.id===from.id&&to.uid===from.uid&&
-   ((CARDS[to.id]?.role==='combatant'&&!to.fusion)||(to.fusion&&to.roleOverride==='resonator'))&&
+   ((['combatant','allrounder'].includes(CARDS[to.id]?.role)&&!to.fusion)||(to.fusion&&to.roleOverride==='resonator'))&&
    Number.isInteger(from.resonance)&&from.resonance>=0&&from.resonance<=(to.fusion?2:3))
    to.resonance=from.resonance;
  }

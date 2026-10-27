@@ -80,6 +80,7 @@
   if(!q.p.remainingFusion.includes(id))return false;
   if(m.some(x=>q.p.field[x.i]!==x.c))return false;
   if(q.p.hand.findIndex(c=>c.uid===q.hand.uid)<0)return false;
+  const previousAlpha=window.ArcanePredatorShowdownSolo199?.capture(game);
   const previousChoice=game.fusionChoice;
   game.fusionChoice=id;
   game.arcaneFieldInputs=m.map(x=>x.c);
@@ -92,6 +93,8 @@
   for(const x of m)q.p.field[x.i]=null;
   q.p.field[m[0].i]=result;
   result.summonedTurn=game.turn;
+  // Free hand+field synthesis bypasses placePending; use identical succession.
+  window.ArcanePredatorShowdownSolo199?.resolve(game,previousAlpha,result);
   game.totalFusions[0]++;
   game.summoned=true;game.pending=null;game.selection=null;game.materials=[];game.lastSummoned=result;
   logEvent(game,'Gezielte Feldfusion: 1 Handkarte + '+m.length+' Feldmonster → '+dataOf(result).name+'.');
@@ -104,10 +107,18 @@
   const options=fusionOptions(game,levels,materials);if(!options.length){toast('Mit diesen Monsterstufen ist derzeit keine passende Fusionskarte verfügbar.');return;}
   const visualMaterials=materials.map(c=>({art:dataOf(c).art,name:dataOf(c).name,level:dataOf(c).level,field:m.some(x=>x.c.uid===c.uid),soul:Math.max(0,c.essenceCombat?.soul||0)}));
   chooseFusionModal(levels,materials,async id=>{
+   const beforeShowdown=game?.predatorShowdown;
    if(!commitFusion(id)){toast('Die Feldfusion konnte nicht abgeschlossen werden.');return;}
    const result=game.lastSummoned;if(!result)return;
    busy=true;
-   try{await fusionAnimation(dataOf(result).level,visualMaterials,'field');}
+   try{
+    await fusionAnimation(dataOf(result).level,visualMaterials,'field');
+    const showdown=game.predatorShowdown;
+    if(showdown&&showdown!==beforeShowdown&&!showdown.presented){
+     showdown.presented=true;
+     await window.ArcanePredatorShowdown199?.play(showdown);
+    }
+   }
    finally{busy=false;game.cinemaActive=false;render();}
   },'Feldmonster werden tatsächlich verbraucht. Gespeicherte Seelenenergie verleiht der neuen Fusion zusätzlich DEF; Seelenzehrer können einen Teil davon als Energie übernehmen.');
  }

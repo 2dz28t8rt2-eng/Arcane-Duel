@@ -603,7 +603,7 @@
     if(c.lv1Echo)el('small',cell,'◇ Geisterecho ohne Fähigkeit','duo-soul-status');
     if(card(c.id).lv1Special&&p.lv1?.perk)el('small',cell,
      '✦ '+card(c.id).lv1Special.toUpperCase(),'duo-soul-status');
-    if(c.role==='combatant'&&c.resonance)el('small',cell,
+    if((c.role==='combatant'||c.role==='allrounder')&&c.resonance)el('small',cell,
      '✧ Resonanz +'+(4+4*c.resonance)+' %','duo-card-level');
     cell.title='Feld '+(slot+1)+(c.used?' · Angriff verbraucht':'')+
      (c.placedRound>=game.round?' · noch nicht bereit':'');

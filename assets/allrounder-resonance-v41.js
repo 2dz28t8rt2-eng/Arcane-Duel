@@ -7,7 +7,8 @@
  */
 'use strict';
 (()=>{
- const isAllrounder=c=>!!c&&((c.roleOverride||CARDS[c.id]?.role||'combatant')==='combatant')&&!c.fusion;
+ const isAllrounder=c=>!!c&&['combatant','allrounder'].includes(
+  c.roleOverride||CARDS[c.id]?.role||'combatant')&&!c.fusion;
  const isResonator=c=>!!c&&c.fusion===true&&c.roleOverride==='resonator';
  const charges=c=>Number.isInteger(c?.resonance)?Math.max(0,Math.min(isResonator(c)?2:3,c.resonance)):0;
  function evaluate(g,materials){
