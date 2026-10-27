@@ -129,6 +129,10 @@ inject(' const baseChoose=chooseAiAction,baseApply=applyAiAction,baseAdvance=adv
 " counter.fusionIdentityResonators=0;counter.fusionIdentitySwarmCosts=0;",
 " counter.fusionIdentityChosen=0;counter.fusionIdentityChosenMaterials=0;",
 " counter.fusionIdentityChosenResonators=0;",
+" counter.fusionMultiMaterialOpportunities=0;counter.fusionMultiMaterialChosen=0;",
+" counter.swarmPreservationChecks=0;counter.swarmFieldMaterialsRisked=0;",
+" counter.swarmCandidatePredatorsLost=0;counter.swarmFusionSurvivalChecks=0;",
+" counter.swarmFusionsChosen=0;counter.swarmPredatorAttacks=0;",
 ' counter.selfPlayIllegalSwitchesBySeat=[0,0];',
 ' counter.breachSwitches=0;counter.breachAttacks=0;counter.lastDefenderEliminated=0;',
 ' const baseChoose=chooseAiAction,baseApply=applyAiAction,baseAdvance=advanceTurn;'
