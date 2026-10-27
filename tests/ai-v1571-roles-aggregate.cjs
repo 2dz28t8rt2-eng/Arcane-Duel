@@ -556,6 +556,23 @@ const fusionIdentityAudits=names.map(arm=>{
  return {arm,overall:summary(own),byMode,
   observed:Object.fromEntries(checks.map(k=>[k,own.reduce((n,r)=>n+(r[k]||0),0)]))};
 });
+const swarmRoleAudits=names.map(arm=>{
+ const own=swarmFocusRows.filter(r=>r.arm===arm);
+ const sumBy=(c,split)=>summary(c.filter(r=>r.split===split));
+ const byOpponent=Object.fromEntries(['guardian','soul'].map(role=>{
+  const group=own.filter(r=>r.roleB===role);
+  return [role,Object.fromEntries(['train','validation','holdout'].map(split=>
+   [split,sumBy(group,split)]))];
+ }));
+ const counters=['swarmPreservationChecks','swarmFieldMaterialsRisked',
+  'swarmCandidatePredatorsLost','swarmFusionSurvivalChecks',
+  'swarmFusionsChosen','swarmPredatorAttacks'];
+ return {arm,overall:summary(own),byOpponent,
+  observed:Object.fromEntries(counters.map(k=>
+   [k,own.reduce((n,r)=>n+(r[k]||0),0)])),
+  actionMix:Object.fromEntries(['fusion','normal','attack'].map(k=>
+   [k,own.reduce((n,r)=>n+(r.candidateActionMix?.[k]||0),0)]))};
+});
 const eligible=arms.slice(3).map(a=>{
  const trainGain=a.splits.train.wins-base.splits.train.wins;
  const validationGain=a.splits.validation.wins-base.splits.validation.wins;
@@ -575,6 +592,12 @@ const eligible=arms.slice(3).map(a=>{
   phaseWins(fusionFocusRows,'defender-v1569-mixed-control','validation');
  const fusionFocusTrainGain=phaseWins(fusionFocusRows,a.arm,'train')-
   phaseWins(fusionFocusRows,'defender-v1569-mixed-control','train');
+ const swarmTrainGain=phaseWins(swarmFocusRows,a.arm,'train')-
+ phaseWins(swarmFocusRows,'defender-v1569-mixed-control','train');
+ const swarmValidationGain=phaseWins(swarmFocusRows,a.arm,'validation')-
+ phaseWins(swarmFocusRows,'defender-v1569-mixed-control','validation');
+ const swarmGate=a.arm==='role-identity-conditional-fusion'?
+  swarmTrainGain>=-3&&swarmValidationGain>=-1:true;
  const fusionIdentityGate=a.arm==='role-identity-conditional-fusion'?
   fusionFocusValidationGain>=0&&fusionFocusTrainGain>=-2:true;
  const focusedMixValidationGain=[0,3,6,7].reduce((total,pair)=>
@@ -612,12 +635,13 @@ const eligible=arms.slice(3).map(a=>{
   hardL10ValidationVsFrozen>=2&&hardL10ValidationVsGuardian>=2&&
   decayValidationVsFrozen>=0&&seatNonRegressionVsFrozen&&
   h2hTrainGain>=4&&h2hValidationGain>=8&&focusedValidationGain>=0&&
-  fusionNonRegression&&predatorValidationGain>=-1&&mixedSynergyGate&&fusionIdentityGate;
+  fusionNonRegression&&predatorValidationGain>=-1&&mixedSynergyGate&&fusionIdentityGate&&swarmGate;
  return {arm:a.arm,trainGain,validationGain,seatParity,groups,guardianGate,
   trainGainVsFrozen,validationGainVsFrozen,hardL10ValidationVsFrozen,
   hardL10ValidationVsGuardian,decayValidationVsFrozen,
   h2hTrainWins,h2hValidationWins,h2hTrainGain,h2hValidationGain,focusedValidationGain,
   fusionFocusValidationGain,fusionFocusTrainGain,fusionIdentityGate,
+  swarmTrainGain,swarmValidationGain,swarmGate,
   focusedMixValidationGain,coreSynergyByOpponent,mixedSafeVsPrior,
   mixedBeatsBothPure,mixedSynergyGate,
   fusionTrainGain,fusionValidationGain,predatorValidationGain,fusionNonRegression,
@@ -771,6 +795,11 @@ const report={schema:'arcane-v1571-defender-sequences-report',status:'completed'
   fusionMaterialVsSwarmBenchmarks:true,
   fusionMaterialCostAndResonatorDiagnostics:true,
   fusionRoleIdentityValidationGate:true,
+  researchPredatorAlphaRulesExcludedFromSymmetricPlay:true,
+  honestReachableAllrounderDeckLimits:true,
+  matchedPredatorSwarmVsDefensiveRoles:true,
+  predatorSwarmTrainValidationNonRegressionGate:true,
+  actualThreeToFiveFusionOptionsMeasured:true,
   formerV1556BestUnpromotedPolicyRetainedAsAblation:true,
   targetedSoulGuardianMatchups:true,fusionAndPredatorControls:true,
   trainOnlyPairedFirstActionDivergence:true,firstDivergenceDoesNotProveCausality:true,
@@ -779,7 +808,7 @@ const report={schema:'arcane-v1571-defender-sequences-report',status:'completed'
   noProductionChanges:true},
  stages,arms,paired,globalSelection:selection,priorResearchChampion,decisionDiagnostics,
   noDecayArms,decayArms,pairedDecayArms,pairedDecayCases,
-  directHeadToHead,pairedHeadToHead,focusedDiagnostic,mixedCoreAudits,fusionIdentityAudits,
+  directHeadToHead,pairedHeadToHead,focusedDiagnostic,mixedCoreAudits,fusionIdentityAudits,swarmRoleAudits,
  limitations:[
  'Fusion survival after actual cloned counterattacks is measured only within the existing capped 2-attack forecast, not a complete opponent turn.',
  'Material scarcity uses only the candidate own hand after legally applying fusion on the clone; no hidden opposing hand is considered.',
@@ -790,6 +819,8 @@ const report={schema:'arcane-v1571-defender-sequences-report',status:'completed'
  'Selective defense only invokes legal preview when current visible enemy attack threatens an unswitched own attacker; candidate threshold fixed before run, not tuned on holdout.',
  'New attack-vs-defense planner executes up to two own legal attacks before up to two visible opponent replies for both options, as a partial forecast, not an entire turn or hidden-hand search.',
  'v14.9.71 benchmark constructs source-legal level-10 20-card defensive cores with Guardian/Soul mixes (10/10 12/8 8/12), Guardian-only and Soul-only defense cores, plus identical 20 support cards per seed. Stage 8 shares actual enemy decks, random seeds, starting seat and starter between mixed and pure controls. Synergy is evaluated from concrete surviving roles, card losses and counterdamage after up to two legal public enemy attacks; no invented card buffs. Focus validation, never focus holdout, contributes to predeclared strict promotion gates.',
+ 'Stage 10 fixes ALL 40-card Predator decks, opponent Guardian/Soul identity, seed, seat and starter across arms; candidateRole is predator, not fusion. Only the new policy penalizes costly consumption of deployed swarm attackers. This is prior-rules research: 2026-10-27 Rudelführer, marks and tokens remain disabled under symmetric strategicTraining.',
+ 'Stage 9 logs actual distinct Allrounder ratios constrained by legal catalog and checks selected versus only evaluated 3-5 material choices. All older outcomes are archived but do not prove causal strength of multi-material fusion.',
  'Stage 9 holds the AI candidateRole=fusion constant for all four constructed role profiles in paired cohorts against Guardians and Souls, preserving legal material sources. Fusion action economics and surviving Resonators are diagnostic, not proof that their costs are causally optimal.',
   'Stage 8 holds candidateRole=soul constant across ALL Guardian/Soul ratios, eliminating the earlier preference-label confound while retaining the Soul-capable strategic planner.',
   'Stage 7 uses the verified frozen v14.9.55 guarded research champion as the opposing strategy. It spans 24 scenarios per pair (8 each TRAIN/VALIDATION/HOLDOUT), with 256 distinct validation duels per arm. Holdout and Q training are excluded.',
