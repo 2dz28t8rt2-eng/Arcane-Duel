@@ -168,7 +168,8 @@ test('integration loads visual code before battle controller; rules and network 
  const html=read('duo-campaign-v2.html'),parity=read('assets/duo-parity-v160.js');
  const source=read('assets/duo-abilities-cinema-v193.js');
  assert.match(html,/duo-abilities-cinema-v193\.css\?v=20261026-v193/);
- assert.match(html,/duo-abilities-cinema-v193\.js\?v=20261026-v193/);
+ // The cache-busting version changes when ability fixes ship independently.
+ assert.match(html,/duo-abilities-cinema-v193\.js\?v=[a-zA-Z0-9-]+/);
  assert.ok(html.indexOf('duo-abilities-cinema-v193.js')<html.indexOf('duo-parity-v160.js'));
  assert.match(parity,/ArcaneDuoAbilitiesCinema193\?\.onState\(previous,game,catalog\)/);
  assert.doesNotMatch(source,/\b(fetch|localStorage|sessionStorage|WebSocket)\s*\(/);

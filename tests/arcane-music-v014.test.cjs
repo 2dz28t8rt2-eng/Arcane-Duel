@@ -28,7 +28,9 @@ function fixture(){
  }
  const title={hidden:false},duel={hidden:true};
  const overlay={boss:false,classList:{contains:()=>false},querySelector(){return this.boss?{}:null;}};
- const elements={'ad196-title':title,duelScreen:duel,overlay};
+ const duoRoom={textContent:'—'},duoChapter={value:'1'},duoTurn={textContent:'Noch kein Raum'};
+ const elements={'ad196-title':title,duelScreen:duel,overlay,
+  duoBattleArena:{},duoRoomId:duoRoom,duoChapter,duoTurnName:duoTurn};
  const storage=new Map(),store={getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v)};
  const host={append(){}};
  const document={readyState:'loading',hidden:false,body:{append(){}},
@@ -41,7 +43,7 @@ function fixture(){
  vm.runInNewContext(code('assets/arcane-track-catalog-v014.js'),scope);
  document.readyState='complete';
  vm.runInNewContext(code('assets/arcane-soundscape-v196.js'),scope);
- return {window,scope,title,duel,overlay,get audio(){return audio;}};
+ return {window,scope,title,duel,overlay,duoRoom,duoChapter,duoTurn,get audio(){return audio;}};
 }
 
 test('catalog contains 20 licensed unique tracks and exactly 17 random battle themes',()=>{
@@ -90,6 +92,33 @@ test('mute and stop controls really pause audio; volume remains configurable',()
  api.setVolume(.4);assert.equal(f.audio.volume,.4);
  api.setEnabled(false);assert.equal(f.audio.paused,true);
  assert.equal(api.getSettings().enabled,false);
+});
+
+test('2v2 beta plays menu music before a room and battle music during a match',()=>{
+ const f=fixture(),api=f.window.ArcaneSoundscape;
+ f.title.hidden=true;api.refresh();
+ assert.equal(api.getNowPlaying().id,'theres-someone-here');
+ f.duoRoom.textContent='test-room-1';
+ f.duoTurn.textContent='Duellant A';
+ api.refresh();
+ assert.ok(f.window.ArcaneTrackCatalog.tracks.battle.some(t=>t.id===api.getNowPlaying().id));
+ const first=api.getNowPlaying().id;
+ api.refresh();
+ assert.equal(api.getNowPlaying().id,first,'battle theme stays fixed within a room');
+ f.duoRoom.textContent='—';f.duoTurn.textContent='Noch kein Raum';
+ api.refresh();
+ assert.equal(api.getNowPlaying().id,'theres-someone-here');
+});
+
+test('main game links to the full 2v2 beta with the licensed soundtrack',()=>{
+ const html=code('duo-campaign-v2.html');
+ const entry=code('assets/duo-campaign-entry.js');
+ assert.match(entry,/a\.href='duo-campaign-v2\.html'/);
+ assert.match(html,/id="duoBattleArena"/);
+ assert.match(html,/id="duoRoomId"/);
+ assert.match(html,/arcane-track-catalog-v014\.css/);
+ assert.ok(html.indexOf('arcane-track-catalog-v014.js')<html.indexOf('arcane-soundscape-v196.js'));
+ assert.ok(html.indexOf('duo-parity-v160.js')<html.indexOf('arcane-track-catalog-v014.js'));
 });
 
 test('long duel blackout starts music before revealing the game and shows song plus artist',async()=>{

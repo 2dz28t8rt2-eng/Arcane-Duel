@@ -11,7 +11,9 @@
   if(hero&&!hero.querySelector('#duoCampaignLab')){
    const a=document.createElement('a');
    a.id='duoCampaignLab';a.className='btn tiny';
-   a.href='duo-campaign.html';
+   // New matches should use the full 2v2 beta. Keep the legacy page available
+   // for older invitation links and in-progress test rooms.
+   a.href='duo-campaign-v2.html';
    a.textContent='⚔ 2v2-Kampagne · Online-Test';
    a.title='Gemeinsam mit einem eingeladenen Partner im privaten Online-Raum spielen (Testphase)';
    hero.append(a);
