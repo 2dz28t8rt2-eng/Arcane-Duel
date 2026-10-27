@@ -234,8 +234,37 @@
   }
   const count=clamp(materials,2,5),powers=count===2?[]:count===3?
    pool.slice(0,1):count===4?pool.slice(0,2):[...PREDATOR_POWERS];
-  // Permanently retire previous leaders. Consuming the new leader later must
-  // never reactivate an older leader left on the board.
+  // One deterministic, server-authoritative leadership challenge per summon.
+  // A predecessor consumed as fusion material was removed before this call.
+  const predecessor=predatorLeader(p);
+  g.predatorShowdown=null;
+  if(predecessor){
+   const oldStats={uid:predecessor.uid,id:predecessor.id,level:predecessor.level,
+    atk:predecessor.atk,def:predecessor.def};
+   const newStats={uid:result.uid,id:result.id,level:result.level,
+    atk:result.atk,def:result.def};
+   const rolled=randomInt(g,100);
+   const outcome=rolled<30?'struggle':rolled<50?'overthrow':'stalemate';
+   if(outcome==='struggle'){
+    for(const card of [predecessor,result]){
+     const oldMaxDef=card.maxDef??card.def;
+     card.atk=Math.max(0,round10(card.atk*.85));
+     card.def=Math.max(0,round10(card.def*.85));
+     card.maxDef=Math.max(0,round10(oldMaxDef*.85));
+    }
+    g.log.push('🐾 Machtkampf: Beide Rudelführer erleiden −15 % ATK und DEF.');
+   }else if(outcome==='overthrow'){
+    const slot=p.field.findIndex(card=>card?.uid===predecessor.uid);
+    if(slot>=0){p.field[slot]=null;delete predecessor.predatorLeader;
+     p.graveyard.push(predecessor);}
+    g.log.push('🐾 Rudelführersturz: Der neue Alpha zerfleischt seinen Vorgänger.');
+   }else g.log.push('🐾 Patt: Beide Predatoren bleiben, der Neue erhält die Krone.');
+   g.predatorShowdown={seat:p.seat,newUid:result.uid,oldUid:predecessor.uid,
+    outcome,penaltyPct:outcome==='struggle'?15:0,old:oldStats,new:newStats,
+    round:g.round,turn:g.turn};
+  }
+  // Permanently retire previous leaders. Killing the new leader must never
+  // reactivate its predecessor, even after a stalemate.
   for(const old of p.field)if(old?.predatorLeader)delete old.predatorLeader;
   result.predatorLeader={materials:count,powers,bornUid:result.uid,ownTurns:0,
    createdTurn:g.turn};

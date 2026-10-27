@@ -34,7 +34,10 @@
     const trace=c.rollTrace.slice(0,MAX_ROLLS)
      .map(x=>({atk:Number(x.atk)||0,def:Number(x.def)||0}));
     if(trace.length===0)continue;
+    const duel=cur.predatorShowdown;
     actions.push({kind:'fusion',seat:p.seat,slot,area,name:p.name,
+     showdown:duel?.newUid===c.uid&&duel.seat===p.seat?{
+      outcome:duel.outcome,old:{...duel.old},new:{...duel.new}}:null,
      result:{id:c.id,level:c.level,atk:c.atk,def:c.def,role:c.role,
       pattern:String(c.pattern||'Fusion').slice(0,60),
       winnerIndex:c.rollMath.winnerIndex,rolls:trace,
@@ -153,7 +156,18 @@
   const times=[450,1250,2000];
   times.forEach((time,index)=>schedule(stages[index+1],time,stamp));
   if(alpha)schedule(stages[4],2700,stamp);
-  schedule(clear,alpha?4950:3500,stamp);
+  if(event.showdown){
+   schedule(()=>{
+    clear();
+    const old=event.showdown.old,newKing=event.showdown.new;
+    const oldTemplate=catalog?.[old.id]||{},newTemplate=catalog?.[newKing.id]||{};
+    if(typeof window!=='undefined')window.ArcanePredatorShowdown199?.play({
+     outcome:event.showdown.outcome,
+     old:{...old,name:oldTemplate.name||'Alter Rudelführer',art:oldTemplate.art},
+     new:{...newKing,name:newTemplate.name||'Neuer Rudelführer',art:newTemplate.art}
+    });
+   },4400,stamp);
+  }else schedule(clear,alpha?4950:3500,stamp);
  }
  function drawSequence(event){
   const {inner,content,stamp}=base(event);
@@ -170,8 +184,6 @@
  }
  function onState(previous,current,catalog,viewerSeat){
   const events=observed(previous,current);
-  sequence++;
-  clear();
   if(!enabled||!events.length||typeof document==='undefined'||reduced()||
      document.visibilityState==='hidden')return events;
   const event=events.find(x=>x.kind==='fusion')||
@@ -179,6 +191,10 @@
   // Our actual hand row already animates own draws; the separate covered-card
   // overlay is reserved for teammates and enemies, whose cards stay private.
   if(!event)return events;
+  // Non-cinematic server revisions (e.g. position switches) must not cancel
+  // a pending Rudelführer showdown after the ordinary fusion ritual.
+  sequence++;
+  clear();
   if(event.kind==='fusion')fusionSequence(event,catalog);
   else drawSequence(event);
   return events;
