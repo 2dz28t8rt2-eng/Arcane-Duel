@@ -839,6 +839,7 @@ inject('     return before*.2+future*.8+entry.score*.2-(scene.roleAware?fragile:
 '      const product=futureOwn.field.find(c=>c&&c.id===entry.a.choice);',
 '      const template=CARDS[entry.a.choice];',
 '      if(materials.length>=2&&template){',
+'       if(materials.length>=3)counter.fusionMultiMaterialOpportunities++;',
 '       const strongest=Math.max(0,...materials.map(c=>{',
 '        const d=dataOf(c);return d.atk*.57+d.def*.43;}));',
 '       const p=product?dataOf(product):template;',
