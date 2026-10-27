@@ -537,18 +537,62 @@ function isFateCard(c){return !!c&&typeof c==='object'&&c.fate===true;}
 function coreValidateDuelSnapshot(raw){
  const fail=()=>{throw Error('Ungültige gespeicherte Partie.');};
  if(!raw||raw.mode!=='pve'||typeof raw.id!=='string'||!raw.id.length||raw.id.length>100||!validInt(raw.opponentId,10)||!['free','tournament','challenge','encounter'].includes(raw.context)||!validInt(raw.turn,30)||raw.turn<1||!validInt(raw.active,1)||!validInt(raw.starter,1)||!validInt(raw.tiePriority,1)||!validInt(raw.seed,4294967295)||!validInt(raw.nextUid,10000)||!['summon','positions','attacks','guard','end'].includes(raw.aiPhase)||![null,0,1].includes(raw.winner))fail();
- function card(c){if(!c||!validInt(c.uid,10000)||c.uid<1||!Number.isInteger(c.id)||!CARDS[c.id]||!['atk','def'].includes(c.mode)||typeof c.attacked!=='boolean'||typeof c.switched!=='boolean')fail();const out={uid:c.uid,id:c.id,mode:c.mode,attacked:c.attacked,switched:c.switched};if(c.card){if((c.card.level!==CARDS[c.id].level&&!(CARDS[c.id].essenceMonster&&validInt(c.card.level,10)&&c.card.level>=3))||!validInt(c.card.atk,10000)||!validInt(c.card.def,10000))fail();out.card={level:c.card.level,atk:c.card.atk,def:c.card.def};}for(const key of ['summonedTurn','decayTotal'])if(c[key]!==undefined){if(!validInt(c[key],key==='summonedTurn'?30:10000))fail();out[key]=c[key];}if(c.decayClass!==undefined){if(!['starter','normal','fusion'].includes(c.decayClass))fail();out.decayClass=c.decayClass;}if(c.materialBonus){if(!validInt(c.materialBonus.atk,240)||!validInt(c.materialBonus.def,240)||c.materialBonus.atk+c.materialBonus.def>240)fail();out.materialBonus={...c.materialBonus};}if(c.surgeTurn!==undefined){if(!validInt(c.surgeTurn,30))fail();out.surgeTurn=c.surgeTurn;}if(c.decayAge!==undefined){if(!validInt(c.decayAge,30))fail();out.decayAge=c.decayAge;}else if(c.decayClass&&c.decayTotal){const base=c.decayClass==='starter'?20:c.decayClass==='fusion'?50:30,min=c.decayClass==='starter'?10:20;let accumulated=0,age=0;while(accumulated<c.decayTotal&&age<30){accumulated+=Math.max(min,base-5*age);age++;}out.decayAge=age;}if(c.attackFatigue!==undefined){if(!validInt(c.attackFatigue,10000))fail();out.attackFatigue=c.attackFatigue;}if(c.fate){if(!FATE_CARD_IDS.includes(c.id))fail();out.fate=true;}if(c.fusion)out.fusion=true;if(c.qualityRolls){if(!validInt(c.qualityRolls,7))fail();out.qualityRolls=c.qualityRolls;}
+ function card(c){if(!c||!validInt(c.uid,10000)||c.uid<1||!Number.isInteger(c.id)||!CARDS[c.id]||!['atk','def'].includes(c.mode)||typeof c.attacked!=='boolean'||typeof c.switched!=='boolean')fail();const out={uid:c.uid,id:c.id,mode:c.mode,attacked:c.attacked,switched:c.switched};if(c.card){const packToken=!!c.predatorToken;
+ if((c.card.level!==CARDS[c.id].level&&
+  !(CARDS[c.id].essenceMonster&&validInt(c.card.level,10)&&c.card.level>=3)&&
+  !(packToken&&validInt(c.card.level,10)&&c.card.level>=1))||
+  !validInt(c.card.atk,10000)||!validInt(c.card.def,10000))fail();
+ out.card={level:c.card.level,atk:c.card.atk,def:c.card.def};
+ if(packToken){
+  if(CARDS[c.id].role!=='predator'||CARDS[c.id].fusionOnly||
+   !validInt(c.predatorToken.leaderUid,10000)||
+   c.predatorToken.leaderUid<1||c.predatorToken.level!==c.card.level||
+   c.card.atk>CARDS[c.id].atk||c.card.def>CARDS[c.id].def)fail();
+  out.card.name='Rudelgeist · Lv '+c.card.level;
+  out.card.desc='Schwacher Predator-Token. Nicht fusionierbar.';
+  out.predatorToken={leaderUid:c.predatorToken.leaderUid,level:c.card.level};
+  out.roleOverride='predator';
+ }
+ }else if(c.predatorToken)fail();
+ if(c.predatorLeader!==undefined){
+  const a=c.predatorLeader,allowed=['swarm','mark','token'];
+  if(!c.fusion||c.roleOverride!=='predator'||!a||
+   !validInt(a.materials,5)||a.materials<2||
+   !Array.isArray(a.powers)||a.powers.length!==(a.materials===2?0:a.materials-2)||
+   a.powers.some(p=>!allowed.includes(p))||new Set(a.powers).size!==a.powers.length||
+   !validInt(a.bornUid,10000)||a.bornUid!==c.uid||
+   !validInt(a.createdTurn,30)||a.createdTurn<1||
+   !validInt(a.ownTurns,3))fail();
+  out.predatorLeader={materials:a.materials,powers:[...a.powers],
+   bornUid:a.bornUid,createdTurn:a.createdTurn,ownTurns:a.ownTurns};
+  out.roleOverride='predator';
+ }
+ for(const key of ['summonedTurn','decayTotal'])if(c[key]!==undefined){if(!validInt(c[key],key==='summonedTurn'?30:10000))fail();out[key]=c[key];}if(c.decayClass!==undefined){if(!['starter','normal','fusion'].includes(c.decayClass))fail();out.decayClass=c.decayClass;}if(c.materialBonus){if(!validInt(c.materialBonus.atk,240)||!validInt(c.materialBonus.def,240)||c.materialBonus.atk+c.materialBonus.def>240)fail();out.materialBonus={...c.materialBonus};}if(c.surgeTurn!==undefined){if(!validInt(c.surgeTurn,30))fail();out.surgeTurn=c.surgeTurn;}if(c.decayAge!==undefined){if(!validInt(c.decayAge,30))fail();out.decayAge=c.decayAge;}else if(c.decayClass&&c.decayTotal){const base=c.decayClass==='starter'?20:c.decayClass==='fusion'?50:30,min=c.decayClass==='starter'?10:20;let accumulated=0,age=0;while(accumulated<c.decayTotal&&age<30){accumulated+=Math.max(min,base-5*age);age++;}out.decayAge=age;}if(c.attackFatigue!==undefined){if(!validInt(c.attackFatigue,10000))fail();out.attackFatigue=c.attackFatigue;}if(c.fate){if(!FATE_CARD_IDS.includes(c.id))fail();out.fate=true;}if(c.fusion)out.fusion=true;if(c.qualityRolls){if(!validInt(c.qualityRolls,7))fail();out.qualityRolls=c.qualityRolls;}
  if(c.essenceCombat!==undefined){
  const e=c.essenceCombat;
  if(!e||!validInt(e.soul,10000)||!validInt(e.condensed,10000)||!validInt(e.cooldown,3)||!validInt(e.condenseLeft,3)||!validInt(e.condenseSlice,10000)||!validInt(e.guardLeft,2)||!validInt(e.doubleChoice,2)||!validInt(e.lastToggle,60)||!validInt(e.maxDef,10000)||!validInt(e.attacksThisTurn,2)||!validInt(e.lastDischarge,60)||!validInt(e.guardGrantedTurn,60)||!validInt(e.drainPreference??0,2)||!validInt(e.lastDrainSwitch??0,60)||!validInt(e.lastSoulAction??0,60)||!validInt(e.raidCooldown??0,3))fail();
  out.essenceCombat={soul:e.soul,condensed:e.condensed,cooldown:e.cooldown,condenseLeft:e.condenseLeft,condenseSlice:e.condenseSlice,guardLeft:e.guardLeft,doubleChoice:e.doubleChoice,lastToggle:e.lastToggle,maxDef:e.maxDef,attacksThisTurn:e.attacksThisTurn,lastDischarge:e.lastDischarge,guardGrantedTurn:e.guardGrantedTurn,drainPreference:e.drainPreference??0,lastDrainSwitch:e.lastDrainSwitch??0,lastSoulAction:e.lastSoulAction??0,raidCooldown:e.raidCooldown??0};
  }return out;}
- if(!Array.isArray(raw.players)||raw.players.length!==2)fail();const players=raw.players.map((p,id)=>{if(p.id!==id||!validInt(p.lp,10000)||!validInt(p.shield,600)||mainDeckError(p.originalDeck,id===1&&raw.showcase===true&&raw.opponentId===8?CARDS.filter(c=>c.rpg&&!c.fusionOnly&&!c.ace&&c.level>=8&&c.level<=10).map(c=>c.id):RPG_BASE_CARDS.map(c=>c.id))||!Array.isArray(p.deck)||p.deck.length>40||p.deck.some(cid=>!(id===1&&raw.showcase===true&&raw.opponentId===8?CARDS.some(c=>c.id===cid&&c.rpg&&!c.fusionOnly&&!c.ace&&c.level>=8&&c.level<=10):RPG_BASE_CARDS.some(c=>c.id===cid)))||!Array.isArray(p.hand)||p.hand.length>5||!Array.isArray(p.field)||p.field.length!==5||!Array.isArray(p.graveyard)||p.graveyard.length>150||fusionDeckError(p.fusionDeck)||!Number.isFinite(p.power)||p.power<.1||p.power>2)fail();const enhancements={};for(const [cid,rank]of Object.entries(p.enhancements||{})){if(!(CARDS[cid]?.rpg||Number(cid)<20)||!validInt(rank,5))fail();enhancements[cid]=rank;}const out={id,lp:p.lp,shield:p.shield,originalDeck:[...p.originalDeck],deck:[...p.deck],hand:p.hand.map(card),field:p.field.map(c=>c?card(c):null),graveyard:p.graveyard.map(card),fusionDeck:[...p.fusionDeck],enhancements,power:p.power};if(out.hand.some(c=>CARDS[c.id].fusionOnly||dataOf(c).level>12))fail();return out;});
+ if(!Array.isArray(raw.players)||raw.players.length!==2)fail();const players=raw.players.map((p,id)=>{if(p.id!==id||!validInt(p.lp,10000)||!validInt(p.shield,600)||mainDeckError(p.originalDeck,id===1&&raw.showcase===true&&raw.opponentId===8?CARDS.filter(c=>c.rpg&&!c.fusionOnly&&!c.ace&&c.level>=8&&c.level<=10).map(c=>c.id):RPG_BASE_CARDS.map(c=>c.id))||!Array.isArray(p.deck)||p.deck.length>40||p.deck.some(cid=>!(id===1&&raw.showcase===true&&raw.opponentId===8?CARDS.some(c=>c.id===cid&&c.rpg&&!c.fusionOnly&&!c.ace&&c.level>=8&&c.level<=10):RPG_BASE_CARDS.some(c=>c.id===cid)))||!Array.isArray(p.hand)||p.hand.length>5||!Array.isArray(p.field)||p.field.length!==5||!Array.isArray(p.graveyard)||p.graveyard.length>150||fusionDeckError(p.fusionDeck)||!Number.isFinite(p.power)||p.power<.1||p.power>2)fail();const enhancements={};for(const [cid,rank]of Object.entries(p.enhancements||{})){if(!(CARDS[cid]?.rpg||Number(cid)<20)||!validInt(rank,5))fail();enhancements[cid]=rank;}const out={id,lp:p.lp,shield:p.shield,originalDeck:[...p.originalDeck],deck:[...p.deck],hand:p.hand.map(card),field:p.field.map(c=>c?card(c):null),graveyard:p.graveyard.map(card).filter(c=>!c.predatorToken),fusionDeck:[...p.fusionDeck],enhancements,power:p.power};if(out.hand.some(c=>CARDS[c.id].fusionOnly||dataOf(c).level>12))fail();return out;});
  const all=players.flatMap(p=>[...p.hand,...p.field.filter(Boolean),...p.graveyard]),uids=all.map(c=>c.uid);if(new Set(uids).size!==uids.length)fail();
  const g={id:raw.id,mode:'pve',opponentId:raw.opponentId,context:raw.context,maxLP:START_LP,turn:raw.turn,active:raw.active,starter:raw.starter,tiePriority:raw.tiePriority,seed:raw.seed,nextUid:raw.nextUid,aiPhase:raw.aiPhase,winner:raw.winner,winReason:typeof raw.winReason==='string'?raw.winReason.slice(0,300):'',summoned:raw.summoned===true,players,selection:null,pending:null,materials:[],lastSummoned:null,rewardClaimed:raw.rewardClaimed===true,finishShown:false,log:[],totalFusions:[],damageDealt:[]};
  if(!Array.isArray(raw.log)||raw.log.length>80||raw.log.some(x=>typeof x!=='string'||x.length>500))fail();g.log=[...raw.log];for(const key of ['totalFusions','damageDealt']){if(!Array.isArray(raw[key])||raw[key].length!==2||raw[key].some(n=>!validInt(n,100000)))fail();g[key]=[...raw[key]];}
  if(raw.pending){const p=raw.pending;if(!['normal','fusion'].includes(p.kind)||!Array.isArray(p.levels)||p.levels.length<1||p.levels.length>2||p.levels.some(l=>!validInt(l,12)||l<1))fail();const c=card(p.card);if(p.kind==='normal'&&!players[g.active].hand.some(h=>h.uid===c.uid&&h.id===c.id))fail();if(p.kind==='fusion'&&uids.includes(c.uid))fail();g.pending={kind:p.kind,levels:[...p.levels],card:c};uids.push(c.uid);}
- if(g.nextUid<=Math.max(0,...uids))fail();if(g.winner===null&&players.some(p=>p.lp===0))fail();return g;
+ if(g.nextUid<=Math.max(0,...uids))fail();if(g.winner===null&&players.some(p=>p.lp===0))fail();
+ // One public target mark may survive a save/reload during the same turn.
+ const hunt=raw.predatorPursuit;
+ if(hunt!==undefined&&hunt!==null){
+  if(!validInt(hunt.turn,30)||hunt.turn!==g.turn||
+   !validInt(hunt.owner,1)||hunt.owner!==g.active||
+   !validInt(hunt.targetUid,10000)||hunt.targetUid<1||
+   !Array.isArray(hunt.attackers)||hunt.attackers.length<1||
+   hunt.attackers.length>5||hunt.attackers.some(uid=>!validInt(uid,10000)||uid<1)||
+   new Set(hunt.attackers).size!==hunt.attackers.length||
+   !g.players[1-hunt.owner].field.some(c=>c?.uid===hunt.targetUid))fail();
+  g.predatorPursuit={turn:hunt.turn,owner:hunt.owner,
+   targetUid:hunt.targetUid,attackers:[...hunt.attackers]};
+ }
+ return g;
 }
 function saveDuelSnapshot(){if(!game||game.mode!=='pve')return;profile.activeDuel=game.rewardClaimed?null:JSON.parse(JSON.stringify(game));saveProfile();}
 function manualSave(){if(busy||aiRunning){toast('Die laufende Aktion wird automatisch gesichert.');return;}saveDuelSnapshot();const ok=saveProfile();renderHud();toast(ok?'Spielstand gespeichert · '+new Date(profile.savedAt).toLocaleTimeString('de-AT'):storageWarning||'Speichern nicht möglich. Bitte exportiere deinen Spielstand.');}
