@@ -156,7 +156,7 @@
     <li><b>Angreifen und verteidigen:</b> Dein Feld schützen, auf den Gegner
     reagieren und den Gegenangriff versuchen.</li></ol>
     <p>Jede Übung endet erst mit einem Sieg. Danach kannst du sofort die nächste
-    starten. Du darfst jederzeit zurückkehren und eine Übung wiederholen.</p>`]
+    starten. Du darfst jederzeit zurückkehren und eine Übung wiederholen.</p>`],
   ['predator-pack','22 · Predatoren: Rudelführer, Jagdmarkierung und Rudelruf',
    `<h3>Das Rudel kämpft gemeinsam</h3>
     <p>Aktive Predatoren erhalten <b>+2 % Angriffsschaden je eigenem Predator auf dem Feld</b>
