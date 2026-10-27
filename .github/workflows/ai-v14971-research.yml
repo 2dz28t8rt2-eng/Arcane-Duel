@@ -27,7 +27,7 @@ jobs:
           node --test tests/predator-pack-v198.test.cjs
           node tests/helpers/game-runtime.cjs
           node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
-      - name: Restore sealed v14.9.69 TRAIN checkpoint and role research controls
+      - name: Restore sealed v14.9.70 TRAIN checkpoint and fixed role controls
         env:
           GH_TOKEN: ${{ github.token }}
           ARCANE_PREVIOUS_ARTIFACT_DIR: /tmp/arcane-v1571-prior
