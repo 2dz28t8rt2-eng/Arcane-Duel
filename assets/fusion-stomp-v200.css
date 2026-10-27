@@ -1,0 +1,52 @@
+/* Arcane Duel v20.0: a single elemental beam strikes the primary target,
+   then refracts into material-scaled secondary shock-rays. Pure presentation. */
+.ad-stomp-scene{position:fixed;inset:0;z-index:15950;overflow:hidden;pointer-events:none;
+  --stomp-color:#9a67ff;--stomp-light:#f8e5ff;isolation:isolate}
+.ad-stomp-scene::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,
+  transparent 14%,rgba(4,2,18,.2) 90%);opacity:0;transition:opacity .12s}
+.ad-stomp-firing::before{opacity:1}
+.ad-stomp-scene svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ad-stomp-ray{fill:none;stroke:var(--stomp-color);stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:100;stroke-dashoffset:100;opacity:0;vector-effect:non-scaling-stroke}
+.ad-stomp-primary{stroke-width:22;filter:drop-shadow(0 0 8px var(--stomp-color))
+  drop-shadow(0 0 18px var(--stomp-light)) drop-shadow(0 0 27px var(--stomp-color))}
+.ad-stomp-secondary{stroke-width:12;filter:drop-shadow(0 0 8px var(--stomp-color))
+  drop-shadow(0 0 15px var(--stomp-light));opacity:0}
+.ad-stomp-glow{stroke-width:38;filter:blur(8px);opacity:0}
+.ad-stomp-core{stroke:var(--stomp-light);stroke-width:9;filter:drop-shadow(0 0 5px var(--stomp-light))}
+.ad-stomp-secondary.ad-stomp-glow{stroke-width:20;filter:blur(5px)}
+.ad-stomp-secondary.ad-stomp-core{stroke-width:5}
+.ad-stomp-firing .ad-stomp-primary{animation:ad-stomp-drive .26s cubic-bezier(.12,.7,.2,1) forwards}
+.ad-stomp-splitting .ad-stomp-secondary{animation:ad-stomp-branch .19s cubic-bezier(.05,.64,.05,1) forwards}
+.ad-stomp-afterglow .ad-stomp-ray{opacity:.3;transition:opacity .14s}
+.ad-stomp-impact{position:absolute;width:140px;height:140px;margin:-70px 0 0 -70px;
+  border:3px solid var(--stomp-light);border-radius:50%;opacity:0;
+  background:radial-gradient(circle,var(--stomp-light) 0%,var(--stomp-color) 12%,transparent 64%);
+  box-shadow:0 0 32px 8px var(--stomp-color),inset 0 0 20px 4px var(--stomp-light)}
+.ad-stomp-impact::before,.ad-stomp-impact::after{content:"";position:absolute;inset:-27px;
+  border:4px solid var(--stomp-color);border-radius:50%;box-shadow:0 0 25px var(--stomp-light);opacity:.75}
+.ad-stomp-impact::after{inset:-58px;border-width:2px;opacity:.35}
+.ad-stomp-impact i{position:absolute;top:50%;left:50%;width:6px;height:18px;border-radius:70%;
+  background:var(--stomp-light);box-shadow:0 0 8px var(--stomp-color);
+  opacity:0;transform:translate(-50%,-50%) rotate(var(--stomp-angle))}
+.ad-stomp-splitting .ad-stomp-impact{animation:ad-stomp-burst .35s cubic-bezier(.13,.8,.2,1) forwards}
+.ad-stomp-splitting .ad-stomp-impact::before{animation:ad-stomp-ring .35s ease-out forwards}
+.ad-stomp-splitting .ad-stomp-impact::after{animation:ad-stomp-ring .43s ease-out forwards}
+.ad-stomp-splitting .ad-stomp-impact i{animation:ad-stomp-spark .48s ease-out forwards;
+  animation-delay:var(--stomp-delay)}
+.ad-stomp-small{width:95px;height:95px;margin:-47.5px 0 0 -47.5px;border-width:2px}
+.ad-stomp-small::after{inset:-28px}
+.ad-stomp-small i{width:4px;height:11px}
+.table-surface.ad-stomp-shake{animation:ad-stomp-shudder .34s ease-in-out 1}
+@keyframes ad-stomp-drive{0%{stroke-dashoffset:100;opacity:.05}65%{opacity:1}
+  100%{stroke-dashoffset:0;opacity:1}}
+@keyframes ad-stomp-branch{0%{stroke-dashoffset:100;opacity:0}
+  30%{opacity:1}100%{stroke-dashoffset:0;opacity:1}}
+@keyframes ad-stomp-burst{0%{transform:scale(.15);opacity:.1}
+  30%{transform:scale(1.2);opacity:1}100%{transform:scale(1.85);opacity:0}}
+@keyframes ad-stomp-ring{0%{transform:scale(.5);opacity:1}100%{transform:scale(1.35);opacity:0}}
+@keyframes ad-stomp-spark{0%{opacity:1;transform:translate(-50%,-50%) rotate(var(--stomp-angle)) translateY(0) scale(.4)}
+  65%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(var(--stomp-angle)) translateY(var(--stomp-distance)) scale(.1)}}
+@keyframes ad-stomp-shudder{0%,100%{transform:translate(0,0)}10%,40%{transform:translate(-6px,3px)}
+  23%,65%{transform:translate(6px,-4px)}80%{transform:translate(-2px,1px)}}
+@media (prefers-reduced-motion:reduce){.ad-stomp-scene,.table-surface.ad-stomp-shake{animation:none!important}}
