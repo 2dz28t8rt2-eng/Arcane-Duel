@@ -157,6 +157,51 @@
     reagieren und den Gegenangriff versuchen.</li></ol>
     <p>Jede Übung endet erst mit einem Sieg. Danach kannst du sofort die nächste
     starten. Du darfst jederzeit zurückkehren und eine Übung wiederholen.</p>`]
+  ['predator-pack','22 · Predatoren: Rudelführer, Jagdmarkierung und Rudelruf',
+   `<h3>Das Rudel kämpft gemeinsam</h3>
+    <p>Aktive Predatoren erhalten <b>+2 % Angriffsschaden je eigenem Predator auf dem Feld</b>
+    (maximal fünf). Auch Predator-Tokens zählen. Der Bonus verändert die Kartenwerte nicht dauerhaft.</p>
+    <h3>Überwältigung und Jagdmarkierung</h3>
+    <p>Der erste Predator-Angriff markiert ein gegnerisches Monster mit einem
+    schimmernden Fadenkreuz. Greift ein <b>anderer Predator</b> dasselbe Ziel
+    im selben Zug an, erhält der zweite Angriff <b>+5 % Schaden</b>,
+    der dritte und weitere unterschiedliche Angreifer <b>+10 %</b>.
+    Mehrfachangriffe desselben Predators zählen nicht erneut.
+    Beim Zielwechsel und am Zugende verfällt die Markierung.
+    Folgeangriffe erhalten stärkere Einschläge; markierte zerstörte Monster
+    werden mit einer Klauenhieb-Animation besiegt. Die Animation ist rein visuell.</p>
+    <h3>Rudelführer aus einer Predator-Fusion</h3>
+    <p>Jede neu entstandene Predator-Fusion kann das Rudel anführen.
+    Eine kleine schimmernde Krone kennzeichnet den aktiven Rudelführer.
+    <b>Nur ein Rudelführer je Spieler</b> wirkt gleichzeitig: Die
+    neueste Predator-Fusion übernimmt die Führung. Mit Rudelführer
+    erhalten <b>alle Predatoren +3 % statt +2 %</b> Schwarmbonus je
+    aktivem Predator; mehrere Rudelführer-Boni stapeln sich nicht.</p>
+    <h3>Die Anzahl der Materialien entscheidet</h3>
+    <p><b>2 Materialien:</b> Basis-Rudelführerbonus, keine Sonderfähigkeit.<br>
+    <b>3 Materialien:</b> Eine zufällig ausgewählte Sonderfähigkeit.<br>
+    <b>4 Materialien:</b> Zwei verschiedene zufällig ausgewählte Sonderfähigkeiten.<br>
+    <b>5 Materialien:</b> Alle drei Sonderfähigkeiten.</p>
+    <p>Nach den echten Wertewürfen erscheint im gleichen Fusionsfenster
+    eine kurze Enthüllung jeder erhaltenen Fähigkeit. Entscheidend
+    ist die <b>Materialanzahl</b>, nicht die Stufe des Anführers.</p>
+    <h3>Drei kleine Sonderfähigkeiten</h3>
+    <p><b>Rudelinstinkt:</b> Schwarmbonus +0,5 Prozentpunkte je Predator:
+    mit Anführer insgesamt <b>+3,5 %</b> statt +3 %.<br>
+    <b>Blutspur:</b> weitere <b>+3 % Schaden</b> bei markierten Folgeangriffen.<br>
+    <b>Rudelruf:</b> Nach jeweils <b>3 eigenen Zügen</b> mit einem
+    aktiven Rudelführer erscheint bei freiem Feldplatz ein Predator-Token.</p>
+    <h3>Predator-Tokens</h3>
+    <p>Der Token übernimmt die Stufe der Rudelführer-Fusion, besitzt
+    aber deutlich schwächere ATK und DEF als normale Predatoren.
+    Er kann regulär angreifen, Ziele markieren und zum Schwarmbonus
+    beitragen. <b>Er ist niemals Fusionsmaterial</b>, gelangt nicht
+    ins Deck oder in die Sammlung und verschwindet nach seiner Zerstörung.
+    Bei vollem Feld wird die Token-Erschaffung auf einen späteren
+    eigenen Zug verschoben.</p>
+    <p>Diese neue Rudelführer-Mechanik gilt derzeit im
+    <b>Einzelspieler-PvE</b>. Klassisches PvP, 2v2 und symmetrische
+    KI-Forschungsduelle bleiben unverändert.</p>`],
  ];
  function refresh(){
   const modal=document.getElementById('modal'),book=modal?.querySelector('.arcane-handbook');
