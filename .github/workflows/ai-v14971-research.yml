@@ -1,0 +1,222 @@
+name: Arcane Duel - v14.9.71 Fusion Economics and Authentic Predator Swarm Research
+on:
+  push:
+    branches: [development]
+    paths: ['.github/workflows/ai-v14971-roles.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  soul-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      SELFPLAY: tests/ai-v1571-roles-selfplay.cjs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and combat rules preflight
+        run: |
+          set -euo pipefail
+          for f in tests/ai-v1571-{history,Q,endgame-learn,roles-selfplay,roles-aggregate}.cjs; do test -f "$f"; node --check "$f"; done
+          node --check tests/helpers/defender-cooperation-v1571.cjs
+          node --check tests/helpers/fusion-identity-v1571.cjs
+          node tests/helpers/game-runtime.cjs
+          node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
+      - name: Restore sealed v14.9.69 TRAIN checkpoint and role research controls
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARCANE_PREVIOUS_ARTIFACT_DIR: /tmp/arcane-v1571-prior
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40477542888" --jq '.conclusion')" = success
+          mkdir -p /tmp/arcane-v1571-prior artifacts/v1571
+          gh run download 40477542888 --repo "$GITHUB_REPOSITORY" --name arcane-v14970-roles --dir /tmp/arcane-v1571-prior
+          for f in older-q-checkpoint.json prior-selfplay-checkpoint.json incumbent-policy.json research-balanced-policy.json; do cp "/tmp/arcane-v1571-prior/$f" "artifacts/v1571/$f"; done
+          node tests/ai-v1571-history.cjs
+          node tests/ai-v1571-endgame-learn.cjs
+      - name: Independent TRAIN-only Q check
+        run: node --expose-gc --max-old-space-size=3200 tests/ai-v1571-Q.cjs
+      - name: Preflight unbiased defender mixes and legal fusion material profiles
+        run: |
+          set -euo pipefail
+          node - <<'JS'
+          const {boot}=require('./tests/helpers/game-runtime.cjs');
+          const {benchmark,MODES}=require('./tests/helpers/defender-cooperation-v1571.cjs');
+          const a=require('node:assert/strict');
+          const cards=boot({seed:15690042}).run('({cards:CARDS,defaultDeck:RPG_DEFAULT_DECK,startFusions:RPG_START_FUSIONS,opponents:OPPONENTS})');
+          for(const mode of Object.keys(MODES)){
+           const d=benchmark(cards,10,mode,7279);
+           a.equal(d.deck.length,40);
+           a.equal(d.meta.defenderCore,20);
+           console.log('ARCANE_V1571_CORE '+JSON.stringify({mode,counts:d.meta.roles}));
+          }
+          const f=require('./tests/helpers/fusion-identity-v1571.cjs');
+          for(const mode of f.MODES){
+           const deck=f.makeFusionRoleDeck(cards,10,mode,7279);
+           a.equal(deck.deck.length,40);
+           a.ok(deck.meta.sourceLegal);
+           console.log('ARCANE_V1571_FUSION_CORE '+JSON.stringify({mode,actual:deck.meta.roles}));
+          }
+          JS
+          node --expose-gc --max-old-space-size=2400 "$SELFPLAY" 8 0 0
+          node --expose-gc --max-old-space-size=2400 "$SELFPLAY" 9 0 0
+          node - <<'JS'
+          const a=require('node:assert/strict'),f=require('./artifacts/v1571/stage-8-pair-0-chunk-0.json');
+          a.equal(f.cases.length,144);
+          a.ok(f.cases.some(x=>x.arm==='defender-v1569-mixed-control'));
+          a.ok(f.cases.some(x=>x.arm==='role-identity-conditional-fusion'));
+          const f9=require('./artifacts/v1571/stage-9-pair-0-chunk-0.json');
+          a.equal(f9.cases.length,144);
+          a.ok(f9.cases.every(x=>x.fusionMode==='fusion-mixed'&&x.roleA==='fusion'));
+          a.ok(f9.cases.some(x=>x.arm==='role-identity-conditional-fusion'));
+          a.ok(f.cases.every(x=>x.focusMode==='mixed-50'));
+          a.ok(f.cases.every(x=>x.defenderCore.guardian===10&&
+           x.defenderCore.soul===10&&x.defenderCore.support===20));
+          const m=require('./artifacts/v1571/endgame-learner.json');
+          a.equal(m.sourceRun,40477542888);a.equal(m.split,'train');
+          a.equal(m.holdoutUsed,false);a.equal(m.validationUsed,false);
+          a.ok(m.games>=500&&m.failures>100&&m.nonzero>=3);
+          a.ok(f.cases.every(x=>x.illegalSwitchesBySeat.every(n=>n===0)));
+          console.log('ARCANE_V1571_PREVIEW_PASS');
+          JS
+      - name: Phase 0 - mirrored level-8
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 0 "$pair"
+          done
+          node "$SELFPLAY" 0 finalize
+      - name: Phase 1 - mirrored level-9
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 1 "$pair"
+          done
+          node "$SELFPLAY" 1 finalize
+      - name: Phase 2 - cross-role level-10
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 2 "$pair"
+          done
+          node "$SELFPLAY" 2 finalize
+      - name: Phase 3 - symmetric LP decay
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 3 "$pair"
+          done
+          node "$SELFPLAY" 3 finalize
+      - name: Phase 4 - extended role/fusion checks
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            for chunk in 0 1 2 3; do node --expose-gc --max-old-space-size=2400 "$SELFPLAY" 4 "$pair" "$chunk"; done
+          done
+          node "$SELFPLAY" 4 finalize
+      - name: Phase 5 - level-10 baseline
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 5 "$pair"
+          done
+          node "$SELFPLAY" 5 finalize
+      - name: Phase 6 - level-10 with decay
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 6 "$pair"
+          done
+          node "$SELFPLAY" 6 finalize
+      - name: Phase 7 - frozen-champion head-to-head
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            for chunk in 0 1 2 3; do node --expose-gc --max-old-space-size=2400 "$SELFPLAY" 7 "$pair" "$chunk"; done
+          done
+          node "$SELFPLAY" 7 finalize
+      - name: Phase 8 - Soul and fusion focus
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            for chunk in 0 1; do node --expose-gc --max-old-space-size=2400 "$SELFPLAY" 8 "$pair" "$chunk"; done
+          done
+          node "$SELFPLAY" 8 finalize
+      - name: Phase 9 - fusion opportunity and Resonator role identity
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            for chunk in 0 1; do node --expose-gc --max-old-space-size=2400 "$SELFPLAY" 9 "$pair" "$chunk"; done
+          done
+          node "$SELFPLAY" 9 finalize
+      - name: Aggregate reports
+        run: node --max-old-space-size=3200 tests/ai-v1571-roles-aggregate.cjs
+      - name: Validate 23040 paired duels and champion gates
+        run: |
+          set -euo pipefail
+          node - <<'JS'
+          const a=require('node:assert/strict'),fs=require('node:fs'),root='artifacts/v1571/';
+          const read=f=>JSON.parse(fs.readFileSync(root+f,'utf8'));
+          const r=read('report.json'),h=read('historical-train.json'),prov=read('provenance.json');
+          const endgame=read('endgame-learner.json');
+          a.equal(endgame.sourceRun,40477542888);
+          a.equal(endgame.split,'train');a.equal(endgame.holdoutUsed,false);
+          a.equal(endgame.validationUsed,false);a.ok(endgame.nonzero>=3);
+          a.equal(r.status,'completed');a.equal(r.totalDuels,23040);a.equal(r.primaryDuels,9216);
+          a.equal(r.stages.length,10);a.equal(r.arms.length,6);
+          a.equal(h.sources.length,60);a.equal(h.examples.length,7962);
+          a.equal(h.sources.at(-1),40477542888);a.equal(prov.holdoutAsTraining,false);
+          a.equal(r.globalSelection.holdoutSeenBySelector,false);
+          a.deepEqual(r.globalSelection.selectionGateStages,[0,1,2,3,4,7,8]);
+          a.ok(r.controls.holdoutNeverUsedForSelection);a.ok(r.controls.noProductionChanges);
+          a.ok(r.controls.nonDefenderExactReplayParity);
+          for(let i=0;i<10;i++){
+            const s=read('stage-'+i+'.json');
+            a.equal(s.allCases.length,i===4||i===7?4608:i===8||i===9?2304:1152);
+            a.ok(s.allCases.every(x=>x.illegalSwitchesBySeat.every(n=>n===0)));
+            a.ok(s.allCases.every(x=>x.selfPlayStrategicBySeat.every(n=>n>0)));
+            a.ok(s.allCases.every(x=>x.decayEnabled===(i===3||i===6)));
+          }
+          const old=r.arms.find(x=>x.arm==='defender-v1569-mixed-control');
+          const current=r.arms.find(x=>x.arm==='role-identity-conditional-fusion');
+          a.ok(old?.evaluations.defenderEndgameContextChecks>0);
+          a.ok(r.mixedCoreAudits.length===6);
+          a.equal(r.fusionIdentityAudits.length,6);
+          const fus=r.fusionIdentityAudits.find(x=>x.arm==='role-identity-conditional-fusion');
+          a.ok(fus&&fus.overall.games===384);
+          a.ok(current?.evaluations.defenderCooperationChecks===0||current?.evaluations.defenderCooperationChecks>0);
+          a.ok(current?.evaluations.defenderEndgameExtendedReplies>0);
+          a.ok(current?.evaluations.defenderEndgameFollowupAttacks>0);
+          a.ok(current?.evaluations.defenderUnifiedReplies>0);
+          a.ok(r.controls.balancedMixedGuardianSoulDecksFromSourceLegalCards);
+          a.ok(r.controls.fixedSupportCoreAndMatchedOpponentRng);
+          a.ok(r.controls.cooperationScoredOnlyFromRealVisibleReplies);
+          a.ok(r.controls.explicitMixedVsPureValidationPromotionGate);
+          a.ok(r.controls.uniformRolePolicyForAllDefenderDeckRatios);
+          a.ok(r.controls.fusionMaterialVsSwarmBenchmarks);
+          a.ok(r.controls.fusionMaterialCostAndResonatorDiagnostics);
+          a.ok(r.controls.fusionRoleIdentityValidationGate);
+          a.ok(r.controls.extendedEndgamePublicReplyAndAttackForecast);
+          a.ok(r.controls.endgameObservationalBiasCapped);
+          a.ok(r.controls.v1567UnifiedControlExactReplay);
+          if(r.globalSelection.promoted){
+            const w=r.globalSelection.candidates.find(x=>x.arm===r.globalSelection.arm);
+            a.ok(w?.qualifies&&w.guardianGate&&w.seatNonRegressionVsFrozen);
+            a.ok(w.h2hTrainGain>=4&&w.h2hValidationGain>=8);
+            a.ok(w.decayValidationVsFrozen>=0&&w.fusionNonRegression);
+            a.ok(w.mixedSynergyGate);a.ok(w.fusionIdentityGate);
+          }else a.equal(r.globalSelection.arm,'l10-guarded-worst-reply');
+          console.log('ARCANE_V1571_REPORT_OK');
+          JS
+      - name: Archive complete sealed research
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v14971-roles
+          path: artifacts/v1571/
+          retention-days: 90
+          if-no-files-found: warn
