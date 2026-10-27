@@ -41,6 +41,12 @@
  const ENCOUNTERS=[...CHAPTERS,...QUESTS];
  const encounter=id=>ENCOUNTERS.find(c=>c.id===id);
  const isQuest=id=>id>=11&&id<=15;
+ // Same LP progression as duelStartingLP('pve',tier,'easy','tournament')
+ // in the singleplayer; Lv1 sidequest LP come from DECK_PROFILES in its saga.
+ const QUEST_SOLO_LP=[2000,3000,4500,5200,7000];
+ const soloStartingLp=chapter=>isQuest(chapter)?QUEST_SOLO_LP[chapter-11]:
+  chapter<=3?4000:chapter<=6?6000:chapter<=8?7000:10000;
+ const duoStartingLp=chapter=>soloStartingLp(chapter)*2;
  const opponentNames=chapter=>chapter===10?['Eiman Huel Stalker','Hans Ess Kirk']:
   isQuest(chapter)?['Der Level-1-Fanatiker',chapter===15?'Verderbter Adept':'Fanatikers Adept']:
   ['Gegner A','Gegner B'];
@@ -55,6 +61,9 @@
  const copy=value=>JSON.parse(JSON.stringify(value));
  const safeName=n=>String(n||'Duellant').replace(/[<>\x00-\x1f]/g,'').trim().slice(0,32)||'Duellant';
  const clamp=(n,low,high)=>Math.max(low,Math.min(high,n));
+ // The solo Level-1 fanatic starts at 0.38x. Never silently clamp a real
+ // solo NPC loadout back to 1.0x during 2v2 parity conversion.
+ const npcPower=value=>Number.isFinite(value)&&value>=.1&&value<=1.5?value:1;
  const round10=n=>Math.round(n/10)*10;
  const roomSeed=id=>{let h=2166136261;for(const ch of String(id)){
   h=Math.imul(h^ch.charCodeAt(0),16777619);
@@ -161,6 +170,17 @@
   }
   return true;
  }
+ function validNpcFusionDeck(ids,catalog){
+  if(!Array.isArray(ids)||ids.length<1||ids.length>15)return false;
+  const counts=new Map();
+  for(const id of ids){
+   const c=definition(catalog,id);
+   if(!Number.isSafeInteger(id)||!c?.fusionOnly||c.fateTemplate)return false;
+   counts.set(id,(counts.get(id)||0)+1);
+   if(counts.get(id)>3)return false;
+  }
+  return true;
+ }
  const seats=[{seat:0,team:0,kind:'human'},{seat:1,team:1,kind:'ai'},
   {seat:2,team:0,kind:'human'},{seat:3,team:1,kind:'ai'}];
  const packIds=(catalog,chapter)=>{
@@ -197,9 +217,19 @@
    field:Array(7).fill(null),graveyard:[],summoned:false,ownTurns:0};
  }
  function draw(p,n=5){while(p.hand.length<n&&p.deck.length)p.hand.push(p.deck.shift());}
+ function fanaticOpening(g){
+  if(g.chapter<11||g.chapter>14)return;
+  // Same sealed Lumira as in the solo Lv1 saga: a guaranteed fifth hand
+  // card, separate from the unchanged 40-card solo opponent deck.
+  const fanatic=g.players[1],returned=fanatic.hand.pop();
+  if(returned!==undefined)fanatic.deck.push(returned);
+  fanatic.hand.unshift(714);
+  g.log.push('Der Level-1-Fanatiker hält Lumira als versiegelte Startkarte.');
+ }
  function create({roomId,hostName,hostDeck,hostFusions,enemyDeckA,enemyDeckB,
     enemyFusionsA,enemyFusionsB,chapter=1,entry='new',catalog,randomSeed,
-    hostUpgrades={},hostEnhancements={},hostEssence={},hostLv1={}}){
+    hostUpgrades={},hostEnhancements={},hostEssence={},hostLv1={},
+    enemyPowerA=1,enemyPowerB=1,enemyNameA=null,enemyNameB=null}){
   assert(typeof roomId==='string'&&roomId.length>=6,'Raumkennung fehlt.');
   assert(!!encounter(chapter),'Ungültiges Kapitel.');
   assert(['new','chapter','quest'].includes(entry),'Ungültiger Einstieg.');
@@ -207,24 +237,30 @@
   assert((entry==='quest')===isQuest(chapter),'Questreihe und Kampagne bleiben getrennt.');
   for(const d of [hostDeck,enemyDeckA,enemyDeckB])
    assert(validDeck(d,catalog),'Hauptdeck muss aus 40 gültigen Einzelspieler-Karten bestehen (maximal 3 Kopien).');
-  for(const f of [hostFusions,enemyFusionsA,enemyFusionsB])
-   assert(validDeck(f,catalog,true),'Fusionsdeck muss aus 2–15 freigeschalteten Fusionen bestehen (maximal 3 Kopien).');
+  assert(validDeck(hostFusions,catalog,true),'Spieler-Fusionsdeck ist ungültig.');
+  for(const f of [enemyFusionsA,enemyFusionsB])
+   assert(validNpcFusionDeck(f,catalog),'NPC-Fusionsdeck ist ungültig.');
   const hostBuild=normalizedBuild(hostUpgrades,hostEnhancements,hostDeck,hostFusions,
    catalog,hostEssence,hostLv1);
+  const lp=duoStartingLp(chapter);
   const g={schema:2,mode:'duo-campaign',ruleset:'duo-v166',roomId,chapter,entry,
+   lpParityVersion:2,
    status:'waiting',revision:0,activeSeat:0,turn:0,round:1,uid:1,
    rngSeed:Number.isSafeInteger(randomSeed)&&randomSeed>=1&&randomSeed<=0xffffffff?
     randomSeed:roomSeed(roomId), // deterministic Node QA; Edge injects secret crypto seed
-   teams:[{lp:16000,maxLp:16000,shield:maxAegis(hostBuild),
+   teams:[{lp,maxLp:lp,shield:maxAegis(hostBuild),
     essenceTauntTurn:-1,essenceBastionUsed:false},
-    {lp:16000,maxLp:16000,shield:0}],
+    {lp,maxLp:lp,shield:0}],
    players:[player(0,safeName(hostName),chapterDeck(hostDeck,catalog,chapter,entry),hostFusions,hostBuild),
-    player(1,opponentNames(chapter)[0],enemyDeckA,enemyFusionsA),
-    player(2,'Partner (ausstehend)'),player(3,opponentNames(chapter)[1],enemyDeckB,enemyFusionsB)],
+    player(1,safeName(enemyNameA||opponentNames(chapter)[0]),enemyDeckA,enemyFusionsA),
+    player(2,'Partner (ausstehend)'),
+    player(3,safeName(enemyNameB||opponentNames(chapter)[1]),enemyDeckB,enemyFusionsB)],
    winner:null,fateEvent:null,arenaEvent:null,
    questProgress:{floating:0,swarm:0,special:0},questPassed:null,
    log:['Raum erstellt. Der Partner wird erwartet.']};
   if(isQuest(chapter))g.log.push('Fanatiker-Saga · '+encounter(chapter).name+': '+encounter(chapter).dialogue);
+  g.players[1].opponentPower=npcPower(enemyPowerA);
+  g.players[3].opponentPower=npcPower(enemyPowerB);
   // Tiebreak initiative is chosen once, never supplied by a browser client.
   g.tiePriority=randomInt(g,2);
   return g;
@@ -232,12 +268,16 @@
  function instance(g,id,catalog,{fusion=false,roleOverride=null,quality=1,
   ownerSeat=null,fate=null,storyCorruption=false}={}){
   const c=definition(catalog,id);
+  const p=Number.isInteger(ownerSeat)?g.players[ownerSeat]:null;
+  const npcFusion=p?.team===1&&!!c?.fusionOnly&&
+   p.baseFusions?.includes(id)===true;
   assert(c&&(c.playable||(fate&&c.fateTemplate)||
+   npcFusion||
    (storyCorruption&&isQuest(g.chapter)&&g.chapter===15&&id===715&&ownerSeat===1)),
    'Karte existiert nicht im aktuellen Singleplayer-Katalog.');
-  const p=Number.isInteger(ownerSeat)?g.players[ownerSeat]:null;
-  let atk=fate?fate.atk:Math.max(0,round10((c.atk+statBonus(c,'atk',p))*quality));
-  let def=fate?fate.def:Math.max(0,round10((c.def+statBonus(c,'def',p))*quality));
+  const npcBoost=!fate&&p?.team===1?npcPower(p.opponentPower):1;
+  let atk=fate?fate.atk:Math.max(0,round10((c.atk+statBonus(c,'atk',p))*quality*npcBoost));
+  let def=fate?fate.def:Math.max(0,round10((c.def+statBonus(c,'def',p))*quality*npcBoost));
   const companion=!fate&&!!c.essenceMonster&&p?.essence?.chosen===id;
   const level=companion?essenceLevel(p.essence.tier):c.level;
   if(companion){atk=Math.min(10000,atk+level*45+p.essence.rank*35);
@@ -248,10 +288,8 @@
   // Lumira is an exact-stat story ACE, including outside the research build.
   if(c.lv1Special==='ace'){atk=111;def=111;}
   if(storyCorruption){atk=920;def=220;}
-  // Both final bosses use the same solo-showcase power multiplier.
-  if(!storyCorruption&&g.chapter===10&&(ownerSeat===1||ownerSeat===3)){
-   atk=Math.min(10000,round10(atk*1.13));def=Math.min(10000,round10(def*1.13));
-  }
+  // The stat multiplier comes from the exact solo NPC loadout, not a
+  // second, independently balanced 2v2 number.
   return {uid:g.uid++,id,level,atk,def,fate:!!fate,role:roleOverride||c.role||'combatant',
    fusion,mode:'atk',used:false,switched:false,placedRound:g.round,
    essenceChoice:1,essenceAttacks:0,essenceLastToggle:-1,
@@ -424,7 +462,9 @@
  // The solo Arena applies 200 damage at round 10 and doubles thereafter.
  // Scale by the 2v2 team's 16,000 / 10,000 maximum LP to preserve pacing.
  const arenaDamage=(g,round)=>round<=9?0:
-  Math.min(g.teams[0].maxLp,Math.floor(200*g.teams[0].maxLp/10000)*2**(round-10));
+  Math.min(g.teams[0].maxLp,
+   (g.lpParityVersion===2?400:Math.floor(200*g.teams[0].maxLp/10000))*
+    2**(round-10));
  function settleArena(g){
   if(!isV166(g)||g.status!=='active')return;
   const damage=arenaDamage(g,g.round);
@@ -1017,7 +1057,7 @@
   c.lastSoulAction=p.ownTurns;
  }
  function apply(old,seat,action,{catalog,enemyDeckA,enemyDeckB,enemyFusionsA,enemyFusionsB,
-  humanBuilds}={}){
+  enemyPowerA,enemyPowerB,enemyNameA,enemyNameB,humanBuilds}={}){
   assert(old?.schema===2&&old.mode==='duo-campaign','Unbekanntes 2v2-Spielstandsformat.');
   assert(Number.isInteger(seat)&&seat>=0&&seat<=3,'Ungültiger Sitzplatz.');
   assert(action&&typeof action.type==='string','Aktion fehlt.');
@@ -1033,6 +1073,7 @@
    g.players[2]=partner;g.status='active';
    g.teams[0].shield=teamAegis(g);
    for(const pl of g.players)draw(pl);
+   fanaticOpening(g);
    if(g.chapter===15){
     const fanatic=g.players[1];
     fanatic.graveyard.push({id:714,from:'story'});
@@ -1047,9 +1088,11 @@
     (isQuest(g.chapter)?g.chapter<15&&g.questPassed===true:g.chapter<CHAPTERS.length),
     'Nur der Gastgeber kann das nächste freigeschaltete Kapitel starten.');
    g.chapter++;g.status='active';g.winner=null;g.round=1;g.turn=0;g.activeSeat=0;
+   g.lpParityVersion=2;
    g.questProgress={floating:0,swarm:0,special:0};g.questPassed=null;
    g.fateEvent=null;g.arenaEvent=null;g.predatorPursuit=null;g.predatorImpact=null;
-   g.teams.forEach(t=>t.lp=t.maxLp);
+   const nextLp=duoStartingLp(g.chapter);
+   g.teams.forEach(t=>{t.maxLp=nextLp;t.lp=nextLp;});
    g.teams[0].shield=teamAegis(g);g.teams[1].shield=0;
    g.teams[0].essenceTauntTurn=-1;g.teams[0].essenceBastionUsed=false;
    for(const pl of g.players){
@@ -1065,18 +1108,22 @@
      pl.lv1.perk=build.lv1.perk;pl.lv1.rank=build.lv1.rank;
     }
     if(pl.seat===1&&enemyDeckA&&enemyFusionsA){
-     assert(validDeck(enemyDeckA,catalog)&&validDeck(enemyFusionsA,catalog,true),
+     assert(validDeck(enemyDeckA,catalog)&&validNpcFusionDeck(enemyFusionsA,catalog),
       'Gegnerdeck des nächsten Kapitels ist ungültig.');
      pl.baseDeck=[...enemyDeckA];pl.baseFusions=[...enemyFusionsA];
+     pl.opponentPower=npcPower(enemyPowerA);
     }
     if(pl.seat===3&&enemyDeckB&&enemyFusionsB){
-     assert(validDeck(enemyDeckB,catalog)&&validDeck(enemyFusionsB,catalog,true),
+     assert(validDeck(enemyDeckB,catalog)&&validNpcFusionDeck(enemyFusionsB,catalog),
       'Partner-Gegnerdeck des nächsten Kapitels ist ungültig.');
      pl.baseDeck=[...enemyDeckB];pl.baseFusions=[...enemyFusionsB];
+     pl.opponentPower=npcPower(enemyPowerB);
     }
-    if(pl.seat===1)pl.name=opponentNames(g.chapter)[0];
-    if(pl.seat===3)pl.name=opponentNames(g.chapter)[1];
-    pl.deck=chapterDeck(pl.baseDeck,catalog,g.chapter,'chapter');
+    if(pl.seat===1)pl.name=safeName(enemyNameA||opponentNames(g.chapter)[0]);
+    if(pl.seat===3)pl.name=safeName(enemyNameB||opponentNames(g.chapter)[1]);
+    // Canonical solo NPC card pool must never be altered by human catch-up loaners.
+    pl.deck=pl.team===0?chapterDeck(pl.baseDeck,catalog,g.chapter,'chapter'):
+     [...pl.baseDeck];
     pl.fusionDeck=[...pl.baseFusions];pl.remainingFusion=[...pl.baseFusions];
     pl.hand=[];pl.field=Array(7).fill(null);pl.graveyard=[];
     pl.summoned=false;pl.ownTurns=0;pl.fusionsPerformed=0;pl.fateUsed=false;
@@ -1086,6 +1133,7 @@
     saved.floatUsed=0;saved.swarmUsed=0;
    }
    g.teams[0].shield=teamAegis(g);
+   fanaticOpening(g);
    if(g.chapter===15){
     g.players[1].graveyard.push({id:714,from:'story'});
     g.players[1].field[0]=instance(g,715,catalog,{fusion:true,ownerSeat:1,storyCorruption:true});
@@ -1458,7 +1506,8 @@
   }
   return v;
  }
- return Object.freeze({version:'16.7-beta',CHAPTERS,QUESTS,ENCOUNTERS,seats,allowed,validDeck,packIds,
+ return Object.freeze({version:'16.8-beta',CHAPTERS,QUESTS,ENCOUNTERS,seats,allowed,validDeck,
+  validNpcFusionDeck,soloStartingLp,duoStartingLp,packIds,
   chapterDeck,create,apply,aiTurn,view,attackValue,fusionLevel,fusionPattern,fusionOptions,
   fusionAnalysis,fusionPreview,fusionRole,arenaDamage,fatePressure,PERK_LIMITS,normalizedBuild});
 });

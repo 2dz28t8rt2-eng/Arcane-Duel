@@ -2,6 +2,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const rules=require('../assets/duo-shared-rules-v160.js');
+const INITIAL_LP=rules.duoStartingLp(1);
 const data=require('../assets/duo-card-catalog-v160.json');
 const catalog=Object.fromEntries(data.cards.map(c=>[c.id,c]));
 const base=[...data.starterMain],fusion=[...data.starterFusions];
@@ -39,7 +40,7 @@ test('condense lets a Soul Eater switch and attack in the same turn',()=>{
  assert.equal(g.players[0].field[0].used,false);
  g=move(g,0,{type:'switch',slot:0});
  g=move(g,0,{type:'attack',slot:0,targetSeat:null,targetSlot:null});
- assert.equal(g.teams[1].lp,16000-375);
+ assert.equal(g.teams[1].lp,INITIAL_LP-375);
  assert.equal(g.players[0].field[0].used,true);
 });
 test('condensation shield loss immediately reduces the defender counterstrike',()=>{
@@ -48,14 +49,14 @@ test('condensation shield loss immediately reduces the defender counterstrike',(
  g=move(g,0,{type:'attack',slot:0,targetSeat:1,targetSlot:0});
  const remaining=g.players[1].field[0].condensed;
  assert.ok(remaining>0&&remaining<200);
- assert.equal(g.teams[0].lp,16000-Math.floor((400+Math.floor(remaining*.5))*.5));
+ assert.equal(g.teams[0].lp,INITIAL_LP-Math.floor((400+Math.floor(remaining*.5))*.5));
  assert.equal(g.players[1].field[0].atk,400);
 });
 test('ATK-position enemy Soul Eater resists with its current temporary ATK',()=>{
  let g=setup();g.players[0].field[0]=live(2,{atk:220});
  g.players[1].field[0]=live(7,{atk:200,mode:'atk',condensed:100});
  g=move(g,0,{type:'attack',slot:0,targetSeat:1,targetSlot:0});
- assert.equal(g.teams[0].lp,15970);
+ assert.equal(g.teams[0].lp,INITIAL_LP-30);
  assert.equal(g.players[1].field[0].atk,200);
 });
 test('three-own-turn decay/cooldown are unchanged and UI/server show same bonus',()=>{

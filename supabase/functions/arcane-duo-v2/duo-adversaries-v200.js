@@ -69,7 +69,17 @@
   }
   return result;
  }
- function enemyDeck(chapter,seat,cards,starter){
+ const soloEntry=(chapter,solo)=>!solo?null:
+  chapter>=11&&chapter<=15?solo.saga?.[chapter-11]:
+  chapter>=1&&chapter<=10?(chapter===10?solo.showcase:solo.roster?.[chapter-1]):null;
+ const mirrorOrder=deck=>deck.map((_,i)=>deck[(i+Math.floor(deck.length/2))%deck.length]);
+ function enemyDeck(chapter,seat,cards,starter,solo=null){
+  const original=soloEntry(chapter,solo);
+  if(original){
+   // Both opponents get EXACTLY the original solo card multiset. Only the
+   // second duellant's draw order changes so the two hands are independent.
+   return seat===1?[...original.deck]:mirrorOrder(original.deck);
+  }
   if(chapter===1)return [...starter];
   if(chapter===10)return bosses(cards,seat);
   if(isQuest(chapter))return fanatic(cards,chapter-10,seat);
@@ -84,7 +94,9 @@
   const unique=options.slice(0,20).map(c=>c.id);
   return unique.length===20?duplicateTwenty(unique):[...starter];
  }
- function enemyFusions(chapter,cards){
+ function enemyFusions(chapter,cards,solo=null){
+  const original=soloEntry(chapter,solo);
+  if(original)return [...original.fusions];
   const cap=isQuest(chapter)?Math.max(2,[1,2,4,5,7][chapter-11]):
    [3,5,7,10,10,10,10,10,10,10][chapter-1];
   const pool=cards.filter(c=>c.playable&&c.fusionOnly&&c.level<=cap&&
@@ -92,5 +104,13 @@
    .sort((a,b)=>b.level-a.level||a.id-b.id);
   return pool.slice(0,Math.min(15,pool.length)).map(c=>c.id);
  }
- return Object.freeze({LEVELS,isQuest,enemyDeck,enemyFusions});
+ function enemyPower(chapter,solo=null){return soloEntry(chapter,solo)?.power||1;}
+ function enemyNames(chapter,solo=null){
+  const original=soloEntry(chapter,solo);
+  if(chapter===10)return ['Eiman Huel Stalker','Hans Ess Kirk'];
+  if(isQuest(chapter))return ['Der Level-1-Fanatiker','Fanatikers Adept'];
+  return original?[original.name,'Verbündeter von '+original.name]:
+   ['Gegner A','Gegner B'];
+ }
+ return Object.freeze({LEVELS,isQuest,enemyDeck,enemyFusions,enemyPower,enemyNames});
 });

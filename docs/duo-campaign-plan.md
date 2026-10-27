@@ -1,3 +1,30 @@
+# 2v2 v20.1 – LP- und Gegner-Parität mit Singleplayer (27.10.2026)
+
+Die **getrennten 2v2-Spielerprofile** bleiben erhalten. Es spielen maximal **zwei Menschen gegen zwei KI-Gegner**. Das folgende Update bezieht sich ausschließlich auf den Entwicklungsbranch und die isolierte 2v2-Edge-Funktion, nicht auf die laufende Singleplayer-KI-Forschung.
+
+## Lebenspunkte: exakt zweimal die passende Solo-Kampagnenstufe
+
+| Solo-Turnierstufen | Singleplayer-LP je Seite | 2v2-LP je Team |
+|---|---:|---:|
+| I–III | 4.000 | 8.000 |
+| IV–VI | 6.000 | 12.000 |
+| VII–VIII | 7.000 | 14.000 |
+| IX–X | 10.000 | 20.000 |
+
+Die fünf zusätzlichen Level-1-Fanatiker-Prüfungen verwenden die spezifischen Solo-LP 2.000 / 3.000 / 4.500 / 5.200 / 7.000, im 2v2 also 4.000 / 6.000 / 9.000 / 10.400 / 14.000. Die LP werden beim Kapitelwechsel auf den neuen Kapitelwert gesetzt. Bereits bestehende, gespeicherte Räume behalten die LP ihres angefangenen Duells; beim Kapitelwechsel greift die neue Staffel. Auch der 2v2-Arena-Zerfall verdoppelt die Solo-Basis von 200 auf 400 LP, unabhängig vom jeweiligen LP-Maximum.
+
+## Gegner: tatsächliche Solo-Decks statt künstlicher 2v2-Zusammenstellung
+
+- `scripts/build-duo-opponents-v201.cjs` liest die aktiven Singleplayer-Laufzeitregeln und erzeugt einen versionierten Katalog mit den **zehn Original-Gegnerprofilen**, dem **Eiman-Huel-Stalker-Showcase** und den **fünf Fanatiker-Profilen** (jeweils 40 Hauptkarten, Fusionsdeck und NPC-Stärkefaktor).
+- Kapitel I–IX: beide KI-Plätze erhalten genau die Einzelspieler-Karten ihres jeweiligen Kapitels, nur mit unterschiedlicher Ziehreihenfolge. Kapitel X: Eiman Huel Stalker und Hans Ess Kirk verwenden zwei vollständige Kopien des Solo-Eiman-Showcase-Decks mit demselben 1,13-Faktor. Die Level-1-Nebenreihe übernimmt die jeweilige Solo-Profilstärke 0,38–0,93.
+- Ein KI-Gegner bekommt **keine** Spieler-Aufhol-Leihkarten, auch nicht beim Kapitelwechsel. NPC-Fusionsdecks dürfen, wie im Solo, aus nur einer Vorlage bestehen oder als Gegner-exklusiv markierte Fusionen enthalten. Die normalen Spieler-Decklimits und Eigentumsprüfungen bleiben unverändert.
+- In den Level-1-Stationen 11–14 beginnt der Fanatiker außerdem mit der versiegelten **Lumira** auf der Starthand: Sie ist wie im Solo **keine der 40 regulären Deckkarten** und wird als erste Karte beschworen. Die finale Verwandlung in `Lumiras Fall` bleibt für Station 15 bestehen.
+- Eigene Tests vergleichen die Singleplayer-LP direkt mit der Solo-Laufzeit, Kartenmultimengen und Fusionslisten für alle 15 Stationen, das Erzeugen und den Kapitelwechsel sowie das Fortsetzen bestehender Räume. `node scripts/build-duo-opponents-v201.cjs --check` prüft auf Drift bei späteren Solo-Balancing-Updates.
+
+**Offene Qualitätsgrenze:** Die vorhandenen zwei NPCs benutzen noch eine einfache, überwiegend unabhängige Entscheidungslogik (Beschwören, Angriff, Ende). Sie verfügen noch nicht über eine gemeinsame Vorausplanung, strategische Fusionen, DEF-Aufbau oder gezielte Fähigkeitsnutzung. Diese Team-KI muss vor einer Zusage vollständiger KI-Parität mit reproducierbaren Zweier-Kampftests separat entwickelt und abgenommen werden. Ein Live-Duell mit zwei echten Geräten ist ebenfalls noch ausständig.
+
+---
+
 # 2v2 v17.6 – Seelenzehrer-Verdichten und strategischer Progressionstest (26.10.2026)
 
 **Produktgrenzen bleiben:** maximal zwei Menschen gegen zwei bestehende KIs; ausschließlich eigene 2v2-Sammlung und serverseitige Spielstände, kein Singleplayer-Import, kein KI-Training und kein Merge nach `main`.

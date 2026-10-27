@@ -2,6 +2,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const rules=require('../assets/duo-shared-rules-v160.js');
+const INITIAL_LP=rules.duoStartingLp(1);
 const snapshot=require('../assets/duo-card-catalog-v160.json');
 const catalog=Object.fromEntries(snapshot.cards.map(c=>[c.id,c]));
 const deck=[...snapshot.starterMain],fusions=[...snapshot.starterFusions];
@@ -43,14 +44,14 @@ test('current singleplayer catalog and server catalog never diverge',()=>{
  assert.equal(fs.readFileSync(path.resolve(__dirname,'../supabase/functions/arcane-duo-v2/duo-rules.js'),'utf8'),
   fs.readFileSync(path.resolve(__dirname,'../assets/duo-shared-rules-v160.js'),'utf8'));
 });
-test('all four players start with 40 real cards, five in own hand, seven slots and 16k team LP',()=>{
+test('all four players start with 40 real cards, five in own hand, seven slots and stage-specific team LP',()=>{
  const state=setup();
  assert.equal(state.schema,2);assert.equal(state.ruleset,'duo-v166');
  assert.ok([0,1].includes(state.tiePriority));assert.equal(state.players.length,4);
  assert.deepEqual(state.players.map(p=>p.hand.length),[5,5,5,5]);
  assert.deepEqual(state.players.map(p=>p.deck.length),[35,35,35,35]);
  assert.deepEqual(state.players.map(p=>p.field.length),[7,7,7,7]);
- assert.deepEqual(state.teams.map(t=>t.lp),[16000,16000]);
+ assert.deepEqual(state.teams.map(t=>t.lp),[INITIAL_LP,INITIAL_LP]);
  assert.deepEqual(state.players.map(p=>p.team),[0,1,0,1]);
  assert.equal(state.activeSeat,0);
 });
@@ -138,17 +139,17 @@ test('Arena damages team LP only after completed round 10 and bypasses shields',
  let g=setup();g.activeSeat=3;g.round=9;
  g.teams[0].shield=500;g.teams[1].shield=300;
  const early=move(g,3,{type:'end'});
- assert.deepEqual(early.teams.map(t=>t.lp),[16000,16000]);
+ assert.deepEqual(early.teams.map(t=>t.lp),[INITIAL_LP,INITIAL_LP]);
  assert.equal(early.arenaEvent,null);
  g.round=10;
  const after=move(g,3,{type:'end'});
- assert.deepEqual(after.teams.map(t=>t.lp),[15680,15680]);
+ assert.deepEqual(after.teams.map(t=>t.lp),[INITIAL_LP-400,INITIAL_LP-400]);
  assert.deepEqual(after.teams.map(t=>t.shield),[500,300]);
- assert.equal(after.round,11);assert.equal(after.arenaEvent.damage,320);
- assert.deepEqual(after.arenaEvent.before,[16000,16000]);
- assert.equal(rules.arenaDamage(g,10),320);
- assert.equal(rules.arenaDamage(g,11),640);
- assert.equal(rules.arenaDamage(g,16),16000);
+ assert.equal(after.round,11);assert.equal(after.arenaEvent.damage,400);
+ assert.deepEqual(after.arenaEvent.before,[INITIAL_LP,INITIAL_LP]);
+ assert.equal(rules.arenaDamage(g,10),400);
+ assert.equal(rules.arenaDamage(g,11),800);
+ assert.equal(rules.arenaDamage(g,16),INITIAL_LP);
  assert.equal(after.log.some(s=>s.includes('Arena-Zerfall')),true);
 });
 test('Arena dual knockout uses pre-damage LP, then fixed seeded initiative on ties',()=>{
@@ -165,7 +166,7 @@ test('Arena dual knockout uses pre-damage LP, then fixed seeded initiative on ti
  assert.match(next.log.at(-1),/ausgeloste Entscheidungsinitiative/);
  state.tiePriority=0;
  next=move(state,3,{type:'end'});assert.equal(next.winner,0);
- state.teams[0].lp=321;state.teams[1].lp=320;
+ state.teams[0].lp=401;state.teams[1].lp=400;
  next=move(state,3,{type:'end'});
  assert.equal(next.status,'finished');assert.equal(next.winner,0);
 });
@@ -378,7 +379,7 @@ test('DEF attacks are persistent, armoured, layered and counterattack with both 
  assert.equal(defender.condensed,0);
  assert.equal(defender.soul,0);
  assert.equal(defender.def,325);
- assert.equal(after.teams[0].lp,16000-50-200); // lost soul + defender's 50% ATK
+ assert.equal(after.teams[0].lp,INITIAL_LP-50-200); // lost soul + defender's 50% ATK
  assert.equal(after.players[0].field[0].atk,970); // attack fatigue
  assert.equal(after.players[0].field[0].used,true);
  assert.equal(state.players[1].field[0].def,1000,'Reducer must not mutate input');
@@ -389,13 +390,13 @@ test('Soul defender counters in DEF; Predator in DEF has no armor',()=>{
  state.players[1].field[0]=live(7,{atk:300,def:300,mode:'def'});
  state=move(state,0,{type:'attack',slot:0,targetSeat:1,targetSlot:0});
  assert.equal(state.players[1].field[0].def,147); // 200 * 1.02 swarm * 0.75 armor = 153
- assert.equal(state.teams[0].lp,15850);
+ assert.equal(state.teams[0].lp,INITIAL_LP-150);
  let predator=setup();predator.round=2;
  predator.players[0].field[0]=live(0,{atk:200});
  predator.players[1].field[0]=live(4,{def:250,mode:'def'});
  predator=move(predator,0,{type:'attack',slot:0,targetSeat:1,targetSlot:0});
  assert.equal(predator.players[1].field[0].def,50);
- assert.equal(predator.teams[0].lp,16000);
+ assert.equal(predator.teams[0].lp,INITIAL_LP);
 });
 test('Soul passive drains both enemy fields, applies brand, and Guardian heals own team',()=>{
  let state=setup();state.activeSeat=3;
@@ -409,7 +410,7 @@ test('Soul passive drains both enemy fields, applies brand, and Guardian heals o
  assert.ok(next.players[1].field[0].atk<300);
  assert.ok(next.players[3].field[0].atk<300);
  assert.ok(next.players[0].field[0].soul>0);
- assert.ok(next.teams[1].lp<16000,'Soul brand should damage the enemy team');
+ assert.ok(next.teams[1].lp<INITIAL_LP,'Soul brand should damage the enemy team');
  assert.ok(next.players[2].field[1].def>100,'Guardian restores partner base DEF');
  assert.ok(next.players[2].field[1].def<=260);
 });
@@ -419,7 +420,7 @@ test('Soul actions validate authorization, require DEF, and enforce once-per-tur
  assert.throws(()=>move(state,2,{type:'soulDischarge',slot:0}),/anderer Spieler/);
  const next=move(state,0,{type:'soulDischarge',slot:0});
  assert.equal(next.players[0].field[0].soul,0);
- assert.equal(next.teams[1].lp,15740);
+ assert.equal(next.teams[1].lp,INITIAL_LP-260);
  assert.throws(()=>move(next,0,{type:'soulCondense',slot:0}),/Bereits eine aktive/);
  assert.throws(()=>move(state,0,{type:'soulFocus',slot:0,stat:'atk'}),/Rang 3/);
  const focused=setup();focused.players[0].field[0]=live(387,{mode:'def'});
@@ -457,10 +458,10 @@ test('old v16.0 room snapshots continue to run without new Soul fields',()=>{
   delete state.players[0].field[0][field];
  const after=move(state,0,{type:'soulDischarge',slot:0});
  assert.equal(after.players[0].field[0].lastSoulAction,0);
- assert.equal(after.teams[1].lp,15870);
+ assert.equal(after.teams[1].lp,INITIAL_LP-130);
 });
 test('combat build is server-validated, bounded to the submitted decks and persists on both seats',()=>{
- assert.equal(rules.version,'16.7-beta');
+ assert.equal(rules.version,'16.8-beta');
  const opts={roomId:'build-123456',hostName:'Host',hostDeck:deck,hostFusions:fusions,
   enemyDeckA:deck,enemyDeckB:deck,enemyFusionsA:fusions,enemyFusionsB:fusions,
   chapter:1,entry:'new',catalog,hostUpgrades:{power:10,openingAegis:3},
@@ -509,7 +510,7 @@ test('partner shield is shared and server-authoritative before LP damage',()=>{
  state.players[1].field[0]=live(7,{mode:'def',soul:100});
  const after=move(state,1,{type:'soulDischarge',slot:0});
  assert.equal(after.teams[0].shield,0);
- assert.equal(after.teams[0].lp,16000-55);
+ assert.equal(after.teams[0].lp,INITIAL_LP-55);
  assert.ok(after.log.some(x=>x.includes('75 Schaden durch Vorhut-Schutz')));
 });
 test('level-sensitive creature decay and Standhaftigkeit match singleplayer, independently of attack fatigue',()=>{
@@ -620,13 +621,13 @@ test('Essence Reißzahn evolves by progress and chooses exactly two legal 70% at
  assert.throws(()=>move(state,0,{type:'essencePredatorMode',slot:0,mode:1}),/verbraucht/);
  const firstPower=Math.floor(Math.floor(creature.atk*1.02)*.7);
  state=move(state,0,{type:'attack',slot:0,targetSeat:null,targetSlot:null});
- assert.equal(state.teams[1].lp,16000-firstPower);
+ assert.equal(state.teams[1].lp,INITIAL_LP-firstPower);
  assert.equal(state.players[0].field[0].essenceAttacks,1);
  assert.equal(state.players[0].field[0].used,false);
  assert.throws(()=>move(state,0,{type:'switch',slot:0}),/Positionswechsel/);
  const nextAtk=state.players[0].field[0].atk;
  state=move(state,0,{type:'attack',slot:0,targetSeat:null,targetSlot:null});
- assert.equal(state.teams[1].lp,16000-firstPower-
+ assert.equal(state.teams[1].lp,INITIAL_LP-firstPower-
   Math.floor(Math.floor(nextAtk*1.02)*.7));
  assert.equal(state.players[0].field[0].essenceAttacks,2);
  assert.equal(state.players[0].field[0].used,true);
@@ -879,9 +880,9 @@ test('Lumira survives one lethal DEF attack and heals team on own turn',()=>{
  state=move(state,1,{type:'attack',slot:0,targetSeat:0,targetSlot:0});
  assert.equal(state.players[0].field[0].def,1);
  assert.equal(state.players[0].field[0].lv1AceSaved,true);
- state.teams[0].lp=15000;state.activeSeat=3;
+ state.teams[0].lp=INITIAL_LP-100;state.activeSeat=3;
  state=move(state,3,{type:'end'});
- assert.equal(state.teams[0].lp,15060);
+ assert.equal(state.teams[0].lp,INITIAL_LP-40);
  assert.ok(state.players[0].field[0].def>1);
 });
 test('ghosts and queued Lv1 effects reset between campaign chapters',()=>{

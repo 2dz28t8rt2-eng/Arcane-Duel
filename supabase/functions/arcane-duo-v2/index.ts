@@ -5,6 +5,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {createClient} from "npm:@supabase/supabase-js@2";
 import snapshot from "./catalog.json" with {type:"json"};
+import soloOpponents from "./opponents.json" with {type:"json"};
 import "./duo-rules.js";
 import "./duo-economy-v172.js";
 import "./duo-adversaries-v200.js";
@@ -31,8 +32,10 @@ const secret=()=>Array.from(crypto.getRandomValues(new Uint8Array(32)),
 const hash=async(value)=>Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",
  new TextEncoder().encode(value))),v=>v.toString(16).padStart(2,"0")).join("");
 const safeName=v=>String(v||"Duellant").replace(/[<>\x00-\x1f]/g,"").trim().slice(0,32)||"Duellant";
-const enemyDeck=(chapter,seat)=>adversaries.enemyDeck(chapter,seat,snapshot.cards,starter);
-const enemyFusions=chapter=>adversaries.enemyFusions(chapter,snapshot.cards);
+const enemyDeck=(chapter,seat)=>adversaries.enemyDeck(chapter,seat,snapshot.cards,starter,soloOpponents);
+const enemyFusions=chapter=>adversaries.enemyFusions(chapter,snapshot.cards,soloOpponents);
+const enemyPower=chapter=>adversaries.enemyPower(chapter,soloOpponents);
+const enemyNames=chapter=>adversaries.enemyNames(chapter,soloOpponents);
 function json(body,status=200,origin=""){
  return new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json",
   "Cache-Control":"no-store","Access-Control-Allow-Origin":origin||"https://raw.githack.com",
@@ -287,6 +290,8 @@ Deno.serve(async request=>{
     hostEssence:p.essence_binding,hostLv1:p.lv1_research,
     enemyDeckA:enemyDeck(chapter,1),enemyDeckB:enemyDeck(chapter,3),
     enemyFusionsA:enemyFusions(chapter),enemyFusionsB:enemyFusions(chapter),
+    enemyPowerA:enemyPower(chapter),enemyPowerB:enemyPower(chapter),
+    enemyNameA:enemyNames(chapter)[0],enemyNameB:enemyNames(chapter)[1],
     chapter,entry,catalog,randomSeed:crypto.getRandomValues(new Uint32Array(1))[0]||1});
    const {error}=await db.from(TABLE).insert({id,status:"waiting",revision:0,state,
     host_token_hash:await hash(host),invitation_hash:await hash(invite),
@@ -361,6 +366,8 @@ Deno.serve(async request=>{
    ...(advancing?{
     enemyDeckA:enemyDeck(nextChapter,1),enemyDeckB:enemyDeck(nextChapter,3),
     enemyFusionsA:enemyFusions(nextChapter),enemyFusionsB:enemyFusions(nextChapter),
+    enemyPowerA:enemyPower(nextChapter),enemyPowerB:enemyPower(nextChapter),
+    enemyNameA:enemyNames(nextChapter)[0],enemyNameB:enemyNames(nextChapter)[1],
     humanBuilds
    }: {})});
   next=game.aiTurn(next,{catalog});
