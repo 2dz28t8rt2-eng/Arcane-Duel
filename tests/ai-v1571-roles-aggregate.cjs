@@ -40,7 +40,7 @@ for(let stage=0;stage<11;stage++){
     (stage===8||stage===9||stage===10?r.focusGroup:r.pair)*10000+r.scenario*1550+r.starter*107);
   if(stage===10){
    assert.equal(r.fusionMode,'predator-swarm');
-   assert.equal(r.focusGroup,Math.floor(r.pair/4));
+   assert.equal(r.focusGroup,r.pair);
    assert.equal(r.roleA,'predator');
    assert.ok(r.fusionMaterialRoles&&r.fusionMaterialRoles.predator>=20);
    assert.ok(r.fusionMaterialTargets);
