@@ -91,3 +91,17 @@ test('saved fusion retains material count and rolled Stomp bonus after loading',
   return {count:loaded.materialsUsed,bonus:loaded.stompBonusPP,roles:loaded.stompMaterials};})()`);
  assert.deepEqual(r,{count:4,bonus:7,roles:{resonator:2,combatant:1,predator:1}});
 });
+test('a Predator can punish a five-material fusion after its four-target energy expenditure',()=>{
+ const r=run(`const boss=card(sample.id,0,0,1000,1200,'atk',5);
+  const hunter=card(ordinary.id,1,0,900,650);
+  for(const [slot,atk] of [[1,100],[2,100],[3,100],[4,100]])
+   card(ordinary.id,1,slot,atk,100);
+  attack(g,0,2);const reduced=boss.card.atk;
+  g.active=1;const counter=attack(g,0,0);
+  return {reduced,bossDead:g.players[0].field[0]===null,
+   predatorAlive:g.players[1].field[0]===hunter,damage:counter.damage};`);
+ assert.equal(r.reduced,880);
+ assert.equal(r.bossDead,true);
+ assert.equal(r.predatorAlive,true);
+ assert.ok(r.damage>0);
+});
