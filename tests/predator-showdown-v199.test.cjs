@@ -113,7 +113,8 @@ test('solo succession applies each rolled result and shows one visual after fusi
    placePending:game=>{game.players[0].field[1]=alpha;game.lastSummoned=alpha.uid;
     return {card:alpha};},
    onOwnSlot:async function(){context.placePending(g,1);},
-   randomInt:()=>roll,logEvent:()=>{},render:()=>{}};
+   randomInt:()=>roll,logEvent:()=>{},render:()=>{},
+   applyAiAction:()=>null};
   vm.runInNewContext(source,context);
   await context.onOwnSlot(1);
   assert.equal(g.predatorShowdown.outcome,outcome);
@@ -128,4 +129,25 @@ test('solo succession applies each rolled result and shows one visual after fusi
    assert.equal(g.players[0].graveyard.length,1);
   }else assert.equal(g.players[0].field[0],old);
  }
+});
+test('solo AI leader fusion also launches the confirmed showdown',()=>{
+ const vm=require('node:vm'),source=fs.readFileSync(path.resolve(__dirname,
+  '../assets/predator-showdown-solo-v199.js'),'utf8');
+ const previous={uid:12,id:9,fusion:true,predatorLeader:{bornUid:12},
+  card:{level:3,atk:1000,def:1000}};
+ const incoming={uid:13,id:9,fusion:true,predatorLeader:{bornUid:13},
+  card:{level:3,atk:1300,def:1300}};
+ const g={mode:'pve',active:1,players:[{field:[],graveyard:[]},
+  {field:[previous,null],graveyard:[]}]};
+ const shown=[],ctx={game:g,uiMode:'duel',
+  window:{ArcanePredatorShowdown199:{play:e=>shown.push(e.outcome)}},
+  dataOf:c=>({name:'Predator',art:'',...c.card}),
+  randomInt:()=>90,logEvent:()=>{},render:()=>{},
+  placePending:state=>{state.players[1].field[1]=incoming;return {card:incoming};},
+  onOwnSlot:async()=>null,
+  applyAiAction:state=>ctx.placePending(state)};
+ vm.runInNewContext(source,ctx);
+ ctx.applyAiAction(g,{type:'place',idx:1});
+ assert.deepEqual(shown,['stalemate']);
+ assert.equal(g.predatorShowdown.presented,true);
 });

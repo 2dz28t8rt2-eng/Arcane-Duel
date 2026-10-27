@@ -54,4 +54,18 @@
   }
   return result;
  };
+ const originalAiAction=applyAiAction;
+ applyAiAction=function(g,action){
+  const before=g?.predatorShowdown;
+  const result=originalAiAction.apply(this,arguments);
+  const event=g?.predatorShowdown;
+  // AI fusions use the same settled rules; they have no onOwnSlot callback.
+  if(enabled(g)&&typeof game!=='undefined'&&game===g&&
+   typeof uiMode!=='undefined'&&uiMode==='duel'&&
+   event&&event!==before&&!event.presented){
+   event.presented=true;
+   window.ArcanePredatorShowdown199?.play(event);
+  }
+  return result;
+ };
 })();
