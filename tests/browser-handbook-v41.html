@@ -33,8 +33,12 @@ frame.addEventListener('load',async()=>{
   d.getElementById('guideClose').click();d.getElementById('helpDismiss')?.click();
   w.eval('showRules()');await new Promise(resolve=>w.setTimeout(resolve,0));
   const book=d.querySelector('.arcane-handbook'),chapters=[...book.querySelectorAll('.arcane-rule-chapter')],links=[...book.querySelectorAll('.royal-rule-directory button')];
-  expect(book.textContent.includes('Arcane Duel 11.8'),'Rulebook identifies current v11.8 rules');
-  expect(chapters.length===14,'All fourteen core, learning, perk and Essence chapters are present');
+  expect(w.ArcaneHandbookHuman180?.version==='18.0'&&
+   chapters.some(c=>c.textContent.includes('Rudelführer')),
+   'Rulebook includes the current v18.0 Predator and Fusion handbook');
+  expect(chapters.length===22&&w.ArcaneHandbookHuman180?.chapterIds.length===8&&
+   w.ArcaneHandbookHuman180.chapterIds.every(id=>!!book.querySelector('#ad180-rule-'+id)),
+   'All fourteen base chapters and eight newer gameplay chapters are present');
   expect(chapters.every((c,i)=>parseInt(c.querySelector('summary').textContent,10)===i+1),'Chapter order stays complete for a new player');
   expect(links.length===chapters.length,'Directory includes chapters appended by later modules');
   expect(new Set(chapters.map(c=>c.id)).size===chapters.length,'All chapter anchors are unique');
