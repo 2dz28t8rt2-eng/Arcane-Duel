@@ -70,7 +70,7 @@
   return {p,hand};
  }
  function picked(){
-  const q=candidates();return q?zones.map(i=>({i,c:q.p.field[i]})).filter(x=>x.c&&!isFateCard(x.c)):[];
+  const q=candidates();return q?zones.map(i=>({i,c:q.p.field[i]})).filter(x=>x.c&&!isFateCard(x.c)&&!x.c.predatorToken):[];
  }
  function commitFusion(id){
   const q=candidates(),m=picked();if(!q||!m.length||m.length>4)return false;
@@ -115,7 +115,7 @@
   if(!fieldPick||!candidates())return;
   const b=ev.target.closest('[data-mine]');if(!b)return;
   const idx=Number(b.dataset.mine),c=game.players[0].field[idx];
-  if(!c||isFateCard(c))return;
+  if(!c||isFateCard(c)||c.predatorToken)return;
   ev.stopImmediatePropagation();ev.preventDefault();
   if(zones.includes(idx))zones=zones.filter(x=>x!==idx);
   else if(zones.length<4)zones.push(idx);
