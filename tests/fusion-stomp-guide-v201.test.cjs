@@ -61,10 +61,13 @@ test('five-material exercise demands two distinct collateral targets',()=>{
  assert.deepEqual(many.progress,['stomp3','stomp5']);
  assert.equal(many.cleared,true);
 });
-test('2v2 still runs its separate combat reducer and has no imported Stomp',()=>{
+test('2v2 now mirrors Stomp independently, with the identical authoritative Edge reducer',()=>{
  const rules=fs.readFileSync(path.resolve(__dirname,'../assets/duo-shared-rules-v160.js'),'utf8');
+ const server=fs.readFileSync(path.resolve(__dirname,'../supabase/functions/arcane-duo-v2/duo-rules.js'),'utf8');
  const page=fs.readFileSync(path.resolve(__dirname,'../duo-campaign-v2.html'),'utf8');
- assert.match(rules,/let fatigue=30-2\*perk/);
- assert.doesNotMatch(rules,/stompBonusPP|stompMaterials|percentByHit/);
+ assert.equal(rules,server);
+ assert.match(rules,/stompBonusPP|stompMaterials/);
+ assert.match(rules,/stompFatigue\(stompBefore\.atk,stompBefore\.def/);
  assert.doesNotMatch(page,/fusion-stomp-v200\.js/);
+ assert.match(page,/duo-stomp-cinema-v202\.js/);
 });
