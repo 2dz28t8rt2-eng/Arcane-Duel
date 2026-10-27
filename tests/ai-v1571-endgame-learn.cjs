@@ -8,7 +8,7 @@ for(const stage of sources){
  const s=JSON.parse(fs.readFileSync(path.join(prev,'stage-'+stage+'.json'),'utf8'));
  assert.equal(t.examples.length,s.allCases.filter(x=>x.split==='train').length);
  for(const duel of t.examples){
-  if(!['defender-mixed-cooperation','defender-v1568-endgame-control'].includes(duel.arm))continue;
+  if(!['defender-v1569-mixed-control','defender-v1569-endgame-control'].includes(duel.arm))continue;
   games++;if(duel.win!==1)failures++;
   const seen=new Set();
   for(const a of duel.actions||[]){
@@ -42,6 +42,7 @@ const data={schema:'arcane-v1571-endgame-trained-context',sourceRun:40477542888,
  sources,split:'train',outcomeAssociationNotCausality:true,holdoutUsed:false,
  validationUsed:false,games,failures,actions,learned,
  nonzero:Object.values(learned).filter(v=>v.delta!==0).length};
+console.log('ARCANE_V1571_ENDGAME_IMPORT '+JSON.stringify({games,failures,actions,nonzero:data.nonzero}));
 assert.ok(games>=500&&failures>100&&actions>200&&data.nonzero>=3);
 fs.writeFileSync(root+'/endgame-learner.json',JSON.stringify(data,null,2)+'\n');
 console.log('ENDGAME_TRAIN_V1569 '+JSON.stringify({games,failures,actions,nonzero:data.nonzero}));
