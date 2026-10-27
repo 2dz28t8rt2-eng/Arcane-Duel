@@ -8,7 +8,7 @@ for(const stage of sources){
  const s=JSON.parse(fs.readFileSync(path.join(prev,'stage-'+stage+'.json'),'utf8'));
  assert.equal(t.examples.length,s.allCases.filter(x=>x.split==='train').length);
  for(const duel of t.examples){
-  if(!['defender-unified-action-reply','defender-v1566-threat-control'].includes(duel.arm))continue;
+  if(!['defender-endgame-failure-learning','defender-v1567-unified-control'].includes(duel.arm))continue;
   games++;if(duel.win!==1)failures++;
   const seen=new Set();
   for(const a of duel.actions||[]){
