@@ -528,6 +528,25 @@ const mixedCoreAudits=names.map(arm=>{
   Object.fromEntries(['train','validation','holdout'].map(split=>
    [split,matchedFocus(arm,split,pair)]))]))};
 });
+const fusionIdentityAudits=names.map(arm=>{
+ const own=fusionFocusRows.filter(r=>r.arm===arm);
+ const byMode=Object.fromEntries(['fusion-mixed','fusion-allrounder',
+  'fusion-predator','predator-swarm'].map(mode=>{
+  const c=own.filter(r=>r.fusionMode===mode);
+  return [mode,{roles:c[0]?.fusionMaterialRoles||{},
+   splits:Object.fromEntries(['train','validation','holdout'].map(sp=>
+    [sp,summary(c.filter(r=>r.split===sp))])),
+   fusionChosen:c.reduce((n,r)=>n+(r.candidateActionMix?.fusion||0),0),
+   materialsPaid:c.reduce((n,r)=>n+(r.fusionIdentityChosenMaterials||0),0),
+   resonatorChosen:c.reduce((n,r)=>n+(r.fusionIdentityChosenResonators||0),0),
+   normalSummons:c.reduce((n,r)=>n+(r.candidateActionMix?.normal||0),0)}];
+ }));
+ const checks=['fusionIdentityChecks','fusionIdentityNetUtility','fusionIdentityMaterialOnField',
+  'fusionIdentitySurvivors','fusionIdentityResonators','fusionIdentitySwarmCosts',
+  'fusionIdentityChosen','fusionIdentityChosenMaterials','fusionIdentityChosenResonators'];
+ return {arm,overall:summary(own),byMode,
+  observed:Object.fromEntries(checks.map(k=>[k,own.reduce((n,r)=>n+(r[k]||0),0)]))};
+});
 const eligible=arms.slice(3).map(a=>{
  const trainGain=a.splits.train.wins-base.splits.train.wins;
  const validationGain=a.splits.validation.wins-base.splits.validation.wins;
@@ -543,6 +562,12 @@ const eligible=arms.slice(3).map(a=>{
  const h2hValidationGain=h2hValidationWins-phaseWins(headToHeadRows,frozen.arm,'validation');
  const focusedValidationGain=phaseWins(focusedRows,a.arm,'validation')-
   phaseWins(focusedRows,frozen.arm,'validation');
+ const fusionFocusValidationGain=phaseWins(fusionFocusRows,a.arm,'validation')-
+  phaseWins(fusionFocusRows,'defender-v1569-mixed-control','validation');
+ const fusionFocusTrainGain=phaseWins(fusionFocusRows,a.arm,'train')-
+  phaseWins(fusionFocusRows,'defender-v1569-mixed-control','train');
+ const fusionIdentityGate=a.arm==='role-identity-conditional-fusion'?
+  fusionFocusValidationGain>=0&&fusionFocusTrainGain>=-2:true;
  const focusedMixValidationGain=[0,3,6,7].reduce((total,pair)=>
   total+matchedFocus(a.arm,'validation',pair)-
   matchedFocus('defender-v1569-mixed-control','validation',pair),0);
@@ -578,11 +603,12 @@ const eligible=arms.slice(3).map(a=>{
   hardL10ValidationVsFrozen>=2&&hardL10ValidationVsGuardian>=2&&
   decayValidationVsFrozen>=0&&seatNonRegressionVsFrozen&&
   h2hTrainGain>=4&&h2hValidationGain>=8&&focusedValidationGain>=0&&
-  fusionNonRegression&&predatorValidationGain>=-1&&mixedSynergyGate;
+  fusionNonRegression&&predatorValidationGain>=-1&&mixedSynergyGate&&fusionIdentityGate;
  return {arm:a.arm,trainGain,validationGain,seatParity,groups,guardianGate,
   trainGainVsFrozen,validationGainVsFrozen,hardL10ValidationVsFrozen,
   hardL10ValidationVsGuardian,decayValidationVsFrozen,
   h2hTrainWins,h2hValidationWins,h2hTrainGain,h2hValidationGain,focusedValidationGain,
+  fusionFocusValidationGain,fusionFocusTrainGain,fusionIdentityGate,
   focusedMixValidationGain,coreSynergyByOpponent,mixedSafeVsPrior,
   mixedBeatsBothPure,mixedSynergyGate,
   fusionTrainGain,fusionValidationGain,predatorValidationGain,fusionNonRegression,
@@ -608,6 +634,7 @@ const selection={
   hardL10VsGuardian:2,hardL10VsFrozen:2,fullDecayVsFrozen:0,
   directH2HTrainGain:4,directH2HValidationGain:8,
   focusedHardL10ValidationGain:0,mixedSafeVsPrior:true,mixedBeatsPureControls:true,
+   fusionFocusNonRegression:true,
   seatVsFrozenTolerance:-1,
   subgroupValidationTolerance:-3,fusionNonRegression:true,
   predatorValidationTolerance:-1},
@@ -731,6 +758,10 @@ const report={schema:'arcane-v1570-defender-sequences-report',status:'completed'
   fixedSupportCoreAndMatchedOpponentRng:true,
   cooperationScoredOnlyFromRealVisibleReplies:true,
   explicitMixedVsPureValidationPromotionGate:true,
+  uniformRolePolicyForAllDefenderDeckRatios:true,
+  fusionMaterialVsSwarmBenchmarks:true,
+  fusionMaterialCostAndResonatorDiagnostics:true,
+  fusionRoleIdentityValidationGate:true,
   formerV1556BestUnpromotedPolicyRetainedAsAblation:true,
   targetedSoulGuardianMatchups:true,fusionAndPredatorControls:true,
   trainOnlyPairedFirstActionDivergence:true,firstDivergenceDoesNotProveCausality:true,
@@ -739,7 +770,7 @@ const report={schema:'arcane-v1570-defender-sequences-report',status:'completed'
   noProductionChanges:true},
  stages,arms,paired,globalSelection:selection,priorResearchChampion,decisionDiagnostics,
   noDecayArms,decayArms,pairedDecayArms,pairedDecayCases,
-  directHeadToHead,pairedHeadToHead,focusedDiagnostic,mixedCoreAudits,
+  directHeadToHead,pairedHeadToHead,focusedDiagnostic,mixedCoreAudits,fusionIdentityAudits,
  limitations:[
  'Fusion survival after actual cloned counterattacks is measured only within the existing capped 2-attack forecast, not a complete opponent turn.',
  'Material scarcity uses only the candidate own hand after legally applying fusion on the clone; no hidden opposing hand is considered.',
@@ -750,7 +781,9 @@ const report={schema:'arcane-v1570-defender-sequences-report',status:'completed'
  'Selective defense only invokes legal preview when current visible enemy attack threatens an unswitched own attacker; candidate threshold fixed before run, not tuned on holdout.',
  'New attack-vs-defense planner executes up to two own legal attacks before up to two visible opponent replies for both options, as a partial forecast, not an entire turn or hidden-hand search.',
  'v14.9.70 benchmark constructs source-legal level-10 20-card defensive cores with Guardian/Soul mixes (10/10 12/8 8/12), Guardian-only and Soul-only defense cores, plus identical 20 support cards per seed. Stage 8 shares actual enemy decks, random seeds, starting seat and starter between mixed and pure controls. Synergy is evaluated from concrete surviving roles, card losses and counterdamage after up to two legal public enemy attacks; no invented card buffs. Focus validation, never focus holdout, contributes to predeclared strict promotion gates.',
- 'Stage 7 uses the verified frozen v14.9.55 guarded research champion as the opposing strategy. It spans 24 scenarios per pair (8 each TRAIN/VALIDATION/HOLDOUT), with 256 distinct validation duels per arm. Holdout and Q training are excluded.',
+ 'Stage 9 holds the AI candidateRole=fusion constant for all four constructed role profiles in paired cohorts against Guardians and Souls, preserving legal material sources. Fusion action economics and surviving Resonators are diagnostic, not proof that their costs are causally optimal.',
+  'Stage 8 holds candidateRole=soul constant across ALL Guardian/Soul ratios, eliminating the earlier preference-label confound while retaining the Soul-capable strategic planner.',
+  'Stage 7 uses the verified frozen v14.9.55 guarded research champion as the opposing strategy. It spans 24 scenarios per pair (8 each TRAIN/VALIDATION/HOLDOUT), with 256 distinct validation duels per arm. Holdout and Q training are excluded.',
  'New sequence-worst branch prioritizes visible enemy attack/target options by legal public board danger and probes at most ten first replies per candidate fusion; bounded counterfactual, not full minimax.',
  'New fusion sequencing simulates up to two legal own attacks then two legal replies, not a complete turn or hidden-hand game tree.',
  'Condense is enabled only for the tactical-condense candidate, and its 3-turn cooldown, guarded soul transfer and opportunity scoring are checked in the research simulator against public essence-combat rules. It has not yet been validated as a production AI ability.',
