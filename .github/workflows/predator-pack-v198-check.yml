@@ -2,7 +2,7 @@ name: Arcane Duel - Predator Pack v19.8 Regression
 on:
   push:
     branches: [development]
-    paths: ['.github/workflows/predator-pack-v198-check.yml']
+    paths: ['.github/workflows/predator-pack-v198-check.yml', 'assets/predator-pack-v198.js', 'assets/fusion-cinema-ritual.js', 'assets/handbook-human-v180.js', 'tests/predator-pack-v198.test.cjs']
   workflow_dispatch:
 permissions:
   contents: read
