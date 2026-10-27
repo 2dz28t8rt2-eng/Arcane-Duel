@@ -9,21 +9,21 @@ const root='artifacts/v1571',names=[
  'guardian-champion','fusion-sequence-2ply','l10-guarded-worst-reply',
  'defender-v1569-endgame-control','defender-v1569-mixed-control','role-identity-conditional-fusion'
 ];
-const stages=[],rows=[],noDecayRows=[],decayRows=[],headToHeadRows=[],focusedRows=[],fusionFocusRows=[],seen=new Set(),decisionRows=[];
-for(let stage=0;stage<10;stage++){
+const stages=[],rows=[],noDecayRows=[],decayRows=[],headToHeadRows=[],focusedRows=[],fusionFocusRows=[],swarmFocusRows=[],seen=new Set(),decisionRows=[];
+for(let stage=0;stage<11;stage++){
  const t=JSON.parse(fs.readFileSync(root+'/stage-'+stage+'.json','utf8'));
  assert.equal(t.schema,'arcane-v1571-stage');assert.equal(t.stage,stage);
- assert.equal(t.allCases.length,stage===4?4608:stage===7?4608:stage===8||stage===9?2304:1152);assert.equal(t.summaries.length,6);
+ assert.equal(t.allCases.length,stage===4?4608:stage===7?4608:stage===8||stage===9||stage===10?2304:1152);assert.equal(t.summaries.length,6);
  assert.equal(t.controls.holdoutNeverUsedForSelection,true);
  assert.equal(t.controls.independentTrainValidationHoldout,true);
  const trace=JSON.parse(fs.readFileSync(root+'/stage-'+stage+'-train-actions.json','utf8'));
- assert.equal(trace.examples.length,stage===4?1536:stage===7?1536:stage===8||stage===9?768:384);
+ assert.equal(trace.examples.length,stage===4?1536:stage===7?1536:stage===8||stage===9||stage===10?768:384);
  const audit=JSON.parse(fs.readFileSync(root+'/stage-'+stage+'-decision-diffs.json','utf8'));
  assert.equal(audit.schema,'arcane-v1571-train-only-decision-diffs');
  assert.equal(audit.stage,stage);
  assert.equal(audit.controls.holdoutNeverInspected,true);
  assert.equal(audit.controls.firstDivergenceDoesNotEstablishCausality,true);
- assert.equal(audit.rows.length,stage===4?768:stage===7?768:stage===8||stage===9?384:192);
+ assert.equal(audit.rows.length,stage===4?768:stage===7?768:stage===8||stage===9||stage===10?384:192);
  for(const d of audit.rows){
   assert.equal(d.split,'train');assert.ok(names.slice(3).includes(d.arm));
   assert.ok([0,1].includes(d.candidateWin)&&[0,1].includes(d.incumbentWin));
@@ -33,11 +33,18 @@ for(let stage=0;stage<10;stage++){
  for(const r of t.allCases){
   assert.equal(r.stage,stage);assert.ok(names.includes(r.arm));
   assert.ok([0,1].includes(r.seat)&&[0,1].includes(r.starter));
-  assert.ok(Number.isInteger(r.scenario)&&r.scenario>=0&&r.scenario<(stage===4?24:stage===7?24:stage===8||stage===9?12:6));
-  const split=r.scenario<(stage===4?8:stage===7?8:stage===8||stage===9?4:2)?'train':r.scenario<(stage===4?16:stage===7?16:stage===8||stage===9?8:4)?'validation':'holdout';
+  assert.ok(Number.isInteger(r.scenario)&&r.scenario>=0&&r.scenario<(stage===4?24:stage===7?24:stage===8||stage===9||stage===10?12:6));
+  const split=r.scenario<(stage===4?8:stage===7?8:stage===8||stage===9||stage===10?4:2)?'train':r.scenario<(stage===4?16:stage===7?16:stage===8||stage===9||stage===10?8:4)?'validation':'holdout';
   assert.equal(r.split,split);
   assert.equal(r.seed,15710000+(stage===6?5:stage)*200000+
-    (stage===8||stage===9?r.focusGroup:r.pair)*10000+r.scenario*1550+r.starter*107);
+    (stage===8||stage===9||stage===10?r.focusGroup:r.pair)*10000+r.scenario*1550+r.starter*107);
+  if(stage===10){
+   assert.equal(r.fusionMode,'predator-swarm');
+   assert.equal(r.focusGroup,Math.floor(r.pair/4));
+   assert.equal(r.roleA,'predator');
+   assert.ok(r.fusionMaterialRoles&&r.fusionMaterialRoles.predator>=20);
+   assert.ok(r.fusionMaterialTargets);
+  }
   if(stage===9){
    const modes=['fusion-mixed','fusion-allrounder','fusion-predator','predator-swarm'];
    assert.equal(r.fusionMode,modes[r.pair%4]);
@@ -72,7 +79,7 @@ for(let stage=0;stage<10;stage++){
   const key=[stage,r.pair,r.scenario,r.starter,r.seat,r.arm].join('|');
   assert.ok(!seen.has(key),'Duplicate matched game '+key);seen.add(key);
  }
- for(let pair=0;pair<8;pair++)for(let sc=0;sc<(stage===4?24:stage===7?24:stage===8||stage===9?12:6);sc++)
+ for(let pair=0;pair<8;pair++)for(let sc=0;sc<(stage===4?24:stage===7?24:stage===8||stage===9||stage===10?12:6);sc++)
   for(let start=0;start<2;start++)for(let seat=0;seat<2;seat++)
    for(const arm of names)
     assert.ok(seen.has([stage,pair,sc,start,seat,arm].join('|')),'Unpaired game');
@@ -82,7 +89,7 @@ for(let stage=0;stage<10;stage++){
  const fixtureKey=r=>[r.pair,r.scenario,r.starter,r.seat].join('|');
  const frozenNonDefender=new Map(t.allCases.filter(r=>r.arm==='l10-guarded-worst-reply')
   .map(r=>[fixtureKey(r),r]));
- for(const r of t.allCases.filter(r=>stage!==9&&names.slice(3).includes(r.arm)&&
+ for(const r of t.allCases.filter(r=>stage!==9&&stage!==10&&names.slice(3).includes(r.arm)&&
    !['soul','guardian'].includes(r.roleA))){
   const frozenCase=frozenNonDefender.get(fixtureKey(r));
   assert.ok(frozenCase,'Missing role-safe frozen control');
@@ -105,7 +112,7 @@ for(let stage=0;stage<10;stage++){
  assert.deepEqual(t.validationCandidate,baseline.validation);
  assert.deepEqual(t.holdoutCandidate,baseline.holdout);
  for(const arm of t.summaries)for(const split of ['train','validation','holdout']){
-  assert.equal(arm[split].games,stage===4?256:stage===7?256:stage===8||stage===9?128:64);
+  assert.equal(arm[split].games,stage===4?256:stage===7?256:stage===8||stage===9||stage===10?128:64);
  }
  stages.push({stage,name:t.name,selected:'guardian-champion',promoted:false,
   selectedRolePolicy:t.summaries[0].rolePolicy,baseline:t.summaries[0],
@@ -115,6 +122,7 @@ for(let stage=0;stage<10;stage++){
  else if(stage===7)headToHeadRows.push(...t.allCases);
  else if(stage===8)focusedRows.push(...t.allCases);
  else if(stage===9)fusionFocusRows.push(...t.allCases);
+ else if(stage===10)swarmFocusRows.push(...t.allCases);
  else rows.push(...t.allCases);
 }
 assert.equal(rows.length,9216);
@@ -123,6 +131,7 @@ assert.equal(decayRows.length,1152);
 assert.equal(headToHeadRows.length,4608);
 assert.equal(focusedRows.length,2304);
 assert.equal(fusionFocusRows.length,2304);
+assert.equal(swarmFocusRows.length,2304);
 for(const split of ['train','validation','holdout'])
  assert.equal(rows.filter(r=>r.split===split).length,3072);
 const summary=cases=>{
@@ -687,9 +696,9 @@ const decisionDiagnostics=names.slice(3).map(arm=>{
 });
 const report={schema:'arcane-v1571-defender-sequences-report',status:'completed',
  sourceSha:process.env.GITHUB_SHA||'unknown',
- totalDuels:20736,primaryDuels:9216,decayDiagnosticDuels:1152,noDecayDiagnosticDuels:1152,
+ totalDuels:23040,primaryDuels:9216,decayDiagnosticDuels:1152,noDecayDiagnosticDuels:1152,
  headToHeadDiagnosticDuels:4608,focusedDiagnosticDuels:2304,
- fusionIdentityDuels:2304,
+ fusionIdentityDuels:2304,authenticPredatorSwarmDuels:2304,
  trainDuels:3072,validationDuels:3072,holdoutDuels:3072,
  controls:{bothSeatsUseFullStrategicAI:true,noIllegalMoves:true,
   trainValidationHoldoutSeparated:true,holdoutNeverUsedForSelection:true,
