@@ -39,7 +39,10 @@
       pattern:String(c.pattern||'Fusion').slice(0,60),
       winnerIndex:c.rollMath.winnerIndex,rolls:trace,
       bonus:{atk:c.materialBonus?.atk||0,def:c.materialBonus?.def||0},
-      quality:Number(c.quality)||1}});
+      quality:Number(c.quality)||1,
+      predatorLeader:c.predatorLeader?{
+       materials:c.predatorLeader.materials,
+       powers:[...(c.predatorLeader.powers||[])]}:null}});
    }
    // The server exposes hand *counts* to both seats, never rival hand identities.
    // Fate exchanges are already handled by the established fate visual and
@@ -98,6 +101,7 @@
   const choice=make('p','duo-cinema170-note','',content);
   const reward=make('div','duo-cinema170-reveal',undefined,content);
   const quality=Math.round((r.quality-1)*100);
+  const alpha=r.predatorLeader;
   const stages=[
    ()=>{status.textContent='1 · ROLLENSTEMPEL';role.classList.add('active');},
    ()=>{
@@ -132,10 +136,24 @@
     choice.textContent='Bestätigtes Ergebnis vom Online-Server';
    }
   ];
+  if(alpha)stages.push(()=>{
+   status.textContent='5 · RUDELFÜHRER ERWACHT';
+   const names={swarm:'Rudelinstinkt',mark:'Blutspur',token:'Rudelruf'};
+   const abilities=alpha.powers.map(power=>names[power]||power);
+   const reveal=make('div','ad198-alpha-reveal',undefined,content);
+   make('span','ad198-alpha-icon','♛',reveal);
+   make('strong','ad198-alpha-heading','RUDELFÜHRER · '+alpha.materials+' MATERIALIEN',reveal);
+   make('p',undefined,'Grundbonus: +3 % Angriff je eigenem Predator',reveal);
+   make('p','ad198-alpha-powers',abilities.length?abilities.join(' · '):
+    'Basisfähigkeit · keine zusätzlichen Kräfte',reveal);
+   reveal.classList.add('active');
+   choice.textContent='🐾 Alle Kräfte wurden vom Server ausgewürfelt.';
+  });
   stages[0]();
   const times=[450,1250,2000];
   times.forEach((time,index)=>schedule(stages[index+1],time,stamp));
-  schedule(clear,3500,stamp);
+  if(alpha)schedule(stages[4],2700,stamp);
+  schedule(clear,alpha?4950:3500,stamp);
  }
  function drawSequence(event){
   const {inner,content,stamp}=base(event);

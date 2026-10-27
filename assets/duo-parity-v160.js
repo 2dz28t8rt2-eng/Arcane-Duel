@@ -20,7 +20,8 @@
  const shownAtk=c=>rules.attackValue?rules.attackValue(c):c.atk;
  const name=id=>card(id).name;
  const fateIndex=id=>fateIds.indexOf(id);
- const displayName=c=>c?.fate?'✦ '+(fateNames[fateIndex(c.id)]||'Schicksalsmonster'):name(c.id);
+ const displayName=c=>c?.predatorToken?'🐾 Rudelgeist · Lv '+c.level:
+  c?.fate?'✦ '+(fateNames[fateIndex(c.id)]||'Schicksalsmonster'):name(c.id);
  const displayArt=c=>c?.fate?(window.ArcaneFateVisuals?.artFor(fateIndex(c.id))||''):
   card(c.id).art;
  const el=(tag,parent,text,cls)=>{
@@ -392,6 +393,7 @@
   window.ArcaneDuoStanceCinema191?.onState(previous,game,catalog);
   window.ArcaneDuoImpactCinema192?.onState(previous,game,catalog);
   window.ArcaneDuoAbilitiesCinema193?.onState(previous,game,catalog);
+  window.ArcaneDuoPredator198?.onState(previous,game,catalog);
   window.ArcaneDuoSound194?.onState(previous,game,catalog,seat);
   if(previous&&previous.status!=='finished'&&game.status==='finished'&&
    game.winner===0&&duoProfileToken)fetchProfile();
@@ -629,6 +631,7 @@
   window.ArcaneDuoHand178?.sync({game,seat,roomId,catalog});
   window.ArcaneCombatIdentity183?.duoDidRender?.({game,roomId});
   window.ArcaneDuoExperience185?.didRender?.({game,seat,roomId});
+  window.ArcaneDuoPredator198?.decorate?.({game,seat});
   if(game.status!=='active'){
    if(game.status==='finished'&&game.winner===0&&game.chapter<4){
     if(seat===0)button('✦ Kapitel '+(game.chapter+1)+' starten',
@@ -668,10 +671,10 @@
     const id=typeof item==='number'?item:item.id;
     const opt=el('option',select,'Hand '+(i+1)+' · '+
      name(id)+' · Lv '+card(id).level);opt.value='hand:'+i;});
-   p.field.forEach((c,i)=>{if(!c||c.fate)return;const opt=el('option',select,
+   p.field.forEach((c,i)=>{if(!c||c.fate||c.predatorToken)return;const opt=el('option',select,
     'Feld '+(i+1)+' · '+displayName(c)+' · Lv '+c.level);opt.value='field:'+i;});
    if(p.lv1?.perk){
-    (p.lv1.ghostSlots||[]).forEach((c,i)=>{if(!c)return;
+    (p.lv1.ghostSlots||[]).forEach((c,i)=>{if(!c||c.predatorToken)return;
      const opt=el('option',select,'Geisterslot '+(i+1)+' · '+name(c.id)+
       ' · Lv '+c.level);opt.value='ghost:'+i;});
     for(let i=0;i<(p.lv1.charges||0);i++){
@@ -755,6 +758,12 @@
      if(analysis.essenceRolls)lines.push('✦ Runenherz: +'+analysis.essenceRolls+
       ' Fusionswürfe durch das anwesende Essenzwesen');
      if(analysis.elemental)lines.push('✧ Alle Materialien teilen ein Element: Elementharmonie');
+     if(analysis.role==='predator')lines.push('🐾 Rudelführer: '+
+      (materials.length===2?'Basisbonus +3 % je Predator':
+       materials.length===3?'1 zufällige Rudelführer-Fähigkeit':
+       materials.length===4?'2 zufällige Rudelführer-Fähigkeiten':
+       'alle 3 Rudelführer-Fähigkeiten')+
+      ' · Kräfte werden erst bei der Fusion ausgewürfelt.');
      for(const line of lines)el('p',maths,line);
      el('p',preview,'✦ '+(roleNames[analysis.role]||'Resonator')+
       ' · '+analysis.rolls+' Chancen auf gute Kampfwerte');

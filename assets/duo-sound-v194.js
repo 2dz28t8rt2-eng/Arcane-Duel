@@ -32,6 +32,8 @@
   else if(logs.some(l=>/ beschwört /.test(l)))cues.push({kind:'summon',delay:330});
   const draw=animated.find(x=>x.kind==='draw'&&x.seat===viewerSeat)||
    animated.find(x=>x.kind==='draw');
+  if(fusion?.result?.predatorLeader?.materials>=4)
+   cues.push({kind:'alphaHowl',delay:2710});
   if(draw&&draw.count>0)cues.push({kind:'draw',count:Math.min(3,draw.count),delay:120});
   const abilities=window.ArcaneDuoAbilitiesCinema193?.analyze?.(before,after,catalog)||[];
   const kinds=new Set();
@@ -156,6 +158,10 @@
     tone(270,580,t+.085,.54,'sine',.21);
     tone(420,980,t+.18,.49,'sine',.13);
     rustle(t+.2,.25,2550,.075);break;
+   case 'alphaHowl':
+    tone(250,95,t,.63,'sawtooth',.11);
+    tone(310,112,t+.09,.7,'triangle',.17);
+    rustle(t+.13,.42,940,.12);break;
    case 'attack':
     rustle(t,.16,720,.19);tone(310,110,t,.23,'sawtooth',.13);break;
    case 'hit':

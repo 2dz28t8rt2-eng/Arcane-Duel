@@ -217,6 +217,70 @@
    lastDrainSwitch:-1,decaySkipOwnTurn:-1,maxDef:def,
    decayGrace:1};
  }
+ // v19.8: Predator leadership is scoped to a single duellant, not the whole
+ // 2v2 team. The authoritative reducer owns all rolls and token creation.
+ const PREDATOR_POWERS=Object.freeze(['swarm','mark','token']);
+ const PREDATOR_POWER_NAMES=Object.freeze({swarm:'Rudelinstinkt',mark:'Blutspur',
+  token:'Rudelruf'});
+ const predatorLeader=p=>p.field.filter(c=>c?.fusion&&c.role==='predator'&&
+  c.predatorLeader).sort((a,b)=>(b.predatorLeader.bornUid||b.uid)-
+  (a.predatorLeader.bornUid||a.uid))[0]||null;
+ const predatorPower=(alpha,power)=>!!alpha?.predatorLeader?.powers?.includes(power);
+ function imprintPredator(g,p,result,materials){
+  if(result.role!=='predator')return;
+  const pool=[...PREDATOR_POWERS];
+  for(let i=pool.length-1;i>0;i--){
+   const j=randomInt(g,i+1);[pool[i],pool[j]]=[pool[j],pool[i]];
+  }
+  const count=clamp(materials,2,5),powers=count===2?[]:count===3?
+   pool.slice(0,1):count===4?pool.slice(0,2):[...PREDATOR_POWERS];
+  // Permanently retire previous leaders. Consuming the new leader later must
+  // never reactivate an older leader left on the board.
+  for(const old of p.field)if(old?.predatorLeader)delete old.predatorLeader;
+  result.predatorLeader={materials:count,powers,bornUid:result.uid,ownTurns:0,
+   createdTurn:g.turn};
+  g.log.push('🐾 Rudelführer geprägt · '+count+' Materialien · '+
+   (powers.length?powers.map(id=>PREDATOR_POWER_NAMES[id]).join(', '):
+    'nur Rudelführer-Basisbonus'));
+ }
+ function predatorSource(catalog,level){
+  return Object.values(catalog).filter(c=>c?.role==='predator'&&c.playable===true&&
+   !c.fusionOnly&&!c.ace&&!c.fateOnly&&!c.essenceMonster&&c.level<=level)
+   .sort((a,b)=>b.level-a.level||a.id-b.id)[0]||null;
+ }
+ function beginPredatorTurn(g,p,catalog){
+  const alpha=predatorLeader(p);
+  if(!predatorPower(alpha,'token')||g.turn===alpha.predatorLeader.createdTurn)return;
+  alpha.predatorLeader.ownTurns=Math.min(3,(alpha.predatorLeader.ownTurns||0)+1);
+  if(alpha.predatorLeader.ownTurns<3)return;
+  const slot=p.field.findIndex(c=>!c);
+  if(slot<0)return; // A full field keeps the ready summon charged.
+  const level=clamp(Math.floor(alpha.level||1),1,10);
+  const template=predatorSource(catalog,level);
+  if(!template)return;
+  const token=instance(g,template.id,catalog,{ownerSeat:p.seat});
+  token.level=level;token.role='predator';token.fusion=false;
+  token.atk=Math.max(10,round10(Math.max(10,template.atk*.55)));
+  token.def=Math.max(10,round10(Math.max(10,template.def*.55)));
+  token.maxDef=token.def;
+  token.predatorToken={leaderUid:alpha.uid,level};
+  p.field[slot]=token;alpha.predatorLeader.ownTurns=0;
+  g.log.push('🐾 Rudelruf: Rudelgeist · Lv '+level+' auf Feld '+(slot+1)+'.');
+ }
+ function predatorBonus(g,p,src,target){
+  if(src?.role!=='predator')return {followups:0,bonusPct:0};
+  const hunt=g.predatorPursuit;
+  if(!target||!hunt||hunt.turn!==g.turn||hunt.ownerSeat!==p.seat||
+   hunt.targetUid!==target.uid||!hunt.attackers?.length)
+   return {followups:0,bonusPct:0};
+  if(hunt.attackers.includes(src.uid))return {followups:0,bonusPct:0};
+  const followups=Math.min(2,hunt.attackers.length),alpha=predatorLeader(p);
+  return {followups,bonusPct:followups*.05+
+   (predatorPower(alpha,'mark')?.03:0)};
+ }
+ function removePredatorTokenGraves(g){
+  for(const p of g.players)p.graveyard=p.graveyard.filter(c=>!c?.predatorToken);
+ }
  const hasCards=(p)=>p.field.some(Boolean)||p.lv1?.ghostSlots?.some(Boolean);
  const defensive=c=>c&&['guardian','soul'].includes(c.role);
  const essenceCompanion=(p,c,type)=>!!c&&!c.fate&&p?.essence?.chosen===c.id&&
@@ -354,12 +418,13 @@
   return p.lv1;
  };
  const ghostZone=p=>lv1State(p).ghostSlots;
- const lv1Key=(c,catalog)=>c&&!c.lv1Effectless?
+ const lv1Key=(c,catalog)=>c&&!c.predatorToken&&!c.lv1Effectless?
   definition(catalog,c.id)?.lv1Special||'':'';
  const lv1Troops=p=>[...p.field,...ghostZone(p)].filter(Boolean);
  const genuineLv1=(c,catalog)=>!!c&&c.level===1&&!c.fusion&&!c.lv1Echo&&
+  !c.predatorToken&&
   !definition(catalog,c.id)?.fusionOnly;
- const activeLv1=(p,c,catalog)=>lv1State(p).perk&&!!c&&c.level===1&&
+ const activeLv1=(p,c,catalog)=>lv1State(p).perk&&!!c&&!c.predatorToken&&c.level===1&&
   (!c.fusion||!!definition(catalog,c.id)?.lv1Exclusive);
  const hasLv1Class=(p,key,catalog)=>lv1State(p).perk&&lv1Troops(p).some(c=>lv1Key(c,catalog)===key);
  function syncLv1Swarm(p,catalog){
@@ -565,6 +630,7 @@
  }
  function moveOn(g,catalog){
   g.activeSeat=(g.activeSeat+1)%4;g.turn++;
+  g.predatorPursuit=null;
   if(g.activeSeat===0)g.round++;
   const p=g.players[g.activeSeat];
   p.ownTurns++;p.summoned=false;
@@ -578,6 +644,7 @@
    if(c.role==='combatant')c.resonance=Math.min(3,c.resonance+1);
    if(c.fusion&&c.role==='resonator')c.resonance=Math.min(2,c.resonance+1);
   }
+  beginPredatorTurn(g,p,catalog);
   beginLv1Turn(g,p,catalog);
   if(g.status!=='active')return;
   restoreAllies(g,p,catalog);
@@ -646,6 +713,7 @@
      {_charge:true,id:-1,level:2,role:'combatant',fusion:false}:null;
    assert(card!==null&&card!==undefined,'Fusionsmaterial ist nicht vorhanden.');
    assert(!card.fate,'Schicksalsmonster sind nicht fusionierbar.');
+   assert(!card.predatorToken,'Rudelruf-Tokens sind niemals Fusionsmaterial.');
    cards.push(m.from==='hand'?{id:card,level:0,...{_hand:true}}:card);
   }
   return cards;
@@ -884,7 +952,7 @@
    assert(seat===0&&g.status==='finished'&&g.winner===0&&g.chapter<4,
     'Nur der Gastgeber kann das nächste freigeschaltete Kapitel starten.');
    g.chapter++;g.status='active';g.winner=null;g.round=1;g.turn=0;g.activeSeat=0;
-   g.fateEvent=null;g.arenaEvent=null;
+   g.fateEvent=null;g.arenaEvent=null;g.predatorPursuit=null;g.predatorImpact=null;
    g.teams.forEach(t=>t.lp=t.maxLp);
    g.teams[0].shield=teamAegis(g);g.teams[1].shield=0;
    g.teams[0].essenceTauntTurn=-1;g.teams[0].essenceBastionUsed=false;
@@ -921,7 +989,7 @@
    const s=lv1State(p),c=p.field[action.slot],i=action.ghostSlot;
    assert(s.perk&&Number.isInteger(i)&&i>=0&&i<s.ghostSlots.length&&
     s.ghostSlots[i]===null&&c&&!c.used&&!c.switched&&
-    c.lv1MovedTurn!==g.turn&&!c.fate,
+    c.lv1MovedTurn!==g.turn&&!c.fate&&!c.predatorToken,
     'Geisterslot ist belegt oder Monster hat bereits gehandelt.');
    p.field[action.slot]=null;s.ghostSlots[i]=c;
    c.used=true;c.switched=true;c.lv1MovedTurn=g.turn;
@@ -1073,6 +1141,7 @@
    if(rule.resonatorAscent)result.resonatorAscentUsed=true;
    p.fusionsPerformed=(p.fusionsPerformed||0)+1;
    if(analysis.loreChainApplied)p.fusionLoreChainUsed=true;
+   imprintPredator(g,p,result,cards.length);
    p.field[action.slot]=result;p.summoned=true;
    syncLv1Swarm(p,catalog);
    g.log.push(p.name+' fusioniert '+cards.length+' eigene Monster zu '+
@@ -1080,6 +1149,7 @@
     (roleName[inherited]||inherited)+', '+analysis.pattern+', '+
     analysis.rolls+' Würfelpaare, Qualität '+Math.round((analysis.quality-1)*100)+' %).');
   }else if(action.type==='attack'){
+   g.predatorImpact=null;
    const sourceArea=action.area==='ghost'?'ghost':'field';
    const sourceZone=sourceArea==='ghost'?ghostZone(p):p.field;
    assert(sourceArea!=='ghost'||lv1State(p).perk,'Geisterangriffe sind nicht freigeschaltet.');
@@ -1090,8 +1160,10 @@
    let enemy=foes.find(x=>x.seat===action.targetSeat);
    // Swarm includes only the active player's own field, capped at five.
    const predators=p.field.filter(x=>x?.role==='predator').length;
+   const alpha=predatorLeader(p);
+   const swarmPct=alpha?(predatorPower(alpha,'swarm')?.035:.03):.02;
    let raw=Math.max(0,Math.floor(attackValue(src)*(src.role==='predator'?
-    1+.02*Math.min(5,predators):1)));
+    1+swarmPct*Math.min(5,predators):1)));
    if(essenceCompanion(p,src,'predator')&&src.essenceChoice===2)
     raw=Math.floor(raw*.7);
    if(action.targetSeat===null){
@@ -1127,6 +1199,9 @@
       taunt=true;g.teams[0].essenceTauntTurn=g.turn;
       g.log.push('✦ Aschenhort lenkt den ersten Gegnerangriff auf sich und halbiert ihn.');}
     }
+    const chase=predatorBonus(g,p,src,target);
+    if(chase.bonusPct>0)raw=Math.floor(raw*(1+chase.bonusPct));
+    const huntedUid=target.uid;
     const lifeInAtk=activeLv1(enemy,target,catalog)&&
      (!!lv1Key(target,catalog)||hasLv1Class(enemy,'protector',catalog));
     if(target.mode==='atk'&&!lifeInAtk){
@@ -1167,6 +1242,22 @@
       ' ('+Math.round(mitigation*100)+' % Rüstung)'+
       (guarded?' · Letztes Bollwerk immun.':'')+'.');
     }
+    if(src.role==='predator'){
+     const survived=targetZone.some(c=>c?.uid===huntedUid);
+     const mark=g.predatorPursuit;
+     if(mark&&mark.turn===g.turn&&mark.ownerSeat===seat&&
+       mark.targetUid===huntedUid){
+      if(!mark.attackers.includes(src.uid))mark.attackers.push(src.uid);
+     }else g.predatorPursuit={turn:g.turn,ownerSeat:seat,targetSeat:enemy.seat,
+      targetUid:huntedUid,attackers:[src.uid]};
+     g.predatorImpact={revision:g.revision+1,ownerSeat:seat,attackerUid:src.uid,
+      targetSeat:enemy.seat,targetSlot,targetArea,targetUid:huntedUid,
+      followups:chase.followups,bonusPct:chase.bonusPct,broken:!survived};
+     if(chase.followups)g.log.push('🐾 Blutspur · Folgeangriff '+chase.followups+
+      ' · +'+Math.round(chase.bonusPct*100)+' % Schaden'+
+      (!survived?' · Klauen-Finisher!':'.'));
+     if(!survived)g.predatorPursuit=null;
+    }
    }
    if(sourceZone[action.slot]){
     if(essenceCompanion(p,src,'predator')){
@@ -1196,6 +1287,7 @@
    if(g.status==='active'&&seat===3)settleArena(g);
    if(g.status==='active')moveOn(g,catalog);
   }else fail('Unbekannte Aktion.');
+  removePredatorTokenGraves(g);
   g.revision++;return g;
  }
  function aiTurn(old,{catalog}){

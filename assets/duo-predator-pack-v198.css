@@ -1,0 +1,55 @@
+/* v19.8: lightweight 2v2 Predator accents, independent of combat controls. */
+#duoSeats .field-cell.ad198-alpha{box-shadow:inset 0 0 0 1px #e8bb67,0 0 14px #eac16675;
+ background-image:linear-gradient(135deg,#cc973e15,transparent 65%)}
+#duoSeats .field-cell.ad198-hunted{box-shadow:inset 0 0 0 2px #d74f63,0 0 16px #c72f48b0}
+#duoSeats .field-cell.ad198-token{border-color:#a54a5a;background-image:linear-gradient(135deg,#6c1c334a,transparent)}
+#duoSeats .field-cell .ad198-crown{position:absolute;z-index:8;right:2px;top:-13px;
+ display:grid;place-items:center;width:29px;height:29px;pointer-events:none;
+ font:900 27px Georgia,serif;color:#ffe68a;text-shadow:0 1px 2px #28150a,0 0 8px #ffad3e;
+ filter:drop-shadow(0 0 5px #eac16c)}
+#duoSeats .field-cell .ad198-token-label{position:absolute;z-index:8;right:3px;bottom:3px;
+ pointer-events:none;padding:2px 4px;border-radius:5px;
+ font:800 10px/1.2 system-ui,sans-serif;letter-spacing:.06em;
+ background:#351923ed;color:#ffb4c4;border:1px solid #ad637c}
+#duoSeats .field-cell .ad198-hunt-crosshair{position:absolute;z-index:8;inset:36% 0 auto;
+ pointer-events:none;text-align:center;font:700 46px/1 Georgia,serif;color:#ff6475;
+ text-shadow:0 0 5px #0c0203,0 0 20px #df273d;animation:ad198-pulse 1.15s ease-in-out infinite}
+.ad198-predator-stage{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden}
+.ad198-hunt-streak{position:absolute;z-index:2;color:#ff8992;font:900 26px serif;
+ text-shadow:0 0 14px #c92839;animation:ad198-streak .22s ease-in forwards}
+.ad198-hunt-impact,.ad198-token-arrival{position:absolute;z-index:3;pointer-events:none}
+.ad198-hunt-ring{position:absolute;width:34px;height:34px;left:-17px;top:-17px;
+ border:5px solid #ed4d63;border-radius:50%;box-shadow:0 0 24px #c01b34;
+ animation:ad198-ring .48s ease-out forwards}
+.ad198-hunt-claw{position:absolute;left:0;top:0;transform:translate(-50%,-50%);
+ font:900 55px Georgia,serif;color:#ffb1b8;text-shadow:0 0 17px #ff2a52;
+ animation:ad198-claw .45s ease-out both}
+.ad198-finish .ad198-hunt-claw{font-size:95px;color:#ffd7d9}
+.ad198-hunt-spark{position:absolute;left:0;top:0;width:4px;height:18px;background:#ff647d;
+ border-radius:6px;transform:rotate(var(--ad198-angle));transform-origin:center;
+ box-shadow:0 0 9px #e12744;animation:ad198-spark .7s ease-out forwards}
+.ad198-hunt-notice{position:absolute;z-index:4;transform:translate(-50%,-50%);
+ padding:4px 12px;background:#230a17dd;border:1px solid #e4546e;border-radius:9px;
+ white-space:nowrap;font:900 14px system-ui,sans-serif;color:#ffd3db;
+ text-shadow:0 0 10px #d43659;animation:ad198-notice .95s ease-out both}
+.ad198-token-arrival{transform:translate(-50%,-50%);font-size:36px;
+ filter:drop-shadow(0 0 9px #f56b85);animation:ad198-ring .85s ease-out both}
+.duo-cinema170 .ad198-alpha-reveal{position:relative;z-index:2;margin:12px auto 0;
+ padding:13px 17px;max-width:440px;text-align:center;
+ border:1px solid #edca78;border-radius:12px;background:linear-gradient(135deg,#513517,#150e20);
+ color:#ffedb9;box-shadow:0 0 24px #d6a85170;animation:ad198-reveal .5s ease-out both}
+.duo-cinema170 .ad198-alpha-icon{display:block;font:700 33px Georgia,serif;color:#ffe08e}
+.duo-cinema170 .ad198-alpha-heading{display:block;font-size:14px;letter-spacing:.13em}
+.duo-cinema170 .ad198-alpha-reveal p{margin:6px 0;font-size:12px}
+.duo-cinema170 .ad198-alpha-powers{color:#ffd177;font-weight:700}
+@keyframes ad198-pulse{50%{opacity:.58;transform:scale(1.12)}}
+@keyframes ad198-streak{to{transform:translate(var(--ad198-dx),var(--ad198-dy)) scale(1.7);opacity:0}}
+@keyframes ad198-ring{0%{transform:scale(.2);opacity:.96}100%{transform:scale(5.5);opacity:0}}
+@keyframes ad198-claw{0%{opacity:0;transform:translate(-50%,-50%) rotate(-20deg) scale(.5)}
+ 45%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(10deg) scale(1.35)}}
+@keyframes ad198-spark{to{transform:rotate(var(--ad198-angle)) translateY(calc(-1*var(--ad198-distance)));opacity:0}}
+@keyframes ad198-notice{0%{opacity:0;transform:translate(-50%,0) scale(.7)}
+ 30%{opacity:1}100%{opacity:0;transform:translate(-50%,-115%) scale(1)}}
+@keyframes ad198-reveal{from{opacity:0;transform:translateY(15px) scale(.94)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){#duoSeats .field-cell .ad198-hunt-crosshair,
+ .duo-cinema170 .ad198-alpha-reveal{animation:none}}
