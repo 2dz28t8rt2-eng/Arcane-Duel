@@ -1811,7 +1811,7 @@ function study(){
  const learnedEndgame={...unifiedReply,defenderEndgameModel:endgame.learned,
   defenderEndgameReplyDepth:3};
  const mixedCooperation={...learnedEndgame,defenderCooperationPlanner:true};
- const identityFusions={...mixedCooperation,fusionIdentityPlanner:true};
+ const identityFusions={...mixedCooperation,fusionIdentityPlanner:true,predatorSwarmPreservation:true};
  const profiles=[
   {name:'guardian-champion',rolePolicy:champion},
   {name:'fusion-sequence-2ply',rolePolicy:sequence},
