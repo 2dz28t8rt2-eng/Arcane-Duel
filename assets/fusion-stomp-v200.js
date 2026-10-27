@@ -83,14 +83,14 @@
   // Capture the whole opposing board before the primary attack. Some defender
   // abilities redirect the primary target inside the previous attack reducer;
   // its returned `di` is therefore the only authoritative impact position.
-  const board=foe.field.slice();
-  const powers=board.map(target=>target?Math.max(0,effectiveAttack(g,a,target)):0);
+  const board=count>=3&&di!==null?foe.field.slice():null;
+  const powers=board?board.map(target=>target?Math.max(0,effectiveAttack(g,a,target)):0):[];
   const boost=materialBoost(a);
   const result=previousAttack(g,ai,di);
   if(!result)return result;
   const hits=[];
   const targetIndex=Number.isInteger(result.di)?result.di:di;
-  const n=count>=3&&Number.isInteger(targetIndex)?adjacent(board,targetIndex,owner,count):[];
+  const n=board&&Number.isInteger(targetIndex)?adjacent(board,targetIndex,owner,count):[];
   const percents=percentByHit(count,n.length,boost);
   if(n.length){for(let i=0;i<n.length;i++){
     const index=n[i],v={index,card:board[index],pct:percents[i],power:powers[index]};
