@@ -1752,7 +1752,7 @@ function study(){
  const threatSurvival={...raidContest,defenderThreatSurvivalValue:true};
  const unifiedReply={...followup,defenderUnifiedReplyValue:.78};
  const endgame=JSON.parse(fs.readFileSync(root+'/endgame-learner.json','utf8'));
- assert.equal(endgame.sourceRun,40418469819);
+ assert.equal(endgame.sourceRun,40455517484);
  assert.equal(endgame.split,'train');assert.equal(endgame.holdoutUsed,false);
  assert.equal(endgame.validationUsed,false);assert.ok(endgame.nonzero>=3);
  const learnedEndgame={...unifiedReply,defenderEndgameModel:endgame.learned,
