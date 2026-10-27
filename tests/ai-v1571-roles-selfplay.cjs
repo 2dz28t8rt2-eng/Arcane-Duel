@@ -1716,7 +1716,7 @@ function study(){
  const catalog=boot({seed:15710042}).run('({cards:CARDS,defaultDeck:RPG_DEFAULT_DECK,startFusions:RPG_START_FUSIONS,opponents:OPPONENTS})');
  const root='artifacts/v1571';fs.mkdirSync(root,{recursive:true});
  const stage=Number(process.argv[2]);
- assert.ok(Number.isInteger(stage)&&stage>=0&&stage<10);
+ assert.ok(Number.isInteger(stage)&&stage>=0&&stage<11);
  // Emphasize L10 cross-role and difficult heterogeneous decks after v14.9.30.
  const matchups=stage<=1?[
   ['predator','guardian'],['fusion','guardian'],['soul','guardian'],
@@ -1733,6 +1733,9 @@ function study(){
  ]:stage===9?[
    ['fusion','guardian'],['fusion','guardian'],['fusion','guardian'],['fusion','guardian'],
    ['fusion','soul'],['fusion','soul'],['fusion','soul'],['fusion','soul']
+  ]:stage===10?[
+   ['predator','guardian'],['predator','guardian'],['predator','guardian'],['predator','guardian'],
+   ['predator','soul'],['predator','soul'],['predator','soul'],['predator','soul']
   ]:stage===8?[
    ['soul','predator'],['soul','predator'],['soul','predator'],
    ['soul','fusion'],['soul','fusion'],['soul','fusion'],
@@ -1820,7 +1823,7 @@ function study(){
  const shardArg=String(process.argv[3]||'');
  assert.ok(shardArg==='finalize'||/^[0-7]$/.test(shardArg),
   'Supply one pair shard 0..7 or the finalize command');
- const chunkCount=stage===4?4:stage===7?4:stage===8||stage===9?2:1;
+ const chunkCount=stage===4?4:stage===7?4:stage===8||stage===9||stage===10?2:1;
  const chunkArg=process.argv[4];
  if(shardArg!=='finalize'&&chunkCount>1)
   assert.ok(/^\d+$/.test(String(chunkArg))&&Number(chunkArg)<chunkCount,
@@ -1854,14 +1857,14 @@ function study(){
   const fusionModes=['fusion-mixed','fusion-allrounder','fusion-predator','predator-swarm',
    'fusion-mixed','fusion-allrounder','fusion-predator','predator-swarm'];
   const focusMode=stage===8?mixModes[pair]:null;
-  const fusionMode=stage===9?fusionModes[pair]:null;
-  const sameOpponentPair=stage===8?mixGroups[pair]:stage===9?Math.floor(pair/4):pair;
+  const fusionMode=stage===9?fusionModes[pair]:stage===10?'predator-swarm':null;
+  const sameOpponentPair=stage===8?mixGroups[pair]:stage===9||stage===10?Math.floor(pair/4):pair;
   const tier=stage===0?8:stage===1?9:stage===2?10:stage===3?8:10;
   const decayActive=stage===3||stage===6;
   // Stages 5 and 6 intentionally share ALL deck, matchup, RNG, seat, starter and policy inputs.
   const pairedStage=stage===6?5:stage;
   const foeTier=tier;
-  const scenarios=stage===4?24:stage===7?24:stage===8||stage===9?12:6;
+  const scenarios=stage===4?24:stage===7?24:stage===8||stage===9||stage===10?12:6;
   for(let scenario=requestedChunk*6;scenario<Math.min(scenarios,(requestedChunk+1)*6);scenario++){
    const seedA=5351+sameOpponentPair*157+scenario*79+pairedStage*241;
    // The constructed-deck helper accepts only seed integers in 0..9999.
@@ -1870,7 +1873,7 @@ function study(){
    assert.ok(seedA>=0&&seedA<=9999&&seedB>=0&&seedB<=9999,
     'Benchmark seed must remain within the deck builder 0..9999 contract');
    const a=stage===8?makeCooperationDeck(catalog,tier,focusMode,seedA):
-    stage===9?makeFusionRoleDeck(catalog,tier,fusionMode,seedA):
+    stage===9||stage===10?makeFusionRoleDeck(catalog,tier,fusionMode,seedA):
     makeBenchmarkDeck(catalog,tier,roleA,'balanced',seedA);
    const b=makeBenchmarkDeck(catalog,foeTier,roleB,'balanced',seedB);
    assert.equal(a.deck.length,40);assert.equal(b.deck.length,40);
@@ -1894,7 +1897,7 @@ function study(){
       rolePoliciesBySeat:seat===0?[profile.rolePolicy,foeRolePolicy]:[foeRolePolicy,profile.rolePolicy],
       qModesBySeat:seat===0?[latest,foeQ]:[foeQ,latest],
       rolesBySeat:seat===0?[roleA,mirror?roleA:roleB]:[mirror?roleA:roleB,roleA],
-      recordReplay:scenario<(stage===4?8:stage===7?8:stage===8||stage===9?4:2),
+      recordReplay:scenario<(stage===4?8:stage===7?8:stage===8||stage===9||stage===10?4:2),
       opponentPolicy:'balanced',
       swarm:.02,pierce:.10,
       decayEnabled:decayActive});
@@ -1915,11 +1918,11 @@ function study(){
      cases.push({stage,arm:profile.name,rolePolicy:profile.rolePolicy,
       foeCheckpoint:stage===7?'guarded-v1555':scenario%2?'balanced-v1529':'champion-v1528',symmetric:profile.name==='guardian-champion'&&scenario%2===0,
       pair,roleA,roleB:mirror?roleA:roleB,mirror,tier,foeTier,scenario,
-      focusMode,focusGroup:stage===8||stage===9?sameOpponentPair:null,
+      focusMode,focusGroup:stage===8||stage===9||stage===10?sameOpponentPair:null,
       defenderCore:stage===8?a.meta.roles:null,
-      fusionMode,fusionMaterialRoles:stage===9?a.meta.roles:null,
-      fusionMaterialTargets:stage===9?a.meta.materialTargets:null,
-      split:scenario<(stage===4?8:stage===7?8:stage===8||stage===9?4:2)?'train':scenario<(stage===4?16:stage===7?16:stage===8||stage===9?8:4)?'validation':'holdout',
+      fusionMode,fusionMaterialRoles:stage===9||stage===10?a.meta.roles:null,
+      fusionMaterialTargets:stage===9||stage===10?a.meta.materialTargets:null,
+      split:scenario<(stage===4?8:stage===7?8:stage===8||stage===9||stage===10?4:2)?'train':scenario<(stage===4?16:stage===7?16:stage===8||stage===9||stage===10?8:4)?'validation':'holdout',
       starter,seat,seed:matchSeed,seedA,seedB,decayEnabled:decayActive,decayPairStage:pairedStage,
       win:m.candidateWin,reason:m.reason,timeout:m.timeout,turn:m.turn,
       enemyOffense:enemyAttacks+enemySoul,enemyAttacks,enemySoul,
@@ -2110,7 +2113,7 @@ function study(){
       ownLost:m.stats.siegeOwnCardLosses||0,
       enemyDamage:m.stats.siegeOpponentLPDamage||0,
       ownDamage:m.stats.siegeOwnLPDamage||0,reward,
-      actions:scenario<(stage===4?8:stage===7?8:stage===8||stage===9?4:2)?m.stats.actionTape||[]:[]});
+      actions:scenario<(stage===4?8:stage===7?8:stage===8||stage===9||stage===10?4:2)?m.stats.actionTape||[]:[]});
      // Explicitly release clone-heavy combat simulations between bounded shards.
      if(cases.length%48===0&&typeof global.gc==='function')global.gc();
     }
@@ -2125,7 +2128,7 @@ function study(){
    [t,cases.filter(x=>x.split===t).length]))}));
  return;
  }
- assert.equal(cases.length,stage===4?4608:stage===7?4608:stage===8||stage===9?2304:1152,'Stage matched selfplay games');
+ assert.equal(cases.length,stage===4?4608:stage===7?4608:stage===8||stage===9||stage===10?2304:1152,'Stage matched selfplay games');
  // Case-matched action traces from TRAIN only. First divergence is a diagnostic,
  // not proof of causality; validation/holdout decisions are never inspected.
  const train=cases.filter(x=>x.split==='train');
@@ -2148,7 +2151,7 @@ function study(){
    incumbentAction:divergent?{phase:b[i]?.phase||null,type:b[i]?.type||null,
     actorRole:b[i]?.actorRole||null}:null};
  });
- assert.equal(matched.length,stage===4?768:stage===7?768:stage===8||stage===9?384:192);
+ assert.equal(matched.length,stage===4?768:stage===7?768:stage===8||stage===9||stage===10?384:192);
  const decisionAudit={schema:'arcane-v1571-train-only-decision-diffs',stage,
   controls:{trainOnly:true,caseMatched:true,holdoutNeverInspected:true,
    firstDivergenceDoesNotEstablishCausality:true},
@@ -2185,7 +2188,7 @@ function study(){
   name:['champion-l8-mirror','champion-l9-mirror','champion-l10-crossrole',
    'champion-l8-crossrole-with-decay','expanded-hard-l10-crossrole','paired-no-decay-hard-l10','paired-full-decay-hard-l10',
    'expanded-direct-head-to-head-frozen-v1555-l10','diagnostic-hard-l10-defender-sequences-and-fusion-controls',
-    'fusion-material-economy-resonator-role-identity'][stage],
+    'fusion-material-economy-resonator-role-identity','predator-pack-preservation-vs-guardian-soul'][stage],
   learningSource:'v14.9.71 frozen v14.9.55 champion, v14.9.56 unpromoted reserve control; TRAIN-only first-divergence diagnosis, future essence cost and tactical condense legality',
   controls:{pairedSeeds:true,pairedSeats:true,pairedStarters:true,
    independentTrainValidationHoldout:true,priorQCheckpointOpponent:true,
@@ -2207,7 +2210,7 @@ function study(){
    targetedHardL10Diagnostic:stage===8,activeDecayInPrimaryStage3:stage===3,
    candidateDefenderDamagePlanner:true,candidateDefenderRoleScope:true,
    candidateCriticalReplyOnly:true,candidateEssenceReserve:true,
-   expandedHardL10Scenarios:stage===4?24:stage===7?24:stage===8||stage===9?12:6,
+   expandedHardL10Scenarios:stage===4?24:stage===7?24:stage===8||stage===9||stage===10?12:6,
    offenseVsDefenseSameHorizon:true,frozenLegacyDefenseControl:false,
    defenseMarginAblation:true,defenseMarginTight:260,
    visibleContextualMargin:true,contextualMarginLow:105,contextualMarginHigh:285,
