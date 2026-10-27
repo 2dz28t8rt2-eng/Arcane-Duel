@@ -1,0 +1,31 @@
+name: Arcane Duel - Predator Pack v19.8 Regression
+on:
+  push:
+    branches: [development]
+    paths: ['.github/workflows/predator-pack-v198-check.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  predator-pack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax of gameplay, cinema, and handbook
+        run: |
+          set -euo pipefail
+          node --check assets/predator-pack-v198.js
+          node --check assets/fusion-cinema-ritual.js
+          node --check assets/handbook-human-v180.js
+          node --check tests/predator-pack-v198.test.cjs
+          node tests/helpers/game-runtime.cjs
+      - name: Predator pack, swarm, armor, combat regression
+        run: |
+          set -euo pipefail
+          node --test tests/predator-pack-v198.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/predator-armor-live-v1499.test.cjs tests/essence-combat.test.cjs
+      - name: Rulebook and fusion cinema consistency
+        run: node --test tests/fusion-cinema-rulebook.test.cjs
