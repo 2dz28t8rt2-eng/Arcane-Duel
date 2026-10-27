@@ -107,6 +107,14 @@
   removeTokenGraves(g);
   return result;
  };
+ const previousOwnSlot=onOwnSlot;
+ onOwnSlot=async function(idx,...args){
+  if(enabled(game)&&game?.pending&&game.players[game.active]?.field?.[idx]?.predatorToken){
+   toast('Rudelruf-Tokens dürfen nicht fusioniert werden.');
+   return;
+  }
+  return previousOwnSlot(idx,...args);
+ };
  const previousTurn=advanceTurn;
  advanceTurn=function(g){
   const was=g.turn;
@@ -210,13 +218,15 @@
   document.body.append(tear);setTimeout(()=>tear.remove(),860);
  }
  function howl(){
-  if(animationSpeed==='instant')return;
+  if(animationSpeed==='instant'||document.hidden)return;
+  const audio=window.ArcaneSoundscape?.getSettings?.();
+  if(audio&&(!audio.enabled||audio.volume<=0))return;
   try{
    const Ctx=window.AudioContext||window.webkitAudioContext;
    if(!Ctx)return;
    const ctx=new Ctx(),t=ctx.currentTime;
    const master=ctx.createGain();master.gain.setValueAtTime(.0001,t);
-   master.gain.exponentialRampToValueAtTime(.09,t+.14);
+   master.gain.exponentialRampToValueAtTime(.09*(audio?audio.volume/.35:1),t+.14);
    master.gain.exponentialRampToValueAtTime(.0001,t+1.4);
    master.connect(ctx.destination);
    for(const [base,detune,volume] of [[175,0,.7],[233,-18,.3]]){
