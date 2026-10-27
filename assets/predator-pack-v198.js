@@ -120,6 +120,7 @@
   const was=g.turn;
   const result=previousTurn(g);
   if(!enabled(g))return result;
+  removeTokenGraves(g);
   if(g.turn!==was)g.predatorPursuit=null;
   if(g.winner!==null)return result;
   const side=g.active,alpha=leader(g,side);
