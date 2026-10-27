@@ -917,6 +917,7 @@ inject('  return baseApply(game,action);',[
 '   if(current===learner&&scene.studyStage===9&&action.type==="fusion"){',
 '    counter.fusionIdentityChosen++;',
 '    counter.fusionIdentityChosenMaterials+=(action.uids||[]).length;',
+'    if((action.uids||[]).length>=3)counter.fusionMultiMaterialChosen++;',
 '    if(game.players[current].field.some(c=>c&&role(c)==="resonator"))',
 '     counter.fusionIdentityChosenResonators++;',
 '   }',
