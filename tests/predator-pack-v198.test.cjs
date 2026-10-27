@@ -9,7 +9,11 @@ const preface="profile=freshProfile();profile.guideSeen=true;"+
  "const guard=CARDS.find(c=>c.role==='guardian'&&!c.fusionOnly&&!c.essenceMonster&&c.level>=3);";
 function run(body){return boot({seed:198701}).run('(()=>{'+preface+body+'})()');}
 test('assets loaded, skill reveal attached and chapter 22 updated',()=>{
- const runtime=boot();assert.equal(runtime.scripts.at(-1),'assets/predator-pack-v198.js');
+ const runtime=boot();
+ const pack=runtime.scripts.indexOf('assets/predator-pack-v198.js');
+ const showdown=runtime.scripts.indexOf('assets/predator-showdown-solo-v199.js');
+ assert.ok(pack>=0,'Predator pack script must be included');
+ if(showdown>=0)assert.ok(showdown>pack,'The optional newer showdown overlay must load after the Predator pack');
  assert.match(fs.readFileSync('assets/fusion-cinema-ritual.js','utf8'),/ArcanePredatorPack\.cinemaReveal/);
  assert.match(fs.readFileSync('assets/handbook-human-v180.js','utf8'),/22 · Predatoren: Rudelführer/);
 });
