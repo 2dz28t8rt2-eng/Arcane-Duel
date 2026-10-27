@@ -73,3 +73,28 @@ test('PvP and symmetric AI research never instantiate the leader feature',()=>{
   'return {mode,atk,base:c.card?.atk||CARDS[c.id].atk};});})()');
  for(const x of r)assert.ok(x.atk<1.2*x.base);
 });
+
+
+test('saved duel restores alpha powers, weakened Token level and active hunt mark',()=>{
+ const r=run(
+ 'const a=newInstance(g,pred.id,0);a.fusion=true;a.roleOverride="predator";'+
+ 'a.predatorLeader={materials:5,powers:["swarm","mark","token"],bornUid:a.uid,createdTurn:12,ownTurns:2};'+
+ 'g.players[0].field[0]=a;'+
+ 'const token=newInstance(g,pred.id,0);const lv=Math.min(10,CARDS[pred.id].level+1);'+
+ 'token.card={level:lv,atk:Math.round(CARDS[pred.id].atk*.5/10)*10,'+
+ 'def:Math.round(CARDS[pred.id].def*.5/10)*10,name:"Rudelgeist · Lv "+lv};'+
+ 'token.predatorToken={leaderUid:a.uid,level:lv};token.roleOverride="predator";'+
+ 'g.players[0].field[1]=token;'+
+ 'const target=newInstance(g,guard.id,1);target.mode="def";g.players[1].field[0]=target;'+
+ 'g.predatorPursuit={turn:12,owner:0,targetUid:target.uid,attackers:[a.uid]};'+
+ 'const saved=JSON.parse(JSON.stringify(g));'+
+ 'const loaded=validateDuelSnapshot(saved);'+
+ 'const alpha=loaded.players[0].field[0],t=loaded.players[0].field[1];'+
+ 'return {powers:alpha.predatorLeader?.powers,round:alpha.predatorLeader?.ownTurns,'+
+ 'role:alpha.roleOverride,token:t.predatorToken,tokenName:dataOf(t).name,'+
+ 'level:dataOf(t).level,hunt:loaded.predatorPursuit?.attackers,'+
+ 'sameUid:t.predatorToken.leaderUid===alpha.uid};');
+ assert.deepEqual(r.powers,['swarm','mark','token']);assert.equal(r.round,2);
+ assert.equal(r.role,'predator');assert.ok(r.tokenName.startsWith('Rudelgeist'));
+ assert.ok(r.token.level>=3);assert.ok(r.sameUid);assert.equal(r.hunt?.length,1);
+});
