@@ -12,7 +12,44 @@
  const CHAPTERS=[{id:1,name:'Der Pakt am zerbrochenen Tor',level:2},
   {id:2,name:'Die Zwillinge der Asche',level:4},
   {id:3,name:'Das verlorene Siegel',level:6},
-  {id:4,name:'Krone der Vier',level:8}];
+  {id:4,name:'Krone der Vier',level:8},
+  {id:5,name:'Die vergessene Schmiede',level:8},
+  {id:6,name:'Der Sturm der Runen',level:9},
+  {id:7,name:'Das zersplitterte Firmament',level:9},
+  {id:8,name:'Die Bastion der Schatten',level:10},
+  {id:9,name:'Der Thron ohne Herrscher',level:10},
+  {id:10,name:'Die Prüfung der Hochmütigen',level:10}];
+ // Independent five-part side campaign. IDs are deliberately disjoint from
+ // the ten main chapters so old completed chapters keep their meaning.
+ const QUESTS=[
+  {id:11,name:'Der hoffnungslose Forscher',level:1,goal:'win',
+   dialogue:'Meine kleinen Freunde verbergen ein Geheimnis. Ihr werdet es sehen!',
+   after:'Die winzigen Kreaturen hinterlassen Echos. Erforsche das Schweben!'},
+  {id:12,name:'Die erste Regung',level:2,goal:'floating',
+   dialogue:'Sie verschwinden nicht einfach! Beweist mir, dass ihr Echo lebt!',
+   after:'Das Schweben ist erst der Anfang. Als Nächstes kommt der Schwarm.'},
+  {id:13,name:'Die Stimme des Schwarms',level:4,goal:'swarm',
+   dialogue:'Warum gehorchen diese winzigen Geister ausgerechnet euch?',
+   after:'Er kehrt der Forschung den Rücken und sammelt stärkere Predatoren.'},
+  {id:14,name:'Die verworfene Lehre',level:5,goal:'special',
+   dialogue:'Schluss mit dem Geisterspiel! Zeigt mir eure verbotene Fusion!',
+   after:'Eine letzte Prüfung bleibt. Die Verzweiflung wächst.'},
+  {id:15,name:'Der letzte Funke · Lumiras Fall',level:7,goal:'all',
+   dialogue:'Lumira ... ein letztes Mal! Ich brauche keine schwachen Geister mehr!',
+   after:'Der Fall ist überstanden. Das Vermächtnis der Level-1-Forschung gehört euch.'}
+ ];
+ const ENCOUNTERS=[...CHAPTERS,...QUESTS];
+ const encounter=id=>ENCOUNTERS.find(c=>c.id===id);
+ const isQuest=id=>id>=11&&id<=15;
+ const opponentNames=chapter=>chapter===10?['Eiman Huel Stalker','Hans Ess Kirk']:
+  isQuest(chapter)?['Der Level-1-Fanatiker',chapter===15?'Verderbter Adept':'Fanatikers Adept']:
+  ['Gegner A','Gegner B'];
+ const questPassed=g=>{
+  const goal=encounter(g.chapter)?.goal,q=g.questProgress||{};
+  return !isQuest(g.chapter)||goal==='win'||goal==='floating'&&q.floating>0||
+   goal==='swarm'&&q.swarm>0||goal==='special'&&q.special>0||
+   goal==='all'&&q.floating>0&&q.swarm>0&&q.special>0;
+ };
  const fail=m=>{throw Error(m);};
  const assert=(v,m)=>{if(!v)fail(m);};
  const copy=value=>JSON.parse(JSON.stringify(value));
@@ -127,7 +164,7 @@
  const seats=[{seat:0,team:0,kind:'human'},{seat:1,team:1,kind:'ai'},
   {seat:2,team:0,kind:'human'},{seat:3,team:1,kind:'ai'}];
  const packIds=(catalog,chapter)=>{
-  const level=CHAPTERS.find(x=>x.id===chapter)?.level||2;
+  const level=encounter(chapter)?.level||2;
   return Object.values(catalog).filter(c=>c.playable&&!c.fusionOnly&&!c.ace&&c.level===level)
    .sort((a,b)=>(a.source??0)-(b.source??0)||a.id-b.id)
    .slice(0,3).map(c=>c.id);
@@ -164,9 +201,10 @@
     enemyFusionsA,enemyFusionsB,chapter=1,entry='new',catalog,randomSeed,
     hostUpgrades={},hostEnhancements={},hostEssence={},hostLv1={}}){
   assert(typeof roomId==='string'&&roomId.length>=6,'Raumkennung fehlt.');
-  assert(CHAPTERS.some(c=>c.id===chapter),'Ungültiges Kapitel.');
-  assert(['new','chapter'].includes(entry),'Ungültiger Einstieg.');
+  assert(!!encounter(chapter),'Ungültiges Kapitel.');
+  assert(['new','chapter','quest'].includes(entry),'Ungültiger Einstieg.');
   assert(entry!=='new'||chapter===1,'Neue Kampagne beginnt mit Kapitel I.');
+  assert((entry==='quest')===isQuest(chapter),'Questreihe und Kampagne bleiben getrennt.');
   for(const d of [hostDeck,enemyDeckA,enemyDeckB])
    assert(validDeck(d,catalog),'Hauptdeck muss aus 40 gültigen Einzelspieler-Karten bestehen (maximal 3 Kopien).');
   for(const f of [hostFusions,enemyFusionsA,enemyFusionsB])
@@ -181,18 +219,21 @@
     essenceTauntTurn:-1,essenceBastionUsed:false},
     {lp:16000,maxLp:16000,shield:0}],
    players:[player(0,safeName(hostName),chapterDeck(hostDeck,catalog,chapter,entry),hostFusions,hostBuild),
-    player(1,'Gegner A',enemyDeckA,enemyFusionsA),
-    player(2,'Partner (ausstehend)'),player(3,'Gegner B',enemyDeckB,enemyFusionsB)],
+    player(1,opponentNames(chapter)[0],enemyDeckA,enemyFusionsA),
+    player(2,'Partner (ausstehend)'),player(3,opponentNames(chapter)[1],enemyDeckB,enemyFusionsB)],
    winner:null,fateEvent:null,arenaEvent:null,
+   questProgress:{floating:0,swarm:0,special:0},questPassed:null,
    log:['Raum erstellt. Der Partner wird erwartet.']};
+  if(isQuest(chapter))g.log.push('Fanatiker-Saga · '+encounter(chapter).name+': '+encounter(chapter).dialogue);
   // Tiebreak initiative is chosen once, never supplied by a browser client.
   g.tiePriority=randomInt(g,2);
   return g;
  }
  function instance(g,id,catalog,{fusion=false,roleOverride=null,quality=1,
-  ownerSeat=null,fate=null}={}){
+  ownerSeat=null,fate=null,storyCorruption=false}={}){
   const c=definition(catalog,id);
-  assert(c&&(c.playable||(fate&&c.fateTemplate)),
+  assert(c&&(c.playable||(fate&&c.fateTemplate)||
+   (storyCorruption&&isQuest(g.chapter)&&g.chapter===15&&id===715&&ownerSeat===1)),
    'Karte existiert nicht im aktuellen Singleplayer-Katalog.');
   const p=Number.isInteger(ownerSeat)?g.players[ownerSeat]:null;
   let atk=fate?fate.atk:Math.max(0,round10((c.atk+statBonus(c,'atk',p))*quality));
@@ -206,6 +247,11 @@
   }
   // Lumira is an exact-stat story ACE, including outside the research build.
   if(c.lv1Special==='ace'){atk=111;def=111;}
+  if(storyCorruption){atk=920;def=220;}
+  // Both final bosses use the same solo-showcase power multiplier.
+  if(!storyCorruption&&g.chapter===10&&(ownerSeat===1||ownerSeat===3)){
+   atk=Math.min(10000,round10(atk*1.13));def=Math.min(10000,round10(def*1.13));
+  }
   return {uid:g.uid++,id,level,atk,def,fate:!!fate,role:roleOverride||c.role||'combatant',
    fusion,mode:'atk',used:false,switched:false,placedRound:g.round,
    essenceChoice:1,essenceAttacks:0,essenceLastToggle:-1,
@@ -351,6 +397,16 @@
   (c?.role==='soul'?Math.floor(Math.max(0,Number(c.condensed)||0)*.5):0));
  function win(g,team,reason){
   g.status='finished';g.winner=team;g.log.push(reason);
+  if(team===0&&isQuest(g.chapter)){
+   for(const p of g.players.filter(p=>p.team===0)){
+    g.questProgress.floating=Math.max(g.questProgress.floating,p.lv1?.floatUsed||0);
+    g.questProgress.swarm=Math.max(g.questProgress.swarm,p.lv1?.swarmUsed||0);
+   }
+   g.questPassed=questPassed(g);
+   if(!g.questPassed)g.log.push('Fanatiker-Prüfung nicht erfüllt: '+encounter(g.chapter).goal+
+    '. Wiederholt dieses Duell und erfüllt das Questziel.');
+   else g.log.push('Fanatiker-Prüfung bestanden! '+encounter(g.chapter).after);
+  }
  }
  const score=(g,team,damage,label)=>{
   const target=g.teams[1-team],incoming=Math.max(0,Math.floor(damage));
@@ -960,7 +1016,8 @@
   }else fail('Unbekannte Seelenfähigkeit.');
   c.lastSoulAction=p.ownTurns;
  }
- function apply(old,seat,action,{catalog}){
+ function apply(old,seat,action,{catalog,enemyDeckA,enemyDeckB,enemyFusionsA,enemyFusionsB,
+  humanBuilds}={}){
   assert(old?.schema===2&&old.mode==='duo-campaign','Unbekanntes 2v2-Spielstandsformat.');
   assert(Number.isInteger(seat)&&seat>=0&&seat<=3,'Ungültiger Sitzplatz.');
   assert(action&&typeof action.type==='string','Aktion fehlt.');
@@ -976,18 +1033,49 @@
    g.players[2]=partner;g.status='active';
    g.teams[0].shield=teamAegis(g);
    for(const pl of g.players)draw(pl);
+   if(g.chapter===15){
+    const fanatic=g.players[1];
+    fanatic.graveyard.push({id:714,from:'story'});
+    fanatic.field[0]=instance(g,715,catalog,{fusion:true,ownerSeat:1,storyCorruption:true});
+    g.log.push('✧ Lumira wird im ersten Zug zu „Lumiras Fall“ (920 ATK / 220 DEF) zwangsfusioniert.');
+   }
    g.log.push(partner.name+' ist beigetreten. 2v2 beginnt.');
    g.revision++;return g;
   }
   if(action.type==='nextChapter'){
-   assert(seat===0&&g.status==='finished'&&g.winner===0&&g.chapter<4,
+   assert(seat===0&&g.status==='finished'&&g.winner===0&&
+    (isQuest(g.chapter)?g.chapter<15&&g.questPassed===true:g.chapter<CHAPTERS.length),
     'Nur der Gastgeber kann das nächste freigeschaltete Kapitel starten.');
    g.chapter++;g.status='active';g.winner=null;g.round=1;g.turn=0;g.activeSeat=0;
+   g.questProgress={floating:0,swarm:0,special:0};g.questPassed=null;
    g.fateEvent=null;g.arenaEvent=null;g.predatorPursuit=null;g.predatorImpact=null;
    g.teams.forEach(t=>t.lp=t.maxLp);
    g.teams[0].shield=teamAegis(g);g.teams[1].shield=0;
    g.teams[0].essenceTauntTurn=-1;g.teams[0].essenceBastionUsed=false;
    for(const pl of g.players){
+    const updated=humanBuilds?.[pl.seat];
+    if(pl.team===0&&updated){
+     assert(validDeck(updated.deck,catalog)&&validDeck(updated.fusions,catalog,true),
+      'Aktualisiertes 2v2-Partnerdeck ist ungültig.');
+     const build=normalizedBuild(updated.upgrades,updated.enhancements,
+      updated.deck,updated.fusions,catalog,updated.essence,updated.lv1);
+     pl.baseDeck=[...updated.deck];pl.baseFusions=[...updated.fusions];
+     pl.upgrades=build.upgrades;pl.enhancements=build.enhancements;
+     pl.essence=build.essence;
+     pl.lv1.perk=build.lv1.perk;pl.lv1.rank=build.lv1.rank;
+    }
+    if(pl.seat===1&&enemyDeckA&&enemyFusionsA){
+     assert(validDeck(enemyDeckA,catalog)&&validDeck(enemyFusionsA,catalog,true),
+      'Gegnerdeck des nächsten Kapitels ist ungültig.');
+     pl.baseDeck=[...enemyDeckA];pl.baseFusions=[...enemyFusionsA];
+    }
+    if(pl.seat===3&&enemyDeckB&&enemyFusionsB){
+     assert(validDeck(enemyDeckB,catalog)&&validDeck(enemyFusionsB,catalog,true),
+      'Partner-Gegnerdeck des nächsten Kapitels ist ungültig.');
+     pl.baseDeck=[...enemyDeckB];pl.baseFusions=[...enemyFusionsB];
+    }
+    if(pl.seat===1)pl.name=opponentNames(g.chapter)[0];
+    if(pl.seat===3)pl.name=opponentNames(g.chapter)[1];
     pl.deck=chapterDeck(pl.baseDeck,catalog,g.chapter,'chapter');
     pl.fusionDeck=[...pl.baseFusions];pl.remainingFusion=[...pl.baseFusions];
     pl.hand=[];pl.field=Array(7).fill(null);pl.graveyard=[];
@@ -997,6 +1085,13 @@
     saved.ghostSlots=[];saved.charges=0;saved.choices=[];saved.offers=[];
     saved.floatUsed=0;saved.swarmUsed=0;
    }
+   g.teams[0].shield=teamAegis(g);
+   if(g.chapter===15){
+    g.players[1].graveyard.push({id:714,from:'story'});
+    g.players[1].field[0]=instance(g,715,catalog,{fusion:true,ownerSeat:1,storyCorruption:true});
+    g.log.push('✧ Lumiras Fall erscheint nach der erzwungenen Verwandlung.');
+   }
+   if(isQuest(g.chapter))g.log.push('Fanatiker-Saga · '+encounter(g.chapter).dialogue);
    g.log.push('Kapitel '+g.chapter+' beginnt mit vollständigen eigenen Decks.');
    g.revision++;return g;
   }
@@ -1171,6 +1266,9 @@
    result.switched=types.some(c=>c.switched===true);
    if(rule.resonatorAscent)result.resonatorAscentUsed=true;
    p.fusionsPerformed=(p.fusionsPerformed||0)+1;
+   if(p.team===0&&isQuest(g.chapter)&&template.lv1Special&&
+    ['hive','protector','attacker'].includes(template.lv1Special))
+    g.questProgress.special++;
    if(analysis.loreChainApplied)p.fusionLoreChainUsed=true;
    imprintPredator(g,p,result,cards.length);
    p.field[action.slot]=result;p.summoned=true;
@@ -1360,7 +1458,7 @@
   }
   return v;
  }
- return Object.freeze({version:'16.6-beta',CHAPTERS,seats,allowed,validDeck,packIds,
+ return Object.freeze({version:'16.7-beta',CHAPTERS,QUESTS,ENCOUNTERS,seats,allowed,validDeck,packIds,
   chapterDeck,create,apply,aiTurn,view,attackValue,fusionLevel,fusionPattern,fusionOptions,
   fusionAnalysis,fusionPreview,fusionRole,arenaDamage,fatePressure,PERK_LIMITS,normalizedBuild});
 });

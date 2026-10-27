@@ -477,3 +477,24 @@ Vier vorläufige Kapitel: Tor, Asche, Siegel, Finale.
 Der Kern nutzt einen reinen Reducer für Raum- und Zugzustand, ohne DOM oder 1v1-Globals. `apply` erstellt eine Kopie statt den übergebenen Zustand direkt zu verändern. Spieler können nicht stellvertretend für einen anderen Sitzplatz eine Aktion spielen; diese Zugriffsbeschränkung muss ein späterer Server unabhängig authentifizieren. Prototypdaten werden nicht als geheimer Zugangsschlüssel behandelt.
 
 **Kein echter Online-Raum ist bisher erstellt oder deployed.**
+
+## Aktueller Ausbau v20.0 (27.10.2026; der obere Text ist historische Planung)
+
+- Separate Online-2v2-Beta unter `duo-campaign-v2.html` mit eigenen Serverprofilen; **kein Solo-Import**.
+- Zehn Hauptkapitel, nach IV folgen die Schmiede, der Runensturm, das Firmament,
+  die Schattenbastion, der Thron und als Kapitel X der gemeinsame Bosskampf
+  **Eiman Huel Stalker + Hans Ess Kirk**. Beide besitzen Level-8–10-Bossdecks mit
+  der gleichen Stufenverteilung, vergleichbarer Basisstärke und +13 % Statbonus.
+  Eiman spielt vorwiegend defensive Rollen, Hans druckvolle Predatoren.
+- Unabhängige fünfteilige Fanatiker-Saga als Begegnungs-IDs 11–15. Nach
+  Kapitel II freigeschaltet. Ziele: Sieg, Floating, Schwarm, exklusive Lv1-Fusion,
+  anschließend alle drei Techniken im selben Kampf. Zum Finale beginnt
+  **Lumiras Fall** als erzwungene Boss-Zwangsfusion (920/220) auf dem Gegnerfeld.
+- Der erste Saga-Sieg schaltet für *beide* 2v2-Teammitglieder Lv1-Forschung Rang 1
+  und die drei exklusiven Lv1-Fusionskarten frei. Server speichert Siege, XP,
+  Essenz, Splitter und dreifache Kapitelkarten-Belohnung transaktional.
+- Der Kapitelübergang lädt ab diesem Update die **neuen Gegnerdecks** sowie
+  aktuelle eigene Serverprofile neu, damit Quest-Freischaltungen sofort wirksam
+  werden. Alte 4-Kapitel-Spielstände bleiben lesbar.
+- Weiterhin **außen vor**: neuer KI-Forschungsstand, Solo-Speicherstände,
+  Freigabe nach `main` und Live-Mehrgeräte-Abnahme.

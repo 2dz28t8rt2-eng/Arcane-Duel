@@ -7,11 +7,14 @@ import {createClient} from "npm:@supabase/supabase-js@2";
 import snapshot from "./catalog.json" with {type:"json"};
 import "./duo-rules.js";
 import "./duo-economy-v172.js";
+import "./duo-adversaries-v200.js";
 
 const game=globalThis.ArcaneDuoRules;
 if(!game)throw Error("Missing authoritative 2v2 rules");
 const economy=globalThis.ArcaneDuoEconomy172;
 if(!economy)throw Error("Missing standalone 2v2 economy rules");
+const adversaries=globalThis.ArcaneDuoAdversaries200;
+if(!adversaries)throw Error("Missing independent 2v2 adversary decks");
 const catalog=Object.fromEntries(snapshot.cards.map(c=>[c.id,c]));
 const starter=snapshot.starterMain;
 const db=createClient(Deno.env.get("SUPABASE_URL")||"",
@@ -28,31 +31,8 @@ const secret=()=>Array.from(crypto.getRandomValues(new Uint8Array(32)),
 const hash=async(value)=>Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",
  new TextEncoder().encode(value))),v=>v.toString(16).padStart(2,"0")).join("");
 const safeName=v=>String(v||"Duellant").replace(/[<>\x00-\x1f]/g,"").trim().slice(0,32)||"Duellant";
-function enemyDeck(chapter,seat){
- if(chapter===1)return [...starter];
- const target=[2,4,6,8][chapter-1];
- const options=snapshot.cards.filter(c=>c.playable&&!c.fusionOnly&&!c.ace&&
-   c.level<=target&&c.level>=Math.max(1,target-3)&&
-   (c.source===null||c.source<=chapter+2));
- options.sort((a,b)=>{
-  const score=c=>Math.abs(target-c.level)*300-
-   (seat===1?c.def:c.atk)*.3;
-  return score(a)-score(b)||a.id-b.id;
- });
- const unique=[...new Set(options.slice(0,19).map(c=>c.id))];
- if(unique.length<14)return [...starter];
- const deck=[];while(deck.length<40)for(const id of unique){
-  if(deck.length>=40)break;
-  if(deck.filter(x=>x===id).length<3)deck.push(id);
- }
- return deck;
-}
-function enemyFusions(chapter){
- const cap=[3,5,7,10][chapter-1];
- const pool=snapshot.cards.filter(c=>c.playable&&c.fusionOnly&&c.level>=2&&c.level<=cap)
-  .sort((a,b)=>a.level-b.level||a.id-b.id);
- return pool.slice(0,Math.min(15,pool.length)).map(c=>c.id);
-}
+const enemyDeck=(chapter,seat)=>adversaries.enemyDeck(chapter,seat,snapshot.cards,starter);
+const enemyFusions=chapter=>adversaries.enemyFusions(chapter,snapshot.cards);
 function json(body,status=200,origin=""){
  return new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json",
   "Cache-Control":"no-store","Access-Control-Allow-Origin":origin||"https://raw.githack.com",
@@ -109,6 +89,7 @@ const profileResult=async(p,extra={})=>({profile:profileView(p),
   lv1:economy.researchOffer(p,"lv1"),
   essence:economy.researchOffer(p,"essence"),
   maxCardLevel:capLevel(p),maxChapter:maxChapter(p),
+  maxSagaStage:economy.maxSagaStage(p),
   rewards:economy.rewardTable()},
  ...extra});
 
@@ -287,8 +268,10 @@ Deno.serve(async request=>{
   if(kind==="create"){
    const p=await profileByToken(body.profileToken);
    const entry=body.entry||"new",chapter=entry==="new"?1:body.chapter;
-   assert(["new","chapter"].includes(entry)&&Number.isInteger(chapter)&&
-    chapter>=1&&chapter<=maxChapter(p),"2v2-Kapitel nicht freigeschaltet.");
+   const unlocked=entry==="quest"?chapter>=11&&chapter<=economy.maxSagaStage(p):
+    entry==="new"||chapter>=1&&chapter<=maxChapter(p);
+   assert(["new","chapter","quest"].includes(entry)&&Number.isInteger(chapter)&&
+    unlocked,"2v2-Kapitel oder Fanatiker-Prüfung nicht freigeschaltet.");
    const ip=request.headers.get("cf-connecting-ip")||
     request.headers.get("x-forwarded-for")?.split(",")[0]||"unknown";
    const fp=await hash("arcane-duo-v2-"+ip);
@@ -324,7 +307,9 @@ Deno.serve(async request=>{
    assert(await hash(body.invite)===room.invitation_hash,"Einladung ungültig.");
    const p=await profileByToken(body.profileToken);
    assert(p.id!==room.host_profile_id,"Du kannst nicht beide Plätze übernehmen.");
-   assert(room.state.chapter<=maxChapter(p),"Partner hat dieses Kapitel noch nicht freigeschaltet.");
+   assert(room.state.entry==="quest"?
+    room.state.chapter<=economy.maxSagaStage(p):room.state.chapter<=maxChapter(p),
+    "Partner hat dieses Kapitel noch nicht freigeschaltet.");
    const guest=secret(),next=game.apply(room.state,2,{
     type:"join",name:p.nickname,deck:p.deck,fusions:p.fusions,
     upgrades:p.upgrades,enhancements:p.enhancements,
@@ -357,7 +342,27 @@ Deno.serve(async request=>{
    "soulCondense","soulDischarge","soulRaid","soulFocus","essencePredatorMode",
    "lv1Station","lv1Return","lv1GhostSwitch","lv1UseOffer","lv1Floating"].includes(body.action.type),
    "Aktion nicht erlaubt.");
-  let next=game.apply(room.state,seat,body.action,{catalog});
+  const advancing=body.action.type==="nextChapter",nextChapter=room.state.chapter+1;
+  const humanBuilds:Record<number,unknown>={};
+  if(advancing){
+   const ids=[room.host_profile_id,room.guest_profile_id].filter(Boolean);
+   const {data:profiles,error:profileError}=await db.from(PROFILE_TABLE)
+    .select("*").in("id",ids);
+   if(profileError)throw profileError;
+   for(const profile of profiles||[]){
+    const seatNumber=profile.id===room.host_profile_id?0:2;
+    humanBuilds[seatNumber]={deck:profile.deck,fusions:profile.fusions,
+     upgrades:profile.upgrades,enhancements:profile.enhancements,
+     essence:profile.essence_binding,lv1:profile.lv1_research};
+   }
+   assert(humanBuilds[0]&&humanBuilds[2],"Partnerprofile konnten nicht synchronisiert werden.");
+  }
+  let next=game.apply(room.state,seat,body.action,{catalog,
+   ...(advancing?{
+    enemyDeckA:enemyDeck(nextChapter,1),enemyDeckB:enemyDeck(nextChapter,3),
+    enemyFusionsA:enemyFusions(nextChapter),enemyFusionsB:enemyFusions(nextChapter),
+    humanBuilds
+   }: {})});
   next=game.aiTurn(next,{catalog});
   const {data:updated,error:writeError}=await db.from(TABLE).update({
    state:next,status:next.status,revision:next.revision,

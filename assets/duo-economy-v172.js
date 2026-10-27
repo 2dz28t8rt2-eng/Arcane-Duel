@@ -22,8 +22,12 @@
   essence:Object.freeze({title:'Essenzforschung',maxRank:3,chapterByRank:[2,3,4],
    costs:[[200,3],[340,4],[500,6]]})
  });
- const maxChapter=p=>Math.min(4,Math.max(1,...(p.cleared_chapters||[]).map(x=>x+1)));
- const maxCardLevel=p=>Math.min(10,3+2*Math.max(0,...(p.cleared_chapters||[])));
+ const mainCleared=p=>(p.cleared_chapters||[]).filter(n=>Number.isInteger(n)&&n>=1&&n<=10);
+ const questCleared=p=>(p.cleared_chapters||[]).filter(n=>Number.isInteger(n)&&n>=11&&n<=15);
+ const maxChapter=p=>Math.min(10,Math.max(1,...mainCleared(p).map(x=>x+1)));
+ const maxSagaStage=p=>mainCleared(p).includes(2)?
+  Math.min(15,Math.max(11,...questCleared(p).map(x=>x+1))):0;
+ const maxCardLevel=p=>Math.min(10,3+2*Math.max(0,...mainCleared(p)));
  const copies=arr=>arr.reduce((m,id)=>(m.set(id,(m.get(id)||0)+1),m),new Map());
  function researchRank(p,branch){
   if(branch==='lv1')return Math.max(0,Math.min(5,Number(p.lv1_research?.rank)||0));
@@ -35,7 +39,7 @@
   const rank=researchRank(p,branch);
   if(rank>=def.maxRank)return {rank,maxRank:def.maxRank,maxed:true,title:def.title};
   const [essence,shards]=def.costs[rank],requiredChapter=def.chapterByRank[rank];
-  const maxCleared=Math.max(0,...(p.cleared_chapters||[]));
+  const maxCleared=Math.max(0,...mainCleared(p));
   return {title:def.title,rank,maxRank:def.maxRank,nextRank:rank+1,
    essence,shards,requiredChapter,unlocked:maxCleared>=requiredChapter};
  }
@@ -44,7 +48,7 @@
   return Object.values(catalog).filter(c=>c.playable===true&&!c.ace&&
    !!c.fusionOnly===fusion&&!c.lv1Exclusive&&
    c.level<=maxLevel&&(owned.get(c.id)||0)<3&&
-   (!c.essenceMonster||(!fusion&&Math.max(0,...(p.cleared_chapters||[]))>=2))
+   (!c.essenceMonster||(!fusion&&Math.max(0,...mainCleared(p))>=2))
   );
  }
  function packDraw(p,kind,catalog,randomInt){
@@ -57,7 +61,7 @@
   let drawIndex=0;
   const draw=(fusion)=>{
    const collection=fusion?nextFusions:nextMain;
-   if(offer.special==='essence'&&Math.max(0,...(p.cleared_chapters||[]))<2)
+   if(offer.special==='essence'&&Math.max(0,...mainCleared(p))<2)
     throw Error('Essenzwesen-Pakete benötigen einen Sieg in 2v2-Kapitel II.');
    const pool=available(p,collection,fusion,catalog).filter(c=>
     offer.special==='essence'?c.essenceMonster===true:true);
@@ -92,10 +96,12 @@
    !c.essenceMonster&&c.level>=minimum);
  }
  const REPEAT_RATE=Object.freeze({xp:0.5,essence:0.4,shards:1,dailyLimit:3});
+ const rewardTier=chapter=>chapter>=11?chapter-8:chapter;
  function rewardTable(){
-  return [1,2,3,4].map(chapter=>{
-   const first={xp:40+20*chapter,essence:70+35*chapter,
-    shards:1+chapter,chapterCards:3};
+  return Array.from({length:15},(_,i)=>i+1).map(chapter=>{
+   const tier=rewardTier(chapter);
+   const first={xp:40+20*tier,essence:70+35*tier,
+    shards:1+tier,chapterCards:3};
    const repeat={xp:Math.floor(first.xp/2),
     essence:Math.floor(first.essence*.4),shards:1,chapterCards:0};
    return {chapter,first,repeat};
@@ -160,8 +166,8 @@
    a.name.localeCompare(b.name,'de')||a.id-b.id);
  }
 
- return Object.freeze({version:'17.4',PACKS,RESEARCH,
-  maxChapter,maxCardLevel,available,researchRank,researchOffer,packDraw,
+ return Object.freeze({version:'20.0',PACKS,RESEARCH,
+  maxChapter,maxSagaStage,maxCardLevel,available,researchRank,researchOffer,packDraw,
   ENHANCEMENT_MAX,enhanceOffer,recycleOffer,collectionRows,
   REPEAT_RATE,rewardTable,afford,chapterCardPool});
 });

@@ -460,7 +460,7 @@ test('old v16.0 room snapshots continue to run without new Soul fields',()=>{
  assert.equal(after.teams[1].lp,15870);
 });
 test('combat build is server-validated, bounded to the submitted decks and persists on both seats',()=>{
- assert.equal(rules.version,'16.6-beta');
+ assert.equal(rules.version,'16.7-beta');
  const opts={roomId:'build-123456',hostName:'Host',hostDeck:deck,hostFusions:fusions,
   enemyDeckA:deck,enemyDeckB:deck,enemyFusionsA:fusions,enemyFusionsB:fusions,
   chapter:1,entry:'new',catalog,hostUpgrades:{power:10,openingAegis:3},

@@ -9,7 +9,7 @@ const profile=(n=0)=>({cleared_chapters:Array.from({length:n},(_,i)=>i+1),
  deck:[...d.starterMain],fusions:[...d.starterFusions],essence:0,shards:0});
 const get=p=>fs.readFileSync(path.resolve(__dirname,'..',p),'utf8');
 test('v17.4 first-clear credits always select allowed cards in highest two unlocked ranks',()=>{
- assert.equal(e.version,'17.4');
+ assert.equal(e.version,'20.0');
  assert.deepEqual(e.chapterCardPool(profile(0),catalog),[]);
  for(let n=1;n<=4;n++){
   const p=profile(n),pool=e.chapterCardPool(p,catalog);
@@ -57,7 +57,7 @@ test('affordability estimates must consider BOTH essence and shards',()=>{
 });
 test('milestone rewards match locked DB rates and never grant credit on repeat',()=>{
  const rewards=e.rewardTable();
- assert.equal(rewards.length,4);
+ assert.equal(rewards.length,15);
  assert.deepEqual(rewards[0],{chapter:1,
   first:{xp:60,essence:105,shards:2,chapterCards:3},
   repeat:{xp:30,essence:42,shards:1,chapterCards:0}});

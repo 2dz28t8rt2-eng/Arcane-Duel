@@ -42,15 +42,22 @@
   el('h3',node,title);if(help)el('p',node,help,'duo-action-help');
   return node;
  };
- const chapter=()=>rules.CHAPTERS.find(c=>c.id===Number($('duoChapter').value))||rules.CHAPTERS[0];
+ const chapter=()=>rules.ENCOUNTERS.find(c=>c.id===Number($('duoChapter').value))||rules.CHAPTERS[0];
  function updateChapter(){
   const entry=$('duoEntry').value;
-  $('duoChapterSelect').hidden=entry!=='chapter';
+  if(entry==='chapter'&&Number($('duoChapter').value)>=11)$('duoChapter').value='1';
+  if(entry==='quest'&&Number($('duoChapter').value)<11)$('duoChapter').value='11';
+  $('duoChapterSelect').hidden=entry==='new';
+  $('duoQuestInfo').hidden=entry!=='quest';
   const chosen=entry==='new'?rules.CHAPTERS[0]:chapter();
-  $('duoCreate').textContent=entry==='new'?'Neue Kampagne erstellen':'Kapitel '+chosen.id+' starten';
-  set('duoChapterInfo','Kapitel '+chosen.id+' · '+chosen.name+
+  const saga=entry==='quest',stage=chosen.id-10;
+  $('duoCreate').textContent=entry==='new'?'Neue Kampagne erstellen':
+   saga?'Fanatiker-Prüfung '+stage+' starten':'Kapitel '+chosen.id+' starten';
+  set('duoChapterInfo',(saga?'Fanatiker-Prüfung '+stage:'Kapitel '+chosen.id)+' · '+chosen.name+
    '. Bis zu drei Leihkarten auf Level '+chosen.level+
-   ' verbessern die schwächsten Deckplätze. Stärkere eigene Karten bleiben erhalten.');
+   ' verbessern die schwächsten Deckplätze. Stärkere eigene Karten bleiben erhalten.'+
+   (saga?' Ziel: '+({win:'Gewinnen',floating:'Floating auslösen',swarm:'Schwarm auslösen',
+    special:'Exklusive Level-1-Fusion beschwören',all:'Floating, Schwarm und Spezialfusion kombinieren'}[chosen.goal]||'Prüfung bestehen')+'. '+chosen.dialogue:''));
  }
  function readProfile(snapshot){
   starterMain=[...snapshot.starterMain];starterFusions=[...snapshot.starterFusions];
@@ -199,8 +206,10 @@
  function updatePacing(){
   if(!duoProfile||!duoEconomy||!economyRules)return;
   const chapters=duoEconomy.rewards||economyRules.rewardTable(),
-   current=Math.max(1,...(duoProfile.clearedChapters||[]));
-  const next=chapters.find(x=>x.chapter===Math.min(4,current+1));
+   cleared=(duoProfile.clearedChapters||[]).filter(n=>n>=1&&n<=10),
+   lastClear=Math.max(0,...cleared),current=Math.max(1,lastClear);
+  const next=lastClear>=rules.CHAPTERS.length?null:
+   chapters.find(x=>x.chapter===lastClear+1);
   const credits=duoProfile.chapterCardCredits||0;
   set('duoFirstClearCards',credits?
    '🎁 '+credits+' Kapitelkarte'+(credits===1?'':'n')+' wartet'+(credits===1?'':'n')+' auf dich.':
@@ -209,7 +218,7 @@
   set('duoChapterClearPreview','Deine nächste Belohnung: '+
    (next?'Kapitel '+next.chapter+' · '+next.first.xp+' EP, '+
    next.first.essence+' Essenz, '+next.first.shards+
-   ' Splitter und 3 garantierte Karten':'Alle vier Kapitel erstmals abgeschlossen')+
+   ' Splitter und 3 garantierte Karten':'Alle zehn Kapitel erstmals abgeschlossen')+
    '. Ein weiterer Sieg in Kapitel '+current+' bringt '+
    chapters[current-1].repeat.essence+' Essenz und '+
    chapters[current-1].repeat.shards+' Splitter (bis zu dreimal täglich).');
@@ -234,7 +243,7 @@
     ' Splitter. Nach deinem ersten Kapitelsieg kannst du gezielt dafür sammeln.');
    return;
   }
-  const current=Math.max(...duoProfile.clearedChapters);
+  const current=Math.max(1,...(duoProfile.clearedChapters||[]).filter(n=>n>=1&&n<=10));
   const progress=economyRules.afford({
    essence:duoProfile.essence,shards:duoProfile.shards},offer,current);
   set('duoBalanceGoal',progress.canBuy?
@@ -260,10 +269,13 @@
    ' Splitter · '+duoProfile.wins+' Siege · '+
    duoProfile.ownedMain.length+' Hauptkarten / '+
    duoProfile.ownedFusions.length+' Fusionen');
-  const cleared=duoProfile.clearedChapters||[];
-  set('duoProfileCleared',cleared.length?
-   'Geschaffte Kapitel: '+cleared.join(', '):
-   'Dein Abenteuer beginnt in Kapitel I.');
+  const cleared=duoProfile.clearedChapters||[],
+   clearedMain=cleared.filter(n=>n>=1&&n<=10),
+   clearedSaga=cleared.filter(n=>n>=11&&n<=15);
+  set('duoProfileCleared',(clearedMain.length?
+   'Geschaffte Kapitel: '+clearedMain.join(', '):'Dein Abenteuer beginnt in Kapitel I.')+
+   (clearedSaga.length?' · Fanatiker-Saga: '+clearedSaga.map(n=>n-10).join(', ')+'/5':'')+
+   (duoEconomy?.maxSagaStage?' · Fanatiker-Quest verfügbar':' · Quest ab Kapitel II'));
   set('duoDeckInfo','Dein Deck ist bereit: 40 Hauptkarten und '+
    profileFusions.length+' Fusionsvorlagen. Änderungen gelten für das nächste Duell.');
   const perks=$('duoProfilePerk'),current=perks.value;
@@ -275,10 +287,10 @@
   }
   if(current&&rules.PERK_LIMITS[current])perks.value=current;
   $('duoProfileContinue').hidden=!duoLastRoom||!!roomId;
-  for(const c of rules.CHAPTERS){
+  for(const c of rules.ENCOUNTERS){
    const option=Array.from($('duoChapter').options).find(o=>Number(o.value)===c.id);
-   if(option)option.disabled=c.id>Math.min(4,Math.max(1,
-    ...cleared.map(n=>n+1)));
+   if(option)option.disabled=c.id>=11?c.id>(duoEconomy?.maxSagaStage||0):
+    c.id>(duoEconomy?.maxChapter||1);
   }
   if($('duoChapter').selectedOptions[0]?.disabled)$('duoChapter').value='1';
   updateChapter();
@@ -306,7 +318,8 @@
    !duoProfile.essenceBinding?.researchRank;
   const max=duoEconomy?.maxCardLevel??3,nextChapter=duoEconomy?.maxChapter??1;
   set('duoProfileUnlockInfo','Du kannst Karten bis Level '+max+' sammeln und bis Kapitel '+
-   nextChapter+' spielen.');
+   nextChapter+' spielen.'+(duoEconomy?.maxSagaStage?
+    ' Fanatiker-Saga bis Prüfung '+(duoEconomy.maxSagaStage-10)+'.':''));
   updatePacing();
   deckEditor();
   renderCollection();
@@ -445,7 +458,7 @@
    const entry=$('duoEntry').value;
    if(!duoProfileToken||!duoProfile)throw Error('Bitte zuerst ein eigenes 2v2-Profil erstellen.');
    const payload={type:'create',profileToken:duoProfileToken,entry,
-    ...(entry==='chapter'?{chapter:chapter().id}:{})};
+    ...(entry!=='new'?{chapter:chapter().id}:{})};
    const r=await call(payload);
    roomId=r.roomId;token=r.token;seat=0;invite=r.invite;save();load(r);
    location.hash='room='+roomId;
@@ -533,18 +546,32 @@
     ' – fünf Schicksalsmonster eilen zu Hilfe!','duo-fate-banner');
   }
   const milestones=$('duoChapterProgress');milestones.replaceChildren();
-  for(const c of rules.CHAPTERS){
-   const completed=game.entry==='new'&&c.id<game.chapter||
-    game.winner===0&&game.status==='finished'&&c.id===game.chapter;
+  const progressStages=game.entry==='quest'?rules.QUESTS:rules.CHAPTERS;
+  for(const c of progressStages){
+   const completed=(game.entry==='new'||game.entry==='quest')&&c.id<game.chapter||
+    game.winner===0&&game.status==='finished'&&c.id===game.chapter&&
+    (game.entry!=='quest'||game.questPassed===true);
    const selected=c.id===game.chapter;
    const skipped=!selected&&c.id<game.chapter&&!completed;
    const li=el('li',milestones,undefined,'duo-chapter-step'+
     (completed?' complete':selected?' current':skipped?' skipped':''));
-   el('strong',li,'Kapitel '+c.id);
+   el('strong',li,game.entry==='quest'?'Prüfung '+(c.id-10):'Kapitel '+c.id);
    el('span',li,c.name);
    el('small',li,completed?'Geschafft':
     selected?game.winner===1?'Niederlage':game.status==='finished'?'Abgeschlossen':'Aktuelles Kapitel':
     skipped?'Übersprungen':'Noch nicht begonnen');
+  }
+  if(game.entry==='quest'){
+   const current=rules.QUESTS.find(c=>c.id===game.chapter);
+   if(current){
+    el('p',track,'✧ '+current.name+' · '+current.dialogue,'duo-fate-banner');
+    const q=game.questProgress||{};
+    el('p',track,'Questziel: '+({win:'Duell gewinnen',floating:'Floating auslösen',
+     swarm:'Schwarm auslösen',special:'Exklusive Level-1-Fusion durchführen',
+     all:'Floating, Schwarm und exklusive Level-1-Fusion kombinieren'}[current.goal]||'Duell gewinnen')+
+     ' · Floating '+(q.floating||0)+' · Schwarm '+(q.swarm||0)+
+     ' · Spezialfusion '+(q.special||0),'duo-arena-forecast');
+   }
   }
   const reward=rules.packIds(catalog,game.chapter);
   set('duoCurrentReward','Leihkarten für dieses Kapitel: '+reward.map(name).join(' · '));
@@ -633,12 +660,16 @@
   window.ArcaneDuoExperience185?.didRender?.({game,seat,roomId});
   window.ArcaneDuoPredator198?.decorate?.({game,seat});
   if(game.status!=='active'){
-   if(game.status==='finished'&&game.winner===0&&game.chapter<4){
+   const canContinue=game.entry==='quest'?game.chapter<15&&game.questPassed===true:
+    game.chapter<rules.CHAPTERS.length;
+   if(game.status==='finished'&&game.winner===0&&canContinue){
     if(seat===0)button('✦ Kapitel '+(game.chapter+1)+' starten',
      dock,()=>send({type:'nextChapter'}));
     else el('p',dock,'Kapitel gewonnen. Der Gastgeber startet das nächste.');
    }else el('p',dock,game.status==='waiting'?'Sobald dein Partner da ist, geht es los.':
-    game.winner===0?'Ihr habt alle Kapitel geschafft!':'Das Duell ist zu Ende.');
+    game.entry==='quest'&&game.winner===0&&game.questPassed!==true?
+     'Ihr habt gewonnen, aber das Questziel fehlt. Wiederholt diese Prüfung.':
+    game.winner===0?'Ihr habt diese Kampagne abgeschlossen!':'Das Duell ist zu Ende.');
    return;
   }
   if(game.activeSeat!==seat){
@@ -943,10 +974,17 @@
    fateIds=[...(snapshot.fateIds||[])];fateNames=[...(snapshot.fateNames||[])];
    readProfile(snapshot);
   }catch(e){set('duoDeckInfo','Karten konnten nicht geladen werden: '+e.message);return;}
-  for(const c of rules.CHAPTERS){
-   const o=el('option',$('duoChapter'),c.id+' · '+c.name);o.value=c.id;
+  for(const c of rules.ENCOUNTERS){
+   const o=el('option',$('duoChapter'),(c.id>=11?'Fanatiker '+(c.id-10):c.id)+' · '+c.name);
+   o.value=c.id;
   }
-  $('duoChapter').onchange=updateChapter;$('duoEntry').onchange=updateChapter;
+  $('duoChapter').onchange=updateChapter;
+  $('duoEntry').onchange=()=>{
+   const entry=$('duoEntry').value;
+   if(entry==='quest'&&Number($('duoChapter').value)<11)$('duoChapter').value='11';
+   if(entry!=='quest'&&Number($('duoChapter').value)>=11)$('duoChapter').value='1';
+   updateChapter();
+  };
   updateChapter();
   $('duoCreate').onclick=createRoom;
   $('duoRefresh').onclick=refresh;
