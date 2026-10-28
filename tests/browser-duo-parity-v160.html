@@ -1,4 +1,4 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><title>2v2 v16.6 browser QA</title></head>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>2v2 current rules browser QA</title></head>
 <body><pre id="result">Lädt …</pre><iframe id="duo" src="../duo-campaign-v2.html" width="1000" height="900"></iframe>
 <script>
 document.getElementById('duo').addEventListener('load',()=>{
@@ -8,7 +8,7 @@ document.getElementById('duo').addEventListener('load',()=>{
   const check=(v,t)=>{notes.push((v?'OK ':'FAIL ')+t);if(!v)ok=false;};
   try{
    check(!!f.contentWindow.ArcaneDuoRules,'Same reducer as deployed on the Edge Function');
-   check(f.contentWindow.ArcaneDuoRules?.version==='16.6-beta','Correct rules version');
+   check(f.contentWindow.ArcaneDuoRules?.version==='20.2-beta','Correct rules version');
    check(!!f.contentWindow.ArcaneFateVisuals?.artFor(0),
     'Singleplayer Fate illustrations are available for temporary creatures');
    check(d.querySelector('.notice').textContent.includes('Einzelspieler-Fortschritt')&&
@@ -24,7 +24,11 @@ document.getElementById('duo').addEventListener('load',()=>{
     'Dedicated 2v2 progression, deck builder and store are present');
    check(d.getElementById('duoEntry').value==='new','Chapter I is default');
    check(d.getElementById('duoChapterSelect').hidden,'Chapter picker hidden by default');
-   check(d.getElementById('duoChapter').options.length===4,'Four chapter definitions remain');
+   check(d.getElementById('duoChapter').options.length===
+     f.contentWindow.ArcaneDuoRules.ENCOUNTERS.length&&
+     f.contentWindow.ArcaneDuoRules.CHAPTERS.length===10&&
+     f.contentWindow.ArcaneDuoRules.QUESTS.length===5,
+     'All ten chapters and five side quests remain');
    check(d.getElementById('duoChapterInfo').textContent.includes('Level 2'),
     'Chapter I preview uses canonical level');
    check(d.querySelectorAll('#duoSeats .seat').length===0,
