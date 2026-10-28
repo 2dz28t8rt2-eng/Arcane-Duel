@@ -18,7 +18,7 @@ function once(source,needle,replacement,label){
 }
 
 // Inject into the live simulation closure, not the AI's forecast clones.
-const causalHooks=String.raw`
+const rawCausalHooks=String.raw`
 inject(' counter.openingBeginning=__openingSnapshot(g);',[
  ' counter.openingBeginning=__openingSnapshot(g);',
  ' counter.firstAttack1585=null;counter.firstAttackKill1585=null;',
@@ -94,6 +94,11 @@ inject(' counter.openingBeginning=__openingSnapshot(g);',[
  ' };'
 ]);
 `;
+// The duel runtime runs in a sandboxed VM without Node's `process` global.
+// Compile the preregistered treatment flag into the research-only hooks.
+const causalHooks=rawCausalHooks
+ .replaceAll('process.env.ARCANE_V1586_MODE!=="cooldown"',String(mode!=='cooldown'))
+ .replaceAll('process.env.ARCANE_V1586_MODE==="cooldown"',String(mode==='cooldown'));
 
 fs.readFileSync=function(file,...args){
  let source=original.call(this,file,...args);
