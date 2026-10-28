@@ -11,7 +11,7 @@ assert.ok(modes.includes(mode),'Unknown v15.87 mode');
 assert.ok(Number.isInteger(replicate)&&replicate>=0&&replicate<4,'Invalid replicate');
 process.env.ARCANE_V1584_MODE='baseline';
 const original=fs.readFileSync;
-const counts={game:0,sim:0,seat:0,role:0};
+const counts={game:0,essence:0,sim:0,seat:0,role:0};
 function once(source,needle,replacement,label){
  assert.equal(source.split(needle).length,2,'v15.87 source drift: '+label);
  return source.replace(needle,replacement);
@@ -145,6 +145,25 @@ const dataOf=c=>{
   def:Math.max(0,Math.floor(c.card.def*multiplier))}};
  return __v1587BaseDataOf(copy);
 };`, 'read-time combat-view evolution; never alter stored base stats');
+ }else if(normalized.endsWith('/assets/essence-combat.js')){
+  counts.essence++;
+  const old=String.raw`   const baseLoss=Math.min(d.card?.def||0,remaining);
+   if(d.card)d.card.def=Math.max(0,d.card.def-baseLoss);`;
+  const replacement=String.raw`   // Research-only view-consistent Predator DEF health: the existing
+   // Soul/Condensed layers are processed first and left unchanged.
+   const __v1587Age=d?.__v1587EvolutionAge;
+   const __v1587Mode=d?.__v1587EvolutionMode;
+   const __v1587Factor=Number.isInteger(__v1587Age)&&
+    (d.roleOverride||CARDS[d.id]?.role)==='predator'?
+     (__v1587Mode==='slow'?Math.min(1.10,.85+.05*Math.min(5,__v1587Age)):
+      __v1587Mode==='fast'?Math.min(1.15,.85+.10*Math.min(5,__v1587Age)):1):1;
+   const __v1587RawDef=d.card?.def||0;
+   const __v1587EffectiveDef=Math.floor(__v1587RawDef*__v1587Factor);
+   const baseLoss=Math.min(__v1587EffectiveDef,remaining);
+   if(d.card)d.card.def=baseLoss>=__v1587EffectiveDef?0:
+    Math.max(0,Math.ceil((__v1587EffectiveDef-baseLoss)/__v1587Factor));`;
+  source=once(source,old,replacement,
+   'defensive Predator health follows its projected DEF');
  }else if(normalized.endsWith('/ai-v1582-deployment-delay.cjs')){
   counts.sim++;
   source=once(source,'const deploymentHooks=String.raw`',
@@ -207,4 +226,5 @@ try{
   "once('15730000+','16480000+');",'new RNG series');
  new Function('require','process','console','__dirname',script)(require,process,console,__dirname);
 }finally{fs.readFileSync=original;}
-assert.deepEqual(counts,{game:1,sim:1,seat:1,role:1},'Expected exactly one of each simulator transformation');
+assert.deepEqual(counts,{game:1,essence:1,sim:1,seat:1,role:1},
+ 'Expected exactly one of each simulator transformation');
