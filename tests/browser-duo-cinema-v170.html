@@ -11,8 +11,8 @@ document.getElementById('duo').addEventListener('load',()=>{
    check(cine?.version==='17.0','New v17.0 cinema module loaded');
    check(!!d.querySelector('link[href*="duo-cinema-v170.css"]'),
     'Fusion and handdraw CSS installed');
-   check(d.querySelector('.duo-team-definition')?.textContent.includes('2 Menschen gegen 2 KI'),
-    'User guidance specifies exactly 2 humans vs 2 AIs');
+   check(d.querySelector('.duo-team-definition')?.textContent.includes('Du und dein Partner gegen zwei Gegner'),
+    'User guidance describes the duo team and both opponents');
    const card={uid:501,id:25,level:3,atk:780,def:820,
     role:'predator',fusion:true,pattern:'Drilling',
     quality:1.04,rollTrace:[{atk:700,def:720},{atk:780,def:820}],
