@@ -1,0 +1,138 @@
+name: Arcane Duel - v15.82 Deployment Delay and Optional 50 Percent Attack
+on:
+  push:
+    branches: [development]
+    paths: ['.github/workflows/ai-v1582-deployment-delay.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preflight:
+    name: Verify existing engine, research script and sealed TRAIN-only priors
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check new delay/50% simulator and actual combat regressions
+        run: |
+          set -euo pipefail
+          node --check tests/ai-v1582-deployment-delay.cjs
+          node --check tests/ai-v1582-deployment-delay-aggregate.cjs
+          node --test tests/ai-v1575-counterplay.test.cjs tests/ai-v1574-stomp.test.cjs tests/fusion-stomp-v200.test.cjs tests/essence-combat.test.cjs tests/predator-pack-v198.test.cjs
+          node tests/helpers/game-runtime.cjs
+      - name: Verify existing TRAIN-only research checkpoint source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40513311546" --jq '.conclusion')" = success
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40679804474" --jq '.conclusion')" = success
+          mkdir -p /tmp/arcane-v1582-priors artifacts/v1582-priors
+          gh run download 40513311546 --repo "$GITHUB_REPOSITORY" --name arcane-v14972-counterplay --dir /tmp/arcane-v1582-priors
+          for f in historical-train.json frozen-v1555-champion.json incumbent-policy.json older-q-checkpoint.json previous-training-q.json prior-selfplay-checkpoint.json provenance.json research-balanced-policy.json v1499-prior-q.json endgame-learner.json training-q-and-examples.json; do
+            test -s "/tmp/arcane-v1582-priors/$f"
+            cp "/tmp/arcane-v1582-priors/$f" "artifacts/v1582-priors/$f"
+          done
+          node - <<'JS'
+          const a=require('node:assert/strict'),x=require('./artifacts/v1582-priors/endgame-learner.json');
+          a.equal(x.sourceRun,40499008498);
+          a.equal(x.split,'train');a.equal(x.holdoutUsed,false);a.equal(x.validationUsed,false);
+          console.log('ARCANE_V1582_PRIORS_VERIFIED');
+          JS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1582-verified-priors
+          path: artifacts/v1582-priors/
+          retention-days: 90
+  research:
+    name: ${{ matrix.match }}-stage${{ matrix.stage }}-${{ matrix.mode }}
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        match: [mirror, cross]
+        stage: [9, 10]
+        mode: [baseline, delay, emergency50-locked, emergency50-open]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1582-verified-priors
+          path: artifacts/v1582/${{ matrix.match }}/${{ matrix.mode }}
+      - name: Compare full duels with deployment delay and voluntary emergency attack
+        env:
+          ARCANE_V1580_MATCH: ${{ matrix.match }}
+          ARCANE_V1582_MODE: ${{ matrix.mode }}
+          ARCANE_STAGE: ${{ matrix.stage }}
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            for chunk in 0 1; do
+              node --expose-gc --max-old-space-size=2400 tests/ai-v1582-deployment-delay.cjs "$ARCANE_STAGE" "$pair" "$chunk"
+            done
+          done
+      - name: Preserve partial shards even on failure
+        if: always()
+        env:
+          ARCANE_V1580_MATCH: ${{ matrix.match }}
+          ARCANE_V1582_MODE: ${{ matrix.mode }}
+          ARCANE_STAGE: ${{ matrix.stage }}
+        run: |
+          set -euo pipefail
+          dir="${ARCANE_V1580_MATCH}/${ARCANE_V1582_MODE}"
+          mkdir -p "artifacts/v1582-export/$dir"
+          find "artifacts/v1582/$dir" -maxdepth 1 -name "stage-$ARCANE_STAGE-pair-*.json" -type f -exec cp {} "artifacts/v1582-export/$dir/" \;
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-v1582-data-${{ matrix.match }}-${{ matrix.mode }}-stage${{ matrix.stage }}
+          path: artifacts/v1582-export/
+          retention-days: 90
+          if-no-files-found: warn
+  aggregate:
+    name: Audit 6144 full duels, actual emergency attacks, and starter parity
+    needs: [preflight, research]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: arcane-v1582-data-*
+          merge-multiple: true
+          path: artifacts/v1582
+      - name: Audit identical seeds, no permanent 50 percent stat loss, and optional attacks
+        run: node --max-old-space-size=3200 tests/ai-v1582-deployment-delay-aggregate.cjs
+      - name: Require complete research-only sealed audit
+        run: |
+          node - <<'JS'
+          const a=require('node:assert/strict'),r=require('./artifacts/v1582/analysis/report.json');
+          a.equal(r.status,'completed');a.equal(r.totalDuels,6144);
+          a.equal(r.starterPairs,3072);a.equal(r.labelChecks,1536);
+          a.equal(r.matchedMechanismPairs,4608);
+          a.equal(r.controls.gameplayUntouched,true);
+          a.equal(r.controls.temporaryCombatMultiplierOnly,true);
+          a.equal(r.selection.calculatedFrom,'TRAIN+VALIDATION only');
+          a.equal(r.selection.anyGameplayChange,false);
+          console.log('ARCANE_V1582_DEPLOYMENT_CONTROLS_COMPLETE');
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-v1582-deployment-6144-report
+          path: artifacts/v1582/analysis/report.json
+          retention-days: 90
+          if-no-files-found: warn
