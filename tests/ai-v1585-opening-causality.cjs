@@ -83,6 +83,10 @@ fs.readFileSync=function(file,...args){
    'causal telemetry declaration');
   source=once(source,'extraHooks+deploymentHooks',
    'extraHooks+deploymentHooks+causalHooks','append observational hooks');
+  source=once(source,
+   "JSON.stringify(deploymentHooks)+';\\nconst extension=String.raw`'",
+   "JSON.stringify(deploymentHooks)+';\\nconst causalHooks='+JSON.stringify(causalHooks)+';\\nconst extension=String.raw`'",
+   'carry telemetry into the downstream simulator compiler');
   const marker=' "  \'      emergencyHalfDamageChecks:m.stats.emergencyHalfDamageChecks,\\\\n\'+",';
   const fields=['emergencyHalfDamageChecks:m.stats.emergencyHalfDamageChecks,',
    'firstAttack1585:m.stats.firstAttack1585,',
