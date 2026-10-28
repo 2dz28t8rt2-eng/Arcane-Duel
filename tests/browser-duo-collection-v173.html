@@ -24,8 +24,8 @@ document.getElementById('duo').addEventListener('load',()=>{
     'Recycling cannot run before explicitly choosing an unused card');
    check(d.getElementById('duoProfileActive').hidden,
     'No items presented as owned before server profile authorization');
-   check(!!d.querySelector('.duo-team-definition')?.textContent.includes('2 Menschen'),
-    'Co-op remains two humans against two NPCs');
+   check(!!d.querySelector('.duo-team-definition')?.textContent.includes('Du und dein Partner gegen zwei Gegner'),
+    'The guide identifies both human partners and the opposing team');
    const p={owned_main:[1],owned_fusions:[],deck:[1],fusions:[],enhancements:{}};
    check(w.ArcaneDuoEconomy172.recycleOffer(p,1,{1:{id:1,playable:true,level:1}})===null,
     'Active card cannot be sold, even in the visual helper');
