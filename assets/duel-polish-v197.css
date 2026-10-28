@@ -38,10 +38,24 @@
 .ad197-damage{position:fixed;z-index:16000;pointer-events:none;transform:translate(-50%,-50%);font:900 clamp(26px,3.6vw,50px)/1 Georgia,serif;white-space:nowrap;color:#ffeac4;text-shadow:0 2px 1px #2c0808,0 0 16px #f44a35,0 0 32px #ed7359;animation:ad197-number-rise .16s ease-out both}
 .ad197-damage.ad197-mid{font-size:clamp(36px,4.2vw,62px);color:#ffd48b}
 .ad197-damage.ad197-heavy{font-size:clamp(45px,5.2vw,78px);color:#ffafa6;text-shadow:0 2px 1px #380000,0 0 25px #fa1919,0 0 48px #e88036}
-.ad197-damage.ad197-burst{animation:ad197-number-burst .14s ease-out forwards}
+.ad197-damage.ad197-burst{animation:ad197-number-burst .28s ease-out forwards}
 .ad197-damage i{position:absolute;left:50%;top:50%;width:5px;height:14px;border-radius:3px;background:#fff2cf;opacity:0;transform:rotate(var(--a)) translateY(0)}
 .ad197-damage.ad197-burst i{animation:ad197-spark .16s ease-out forwards}
 @keyframes ad197-number-rise{from{opacity:0;transform:translate(-50%,-15%) scale(.5)}to{opacity:1;transform:translate(-50%,-75%) scale(1.07)}}
 @keyframes ad197-number-burst{from{transform:translate(-50%,-75%) scale(1.07);opacity:1}to{transform:translate(-50%,-95%) scale(1.22);opacity:.65}}
 @keyframes ad197-spark{0%{opacity:1}100%{opacity:0;transform:rotate(var(--a)) translateY(calc(-20px * var(--power,1)))}}
 @media(prefers-reduced-motion:reduce){.ad197-screen-curtain{transition:none}.ad197-damage,.ad197-damage.ad197-burst,.ad197-damage i{animation:none!important}.ad197-now-playing.ad197-now-playing-active{animation:none!important;opacity:1}}
+/* Outcome ceremonies: the completed board stays visible under the title. */
+.ad197-outcome{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+ z-index:295;pointer-events:none;color:#ffdd89;text-transform:uppercase;
+ font:900 clamp(56px,11vw,156px)/1 Georgia,serif;letter-spacing:.085em;
+ text-shadow:0 6px 0 #090d1a,0 0 22px #ddac5c,0 0 65px #c795496e;
+ animation:ad197-outcome-arrive .75s cubic-bezier(.13,.9,.3,1) both}
+.ad197-outcome.ad197-defeat{color:#ffa3aa;text-shadow:0 6px 0 #090d1a,0 0 22px #a72d39,0 0 65px #b22a4d88}
+body.ad197-result-hold #overlay,body.ad197-result-hold .ad-card-reward-scene{visibility:hidden!important;pointer-events:none!important}
+@keyframes ad197-outcome-arrive{0%{opacity:0;transform:scale(.72)}65%{opacity:1;transform:scale(1.035)}100%{opacity:1;transform:scale(1)}}
+#overlay.ad197-result-reveal{animation:ad197-modal-screen .75s ease-in-out both}
+#overlay.ad197-result-reveal #modal{animation:ad197-modal-surface .75s cubic-bezier(.19,.83,.28,1) both}
+@keyframes ad197-modal-screen{from{background:#050a1200;backdrop-filter:blur(0)}to{background:#050a12f4;backdrop-filter:blur(20px)}}
+@keyframes ad197-modal-surface{from{opacity:0;transform:translateY(26px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.ad197-outcome,#overlay.ad197-result-reveal,#overlay.ad197-result-reveal #modal{animation:none!important}}

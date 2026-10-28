@@ -28,7 +28,7 @@ test('Legacy saves without ACE metadata remain valid',()=>{
  assert.deepEqual(x,{cards:40,ace:0,guide:false,losses:11});
 });
 test('First tournament victory fills charges and novice XP is greater than normal XP',()=>{
- const b=boot(),x=b.run('(()=>{profile.dropCharges=0;profile.guideSeen=true;const g=createGame({mode:"pve",starter:0,opponentId:1,context:"tournament",seed:32});g.winner=0;const reward=rewardMatch(g);return {first:reward.first,refilled:reward.refilled,charges:profile.dropCharges,cap:dropChargeCap(),xp:reward.xp};})()');
+ const b=boot(),x=b.run('(()=>{profile.dropCharges=0;profile.guideSeen=true;profile.trainingWins=3;profile.mastery[0]=3;const g=createGame({mode:"pve",starter:0,opponentId:1,context:"tournament",seed:32});g.winner=0;const reward=rewardMatch(g);return {first:reward.first,refilled:reward.refilled,charges:profile.dropCharges,cap:dropChargeCap(),xp:reward.xp};})()');
  assert.equal(x.first,true);assert.equal(x.refilled,true);assert.equal(x.charges,x.cap);assert.ok(x.xp>=24);
 });
 test('ACE cards can be bought once after tournament victory, cheaper with higher level',()=>{

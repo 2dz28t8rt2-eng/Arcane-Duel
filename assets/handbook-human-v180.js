@@ -206,6 +206,59 @@
     <p>Diese neue Rudelführer-Mechanik gilt derzeit im
     <b>Einzelspieler-PvE</b>. Klassisches PvP, 2v2 und symmetrische
     KI-Forschungsduelle bleiben unverändert.</p>`],
+  ['combat-controls','23 · Duellbedienung, Feldwerte und neue Animationen',
+   `<h3>Tasten und Übersicht</h3>
+    <p><b>D</b> wechselt das ausgewählte eigene Monster zwischen ATK und DEF,
+    sofern es in diesem Zug noch wechseln darf. <b>A</b> löst einen direkten Angriff
+    mit dem ausgewählten Feldmonster aus, wenn das gegnerische Feld frei ist.
+    <b>F</b> öffnet die Fusion, <b>Leertaste</b> beendet den Zug. Mit <b>H</b>
+    minimierst oder öffnest du die Handkarten. Das geht auch über
+    „Hand verbergen/zeigen“ direkt oberhalb deiner Hand.</p>
+    <h3>Warum unterscheiden sich Hand- und Feldwerte?</h3>
+    <p>Die Handkarte zeigt die Grundwerte. Auf dem Feld können Boni, die Wirkung
+    von Kreaturenfähigkeiten, Angriffsermüdung oder Zerfall hinzukommen. Die
+    große Kartenansicht zeigt für ein Monster auf dem Feld nun seine
+    <b>aktuellen Feldwerte</b> an, damit du nicht zwischen zwei Zahlen rätseln musst.</p>
+    <p>Predatoren erhalten für jedes aktive Rudelmitglied einen Schwarmbonus.
+    Die kleine Prozentanzeige am Monster zeigt den <b>gerade wirkenden Bonus</b>.
+    Sobald weitere Predatoren hinzukommen oder wegfallen, erscheint eine kurze
+    grüne oder rote Änderungsanzeige. Eine aktive Rudelführer-Fusion ist auch
+    auf der großen Karte gekennzeichnet. Der Rudelbonus ist nicht dauerhaft
+    in der Karte gespeichert.</p>
+    <h3>Welche Karten dürfen niemals Fusionsmaterial werden?</h3>
+    <p><b>ACE-Monster sind keine Fusionsmaterialien</b> – weder für dich noch
+    für Turniergegner. Das gilt für Hand- und Feldfusionen. Auch
+    Schicksalskarten und Rudelruf-Tokens sind geschützt. Eine ACE-Fusionskarte
+    darf weiterhin als eigene Fusionsvorlage beschworen werden; nur als
+    Material für weitere Fusionen ist sie ausgeschlossen. Die einmalige,
+    erzählerisch festgelegte Verwandlung <b>„Lumiras Fall“</b> in der
+    Fanatiker-Quest ist eine besondere Ausnahme und kein reguläres Rezept.</p>
+    <h3>Wie laufen die Kampfanimationen ab?</h3>
+    <p>Angreifende Karten preschen schnell bis etwa zur <b>Hälfte der Strecke</b>
+    vor. Einschlag, Explosion und Schadenszahlen bleiben länger lesbar.
+    Auch Wertverluste durch Zerfall werden sichtbar eingeblendet.
+    Nach einem Kampfausgang bleibt das Spielfeld zunächst etwa
+    anderthalb Sekunden stehen. Dann erscheint groß <b>Sieg</b> oder
+    <b>Niederlage</b>, bevor sich das Ergebnisfenster langsam öffnet – ohne
+    schwarzen Zwischenbildschirm.</p>
+    <p>Beim Start des Duells und beim Nachziehen erscheinen neue Karten
+    <b>nacheinander</b> von rechts in der Hand. Das ändert weder die gezogenen
+    Karten noch ihre Chancen. Die Animation zeigt nur den tatsächlichen Zug.</p>
+    <h3>Seelenzehrer-Aktionen und deine Hand</h3>
+    <p>Wähle einen eigenen Seelenzehrer in DEF, um seine verfügbaren aktiven
+    Fähigkeiten zu sehen. Das funktioniert auch, wenn du in diesem Zug noch
+    keine andere Karte gespielt hast – vorausgesetzt, die Fähigkeit ist
+    freigeschaltet und hat genügend Seelenessenz bzw. ist nicht im Cooldown.
+    Bei Verdichten, Entladen oder Seelenraub verblassen die Handkarten
+    kurz und erscheinen anschließend wieder.</p>
+    <h3>Wann gibt es Dropladungen?</h3>
+    <p>Dropladungen schaltest du erst frei, wenn du deinen ersten Gegner oft
+    genug besiegt hast, um <b>Autokämpfe</b> gegen ihn spielen zu können.
+    Das Spiel erklärt dir die Freischaltung in einem Hinweisfenster.
+    Danach füllen manuelle Kämpfe deinen Vorrat auf. Wenn du Dropladungen
+    aktivierst, bringt ein Autokampf <b>50 % statt 30 % Essenz und XP</b>
+    sowie <b>20 % statt 12 % Kartenchance</b>. Pro Autokampf wird eine Ladung
+    verbraucht – auch bei einer Niederlage. Du kannst sie zum Sparen ausschalten.</p>`],
  ];
  function refresh(){
   const modal=document.getElementById('modal'),book=modal?.querySelector('.arcane-handbook');

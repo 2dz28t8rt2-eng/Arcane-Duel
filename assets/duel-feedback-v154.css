@@ -1,9 +1,9 @@
 /* Concise combat-value hints; these float above the existing card frame. */
 .monster-slot{position:relative}
-.ad154-value-change{position:absolute;z-index:29;left:50%;bottom:18%;width:max-content;max-width:145%;
+.ad154-value-change{position:fixed;z-index:16040;width:max-content;max-width:min(245px,90vw);
   transform:translate(-50%,0);pointer-events:none;padding:5px 8px;border-radius:8px;
   font-size:.75rem;font-weight:900;letter-spacing:.02em;line-height:1.3;text-shadow:0 1px 3px #000;
-  box-shadow:0 3px 14px #0009;border:1px solid #fff7;animation:ad154-value-rise 1.65s ease-out both}
+  box-shadow:0 3px 14px #0009;border:1px solid #fff7;animation:ad154-value-rise 2.55s ease-out both}
 .ad154-value-up{background:#1a7349e8;color:#f4fff6}
 .ad154-value-down{background:#8c2935e8;color:#fff4f2}
 #ad154-value-panel{margin:10px 0 5px;padding:9px 11px;border:1px solid #a0c3cb55;
@@ -13,7 +13,7 @@
 #ad154-value-panel small{display:block;margin-top:6px;color:#b1bccf}
 .board-creature.ad154-tier-3.summon-anim .ad154-aura,
 .board-creature.ad154-tier-4.summon-anim .ad154-aura{animation:ad154-summon-flash 1s ease-out both}
-@keyframes ad154-value-rise{0%{opacity:0;transform:translate(-50%,9px) scale(.93)}18%{opacity:1;transform:translate(-50%,-3px) scale(1.07)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-24px) scale(1)}}
+@keyframes ad154-value-rise{0%{opacity:0;transform:translate(-50%,9px) scale(.93)}13%{opacity:1;transform:translate(-50%,-3px) scale(1.07)}83%{opacity:1}100%{opacity:0;transform:translate(-50%,-24px) scale(1)}}
 @keyframes ad154-summon-flash{0%{filter:brightness(2.1);transform:scale(1.05)}100%{filter:brightness(1);transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){.ad154-value-change,.board-creature.summon-anim .ad154-aura{animation:none!important}}
 body.ad-motion-disabled .ad154-value-change,body.ad-motion-disabled .board-creature.summon-anim .ad154-aura{animation:none!important}

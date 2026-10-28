@@ -96,6 +96,7 @@ test('2.2: smarter tournament opponent removes a dangerous but killable monster'
 test('2.1: first tournament win refills charges; rematches cannot farm full refills',()=>{
  const run=engine();const x=run(function(){
  profile.guideSeen=true;
+ profile.trainingWins=3;profile.mastery[0]=3; // Drop bonus already unlocked.
  let first=createGame({id:'tournament-first-100',mode:'pve',context:'tournament',opponentId:1,seed:100,starter:0});
  first.winner=0;profile.dropCharges=0;
  const initial=rewardMatch(first),cap=dropChargeCap(),after=profile.dropCharges;
@@ -111,6 +112,7 @@ test('2.1: first tournament win refills charges; rematches cannot farm full refi
 test('2.1: first tournament victory that reaches level 10 refills the new larger charge capacity',()=>{
  const run=engine(),x=run(function(){
  profile.xp=levelFloor(10)-1;
+ profile.trainingWins=3;profile.mastery[0]=3; // Existing auto-farm prerequisite.
  profile.milestones=[5];
  profile.dropCharges=0;
  const g=createGame({id:'level-10-first-tourney',mode:'pve',context:'tournament',opponentId:1,seed:995,starter:0});

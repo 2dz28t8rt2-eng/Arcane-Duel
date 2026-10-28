@@ -44,10 +44,16 @@
       if(!slot)continue;
       const marker=document.createElement('span');
       marker.className='ad154-value-change'+(atk+def<0?' ad154-value-down':' ad154-value-up');
-      marker.textContent=label;
+      // Body-level markers survive the successive renders during player
+      // attacks, where the old in-slot label vanished almost immediately.
+      const rect=slot.getBoundingClientRect();
+      marker.style.left=rect.left+rect.width/2+'px';
+      marker.style.top=rect.top+rect.height*.45+'px';
+      marker.textContent=(cause==='Zerfall registriert'?'Zerfall · ':cause==='Angriffserschöpfung registriert'?'Erschöpfung · ':'')+label;
       marker.setAttribute('aria-label',item.name+': '+label+'. '+cause);
       marker.title=cause+' · Tatsächlich sichtbare Werteänderung';
-      slot.appendChild(marker);
+      document.body.appendChild(marker);
+      setTimeout(()=>marker.remove(),2550);
       const feed=document.getElementById('ad154-value-feed');
       if(feed){
         const line=document.createElement('div');line.textContent=item.name+': '+label+' · '+cause;

@@ -121,6 +121,9 @@
  // optional: old saved duels keep standard unboosted Stomp behavior.
  const previousFused=fusedInstance;
  fusedInstance=function(g,instances,levels){
+  // Absolute rule: ACEs (including enemy signature ACEs), Fate cards and
+  // summoned tokens remain whole and can never be consumed by a fusion.
+  if(Array.isArray(instances)&&instances.some(c=>isFusionForbidden(c,g)))return null;
   const result=previousFused(g,instances,levels);
   if(!result?.fusion||!active(g)||!Array.isArray(instances))return result;
   const roles={};for(const c of instances){const role=roleOf(c);roles[role]=(roles[role]||0)+1;}

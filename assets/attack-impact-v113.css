@@ -15,7 +15,7 @@
 .ad113-attack-impact{filter:drop-shadow(0 0 20px #ffbf7e)!important}
 .ad113-attack-impact .ad113-impact-core{
  width:152px;height:152px;box-shadow:0 0 40px #ffae62ba,0 0 75px #ff875a60;
- animation:ad117Bloom .40s cubic-bezier(.18,.8,.24,1) both
+ animation:ad117Bloom .65s cubic-bezier(.18,.8,.24,1) both
 }
 .ad113-attack-impact.ad113-foe-impact .ad113-impact-core{
  box-shadow:0 0 42px #b78bffca,0 0 78px #8559e867
@@ -24,7 +24,7 @@
  position:absolute;left:50%;top:50%;width:130px;height:130px;
  margin:-65px 0 0 -65px;border:5px solid #ffe5b6;
  border-radius:50%;box-shadow:0 0 22px #ffd18d,inset 0 0 18px #ffb88a;
- animation:ad117Shock .45s ease-out both
+ animation:ad117Shock .72s ease-out both
 }
 .ad113-attack-impact .ad117-second-ring{
  border-color:#ffb569;border-width:3px;animation-delay:.06s
@@ -35,7 +35,7 @@
  left:0;top:0;opacity:0;transform-origin:50% 6px;
  background:linear-gradient(#fff9d2 5%,#ffd38c 35%,#ff8340 70%,transparent 100%);
  box-shadow:0 0 9px #ffb56e,0 0 16px #ffad4d99;
- animation:ad117Sparks .49s cubic-bezier(.16,.63,.33,1) var(--impact-delay) both
+ animation:ad117Sparks .73s cubic-bezier(.16,.63,.33,1) var(--impact-delay) both
 }
 .ad113-attack-impact.ad113-foe-impact i{background:linear-gradient(#f7e8ff,#bfa7f7,#8560df,transparent)}
 @keyframes ad117Bloom{

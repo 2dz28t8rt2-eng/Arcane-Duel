@@ -16,10 +16,10 @@
    const rect=node.getBoundingClientRect();
    const flight=Math.max(160,window.innerWidth-rect.left+Math.max(40,rect.width*.3));
    node.style.setProperty('--ad117-from',Math.round(flight)+'px');
-   node.style.setProperty('--ad117-delay',i*75+'ms');
+   node.style.setProperty('--ad117-delay',i*440+'ms');
    node.classList.add('ad117-hand-incoming');
   });
-  return new Promise(resolve=>setTimeout(resolve,340+Math.max(0,cards.length-1)*75+65));
+  return new Promise(resolve=>setTimeout(resolve,390+Math.max(0,cards.length-1)*440+60));
  }
  const priorRender=render;
  render=function(...args){
@@ -50,7 +50,7 @@
    const flight=Math.max(140,window.innerWidth-rect.left+Math.max(32,rect.width*.3));
    node.style.setProperty('--ad117-from',Math.round(flight)+'px');
    node.classList.add('ad117-hand-incoming');
-   node.style.setProperty('--ad117-delay',Math.min(i++,4)*55+'ms');
+   node.style.setProperty('--ad117-delay',i++*440+'ms');
   });
   return result;
  };

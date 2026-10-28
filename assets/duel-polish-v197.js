@@ -91,14 +91,43 @@
   node.textContent='−'+Math.round(amount).toLocaleString('de-AT');
   node.innerHTML+=Array.from({length:8+level*5},(_,i)=>'<i style="--a:'+Math.round(i*360/(8+level*5))+'deg"></i>').join('');
   document.body.append(node);
-  try{await delay(165);node.classList.add('ad197-burst');slash(level);await delay(145);}finally{node.remove();}
+  try{await delay(360);node.classList.add('ad197-burst');slash(level);await delay(280);}finally{node.remove();}
  }
  window.ArcaneDamageFX=Object.freeze({play:showDamage});
  const oldFinished=typeof showFinished==='function'?showFinished:null;
+ const queued=new WeakSet();
  if(oldFinished)showFinished=function(...args){
-  const wasShown=game?.finishShown,result=oldFinished.apply(this,args);
-  if(game?.finishShown&&!wasShown)void blackout(1900);
-  return result;
+  const g=game;
+  if(!g||g.winner===null||g.finishShown||queued.has(g))return;
+  queued.add(g);
+  // Leave the last battle position readable. There is intentionally NO black
+  // curtain here: the outcome lettering belongs on the unchanged battlefield.
+  const victory=g.winner===0;
+  // Claim rewards and persist the finished game immediately. Only the RESULT
+  // display is delayed: asynchronous saving must never alter duel semantics.
+  document.body.classList.add('ad197-result-hold');
+  const outcome=oldFinished.apply(this,args);
+  if(!dropChargesUnlocked())for(const pill of id('modal')?.querySelectorAll('.info-pills span')||[]){
+   if(pill.textContent.includes('Dropladung'))pill.textContent='Dropladungen noch gesperrt';
+  }
+  void (async()=>{
+   await delay(reduce()?200:1500);
+   if(game!==g||uiMode!=='duel'){document.body.classList.remove('ad197-result-hold');return;}
+   const announcement=document.createElement('div');
+   announcement.className='ad197-outcome '+(victory?'ad197-victory':'ad197-defeat');
+   announcement.textContent=victory?'Sieg':'Niederlage';
+   announcement.setAttribute('role','status');
+   document.body.append(announcement);
+   await delay(reduce()?300:1000);
+   if(game!==g||uiMode!=='duel'){announcement.remove();document.body.classList.remove('ad197-result-hold');return;}
+   const overlay=id('overlay');
+   overlay?.classList.add('ad197-result-reveal');
+   document.body.classList.remove('ad197-result-hold');
+   await delay(reduce()?80:750);
+   overlay?.classList.remove('ad197-result-reveal');
+   announcement.remove();
+  })();
+  return outcome;
  };
  window.ArcaneDuelPolish197=Object.freeze({version:'19.7.0',blackout});
 })();
