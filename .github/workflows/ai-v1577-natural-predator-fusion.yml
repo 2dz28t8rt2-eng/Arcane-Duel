@@ -1,0 +1,140 @@
+name: Arcane Duel - v15.77 Natural Predator vs Fusion Full Duels
+on:
+  push:
+    branches: [development]
+    paths: ['.github/workflows/ai-v1577-natural-predator-fusion.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preflight:
+    name: Verify full 40-card rules, Stomp, legal fusion and sealed TRAIN priors
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify scenario and mechanics regressions
+        run: |
+          set -euo pipefail
+          node --check tests/ai-v1577-fullmatch-predator-fusion.cjs
+          node --check tests/ai-v1577-fullmatch-predator-fusion-aggregate.cjs
+          node --test tests/ai-v1575-counterplay.test.cjs tests/ai-v1574-stomp.test.cjs tests/fusion-stomp-v200.test.cjs tests/essence-combat.test.cjs tests/predator-pack-v198.test.cjs
+          node tests/helpers/game-runtime.cjs
+      - name: Fetch immutable, verified TRAIN-only historical priors
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40513311546" --jq '.conclusion')" = success
+          mkdir -p /tmp/arcane-v1577-prior artifacts/v1577-priors
+          gh run download 40513311546 --repo "$GITHUB_REPOSITORY" --name arcane-v14972-counterplay --dir /tmp/arcane-v1577-prior
+          for f in historical-train.json frozen-v1555-champion.json incumbent-policy.json older-q-checkpoint.json previous-training-q.json prior-selfplay-checkpoint.json provenance.json research-balanced-policy.json v1499-prior-q.json endgame-learner.json training-q-and-examples.json; do
+            test -s "/tmp/arcane-v1577-prior/$f"
+            cp "/tmp/arcane-v1577-prior/$f" "artifacts/v1577-priors/$f"
+          done
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const p='artifacts/v1577-priors/';
+          const e=JSON.parse(fs.readFileSync(p+'endgame-learner.json'));
+          a.equal(e.sourceRun,40499008498);
+          a.equal(e.split,'train');a.equal(e.holdoutUsed,false);a.equal(e.validationUsed,false);
+          console.log('ARCANE_V1577_SEALED_PRIORS_OK');
+          JS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1577-verified-priors
+          path: artifacts/v1577-priors/
+          retention-days: 90
+  research:
+    name: ${{ matrix.mode }} / lock${{ matrix.lock }} / stage${{ matrix.stage }}
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        mode: [baseline, reply-aware]
+        lock: [0, 4]
+        stage: [9, 10]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1577-verified-priors
+          path: artifacts/v1577/${{ matrix.mode }}-lock${{ matrix.lock }}
+      - name: Natural full duels with matched decks, starters, seats and no player bonus
+        env:
+          ARCANE_V1577_MODE: ${{ matrix.mode }}
+          ARCANE_V1577_LOCK: ${{ matrix.lock }}
+          ARCANE_STAGE: ${{ matrix.stage }}
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            for chunk in 0 1; do
+              node --expose-gc --max-old-space-size=2400 tests/ai-v1577-fullmatch-predator-fusion.cjs "$ARCANE_STAGE" "$pair" "$chunk"
+            done
+          done
+          node --max-old-space-size=3200 tests/ai-v1577-fullmatch-predator-fusion.cjs "$ARCANE_STAGE" finalize
+      - name: Preserve partial shards for crash inspection
+        if: always()
+        env:
+          ARCANE_V1577_MODE: ${{ matrix.mode }}
+          ARCANE_V1577_LOCK: ${{ matrix.lock }}
+          ARCANE_STAGE: ${{ matrix.stage }}
+        run: |
+          set -euo pipefail
+          cohort="${ARCANE_V1577_MODE}-lock${ARCANE_V1577_LOCK}"
+          mkdir -p "artifacts/v1577-export/$cohort"
+          find "artifacts/v1577/$cohort" -maxdepth 1 -name "stage-$ARCANE_STAGE*" -type f -exec cp {} "artifacts/v1577-export/$cohort/" \;
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-v1577-stage-${{ matrix.mode }}-lock${{ matrix.lock }}-${{ matrix.stage }}
+          path: artifacts/v1577-export/
+          retention-days: 90
+          if-no-files-found: warn
+  aggregate:
+    name: Audit 18432 full duels, compare validation and unseal holdout
+    needs: [preflight, research]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: arcane-v1577-stage-*
+          merge-multiple: true
+          path: artifacts/v1577
+      - name: Report causal matchups and predeclared held-out selection
+        run: node --max-old-space-size=3200 tests/ai-v1577-fullmatch-predator-fusion-aggregate.cjs
+      - name: Fail if large fusion encounters or matched control integrity missing
+        run: |
+          node - <<'JS'
+          const a=require('node:assert/strict'),r=require('./artifacts/v1577/report.json');
+          a.equal(r.status,'completed');a.equal(r.totalDuels,18432);
+          a.equal(r.candidateDuels,3072);
+          a.equal(r.controls.unchangedFrozenControlsExact,true);
+          a.equal(r.selection.holdoutSeenBySelector,false);
+          a.equal(r.selection.noAutomaticPromotion,true);
+          a.ok(r.opportunities.naturalPredatorVsLargeFusion>0);
+          a.ok(r.opportunities.naturalFusionStomps>0);
+          console.log('ARCANE_V1577_RESEARCH_COMPLETE');
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-v1577-natural-predator-fusion-18432-report
+          path: artifacts/v1577/report.json
+          retention-days: 90
+          if-no-files-found: warn
