@@ -178,32 +178,9 @@ inject(' const result=baseAdvance(game);',[
  '  }',
  ' }'
 ]);
-inject('  const ok=baseApply(game,action);',[
- '  const __v1591ActionSeat=game.active;',
- '  const __v1591FusionsBefore=game.totalFusions[__v1591ActionSeat];',
- '  const __v1591Threat=game.players[1-__v1591ActionSeat].field.some(c=>',
- '   c&&(c.roleOverride||CARDS[c.id]?.role)==="predator");',
- '  const ok=baseApply(game,action);',
- '  if(game===g&&ok){',
- '   if(__v1591Threat&&',
- '    counter.actualLastThreatTurnBySeat1591[__v1591ActionSeat]!==game.turn){',
- '    counter.actualLastThreatTurnBySeat1591[__v1591ActionSeat]=game.turn;',
- '    counter.actualPredatorThreatTurnsBySeat1591[__v1591ActionSeat]++;',
- '   }',
- '   const __v1591Gained=game.totalFusions[__v1591ActionSeat]-__v1591FusionsBefore;',
- '   if(__v1591Gained>0){',
- '    counter.actualFusionActionsBySeat1591[__v1591ActionSeat]+=__v1591Gained;',
- '    if(counter.actualFirstFusionTurnBySeat1591[__v1591ActionSeat]===null)',
- '     counter.actualFirstFusionTurnBySeat1591[__v1591ActionSeat]=game.turn;',
- '    if(game.turn===(game.starter===__v1591ActionSeat?1:2))',
- '     counter.actualFirstTurnFusionActionsBySeat1591[__v1591ActionSeat]+=__v1591Gained;',
- '    if(__v1591Threat)',
- '     counter.actualFusionsUnderPredatorPressureBySeat1591[__v1591ActionSeat]+=__v1591Gained;',
- '   }',
- '  }'
-]);
 `;
 const causalHooks=rawCausalHooks.replaceAll('__V1591_MODE__',mode);
+const realActionPatch1591=[" '  const __v1591ActionSeat=game.active;',"," '  const __v1591ActionTurn=game.turn;',"," '  const __v1591FusionsBefore=game.totalFusions[__v1591ActionSeat];',"," '  const __v1591Threat=game.players[1-__v1591ActionSeat].field.some(c=>',"," '   c&&(c.roleOverride||CARDS[c.id]?.role)===\"predator\");',"," '  const ok=baseApply(game,action);',"," '  if(game===g&&ok){',"," '   if(__v1591Threat&&',"," '    counter.actualLastThreatTurnBySeat1591[__v1591ActionSeat]!==__v1591ActionTurn){',"," '    counter.actualLastThreatTurnBySeat1591[__v1591ActionSeat]=__v1591ActionTurn;',"," '    counter.actualPredatorThreatTurnsBySeat1591[__v1591ActionSeat]++;',"," '   }',"," '   const __v1591Gained=game.totalFusions[__v1591ActionSeat]-__v1591FusionsBefore;',"," '   if(__v1591Gained>0){',"," '    counter.actualFusionActionsBySeat1591[__v1591ActionSeat]+=__v1591Gained;',"," '    if(counter.actualFirstFusionTurnBySeat1591[__v1591ActionSeat]===null)',"," '     counter.actualFirstFusionTurnBySeat1591[__v1591ActionSeat]=__v1591ActionTurn;',"," '    if(__v1591ActionTurn===(game.starter===__v1591ActionSeat?1:2))',"," '     counter.actualFirstTurnFusionActionsBySeat1591[__v1591ActionSeat]+=__v1591Gained;',"," '    if(__v1591Threat)',"," '     counter.actualFusionsUnderPredatorPressureBySeat1591[__v1591ActionSeat]+=__v1591Gained;',"," '   }',"," '  }',"].join('\n');
 
 fs.readFileSync=function(file,...args){
  let source=original.call(this,file,...args);
@@ -287,6 +264,8 @@ const dataOf=c=>{
    'const seedB=5609+sameOpponentPair*151+scenario*91+pairedStage*(stage===7?170:231);',
    'const seedB=(5609+sameOpponentPair*151+scenario*91+pairedStage*(stage===7?170:231)+Number(process.env.ARCANE_V1591_REPLICATE)*1103+1289)%10000;',
    'replicate-specific constructed deck B');
+  source=once(source,"'  const ok=baseApply(game,action);',",
+   realActionPatch1591,'instrument genuine successful Fusion action inside AI wrapper');
  }
  return source;
 };
