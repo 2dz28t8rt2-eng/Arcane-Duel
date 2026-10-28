@@ -7,7 +7,7 @@
  if(root)root.ArcaneDuoCinematics167=api;
 })(typeof window!=="undefined"?window:null,function(){
  "use strict";
- const MAX_EVENTS=3,MAX_SPARKS=6;
+ const MAX_EVENTS=3,MAX_SPARKS=14;
  const loc=(seat,slot,area="field")=>({seat,slot,area});
  const occupants=p=>[
   ...(p.field||[]).map((c,slot)=>({c,where:loc(p.seat,slot)})),
