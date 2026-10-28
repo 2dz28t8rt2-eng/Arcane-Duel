@@ -40,16 +40,22 @@
    return null;
   }
   const result=fusion(g,materials,levels);
+  // A Predator-role result alone is not a Rudelführer. In particular,
+  // two Predators plus a Guardian must NEVER unlock the three-card perk.
+  // Count the actual consumed instances, including role-inherited fusions.
   if(!enabled(g)||!result?.fusion||!isPredator(result)||!Array.isArray(materials))return result;
+  const predatorMaterials=materials.filter(isPredator).length;
+  if(predatorMaterials<3)return result;
   const n=clamp(materials.length,2,5);
   const pick=order.slice();
   for(let i=pick.length-1;i>0;i--){
    const j=randomInt(g,i+1),v=pick[i];pick[i]=pick[j];pick[j]=v;
   }
-  const chosen=n===2?[]:n===3?pick.slice(0,1):n===4?pick.slice(0,2):order.slice();
-  result.predatorLeader={materials:n,powers:chosen,bornUid:result.uid,ownTurns:0,createdTurn:g.turn};
-  logEvent(g,'🐾 Rudelführer geprägt · '+n+' Materialien · '+
-   (chosen.length?chosen.map(p=>POWERS[p].title).join(', '):'nur Rudelführer-Basisbonus'));
+  const chosen=n===3?pick.slice(0,1):n===4?pick.slice(0,2):order.slice();
+  result.predatorLeader={materials:n,predatorMaterials,powers:chosen,
+   bornUid:result.uid,ownTurns:0,createdTurn:g.turn};
+  logEvent(g,'🐾 Rudelführer geprägt · '+predatorMaterials+' Predatoren aus '+n+
+   ' Materialien · '+chosen.map(p=>POWERS[p].title).join(', '));
   return result;
  };
  const fuseChoices=fusionOptions;
@@ -67,7 +73,8 @@
   const alpha=leader(g,owner),count=Math.min(5,p.field.filter(c=>c&&isPredator(c)).length);
   if(alpha){
    // The live base engine already applied 2% per active Predator. Replace it,
-   // don't ADD a second copy. 2-material leader has 3%, special perk 3.5%.
+   // don't ADD a second copy. Qualified 3+-Predator leader has 3%,
+   // and the optional Rudelinstinkt perk raises that to 3.5%.
    const base=1+count*.02, improved=1+count*(has(alpha,'swarm')?.035:.03);
    value=Math.floor(value*improved/base);
   }
@@ -174,13 +181,29 @@
     if(c===alpha){
      const crown=document.createElement('span');
      crown.className='ad198-leader-crown';crown.setAttribute('aria-label','Rudelführer');
-     crown.title='Rudelführer · '+c.predatorLeader.materials+' Materialien';
+     const known=(c.predatorLeader.powers||[]).filter(p=>POWERS[p]);
+     const labels=known.map(p=>POWERS[p].title);
+     crown.title='Rudelführer · '+c.predatorLeader.materials+' Materialien · Perks: '+
+      (labels.join(', ')||'keine');
      crown.innerHTML='<svg viewBox="0 0 32 28" width="29" height="27" aria-hidden="true" focusable="false">'+
       '<path d="M3 7l6.5 7L16 3l6.5 11L29 7l-3 16H6z" fill="#f4b94e" stroke="#fff2b7" stroke-width="1.5" stroke-linejoin="round"/>'+
       '<path d="M7 19h18M8 23h16" stroke="#9d481d" stroke-width="1.2"/>'+
       '<circle cx="16" cy="13" r="2.2" fill="#fff2b6"/>'+
       '</svg>';card.append(crown);
      card.classList.add('ad198-alpha-card');
+     if(known.length){
+      const perks=document.createElement('div');
+      perks.className='ad198-perk-badges';
+      perks.setAttribute('aria-label','Rudelführer-Perks: '+labels.join(', '));
+      for(const power of known){
+       const badge=document.createElement('span');
+       badge.className='ad198-perk-badge ad198-perk-'+power;
+       badge.textContent=POWERS[power].title;
+       badge.title=POWERS[power].title+' · '+POWERS[power].desc;
+       perks.append(badge);
+      }
+      card.append(perks);
+     }
     }
     if(c.predatorToken){
      const badge=document.createElement('span');badge.className='ad198-token-badge';
@@ -260,17 +283,39 @@
   if(!info||!overlay)return;
   const panel=overlay.querySelector('.evo-popup-panel'),rolls=panel?.querySelector('.evo-rolls');
   if(!panel||!rolls)return;
-  overlay.classList.remove('evo-calc-absorb');overlay.classList.add('ad198-leader-reveal');
+  // Called only after the fusion's final rolled values and material bonuses
+  // have been displayed and absorbed. No gameplay RNG or perk selection here.
+  overlay.classList.remove('evo-calc-absorb','ad198-reveal-fade');
+  overlay.classList.add('ad198-leader-reveal');
+  const chosen=(info.powers||[]).filter(p=>POWERS[p]);
   rolls.innerHTML='<div class="ad198-pack-paw" aria-hidden="true">🐾</div>'+
    '<div class="ad198-awake-title">RUDELFÜHRER ERWACHT</div>'+
-   '<div class="ad198-awake-sub">'+info.materials+' FUSIONSMATERIALIEN</div>'+
-   '<div class="ad198-skill"><b>♛ Rudelführer</b><span>Alle Predatoren erhalten +3 % statt +2 % Schwarmbonus je Predator.</span></div>'+
-   (info.powers.length?info.powers.map(p=>
-    '<div class="ad198-skill"><b>'+esc(POWERS[p].title)+'</b><span>'+esc(POWERS[p].desc)+'</span></div>').join(''):
-    '<div class="ad198-skill"><span>2 Materialien: Keine zusätzlichen Fähigkeiten.</span></div>');
+   '<div class="ad198-awake-sub">'+(info.predatorMaterials||info.materials)+
+   ' PREDATOREN · '+info.materials+' MATERIALIEN</div>'+
+   '<div class="ad198-skill ad198-skill-base"><b>♛ Rudelführer · Grundbonus</b>'+
+   '<span>Rudelbonus: +3 % statt +2 % je aktivem Predator.</span></div>'+
+   '<div class="ad198-perk-heading">ERHALTENE BONUS-PERKS · '+chosen.length+'</div>';
   if(info.materials>=4)howl();
-  await wait(info.powers.length?1950:1350);
-  overlay.classList.remove('ad198-leader-reveal');
+  try{
+   await wait(550);
+   // Reveal each saved, preselected perk separately with a high-contrast color.
+   // Keep the complete list visible long enough to read before fading it out.
+   for(const power of chosen){
+    const item=document.createElement('div');
+    item.className='ad198-skill ad198-skill-chosen ad198-skill-'+power;
+    item.setAttribute('role','status');
+    item.innerHTML='<b>✦ '+esc(POWERS[power].title)+'</b>'+
+     '<span>'+esc(POWERS[power].desc)+'</span>';
+    rolls.append(item);
+    panel.scrollTop=panel.scrollHeight;
+    await wait(850);
+   }
+   await wait(3000);
+   overlay.classList.add('ad198-reveal-fade');
+   await wait(900);
+  }finally{
+   overlay.classList.remove('ad198-leader-reveal','ad198-reveal-fade');
+  }
  }
  window.ArcanePredatorPack=Object.freeze({version:'19.8.0',POWERS,leader,
   cinemaReveal,isPredator,eligibleTokenSource});
