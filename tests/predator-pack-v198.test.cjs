@@ -56,17 +56,69 @@ test('3-own-turn weak token: level match, attacks, no fusion or inventory',()=>{
  assert.equal(r.lv,5);assert.ok(r.atk<r.baseline);assert.equal(r.role,'predator');
  assert.equal(r.choices,0);assert.equal(r.fusion,true);assert.equal(r.summoned,false);
 });
-test('real 2-5-material Predator fusion has the requested number of unique perks',()=>{
- for(const count of [2,3,4,5]){
+test('only 3-5-material Predator fusion grants distinct Rudelführer perks',()=>{
+ for(const count of [3,4,5]){
   const r=run('const mats=Array.from({length:'+count+'},()=>newInstance(g,pred.id,0));'+
    'const levels=mats.map(c=>dataOf(c).level),choices=fusionOptions(g,levels,mats);'+
    'if(!choices.length)throw Error("No valid fusion");g.fusionChoice=choices[0].id;'+
    'const made=fusedInstance(g,mats,levels);'+
    'return {role:made?.roleOverride,pack:made?.predatorLeader};');
   assert.equal(r.role,'predator');assert.equal(r.pack?.materials,count);
-  assert.equal(r.pack.powers.length,count===2?0:count-2);
+  assert.equal(r.pack.predatorMaterials,count);
+  assert.equal(r.pack.powers.length,count-2);
   assert.equal(new Set(r.pack.powers).size,r.pack.powers.length);
  }
+});
+test('two Predators or mixed three-card fusion cannot accidentally unlock Rudelführer',()=>{
+ for(const roles of [['pred','pred'],['pred','pred','guard'],['pred','pred','guard','guard']]){
+  const r=run('const ids='+JSON.stringify(roles)+'.map(x=>x==="pred"?pred.id:guard.id);'+
+   'const mats=ids.map(id=>newInstance(g,id,0));'+
+   'const levels=mats.map(c=>dataOf(c).level),choices=fusionOptions(g,levels,mats);'+
+   'if(!choices.length)throw Error("No valid mixed fusion for "+ids);'+
+   'g.fusionChoice=choices[0].id;const made=fusedInstance(g,mats,levels);'+
+   'return {isFusion:!!made?.fusion,role:made?.roleOverride,leader:!!made?.predatorLeader};');
+  assert.equal(r.isFusion,true);
+  if(roles.length===3)assert.equal(r.role,'predator',
+   'Two Predator materials still inherit Predator, but not the boss perk');
+  assert.equal(r.leader,false);
+ }
+});
+test('four materials with three actual Predators legitimately unlock two perks',()=>{
+ const r=run('const mats=[pred.id,pred.id,pred.id,guard.id].map(id=>newInstance(g,id,0));'+
+  'const levels=mats.map(c=>dataOf(c).level),choices=fusionOptions(g,levels,mats);'+
+  'if(!choices.length)throw Error("No valid qualified mixed fusion");'+
+  'g.fusionChoice=choices[0].id;const made=fusedInstance(g,mats,levels);'+
+  'return {role:made?.roleOverride,pack:made?.predatorLeader};');
+ assert.equal(r.role,'predator');assert.equal(r.pack?.predatorMaterials,3);
+ assert.equal(r.pack.materials,4);assert.equal(r.pack.powers.length,2);
+});
+test('boss perk is revealed in color only after numeric bonuses, slowly and then faded',async()=>{
+ const runtime=boot({seed:198701});
+ const result=await runtime.exec(`(async()=>{
+  const history=[],waits=[],appended=[],active=new Set();
+  const list={innerHTML:'',append(node){appended.push({cls:node.className,html:node.innerHTML});}};
+  const panel={scrollTop:0,scrollHeight:44,querySelector:s=>s==='.evo-rolls'?list:null};
+  const overlay={querySelector:s=>s==='.evo-popup-panel'?panel:null,
+   classList:{add(...names){for(const name of names){active.add(name);history.push('+'+name);}},
+    remove(...names){for(const name of names){active.delete(name);history.push('-'+name);}}}};
+  await window.ArcanePredatorPack.cinemaReveal({overlay,
+   instance:{predatorLeader:{materials:3,predatorMaterials:3,powers:['mark']}},
+   wait:async ms=>waits.push(ms)});
+  return JSON.stringify({text:list.innerHTML,appended,waits,history,active:[...active]});
+ })()`);
+ const r=JSON.parse(result);
+ assert.match(r.text,/ERHALTENE BONUS-PERKS/);
+ assert.match(r.appended[0]?.html||'',/Blutspur/);
+ assert.match(r.appended[0]?.cls||'',/ad198-skill-mark/);
+ assert.ok(r.waits.reduce((n,v)=>n+v,0)>=5000,'Perk needs a readable hold and fade');
+ assert.ok(r.history.includes('+ad198-reveal-fade'));
+ assert.ok(!r.active.includes('ad198-leader-reveal'));
+ const cinema=fs.readFileSync('assets/fusion-cinema-ritual.js','utf8');
+ assert.ok(cinema.indexOf("phases.run('Werteberechnung'")<
+  cinema.indexOf('ArcanePredatorPack.cinemaReveal'),
+  'Perk cannot show before the final material and stat bonuses');
+ const css=fs.readFileSync('assets/predator-pack-v198.css','utf8');
+ assert.match(css,/ad198-skill-mark/);assert.match(css,/ad198-reveal-fade/);
 });
 test('PvP and symmetric AI research never instantiate the leader feature',()=>{
  const b=boot({seed:198701});const r=b.run('(()=>{'+
