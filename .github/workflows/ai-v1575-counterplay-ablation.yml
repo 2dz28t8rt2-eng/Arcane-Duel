@@ -1,0 +1,145 @@
+name: Arcane Duel - v15.75 Predator Stomp Causal Ablation
+on:
+  push:
+    branches: [development]
+    paths: ['.github/workflows/ai-v1575-counterplay-ablation.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preflight:
+    name: Verify v20.0 combat, scorer controls and sealed priors
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test Stomp and independent causal score modes
+        run: |
+          set -euo pipefail
+          for file in tests/ai-v1575-counterplay-{selfplay,aggregate}.cjs tests/helpers/ai-counterplay-v1575.cjs; do node --check "$file"; done
+          node --test tests/ai-v1575-counterplay.test.cjs tests/ai-v1574-stomp.test.cjs tests/fusion-stomp-v200.test.cjs tests/essence-combat.test.cjs tests/predator-pack-v198.test.cjs
+          node tests/helpers/game-runtime.cjs
+      - name: Fetch verified TRAIN-only priors, never historical HOLDOUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40513311546" --jq '.conclusion')" = success
+          mkdir -p /tmp/arcane-v1575-prior artifacts/v1575-priors
+          gh run download 40513311546 --repo "$GITHUB_REPOSITORY" --name arcane-v14972-counterplay --dir /tmp/arcane-v1575-prior
+          for f in historical-train.json frozen-v1555-champion.json incumbent-policy.json older-q-checkpoint.json previous-training-q.json prior-selfplay-checkpoint.json provenance.json research-balanced-policy.json v1499-prior-q.json endgame-learner.json training-q-and-examples.json; do
+            test -s "/tmp/arcane-v1575-prior/$f"
+            cp "/tmp/arcane-v1575-prior/$f" "artifacts/v1575-priors/$f"
+          done
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const p='artifacts/v1575-priors/';
+          const e=JSON.parse(fs.readFileSync(p+'endgame-learner.json'));
+          a.equal(e.sourceRun,40499008498);
+          a.equal(e.split,'train');a.equal(e.holdoutUsed,false);a.equal(e.validationUsed,false);
+          console.log('ARCANE_V1575_SEALED_PRIORS_OK');
+          JS
+      - name: Upload immutable train-only priors for independent shards
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1575-verified-priors
+          path: artifacts/v1575-priors/
+          retention-days: 90
+  research:
+    name: ${{ matrix.mode }} / stage ${{ matrix.stage }}
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        mode: [baseline, splash-only, fatigue-only, reply-aware]
+        stage: [2, 9, 10]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1575-verified-priors
+          path: artifacts/v1575/${{ matrix.mode }}
+      - name: Run paired seeds, starters and seats, no production AI changes
+        env:
+          ARCANE_V1575_MODE: ${{ matrix.mode }}
+          ARCANE_STAGE: ${{ matrix.stage }}
+        run: |
+          set -euo pipefail
+          stage="$ARCANE_STAGE"
+          chunks=1
+          if [ "$stage" -ge 9 ]; then chunks=2; fi
+          for pair in 0 1 2 3 4 5 6 7; do
+            for ((chunk=0;chunk<chunks;chunk++)); do
+              if [ "$chunks" -eq 1 ]; then
+                node --expose-gc --max-old-space-size=2400 tests/ai-v1575-counterplay-selfplay.cjs "$stage" "$pair"
+              else
+                node --expose-gc --max-old-space-size=2400 tests/ai-v1575-counterplay-selfplay.cjs "$stage" "$pair" "$chunk"
+              fi
+            done
+          done
+          node --max-old-space-size=3200 tests/ai-v1575-counterplay-selfplay.cjs "$stage" finalize
+      - name: Preserve partial work even if another research shard fails
+        if: always()
+        env:
+          ARCANE_V1575_MODE: ${{ matrix.mode }}
+          ARCANE_STAGE: ${{ matrix.stage }}
+        run: |
+          mkdir -p "artifacts/v1575-export/$ARCANE_V1575_MODE"
+          find "artifacts/v1575/$ARCANE_V1575_MODE" -maxdepth 1 -name "stage-$ARCANE_STAGE*" -type f -exec cp {} "artifacts/v1575-export/$ARCANE_V1575_MODE/" \;
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-v1575-stage-${{ matrix.mode }}-${{ matrix.stage }}
+          path: artifacts/v1575-export/
+          retention-days: 90
+          if-no-files-found: warn
+  aggregate:
+    name: Verify causal comparison and seal validation decision
+    needs: [preflight, research]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: arcane-v1575-stage-*
+          merge-multiple: true
+          path: artifacts/v1575
+      - name: Build independent TRAIN/VALIDATION paired comparison
+        run: node --max-old-space-size=3200 tests/ai-v1575-counterplay-aggregate.cjs
+      - name: Assert complete 23040-duel research without HOLDOUT leakage
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const r=JSON.parse(fs.readFileSync('artifacts/v1575/report.json'));
+          a.equal(r.status,'completed');a.equal(r.totalDuels,23040);
+          a.equal(r.candidateDuels,3840);
+          a.equal(r.controls.unchangedFrozenControlsExact,true);
+          a.equal(r.controls.actualTelemetryOnlyOnMainGame,true);
+          a.equal(r.selection.holdoutSeenBySelector,false);
+          a.equal(r.selection.promotionToProduction,false);
+          console.log('ARCANE_V1575_RESEARCH_COMPLETE '+JSON.stringify({
+            selected:r.selection.mode,duels:r.totalDuels,
+            holdout:Object.fromEntries(Object.entries(r.sealedHoldout).map(([k,v])=>[k,v.wins]))}));
+          JS
+      - name: Save validated report or partial diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1575-predator-stomp-23040-report
+          path: artifacts/v1575/report.json
+          retention-days: 90
+          if-no-files-found: warn
