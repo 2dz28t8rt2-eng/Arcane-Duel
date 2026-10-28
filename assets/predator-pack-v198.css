@@ -4,6 +4,13 @@
  width:29px;height:28px;font-size:24px;line-height:1;color:#ffdf8f;pointer-events:none;
  filter:drop-shadow(0 0 4px #ffad47) drop-shadow(0 0 10px #9d401f);
  animation:ad198-crown-glimmer 2.2s ease-in-out infinite;text-shadow:0 1px 1px #361400}
+.ad198-perk-badges{position:absolute;z-index:15;right:0;bottom:-9px;max-width:100%;display:flex;
+ flex-wrap:wrap;justify-content:flex-end;gap:2px;pointer-events:none}
+.ad198-perk-badge{display:inline-block;padding:2px 4px;border:1px solid #ffdca7;
+ border-radius:4px;background:#210f21ee;color:#fff0d2;font-size:9px;font-weight:900;
+ line-height:1.15;text-shadow:0 1px 2px #000;box-shadow:0 0 7px #ffab7466}
+.ad198-perk-mark{color:#ffd1d8;border-color:#ff747e}
+.ad198-perk-token{color:#d5d0ff;border-color:#a9a2ff}
 @keyframes ad198-crown-glimmer{0%,100%{opacity:.78;transform:translateY(0) scale(.94)}
  50%{opacity:1;transform:translateY(-2px) scale(1.13)}}
 .ad198-token-badge{position:absolute;left:1px;bottom:29px;z-index:12;border:1px solid #ba685c;
@@ -45,21 +52,35 @@
 .ad198-leader-reveal .evo-popup-panel{opacity:1!important;visibility:visible!important;
  transform:none!important;filter:none!important;overflow:auto!important;
  border:1px solid #e3ac69;box-shadow:0 0 25px #e58c5c62;background:#180e1de8;
- animation:ad198-awake-panel .5s ease-out}
+ animation:ad198-awake-panel .5s ease-out;transition:opacity .9s ease-in!important}
+.ad198-leader-reveal.ad198-reveal-fade .evo-popup-panel{opacity:0!important}
 .ad198-leader-reveal .evo-rolls{display:flex;flex-direction:column;align-items:center;gap:8px;max-height:100%;
- overflow:auto}
+ overflow:auto;padding:9px 8px 14px}
 .ad198-pack-paw{font-size:66px;text-align:center;filter:drop-shadow(0 0 18px #ed9868);
  animation:ad198-paw-reveal 1.5s ease-out forwards}
 .ad198-awake-title{text-align:center;color:#ffe0b5;font-weight:950;letter-spacing:.14em;
  font-size:clamp(16px,2vw,28px);text-shadow:0 0 17px #ff6c49;
  animation:ad198-awake-panel .45s ease-out both}
-.ad198-awake-sub{font-size:11px;font-weight:800;letter-spacing:.1em;color:#e4a988}
-.ad198-skill{width:min(100%,470px);display:flex;flex-direction:column;gap:3px;padding:7px 12px;
- border:1px solid #bd7d6c66;border-radius:8px;background:#311c2994;color:#ffe5d2;
- animation:ad198-awake-panel .45s ease-out both}
-.ad198-skill b{font-size:13px;color:#ffd68c}.ad198-skill span{font-size:12px;line-height:1.32}
+.ad198-awake-sub{font-size:12px;font-weight:850;letter-spacing:.1em;color:#f4c49a}
+.ad198-perk-heading{margin-top:8px;font-size:13px;font-weight:950;letter-spacing:.11em;
+ color:#ffefc0;text-shadow:0 0 10px #ef8f50}
+.ad198-skill{width:min(100%,470px);display:flex;flex-direction:column;gap:5px;padding:10px 14px;
+ border:1px solid #bd7d6c99;border-radius:10px;background:#311c29ed;color:#fff1df;
+ animation:ad198-awake-panel .6s ease-out both}
+.ad198-skill b{font-size:15px;color:#ffe0a0}.ad198-skill span{font-size:14px;line-height:1.45}
+.ad198-skill-chosen{border-width:2px;box-shadow:0 0 18px #f8bd7a66;
+ background:linear-gradient(135deg,#613625,#311822);color:#fff9f2}
+.ad198-skill-swarm{border-color:#ffdb7b;box-shadow:0 0 17px #ffbe6388}
+.ad198-skill-swarm b{color:#ffe591}
+.ad198-skill-mark{border-color:#ff7487;box-shadow:0 0 17px #e8486880}
+.ad198-skill-mark b{color:#ffb1bd}
+.ad198-skill-token{border-color:#aea0ff;box-shadow:0 0 17px #ac91ff88}
+.ad198-skill-token b{color:#ded0ff}
 @keyframes ad198-paw-reveal{0%{opacity:0;transform:scale(.5)}30%{opacity:1;transform:scale(1.13)}
  80%{opacity:.9}100%{opacity:.35;transform:scale(1.02)}}
 @keyframes ad198-awake-panel{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.ad198-leader-crown,.ad198-crosshair,.ad198-blood-impact i,
-.ad198-claw-finish,.ad198-pack-paw,.ad198-awake-title,.ad198-skill,#duelScreen.ad198-pack-shake{animation:none!important}}
+.ad198-claw-finish,.ad198-pack-paw,.ad198-awake-title,.ad198-skill,#duelScreen.ad198-pack-shake{animation:none!important}
+ .ad198-leader-reveal .evo-popup-panel{transition:none!important}}
+@media(max-width:600px){.ad198-skill{padding:9px 10px}.ad198-skill b{font-size:14px}
+ .ad198-skill span{font-size:13px}.ad198-awake-title{font-size:19px}}
