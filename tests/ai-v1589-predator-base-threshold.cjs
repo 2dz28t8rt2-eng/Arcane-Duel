@@ -201,7 +201,7 @@ const dataOf=c=>{
   counts.seat++;
   source=once(source,
    "'    const matchSeed=15710000+pairedStage*200000+sameOpponentPair*10000+scenario*1550;'",
-   "'    const matchSeed=16890000+pairedStage*200000+sameOpponentPair*10000+scenario*1550+Number(process.env.ARCANE_V1589_REPLICATE)*1000003;'",
+   "'    const matchSeed=15710000+pairedStage*200000+sameOpponentPair*10000+scenario*1550+Number(process.env.ARCANE_V1589_REPLICATE)*1000003;'",
    'replicate-specific duel RNG');
  }else if(normalized.endsWith('/ai-v1571-roles-selfplay.cjs')){
   counts.role++;
