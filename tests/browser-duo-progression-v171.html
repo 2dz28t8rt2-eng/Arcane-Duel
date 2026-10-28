@@ -22,7 +22,7 @@ document.getElementById('duo').addEventListener('load',()=>{
     'Cannot start a new campaign without server-owned profile');
    check(doc.getElementById('duoAccept').disabled,
     'Cannot join as a human without server-owned profile');
-   check(doc.getElementById('duoDeckInfo').textContent.includes('nicht ausgelesen'),
+   check(doc.getElementById('duoDeckInfo').textContent.includes('Einzelspieler-Spielstand bleibt unverändert'),
     'Solo storage is not imported');
    check(doc.querySelector('.notice').textContent.includes('keinen Import'),
     'No import or export between game modes');
