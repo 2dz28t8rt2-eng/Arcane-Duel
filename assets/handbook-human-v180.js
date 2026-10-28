@@ -171,20 +171,24 @@
     Folgeangriffe erhalten stärkere Einschläge; markierte zerstörte Monster
     werden mit einer Klauenhieb-Animation besiegt. Die Animation ist rein visuell.</p>
     <h3>Rudelführer aus einer Predator-Fusion</h3>
-    <p>Jede neu entstandene Predator-Fusion kann das Rudel anführen.
+    <p>Ein Rudelführer entsteht <b>nur, wenn mindestens drei tatsächlich
+    eingesetzte Fusionsmaterialien Predatoren sind</b> und die neue Fusion
+    die Predator-Rolle erhält. Die bloße Fusion von drei beliebigen Karten
+    oder zwei Predatoren mit einer fremden Karte reicht nicht aus.
     Eine kleine schimmernde Krone kennzeichnet den aktiven Rudelführer.
     <b>Nur ein Rudelführer je Spieler</b> wirkt gleichzeitig: Die
     neueste Predator-Fusion übernimmt die Führung. Mit Rudelführer
     erhalten <b>alle Predatoren +3 % statt +2 %</b> Schwarmbonus je
     aktivem Predator; mehrere Rudelführer-Boni stapeln sich nicht.</p>
     <h3>Die Anzahl der Materialien entscheidet</h3>
-    <p><b>2 Materialien:</b> Basis-Rudelführerbonus, keine Sonderfähigkeit.<br>
-    <b>3 Materialien:</b> Eine zufällig ausgewählte Sonderfähigkeit.<br>
-    <b>4 Materialien:</b> Zwei verschiedene zufällig ausgewählte Sonderfähigkeiten.<br>
-    <b>5 Materialien:</b> Alle drei Sonderfähigkeiten.</p>
+    <p><b>2 Materialien:</b> normale Fusion, kein Rudelführer.<br>
+    <b>3 Materialien:</b> Nur drei Predatoren erhalten eine zufällige Sonderfähigkeit.<br>
+    <b>4 Materialien:</b> Mindestens drei Predatoren nötig; zwei verschiedene Sonderfähigkeiten.<br>
+    <b>5 Materialien:</b> Mindestens drei Predatoren nötig; alle drei Sonderfähigkeiten.</p>
     <p>Nach den echten Wertewürfen erscheint im gleichen Fusionsfenster
-    eine kurze Enthüllung jeder erhaltenen Fähigkeit. Entscheidend
-    ist die <b>Materialanzahl</b>, nicht die Stufe des Anführers.</p>
+    eine gut lesbare, farblich hervorgehobene Enthüllung jedes erhaltenen Perks,
+    die anschließend verblasst. Die <b>Materialanzahl</b> bestimmt erst nach
+    Erfüllung der Predator-Bedingung die Anzahl der Sonderfähigkeiten.</p>
     <h3>Drei kleine Sonderfähigkeiten</h3>
     <p><b>Rudelinstinkt:</b> Schwarmbonus +0,5 Prozentpunkte je Predator:
     mit Anführer insgesamt <b>+3,5 %</b> statt +3 %.<br>
