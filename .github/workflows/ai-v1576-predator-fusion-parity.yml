@@ -1,0 +1,96 @@
+name: Arcane Duel - v15.76 Seat Parity and Predator vs Large Fusion
+on:
+  push:
+    branches: [development]
+    paths: ['.github/workflows/ai-v1576-predator-fusion-parity.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preflight:
+    name: Real rules and mirrored-seat preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and Stomp legality, parity and Predator attack tests
+        run: |
+          set -euo pipefail
+          node --check tests/ai-v1576-predator-fusion-selfplay.cjs
+          node --check tests/ai-v1576-predator-fusion-aggregate.cjs
+          node --test tests/ai-v1576-predator-fusion.test.cjs tests/strategic-seat-parity-v1494.test.cjs tests/strategic-seat-parity-v1495.test.cjs tests/fusion-stomp-v200.test.cjs tests/predator-swarm-live-v1498.test.cjs
+  targeted:
+    name: ${{ matrix.materials }} materials / pressure ${{ matrix.pressure }}
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        materials: [3, 4, 5]
+        pressure: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Real fusion -> actual Stomp -> paired Predator followup
+        run: |
+          set -euo pipefail
+          for start in 0 512 1024 1536; do
+            node --max-old-space-size=3000 tests/ai-v1576-predator-fusion-selfplay.cjs \
+              '${{ matrix.materials }}' '${{ matrix.pressure }}' "$start" 512
+          done
+      - name: Upload even after partial failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1576-size-${{ matrix.materials }}-pressure-${{ matrix.pressure }}
+          path: artifacts/v1576/size-${{ matrix.materials }}-scenario-${{ matrix.pressure }}-start-*.json
+          retention-days: 90
+          if-no-files-found: warn
+  report:
+    name: Seal TRAIN VALIDATION HOLDOUT and compare mirror outcomes
+    needs: [preflight, targeted]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: arcane-v1576-size-*
+          merge-multiple: true
+          path: artifacts/v1576
+      - name: Aggregate only complete sealed paired scenario shards
+        run: node tests/ai-v1576-predator-fusion-aggregate.cjs
+      - name: Verify research volume and no silent gameplay promotion
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const r=JSON.parse(fs.readFileSync('artifacts/v1576/report.json'));
+          a.equal(r.status,'complete');
+          a.equal(r.samples,24576);
+          a.equal(r.realLargeFusionsCreated,24576);
+          a.equal(r.mirroredStompAttacks,49152);
+          a.equal(r.predatorReplySequences,98304);
+          a.equal(r.overall.seatParity.stompMismatch,0);
+          a.equal(r.warnings.promotedToProduction,false);
+          console.log('ARCANE_V1576_SEALED '+JSON.stringify({
+            samples:r.samples,actualPredatorFusionAttacks:r.overall.replyAware.predatorOnLargeFusion,
+            seatStompMismatches:r.overall.seatParity.stompMismatch}));
+          JS
+      - name: Upload final findings or failure diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1576-predator-fusion-parity-report
+          path: artifacts/v1576/report.json
+          retention-days: 90
+          if-no-files-found: warn
