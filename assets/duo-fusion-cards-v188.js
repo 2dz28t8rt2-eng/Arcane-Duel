@@ -103,6 +103,7 @@
         tabindex:cell.getAttribute('tabindex')};
       cellEntries.set(key,{cell,option,original});
       const activate=event=>{
+        if(event.target?.closest?.('.ad204-card-info'))return;
         if(!fusionPanel.open)return;
         if(event.type==='keydown'&&event.key!=='Enter'&&event.key!==' ')return;
         event.preventDefault();event.stopImmediatePropagation();

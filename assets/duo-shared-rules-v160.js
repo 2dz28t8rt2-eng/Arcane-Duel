@@ -902,7 +902,7 @@
    distance,penalty:street?0:Math.min(.22,distance*.055),
    resonatorAscent:lineage.granted,resonatorLineage:lineage};
  }
- function materialSelection(p,materials){
+ function materialSelection(p,materials,catalog){
   assert(Array.isArray(materials)&&materials.length>=2&&materials.length<=5,
    'Fusion benötigt zwei bis fünf eigene Materialien.');
   const keys=new Set(),cards=[];
@@ -918,6 +918,8 @@
      {_charge:true,id:-1,level:2,role:'combatant',fusion:false}:null;
    assert(card!==null&&card!==undefined,'Fusionsmaterial ist nicht vorhanden.');
    assert(!card.fate,'Schicksalsmonster sind nicht fusionierbar.');
+   const id=Number.isInteger(card)?card:card.id;
+   assert(!definition(catalog,id)?.ace,'ACE-Monster dürfen nicht als Fusionsmaterial verwendet werden.');
    assert(!card.predatorToken,'Rudelruf-Tokens sind niemals Fusionsmaterial.');
    cards.push(m.from==='hand'?{id:card,level:0,...{_hand:true}}:card);
   }
@@ -925,7 +927,7 @@
  }
  function fusionOptions(g,seat,materials,catalog,{coreIndex}={}){
   const p=g.players[seat];
-  const cards=materialSelection(p,materials).map(c=>c._charge?{
+  const cards=materialSelection(p,materials,catalog).map(c=>c._charge?{
    id:-1,level:2,role:'combatant',fusion:false,resonance:0,
    element:'',ability:'',_charge:true}:c._hand?{
    id:c.id,level:definition(catalog,c.id).level,

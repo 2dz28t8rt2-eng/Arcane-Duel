@@ -3,7 +3,7 @@
  */
 'use strict';
 (()=>{
-  const MAX_EVENTS=6,DISPLAY_MS=1500;
+  const MAX_EVENTS=6,DISPLAY_MS=2150;
   let layer=null,timers=[],generation=0;
   const n=value=>Math.max(0,Number(value)||0);
   const reduced=()=>!!(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches||

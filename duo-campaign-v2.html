@@ -26,6 +26,7 @@
 <link rel="stylesheet" href="assets/duo-abilities-cinema-v193.css?v=20261026-v193">
 <link rel="stylesheet" href="assets/duo-sound-v194.css?v=20261026-v194">
 <link rel="stylesheet" href="assets/duo-predator-pack-v198.css?v=20261027-v198">
+<link rel="stylesheet" href="assets/duo-ux-v204.css?v=20261028-duo-ux204">
 <link rel="stylesheet" href="assets/predator-showdown-v199.css?v=20261027-v199">
 <link rel="stylesheet" href="assets/arcane-soundscape-v196.css?v=20261026-v196">
 <link rel="stylesheet" href="assets/arcane-track-catalog-v014.css?v=20261027-v014">
@@ -207,7 +208,7 @@
     Eure gemeinsamen LP betragen immer <b>das Doppelte der jeweiligen Singleplayer-Turnierstufe</b>
     (8.000 / 12.000 / 14.000 / 20.000). Handkarten, Monster und Fusionen besitzt jeder selbst.</li>
    <li>Jeder spielt mit 40 Hauptkarten und bis zu sieben Monstern auf dem Feld.
-    Zu Beginn und beim Nachziehen kommen die Karten sichtbar in deine Hand.
+    Zu Beginn und beim Nachziehen kommen die Karten nacheinander sichtbar in deine Hand.
     Du darfst normalerweise einmal pro Zug beschwören und deine bereiten Monster angreifen lassen.</li>
    <li>Ist dein Nachziehstapel zu Beginn deines Zuges leer, verliert euer Team.
     Ab Runde 10 verliert jedes Team zusätzlich Lebenspunkte durch die Arena.</li>
@@ -215,8 +216,11 @@
   <h3>Welche Monster passen zusammen?</h3>
   <ul>
    <li><b>Predatoren</b> greifen entschlossen an. Jeder eigene Predator auf dem Feld verstärkt
-    ihre Angriffe um 2 %, höchstens um 10 %. Gegen verteidigende Wächter und Seelenzehrer
-    überwinden sie einen Teil des Schutzes.</li>
+    ihren Angriff um 2 %, höchstens 10 %. Mit Rudelführer sind es 3 % je Predator,
+    mit der Rudelinstinkt-Fähigkeit sogar 3,5 % (jeweils maximal fünf Predatoren).
+    Der Bonus erscheint als Prozentzahl an der Feldkarte. Er verändert nicht die Grund-ATK
+    in deiner Hand, sondern wirkt erst beim tatsächlichen Angriff.
+    Gegen verteidigende Wächter und Seelenzehrer überwinden Predatoren einen Teil des Schutzes.</li>
    <li><b>Wächter</b> schützen eure Stellung und heilen verbündete Verteidiger.
     <b>Seelenzehrer</b> sammeln Kraft aus den Gegnern. Beide halten in Verteidigung
     35 % des Treffers ab und schlagen mit der Hälfte ihrer Angriffskraft zurück.</li>
@@ -229,11 +233,29 @@
    <li>Für eine Fusion wählst du zwei bis fünf <b>eigene</b> Karten aus Hand oder Feld.
     Die Stufen, ihre Rollen und Kombinationen wie Straßen oder Full House beeinflussen das Ergebnis.
     Die Vorschau zeigt dir, welche Fusionen möglich sind.</li>
+   <li><b>ACE-Monster können niemals als Fusionsmaterial dienen.</b> Das gilt für Karten auf
+    der Hand und auf dem Feld. Rudel-Tokens und Schicksalsmonster sind ebenfalls nicht fusionierbar.</li>
+   <li><b>Rudelführer</b> können bei einer Predator-Fusion entstehen. Die große Kartenansicht
+    zeigt ihre Krone, ausgewürfelte Fähigkeiten und den aktuellen Angriffsbonus.
+    Klicke dafür auf die Lupe der Feldkarte.</li>
    <li>Später kannst du besondere Level-1-Karten, Geisterzonen und Essenzwesen freischalten.
     Geister schützen vor direkten Angriffen und können dir beim Fusionieren helfen.
     Die Fähigkeiten erspielst du in deinem eigenen 2v2-Fortschritt.</li>
    <li>In großer Bedrängnis kann ab Runde 3 ein <b>Schicksalszug</b> mit fünf vorübergehenden
     Monstern helfen. Er ist selten und kann pro Duellant nur einmal je Kapitel gelingen.</li>
+  </ul>
+  <h3>Tasten und Kampfanzeigen</h3>
+  <ul>
+   <li><b>D</b>: ein bereites eigenes Monster von Angriff auf Verteidigung drehen.
+    <b>A</b>: mit dem gewählten Monster direkt angreifen, aber nur wenn das gegnerische Feld frei ist.</li>
+   <li><b>H</b>: die eigenen Handkarten minimieren oder wieder zeigen, damit das Feld frei bleibt.
+    Mit der Lupe kannst du einzelne Karten einschließlich ihrer aktuellen Werte groß ansehen.</li>
+   <li>Schwarmverstärkungen und Angriffszerfall werden kurz über der betroffenen Karte eingeblendet.
+    Nach einem Kampfende bleibt das Spielfeld erst stehen; danach erscheinen Sieg oder Niederlage
+    und die Abschlussanzeige.</li>
+   <li>Bei einer aktiven Seelenzehrer-Fähigkeit blendet die Hand vorübergehend aus.
+    Du kannst solche Fähigkeiten unabhängig von einer Beschwörung einsetzen, wenn der
+    Seelenzehrer in DEF steht und genügend Seelenkraft sowie eine bereite Fähigkeit besitzt.</li>
   </ul>
   <h3>Karten sammeln und weiterspielen</h3>
   <ul>
@@ -311,4 +333,5 @@
 <script src="assets/duo-parity-v160.js?v=duo-v200-saga"></script>
 <script src="assets/arcane-track-catalog-v014.js?v=20261027-v014"></script>
 <script src="assets/arcane-soundscape-v196.js?v=20261027-v014"></script>
+<script src="assets/duo-ux-v204.js?v=20261028-duo-ux204"></script>
 </body></html>

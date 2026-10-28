@@ -125,7 +125,7 @@
     root.setTimeout(()=>{
      if(session!==s||s.stamp!==stamp)return;
      battle.classList.remove('duo178-revealing');
-    },1200);
+    },Math.max(1200,(hand.hand.length-1)*440+920));
     battle.classList.add('duo178-revealing');
    };
    if(reduced())finish();
@@ -152,10 +152,17 @@
   }else if(!s.intro&&s.lastHand&&game.status==='active'){
    const count=Math.max(0,(s.lastDeck||0)-p.deck.length);
    const entering=drawIndices(s.lastHand,p.hand,count);
-   if(!reduced())entering.forEach((index,i)=>{
-    const card=list.querySelector('[data-index="'+index+'"]');
-    if(card){card.classList.add('duo178-arriving');card.style.setProperty('--duo178-i',i);}
-   });
+   if(!reduced()&&entering.length){
+    const stamp=++s.stamp;
+    entering.forEach((index,i)=>{
+     const card=list.querySelector('[data-index="'+index+'"]');
+     if(card){card.classList.add('duo178-arriving');card.style.setProperty('--duo178-i',i);}
+    });
+    battle.classList.add('duo178-revealing');
+    root.setTimeout(()=>{
+     if(session===s&&s.stamp===stamp)battle.classList.remove('duo178-revealing');
+    },(entering.length-1)*440+920);
+   }
   }
   if(!s.intro){s.lastHand=[...p.hand];s.lastDeck=p.deck.length;}
  }

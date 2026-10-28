@@ -23,8 +23,8 @@
 .duo178-intro-active .duo178-hand-cards{visibility:hidden}
 .duo178-intro-active .duo-actions,.duo178-intro-active .action-dock{pointer-events:none;opacity:.52}
 .duo178-revealing .action-dock{pointer-events:none;opacity:.72}
-.duo178-hand-card.duo178-arriving{animation:duo178CardArrive .64s cubic-bezier(.12,.78,.25,1)
- calc(var(--duo178-i,0)*135ms) both}
+.duo178-hand-card.duo178-arriving{animation:duo178CardArrive .74s cubic-bezier(.12,.78,.25,1)
+ calc(var(--duo178-i,0)*440ms) both}
 @keyframes duo178CardArrive{
  0%{transform:translateX(110vw) rotate(12deg) scale(.92);opacity:0;filter:brightness(1.7)}
  78%{transform:translateX(-9px) rotate(-2deg) scale(1.035);opacity:1}

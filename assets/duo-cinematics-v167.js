@@ -67,6 +67,14 @@
        y.c&&y.c.used&&!x.c.used));
     events.push({type:"attack",text,from:source?.where,
      where:harmed.find(x=>x.where.seat!==attacker?.seat)?.where});
+   }else if(/direkter Angriff/i.test(text)){
+    const attacker=(previous.players||[]).find(p=>text.startsWith(p.name+" · direkter Angriff"));
+    const source=attacker&&occupants(attacker).find(x=>x.c&&
+     occupants(current.players[attacker.seat]||attacker).some(y=>
+      y.where.slot===x.where.slot&&y.where.area===x.where.area&&
+      y.c&&y.c.used&&!x.c.used));
+    events.push({type:"attack",text,from:source?.where,
+     where:attacker?{team:1-attacker.team}:null});
    }else if(/arena-zerfall/i.test(text)){
     events.push({type:"arena",text});
    }else if(/beschwört/i.test(text)){
@@ -105,6 +113,8 @@
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
  const endpoint=where=>{
   if(!where)return null;
+  if(where.team===0||where.team===1)return document.getElementById(
+   where.team===0?'duoAlliedLP':'duoEnemyLP');
   const selector='.seat[data-seat="'+where.seat+'"] '+
    (where.area==="ghost"?'.duo-ghost-cell':'.field>.field-cell')+
    '[data-slot="'+where.slot+'"]';
@@ -129,13 +139,17 @@
    ring.append(spark);
   }
  }
- function travel(source,destination){
+ function travel(source,destination,sourceNode){
   if(!source||!destination)return;
-  const phantom=document.createElement("span");phantom.className="duo-fx-projectile";
-  phantom.textContent="✦";phantom.style.left=source.x+"px";
-  phantom.style.top=source.y+"px";
-  phantom.style.setProperty("--move-x",(destination.x-source.x)+"px");
-  phantom.style.setProperty("--move-y",(destination.y-source.y)+"px");
+  const phantom=sourceNode?.classList?.contains('filled')?
+   sourceNode.cloneNode(true):document.createElement('span');
+  phantom.className=sourceNode?.classList?.contains('filled')?
+   'duo-fx-lunging-card':'duo-fx-projectile';
+  if(!sourceNode?.classList?.contains('filled'))phantom.textContent='✦';
+  phantom.removeAttribute('id');
+  phantom.style.left=source.x+'px';phantom.style.top=source.y+'px';
+  phantom.style.setProperty('--move-x',(destination.x-source.x)*.5+'px');
+  phantom.style.setProperty('--move-y',(destination.y-source.y)*.5+'px');
   stage.append(phantom);
  }
  function present(e,sequence){
@@ -145,10 +159,10 @@
   stage.replaceChildren();
   const to=center(endpoint(e.where)),from=center(endpoint(e.from));
   if(e.type==="attack"){
-   travel(from,to);
+   travel(from,to,endpoint(e.from));
    pending.push(setTimeout(()=>{
     if(sequence===serial)burst(to||from,"hit");
-   },290));
+   },240));
   }
   else if(e.type==="arena"){burst(center(document.querySelector("#duoAlliedLP")),"arena");}
   else if(e.type==="fusion"||e.type==="fate"||e.type==="summon"||

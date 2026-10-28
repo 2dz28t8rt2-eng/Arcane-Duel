@@ -408,6 +408,7 @@
   window.ArcaneDuoStompCinema202?.onState(previous,game);
   window.ArcaneDuoAbilitiesCinema193?.onState(previous,game,catalog);
   window.ArcaneDuoPredator198?.onState(previous,game,catalog);
+  window.ArcaneDuoUX204?.onState(previous,game,{seat,roomId,catalog});
   window.ArcaneDuoSound194?.onState(previous,game,catalog,seat);
   if(previous&&previous.status!=='finished'&&game.status==='finished'&&
    game.winner===0&&duoProfileToken)fetchProfile();
@@ -431,6 +432,7 @@
   // Capture the visible, local handcard before render() rebuilds the hand.
   // This ticket is visual-only and is discarded if the server rejects the action.
   const summonTicket=window.ArcaneDuoSummonCinema190?.capture?.({action,game,seat,catalog});
+  window.ArcaneDuoUX204?.onActionStart(action);
   busy=true;render();let conflicted=false,confirmedSummon=null;
   try{
    const previous=game;
@@ -441,6 +443,7 @@
    set('duoStatus','✓ Dein Zug ist gespeichert.');
    if(game?.status==='finished'&&game.winner===0)await fetchProfile();
   }catch(e){
+   window.ArcaneDuoUX204?.onActionError();
    syncError=e.message;conflicted=recovery.isConflict(e.message);
    set('duoStatus',e.message);
   }finally{
@@ -535,7 +538,7 @@
    (game.teams[0].shield?' · 🛡 '+game.teams[0].shield+' Schild':''));
   set('duoEnemyLP',game.teams[1].lp.toLocaleString('de-AT')+' LP');
   set('duoTurnName',game.status==='waiting'?'Dein Partner kann jetzt beitreten':
-   game.status==='finished'?(game.winner===0?'Gemeinsamer Sieg!':'Gemeinsame Niederlage'):
+   game.status==='finished'?'Duell beendet':
    'Runde '+game.round+' · '+game.players[game.activeSeat].name+' am Zug');
   if(game.ruleset==='duo-v166'){
    const arena=game.round<=9?'Ab Runde 10 setzt die Arena beiden Teams zu.':
@@ -666,6 +669,7 @@
   window.ArcaneCombatIdentity183?.duoDidRender?.({game,roomId});
   window.ArcaneDuoExperience185?.didRender?.({game,seat,roomId});
   window.ArcaneDuoPredator198?.decorate?.({game,seat});
+  window.ArcaneDuoUX204?.decorate?.({game,seat,roomId,catalog});
   if(game.status!=='active'){
    const canContinue=game.entry==='quest'?game.chapter<15&&game.questPassed===true:
     game.chapter<rules.CHAPTERS.length;
@@ -705,14 +709,14 @@
     'Klicke sie in der Hand oder auf deinem Spielfeld an. Die Materialliste bleibt als Alternative verfügbar.');
    const select=el('select',part,undefined,'duo-fusion-list');
    select.multiple=true;select.size=7;select.setAttribute('aria-label','Fusionsmaterialien');
-   p.hand.forEach((item,i)=>{if(item?.fate)return;
+   p.hand.forEach((item,i)=>{if(item?.fate||card(typeof item==='number'?item:item.id).ace)return;
     const id=typeof item==='number'?item:item.id;
     const opt=el('option',select,'Hand '+(i+1)+' · '+
      name(id)+' · Lv '+card(id).level);opt.value='hand:'+i;});
-   p.field.forEach((c,i)=>{if(!c||c.fate||c.predatorToken)return;const opt=el('option',select,
+   p.field.forEach((c,i)=>{if(!c||c.fate||c.predatorToken||card(c.id).ace)return;const opt=el('option',select,
     'Feld '+(i+1)+' · '+displayName(c)+' · Lv '+c.level);opt.value='field:'+i;});
    if(p.lv1?.perk){
-    (p.lv1.ghostSlots||[]).forEach((c,i)=>{if(!c||c.predatorToken)return;
+    (p.lv1.ghostSlots||[]).forEach((c,i)=>{if(!c||c.predatorToken||card(c.id).ace)return;
      const opt=el('option',select,'Geisterslot '+(i+1)+' · '+name(c.id)+
       ' · Lv '+c.level);opt.value='ghost:'+i;});
     for(let i=0;i<(p.lv1.charges||0);i++){
@@ -976,6 +980,7 @@
   window.ArcaneDuoDirectCards187?.enhance?.({game,seat,legal,dock,catalog,busy,syncError});
   window.ArcaneDuoFusion188?.enhance?.({game,seat,roomId,dock,busy,syncError});
   window.ArcaneDuoSummon189?.enhance?.({game,seat,legal,dock,catalog,busy,syncError});
+  window.ArcaneDuoUX204?.decorate?.({game,seat,roomId,catalog});
  }
  async function init(){
   try{

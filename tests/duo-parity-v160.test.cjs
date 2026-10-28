@@ -120,6 +120,22 @@ test('Fate creatures summon and attack normally, but cannot fuse from hand/field
  assert.equal(attacked.teams[1].lp,before-temp.atk);
  assert.equal(attacked.players[0].field[0].used,true);
 });
+test('ACE monsters cannot be used as fusion material in hand, field, or ghost zone',()=>{
+ const g=setup(),ace=314;
+ assert.equal(catalog[ace].ace,true);
+ g.players[0].hand[0]=ace;
+ assert.throws(()=>rules.fusionOptions(g,0,[{from:'hand',index:0},
+  {from:'hand',index:1}],catalog),/ACE-Monster/);
+ g.players[0].hand[0]=deck[0];
+ g.players[0].field[0]=live(ace);
+ assert.throws(()=>rules.fusionOptions(g,0,[{from:'field',index:0},
+  {from:'hand',index:0}],catalog),/ACE-Monster/);
+ g.players[0].field[0]=null;
+ g.players[0].lv1.perk=true;
+ g.players[0].lv1.ghostSlots=[live(ace)];
+ assert.throws(()=>rules.fusionOptions(g,0,[{from:'ghost',index:0},
+  {from:'hand',index:0}],catalog),/ACE-Monster/);
+});
 test('Fate cards are one-time per duellant and all temporary cards disappear between chapters',()=>{
  let g=move(fateSetup(),3,{type:'end'});
  g.activeSeat=3;g.round=4;g.rngSeed=luckySeed();
