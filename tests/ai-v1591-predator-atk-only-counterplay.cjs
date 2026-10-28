@@ -264,8 +264,10 @@ const dataOf=c=>{
    'const seedB=5609+sameOpponentPair*151+scenario*91+pairedStage*(stage===7?170:231);',
    'const seedB=(5609+sameOpponentPair*151+scenario*91+pairedStage*(stage===7?170:231)+Number(process.env.ARCANE_V1591_REPLICATE)*1103+1289)%10000;',
    'replicate-specific constructed deck B');
-  source=once(source,"'  const ok=baseApply(game,action);',",
-   realActionPatch1591,'instrument genuine successful Fusion action inside AI wrapper');
+  source=once(source,
+   "'  const ok=baseApply(game,action);',\n'  if(ok&&game===g){',",
+   realActionPatch1591+"\n'  if(ok&&game===g){',",
+   'instrument genuine successful Fusion action inside AI wrapper');
  }
  return source;
 };
