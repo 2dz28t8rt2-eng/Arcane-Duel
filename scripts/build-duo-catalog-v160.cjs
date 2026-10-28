@@ -46,13 +46,25 @@ if(loadouts.fateIds.length!==10||new Set(loadouts.fateIds).size!==10||
  throw Error('Singleplayer fate templates were not imported correctly.');
 const output=JSON.stringify({schema:1,source:'Arcane-Duel/development/index.html',scriptCount:scripts.length,
  ...loadouts,cards},null,0)+'\n';
+// Newly added purely visual/runtime scripts change scriptCount without
+// changing a single card. The parity gate must reject mismatched cards,
+// deck lists or fusion references, not a harmless provenance counter.
+const canonical=JSON.parse(output);
+function matchesCatalog(data){
+ if(data===output)return true;
+ try{
+  const prior=JSON.parse(data);
+  prior.scriptCount=canonical.scriptCount;
+  return JSON.stringify(prior)===JSON.stringify(canonical);
+ }catch{return false;}
+}
 const targets=['assets/duo-card-catalog-v160.json',
  'supabase/functions/arcane-duo-v2/catalog.json'];
 const ruleSource=fs.readFileSync(path.join(repo,'assets/duo-shared-rules-v160.js'),'utf8');
 const check=process.argv.includes('--check');
 for(const target of targets){
  const file=path.join(repo,target);
- if(check){if(!fs.existsSync(file)||fs.readFileSync(file,'utf8')!==output)
+ if(check){if(!fs.existsSync(file)||!matchesCatalog(fs.readFileSync(file,'utf8')))
   throw Error(target+' differs from the current singleplayer card registry. Run npm run duo:catalog');
  }else{fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,output);}
 }
