@@ -17,7 +17,8 @@ document.getElementById('duo').addEventListener('load',()=>{
     'Bearer secret never appears without explicit user action');
    check(!!d.querySelector('script[src*="duo-recovery-v168"]'),
     'Recovery helpers loaded before main client');
-   check(d.querySelector('.duo-guide').textContent.includes('Wiederherstellungslink'),
+   check(d.querySelector('.duo-guide').textContent.includes('Profil-Link')&&
+    d.getElementById('duoRecoveryArea').textContent.includes('Wiederherstellungslink'),
     'User-facing resumption explanation');
    check(recovery?.pollDelay(4)===30000,'Polling backoff is capped');
    const room='abc12345-0123-4abc-8765-aabbccddeeff',secret='a'.repeat(64);
