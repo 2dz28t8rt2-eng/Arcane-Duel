@@ -2,7 +2,10 @@ name: Arcane Duel - v15.85 First Attack and Monster Removal Study
 on:
   push:
     branches: [development]
-    paths: ['.github/workflows/ai-v1585-opening-causality.yml']
+    paths:
+      - '.github/workflows/ai-v1585-opening-causality.yml'
+      - 'tests/ai-v1585-opening-causality.cjs'
+      - 'tests/ai-v1585-opening-causality-aggregate.cjs'
   workflow_dispatch:
 permissions:
   contents: read
