@@ -7,8 +7,15 @@ const root='artifacts/v1582',matches=['mirror','cross'],stages=[9,10];
 const modes=['baseline','delay','emergency50-locked','emergency50-open'];
 const arm='fusion-v1574-stomp-conscious';
 const key=c=>[c.stage,c.pair,c.scenario,c.starter,c.seat,c.arm].join('|');
-const winner=c=>c.win?c.seat:1-c.seat;
-const secondWins=c=>winner(c)!==c.starter;
+// A duel that reaches the simulation's turn cap is unresolved.  Both seat
+// markers report win=0 in that case, so `c.win ? seat : 1-seat` would invent
+// opposite winners and incorrectly report a candidate-marker leak.
+const winner=c=>c.timeout?null:(c.win?c.seat:1-c.seat);
+const secondWins=c=>winner(c)===null?null:winner(c)!==c.starter;
+const candidateOutcome=c=>c.timeout?'draw':c.win?'win':'loss';
+assert.equal(winner({seat:0,win:0,timeout:true}),null);
+assert.equal(winner({seat:1,win:0,timeout:true}),null);
+assert.equal(secondWins({seat:1,starter:0,win:0,timeout:true}),null);
 const sum=(rows,fn)=>rows.reduce((n,c)=>n+fn(c),0);
 const rate=(n,d)=>d?n/d:null;
 const cohorts={},shards=[];
@@ -75,22 +82,31 @@ for(const match of matches)for(const stage of stages)for(const mode of modes){
   const marker=new Map(rows.filter(c=>c.seat===0).map(c=>[[c.pair,c.scenario,c.starter].join('|'),c]));
   for(const c of rows.filter(c=>c.seat===1)){
    const b=marker.get([c.pair,c.scenario,c.starter].join('|'));
-   assert.ok(b);assert.equal(winner(c),winner(b),'Marker leaked into duel');labelChecks++;
+   assert.ok(b);
+   assert.equal(c.timeout,b.timeout,'Marker changed draw/timeout status');
+   assert.equal(winner(c),winner(b),'Marker leaked into duel');
+   assert.equal(c.turn,b.turn,'Marker changed duel duration');
+   labelChecks++;
   }
  }
  if(mode!=='baseline'){
   const base=new Map(cohorts[[match,stage,'baseline'].join('|')].map(c=>[key(c),c]));
-  let gain=0,loss=0;
+  let gain=0,loss=0,drawsIntroduced=0,drawsResolved=0;
   for(const c of rows){
    const b=base.get(key(c));assert.ok(b);
    for(const f of ['seed','seedA','seedB','seat','starter','pair','scenario',
     'roleA','roleB','split','openingFiveEqual','openingDeckEqual','openingFusionEqual'])
     assert.deepEqual(c[f],b[f],'Deployment treatment changed '+f);
    assert.deepEqual(c.openingBeginning,b.openingBeginning,'Initial board differs');
-   if(c.win!==b.win){if(c.win)gain++;else loss++;}
+   const actual=candidateOutcome(c),control=candidateOutcome(b);
+   if(actual==='draw'&&control!=='draw')drawsIntroduced++;
+   if(actual!=='draw'&&control==='draw')drawsResolved++;
+   if(actual==='win'&&control!=='win')gain++;
+   if(actual==='loss'&&control!=='loss')loss++;
    matchedMechanismPairs++;
   }
-  effects[[match,stage,mode].join('|')]={candidateGains:gain,candidateLosses:loss};
+  effects[[match,stage,mode].join('|')]={candidateGains:gain,candidateLosses:loss,
+   drawsIntroduced,drawsResolved};
  }
 }
 assert.equal(starterPairs,3072);assert.equal(labelChecks,1536);
@@ -107,7 +123,10 @@ assert.ok(sum(opens,c=>c.openingActionByTurn?.[1]?.types?.attack||0)>0,
 
 function summarize(rows,match){
  const independent=match==='mirror'?rows.filter(c=>c.seat===0):rows;
- const n=independent.length,second=sum(independent,c=>secondWins(c)?1:0);
+ const n=independent.length,draws=sum(independent,c=>c.timeout?1:0),resolved=n-draws;
+ const second=sum(independent,c=>secondWins(c)===true?1:0);
+ const candidateDraws=sum(rows,c=>c.timeout?1:0),candidateResolved=rows.length-candidateDraws;
+ const candidateWins=sum(rows,c=>c.win?1:0);
  const timeline=[];
  for(let turn=1;turn<=6;turn++){
   const known=independent.flatMap(c=>c.openingTimeline.filter(x=>x.turn===turn)
@@ -122,8 +141,11 @@ function summarize(rows,match){
    secondATK:mean(({c,x})=>x.before[1-c.starter].atk),
    attacks:sum(independent,c=>c.openingActionByTurn?.[turn]?.types?.attack||0)});
  }
- return {games:rows.length,independentDuels:n,secondWins:second,secondWinRate:rate(second,n),
-  candidateWinRate:rate(sum(rows,c=>c.win?1:0),rows.length),
+ return {games:rows.length,independentDuels:n,draws,drawRate:rate(draws,n),
+  resolvedDuels:resolved,secondWins:second,secondWinRate:rate(second,resolved),
+  secondScoreRate:rate(second+.5*draws,n),
+  candidateWins,candidateDraws,candidateWinRate:rate(candidateWins,candidateResolved),
+  candidateScoreRate:rate(candidateWins+.5*candidateDraws,rows.length),
   freshAttackActions:sum(rows,c=>c.freshAttackActions),
   emergencyAttackActions:sum(rows,c=>c.emergencyAttackActions),
   emergencyHalfDamageChecks:sum(rows,c=>c.emergencyHalfDamageChecks),
@@ -150,7 +172,8 @@ const report={schema:'arcane-v1582-deployment-delay-temporary-emergency-attack',
   'One-turn delay means the card cannot attack on the personal turn it is placed; it becomes fully ready on the owners following personal turn.',
   'The two emergency variants distinguish the legacy first global turn attack prohibition, which confounded prior symmetry assumptions.',
   'Comparisons isolate the new deployment and emergency mechanism; no changes to user campaign or multiplayer rules.',
-  'Mirror outcomes are candidate-marker duplicates and therefore counted once per actual result for second-mover win rates.'
+  'Mirror outcomes are candidate-marker duplicates and therefore counted once per actual result for second-mover win rates.',
+  'A turn-limit timeout is an unresolved duel, not a loss. Draws are recorded separately and excluded from resolved-game win rates; score rates award half a point per draw.'
  ]};
 for(const match of matches)for(const stage of stages){
  const group=match+'-'+stage;report.byMatchStage[group]={};report.sealedHoldout[group]={};
@@ -175,11 +198,14 @@ const validationSelection=modes.slice(1).map(mode=>{
  });
  return {mode,predatorSecondWinRate:predator,fusionSecondWinRate:fusion,
   maxMirrorDeviation:Math.max(Math.abs(predator-.5),Math.abs(fusion-.5)),
-  cross,anyCrossRoleShiftOver10pp:cross.some(x=>Math.abs(x.candidateWin-x.baselineWin)>.1)};
+  cross,anyCrossRoleShiftOver10pp:cross.some(x=>Math.abs(x.candidateWin-x.baselineWin)>.1),
+  maxTrainValidationDrawRate:Math.max(...[9,10].map(stage=>
+   summarize(merged(stage),'mirror').drawRate))};
 }).sort((a,b)=>a.maxMirrorDeviation-b.maxMirrorDeviation);
 report.selection={calculatedFrom:'TRAIN+VALIDATION only',ranked:validationSelection,
  candidateForFurtherTesting:validationSelection[0].maxMirrorDeviation<=.08&&
-  !validationSelection[0].anyCrossRoleShiftOver10pp?validationSelection[0].mode:null,
+  !validationSelection[0].anyCrossRoleShiftOver10pp&&
+  validationSelection[0].maxTrainValidationDrawRate<=.05?validationSelection[0].mode:null,
  anyGameplayChange:false};
 const dir=path.join(root,'analysis');fs.mkdirSync(dir,{recursive:true});
 fs.writeFileSync(path.join(dir,'report.json'),JSON.stringify(report,null,2)+'\n');
@@ -188,6 +214,7 @@ const compact={status:report.status,duels:report.totalDuels,starterPairs,labelCh
  summary:Object.fromEntries(Object.entries(report.byMatchStage).map(([k,v])=>[k,
   Object.fromEntries(Object.entries(v).map(([m,x])=>[m,{
    candidateWin:x.all.candidateWinRate,secondWin:x.all.secondWinRate,
+   draws:x.all.draws,drawRate:x.all.drawRate,
    freshAttackActions:x.all.freshAttackActions,
    emergencyActions:x.all.emergencyAttackActions,
    trainSecondWin:x.train.secondWinRate,validationSecondWin:x.validation.secondWinRate,
