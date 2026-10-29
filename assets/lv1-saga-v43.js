@@ -91,16 +91,14 @@
   return {n:owned.length,total:ids.length,threshold:Math.ceil(ids.length/3)};
  }
  function forced(){
-  // By the third tournament victory the quest giver must be discoverable;
-  // prior to that, ordinary encounters can still offer the quest early.
-  return playerLevel(profile)>=6||highestCleared(profile)>=3||fraction().n>=fraction().threshold;
+  // Story starts only after genuine tournament progression, not player XP,
+  // starter inventory or random normal duels. III is the first unlock.
+  return highestCleared(profile)>=3;
  }
  function maybeOffer(g){
   const s=state();if(s.offered||s.stage>0||s.perk||g?.mode!=='pve'||g.surrendered||
-   !['tournament','free'].includes(g.context)||g.automatic||g.context==='auto')return false;
-  const tier=highestCleared(profile),chance=tier<=3?30:50;
-  if(forced()||randomInt(g,100)<chance){s.offered=true;saveProfile();return true;}
-  return false;
+   !['tournament','free'].includes(g.context)||g.automatic||g.context==='auto'||!forced())return false;
+  s.offered=true;saveProfile();return true;
  }
  const ACE_SCENES=[
   {mood:'EUPHORIE',text:'Da ist sie! Lumira! Der erste Funke! Meine kostbarste Karte! Gleich wird sie ihre wahre Macht offenbaren. Ich WEISS es!',response:'Violette Flammen umkreisen Lumira. Doch der ersehnte Seelenblitz bleibt aus.'},
@@ -497,7 +495,7 @@
  };
  const oldRenderMenu=renderMenu;
  function panel(){
-  const s=state();if(!s.offered&&!forced())return '';
+  const s=state();if(!s.offered&&!forced()&&!s.met&&!s.stage&&!s.perk)return '';
   if(!s.offered&&forced()){s.offered=true;saveProfile();}
   const next=Math.min(5,s.stage+1),esc=escapeHtml;
   return '<section class="menu-panel lv1-saga-panel" id="lv1Saga"><div class="lv1-saga-kicker">'+(s.stage===0&&!s.met?'✦ EIN FREMDER FORDERT DICH HERAUS':'✦ VERBOTENE FORSCHUNG · '+s.stage+'/5')+'</div>'+
