@@ -18,7 +18,7 @@ all('arcane-v1571-','arcane-v1600-');
 all('ARCANE_V1571_','ARCANE_V1600_');
 once('15710000+','16000000+');
 once('seed:15710042','seed:16000042');
-once('assert.equal(endgame.sourceRun,40477542888);','assert.equal(endgame.sourceRun,40499008498);');
+once('assert.equal(endgame.sourceRun,40477542888);','assert.equal(endgame.sourceRun,40513311546);');
 all('defender-v1569-endgame-control','defender-v1600-survival-control');
 all('defender-v1569-mixed-control','defender-v1600-counterplay');
 all('role-identity-conditional-fusion','fusion-v1600-role-economics');
