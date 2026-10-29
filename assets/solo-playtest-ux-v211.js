@@ -12,7 +12,7 @@
  const profileStore=key=>{try{return window.localStorage?.getItem(key);}catch{return null;}};
  const saveFlag=key=>{try{window.localStorage?.setItem(key,'yes');}catch{}};
  const onboardingKey='arcane-duel-leader-help-v211';
- let delayAI=null,zoom=100;
+ let zoom=100;
 
  try{const saved=Number(profileStore('arcane-duel-board-zoom-v211'));if(saved>=70&&saved<=115)zoom=saved;}catch{}
  const format=n=>Number(n||0).toLocaleString('de-AT');
@@ -160,18 +160,6 @@
    });
   }
   return result;
- };
- const oldRunAi=runAi;
- runAi=async function(...args){
-  const g=game;
-  if(!g||g.mode!=='pve'||g.active!==1)return oldRunAi.apply(this,args);
-  if(delayAI&&delayAI.g===g)return delayAI.promise;
-  const pending={g,promise:null};
-  pending.promise=(async()=>{
-   await sleep(reduce()?800:1500);
-   if(game===g&&g.active===1&&g.winner===null)return oldRunAi.apply(this,args);
-  })().finally(()=>{if(delayAI===pending)delayAI=null;});
-  delayAI=pending;return pending.promise;
  };
  const oldFinished=showFinished;
  showFinished=function(...args){
