@@ -88,7 +88,7 @@
   const inner=make('div','duo-cinema170-inner',undefined,layer);
   const skip=make('button','duo-cinema170-skip','Animation überspringen',inner);
   skip.type='button';skip.setAttribute('aria-label','Animation überspringen');
-  skip.addEventListener('click',()=>{sequence++;clear();});
+  skip.addEventListener('click',()=>{if(event.kind==='fusion')window.ArcaneSfx208?.stopAll?.();sequence++;clear();});
   make('div','duo-cinema170-kicker','✦ ARCANE DUEL · 2V2 ✦',inner);
   make('h3','duo-cinema170-title',
    event.kind==='fusion'?'FUSIONSRITUAL':'KARTENZUG',inner);
@@ -98,7 +98,15 @@
  function fusionSequence(event,catalog){
   const {inner,content,stamp}=base(event),r=event.result;
   make('p','duo-cinema170-owner',event.name+' · '+r.pattern,inner);
-  const status=make('p','duo-cinema170-stage','1 · ROLLENSTEMPEL',content);
+  const status=make('p','duo-cinema170-stage','MATERIALROTATION · FUSION WIRD VORBEREITET',content);
+  const orbit=make('div','duo-cinema208-orbit',undefined,content);
+  orbit.setAttribute('aria-hidden','true');
+  const matCount=Math.max(2,Math.min(5,Number(r.materialsUsed||r.materials||3)));
+  for(let i=0;i<matCount;i++){
+   const mat=make('span','duo-cinema208-material','✧',orbit);
+   mat.style.setProperty('--i',String(i));mat.style.setProperty('--n',String(matCount));
+  }
+  window.ArcaneSfx208?.play?.('orbit');
   const role=make('div','duo-cinema170-role','✦ '+(ROLE_NAMES[r.role]||'FUSION')+' ✦',content);
   const rolls=make('div','duo-cinema170-rolls',undefined,content);
   const choice=make('p','duo-cinema170-note','',content);
@@ -106,8 +114,9 @@
   const quality=Math.round((r.quality-1)*100);
   const alpha=r.predatorLeader;
   const stages=[
-   ()=>{status.textContent='1 · ROLLENSTEMPEL';role.classList.add('active');},
+   ()=>{status.textContent='1 · ROLLENSTEMPEL';orbit.remove();role.classList.add('active');},
    ()=>{
+    window.ArcaneSfx208?.play?.('calc');
     status.textContent='2 · ATK-/DEF-WÜRFE';
     role.classList.remove('active');role.classList.add('stamped');
     r.rolls.forEach((x,i)=>{
@@ -141,10 +150,11 @@
   ];
   if(alpha)stages.push(()=>{
    status.textContent='5 · RUDELFÜHRER ERWACHT';
+   window.ArcaneSfx208?.play?.('roar');
    const names={swarm:'Rudelinstinkt',mark:'Blutspur',token:'Rudelruf'};
    const abilities=alpha.powers.map(power=>names[power]||power);
    const reveal=make('div','ad198-alpha-reveal',undefined,content);
-   make('span','ad198-alpha-icon','♛',reveal);
+   make('span','ad198-alpha-icon','🐾',reveal);
    make('strong','ad198-alpha-heading','RUDELFÜHRER · '+alpha.materials+' MATERIALIEN',reveal);
    make('p',undefined,'Grundbonus: +3 % Angriff je eigenem Predator',reveal);
    make('p','ad198-alpha-powers',abilities.length?abilities.join(' · '):
@@ -152,10 +162,11 @@
    reveal.classList.add('active');
    choice.textContent='🐾 Alle Kräfte wurden vom Server ausgewürfelt.';
   });
-  stages[0]();
-  const times=[450,1250,2000];
+  // The 5.75-second card orbit plays in sync with the actual sampled fusion cue.
+  schedule(stages[0],5750,stamp);
+  const times=[6260,6980,7650];
   times.forEach((time,index)=>schedule(stages[index+1],time,stamp));
-  if(alpha)schedule(stages[4],2700,stamp);
+  if(alpha)schedule(stages[4],8250,stamp);
   if(event.showdown){
    schedule(()=>{
     clear();
@@ -166,8 +177,8 @@
      old:{...old,name:oldTemplate.name||'Alter Rudelführer',art:oldTemplate.art},
      new:{...newKing,name:newTemplate.name||'Neuer Rudelführer',art:newTemplate.art}
     });
-   },4400,stamp);
-  }else schedule(clear,alpha?4950:3500,stamp);
+   },9850,stamp);
+  }else schedule(clear,alpha?10400:8850,stamp);
  }
  function drawSequence(event){
   const {inner,content,stamp}=base(event);
