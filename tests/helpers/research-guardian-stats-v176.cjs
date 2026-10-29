@@ -36,6 +36,7 @@ function transform(src,variant){
  if(variant==='control')return src;
  const injection=[
   '// TEST SIMULATOR ONLY: Guardian stat pool and reweighting v17.6',
+  'window.__arcaneResearchGuardianStatsApply=function(){',
   'const __arcaneResearchGuardianStats={cohort:'+JSON.stringify(variant)+',changed:0,unchangedAtk:0,oldAtk:0,newAtk:0,oldDef:0,newDef:0,changedIds:[]};',
   'for(const __card of CARDS){',
   " if(!__card||__card.role!=='guardian'||!__card.rpg||__card.retired||__card.fusionOnly||__card.essenceMonster||__card.ace||",
@@ -58,6 +59,7 @@ function transform(src,variant){
   ' __card.atk=__newAtk;__card.def=__newDef;',
   '}',
   'window.__arcaneResearchGuardianStats=__arcaneResearchGuardianStats;',
+  '};',
  ].join('\n');
  return src.replace(anchor,injection+'\n'+anchor);
 }
