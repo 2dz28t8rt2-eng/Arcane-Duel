@@ -124,3 +124,12 @@
  .ad195-pack-cinema .ad178-reward-card::before,
  .ad195-pack-cinema .ad178-reward-card::after{animation:none!important;transition:none!important;}
 }
+
+/* New smooth pack opening: seal cracks, light blooms, cards gradually materialize. */
+.ad195-pack-cinema .ad178-pack-results{perspective:950px}
+.ad195-pack-cinema.ad195-pack-rifted .ad195-seal-flash{animation:ad195-seal-burst 1.45s cubic-bezier(.18,.6,.3,1) both}
+.ad195-pack-cinema .ad178-reward-card{opacity:0;filter:brightness(.3) blur(7px);transform:translateY(23px) rotateY(80deg) scale(.87);transition:opacity .7s ease,filter .9s ease,transform 1s cubic-bezier(.18,.76,.2,1)!important}
+.ad195-pack-cinema .ad178-reward-card.ad178-is-revealed{opacity:1;filter:brightness(1) blur(0);transform:translateY(0) rotateY(0) scale(1)}
+.ad195-pack-cinema .ad178-reward-card.ad178-is-revealed::before{content:'';position:absolute;inset:-9px;z-index:2;pointer-events:none;border-radius:15px;background:radial-gradient(ellipse,#ffe6abbb,transparent 70%);animation:ad195-reveal-light 1.3s ease-out both}
+@keyframes ad195-reveal-light{0%{opacity:0;transform:scale(.65)}28%{opacity:1}100%{opacity:0;transform:scale(1.55)}}
+@media(prefers-reduced-motion:reduce){.ad195-pack-cinema .ad178-reward-card{transition:none!important;opacity:1;filter:none;transform:none}.ad195-pack-cinema .ad178-reward-card.ad178-is-revealed::before{animation:none!important;display:none}}
