@@ -68,7 +68,7 @@ once('       tacticalCorrection+=correction*.75;','       tacticalCorrection+=co
  // Unlike observational loss-difference labels, each candidate replays actual
  // legal attacks from the SAME PUBLIC successor state, without drawing cards.
  // This applies ONLY to defender research in focused L10/H2H/mixed stages.
- once("  return {a:action,score:value,lethal,immediate};",String.raw\`
+ once("  return {a:action,score:value,lethal,immediate};",String.raw`
   if(w.defenderCriticalReplyPlanner&&!lethal&&
      [4,7,8].includes(scene.studyStage)&&
      ['guardian','soul'].includes(scene.candidateRole)&&
@@ -112,6 +112,6 @@ once('       tacticalCorrection+=correction*.75;','       tacticalCorrection+=co
     counter.defenderCriticalReplyLethal=(counter.defenderCriticalReplyLethal||0)+(follow.winner===opp?1:0);
    }
   }
-  return {a:action,score:value,lethal,immediate};\`);
+  return {a:action,score:value,lethal,immediate};`);
 
  new Function('require','process','console',source)(require,process,console);
