@@ -162,8 +162,6 @@ once('       tacticalCorrection+=correction*.75;','       tacticalCorrection+=co
 
  // Preserve the original outcome gates; expose new tactical diagnostics only.
  once("        defenderCooperationRolePreservedValue:m.stats.defenderCooperationRolePreservedValue||0,\n        fusionIdentityChecks:m.stats.fusionIdentityChecks||0,","        defenderCooperationRolePreservedValue:m.stats.defenderCooperationRolePreservedValue||0,\n        defenderBondPlacementChecks:m.stats.defenderBondPlacementChecks||0,\n        defenderBondNewPairs:m.stats.defenderBondNewPairs||0,\n        defenderBondBrokenPairs:m.stats.defenderBondBrokenPairs||0,\n        defenderBondSurvivingPairs:m.stats.defenderBondSurvivingPairs||0,\n        defenderBondObservedEssenceGain:m.stats.defenderBondObservedEssenceGain||0,\n        defenderBondObservedLpLoss:m.stats.defenderBondObservedLpLoss||0,\n        defenderBondReplyChecks:m.stats.defenderBondReplyChecks||0,\n        defenderCriticalReplyTripleChecks:m.stats.defenderCriticalReplyChecks||0,\n        fusionIdentityChecks:m.stats.fusionIdentityChecks||0,");
- // v20.7 active Soul abilities no longer require DEF stance. Preserve
- // identical legality in both research seats; game-runtime overlays the
- // authoritative researchSoulAction in its VM for every A/B variant.
- once("if(!c||role(c)!=='soul'||c.mode!=='def')return false;", "if(!c||role(c)!=='soul')return false;");
+ // DEF-only Soul abilities: preserve the current game rule for research AI.
+ // Do not allow illegal out-of-DEF candidate actions.
  new Function('require','process','console',source)(require,process,console);
