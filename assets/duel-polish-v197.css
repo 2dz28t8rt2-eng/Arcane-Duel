@@ -1,4 +1,9 @@
 /* Arcane Duel 19.7: legible inspector, focused battlefield and staged feedback. */
+#storageNotice:not([hidden]){display:flex;gap:12px;justify-content:space-between;align-items:center}
+#storageNotice button{border:1px solid #f4c389;border-radius:5px;background:#513925;color:#fff0d0;padding:5px 9px;cursor:pointer;flex-shrink:0}
+/* Placement ghost may not reveal the predator's percentage before landing. */
+:is(.ad-summon-ghost,.evo-summon-ghost,.ad113-attack-ghost) :is(.ad203-pack-bonus,.ad205-total-bonus){display:none!important}
+
 @media(min-width:1181px){
  #duelScreen.layout{grid-template-columns:minmax(285px,315px) minmax(0,1fr) minmax(200px,230px);gap:12px}
  #duelScreen .card-preview-panel{max-height:calc(100dvh - 32px);padding:11px;overflow-x:hidden;overflow-y:auto}
