@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-29 · Branch `development` · Angriffshäufigkeit- und Wächter-Kausalstudie v17.5 gestartet
+**Aktualisiert:** 2026-10-29 · Branch `development` · KI-Angriffshäufigkeit v17.5 abgeschlossen
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -172,15 +172,36 @@ Die allgemeine Defender-Survival-HOLDOUT-Verbesserung **276 → 278/512** ist se
 
 **Entscheidung:** Die 100/55/40/33/28-%-Staffelung erzielt gemessene DEF-Reduktion und reduziert fokussiert reine Wächter, ohne andere Rollen immer vollständig zu schützen. **Noch nicht produktiv übernehmen:** Im echten Turnier sind Kartenzugang, Fortification, KI-Kartenwahl, Häufigkeit von zwei bis fünf Wächtern sowie langfristiger H2H-Effekt gesondert abzunehmen. Mehr unabhängige Matchup-/Turnier-Szenarien statt gleich viele KI-Profil-Replikate testen; **keine weitere pauschale Werteabsenkung**.
 
-### v17.5 – KI-Angriffshäufigkeit bei Wächtern und Seelenzehrern
+### v17.5 – KI-Angriffshäufigkeit bei Wächtern und Seelenzehrern – abgeschlossen
 
-**Forschungsstart:** [GitHub Actions #40964830451](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40964830451), `development`, 2 × 23.040 = **46.080 geplante gepaarte Vollduelle**. Beide Vorabnahmen einschließlich echter Stage-0/Stage-8-Stichprobenspiele **bestanden**; Start am 29.10.2026. Verwendet werden `none` (volle Guardian-Heilung) und `candidateOnly` (100/55/40/33/28-%-Wächterheilung nur beim betrachteten Kandidaten). Die bereits geprüften `opponentOnly` und `both` bleiben als v17.4-Historie erhalten, werden für die Angriffsfrequenz-Frage nicht erneut vierfach gerechnet.
+**Lauf:** [GitHub Actions #40964830451](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40964830451), **erfolgreich, 27/27 Jobs, 46.080/46.080 echte Selbstspiel-Duelle** in zwei Armen zu je 23.040: `none` (volle Wächterheilung) und `candidateOnly` (100/55/40/33/28 % ausschließlich für den Kandidaten). 11 Stages je Arm. Der 35-%-Überlebens-Gegenschlag, die Forschungsvorgaben 15/90/100/120 und die bisherigen Champion-Freigabegates sind unverändert. Kein regulärer Spiel-/2v2-Patch und keine automatische Champion-Beförderung.
 
-**Ab jetzt echte Offensive-Telemetrie je Rolle und Spieler:** Der Forschungs-Simulator protokolliert nur über die echte `attack(game,ai,di)`-Funktion vollzogene Angriffe auf `game===g`, **nicht** hypothetische Planer-Simulationen oder den passiven 35-%-Gegenschlag. `guardian` (einschließlich Alias `defender`), `soul`, `predator`, Fusions- und andere Rollen werden getrennt. Für sämtliche 11 Stages werden gezählt: versuchte und angenommene Angriffe, direkte LP-Ziele oder gegnerische Monster, zerstörte Zielkarten, tatsächlich verlorene gegnerische LP/Schilde, bestätigte Wechsel nach ATK und DEF sowie die Häufigkeit der Partien mit mindestens einem Angriff des jeweiligen Rollentyps. Beide Spieler/Seats werden getrennt erfasst, damit sie nicht künstlich die eigene Quote beeinflussen.
+**Neu und erfolgreich validiert:** Die Rollenstatistik verwendet ausschließlich **echte, vom Spielfeld aus angenommene `attack(game, ai, di)`-Angriffe auf dem tatsächlichen Spielzustand**, also weder Planer-Klone noch passive Gegenschläge. Sie zählt je Spieler eigene Angriffe, direkte Treffer, Angriffe auf Monster, zerstörte Monster, tatsächlich verlorene gegnerische LP, Wechsel nach ATK/DEF und Anteil der Partien mit Angriffen. Alle 23.040 Fälle pro Arm besitzen Attack-Telemetrie; 0 fehlende Protokolle und 0 illegale Wechsel.
 
-**Warum diese Gegenprobe:** Defensive Rollen können nicht allein an der Zahl der gespielten Karten beurteilt werden. Viele Siege entstehen vermutlich durch DEF-Erholung, Seelenfähigkeiten, LP-Gegenschlag und Positionierung statt regulärer eigener Angriffe; die Messung trennt diese ausdrücklich, ohne den Kampfschaden auszudenken. Die KI bleibt mit dem eingefrorenen Champion und TRAIN/VALIDATION/HOLDOUT-Freigabekriterien vergleichbar; Folge-Endgame-Kandidaten werden nur aus TRAIN gebildet.
+| Kandidaten-KI, alle 23.040 Duelle je Variante | Volle Heilung `none` | Staffel `candidateOnly` |
+|---|---:|---:|
+| Wächter eigene aktive Angriffe | **9.762** | **10.048** |
+| Seelenzehrer eigene aktive Angriffe | **3.557** | **3.697** |
+| Predator eigene aktive Angriffe | **29.499** | **29.449** |
+| Partien mit mindestens einem Wächterangriff | 5.005 / 23.040 (21,7 %) | 5.053 / 23.040 (21,9 %) |
+| Partien mit mindestens einem Seelenzehrerangriff | 2.812 / 23.040 (12,2 %) | 2.908 / 23.040 (12,6 %) |
+| Partien mit irgendeinem Wächter-/Seelenzehrerangriff | 5.953 / 23.040 (25,8 %) | 6.057 / 23.040 (26,3 %) |
+| Wächter Angriffe auf Monster / direkt | **9.742 / 20** | **10.028 / 20** |
+| Seelenzehrer Angriffe auf Monster / direkt | **3.550 / 7** | **3.679 / 18** |
+| Wächter zerstörte Ziele | **7.351** | **7.631** |
+| Seelenzehrer zerstörte Ziele | **2.811** | **2.867** |
+| Wächter Wechsel nach ATK / nach DEF | **10.127 / 50.353** | **10.424 / 50.260** |
+| Seelenzehrer Wechsel nach ATK / nach DEF | **3.740 / 29.933** | **3.859 / 30.016** |
 
-**In allen Armen identisch:** 35-%-Gegenschlag **nur bei Überleben** aus `development`, experimentelle 15-Prozentpunkte-Predator-Durchdringung und Seelenentzug 90/100/120 %. Die 85-%-Pauschalheilung bleibt entfernt. Die Heilungsstaffel bleibt **nur im Offline-Test**, noch nicht im Solo-Spiel oder 2v2. **Keine automatische KI-Champion-Beförderung und kein Produktionspatch.**
+**Interpretation:** Wächter führen im Testfeld etwa **2,7-mal mehr Angriffe als Seelenzehrer** aus (9.762/3.557). Fast alle eigenen Angriffe beider Verteidigerrollen treffen **Monster statt Spieler-LP**: Wächter 20/9.762 direkt (0,20 %), Seelenzehrer 7/3.557 direkt (0,20 %). Predator greift in 6.192 von 29.499 Fällen direkt an (21,0 %). Die vielen Positionswechsel **nach DEF** zeigen klare Defensivorientierung, sind aber Zählungen über alle Partien/Züge und nicht der Anteil einzelner Karten in DEF. **Wichtig:** Die absolute Angriffszahl nach Rolle ist **nicht nach tatsächlich vorhandenen angreifbaren Monstern, Einsatzzeit oder legalen Angriffschancen normiert**; daraus darf man noch nicht schließen, dass die KI pro Gelegenheit zu passiv/offensiv agiert.
+
+**Wirkung der nur eigenen Heilungsstaffel:** Trotz geringerer Heilung steigen aktive Wächterangriffe im gepaarten v17.5-Lauf von **9.762 auf 10.048** (+286; +2,9 %), Seelenzehrerangriffe von **3.557 auf 3.697** (+140; +3,9 %). In Stage 8 werden **50/2.304 Gewinnerwechsel**, 44 zugunsten Kandidaten und 6 zulasten Kandidaten, aus 384 einzigartigen Szenario-/Sitz-Konfigurationen berichtet. Achtung: Das ist **kein monotoner Heilungs-Buff** und keine sichere allgemeine Kausalaussage; nur die tatsächlichen Resultate geänderter Strategie-/Kampfabläufe. Die geänderten Seeds und Replikationen sind nicht mit v17.4 als derselbe Test zu verwechseln.
+
+**Rollen-Fokus, Defender-Survival, je 16 Duelle gegen einen Gegnertyp:** Gegen Predatoren VALIDATION: Wächter `6→6`, 50/50 `7→7`, Seelenzehrer `3→3`; HOLDOUT: Wächter `5→6`, 50/50 `8→8`, Seelenzehrer `7→7`. Gegen Fusionen VALIDATION: Wächter `9→8`, 50/50 `6→6`, Seelenzehrer `6→6`; HOLDOUT: Wächter `5→5`, 50/50 `6→6`, Seelenzehrer `4→4`. Die kleinen Fokusstichproben liefern **keine eindeutige Meta-Entscheidung**.
+
+**Champion-Gate:** `l10-guarded-worst-reply` bleibt **unverändert**. Bester allgemeiner Kandidat in `candidateOnly` erreicht **+16 allgemeine VALIDATION** und **+10 harte Level-10-VALIDATION** vs eingefrorenem Champion, scheitert aber an direkten H2H-Gates (**+1 TRAIN statt +4, +6 VALIDATION statt +8**) sowie an Deck-Synergiegates. `none` erreicht maximal +15 allgemeine VALIDATION, +9 harte Level-10-VALIDATION sowie H2H +2 TRAIN / +6 VALIDATION. Neue Endgame-Modelle mit je **22 TRAIN-only-Kontextwerten** erzeugt, nicht unabhängig befördert.
+
+**Empfehlung v17.6:** Erst valide **Angriffsgelegenheiten pro Wächter/Seelenzehrer in ATK** und Anteil ungenutzter, sinnvoller Angriffe erfassen, getrennt nach Zeitpunkt und Kampfphase. Dazu einen gezielten kontrollierten Fokus auf 40/60-, 50/50-, 60/40-Decks, direkte LP-Finishfenster versus Monsterangriff und die Opportunitätskosten des Wechsels aus DEF (Heilung, Seelenfähigkeit, Überlebenschance). Aktuell **keine zusätzlichen Rohwerte-/Heilungsänderungen** übernehmen.
 
 ## C. KI-Forschungsstatus
 
