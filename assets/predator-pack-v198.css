@@ -4,7 +4,7 @@
  width:29px;height:28px;font-size:24px;line-height:1;color:#ffdf8f;pointer-events:none;
  filter:drop-shadow(0 0 4px #ffad47) drop-shadow(0 0 10px #9d401f);
  animation:ad198-crown-glimmer 2.2s ease-in-out infinite;text-shadow:0 1px 1px #361400}
-.ad198-perk-badges{position:absolute;z-index:15;right:0;bottom:-9px;max-width:100%;display:flex;
+.ad198-perk-badges{position:absolute;z-index:15;right:3px;bottom:36px;max-width:calc(100% - 6px);display:flex;
  flex-wrap:wrap;justify-content:flex-end;gap:2px;pointer-events:none}
 .ad198-perk-badge{display:inline-block;padding:2px 4px;border:1px solid #ffdca7;
  border-radius:4px;background:#210f21ee;color:#fff0d2;font-size:9px;font-weight:900;
