@@ -3,10 +3,10 @@
 .tc-fate{position:relative!important;border:3px solid #ffe69b!important;box-shadow:0 0 12px #e9b94b,0 0 26px #b57bff88,inset 0 0 13px #f8d77b55!important;background:linear-gradient(135deg,#21133e,#543b24,#15112c)!important;overflow:hidden}
 .tc-fate:before{content:"";position:absolute;inset:-50%;z-index:2;pointer-events:none;background:linear-gradient(105deg,transparent 35%,#fff8 46%,#fff2 50%,#fff8 54%,transparent 65%);animation:fateFoil 3.6s linear infinite}
 .tc-fate:after{content:"✦";position:absolute;right:5px;top:29px;color:#ffe8a0;text-shadow:0 0 9px #fff;z-index:4;pointer-events:none;animation:fateTwinkle 1.7s ease-in-out infinite}
-.fate-sparkle{animation:fateCardGlow 2.6s ease-in-out infinite}
+.fate-sparkle{animation:fateCardGlow 5.5s ease-in-out infinite}
 @keyframes fateFoil{0%{transform:translateX(-65%) rotate(10deg)}100%{transform:translateX(65%) rotate(10deg)}}
 @keyframes fateTwinkle{50%{opacity:.35;transform:scale(.7)}}
-@keyframes fateCardGlow{50%{filter:drop-shadow(0 0 12px #ffdc6d)}}
+@keyframes fateCardGlow{0%,100%{filter:brightness(1) drop-shadow(0 0 2px #ffdc6d)}50%{filter:brightness(1.11) drop-shadow(0 0 11px #ffdc6d)}}
 .fate-cinema{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;overflow:hidden;text-align:center;background:radial-gradient(ellipse at center,#422456ee,#09091af7 70%);color:#fff3c3;animation:fateAppear .35s ease-out both}
 .fate-cinema-aura{position:absolute;width:80vmin;height:80vmin;border:2px solid #f9dc7755;border-radius:50%;box-shadow:0 0 100px 35px #f7d36540,inset 0 0 90px #bc88ff40;animation:fateSpin 9s linear infinite;pointer-events:none}
 .fate-cinema-aura:before,.fate-cinema-aura:after{content:"✦ ✧ ✦ ✧ ✦ ✧ ✦ ✧";position:absolute;inset:8%;border:2px dashed #fff5ad77;border-radius:50%;display:grid;place-items:center;font-size:24px;letter-spacing:10px}
