@@ -1035,6 +1035,7 @@ jagdinstinkt:{name:'Jagdinstinkt',desc:'Nur normale Predatoren: je Rang +20 ATK 
 schildwall:{name:'Schildwall',desc:'Nur normale Wächter und Seelenzehrer: je Rang +28 DEF und +6 ATK, zusätzlich +10 DEF und +3 ATK pro Monsterlevel; maximal 5 Ränge.' ,base:280,max:5}};
 function monsterTrainingBonus(level){return [35,25,15,10,8,6,4,3,2,2].slice(0,Math.max(0,Math.min(10,level||0))).reduce((a,b)=>a+b,0);}
 let storageWarning='',storageWritable=true,storageConflict=false,lastStoredProfile=null,legacyImported=false;
+let dismissedStorageWarning='';
 function freshLegacyProfile(){return {version:2,coins:0,xp:0,wins:0,losses:0,pvpMatches:0,totalTurns:0,totalFusions:0,bestTurns:null,unlocked:[...DEFAULT_DECK],activeDeck:[...RPG_DEFAULT_DECK],fusionOwned:[...RPG_START_FUSIONS],fusionDeck:[...RPG_START_FUSIONS],enhancements:{},shards:Array(11).fill(0),pity:Array(11).fill(0),cleared:[],mastery:Array(11).fill(0),upgrades:{loot:0,learning:0,tempo:0,power:0,starter:0,fusionLore:0,resilience:0,fusionPrecision:0,combatDiscipline:0,openingAegis:0,jagdinstinkt:0,schildwall:0},specializationRebalance:true,strategy:'balanced',history:[],rewardLedger:[],nextMatch:1,settings:{animation:'fast',sound:false},unseen:[],lootHistory:[],investments:{},auto:{energy:AUTO_CAP,at:Date.now()},lastLoot:null,activeDuel:null,savedAt:0};}
 function playerLevel(p){return Math.min(100,1+Math.floor(Math.sqrt(p.xp/60)));}
 function levelFloor(level){return 60*(level-1)**2;}
@@ -1804,7 +1805,16 @@ function renderHud(){
  $('hudShardsHelp').onclick=()=>toast('Alle Splitter bilden einen gemeinsamen Vorrat. Eine Kartenherstellung kostet 30 Splitter und zusätzlich Essenz.');
  $('hudDropToggle').onclick=()=>{if(storageConflict){toast('Speicherkonflikt: Einstellung derzeit gesperrt.');return;}profile.useDropCharges=!profile.useDropCharges;saveProfile();renderHud();};
  if($('hudStopTraining'))$('hudStopTraining').onclick=()=>stopTraining();
- $('storageNotice').hidden=!storageWarning;$('storageNotice').textContent=storageWarning;
+ const warning=$('storageNotice');
+ warning.hidden=!storageWarning||storageWarning===dismissedStorageWarning;
+ warning.replaceChildren();
+ if(!warning.hidden){
+  const message=document.createElement('span');message.textContent=storageWarning;warning.append(message);
+  const close=document.createElement('button');close.type='button';close.textContent='✕';
+  close.setAttribute('aria-label','Speicherwarnung schließen');close.title='Warnhinweis schließen';
+  close.onclick=()=>{dismissedStorageWarning=storageWarning;warning.hidden=true;};
+  warning.append(close);
+ }
  $('soundBtn').textContent='♪ Ton: '+(soundOn?'An':'Aus');
  $('speedBtn').textContent='✧ Animationen: '+(animationSpeed==='instant'?'Aus':'An');
  document.body.classList.toggle('instant',animationSpeed==='instant');
