@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-29 · Branch `development` · Forschungsplanung v17.0
+**Aktualisiert:** 2026-10-29 · Branch `development` · Forschungsplanung v17.1
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -34,6 +34,21 @@ Die Werte können von `main` abweichen. Dieses Dokument macht keine Aussage dar�
 | Monster mit `fusion===true` und Predator-Rolle | **Fusion hat Vorrang** → 120 % Entzug | Nur Forschung |
 | Speicherung nach Entzug | Keine Zusatzmultiplikation; nur tatsächlich entnommene ATK-/DEF-Werte | Unverändert |
 | 55-%-Gegenschlag vs. Fusion | Im v16.7-A/B-Test untersucht, **zurückgestellt** | Nicht übernommen |
+
+### Zusatzexperiment v17.1: Wächter-Heilung nach Empfängerrolle
+
+**Nur Offline-KI-Forschungsumgebung**, kein Patch der produktiven Datei `assets/essence-combat.js`. Die unveränderte Testbasis ist `predator15Triad90` (15 Prozentpunkte Predator-Durchdringung; echter Seelenentzug 90 % Predator, 100 % Verteidiger, 120 % Fusion).
+
+| Empfänger einer Wächterheilung | v17.1 Kontrollgruppe | Mild | Vorzugsvariante |
+|---|---:|---:|---:|
+| Anderer Wächter in DEF | 100 % | 85 % | **75 %** |
+| Seelenzehrer in DEF | 100 % | 100 % | **100 %** |
+| Eigener Wächter | Keine Selbstheilung | Keine | Keine |
+| Heilungs-Cap / max DEF | Unverändert | Unverändert | Unverändert |
+
+Die bestehende Heilformel `min(150, 25 + Level × 12)` und die effektive Begrenzung durch das verbleibende DEF-Maximum bleiben erhalten. Die Reduktion erfolgt **nur** bei Heilempfängern der Rolle Wächter. Die 75-%-Variante ist eine **Forschungshypothese**, keine bestätigte Spielbalance.
+
+**Neuer Trainingslauf:** [GitHub Actions #40933610167](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40933610167), geplant **69.120 gepaarte Duelle** (23.040 pro Variante), identische KI-Strategien, Seeds, Spielerpositionen und 15/90/100/120-Regeln. Erst nach Abschluss sind Balanceergebnisse und eventuelle Champion-Gates auswertbar.
 
 **Designziel:** Reine Wächter- und reine Seelenzehrer-Decks sollen gegen Predatoren verwundbar sein. Der **reale Wächter-/Seelenzehrer-Bund** soll strategischen Mehrwert haben; Predatoren sollen dagegen gefährlich, aber nicht automatisch überlegen sein. Keine pauschalen Stat-Buffs, nur um ein Zielverhältnis zu erzwingen.
 
