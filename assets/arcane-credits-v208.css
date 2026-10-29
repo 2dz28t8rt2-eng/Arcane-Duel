@@ -1,0 +1,23 @@
+/* Arcane Duel v20.8 · discreet, keyboard-accessible artist credits. */
+.ad208-credits{position:absolute;z-index:4;inset:6% 6% 6%;overflow-y:auto;overscroll-behavior:contain;
+ padding:20px clamp(15px,4vw,30px);border:1px solid rgba(208,174,116,.55);border-radius:14px;
+ background:linear-gradient(155deg,rgba(16,19,38,.98),rgba(31,26,49,.98));color:#eee5d7;
+ box-shadow:0 12px 42px #0009;text-align:left;scrollbar-width:thin}
+.ad208-credits[hidden]{display:none!important}
+.ad208-credits:focus{outline:none}
+.ad208-eyebrow{font:700 10px Georgia,serif;letter-spacing:.28em;color:#c8ac80;text-align:center;margin:5px 0 12px}
+.ad208-credits h2{font:600 30px Georgia,serif;color:#fce7b0;text-align:center;margin:0 0 12px}
+.ad208-credits h3{font:700 17px Georgia,serif;color:#e7d4ae;margin:0 0 10px}
+.ad208-thanks{max-width:570px;margin:0 auto 22px;text-align:center;line-height:1.65;color:#d1c9d6;font-size:13px}
+.ad208-credit-section{margin:16px auto 20px;max-width:610px}
+.ad208-credit-item{padding:9px 0;border-top:1px solid rgba(194,159,115,.2);display:flex;flex-direction:column;gap:3px}
+.ad208-credit-item strong{color:#f6dfb0;font:650 14px Georgia,serif}
+.ad208-credit-item span{font-size:12px;color:#e3dbde;line-height:1.5}
+.ad208-credit-item small{font-size:11px;color:#a8a6bc}
+.ad208-credits a{color:#dcc48b;text-decoration:underline;text-underline-offset:3px}
+.ad208-credits a:focus-visible,.ad208-back:focus-visible{outline:2px solid #f5d891;outline-offset:3px}
+.ad208-credit-note{max-width:610px;margin:15px auto;color:#aaa8ba;font-size:11px;line-height:1.6}
+.ad208-back{display:block;margin:15px auto 5px;padding:9px 17px;border:1px solid rgba(231,188,114,.7);
+ background:#2a2536;color:#f1dfbb;border-radius:7px;cursor:pointer}
+.ad196-title.ad196-credits-open .ad196-nav{opacity:.12;pointer-events:none}
+@media(max-width:540px){.ad208-credits{inset:3%;padding:16px}.ad208-credits h2{font-size:24px}}
