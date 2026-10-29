@@ -54,3 +54,25 @@
  .duo-cinema170{display:none!important}
  .duo-cinema170 *{animation:none!important}
 }
+
+/* v20.8: orbit staged to the 5.75s fusion cue, before role and dice. */
+.duo-cinema170-content{position:relative}
+.duo-cinema208-orbit{position:relative;height:180px;display:grid;place-items:center;
+ margin:10px auto 14px;isolation:isolate;pointer-events:none}
+.duo-cinema208-orbit::before{content:'✦';font-size:54px;color:#f6d19a;
+ text-shadow:0 0 25px #d4a0ff;animation:ad208-orbit-core 5.75s ease-in-out both}
+.duo-cinema208-material{position:absolute;left:50%;top:50%;margin:-33px 0 0 -22px;
+ display:grid;place-items:center;width:44px;height:66px;border:2px solid #dfbc83;
+ border-radius:7px;background:linear-gradient(150deg,#8a69ae,#292343 80%);
+ color:#f9ddaa;font-size:25px;box-shadow:0 0 16px #aa7ce2b8;
+ animation:ad208-orbit-card 5.75s cubic-bezier(.24,.6,.25,1) both;
+ --angle:calc(360deg / var(--n) * var(--i))}
+@keyframes ad208-orbit-card{
+ 0%{opacity:0;transform:rotate(var(--angle)) translateX(0) rotate(calc(-1 * var(--angle))) scale(.3)}
+ 12%{opacity:1;transform:rotate(var(--angle)) translateX(100px) rotate(calc(-1 * var(--angle))) scale(.9)}
+ 72%{opacity:1;transform:rotate(calc(var(--angle) + 960deg)) translateX(100px) rotate(calc(-1 * (var(--angle) + 960deg))) scale(.9)}
+ 92%{opacity:.95;transform:rotate(calc(var(--angle) + 1100deg)) translateX(35px) rotate(calc(-1 * (var(--angle) + 1100deg))) scale(.65)}
+ 100%{opacity:0;transform:translateX(0) scale(.05)}
+}
+@keyframes ad208-orbit-core{0%{opacity:.25;transform:scale(.4)}80%{opacity:1;transform:scale(1.2)}100%{opacity:0;transform:scale(2)}}
+@media(prefers-reduced-motion:reduce){.duo-cinema208-orbit *{animation:none!important}}
