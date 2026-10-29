@@ -105,7 +105,7 @@ test('hand click then free slot changes original selectors but cannot summon aut
  assert.equal(cells.slotSelect.selectedIndex,-1);
  assert.equal(cells.commit.disabled,true);
  assert.equal(cells.helper.hidden,false);
- assert.match(cells.helper.children[0].textContent,/Wähle jetzt einen freien Platz/);
+ assert.match(cells.helper.children[0].textContent,/Wähle einen freien oder besetzten Platz/);
  assert.equal(cells.commit.clickCount,0);
  cells.slots[2].click();
  assert.equal(cells.slotSelect.value,'2');
