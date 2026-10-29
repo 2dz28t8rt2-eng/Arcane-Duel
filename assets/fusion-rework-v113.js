@@ -96,7 +96,10 @@
   const bonus=street?(levels.length===5&&core>=4?1:0):(strong?1:0);
   // For a 5-card straight the missing lower links are a reward, not a spread penalty.
   // A four-card straight already gets its substantial poker rolls and quality.
-  const startPair=core===1&&levels.length===2&&levels.every(l=>l===1)?2:base+bonus;
+  // Without the Lv1 research perk, every 2–5-material all-Lv1 fusion
+  // reaches at least Lv2 instead of being trapped at Lv1.
+  const allOne=levels.every(l=>l===1);
+  const startPair=core===1&&allOne&&!specialLv1(g,levels)?2:base+bonus;
   const lineage=materials.length===levels.length?resonatorLineage(materials):{count:0,used:false,granted:false};
   // Rank from 2 actual Resonators is supernatural: it is not cancelled by
   // the ordinary total-material-level cap. Still obey absolute Lv10 cap.
@@ -123,9 +126,10 @@
  };
  // Unique source of truth for previews, selected template validation and NPC placements.
  fusionOptions=function(g,levels,materials=[]){
-  if(g?.mode!=='pve'||!enabled(g)||specialLv1(g,levels))return old.options(g,levels,materials);
+  if(g?.mode!=='pve'||!enabled(g))return old.options(g,levels,materials);
+  if(specialLv1(g,levels))return old.options(g,levels,materials);
   const normalized=flattenPending(g,levels,materials);
-  return old.options(g,normalized,contextMaterial(g,normalized,materials));
+  return old.options(g,normalized,contextMaterial(g,normalized,materials)).filter(c=>c.level>=2);
  };
  math.setPattern(function(levels,elements=[]){
   const out=old.pattern(levels,elements);
