@@ -36,7 +36,7 @@ jobs:
           const a=require('node:assert/strict'),fs=require('node:fs');
           const d=fs.readFileSync('tests/helpers/research-role-balance-v169.cjs','utf8');
           a.match(d,/target.fusion===true/);
-          a.match(d,/roleOf\\(target\\)/);
+          a.match(d,/roleOf[(]target[)]/);
           a.match(d,/predator15/);
           a.match(d,/Triad80/);
           const m=require('./tests/helpers/research-role-balance-v169.cjs').mode();
