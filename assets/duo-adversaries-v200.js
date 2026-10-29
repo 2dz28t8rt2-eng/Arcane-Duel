@@ -26,13 +26,13 @@
   // distribution and the same 1.13 combat multiplier in the reducer.
   const styles=seat===1?{
    10:['guardian','guardian','guardian','soul','soul','soul',
-    'combatant','combatant','predator','support'],
-   9:['guardian','guardian','soul','combatant','support'],
+    'combatant','combatant','predator','soul'],
+   9:['guardian','guardian','soul','combatant','soul'],
    8:['guardian','soul','combatant','combatant','predator']
   }:{
    10:['predator','predator','predator','predator','combatant','combatant',
-    'soul','guardian','guardian','support'],
-   9:['predator','predator','combatant','soul','support'],
+    'soul','guardian','guardian','soul'],
+   9:['predator','predator','combatant','soul','soul'],
    8:['predator','combatant','combatant','soul','guardian']
   };
   const picked=[];
