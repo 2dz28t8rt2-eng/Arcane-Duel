@@ -47,7 +47,9 @@
  const own=onOwnSlot;
  onOwnSlot=async function(index,...args){
   const g=game,pending=g?.pending,before=g?.players[g.active]?.field[index]?.uid;
-  if(pending?.kind==='normal')window.ArcaneSfx208?.play?.('summon');
+  // Sound belongs to the confirmed placement click, not opening the occupied-slot dialog.
+  if(pending?.kind==='normal'&&(!g.players[g.active].field[index]||args[0]==='replace'))
+   window.ArcaneSfx208?.play?.('summon');
   await own(index,...args);
   const c=g?.players[g.active]?.field[index];
   if(game===g&&pending&&!g.pending&&c&&c.uid!==before&&!c.fusion){
