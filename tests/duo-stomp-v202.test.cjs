@@ -76,18 +76,28 @@ test('splash destroys weak ATK targets and damages DEF when it cannot destroy',(
  assert.equal(after.stompEvent.hits[0].destroyed,true);
  assert.equal(after.stompEvent.hits[1].destroyed,false);
 });
-test('DEF target armor and guard apply to collateral; defender counter is 40% of usual',()=>{
+test('DEF target armor and guard apply; surviving collateral counter is 40% of 35%-ATK',()=>{
  const g=room();shooter(g,3);foe(g,1,3);
  foe(g,1,4,{atk:600,def:1000,role:'guardian'});
  const after=move(g,0,{type:'attack',slot:0,targetSeat:1,targetSlot:3});
  assert.equal(after.players[1].field[4].def,440); // 700 * 80%, unbound guardian
- assert.equal(after.stompEvent.hits[0].counter,120); // 600 * 50% * 40%
- assert.equal(after.teams[0].lp,g.teams[0].lp-120);
+ assert.equal(after.stompEvent.hits[0].counter,84); // floor(floor(600 * .35) * .40)
+ assert.equal(after.teams[0].lp,g.teams[0].lp-84);
  const guarded=room();shooter(guarded,3);foe(guarded,1,3);
  foe(guarded,1,4,{atk:600,def:1000,role:'guardian',guardLeft:1});
  const blocked=move(guarded,0,{type:'attack',slot:0,targetSeat:1,targetSlot:3});
  assert.equal(blocked.players[1].field[4].def,1000);
  assert.equal(blocked.stompEvent.hits[0].counter,0);
+});
+test('Duo splash against a destroyed Guardian or Soul cannot counter',()=>{
+ for(const role of ['guardian','soul']){
+  const g=room();shooter(g,3);foe(g,1,3);
+  foe(g,1,4,{atk:600,def:200,role});
+  const after=move(g,0,{type:'attack',slot:0,targetSeat:1,targetSlot:3});
+  assert.equal(after.stompEvent.hits[0].destroyed,true,role);
+  assert.equal(after.stompEvent.hits[0].counter,0,role);
+  assert.equal(after.teams[0].lp,g.teams[0].lp,role);
+ }
 });
 test('old room fusions default to no splash and normal attack costs one 3% hit',()=>{
  const g=room();g.players[0].field[0]=creature(9,
