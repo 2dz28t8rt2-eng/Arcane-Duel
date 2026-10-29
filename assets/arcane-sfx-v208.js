@@ -14,7 +14,7 @@
   menu:['menu.ogg',.40,1.5],win:['win.ogg',.92,4.0],
   calc:['fusion-calc.ogg',.35,.65]
  });
- const live=new Set(),last={time:0,outcome:'',scene:''};
+ const live=new Set(),missing=new Set(),last={time:0,outcome:'',scene:''};
  let lastSnapshot=null,duoGame=null,duoSeat=-1,nextIdle=0;
  const timers=new Set();
  const duo=()=>!!document.getElementById('duoSeats');
@@ -29,11 +29,11 @@
  };
  function schedule(fn,delay){const timer=setTimeout(()=>{timers.delete(timer);fn();},delay);timers.add(timer);return timer;}
  function play(kind,{gain=1,stopAfter=0,startAt=0}={}){
-  const spec=sounds[kind];if(!spec||!enabled()||typeof Audio!=='function')return null;
+  const spec=sounds[kind];if(!spec||missing.has(kind)||!enabled()||typeof Audio!=='function')return null;
   const a=new Audio(ROOT+spec[0]);a.preload='auto';
   a.volume=Math.min(1,Math.max(0,spec[1]*gain*vol()));
   a.addEventListener('ended',()=>live.delete(a),{once:true});
-  a.addEventListener('error',()=>live.delete(a),{once:true});
+  a.addEventListener('error',()=>{missing.add(kind);live.delete(a);},{once:true});
   live.add(a);
   const duration=Math.min(spec[2],stopAfter||spec[2]);
   const begin=()=>{if(!enabled()){live.delete(a);return;}try{if(startAt)a.currentTime=startAt;}catch{}
@@ -101,7 +101,9 @@
   if(!before||!after||before.roomId!==after.roomId||
    before.revision>=after.revision)return;
   const events=window.ArcaneDuoCinematics167?.describe?.(before,after)||[];
-  const logs=(after.log||[]).slice(-(Math.max(0,(after.log||[]).length-(before.log||[]).length)||8));
+  const logs=window.ArcaneDuoSound194?.linesSince?.(before,after)||[];
+  const draws=window.ArcaneDuoCinema170?.observed?.(before,after)||[];
+  if(draws.some(x=>x.kind==='draw'&&x.count>0&&x.seat===seat))play('draw');
   // The actual fusion cinema owns the orbit sound. Event sounds here play
   // only for visible confirmed consequences, never speculative actions.
   if(events.some(x=>x.type==='destroy'))schedule(()=>play('destroy'),390);
@@ -112,7 +114,7 @@
    schedule(()=>play('damage'),410);
   if(before.status!=='finished'&&after.status==='finished'){
    const player=after.players?.find(x=>x.seat===seat);
-   if(player)schedule(()=>result(player.team===after.winner?'win':'lose'),850);
+   if(player)result(player.team===after.winner?'win':'lose');
   }
  }
  function stopAll(){for(const a of live){try{a.pause();}catch{}}live.clear();}
