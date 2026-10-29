@@ -74,5 +74,5 @@ test('three-own-turn decay/cooldown are unchanged and UI/server show same bonus'
  assert.match(ui,/shownAtk\(c\)/);
  assert.match(ui,/shownAtk\(c\)\+' ATK/);
  assert.match(ui,/Math\.floor\(\(c\.condensed\|\|0\)\*\.5\)/);
- assert.match(ui,/Verdichten · DEF und ATK stärken/);
+ assert.match(read('assets/duo-ux-v204.js'),/Verdichten · Schutz und ATK/);
 });
