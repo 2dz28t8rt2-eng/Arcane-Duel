@@ -119,7 +119,7 @@
   wait=phases.wait;
   const particleTask=motes(overlay,role).catch(()=>null);
   let stopCalcLoop=null;
-  if(window.ArcaneSfx208)window.ArcaneSfx208.play('orbit');
+  const fusionAudio=window.ArcaneSfx208?.play?.('orbit')||null;
   else playSound('summon');
   try{
    // 1. Material orbit and actual fusion merge: there is no popup yet.
@@ -152,7 +152,7 @@
    }
    await phases.run('Werteberechnung',async()=>{
    overlay.classList.add('evo-phase-rolls','evo-stamp-settled');
-   stopCalcLoop=window.ArcaneSfx208?.startLoop?.('calc')||null;
+   // Experimental calculation sample disabled until a replacement is selected.
    const weights=math.roleWeights||{atk:1,def:1};
    const information=document.createElement('div');
    information.className='evo-role-math';
@@ -249,6 +249,7 @@
    }else{overlay.classList.add('evo-card-land');await wait(550);}
    });
   }finally{
+   fusionAudio?.pause?.();
    stopCalcLoop?.(); // Skipped, cancelled and failed rituals must not leave audio playing.
    phases.close();
    overlay.remove();running=false;
