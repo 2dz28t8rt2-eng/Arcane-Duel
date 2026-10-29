@@ -48,7 +48,7 @@ test('real essence defense accounts for armor piercing, condensed reserve, souls
   const g=game(a,d,{essenceRules:true});g.players[0].shield=40;
   const result=api.combatForecast(g,0,0);
   assert.equal(result.attack,1000);
-  assert.equal(result.prevented,250); // 35 % Guardian armor - 10 % Predator pierce.
+  assert.equal(result.prevented,100); // Unbound Guardian: 20 % armor - 10 percentage points Predator pierce.
   assert.equal(result.defenseDamage,500);
   assert.equal(result.destroyDefender,true);
   assert.equal(result.counter,100);
