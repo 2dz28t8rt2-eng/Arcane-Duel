@@ -1018,7 +1018,17 @@ for(const c of liveRoles.filter(c=>c.role==='support').sort((a,b)=>a.id-b.id)){
   // Former supporters retained offensive stat weights after the role swap.
   // Rebalance without changing overall ATK+DEF budget or card identity.
   const total=(c.atk||0)+(c.def||0);
-  if(total>0){c.atk=round10(total*.28);c.def=total-c.atk;}
+  if(total>0){
+   let atk=round10(total*.28);
+   // Curated higher-level variants must still improve on their root card.
+   // Preserve their series progression even when an old supporter is retyped.
+   const root=Number.isInteger(c.variantOf)?CARDS[c.variantOf]:null;
+   if(root&&c.level<=4){
+    const lower=root.atk+10,upper=total-root.def-10;
+    if(upper>=lower)atk=Math.max(lower,Math.min(upper,atk));
+   }
+   c.atk=atk;c.def=total-atk;
+  }
  }
 }
 // Normalize legacy per-card combat perks after ALL RPG templates and workshop stages
