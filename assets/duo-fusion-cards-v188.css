@@ -52,3 +52,14 @@
  .ad188-floating-heading{font-size:12px}.ad188-floating-message{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.ad188-fusion-guide{animation:none!important}
  .duo-battle .ad188-material-eligible{transition:none!important}}
+
+/* v20.7.1: unified staged fusion/discard cockpit. */
+.ad207-duo-stage-modes{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.ad207-duo-stage-modes button{cursor:pointer;padding:8px 12px;border:1px solid #8e73b9;border-radius:9px;background:#302846;color:#efe3ff}
+.ad207-duo-stage-modes button.selected{outline:2px solid #bb8df6;background:#593a83}
+.ad207-duo-discard-help{margin:4px 0 9px;color:#c9bce9}
+#ad188-fusion-guide .ad188-selected-materials{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding:10px;border:1px solid #775b9a;border-radius:10px;min-height:38px}
+#ad188-fusion-guide .ad188-chip{cursor:context-menu}
+#ad188-fusion-guide .ad188-chip.ad207-keep{outline:2px solid #83e9b5;box-shadow:0 0 12px #73d9b486}
+#ad188-fusion-guide .ad207-discard-zone{max-width:100%;min-width:180px}
+#ad188-fusion-guide .ad207-discard-commit{padding:8px 12px;border-radius:8px;background:#584079;color:white;border:1px solid #b9a1e7}
