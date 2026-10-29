@@ -946,7 +946,7 @@
    ()=>send({type:'end'}));
   window.ArcaneDuoCombatFlow186?.enhance?.({dock,roomId,seat,game});
   window.ArcaneDuoDirectCards187?.enhance?.({game,seat,legal,dock,catalog,busy,syncError});
-  window.ArcaneDuoFusion188?.enhance?.({game,seat,roomId,dock,busy,syncError});
+  window.ArcaneDuoFusion188?.enhance?.({game,seat,roomId,dock,send,busy,syncError});
   window.ArcaneDuoSummon189?.enhance?.({game,seat,legal,dock,catalog,busy,syncError});
   window.ArcaneDuoUX204?.decorate?.({game,seat,roomId,catalog,send});
  }
