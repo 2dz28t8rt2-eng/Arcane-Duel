@@ -89,7 +89,13 @@
    spark.style.setProperty('--angle',i*(variant==='field'?9.47:20)+'deg');
    spark.style.setProperty('--delay',(-i*.11)+'s');sparkContainer.append(spark);
   }
-  const samples=materials.length?materials:[{art:t.art,level:t.level}];
+  // AI fusion material snapshots can be lost after an intermediate AI phase.
+  // Preserve every known source; if a snapshot is incomplete, still display
+  // the full number of merged materials instead of a single frozen card.
+  const wanted=Math.max(2,Math.min(5,c.materialsUsed||materials.length||2));
+  const samples=materials.length>=wanted?materials:materials.concat(
+   Array.from({length:wanted-materials.length},()=>({art:t.art,level:t.level})));
+
   for(let i=0;i<samples.length;i++){
    const item=document.createElement('div'),img=document.createElement('img');
    const angle=-Math.PI/2+2*Math.PI*i/samples.length;
