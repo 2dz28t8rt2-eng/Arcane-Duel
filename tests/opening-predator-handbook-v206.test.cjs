@@ -24,5 +24,5 @@ test('Stomp and updated handbook use unique sequential titles and accurate duo s
  assert.match(stomp,/beide gegnerischen 7er-Felder/);
  assert.match(stomp,/insertBefore\(node,before\)/);
  assert.match(html,/handbook-human-v180\.js\?v=20261029-v207/);
- assert.match(html,/fusion-stomp-guide-v201\.js\?v=20261029-growth-rules-1/);
+ assert.match(html,/fusion-stomp-guide-v201\.js\?v=20261029-stomp-counter-v203/);
 });
