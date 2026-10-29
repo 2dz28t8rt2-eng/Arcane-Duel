@@ -64,7 +64,7 @@ test('real DEF attack reports lost DEF/essence and the actual separate counterst
  assert.equal(hit.where.seat,1);
  assert.equal(hit.where.slot,0);
  assert.equal(counter.team,0,'counterstrike damages the attacking team');
- assert.equal(counter.amount,200,'only the actual logged counterstrike LP');
+ assert.equal(counter.amount,140,'35% of a surviving defender ATK, exactly as the log records');
  assert.deepEqual([...events.filter(e=>e.kind==='lp').map(e=>e.amount)],[50],
   'forced soul-loss scoring remains distinct, never counted twice as counterstrike');
  assert.equal(JSON.stringify(before),snapshot,'visual analysis never mutates rules state');
