@@ -98,7 +98,17 @@ Die Anzahl umfasst ausschließlich Wächter in **DEF**, die tatsächlich heilen 
 
 **Unveränderte Vergleichsbasis:** Aktueller **35-%-Gegenschlag nur bei überlebendem Verteidiger** aus dem regulären Solo-`development`-Code; im Test weiterhin 15 Prozentpunkte Predator-Durchdringung und 90/100/120 % zielabhängiger Seelenentzug.
 
-**Trainingslauf v17.3:** [GitHub Actions #40952987191](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40952987191), zwei gepaarte Forschungsarme mit **46.080 geplanten Duellen** (23.040 je Regel, 11 Stages), identische Seeds, Sitze und KI-Arme. Das bisherige Champion-Gating bleibt bestehen; validiert wird ausschließlich mit VALIDATION/HOLDOUT, trainiert wird auf TRAIN. **Keine automatische Champion-Beförderung und kein Übertrag der Staffel in den regulären Spielcode.**
+**v17.3-Trainingslauf abgeschlossen:** [GitHub Actions #40952987191](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40952987191), **27/27 GitHub-Jobs erfolgreich**, **46.080/46.080 volle Duelle** (23.040 unveränderte 100-%-Heilung, 23.040 neue 100/55/40/33/28-%-Heilungsstaffel), gepaarte Seeds, Sitze, KI-Arme, gleiche 35-%-Überlebens-Gegenschlag- und 15/90/100/120-Forschungsregeln. **85-%-Pauschalregel nicht Teil des Laufs.**
+
+**Defender-Survival-KI (je 512 Partien pro TRAIN/VALIDATION/HOLDOUT):** 100-%-Kontrolle **269/271/276 Siege**, Skalierungsstaffel **269/271/278 Siege**. Eingefrorener Champion `l10-guarded-worst-reply` bleibt unverändert. Der Skalierungskandidat erreichte **+10 VALIDATION** gegenüber eingefrorenem Champion, scheiterte jedoch am direkten H2H (**−1 TRAIN statt mindestens +4; +3 VALIDATION statt mindestens +8**) sowie an einem aktiven Zerfalls-Teilgate (**−1**). Keine automatische Champion-Beförderung.
+
+**Fokus Rollenvergleich** (je 16 Partien, reine Wächter / gemischt 50:50 / reine Seelenzehrer): gegen Predatoren **VALIDATION** Kontrolle `7/10/7` vs Staffel `8/9/7`, **HOLDOUT** `9/8/4` vs `8/8/4`; gegen Fusionen **VALIDATION** `5/9/9` vs `7/9/9`, **HOLDOUT** `10/12/11` vs `12/13/12`. In den fokussierten Tests ist **keine zuverlässige Schwächung reiner Wächter** belegt; gegen Fusionen gewinnt die reine Wächtergruppe mit Staffel sogar häufiger. Gemischte Decks halten häufig mit, sind aber gegen Predatoren nicht in beiden Datenteilen überlegen.
+
+**Paarweise Stage-8-Effekte:** Exakt dieselben **2.304 Szenarien** in beiden Varianten; **113 geänderte Gewinner (4,9 %)**, davon TRAIN **34** (26 zugunsten Staffel, 8 zugunsten Kontrolle), VALIDATION **30** (16/14), HOLDOUT **49** (31/18). Der Effekt ist nachweisbar, aber auf die verschiedenen Gegnergruppen verteilt und kein Beweis für das angestrebte Meta. **Kein präziser Zähler für tatsächlich pro Zug geheilte DEF je Wächteranzahl** vorhanden; direkte Ursache einzelner Siege kann daher nicht allein der Staffel zugewiesen werden.
+
+**TRAIN-only-Folgemodelle:** je **1.280 neue TRAIN-Duelle**, **22** gelernte Kontextwerte bei Kontrolle und **23** bei Staffel, **keine HOLDOUT-/VALIDATION-Einspeisung**. Die neuen Folgemodelle sind noch nicht unabhängig als bessere KI evaluiert.
+
+**Fazit und nächster Prüfansatz:** Die Staffel ist technisch korrekt und beeinflusst Spiele, erfüllt aber das Balancingziel „reine Wächter schwächen und gemischte Seelenbund-Decks stärken“ bislang nicht eindeutig. **Noch nicht in das normale Solo-Spiel übernehmen.** Statt blind weitere Werte zu nerfen: tatsächlich ausgeführte Wächter-Heilereignisse und DEF-Regeneration nach Anzahl DEF-Wächter protokollieren, Häufigkeit von 2–5 Wächtern im realen Turnier überprüfen und größere, gepaarte Rollen-/Seelenbund-HOLDOUT-Tests mit verschiedenen Mischungen durchführen.
 
 ## C. KI-Forschungsstatus
 
