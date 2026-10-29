@@ -5,7 +5,7 @@
  background:rgba(21,58,103,.94);font-size:9px;font-weight:800;
  box-shadow:0 0 12px rgba(88,168,255,.42);pointer-events:none;
 }
-.board-creature .ad205-total-bonus{
+.board-creature  .ad205-total-bonus{
  z-index:15;white-space:nowrap;border-color:rgba(102,223,179,.75);
  color:#b8ffda;background:rgba(14,57,51,.93);
 }
