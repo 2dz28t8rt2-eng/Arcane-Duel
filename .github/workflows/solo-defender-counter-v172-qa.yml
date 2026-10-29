@@ -1,0 +1,46 @@
+name: Arcane Duel – Solo Survivor Counterstrike 35% QA
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/solo-defender-counter-v172-qa.yml'
+      - 'assets/essence-combat.js'
+      - 'tests/defender-counterstrike-nerf-v172.test.cjs'
+      - 'tests/essence-combat.test.cjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  survivor-counter:
+    name: Verify 35% counter only if DEF survivor lives
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm counter code is syntactically valid
+        run: |
+          set -euo pipefail
+          node --check assets/essence-combat.js
+          node --check tests/defender-counterstrike-nerf-v172.test.cjs
+          node --check tests/essence-combat.test.cjs
+      - name: Regression - survival, destruction, immunity, Soul and AI counter planning
+        run: |
+          set -euo pipefail
+          node --test tests/defender-counterstrike-nerf-v172.test.cjs
+      - name: Existing solo combat, Soul and opening-guard regression suites
+        run: |
+          set -euo pipefail
+          node --test tests/essence-combat.test.cjs tests/defender-soul-update.test.cjs tests/opening-predator-v205.test.cjs tests/soul-bond-v206.test.cjs
+      - name: Prove browser loads newly versioned solo script
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const index=fs.readFileSync('index.html','utf8');
+          assert.match(index,/assets\/essence-combat\.js\?v=20261029-v2072-counter35/);
+          const solo=fs.readFileSync('assets/essence-combat.js','utf8');
+          assert.match(solo,/!endDefense&&q\.field\[di\]===d/);
+          console.log('ARCANE_SOLO_SURVIVOR_COUNTER_35_QA_READY');
+          JS
