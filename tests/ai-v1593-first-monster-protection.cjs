@@ -28,7 +28,7 @@ inject(' counter.openingBeginning=__openingSnapshot(g);',[
  ' counter.openingPreventedKills1593=0;',
  ' counter.openingSavedFusion1593=0;',
  ' counter.openingSavedNormal1593=0;',
- ' counter.openingGuardEvents1593=[];'
+ ' counter.openingGuardEvents1593=[];',
  ' counter.openingFieldByTurn1593={};',
  ' counter.actualFusionActionsBySeat1593=[0,0];',
  ' counter.actualFirstFusionTurnBySeat1593=[null,null];',
@@ -56,7 +56,7 @@ inject(' counter.openingBeginning=__openingSnapshot(g);',[
  ' attack=function(game,ai,di){',
  '  const real=game===g,owner=game.active,foe=1-owner;',
  '  const actor=real?game.players[owner].field[ai]:null;',
- '  const target=real&&Number.isInteger(di)?game.players[foe].field[di]:null;',
+ '  const target=Number.isInteger(di)?game.players[foe].field[di]:null;',
  '  const targetRole=target?(target.roleOverride||CARDS[target.id]?.role||"unknown"):"direct";',
  '  const targetMode=target?.mode||"none";',
  '  const targetEffectiveDEF=target?dataOf(target).def:null;',
