@@ -27,10 +27,15 @@
   const rate=leader?(leader.predatorLeader.powers?.includes('swarm')?3.5:3):2;
   return {leader,percentage:Math.min(5,count)*rate};
  }
+ function growthPct(card){
+  return isPredator(card)&&!card.fusion&&!card.predatorToken&&!card.fate?
+   90+3*Math.max(0,Math.min(4,card.predatorEvolutionAge||0)):100;
+ }
  function effectiveAttack(card,player,rules){
   const base=rules?.attackValue?rules.attackValue(card):number(card?.atk)+
    (card?.role==='soul'?Math.floor(number(card?.condensed)*.5):0);
-  return isPredator(card)?Math.floor(base*(1+packState(player).percentage/100)):base;
+  return isPredator(card)?
+   Math.floor(base*(growthPct(card)+packState(player).percentage)/100):base;
  }
  const powers={swarm:'Rudelinstinkt',mark:'Blutspur',token:'Rudelruf'};
  let context=null,details=null,outcome=null,outcomeTimers=[],soulTimer=null;
@@ -69,8 +74,12 @@
    formatted(hand?template.def:card.def)+' DEF',panel);
   if(pack&&isPredator(card)){
    const pct=percentLabel(pack.percentage);
-   el('p','ad204-inspect-bonus','🐾 Rudelbonus +'+pct+' % Angriffsschaden · '+
-    'effektiv '+formatted(actual)+' ATK beim Angriff',panel);
+   const growth=percentLabel(growthPct(card));
+   const total=percentLabel(growthPct(card)+pack.percentage);
+   el('p','ad204-inspect-bonus','🐾 Entwicklung '+growth+
+    ' % + Schwarm +'+pct+' % = Gesamt '+total+
+    ' % Angriffskraft · effektiv '+formatted(actual)+' ATK',panel);
+   el('p','ad204-inspect-hint','Normale Predatoren starten bei 90 % ATK, erhalten nach jedem weiteren eigenen abgeschlossenen Zug +3 Prozentpunkte und erreichen höchstens 102 %. DEF und gespeicherte Grundwerte bleiben gleich. Fusionspredatoren behalten 100 % Entwicklung und ihren Schwarmbonus.',panel);
    if(pack.leader)el('p','ad204-inspect-hint','Rudelführer aktiv: '+
     (pack.leader.predatorLeader.powers||[]).map(k=>powers[k]||k).join(', ')+' · '+
     'Der Bonus gilt beim Angriff, nicht als dauerhafter ATK-Wertzuwachs.',panel);
@@ -113,9 +122,11 @@
     if(isPredator(card)){
      const badge=cell.querySelector('.ad204-swarm-badge')||
       el('span','ad204-swarm-badge','+'+percentLabel(pct)+' %',cell);
-     badge.textContent='+'+percentLabel(pct)+' %';
-     badge.title='Rudelbonus auf den Angriffsschaden (nicht auf die Grund-ATK)';
-     badge.setAttribute('aria-label','Rudelbonus '+percentLabel(pct)+' Prozent');
+     const total=growthPct(card)+pct;
+     badge.textContent=percentLabel(total)+' %';
+     badge.title='Gesamt-Angriffskraft: Entwicklung '+percentLabel(growthPct(card))+
+      ' % + Schwarm +'+percentLabel(pct)+' %';
+     badge.setAttribute('aria-label','Gesamt-Angriffskraft '+percentLabel(total)+' Prozent');
     }
     if(!cell.querySelector('.ad204-card-info'))infoButton(cell,()=>inspectCard(card,player,catalog));
    });
@@ -183,7 +194,12 @@
    const old=packState(prior).percentage,newPct=packState(player).percentage;
    (player.field||[]).forEach((card,slot)=>{
     if(!isPredator(card))return;
-    const existed=prior.field?.some(x=>x?.uid===card.uid);
+    const older=prior.field?.find(x=>x?.uid===card.uid);
+    const existed=!!older;
+    if(older&&growthPct(card)>growthPct(older))
+     flash(fieldCell(player.seat,slot),'ENTWICKLUNG +'+
+      percentLabel(growthPct(card)-growthPct(older))+
+      ' % · Gesamt '+percentLabel(growthPct(card)+newPct)+' %',true);
     if(!existed&&newPct>0)flash(fieldCell(player.seat,slot),
      'Rudel +'+percentLabel(newPct)+' %',true);
     else if(existed&&newPct!==old)flash(fieldCell(player.seat,slot),
