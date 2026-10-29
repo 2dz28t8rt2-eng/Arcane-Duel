@@ -1446,7 +1446,8 @@
    const predators=p.field.filter(x=>x?.role==='predator').length;
    const alpha=predatorLeader(p);
    const swarmPct=alpha?(predatorPower(alpha,'swarm')?.035:.03):.02;
-   const developing=src.role==='predator'&&!src.fusion&&!src.predatorToken&&!src.fate;
+   const developing=src.role==='predator'&&!src.fusion&&!src.predatorToken&&!src.fate&&
+    Number.isInteger(src.predatorEvolutionAge);
    const evolution=developing?
     .90+.03*Math.max(0,Math.min(4,src.predatorEvolutionAge||0)):1;
    // Evolution and active-team Swarm bonuses add on the same base ATK.
