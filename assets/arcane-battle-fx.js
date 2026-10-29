@@ -133,6 +133,7 @@
    for(const id of res.destroyed){
     const item=locations.find(x=>x.id===id);if(!item)continue;
     sparks('ad-sparks-destruction',item.x,item.y,24);
+    window.ArcaneSfx208?.play?.('destroy');
     const ghost=document.createElement('div');ghost.className='ad-monster-dissolve';
     ghost.style.left=item.x+'px';ghost.style.top=item.y+'px';
     const img=document.createElement('img');img.src=item.art;img.alt='';ghost.append(img);
