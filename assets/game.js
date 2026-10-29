@@ -615,6 +615,13 @@ function coreValidateDuelSnapshot(raw){
    !validInt(c.predatorEvolutionAge,4))fail();
   out.predatorEvolutionAge=c.predatorEvolutionAge;
  }
+ if(c.predatorDevelopmentBornTurn!==undefined){
+  if(c.fusion||c.predatorToken||
+   (c.roleOverride||CARDS[c.id]?.role)!=='predator'||
+   !validInt(c.predatorDevelopmentBornTurn,30)||c.predatorDevelopmentBornTurn<1||
+   c.predatorDevelopmentBornTurn>raw.turn)fail();
+  out.predatorDevelopmentBornTurn=c.predatorDevelopmentBornTurn;
+ }
  for(const key of ['summonedTurn','decayTotal'])if(c[key]!==undefined){if(!validInt(c[key],key==='summonedTurn'?30:10000))fail();out[key]=c[key];}if(c.decayClass!==undefined){if(!['starter','normal','fusion'].includes(c.decayClass))fail();out.decayClass=c.decayClass;}if(c.materialBonus){if(!validInt(c.materialBonus.atk,240)||!validInt(c.materialBonus.def,240)||c.materialBonus.atk+c.materialBonus.def>240)fail();out.materialBonus={...c.materialBonus};}if(c.surgeTurn!==undefined){if(!validInt(c.surgeTurn,30))fail();out.surgeTurn=c.surgeTurn;}if(c.decayAge!==undefined){if(!validInt(c.decayAge,30))fail();out.decayAge=c.decayAge;}else if(c.decayClass&&c.decayTotal){const base=c.decayClass==='starter'?20:c.decayClass==='fusion'?50:30,min=c.decayClass==='starter'?10:20;let accumulated=0,age=0;while(accumulated<c.decayTotal&&age<30){accumulated+=Math.max(min,base-5*age);age++;}out.decayAge=age;}if(c.attackFatigue!==undefined){if(!validInt(c.attackFatigue,10000))fail();out.attackFatigue=c.attackFatigue;}if(c.fate){if(!FATE_CARD_IDS.includes(c.id))fail();out.fate=true;}if(c.fusion)out.fusion=true;if(c.qualityRolls){if(!validInt(c.qualityRolls,7))fail();out.qualityRolls=c.qualityRolls;}
  if(c.essenceCombat!==undefined){
  const e=c.essenceCombat;
