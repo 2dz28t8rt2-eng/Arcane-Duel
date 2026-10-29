@@ -13,6 +13,7 @@
   if(!root||motionOff())return Promise.resolve();
   const cards=[...root.querySelectorAll('[data-hand]')];
   cards.forEach((node,i)=>{
+   setTimeout(()=>window.ArcaneSfx208?.play?.('draw'),i*440);
    const rect=node.getBoundingClientRect();
    const flight=Math.max(160,window.innerWidth-rect.left+Math.max(40,rect.width*.3));
    node.style.setProperty('--ad117-from',Math.round(flight)+'px');
@@ -37,7 +38,10 @@
   // Previous renders, selecting a card or changing its material flag never do.
   // Track both local seats, including when the PVP camera switches sides.
   last={g,ids:g.players.map(side=>new Set(side.hand.map(c=>c.uid)))};
-  if(motionOff()||!newly.length)return result;
+  if(!newly.length)return result;
+  // A unique sound belongs to every real card, even in instant-motion mode.
+  newly.forEach((_,i)=>setTimeout(()=>window.ArcaneSfx208?.play?.('draw'),i*440));
+  if(motionOff())return result;
   const root=document.getElementById('hand');
   if(!root)return result;
   const entering=new Set(newly);
