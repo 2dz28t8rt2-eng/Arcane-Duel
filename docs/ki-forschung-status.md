@@ -110,6 +110,21 @@ Die Anzahl umfasst ausschließlich Wächter in **DEF**, die tatsächlich heilen 
 
 **Fazit und nächster Prüfansatz:** Die Staffel ist technisch korrekt und beeinflusst Spiele, erfüllt aber das Balancingziel „reine Wächter schwächen und gemischte Seelenbund-Decks stärken“ bislang nicht eindeutig. **Noch nicht in das normale Solo-Spiel übernehmen.** Statt blind weitere Werte zu nerfen: tatsächlich ausgeführte Wächter-Heilereignisse und DEF-Regeneration nach Anzahl DEF-Wächter protokollieren, Häufigkeit von 2–5 Wächtern im realen Turnier überprüfen und größere, gepaarte Rollen-/Seelenbund-HOLDOUT-Tests mit verschiedenen Mischungen durchführen.
 
+### Methodischer Nachtrag zur v17.3-Auswertung (geprüft anhand der Original-Artefakte)
+
+Die zunächst kontraintuitiven zusätzlichen Siege durch die 100/55/40/33/28-%-Heilungsstaffel sind **kein Beleg, dass reduzierte Heilung einen Wächter mechanisch stärkt**. Die Heilungsformel reduziert pro Quelle den tatsächlich möglichen Heilbetrag monoton, wenn alle anderen Spielzustände identisch bleiben.
+
+**Vier konkrete Einschränkungen der bisherigen Schlussfolgerung:**
+
+1. **Symmetrischer Eingriff:** Die Forschungs-Heilungsformel wird im Headless-Kampf-VM **bei beiden Spielern** aktiv; auch gegnerische Wächter können weniger heilen. Die Varianten isolieren daher nicht den Nerf nur des betrachteten Verteidigerdecks.
+2. **Kleine Fokusgruppen:** Die in der v17.3-Auswertung berichteten Wächter-Siege gegen Fusionen (VALIDATION **5/16 → 7/16**, HOLDOUT **10/16 → 12/16**) stammen jeweils aus **nur zwei Siegerwechseln** in ansonsten unveränderten 16 gepaarten Ergebnissen. Das belegt keinen realen Wächter-Buff. Aktionen und Kampfverlauf ändern sich: Ein Sieg mit der neuen Regel dauerte z. B. **15 statt 50 Züge**.
+3. **Fokusdecks und Heilungsreichweite:** `guardian-core` enthält **20 Wächter + 20 neutrale Unterstützer**, nicht 40 Wächter. Die vorhandenen Auswertungen erfassen **keine Zahl gleichzeitig heilender DEF-Wächter** und **keine tatsächlich wiederhergestellten DEF-Punkte**. Die behauptete kausale Wirkung der Staffel kann deshalb nicht anhand der bisherigen Partiedaten verifiziert werden. Ein `soul-core`-Deck mit **0 Wächtern im 20er-Defensivkern** änderte sogar in einem Fusion-HOLDOUT seinen Gewinner; dies zeigt, wie wichtig die Wirkung auf Gegner beziehungsweise Fusionsrollen ist.
+4. **Abhängige Auswertungen:** In Stage 8 wurden **2.304** Partien über **sechs KI-Profile** ausgewertet. Die **113** berichteten Gewinnerwechsel beruhen auf nur **28 unterschiedlichen Paar-/Szenario-/Starter-/Sitz-Konfigurationen** mit teilweise mehrfach identischem Effekt über KI-Profile. Sie dürfen **nicht** als 113 unabhängige Experimente interpretiert werden.
+
+Die allgemeine Defender-Survival-HOLDOUT-Verbesserung **276 → 278/512** ist sehr klein und beweist ebenfalls keinen Balancegewinn. Der 35-%-Überlebens-Gegenschlag ist **in beiden v17.3-Gruppen identisch**; er kann diesen Unterschied nicht erklären. Einzelne ältere Läufe verwenden zudem andere Match-Seeds und sind nicht ohne Weiteres direkt gepaart.
+
+**Erforderliche Versuchsverbesserung:** Bei fixierten Seeds und derselben KI sowohl den **eigenen** als auch den **gegnerischen** Heilungsnerf getrennt abtragen (`beide`, `nur eigener Verteidiger`, `nur Gegner`, `keiner`); die **Wächteranzahl je eigener Runde**, Heilungsereignisse, verlorene/gewonnene DEF, Heilausfall durch Max-DEF sowie tatsächlich geänderte KI-Aktionen erfassen; die Auswertung nach **einzigartigen Szenarien** statt nur Profil-Replikaten absichern; auch gezielte 2–5-Wächter-Boards und Turnierkampf-Replays testen. Erst danach Balance-Schlussfolgerungen ziehen. **Keine neue Regel-/Champion-Übernahme.**
+
 ## C. KI-Forschungsstatus
 
 - **v16.9:** 138.240 Duelle, sechs Varianten, GitHub Actions #40917461921 erfolgreich; neu erzeugtes TRAIN-only Endgame-Modell für `predator15Triad90`.
