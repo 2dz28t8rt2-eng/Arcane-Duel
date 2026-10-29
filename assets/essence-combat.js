@@ -271,7 +271,7 @@
   // Research games can still opt out (0) for properly paired control arms.
   const percent=g?.strategicTraining?
    (g.strategicTraining.predatorSwarmPercent||0):.02;
-  if(percent&&(g?.mode==='pve'||g?.mode==='pvp')&&roleOf(a)==='predator'&&
+  if((g?.mode==='pve'||g?.mode==='pvp')&&roleOf(a)==='predator'&&
    g.players[g.active]?.field?.includes(a)){
    const deployed=g.players[g.active].field.filter(c=>c&&roleOf(c)==='predator').length;
    const swarm=Math.min(5,deployed)*percent;
