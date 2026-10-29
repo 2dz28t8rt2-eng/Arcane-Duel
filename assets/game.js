@@ -1031,6 +1031,20 @@ for(const c of liveRoles.filter(c=>c.role==='support').sort((a,b)=>a.id-b.id)){
   }
  }
 }
+// Rebalancing former Supporters can leave a curated higher stage with
+// unchanged DEF while its parent gains defense (Aschenwolke Lv 2).
+// Preserve the existing total stat budget and ID, but make sure the staged
+// upgrade improves both stats; follow the parent's ATK/DEF distribution.
+for(const id of NORMAL_LINE_VARIANT_IDS){
+ const stage=CARDS[id],root=stage&&CARDS[stage.variantOf];
+ if(!root||stage.level>4||(stage.atk>root.atk&&stage.def>root.def))continue;
+ const total=(stage.atk||0)+(stage.def||0);
+ const minimumAtk=root.atk+10,minimumDef=root.def+10;
+ if(total<minimumAtk+minimumDef)continue;
+ const parentShare=root.atk/Math.max(1,root.atk+root.def);
+ stage.atk=Math.max(minimumAtk,Math.min(total-minimumDef,round10(total*parentShare)));
+ stage.def=total-stage.atk;
+}
 // Normalize legacy per-card combat perks after ALL RPG templates and workshop stages
 // have been registered. General role abilities are deliberately unaffected.
 const RETIRED_SINGLE_CARD_ABILITIES=new Set(['aegis','pierce','hunt','guide','rush','guard']);
