@@ -694,16 +694,22 @@
   el('p',dock,'Du bist dran! Wähle eine Karte oder greife mit deinen Monstern an.',
    'duo-turn-note');
   if(legal.hand.length){
-   const part=section(dock,'✦ Monster beschwören','Klicke eine Handkarte und danach einen freien Platz auf deinem Feld an.');
+   const part=section(dock,'✦ Monster beschwören','Wähle Handkarte und Zone. Ein besetztes Feld kannst du bewusst ersetzen; die Karte wird erst nach Bestätigung verbraucht.');
    const row=el('div',part,undefined,'duo-choices');
    const hand=selector('Handkarte',legal.hand.map(x=>[x.index,
     displayName(x)+' · Lv '+card(x.id).level+
     (x.fate?' · '+x.atk+'/'+x.def+' · unverschmelzbar':'')]),row);
-   const slot=selector('Freier Feldplatz',legal.freeSlots.map(i=>[i,'Feld '+(i+1)]),row);
+   const slot=selector('Monsterzone',p.field.map((c,i)=>[i,'Feld '+(i+1)+(c?' · '+displayName(c)+' (ersetzen)':' · frei')]),row);
    hand.dataset.ad189Hand='true';
    slot.dataset.ad189Slot='true';
-   const summonCommit=button('Monster beschwören',part,()=>send({type:'summon',
-    handIndex:Number(hand.value),slot:Number(slot.value)}));
+   const summonCommit=button('Monster spielen / ersetzen',part,()=>{
+    const destination=Number(slot.value),occupied=!!p.field[destination];
+    if(occupied){
+     const previous=displayName(p.field[destination]),next=displayName(legal.hand[Number(hand.selectedIndex)]);
+     if(!confirm('„'+previous+'“ auf den Friedhof legen und durch „'+next+'“ ersetzen?'))return;
+    }
+    send({type:occupied?'replace':'summon',handIndex:Number(hand.value),slot:destination});
+   });
    summonCommit.dataset.ad189Commit='true';
   }
   if(!p.summoned&&p.remainingFusion.length>=1){

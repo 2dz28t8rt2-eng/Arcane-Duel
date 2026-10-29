@@ -12,7 +12,7 @@
   if(!p||state.status!=='active'||state.activeSeat!==seat||p.kind!=='human')
    return {canAct:false,freeSlots:[],hand:[],attackers:[],targets:[],waiting:[]};
   const freeSlots=p.field.flatMap((card,slot)=>card?[]:[slot]);
-  const hand=!p.summoned&&freeSlots.length?p.hand.map((item,index)=>({
+  const hand=!p.summoned?p.hand.map((item,index)=>({
    id:typeof item==='number'?item:item.id,index,fate:item?.fate===true,
    ...(item?.fate?{atk:item.atk,def:item.def}:{})})):[];
   const attackers=p.field.flatMap((card,slot)=>card&&card.mode==='atk'&&!card.used&&

@@ -106,12 +106,12 @@ html body #duelScreen .monster-slot .board-creature.ad-compact-values .board-sta
  72%{transform:translate(3px,0)}100%{transform:none;filter:none}}
 .ad-counter-impact{position:fixed;z-index:32050;pointer-events:none;width:16px;height:16px;margin:-8px;
  border-radius:50%;background:#fff4ef;box-shadow:0 0 0 8px #ff1b4c,0 0 0 28px #e5003377,0 0 95px 35px #ff0026;
- animation:adCounterBurst .9s ease-out both}
+ animation:adCounterBurst .57s ease-out both}
 @keyframes adCounterBurst{0%{opacity:0;transform:scale(.12)}20%{opacity:1;transform:scale(1.6)}
  100%{opacity:0;transform:scale(3.5)}}
 .ad-role-stat-float[data-kind="counter-damage"]{color:#ff5d70!important;font-weight:900!important;
  font-size:23px!important;text-shadow:0 0 12px #ff2e47,0 0 30px #8f0018!important;
- animation:adCounterLoss .85s ease-out both}
+ animation:adCounterLoss .62s ease-out both}
 @keyframes adCounterLoss{from{opacity:0;transform:translateY(18px) scale(.6)}
  30%{opacity:1;transform:translateY(-10px) scale(1.3)}
  to{opacity:0;transform:translateY(-72px)}}

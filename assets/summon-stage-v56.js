@@ -4,6 +4,7 @@
 'use strict';
 (()=>{
  const previousRender=render;
+ let stageMode='fusion';
  const esc=value=>escapeHtml(String(value??''));
  function currentPlayer(g){return g.players[g.mode==='pve'?0:g.active];}
  function summarizeCard(c,showStats=true){
@@ -41,16 +42,17 @@
   const selectedHtml=current?(
    pending?.kind==='normal'?
     '<div class="stage-card ad56-stage-card" title="Karte erneut anklicken, um die Beschwörung zurückzunehmen">'+fullCardHtml(current)+'</div>':
-   fusionReady?
-    '<div class="arcane-fusion-ready-card ad56-revealed-card" aria-label="Fusionsergebnis sichtbar – Feldzone wählen">'+fullCardHtml(current)+'</div>':
+   pending?.kind==='fusion'?
+    '<div class="stage-card ad56-stage-card'+(fusionReady?' arcane-fusion-ready-card ad56-revealed-card':'')+'" title="Klicken: Fusion rückgängig machen">'+
+     (fusionReady?fullCardHtml(current):summarizeCard(current,false))+'</div>':
    summarizeCard(current,showStats)
   ):'<p class="ad56-empty">Wähle eine Handkarte oder markiere bis zu fünf Fusionsmaterialien.</p>';
   const materialHtml=material.length?
    '<ol class="ad56-mat-list">'+material.map((c,i)=>{
     const t=dataOf(c);
-    return '<li><button type="button" class="ad56-mat-chip" data-ad56-remove="'+c.uid+'" '+(!isReady?'disabled':'')+
-     ' aria-label="'+esc(t.name)+' aus den Fusionsmaterialien entfernen">'+
-     '<span class="ad56-mat-order">'+(i+1)+'</span><span>'+esc(t.name)+'</span><small>Lv '+t.level+'</small><span aria-hidden="true">×</span></button></li>';
+    return '<li><button type="button" class="ad56-mat-chip'+(g.discardKeepUid===c.uid?' ad207-keep':'')+'" data-ad56-remove="'+c.uid+'" '+(!isReady?'disabled':'')+
+     ' title="'+(stageMode==='discard'?'Rechtsklick: Diese Karte behalten':'Rechtsklick: Kartenreihenfolge neu bestimmen')+'">'+
+     '<span class="ad56-mat-order">'+(i+1)+'</span><span>'+esc(t.name)+'</span><small>Lv '+t.level+'</small><span aria-hidden="true">'+(g.discardKeepUid===c.uid?'✓':'×')+'</span></button></li>';
    }).join('')+'</ol>':
    '<p class="ad56-empty">Noch keine Materialien ausgewählt. Rechtsklick auf die Handkarte oder Touch-Fusion aktivieren.</p>';
   let limits='';
@@ -63,6 +65,13 @@
   }else if(material.length){
    limits='<div class="ad56-material-status"><span>1 / 5 Materialien · mindestens 2 wählen</span></div>';
   }
+  const actions=human&&!g.summoned&&!pending&&(material.length||chosen)?
+   '<div class="ad207-stage-actions">'+
+   (material.length>=2?'<button type="button" data-ad207-mode="fusion" class="btn '+(stageMode==='fusion'?'primary':'ghost')+'">✧ Fusionieren</button>'+
+    '<button type="button" data-ad207-mode="discard" class="btn '+(stageMode==='discard'?'primary':'ghost')+'">↘ Wegwerfen</button>':'')+
+   (material.length>=2&&stageMode==='discard'?'<button type="button" class="btn primary" data-ad207-commit-discard>Bestätigen: alle außer der markierten Karte abwerfen</button>':'')+
+   '<button type="button" class="btn ghost" data-ad207-clear>✕ Alles abwählen</button></div>':
+   pending?'<button type="button" class="btn ghost" data-ad207-clear>↶ Beschwörung zurücknehmen</button>':'';
   host.innerHTML='<div class="ad56-cockpit" data-stage-phase="'+phaseId+'">'+
    '<div class="ad56-topline"><span class="ad56-kicker">✦ BESCHWÖRUNGSZENTRALE</span><strong>'+esc(phase)+'</strong></div>'+
    '<div class="ad56-steps" aria-label="Beschwörungsablauf">'+
@@ -75,7 +84,9 @@
        chosen?'„Beschwören“ wählen oder eine andere Handkarte anklicken.':
        material.length?'Weitere Materialien markieren oder „Fusionieren“ drücken.':
        'Du darfst pro Zug eine Karte beschwören oder eine Fusion ausführen.')+'</p></section>'+
-    '<section class="ad56-block ad56-material"><h3>Fusionsmaterial</h3><div class="ad117-mat-viewport">'+materialHtml+'</div>'+limits+'</section></div>'+
+    '<section class="ad56-block ad56-material"><h3>Beschwörungszone · '+(stageMode==='discard'?'Abwerfen':'Materialreihenfolge')+'</h3><p class="ad207-guide">'+
+    (stageMode==='discard'?'Rechtsklick auf die Karte, die du behalten möchtest. Alle anderen wandern erst nach der endgültigen Beschwörung auf den Friedhof.':'Rechtsklick auf eine Materialkarte setzt sie an das Ende der Fusionsreihenfolge. Ein Klick entfernt sie einzeln.')+'</p>'+
+    '<div class="ad117-mat-viewport">'+materialHtml+'</div>'+limits+actions+'</section></div>'+
    '</div>';
   // Do not send the page or material list back to the top on every pick.
   host.dataset.ad117MaterialCount=String(material.length);
@@ -85,10 +96,32 @@
  }
  render=function(){const result=previousRender();renderStage();return result;};
  document.getElementById('summonStage')?.addEventListener('click',event=>{
+  if(!game||!inputAllowed()||game.summoned)return;
+  const clear=event.target.closest?.('[data-ad207-clear]');
+  if(clear){clearSelection();stageMode='fusion';return;}
+  const mode=event.target.closest?.('[data-ad207-mode]');
+  if(mode&&!game.pending){stageMode=mode.dataset.ad207Mode;render();return;}
+  if(event.target.closest?.('[data-ad207-commit-discard]')){
+   if(game.pending||game.materials.length<2)return;
+   const ordered=[...game.materials],keep=ordered.includes(game.discardKeepUid)?game.discardKeepUid:ordered[0];
+   if(!prepareNormal(game,keep))return;
+   game.pending.discardUids=ordered.filter(uid=>uid!==keep);
+   delete game.discardKeepUid;stageMode='fusion';render();return;
+  }
   const control=event.target.closest?.('[data-ad56-remove]');
-  if(!control||!game||!inputAllowed()||game.summoned||game.pending)return;
-  markMaterial(Number(control.dataset.ad56Remove));
+  if(control&&!game.pending)markMaterial(Number(control.dataset.ad56Remove));
+  else if(event.target.closest?.('.stage-card')&&game.pending?.kind==='fusion')clearSelection();
  });
- window.ArcaneSummonStage56=Object.freeze({version:'5.6.1',renderStage});
+ document.getElementById('summonStage')?.addEventListener('contextmenu',event=>{
+  const chip=event.target.closest?.('[data-ad56-remove]');
+  if(!chip||!game||!inputAllowed()||game.pending)return;
+  event.preventDefault();
+  const uid=Number(chip.dataset.ad56Remove),i=game.materials.indexOf(uid);
+  if(i<0)return;
+  if(stageMode==='discard')game.discardKeepUid=uid;
+  else game.materials.push(...game.materials.splice(i,1));
+  render();
+ });
+ window.ArcaneSummonStage56=Object.freeze({version:'20.7',renderStage});
  if(game&&uiMode==='duel')renderStage();
 })();

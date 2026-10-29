@@ -43,9 +43,9 @@
  const isQuest=id=>id>=11&&id<=15;
  // Same LP progression as duelStartingLP('pve',tier,'easy','tournament')
  // in the singleplayer; Lv1 sidequest LP come from DECK_PROFILES in its saga.
- const QUEST_SOLO_LP=[2000,3000,4500,5200,7000];
+ const QUEST_SOLO_LP=[2000,2000,4000,4000,8000];
  const soloStartingLp=chapter=>isQuest(chapter)?QUEST_SOLO_LP[chapter-11]:
-  chapter<=3?4000:chapter<=6?6000:chapter<=8?7000:10000;
+  chapter<=3?2000:chapter<=8?4000:8000;
  const duoStartingLp=chapter=>soloStartingLp(chapter)*2;
  const opponentNames=chapter=>chapter===10?['Eiman Huel Stalker','Hans Ess Kirk']:
   isQuest(chapter)?['Der Level-1-Fanatiker',chapter===15?'Verderbter Adept':'Fanatikers Adept']:
@@ -1280,16 +1280,22 @@
   }
   assert(g.status==='active'&&g.winner===null,'Partie ist nicht aktiv.');
   assert(seat===g.activeSeat,'Ein anderer Spieler ist am Zug.');
-  if(action.type==='summon'){
+  if(action.type==='summon'||action.type==='replace'){
    assert(!p.summoned,'Dieser Zug hat bereits eine Beschwörung.');
    assert(Number.isInteger(action.handIndex)&&p.hand[action.handIndex]!==undefined,'Handkarte fehlt.');
-   assert(Number.isInteger(action.slot)&&action.slot>=0&&action.slot<7&&!p.field[action.slot],'Feldplatz belegt.');
+   assert(Number.isInteger(action.slot)&&action.slot>=0&&action.slot<7&&
+    (action.type==='replace'?!!p.field[action.slot]:!p.field[action.slot]),'Feldplatz kann nicht belegt werden.');
    const handCard=p.hand[action.handIndex];
    const id=Number.isInteger(handCard)?handCard:handCard?.id;
    const fate=handCard?.fate===true?handCard:null;
    assert(allowed(catalog,id)||fate&&definition(catalog,id)?.fateTemplate,
     'Karte ist nicht regulär beschwörbar.');
    p.hand.splice(action.handIndex,1);
+   if(action.type==='replace'){
+    const old=p.field[action.slot];
+    p.graveyard.push(old);lv1Leave(g,p,old,catalog);
+    g.log.push(p.name+' ersetzt '+definition(catalog,old.id).name+' in Zone '+(action.slot+1)+'.');
+   }
    p.field[action.slot]=instance(g,id,catalog,{ownerSeat:seat,fate});
    lv1Arrival(g,p,p.field[action.slot],catalog);
    p.summoned=true;g.log.push(p.name+' beschwört '+

@@ -1,0 +1,16 @@
+/* Arcane Duel v20.7 – active Seelenstoß orbit, beam and skull explosion. */
+.ad207-soul-stage{position:fixed;inset:0;z-index:10012;pointer-events:none;overflow:hidden}
+.ad207-soul-orb{position:absolute;width:20px;height:20px;margin:-10px;border-radius:50%;background:radial-gradient(circle,#ffffff 0%,#f0baff 20%,#8b27e8 58%,#45106f 100%);box-shadow:0 0 16px 8px #b044ef,0 0 45px #802aca;transform:scale(.15);animation:ad207-orb 640ms ease-out forwards}
+.ad207-spark{position:absolute;left:50%;top:50%;width:6px;height:6px;border-radius:50%;background:#edbeff;box-shadow:0 0 9px #dc81ff;transform:rotate(var(--angle)) translateX(42px);animation:ad207-spark 650ms ease-in forwards}
+.ad207-soul-orb.ad207-charged{transform:scale(1.8);filter:brightness(1.4)}
+.ad207-soul-beam{position:absolute;height:16px;margin-top:-8px;transform-origin:left center;border-radius:14px;background:linear-gradient(90deg,#d3a2ff,#f8e7ff 18%,#b65fff 65%,#7e00ee);box-shadow:0 0 16px 8px #9d30f4,0 0 35px #a74af9;clip-path:inset(0 100% 0 0);animation:ad207-beam 310ms ease-in forwards}
+.ad207-soul-hit{position:absolute;width:22px;height:22px;margin:-11px;border-radius:50%;background:radial-gradient(circle,#fff,#e4b8ff 22%,#9b22ee 42%,#6213a4 62%,transparent 75%);box-shadow:0 0 40px 20px #a442ec;animation:ad207-hit 650ms ease-out forwards}
+.ad207-soul-skull{position:absolute;left:50%;top:50%;font-size:19px;color:#efb5ff;text-shadow:0 0 10px #a937fd;animation:ad207-skull 650ms ease-out forwards}
+.ad207-soul-damage{position:absolute;transform:translateX(-50%);font:900 18px/1.2 system-ui;color:#f2d6ff;white-space:nowrap;text-shadow:0 0 9px #8d28d3;animation:ad207-label 650ms both}
+@keyframes ad207-orb{0%{transform:scale(.1);opacity:0}40%{opacity:1}100%{transform:scale(1.5);opacity:1}}
+@keyframes ad207-spark{0%{opacity:0;transform:rotate(var(--angle)) translateX(22px)}35%{opacity:1}100%{transform:rotate(calc(var(--angle) + 450deg)) translateX(1px) scale(.2);opacity:.15}}
+@keyframes ad207-beam{0%{clip-path:inset(0 100% 0 0);opacity:.25}100%{clip-path:inset(0 0 0 0);opacity:1}}
+@keyframes ad207-hit{0%{transform:scale(.25);opacity:.3}45%{transform:scale(7);opacity:1}100%{transform:scale(9);opacity:0}}
+@keyframes ad207-skull{0%{opacity:0;transform:translate(-50%,-50%)}28%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(var(--angle)) translateX(105px) scale(.6)}}
+@keyframes ad207-label{0%{opacity:0;transform:translate(-50%,10px)}30%{opacity:1}100%{opacity:0;transform:translate(-50%,-25px)}}
+@media (prefers-reduced-motion:reduce){.ad207-soul-stage{display:none}}

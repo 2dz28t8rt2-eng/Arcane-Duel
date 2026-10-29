@@ -100,7 +100,7 @@
   ['duo','19 · Gemeinsam spielen: 2 Menschen gegen 2 Gegner',
    `<h3>Ein Team, zwei eigene Decks</h3>
     <p>Im 2v2 kämpfst du mit einem Freund gegen zwei Computergegner.
-    Ihr teilt euch <b>doppelt so viele Lebenspunkte wie in der jeweiligen Solo-Turnierstufe</b> (8.000 / 12.000 / 14.000 / 20.000) und dürft jeweils bis zu sieben
+    Ihr teilt euch <b>doppelt so viele Lebenspunkte wie in der jeweiligen Solo-Turnierstufe</b> (4.000 / 8.000 / 16.000) und dürft jeweils bis zu sieben
     Monster auf dem Feld haben. Die Zugfolge ist immer gleich:
     <b>Gastgeber → Gegner → Partner → Gegner</b>.</p>
     <p>Ihr ergänzt euch gegenseitig: Einer kann eine schützende Stellung aufbauen,
@@ -440,6 +440,71 @@ geben bereits vorher einen sofortigen Schwarmbonus.</p>`],
     Die noch laufende KI-Forschung benötigt eigene
     Trainingsläufe für taktische Seelenbund-Platzierungen.
     Die Mechanik allein garantiert noch keine bessere KI.</p>`],
+  ['turn-flow-v207','27 · Beschwören, Seelenstoß, Lebenspunkte und Unterstützer',
+   `<h3>So funktioniert die Beschwörungszone</h3>
+   <p>Du darfst auch bei einem vollständig belegten Feld eine Handkarte
+   vorbereiten. Eine <b>leere Zone</b> beschwört sie normal.
+   Klickst du eine <b>besetzte Zone</b>, entscheidest du
+   ausdrücklich zwischen <b>Ersetzen</b> und <b>Fusionieren</b>.
+   Ersetzen schickt die alte Feldkarte auf den Friedhof und
+   spielt die neue Karte; eine Feldfusion nutzt <b>genau ein</b>
+   vorhandenes Feldmonster zusammen mit der vorbereiteten Karte.
+   Eine normale Beschwörung bleibt durch erneutes Anklicken der
+   Karte in der Beschwörungszone oder mit
+   <b>Alles abwählen</b> umkehrbar, bis du eine Zone bestätigst.</p>
+   <h3>Fusion und Wegwerfen vorbereiten</h3>
+   <p>Markiere bis zu fünf Handkarten. In der
+   <b>Beschwörungszone</b> sind alle Materialien mit
+   Nummern sichtbar. Im Modus <b>Fusion</b> setzt
+   der Rechtsklick auf eine Materialkarte sie ans Ende der
+   Reihenfolge. Im Modus <b>Wegwerfen</b> bestimmst
+   du mit Rechtsklick, <b>welche einzelne Karte du behältst</b>.
+   Die übrigen wandern erst bei der endgültigen Beschwörung
+   auf den Friedhof. <b>Alles abwählen</b> entfernt die
+   gesamte Vorbereitung auf einmal, ohne Karten zu verlieren.
+   Bereits vorbereitete Handfusionen können vor dem
+   Ausspielen ebenfalls rückgängig gemacht werden; die
+   eingesetzten Materialien und die Fusionskopie werden
+   zurückgegeben. ACE-Monster bleiben als Fusionsmaterial gesperrt.</p>
+   <h3>Seelenstoß und weitere aktive Fähigkeiten</h3>
+   <p>Ein Seelenzehrer kann seine <b>aktiven</b>
+   Fähigkeiten unmittelbar nach der Beschwörung
+   <b>in ATK und DEF</b> einsetzen, sobald die
+   jeweiligen Energiekosten und Abklingzeiten erfüllt sind.
+   Der <b>passive</b> Seelenentzug bleibt DEF-gebunden.
+   Die Buttons findest du in der <b>großen Monsteransicht</b>,
+   nicht mehr lose unter den Kampfschaltflächen.
+   Bei einer Seelenaktion blendet die gesamte Handkartenleiste
+   aus; Seelenstoß bündelt violette Funken zu einem Orb,
+   schießt einen Strahl zur gegnerischen LP-Anzeige
+   und erzeugt eine violette Explosion mit Totenköpfen.
+   Ein Seelenstoß verbraucht ab 40 gespeicherter
+   Essenz den gesamten Vorrat und verursacht 130 % davon als
+   LP-Schaden, vorbehaltlich Schild und Schutzregeln.</p>
+   <h3>Was macht ein Unterstützer?</h3>
+   <p>Ein <b>Unterstützer</b> ist ein taktisches
+   Hilfsmonster. Solange mindestens ein Unterstützer
+   <b>in DEF</b> auf deiner Seite steht, bekommen
+   deine <b>normalen, nicht fusionierten</b> Angreifer
+   einen <b>festen ATK-Zusatz</b>.
+   Dieser beträgt 25 plus 8 Punkte je Level
+   des angreifenden Monsters, höchstens 160 Punkte.
+   Mehrere Unterstützer stapeln diesen Bonus nicht.
+   Fusionierte Monster profitieren nicht davon.
+   Beispiel: Ein normaler Angreifer auf Level 5
+   erhält <b>+65 ATK</b>. Der Unterstützer
+   selbst muss nicht angreifen, um zu helfen.</p>
+   <h3>Lebenspunkte im Turnier</h3>
+   <p>Training und Turnier I–III starten mit
+   <b>2.000 LP</b> je Spieler. Von IV–VIII
+   gelten <b>4.000 LP</b>, im Endspiel IX–X
+   <b>8.000 LP</b>. Die Duo-Kampagne
+   verwendet in denselben Stufen <b>4.000 /
+   8.000 / 16.000 gemeinsame Team-LP</b>.
+   Die fünf Spezialprüfungen der Fanatiker-Saga
+   folgen einer passenden 2.000-/4.000-/8.000-Abstufung.
+   Klassisches lokales PvP bleibt ein eigener
+   Modus mit 8.000 LP.</p>`],
  ];
  function refresh(){
   const modal=document.getElementById('modal'),book=modal?.querySelector('.arcane-handbook');

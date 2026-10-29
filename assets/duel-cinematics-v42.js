@@ -76,10 +76,11 @@
   const host=document.createElement('div');host.className='ad-arc-projectile ad-projectile-'+kind;host.style.setProperty('--ad-energy',color);host.setAttribute('aria-hidden','true');
   const dx=to.x-from.x,dy=to.y-from.y,len=Math.max(1,Math.hypot(dx,dy)),bend=Math.min(115,Math.max(42,len*.23));
   const cx=(from.x+to.x)/2-dy/len*bend,cy=(from.y+to.y)/2+dx/len*bend;
+  const duration=kind==='counter'?490:860,stagger=kind==='counter'?11:24;
   const frames=[];for(let i=0;i<=24;i++){const t=i/24;frames.push({transform:'translate('+(Math.pow(1-t,2)*from.x+2*(1-t)*t*cx+t*t*to.x)+'px,'+(Math.pow(1-t,2)*from.y+2*(1-t)*t*cy+t*t*to.y)+'px)',opacity:i===0?0:i===24?0:1,offset:t});}
   for(let i=0;i<11;i++){const star=document.createElement('i');star.textContent=i===0?'✦':'✧';host.append(star);}
   document.body.append(host);
-  try{await Promise.all([...host.children].map((star,i)=>settled(star.animate(frames,{duration:860,delay:i*24,easing:'ease-in-out',fill:'both'}),860+i*24)));}
+  try{await Promise.all([...host.children].map((star,i)=>settled(star.animate(frames,{duration,delay:i*stagger,easing:'ease-in-out',fill:'both'}),duration+i*stagger)));}
   finally{host.remove();}
  }
  async function playEvent(g,event,orbs){
@@ -100,8 +101,8 @@
     if(event.amount>0)roleStatFloat(banner,'−'+event.amount+' LP · GEGENSCHLAG','counter-damage');
     const shock=document.createElement('div');
     shock.className='ad-counter-impact';shock.setAttribute('aria-hidden','true');
-    if(goal){shock.style.left=goal.x+'px';shock.style.top=goal.y+'px';document.body.append(shock);setTimeout(()=>shock.remove(),940);}
-    setTimeout(()=>banner?.classList.remove('ad-counter-damage'),820);
+    if(goal){shock.style.left=goal.x+'px';shock.style.top=goal.y+'px';document.body.append(shock);setTimeout(()=>shock.remove(),590);}
+    setTimeout(()=>banner?.classList.remove('ad-counter-damage'),560);
    }
   }
  }

@@ -10,6 +10,8 @@
     if(Number(after.decay)>Number(before.decay))return 'Zerfall registriert';
     if(Number(after.fatigue)>Number(before.fatigue))return 'Angriffserschöpfung registriert';
     if(after.surge&&!before.surge)return 'Vorstoß aktiv';
+    if(after.role==='predator'&&after.factor!==before.factor)return
+     'Entwicklung/Schwarm: '+before.factor+' % → '+after.factor+' % Gesamt-ATK (kein Grundwertverlust)';
     return 'Kampfwertänderung';
   }
   function extract(g){
@@ -20,7 +22,8 @@
       person.field.forEach((card,index)=>{
         if(!card)return;
         const data=dataOf(card);
-        output.set(side+':'+card.uid,{side,index,uid:card.uid,id:card.id,name:data.name,
+        output.set(side+':'+card.uid,{side,index,uid:card.uid,id:card.id,name:data.name,role:card.roleOverride||CARDS[card.id]?.role,
+          factor:window.ArcanePredatorDevelopment?.breakdown?.(g,card,person.id)?.total??100,
           atk:Math.round(Number(effectiveAttack(g,card,null))||0),def:Math.round(Number(data.def)||0),
           decay:Math.max(0,Number(card.decayTotal)||0),fatigue:Math.max(0,Number(card.attackFatigue)||0),
           surge:card.surgeTurn===g.turn});
@@ -38,6 +41,8 @@
       if(!old)continue;
       const atk=item.atk-old.atk,def=item.def-old.def;
       if(!atk&&!def)continue;
+      // Guardian healing already has its own single FX message; don't echo it here.
+      if(!atk&&def>0&&['guardian','soul'].includes(item.role)&&item.decay===old.decay&&item.fatigue===old.fatigue)continue;
       const label=[atk?'ATK '+signed(atk):'',def?'DEF '+signed(def):''].filter(Boolean).join(' · ');
       const cause=reason(old,item);
       const slot=document.querySelector((item.side==='mine'?'#ownRow [data-mine="':'#enemyRow [data-enemy="')+item.index+'"]');

@@ -73,7 +73,7 @@ createGame=function(options={}){
  // Loan deck / enemy are purely ephemeral: inventory and the active deck remain untouched.
  const beginnerEnemy={deck:lessonDeck(LESSON_MAP.get('pair')),fusionDeck:[...RPG_START_FUSIONS,...RPG_START_FUSIONS],enhancements:{},power:.68,flatBonus:0};
  const g=oldCreate({...options,context:'challenge',deck,fusionDeck:loanFusions,enemy:beginnerEnemy,enhancements:{},flatBonus:0});
- g.lessonId=lesson.id;g.lessonPatterns=[];g.maxLP=6000;g.players.forEach(p=>p.lp=6000);
+ g.lessonId=lesson.id;g.lessonPatterns=[];g.maxLP=2000;g.players.forEach(p=>p.lp=2000);
  return g;
 };
 const oldDuelValidate=validateDuelSnapshot;

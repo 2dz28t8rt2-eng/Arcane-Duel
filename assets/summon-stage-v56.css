@@ -80,3 +80,10 @@
  #duelScreen #summonStage .ad117-mat-viewport{height:224px;min-height:224px;max-height:224px}
  #duelScreen #summonStage .ad56-mat-list>li .ad113-core{max-width:92px;min-height:32px;font-size:9px!important}
 }
+
+/* v20.7 – reversible staging and multi-card order/discard decisions */
+.ad207-stage-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ad207-stage-actions button{font-size:12px}
+.ad207-guide{font-size:12px;opacity:.88;line-height:1.4}
+.ad56-mat-chip.ad207-keep{outline:2px solid #8de7ae!important;box-shadow:0 0 12px #7ee4a680}
+.ad56-stage-card,.stage-card.ad56-stage-card{cursor:pointer}
