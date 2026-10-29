@@ -543,9 +543,10 @@
    destroyed=enemy.field[candidate.slot]!==target;
   }
   let counter=0;
-  if(mode==='def'&&defender&&!immune){
-   // 40 % of the normal 50 %-ATK counter, even on a lethal splash.
-   counter=score(g,enemy.team,Math.floor(Math.floor(oldAttack*.5)*.4),
+  if(mode==='def'&&defender&&!immune&&!destroyed&&enemy.field[candidate.slot]===target){
+   // Just like solo, a DEF counter requires survival after the splash.
+   // Splash damage is 40% of the normal 35%-ATK counter.
+   counter=score(g,enemy.team,Math.floor(Math.floor(oldAttack*.35)*.4),
     definition(catalog,target.id).name+' · Stomp-Gegenschlag');
   }
   g.log.push('✦ FUSIONS-STOMP · '+definition(catalog,target.id).name+' ('+pct+
