@@ -1,0 +1,23 @@
+'use strict';
+/* v16.5 hard-stop current rules and handbook parity before any selfplay. */
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const read=p=>fs.readFileSync(p,'utf8');
+const combat=read('assets/essence-combat.js');
+const handbook=read('assets/handbook-human-v180.js');
+const duo=read('assets/duo-shared-rules-v160.js');
+const edge=read('supabase/functions/arcane-duo-v2/duo-rules.js');
+assert.match(combat,/const mitigation=isDefender\(d\)\?Math\.max\(0,\(bond\?\.35:\.20\)-predatorPierce\):0;/);
+assert.match(combat,/const bond=soulBonds\(g,q\.id\)\.find/);
+assert.match(combat,/energy\.bondChargeUsed/);
+assert.match(combat,/Math\.floor\(extra\*\.25\)/);
+assert.match(combat,/50-energy\.bondChargeUsed/);
+assert.match(handbook,/26 · Seelenbund/);
+assert.match(handbook,/20 %.*35 %/);
+assert.match(handbook,/direkt nebeneinander/);
+assert.equal(duo,edge,'Duo client and edge rules diverged');
+const {boot}=require('./helpers/game-runtime.cjs');
+const g=boot({seed:16600042});
+const v=g.run('({bond:typeof window.ArcaneEssenceCombat?.soulBonds,actions:typeof window.ArcaneEssenceCombat?.researchSoulAction,cardCount:CARDS.length,essence:!!createGame({mode:"pve",opponentId:1}).essenceRules})');
+assert.equal(v.bond,'function');assert.equal(v.actions,'function');
+assert.ok(v.essence&&v.cardCount>50);
+console.log('ARCANE_V1660_V206_RULEBOOK_AND_ENGINE_OK '+JSON.stringify(v));
