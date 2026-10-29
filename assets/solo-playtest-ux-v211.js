@@ -67,7 +67,7 @@
   const attempt=()=>{
    if(game!==g||uiMode!=='duel'||profileStore(onboardingKey)||g.winner!==null)return;
    if(busy||g.cinemaActive||!byId('overlay')?.classList.contains('hidden')){
-    if(++tries<13)setTimeout(attempt,750);return;
+    if(++tries<50)setTimeout(attempt,750);return;
    }
    const perks=powers.length?'<p><b>Deine neuen Fähigkeiten:</b></p><ul>'+
     powers.map(p=>'<li><b>'+esc(p.title)+'</b>: '+esc(p.desc)+'</li>').join('')+'</ul>':
