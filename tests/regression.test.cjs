@@ -25,7 +25,7 @@ const plain = x=>JSON.parse(JSON.stringify(x));
 
 test('Ungültige Fusion verbraucht keine Ressourcen',()=>{
   const x=boot().run("(()=>{const g=createGame({mode:'pve',starter:0,seed:42}),p=g.players[0],uids=p.hand.slice(0,2).map(c=>c.uid);const before=[p.hand.length,p.remainingFusion.length,p.graveyard.length];const ok=prepareHandFusion(g,uids,99999);return {ok,before,after:[p.hand.length,p.remainingFusion.length,p.graveyard.length],pending:g.pending};})()");
-  assert.equal(x.ok,true);assert.equal(x.pending?.kind,'fusion');assert.equal(x.after[0],x.before[0]-2);assert.equal(x.after[1],x.before[1]+2);assert.equal(x.after[2],x.before[2]-1);
+  assert.equal(x.ok,false);assert.deepEqual(plain(x.before),plain(x.after));assert.equal(x.pending,null);
 });
 
 test('Drei ausgewählte Materialien: eine Fusion und drei Friedhofskarten',()=>{
@@ -74,7 +74,7 @@ test('100 deterministische Duelle werden ohne Hänger abgeschlossen',()=>{
 
 test('Handfusion darf auch bei vollem Feld zur Ersetzung vorbereitet werden',()=>{
  const x=boot().run("(()=>{const g=createGame({mode:'pve',starter:0,seed:88}),p=g.players[0],id=RPG_DEFAULT_DECK[0];p.field=Array.from({length:5},()=>newInstance(g,id,0));p.remainingFusion=RPG_START_FUSIONS.slice(0,2);p.hand[0]=newInstance(g,id,0);p.hand[1]=newInstance(g,id,0);const ids=p.hand.slice(0,2).map(c=>c.uid),before=[p.hand.length,p.graveyard.length,p.remainingFusion.length],ok=prepareHandFusion(g,ids,RPG_START_FUSIONS[0]);return {ok,before,after:[p.hand.length,p.graveyard.length,p.remainingFusion.length],pending:g.pending};})()");
- assert.equal(x.ok,false);assert.deepEqual(plain(x.before),plain(x.after));assert.equal(x.pending,null);
+ assert.equal(x.ok,true);assert.equal(x.pending?.kind,'fusion');assert.equal(x.after[0],x.before[0]-2);assert.equal(x.after[1],x.before[1]+2);assert.equal(x.after[2],x.before[2]-1);
 });
 
 test('Externer Speicherkonflikt überschreibt keine neueren Daten',()=>{

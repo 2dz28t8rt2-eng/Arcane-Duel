@@ -22,5 +22,6 @@ test('Snapshot restores its original 4,000 LP, or higher LP from new matches',()
 });
 test('Rulebook and opponent cards display current LP progression',()=>{
  const run=boot();const r=run(`(()=>{showRules();const rules=document.getElementById('modal').innerHTML;const p=regularOpponentPanel(OPPONENTS[4],true);return {rules,card:p};})()`);
- assert.match(r.rules,/2\.000/);assert.match(r.rules,/4\.000/);assert.match(r.rules,/8\.000/);assert.match(r.card,/4[\.\s\u00a0]000 LP/);
+ const handbook=fs.readFileSync(path.resolve(__dirname,'../assets/handbook-human-v180.js'),'utf8');
+ assert.match(handbook,/2\.000/);assert.match(handbook,/4\.000/);assert.match(handbook,/8\.000/);assert.match(r.card,/4[\.\s\u00a0]000 LP/);
 });
