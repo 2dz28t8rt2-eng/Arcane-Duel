@@ -20,7 +20,7 @@
     if(!helper)return;
     helper.hidden=true;helper.replaceChildren();
     if(!game||game.status!=='active'||game.activeSeat!==seat||busy||syncError||!dock||
-       !legal?.hand?.length||!legal?.freeSlots?.length)return;
+       !legal?.hand?.length)return;
     const panel=document.querySelector('#duoSeats .seat[data-seat="'+seat+'"]');
     const summonPanel=dock.querySelector('#ad186-summon');
     const handSelect=dock.querySelector('[data-ad189-hand]');
@@ -29,7 +29,7 @@
     if(!panel||!summonPanel||!handSelect||!slotSelect||!commit)return;
 
     const handChoices=new Map(legal.hand.map(x=>[x.index,x]));
-    const freeSlots=new Set(legal.freeSlots);
+    const freeSlots=new Set((game.players?.[seat]?.field||[]).map((_,i)=>i));
     const handNodes=new Map(),slotNodes=new Map();
     const chosen={hand:null,slot:null};
     const scope=(game.roomId||'duo')+':'+(game.chapter||0)+':'+seat+':'+
@@ -49,13 +49,13 @@
     const description=element('p','ad189-guide-description');
     description.setAttribute('role','status');description.setAttribute('aria-live','polite');
     const actions=element('div','ad189-guide-actions');
-    const confirm=element('button','ad189-guide-confirm','✦ Monster beschwören');
+    const confirm=element('button','ad189-guide-confirm','✦ Beschwören / Ersetzen');
     confirm.type='button';confirm.disabled=true;
     const cancel=element('button','ad189-guide-cancel','Abbrechen');cancel.type='button';
     actions.append(confirm,cancel);helper.append(description,actions);
 
     function ready(){return selectionReady({hand:chosen.hand,slot:chosen.slot,
-      hands:legal.hand,slots:legal.freeSlots});}
+      hands:legal.hand,slots:[...freeSlots]});}
     function remember(){
       remembered.set(scope,{...chosen,id:chosen.hand===null?null:handChoices.get(chosen.hand)?.id});
       if(remembered.size>16)remembered.delete(remembered.keys().next().value);
@@ -95,11 +95,11 @@
       confirm.disabled=!complete||commit.disabled;
       description.textContent=complete?
         '✦ '+cardName(handChoices.get(chosen.hand))+' auf Feld '+(chosen.slot+1)+
-          ' beschwören? Erst mit deiner Bestätigung wird der Zug ausgeführt.':
+          (game.players[seat].field[chosen.slot]?' ersetzen? Die alte Karte geht auf den Friedhof.':' beschwören?')+' Erst nach Bestätigung wird die Aktion ausgeführt.':
         chosen.hand!==null?'✦ '+cardName(handChoices.get(chosen.hand))+
-          ' ist bereit. Wähle jetzt einen freien Platz auf deinem Feld.':
+          ' ist bereit. Wähle einen freien oder besetzten Platz auf deinem Feld.':
         chosen.slot!==null?'✦ Feld '+(chosen.slot+1)+
-          ' ist frei. Wähle jetzt eine Handkarte.':'';
+          ' ist gewählt. Wähle jetzt eine Handkarte.':'';
       if(active){
         if(attackGuide&&!attackGuide.hidden){hiddenAttackGuide=true;attackGuide.hidden=true;}
         if(fusionGuide&&!fusionGuide.hidden){hiddenFusionGuide=true;fusionGuide.hidden=true;}
@@ -154,7 +154,7 @@
       if(!cell)continue;
       handNodes.set(item.index,{cell,original:handle(cell,()=>chooseHand(item.index,true))});
     }
-    for(const index of legal.freeSlots){
+    for(const index of freeSlots){
       const cell=panel.querySelector(':scope > .field > .field-cell[data-slot="'+index+'"]');
       if(!cell)continue;
       slotNodes.set(index,{cell,original:handle(cell,()=>chooseSlot(index,true))});
