@@ -10,7 +10,7 @@
  color:#b8ffda;background:rgba(14,57,51,.93);
 }
 .board-creature .ad205-fallback-bonus{
- position:absolute;right:4px;top:5px;padding:3px 5px;border:1px solid;
+ position:absolute;left:4px;right:auto;top:5px;padding:3px 5px;border:1px solid;
  border-radius:5px;font-size:10px;font-weight:800;pointer-events:none;
 }
 .ad205-growth-detail{
