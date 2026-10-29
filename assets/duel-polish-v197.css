@@ -80,3 +80,6 @@ body:has(.ad197-outcome) :is(.ad-card-reward-scene,.ad120-unlock){visibility:hid
 #duelScreen .board-creature .board-ace-stamp{position:absolute!important;right:4px!important;top:5px!important;bottom:auto!important;left:auto!important;z-index:22;pointer-events:none;opacity:0!important;animation:none!important}
 #duelScreen .board-creature.summon-anim .board-ace-stamp{animation:ad209-ace-brief 1.55s ease-out 1 forwards!important}
 @keyframes ad209-ace-brief{0%{opacity:0;transform:translateY(-6px) scale(.85)}18%,70%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-4px) scale(.93)}}
+
+/* Hide development percentage until summoned monster has actually landed. */
+#duelScreen :is(.ad-summon-hidden,.evo-fusion-awaiting,.ad-summon-ghost,.evo-summon-ghost) :is(.ad203-pack-bonus,.ad205-total-bonus,.ad205-fallback-bonus){display:none!important}
