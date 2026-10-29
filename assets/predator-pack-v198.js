@@ -313,7 +313,7 @@
     panel.scrollTop=panel.scrollHeight;
     await wait(850);
    }
-   await wait(3000);
+   await wait(4800); // Give newcomers time to read every rolled pack ability.
    overlay.classList.add('ad198-reveal-fade');
    await wait(900);
   }finally{
