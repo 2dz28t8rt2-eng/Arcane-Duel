@@ -209,6 +209,14 @@
     atk.textContent=num(t.atk);def.textContent=num(t.def);
    }
    });
+   // Predator alpha's abilities are already rolled and saved on the instance.
+   // Show the PAW + short skill explanations in the SAME calculation window,
+   // after all numeric rolls have been absorbed and before landing.
+   if(c.predatorLeader&&window.ArcanePredatorPack?.cinemaReveal){
+    try{await phases.run('Rudelführer erwacht',()=>
+      window.ArcanePredatorPack.cinemaReveal({overlay,instance:c,wait:ms=>phases.wait(ms,animationWait)}));}
+    catch(error){console.warn('Rudelführer-Enthüllung übersprungen:',error);}
+   }
    await phases.run('Fertige Karte',async()=>{overlay.classList.add('evo-card-locked');await wait(soul?900:650);});
    // 7. Flight to actual occupied zone; no change to authoritative state.
    await phases.run(boardCard?'Platzierung':'Ritualabschluss',async()=>{

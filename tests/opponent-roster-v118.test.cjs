@@ -16,7 +16,7 @@ function load(difficulty='easy',withoutRoster118=false){
  " overMain:over(p.deck),overFusion:over(p.fusionDeck),operations:p.roster118||null,main:p.deck,fusions:p.fusionDeck};"+
  " } return {cards:CARDS.length,normalPool:CARDS.filter(c=>c.rpg&&!c.fusionOnly).length,"+
  " fusionPool:CARDS.filter(c=>c.rpg&&c.fusionOnly).length,bosses:o}; })()";
- return boot({seed:11810,withoutRoster118}).run(expr.replace("DIFFICULTY",difficulty));
+ return boot({seed:11810,withoutRoster118,withoutRoster125:true}).run(expr.replace("DIFFICULTY",difficulty));
 }
 test('VII has exactly three Lv10 fusion slots, exactly one genuine Lv10 ACE, and legal deck',()=>{
  const p=load().bosses[7];

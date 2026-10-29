@@ -1,0 +1,77 @@
+name: Arcane Duel - v14.8.7 Public Board Counterplay Pilot
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-v1487-two-ply-training.cjs'
+      - '.github/workflows/ai-v1487-two-ply-pilot.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v1487-deep-planning-pilot-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  public-board-two-ply-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check source syntax and core fusion rules
+        run: |
+          node --check tests/ai-v1487-two-ply-training.cjs
+          node --check tests/ai-v1486-three-arm-symmetric-training.cjs
+          node --test tests/ai-board-planner-v129.test.cjs tests/fusion-rework-v113.test.cjs tests/role-inheritance-regression.test.cjs
+      - name: Restore verified historical self-play generations
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v136-extensive-1200-episode-selfplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39637833422
+          github-token: ${{ github.token }}
+          path: artifacts/history
+      - name: Restore v14.7 frozen reference policies
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v147-final-score-transparency-and-mirror-training
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39666712311
+          github-token: ${{ github.token }}
+          path: artifacts/history-v147
+      - name: Verify frozen sources exist
+        run: |
+          test "$(find artifacts/history -name ai-v136-training-report.json | wc -l)" -eq 3
+          test -f artifacts/history-v147/report.json
+          node -e "const p=require('./artifacts/history-v147/report.json'); if(p.schema!=='arcane-v147-final-score-transparent-mirrors')process.exit(1)"
+      - name: Pilot legal two-ply actions against frozen v14.7 AI
+        env:
+          ARCANE_V1486_TRAIN: '6'
+          ARCANE_V1486_HOLDOUT: '6'
+          ARCANE_V1486_LEAGUE: '3'
+        run: node --max-old-space-size=4096 tests/ai-v1487-two-ply-training.cjs
+      - name: Verify report schema and mirror accounting
+        run: |
+          node - <<'JS'
+          const assert=require('node:assert/strict');
+          const r=require('./artifacts/v1487/report.json');
+          assert.equal(r.schema,'arcane-v1487-public-visible-two-ply-pilot');
+          assert.equal(r.productionIntegrated,false);
+          assert.equal(r.championPromoted,false);
+          assert.equal(r.holdout.stats.games,48);
+          assert.ok(Number.isFinite(r.holdout.stats.winRate));
+          assert.ok(r.holdout.stats.plannerCalls>=0);
+          console.log(JSON.stringify({risk:r.selectedRisk,
+            holdout:r.holdout.stats,promoted:r.championPromoted},null,2));
+          JS
+      - name: Archive complete pilot decisions and holdout result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1487-public-board-counterplay-pilot
+          path: artifacts/v1487/report.json
+          retention-days: 90
+          if-no-files-found: warn

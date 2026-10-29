@@ -1,0 +1,77 @@
+name: Arcane Duel - v12.7 X Offense and Mirror Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-x-offensive-careers-v127.cjs'
+      - 'tests/ai-x-mirror-v127.cjs'
+      - 'tests/helpers/x-offensive-ai-v127.cjs'
+      - '.github/workflows/ai-x-offense-mirror-v127.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and game-deck legality
+        run: |
+          node --check tests/ai-x-offensive-careers-v127.cjs
+          node --check tests/ai-x-mirror-v127.cjs
+          node --check tests/helpers/x-offensive-ai-v127.cjs
+          node --test tests/perks-v126.test.cjs tests/opponent-vii-viii-roster-v126.test.cjs tests/opponent-vii-x-roster-v125.test.cjs tests/ascension-balance-v116.test.cjs
+  career:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Pilot two paired origins across three AI policies
+        env:
+          ARCANE_V127_CAREERS: '2'
+          ARCANE_V127_TIER_ATTEMPTS: '8'
+        run: node tests/ai-x-offensive-careers-v127.cjs
+      - name: Full 32 paired origins times three AI policies
+        env:
+          ARCANE_V127_CAREERS: '32'
+          ARCANE_V127_TIER_ATTEMPTS: '30'
+        run: node tests/ai-x-offensive-careers-v127.cjs
+      - name: Upload earned career and X-boss combat records
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v127-x-offense-96-careers
+          path: artifacts/ai-x-offensive-careers-v127.json
+          retention-days: 30
+          if-no-files-found: warn
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Pilot X identical-deck mirror with native and equal-power control
+        env:
+          ARCANE_V127_MIRROR_SEEDS: '2'
+        run: node tests/ai-x-mirror-v127.cjs
+      - name: Full X mirrored deck benchmark
+        env:
+          ARCANE_V127_MIRROR_SEEDS: '32'
+        run: node tests/ai-x-mirror-v127.cjs
+      - name: Upload no-reward mirror results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v127-x-mirror-128-duels
+          path: artifacts/ai-x-mirror-v127.json
+          retention-days: 30
+          if-no-files-found: warn

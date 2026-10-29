@@ -24,7 +24,7 @@ test('exact approved 16 complete records with distinct stable IDs and correct ti
 });
 test('no unillustrated cards become active before approved art ZIP is installed',()=>{
  const state=query(`(()=>({length:CARDS.length,status:window.ArcaneLateGameV71,
-  newLate:window.ArcaneLateGameV117?.count||0,cards:CARDS.slice(716,732).map(c=>({id:c.id,art:c.art,retired:c.retired}))}))()`);
+  newLate:window.ArcaneLateGameV117?.count||0,newFusions:window.ArcaneFusionWaveV129?.installed||0,v130Fusions:window.ArcaneFusionWaveV130?.installed||0,cards:CARDS.slice(716,732).map(c=>({id:c.id,art:c.art,retired:c.retired}))}))()`);
  if(!state.status.artworksInstalled){
   assert.equal(state.length,716,'No unillustrated live cards may be added');
   assert.equal(state.status.count,0);
@@ -32,7 +32,7 @@ test('no unillustrated cards become active before approved art ZIP is installed'
   assert.equal(state.status.status,'artwork-import-pending');
   assert.deepEqual(state.cards,[]);
  }else{
-  assert.equal(state.length,732+state.newLate);
+  assert.equal(state.length,732+state.newLate+state.newFusions+state.v130Fusions);
   assert.equal(state.status.count,16);
   assert.ok(state.cards.every(c=>c.art.startsWith('assets/custom-art/lategame-v71/')));
   assert.ok(state.cards.every(c=>!c.retired));

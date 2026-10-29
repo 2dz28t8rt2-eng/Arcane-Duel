@@ -1,0 +1,89 @@
+name: Arcane Duel - v14.4 Historical Fusion Followup and Counterplay
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-historical-fusion-followup-v144.cjs'
+      - '.github/workflows/ai-historical-fusion-followup-v144.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v144-historical-followup-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  historical-curriculum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 105
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify previous mechanics and followup code
+        run: |
+          node --check tests/ai-historical-fusion-followup-v144.cjs
+          node --test tests/ai-history-v130.test.cjs tests/ai-board-planner-v129.test.cjs tests/fusion-rework-v113.test.cjs tests/defender-soul-update.test.cjs tests/allrounder-resonance-v41.test.cjs tests/lv1-fusion-and-ghost-v47.test.cjs tests/role-inheritance-regression.test.cjs
+      - name: Restore original v13.6 historical training generations
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v136-extensive-1200-episode-selfplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39637833422
+          github-token: ${{ github.token }}
+          path: artifacts/history
+      - name: Restore v14.2 planner action audit
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v142-planner-action-override-and-mechanic-coverage
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39647899323
+          github-token: ${{ github.token }}
+          path: artifacts/history-v142
+      - name: Restore v14.3 complete-fusion experiment and failures
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v143-fusion-value-training-and-verified-placement
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39650698039
+          github-token: ${{ github.token }}
+          path: artifacts/history-v143
+      - name: Check historical evidence and preserved champion
+        run: |
+          test "$(find artifacts/history -name ai-v136-training-report.json | wc -l)" -eq 3
+          node - <<'JS'
+          const assert=require('node:assert/strict');
+          const base=require('./models/ai-selfplay-v136.json');
+          const old142=require('./artifacts/history-v142/report.json');
+          const old143=require('./artifacts/history-v143/report.json');
+          assert.equal(base.gamesTrained,1920);
+          assert.equal(base.productionActive,false);
+          assert.equal(old142.schema,'arcane-v142-action-override-audit');
+          assert.equal(old143.schema,'arcane-v143-fusion-value-resolution');
+          assert.equal(old143.promotionEligible,false);
+          console.log('Historical results verified and production AI remains untouched');
+          JS
+      - name: Pilot legal fusion-followup and counterattack curriculum
+        env:
+          ARCANE_V144_TRAIN: '6'
+          ARCANE_V144_HOLDOUT: '12'
+          ARCANE_V144_LEAGUE: '3'
+        run: node tests/ai-historical-fusion-followup-v144.cjs
+      - name: Run extensive historical fusion-followup strategy training
+        env:
+          ARCANE_V144_TRAIN: '36'
+          ARCANE_V144_HOLDOUT: '48'
+          ARCANE_V144_LEAGUE: '10'
+        run: node tests/ai-historical-fusion-followup-v144.cjs
+      - name: Upload training report, historical lessons, and protected candidate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v144-historical-fusion-followup-counterplay
+          path: |
+            artifacts/v144/report.json
+            artifacts/v144/history-lessons.json
+            artifacts/v144/candidate.json
+          retention-days: 90
+          if-no-files-found: warn

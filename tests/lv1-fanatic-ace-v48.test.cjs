@@ -27,9 +27,9 @@ test('Lumira remains powerless in the enemy hand and battlefield even if the pla
  const r=stage(3).run("(()=>{const g=game,p=g.players[1];profile.lv1Saga.perk=true;g.active=1;g.turn=3;const ace=p.hand.find(c=>c.id===ArcaneLv1Swarm.ids.ace);prepareNormal(g,ace.uid);placePending(g,0);g.players[0].field.fill(null);const lp=p.lp,opponent=g.players[0].lp;const result=attack(g,0,null);return {attacked:!!result,enemyHealed:p.lp!==lp,didDamage:g.players[0].lp<opponent,stats:p.field[0]?.card?.level,abilityEnabled:!!p.field[0]?.lv1AceSaved};})()");
  assert.equal(r.attacked,true);assert.equal(r.enemyHealed,false);assert.equal(r.didDamage,true);assert.equal(r.stats,1);assert.equal(r.abilityEnabled,false);
 });
-test('the final antagonist has one unique Level-5 Predator fusion with red corrupted art and no invented abilities',()=>{
+test('the final antagonist has one unique role-neutral Level-5 fusion with red corrupted art and no invented abilities',()=>{
  const b=stage(5);const r=b.run("(()=>{const id=ArcaneLv1Saga.corruptedId,c=CARDS[id],p=game.players[1];return {name:c.name,level:c.level,role:c.role,ability:c.ability??null,art:c.art,enemyOnly:c.enemyOnly,fusionOnly:c.fusionOnly,inDeck:p.fusionDeck.includes(id),stock:p.remainingFusion.includes(id)};})()");
- assert.match(r.name,/Lumiras Fall/);assert.equal(r.level,5);assert.equal(r.role,'predator');
+ assert.match(r.name,/Lumiras Fall/);assert.equal(r.level,5);assert.equal(r.role,undefined);
  assert.equal(r.ability,null);assert.equal(r.enemyOnly,true);assert.equal(r.fusionOnly,true);
  assert.equal(r.inDeck,true);assert.equal(r.stock,true);
  const file=fs.readFileSync(path.resolve(__dirname,'../'+r.art));

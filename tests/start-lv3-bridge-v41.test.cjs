@@ -13,7 +13,7 @@ test('Starter fusions are now level 2, 3, 4 with distinct cards and unchanged ol
  }.toString()+')()');
  assert.equal(r.ids.length,3);
  assert.deepEqual([...r.levels].sort((a,b)=>a-b),[2,3,4]);
- assert.equal(r.role,'combatant');assert.match(r.name,/Runengeist/);
+ assert.equal(r.role,undefined);assert.match(r.name,/Runengeist/);
  assert.equal(r.active,true);assert.equal(r.pool,true);assert.equal(r.fusion,true);
  assert.equal(r.inventory,2);assert.equal(r.deck,2);assert.ok(r.art);
 });

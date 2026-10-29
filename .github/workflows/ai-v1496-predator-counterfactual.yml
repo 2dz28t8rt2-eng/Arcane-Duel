@@ -1,0 +1,75 @@
+name: Arcane Duel - v14.9.6 Predator Buff & Counterfactual Learning
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/game.js'
+      - 'assets/essence-combat.js'
+      - 'tests/predator-armor-pierce-v1496.test.cjs'
+      - 'tests/ai-v1496-predator-counterfactual-learning.cjs'
+      - '.github/workflows/ai-v1496-predator-counterfactual.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v1496-predator-counterfactual-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  predator-counterfactual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and actual seat-mirrored Predator damage regression
+        run: |
+          node --check tests/ai-v1496-predator-counterfactual-learning.cjs
+          node --check tests/predator-armor-pierce-v1496.test.cjs
+          node --test tests/predator-armor-pierce-v1496.test.cjs tests/strategic-seat-parity-v1495.test.cjs tests/strategic-seat-parity-v1494.test.cjs
+      - name: Restore prior successful research Q only (no previous holdout labels)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p artifacts/v1496 /tmp/arcane-prior
+          PREVIOUS=$(gh run list --workflow ai-v1496-predator-counterfactual.yml --branch development --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+          if [ -n "$PREVIOUS" ]; then
+            if gh run download "$PREVIOUS" --name arcane-v1496-predator-counterfactual-learning --dir /tmp/arcane-prior; then
+              if [ -f /tmp/arcane-prior/training-q-and-examples.json ]; then
+                cp /tmp/arcane-prior/training-q-and-examples.json artifacts/v1496/previous-training-q.json
+                echo "ARCANE_V1496_RESTORED_Q $PREVIOUS"
+              fi
+            fi
+          fi
+      - name: Matched legal Predator decisions, real engine alternatives and learned Q values
+        run: |
+          node --max-old-space-size=4096 tests/ai-v1496-predator-counterfactual-learning.cjs
+      - name: Strict training-test separation and no accidental production buff
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const x=JSON.parse(fs.readFileSync('artifacts/v1496/report.json','utf8'));
+          assert.equal(x.schema,'arcane-v1496-predator-counterfactual-learning');
+          assert.equal(x.trainingCasesPerArm,450);
+          assert.equal(x.holdoutCasesPerArm,150);
+          assert.equal(x.candidates.length,3);
+          assert.deepEqual(x.candidates.map(y=>y.pierce),[0,.08,.12]);
+          assert.equal(x.productionEnabled,false);
+          assert.equal(x.updatedQArms>=0,true);
+          assert.equal(typeof x.priorCheckpointLoaded,'boolean');
+          assert.ok(x.candidates.every(y=>y.keys>0&&
+            y.holdout.cases===150&&Number.isFinite(y.holdout.learnerUtility)));
+          console.log('ARCANE_V1496_GATES '+JSON.stringify({
+           selectedTrainingOnly:x.chosenResearchPierce,
+           holdouts:x.candidates.map(y=>({pierce:y.pierce,...y.holdout}))}));
+          JS
+      - name: Preserve Predator buff ablations, learned Q table and holdout logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1496-predator-counterfactual-learning
+          path: artifacts/v1496/
+          retention-days: 90
+          if-no-files-found: warn

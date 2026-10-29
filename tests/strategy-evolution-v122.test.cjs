@@ -1,0 +1,165 @@
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const vm=require('node:vm');
+const fs=require('node:fs');
+const path=require('node:path');
+
+function setup(overrides={}){
+  const storage=new Map();
+  const CARDS=[
+    {id:0,rpg:true,name:'Wächter A',level:8,role:'guardian',atk:800,def:1000},
+    {id:1,rpg:true,name:'Wächter B',level:7,role:'guardian',atk:700,def:900},
+    {id:2,rpg:true,name:'Predator A',level:2,role:'predator',atk:310,def:100},
+    {id:3,rpg:true,name:'Seelenzehrer A',level:2,role:'soul',atk:200,def:250},
+    {id:4,rpg:true,name:'Fusion',level:5,fusionOnly:true,atk:600,def:650}
+  ];
+  const profile={inventory:{0:3,1:3,2:3,3:3,4:1},unlocked:[0,1,2,3],fusionOwned:[4],slots:[],activeSlot:0,
+    activeDeck:[],fusionDeck:[4],enhancements:{},upgrades:{power:0}};
+  const state={
+    window:{localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},setTimeout:(callback)=>callback()},
+    document:{getElementById:()=>null},CARDS,profile,RPG_BASE_CARDS:CARDS.filter(c=>!c.fusionOnly),
+    $:()=>null,uiMode:'idle',menuTab:'free',game:null,
+    escapeHtml:x=>String(x).replace(/</g,'&lt;'),
+    dataOf:c=>CARDS[c.id],
+    mainDeckError:d=>d.length===40&&d.every(id=>d.filter(x=>x===id).length<=3)?'':'invalid',
+    fusionDeckError:f=>f.length===1?'':'invalid',
+    inventoryError:(deck,inventory)=>deck.some(id=>deck.filter(x=>x===id).length>(inventory[id]||0))?'inventory':'',
+    rpgRole:id=>({role:CARDS[id].role}),
+    prepareHandFusion:()=>true,placePending:()=>null,logEvent:()=>null,showFinished:()=>null,
+    renderMenu:()=>null,render:()=>null,OPPONENTS:[],opponentUnlocked:()=>false,
+    monsterTrainingBonus:()=>0,createGame:()=>({}),simulateGame:()=>{},
+    saveProfile:()=>true,setActiveDeck:()=>true,openModal:()=>{},hideModal:()=>{},toast:()=>{}
+  };
+  Object.assign(state,overrides);
+  const repoPath=path.join(__dirname,'../assets/strategy-evolution-v122.js');
+  const localPath=path.join(__dirname,'strategy-evolution-v122.js');
+  vm.runInNewContext(fs.readFileSync(fs.existsSync(repoPath)?repoPath:localPath,'utf8'),state);
+  return {api:state.window.ArcaneStrategyEvolution122,state,storage};
+}
+
+test('safe state strips malformed and excessive client metadata',()=>{
+  const {api}=setup();
+  const state=api.safeState({wish:[2,2,-5,'3',1],fusions:[{result:4,materials:[0,1]}],tips:['fusion','fusion',9],dangers:1});
+  assert.deepEqual(Array.from(state.wish),[2,1]);
+  assert.equal(state.fusions.length,1);
+  assert.deepEqual(Array.from(state.tips),['fusion']);
+  assert.equal(state.dangers,false);
+});
+
+test('deck optimizer creates a valid one-card substitution and leaves original untouched',()=>{
+  const {api,state}=setup();
+  const deck=[...Array(3).fill(0),...Array(3).fill(1),...Array(2).fill(2),...Array(2).fill(3)];
+  // 40 cards, initially all copies capped at three across a larger genuine collection.
+  for(let id=5;id<15;id++){
+    state.CARDS.push({id,rpg:true,name:'Wächter '+id,level:8,role:'guardian'});
+    state.RPG_BASE_CARDS.push(state.CARDS[id]);
+    state.profile.inventory[id]=3;
+    state.profile.unlocked.push(id);
+    deck.push(id,id,id);
+  }
+  const plan=api.proposeSwap(deck);
+  assert.equal(deck.length,40);
+  assert.equal(plan.trial.length,40);
+  assert.notDeepEqual(Array.from(plan.trial),deck);
+  assert.equal(deck.filter(x=>x===plan.before).length-plan.trial.filter(x=>x===plan.before).length,1);
+  assert.equal(plan.trial.filter(x=>x===plan.after).length-deck.filter(x=>x===plan.after).length,1);
+});
+
+test('only visible field stats generate vulnerability flags',()=>{
+  const {api}=setup();
+  const game={mode:'pve',players:[{field:[{id:0,mode:'def'},{id:2,mode:'atk'},null]},
+    {field:[{id:1,mode:'atk'},null]}]};
+  const threats=Array.from(api.dangerMarkers(game));
+  assert.deepEqual(threats,[false,true,false]);
+});
+
+test('pivotal moments are real logged entries and returned chronologically',()=>{
+  const {api}=setup();
+  const events=[{turn:2,entry:'Eine Fusion ausgeführt.'},{turn:5,entry:'Gegenschlag: 100 Schaden.'},
+    {turn:4,entry:'Angriff gegen Gegner: 900 Schaden.'},{turn:8,entry:'Duellant 1 gewinnt: Sieg.'}];
+  const highlights=Array.from(api.pivotalMoments(events));
+  assert.ok(highlights.length>=2);
+  assert.ok(highlights.every(h=>events.some(e=>e.entry===h.entry)));
+  assert.deepEqual(highlights.map(h=>h.turn),[...highlights.map(h=>h.turn)].sort((a,b)=>a-b));
+});
+
+test('archive groups equivalent materials regardless of placement order',()=>{
+  const {api}=setup();
+  const rows=Array.from(api.archiveRows([{result:4,materials:[0,2],atk:430,def:300,at:1},
+    {result:4,materials:[2,0],atk:500,def:270,at:2}]));
+  assert.equal(rows.length,1);
+  assert.equal(rows[0].count,2);
+  assert.equal(rows[0].maxAtk,500);
+  assert.equal(rows[0].maxDef,300);
+});
+
+test('failed field placement cannot accidentally add materials to the fusion archive',()=>{
+  const {state,storage}=setup({
+    prepareHandFusion:g=>{g.pending={kind:'fusion',card:{id:4,fusion:true}};return true;},
+    placePending:(g,idx)=>idx===0?null:{card:{id:4,fusion:true,roleOverride:'guardian'}}
+  });
+  const g={mode:'pve',active:0,turn:4,pending:null,players:[
+    {hand:[{id:0,uid:11},{id:1,uid:12}],field:[{id:2},null]},
+    {field:[]}
+  ]};
+  state.game=g;state.uiMode='duel';
+  assert.equal(state.prepareHandFusion(g,[11,12],4),true);
+  assert.equal(state.placePending(g,0,4),null);
+  assert.ok(state.placePending(g,1,4));
+  const record=JSON.parse(storage.get('arcane-duel-v122-strategy')).fusions[0];
+  assert.deepEqual(Array.from(record.materials),[0,1]);
+});
+
+test('A/B report makes no positive claim without complete simulations',()=>{
+  const {api}=setup();
+  assert.match(api.comparisonText({n:0,wins:0},{n:0,wins:0}),/Zu wenige/);
+  assert.match(api.comparisonText({n:10,wins:5},{n:10,wins:6}),/dieses Testszenario/);
+});
+
+test('paired A/B deck simulations use both first-player positions and identical within-pair seeds',()=>{
+  const {api}=setup();
+  const rounds=Array.from({length:30},(_,i)=>api.pairedSchedule(i,2,'mixed'));
+  assert.equal(rounds.filter(x=>x.starter===0).length,15);
+  assert.equal(rounds.filter(x=>x.starter===1).length,15);
+  for(let i=0;i<30;i+=2){
+    assert.equal(rounds[i].seed,rounds[i+1].seed);
+    assert.equal(rounds[i].policy,rounds[i+1].policy);
+  }
+  assert.equal(new Set(rounds.map(x=>x.policy)).size,4);
+});
+
+test('local radar comparison reports only measured policy gaps',()=>{
+  const {api}=setup();
+  const before={reports:[{policy:'balanced',stats:[{n:12,wins:6},{n:12,wins:6}]}]};
+  const after=[{policy:'balanced',stats:[{n:12,wins:9},{n:12,wins:6}]}];
+  const report=api.compareRadarRuns(before,after);
+  assert.match(report,/Ausgewogen \+13 Prozentpunkte/);
+  assert.equal(api.compareRadarRuns(null,after),'');
+});
+
+test('wishlist location hints show only owned/known cards from unlocked confirmed loot lists',()=>{
+  const opponents=[{name:'Training',loot:[2]},{name:'Burgwächter',loot:[2,3]},
+    {name:'Geheimgegner',loot:[2,4]}];
+  const {api}=setup({OPPONENTS:opponents,opponentUnlocked:id=>id===1});
+  assert.deepEqual(Array.from(api.confirmedDropSources(2)),['Training','Burgwächter']);
+  assert.deepEqual(Array.from(api.confirmedDropSources(4)),[]);
+  assert.deepEqual(Array.from(api.confirmedDropSources(1000)),[]);
+});
+
+test('acquisition guide checks live easy/hard pools, crafting and booster access without spoilers',()=>{
+  const opponents=[{name:'Training',loot:[2]},{name:'Burgwächter',loot:[2,4]},
+    {name:'Geheimgegner',loot:[1,4]}];
+  const {api,state}=setup({OPPONENTS:opponents,opponentUnlocked:id=>id<=1,
+    hardUnlocked:id=>id===1,highestCleared:()=>1,cardAvailable:id=>id===2,
+    lootPool:(i,mode)=>i===0?[2]:i===1?(mode==='hard'?[4]:[2,4]):[1,4]});
+  state.window.ArcaneFusionPackV109={fusionPackPool:()=>({fusion:[4],normal:[2]})};
+  const normal=Array.from(api.acquisitionHints(2));
+  assert.ok(normal.some(x=>x.includes('Training')&&x.includes('Normal')));
+  assert.ok(normal.some(x=>x.includes('Splitterwerkstatt')));
+  assert.ok(normal.some(x=>x.includes('Fusionsbooster')));
+  const fusion=Array.from(api.acquisitionHints(4));
+  assert.ok(fusion.some(x=>x.includes('Burgwächter')&&x.includes('Normal/Schwer')));
+  assert.ok(fusion.some(x=>x.includes('Fusionsbooster')));
+  assert.ok(fusion.every(x=>!x.includes('Geheimgegner')));
+  assert.deepEqual(Array.from(api.acquisitionHints(999)),[]);
+});

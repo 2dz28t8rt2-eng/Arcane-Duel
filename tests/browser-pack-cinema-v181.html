@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcane Duel – Booster Cinema v18.1 (visueller Test)</title>
+<link rel="stylesheet" href="../assets/pack-cinema-v178.css">
+<link rel="stylesheet" href="../assets/pack-cinema-v181.css">
+<style>body{background:#101625;color:#f0e1c3;font:16px system-ui;margin:0;min-height:100vh;display:grid;place-items:center}main{text-align:center;max-width:600px;padding:25px}button{padding:11px 22px;margin:7px;color:#ffe9c2;background:#3b2c55;border:1px solid #d2ac73;border-radius:8px;cursor:pointer}</style>
+</head><body><main><h1>Booster Cinema – Vorschau</h1><p>Diese Seite zeigt nur die Animation. Es werden keine Karten vergeben und keine Spielstände verändert.</p>
+<button type="button" id="three">Drei Karten enthüllen</button><button type="button" id="ten">Zehn Karten enthüllen</button></main>
+<script src="../assets/pack-cinema-v178.js"></script><script src="../assets/pack-cinema-v181.js"></script>
+<script>
+const cards=[
+ {name:'Nekroth, König des Seelenschwarms',level:1,art:'https://raw.githack.com/2dz28t8rt2-eng/Arcane-Duel/development/assets/custom-art/lv1-necro-hive-illustration.webp'},
+ {name:'Nyxar, Klinge des Schwarms',level:7,fusion:true,art:'https://raw.githack.com/2dz28t8rt2-eng/Arcane-Duel/development/assets/custom-art/lv1-attacker-illustration.webp'},
+ {name:'Himmlischer Löwenwächter',level:10,ace:true}
+];
+document.getElementById('three').onclick=()=>ArcanePackCinema181.open(cards,{title:'DEIN CHARAKTERPACK',selection:true});
+document.getElementById('ten').onclick=()=>ArcanePackCinema181.open([...cards,...cards,...cards,cards[0]],{title:'ZEHN NEUE KARTEN'});
+</script></body></html>

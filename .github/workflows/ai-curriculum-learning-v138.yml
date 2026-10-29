@@ -1,0 +1,81 @@
+name: Arcane Duel - v13.8 Decision Replay Curriculum Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-curriculum-learning-v138.cjs'
+      - '.github/workflows/ai-curriculum-learning-v138.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v138-curriculum-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  mechanism-curriculum-and-memory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify legacy rules and new replay trainer
+        run: |
+          node --check tests/ai-curriculum-learning-v138.cjs
+          node --test tests/ai-history-v130.test.cjs tests/ai-board-planner-v129.test.cjs
+      - name: Restore three generations of authentic historical match statistics
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v136-extensive-1200-episode-selfplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39637833422
+          github-token: ${{ github.token }}
+          path: artifacts/history
+      - name: Restore v13.7 archived decision alternatives
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v137-history-curriculum-league-counterfactual-report
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39641190561
+          github-token: ${{ github.token }}
+          path: artifacts/v137history
+      - name: Verify lineage, three reports and replay gap
+        run: |
+          test "$(find artifacts/history -name 'ai-v136-training-report.json' | wc -l)" -eq 3
+          V137=$(find artifacts/v137history -name history-and-counterfactual.json -type f | head -1)
+          test -n "$V137"
+          if [ "$V137" != "artifacts/v137history/history-and-counterfactual.json" ]; then cp "$V137" artifacts/v137history/history-and-counterfactual.json; fi
+          node - <<'JS'
+          const fs=require('fs'),assert=require('node:assert/strict');
+          const m=JSON.parse(fs.readFileSync('models/ai-selfplay-v136.json','utf8'));
+          const h=JSON.parse(fs.readFileSync('artifacts/v137history/history-and-counterfactual.json','utf8'));
+          assert.equal(m.gamesTrained,1920);
+          assert.equal(h.schema,'arcane-v137-history-and-counterfactual');
+          assert.ok(h.curriculum.realActionPairing.pairedCounterfactualStates>=18);
+          console.log('Arcane v13.8 restored:',m.gamesTrained,'old training duels and',h.curriculum.realActionPairing.pairedCounterfactualStates,'old controlled choice pairs');
+          JS
+      - name: Validate paired action legality, recording and comparison on pilot
+        env:
+          ARCANE_V138_CASES: '8'
+          ARCANE_V138_HOLDOUT: '6'
+          ARCANE_V138_LEAGUE: '3'
+        run: node tests/ai-curriculum-learning-v138.cjs
+      - name: Run v13.8 legal-counterfactual training and independent league
+        env:
+          ARCANE_V138_CASES: '84'
+          ARCANE_V138_HOLDOUT: '30'
+          ARCANE_V138_LEAGUE: '12'
+        run: node tests/ai-curriculum-learning-v138.cjs
+      - name: Save new decision replay, mechanic audit, standalone candidate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v138-rule-decision-memory-and-trained-candidate
+          path: |
+            artifacts/v138/decision-replay.json
+            artifacts/v138/curriculum-report.json
+            artifacts/v138/candidate-model.json
+          retention-days: 90
+          if-no-files-found: warn

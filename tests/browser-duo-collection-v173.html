@@ -1,0 +1,37 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8">
+<title>Arcane Duel 2v2 v17.3 Collection QA</title></head><body>
+<pre id="result">Lädt …</pre><iframe id="duo" src="../duo-campaign-v2.html" width="1000" height="950"></iframe>
+<script>
+document.getElementById('duo').addEventListener('load',()=>{
+ setTimeout(()=>{
+  const d=document.getElementById('duo').contentDocument,w=document.getElementById('duo').contentWindow,
+   notes=[];let ok=true;
+  const check=(value,label)=>{if(!value)ok=false;notes.push((value?'OK ':'FAIL ')+label);};
+  try{
+   check(!!w.ArcaneDuoEconomy172?.collectionRows,'Shared v17.3 economy imported');
+   check(!!d.getElementById('duoCollectionRows'),'Searchable card inventory available');
+   check(!!d.getElementById('duoCollectionFilter')&&!!d.getElementById('duoCollectionSearch'),
+    'Collection filter and search ready');
+   check(!!d.getElementById('duoCollectionOnlySpare'),
+    'Unused-copy filter ready');
+   check(!!d.getElementById('duoCardEnhanceSelect')&&
+     !!d.getElementById('duoCardEnhanceBuy'),
+    'Card enhancement workshop controls available');
+   check(!!d.getElementById('duoCardRecycleSelect')&&
+     !!d.getElementById('duoCardRecycleConfirm'),
+    'Recycling requires a separate user confirmation');
+   check(d.getElementById('duoCardRecycleApply').disabled,
+    'Recycling cannot run before explicitly choosing an unused card');
+   check(d.getElementById('duoProfileActive').hidden,
+    'No items presented as owned before server profile authorization');
+   check(!!d.querySelector('.duo-team-definition')?.textContent.includes('Du und dein Partner gegen zwei Gegner'),
+    'The guide identifies both human partners and the opposing team');
+   const p={owned_main:[1],owned_fusions:[],deck:[1],fusions:[],enhancements:{}};
+   check(w.ArcaneDuoEconomy172.recycleOffer(p,1,{1:{id:1,playable:true,level:1}})===null,
+    'Active card cannot be sold, even in the visual helper');
+  }catch(e){check(false,e.stack||e.message);}
+  document.getElementById('result').textContent=notes.join('\n');
+  document.documentElement.dataset.duoCollection=ok?'pass':'fail';
+ },1400);
+});
+</script></body></html>

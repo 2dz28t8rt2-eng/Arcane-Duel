@@ -1,0 +1,17 @@
+/* Arcane Duel v19.2 – clear, bounded, non-interactive combat feedback. */
+.ad192-impact-stage{position:fixed;inset:0;overflow:hidden;z-index:310;pointer-events:none;isolation:isolate}
+.ad192-float{position:absolute;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:84px;max-width:min(200px,50vw);box-sizing:border-box;padding:8px 12px;border:1px solid;border-radius:11px;transform:translate(-50%,-50%);text-align:center;white-space:normal;box-shadow:0 8px 25px #000b,inset 0 1px #fff4;animation:ad192Rise 1.75s cubic-bezier(.15,.76,.32,1) both;will-change:transform,opacity}
+.ad192-hit{color:#fff2e9;border-color:#ffb187;background:linear-gradient(155deg,#712e35f2,#301c2cfa 72%);text-shadow:0 0 14px #ff7959aa}
+.ad192-ward{color:#e1faff;border-color:#92e3ed;background:linear-gradient(155deg,#246378f2,#1a2c48fa 72%);text-shadow:0 0 15px #7de7f8af}
+.ad192-counter{color:#ffebce;border-color:#ffd088;background:linear-gradient(155deg,#774a26f5,#352138f8 72%);text-shadow:0 0 14px #ffd581cf}
+.ad192-amount{font:800 clamp(20px,2.5vw,30px)/1.1 Georgia,serif;font-variant-numeric:tabular-nums}
+.ad192-caption{font:700 clamp(9px,1.05vw,12px)/1.35 system-ui,sans-serif;color:inherit;opacity:.96;letter-spacing:.015em}
+.ad192-heavy{padding:11px 17px;border-width:2px;box-shadow:0 0 22px 5px #ff96765f,0 12px 34px #000d,inset 0 1px #fff7}
+.ad192-heavy .ad192-amount{font-size:clamp(26px,3.6vw,39px)}
+.ad192-counter-streak{position:absolute;display:block;color:#ffeecb;font:900 29px Georgia,serif;filter:drop-shadow(0 0 9px #f5bd71);animation:ad192CounterFly .31s cubic-bezier(.22,.75,.25,1) both;will-change:transform,opacity}
+.ad192-counter-streak::after{content:'✧';position:absolute;left:-18px;top:9px;color:#ffaf71;font:700 19px Georgia,serif;opacity:.75;filter:blur(1px)}
+.ad192-spark{position:absolute;left:calc(50% - 4px);top:45%;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle,#fff,#ffb37a 65%,transparent);box-shadow:0 0 8px #ffba80;animation:ad192SparkBurst 1s ease-out both}
+@keyframes ad192Rise{0%{transform:translate(-50%,-16%) scale(.53);opacity:0;filter:brightness(1.2)}14%{transform:translate(-50%,-60%) scale(1.13);opacity:1}43%{transform:translate(-50%,-80%) scale(1);opacity:1}80%{opacity:1}100%{transform:translate(-50%,-145%) scale(.92);opacity:0}}
+@keyframes ad192CounterFly{0%{transform:translate(-50%,-50%) rotate(-25deg) scale(.6);opacity:0}19%{opacity:1}82%{opacity:1}100%{transform:translate(calc(var(--ad192-dx) - 50%),calc(var(--ad192-dy) - 50%)) rotate(30deg) scale(1.3);opacity:0}}
+@keyframes ad192SparkBurst{0%{transform:rotate(var(--ad192-angle)) translateY(0) scale(.5);opacity:1}100%{transform:rotate(var(--ad192-angle)) translateY(-58px) scale(.2);opacity:0}}
+@media(prefers-reduced-motion:reduce){.ad192-float,.ad192-counter-streak,.ad192-spark{animation:none!important}}

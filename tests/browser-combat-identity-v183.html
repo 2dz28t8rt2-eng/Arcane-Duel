@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="de"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcane Duel · Kampfeffekte v18.3</title>
+<link rel="stylesheet" href="../assets/duo-campaign-demo.css">
+<link rel="stylesheet" href="../assets/duo-parity-v160.css">
+<link rel="stylesheet" href="../assets/combat-identity-v183.css">
+<style>
+ .duo-wrap{max-width:980px}
+ .demo{padding:20px;border:1px solid #897151;border-radius:14px;background:#141c30}
+ .demo .seat{padding:14px}
+ .demo .field{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+ .demo .field-cell{height:155px;min-width:0;position:relative;display:flex;flex-direction:column;gap:7px;
+   border-radius:10px;padding:13px 5px;font-size:12px;background:linear-gradient(#242943,#181e31)}
+ .demo .field-cell>strong{color:#f5e3bb;font-family:Georgia,serif;font-size:14px}
+ .demo .field-cell .ad183-role-crest{top:8px;right:6px}
+ .demo .field-cell .ad183-condense-badge{top:38px;right:5px}
+ .demo .field-cell small{font-size:11px;color:#c6cedd}
+ .demo-controls{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+ .demo-controls button{flex:1 1 175px;min-height:48px}
+ .demo-note{font-size:13px;color:#bac9dd}
+ @media(max-width:600px){.demo .field{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head><body><main class="duo-wrap">
+ <header class="duo-header"><div><p class="kicker">✧ ARCANE DUEL · ANIMATIONSVORSCHAU</p>
+  <h1>Kampfidentitäten v18.3</h1>
+  <p>Probiere die Effekte der Monsterrollen aus – ohne ein echtes Duell zu starten.</p></div>
+  <a href="../index.html">← Zurück zum Spiel</a></header>
+ <section class="demo duo-battle">
+  <div id="duoSeats" class="four-seats"></div>
+  <div class="demo-controls">
+   <button id="predator">✦ Predator greift an</button>
+   <button id="guardian">⬟ Wächter in DEF</button>
+   <button id="soul">◆ Verdichten +120</button>
+   <button id="resonator">✧ Resonanz laden</button>
+   <button id="reset">↻ Zurücksetzen</button>
+  </div>
+  <p class="demo-note">Diese Seite zeigt nur die Darstellung. Sie verändert keine Kampfwerte oder gespeicherten Spielstände.
+   Bei reduzierten Animationen bleiben die Rollenmarkierungen erhalten.</p>
+ </section>
+</main>
+<script src="../assets/combat-identity-v183.js"></script>
+<script>
+(()=>{
+  const make=()=>[
+    {uid:10,role:'predator',mode:'atk',used:false,condensed:0,resonance:0},
+    {uid:11,role:'guardian',mode:'atk',guardLeft:0,condensed:0,resonance:0},
+    {uid:12,role:'soul',mode:'def',condensed:0,resonance:0},
+    {uid:13,role:'resonator',mode:'atk',fusion:true,resonance:0,condensed:0}
+  ];
+  let cards=make();
+  const names=['Roter Jäger','Himmlischer Wächter','Seelenweber','Sternenresonator'];
+  function draw(){
+    const host=document.getElementById('duoSeats');host.replaceChildren();
+    const seat=document.createElement('article');seat.className='seat';seat.dataset.seat='0';
+    const field=document.createElement('div');field.className='field';
+    cards.forEach((c,i)=>{
+      const cell=document.createElement('div');cell.className='field-cell filled';
+      cell.innerHTML='<strong>'+names[i]+'</strong><small>'+(c.mode==='def'?'Schildstellung':'Angriffsstellung')+
+        '</small><small>'+(c.role==='soul'?'Verdichtet '+c.condensed:c.role==='resonator'?
+          'Resonanz '+c.resonance:c.role==='guardian'?'Bollwerk '+(c.guardLeft||0):'Schwarmangriff')+'</small>';
+      field.append(cell);
+    });
+    seat.append(field);host.append(seat);
+    window.ArcaneCombatIdentity183.duoDidRender({game:{players:[{seat:0,field:cards}]},roomId:'demo-v183'});
+  }
+  const on=(id,action)=>document.getElementById(id).addEventListener('click',()=>{action();draw();});
+  on('predator',()=>{cards[0].used=false;draw();cards[0].used=true;});
+  on('guardian',()=>{cards[1].mode=cards[1].mode==='atk'?'def':'atk';});
+  on('soul',()=>{cards[2].condensed+=120;});
+  on('resonator',()=>{cards[3].resonance=Math.min(2,cards[3].resonance+1);});
+  on('reset',()=>{cards=make();});
+  draw();
+})();
+</script>
+</body></html>

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcane Duel · v19.3 Fähigkeiten-Vorschau</title>
+<link rel="stylesheet" href="../assets/duo-abilities-cinema-v193.css">
+<style>
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 20%,#392a53,#111a2d 62%,#0d121e);font:15px/1.5 system-ui,sans-serif;color:#f5edf8;min-height:100vh}
+main{width:min(1160px,96vw);margin:0 auto;padding:28px 12px 70px}.kicker{font-size:12px;letter-spacing:.24em;color:#e9bf83;font-weight:700}h1{font:700 clamp(28px,4vw,46px)/1.1 Georgia,serif;margin:4px 0 10px;color:#ffeac8}p{margin:0 0 12px;color:#d4cade}.note{border:1px solid #847494;border-radius:12px;padding:12px 15px;background:#211d34bc;margin:18px 0}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin:20px 0 25px}button{border:1px solid #a89cc6;border-radius:11px;padding:11px 15px;background:linear-gradient(150deg,#3d305c,#24223b);color:#ffecdc;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 3px 9px #0008}button:hover,button:focus-visible{background:#504072;outline:2px solid #e0b57d;outline-offset:2px}button[aria-pressed=true]{border-color:#fbd78e;color:#ffe7a9;background:#514263}
+.battle{display:grid;grid-template-columns:1fr 1fr;gap:18px}.health{padding:13px 15px;border:1px solid #756ca0;border-radius:13px;background:#1a2138eb;display:flex;justify-content:space-between;align-items:center;gap:15px}.health strong{color:#ffdccb}.health.enemy{border-color:#965a71}.seats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:17px}.seat{min-width:0;padding:14px;border:1px solid #71658f;border-radius:15px;background:linear-gradient(160deg,#2a2644f0,#191d34f0);box-shadow:inset 0 1px #fff2}.seat.foe{border-color:#945b7a;background:linear-gradient(150deg,#40263cf0,#222033f0)}.seat h2{font:700 18px Georgia,serif;margin:0 0 3px}.seat p{font-size:12px;color:#bdb4d3}.field{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}.field-cell{flex:1 1 96px;min-height:146px;padding:12px 8px;border:1px solid #aa83a9;border-radius:13px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;background:linear-gradient(160deg,#4d3955,#221f40);box-shadow:inset 0 0 24px #6b448444,0 5px 12px #0007}.foe .field-cell{background:linear-gradient(160deg,#633c4f,#261d37)}.field-cell .sigil{font:normal 37px Georgia,serif;color:#f2d1ff;filter:drop-shadow(0 0 8px #d98ded8f)}.field-cell span{font-size:13px;font-weight:750}.field-cell small{font-size:11px;color:#e0c5d3}.badge{font-size:10px;border:1px solid #b190a6;border-radius:7px;padding:2px 7px}
+.hint{font-size:13px;color:#bcb5d1;margin-top:18px}footer{margin-top:25px;font-size:12px;color:#a9a1b6}
+@media(max-width:760px){.seats{grid-template-columns:1fr}.health{font-size:13px}.field-cell{min-height:126px}}
+</style></head><body><main>
+<div class="kicker">✧ ARCANE DUEL · 2V2 · QUALITY UPDATE 19.3</div>
+<h1>Die Magie wird sichtbar</h1>
+<p>Jede Fähigkeit erzählt jetzt ihre eigene Geschichte: Seelenkraft wird gesammelt, Schutz verdichtet und Resonanz erwacht.</p>
+<p class="note">Dies ist eine <strong>interaktive Effektvorschau</strong>. Klicke auf die Fähigkeiten. Es werden keine Züge ausgeführt und keine Spielstände verändert.</p>
+<div class="actions" id="examples">
+ <button data-demo="condense" type="button">◆ Verdichten</button>
+ <button data-demo="raid" type="button">✦ Seelenraub</button>
+ <button data-demo="drain" type="button">✧ Seelenentzug</button>
+ <button data-demo="resonance" type="button">✴ Resonanz</button>
+ <button data-demo="focus" type="button">◎ Seelenfokus</button>
+ <button data-demo="discharge" type="button">☄ Seelenentladung</button>
+</div>
+<div class="battle">
+ <div class="health">EUER TEAM <strong id="duoAlliedLP">16.000 LP</strong></div>
+ <div class="health enemy">DIE GEGNER <strong id="duoEnemyLP">16.000 LP</strong></div>
+</div>
+<div id="duoSeats" class="seats">
+ <section class="seat" data-seat="0"><h2>Hannes</h2><p>Dein Feld · Verbündete</p><div class="field">
+   <div class="field-cell" data-slot="0"><div class="sigil">♜</div><span>Seelenzehrer</span><small>DEF · 500 Seele</small><span class="badge">✦ SELTEN</span></div>
+   <div class="field-cell" data-slot="1"><div class="sigil">✧</div><span>Runenweber</span><small>Resonanz</small><span class="badge">LV 4</span></div>
+ </div></section>
+ <section class="seat foe" data-seat="1"><h2>Gegner I</h2><p>Computergegner</p><div class="field">
+  <div class="field-cell" data-slot="0"><div class="sigil">♞</div><span>Aschewächter</span><small>ATK / DEF</small><span class="badge">LV 5</span></div>
+ </div></section>
+ <section class="seat" data-seat="2"><h2>Dein Partner</h2><p>Verbündeter Duellant</p><div class="field">
+  <div class="field-cell" data-slot="0"><div class="sigil">♛</div><span>Resonator</span><small>Fusionsmonster</small><span class="badge">LV 6</span></div>
+ </div></section>
+ <section class="seat foe" data-seat="3"><h2>Gegner II</h2><p>Computergegner</p><div class="field">
+  <div class="field-cell" data-slot="0"><div class="sigil">♝</div><span>Finstermagier</span><small>ATK / DEF</small><span class="badge">LV 4</span></div>
+ </div></section>
+</div>
+<p class="hint" id="hint" role="status" aria-live="polite">Wähle oben eine Fähigkeit, um ihre neue Animation zu sehen.</p>
+<footer>Die echte 2v2-Version zeigt diese Effekte nur nach bestätigter Spielaktion und mit tatsächlich berechneten Werten. Die Zahlen hier sind Vorschauwerte.</footer>
+</main>
+<script src="../assets/duo-abilities-cinema-v193.js"></script>
+<script>
+(()=>{
+ const api=window.ArcaneDuoAbilitiesCinema193,hint=document.getElementById('hint');
+ const user={seat:0,slot:0,area:'field'},foe={seat:1,slot:0,area:'field'};
+ const previews={
+  condense:{kind:'condense',where:user,atk:187,shield:375},
+  raid:{kind:'raid',where:user,from:foe,gain:125,atk:55,def:70},
+  drain:{kind:'drain',where:user,from:[{seat:1,area:'seat'},
+   {seat:3,area:'seat'}],gain:80,atk:45,def:35},
+  resonance:{kind:'resonance',where:{seat:2,slot:0,area:'field'},pct:20},
+  focus:{kind:'focus',where:user,stat:'DEF'},
+  discharge:{kind:'discharge',where:user,targetTeam:1}
+ };
+ const tips={condense:'Die gesammelte Seele stärkt gleichzeitig ATK und Schutz.',
+  raid:'Der Seelenzehrer entzieht einem bestimmten Monster Werte.',
+  drain:'Beim Zugbeginn fließt Energie von beiden gegnerischen Feldern zum Seelenzehrer.',
+  resonance:'Resonanz wird im eigenen Zug sichtbar aufgeladen.',
+  focus:'Der Seelenzehrer richtet seinen nächsten Entzug auf einen Wert aus.',
+  discharge:'Gespeicherte Seele entfesselt ihre Energie gegen das gegnerische Team.'};
+ document.getElementById('examples').addEventListener('click',e=>{
+  const button=e.target.closest('button[data-demo]');if(!button)return;
+  for(const b of document.querySelectorAll('button[data-demo]'))
+   b.setAttribute('aria-pressed',String(b===button));
+  const key=button.dataset.demo;api.clear();api.play(previews[key]);hint.textContent=tips[key];
+ });
+})();
+</script></body></html>

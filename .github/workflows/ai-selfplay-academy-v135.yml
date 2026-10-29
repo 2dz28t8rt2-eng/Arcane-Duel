@@ -1,0 +1,59 @@
+name: Arcane Duel - v13.5 Self-Play Academy
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-selfplay-academy-v135.cjs'
+      - '.github/workflows/ai-selfplay-academy-v135.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v135-selfplay-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  mirrored-selfplay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse academy and verify game rule regressions
+        run: |
+          node --check tests/ai-selfplay-academy-v135.cjs
+          node --test tests/ai-history-v130.test.cjs tests/ai-board-planner-v129.test.cjs
+      - name: Continue with saved self-play generation 1
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v135-selfplay-generation-1-memory-and-report
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39636324823
+          github-token: ${{ github.token }}
+          path: artifacts/prior-v135
+      - name: Pilot two-sided mirror matches, action legality, side swaps
+        env:
+          ARCANE_SELFPLAY_PRIOR: 'artifacts/prior-v135/ai-v135-selfplay-memory.json'
+          ARCANE_SELFPLAY_CANDIDATES: '2'
+          ARCANE_SELFPLAY_REPEATS: '1'
+          ARCANE_SELFPLAY_HOLDOUT_REPEATS: '1'
+        run: node tests/ai-selfplay-academy-v135.cjs
+      - name: Self-play generation 1 across four strategic archetypes
+        env:
+          ARCANE_SELFPLAY_PRIOR: 'artifacts/prior-v135/ai-v135-selfplay-memory.json'
+          ARCANE_SELFPLAY_CANDIDATES: '8'
+          ARCANE_SELFPLAY_REPEATS: '3'
+          ARCANE_SELFPLAY_HOLDOUT_REPEATS: '3'
+        run: node tests/ai-selfplay-academy-v135.cjs
+      - name: Archive persistent replay-generation memory for later training
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v135-selfplay-generation-2-memory-and-report
+          path: |
+            artifacts/ai-v135-selfplay-report.json
+            artifacts/ai-v135-selfplay-memory.json
+          retention-days: 90
+          if-no-files-found: warn

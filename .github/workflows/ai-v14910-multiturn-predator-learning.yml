@@ -1,0 +1,114 @@
+name: Arcane Duel - v14.9.10 Predator Conservative Q and Two-Turn Learning
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v14910-multiturn-predator-learning.yml'
+      - 'tests/ai-v1500-counterfactual-continuation.cjs'
+      - 'tests/ai-v1500-conservative-lookahead-duels.cjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v14910-multiturn-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  train-predator-planning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Rules, seat parity and new training source validation
+        run: |
+          node --check tests/ai-v1500-counterfactual-continuation.cjs
+          node --check tests/ai-v1500-conservative-lookahead-duels.cjs
+          node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/strategic-seat-parity-v1495.test.cjs tests/essence-combat.test.cjs
+      - name: Restore last successful v14.9.10 Predator training Q or prior v14.9.9 research Q
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p artifacts/v1500 /tmp/arcane-last-success /tmp/arcane-v1499
+          LAST=$(gh run list --workflow ai-v14910-multiturn-predator-learning.yml --branch development --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+          if [ -n "$LAST" ] && gh run download "$LAST" --name arcane-v14910-predator-learn-and-lookahead --dir /tmp/arcane-last-success; then
+            if [ -f /tmp/arcane-last-success/training-q-and-examples.json ]; then
+              cp /tmp/arcane-last-success/training-q-and-examples.json artifacts/v1500/previous-training-q.json
+              echo "RESTORED_V14910_Q $LAST"
+            fi
+          fi
+          OLD=$(gh run list --workflow ai-v1499-predator-armor-learning.yml --branch development --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+          if [ -n "$OLD" ] && gh run download "$OLD" --name arcane-v1499-predator-armor-learn --dir /tmp/arcane-v1499; then
+            if [ -f /tmp/arcane-v1499/training-q-and-examples.json ]; then
+              if [ ! -f artifacts/v1500/previous-training-q.json ]; then
+                cp /tmp/arcane-v1499/training-q-and-examples.json artifacts/v1500/previous-training-q.json
+              fi
+              cp /tmp/arcane-v1499/training-q-and-examples.json artifacts/v1500/v1497-prior-q.json
+              echo "RESTORED_PREVIOUS_PREDATOR_Q $OLD"
+            fi
+          fi
+      - name: Continue genuine counterfactual Q value training on new boards
+        run: |
+          node --expose-gc --max-old-space-size=4096 tests/ai-v1500-counterfactual-continuation.cjs
+      - name: Paired tactical policies on 1152 complete mirrored matches and difficult DEF starts
+        run: |
+          node --expose-gc --max-old-space-size=4096 tests/ai-v1500-conservative-lookahead-duels.cjs
+      - name: Verify holdout, no cheats and identify only empirically safe experimental policy
+        run: |
+          node - <<'JS'
+          const assert=require('node:assert/strict'),fs=require('node:fs');
+          const q=JSON.parse(fs.readFileSync('artifacts/v1500/report.json','utf8'));
+          const m=JSON.parse(fs.readFileSync('artifacts/v1500/fullmatch.json','utf8'));
+          assert.equal(q.schema,'arcane-v1500-continued-predator-Q-training');
+          assert.equal(q.trainingCasesPerArm,450);
+          assert.equal(q.holdoutCasesPerArm,150);
+          assert.equal(q.productionEnabled,false);
+          assert.equal(q.candidates.length,3);
+          assert.ok(q.candidates.every(x=>x.keys>0&&x.holdout.cases===150));
+          assert.equal(m.schema,'arcane-v1500-predator-gated-Q-two-turn-fullmatch');
+          assert.equal(m.totalMatches,1152);
+          assert.equal(m.arms.length,8);
+          assert.ok(m.arms.every(x=>x.games===144&&x.seatWins[0]+x.seatWins[1]===x.wins));
+          const hard=name=>m.arms.find(x=>x.label===name&&x.defenderLead);
+          const baseline=hard('baseline-heuristic');
+          const raw=hard('raw-Q');
+          const gated=hard('gated-Q');
+          const lookahead=hard('gated-Q-two-turn');
+          assert.ok(gated.qKeys>0&&lookahead.qKeys>0);
+          assert.ok(lookahead.lookaheadChecks>0,'Bounded 2-turn search was never exercised');
+          const safeGated=gated.wins>=baseline.wins;
+          const safeLookahead=lookahead.wins>=baseline.wins;
+          const decision={schema:'arcane-v14910-predator-learning-acceptance',
+            sourceSha:process.env.GITHUB_SHA,
+            normalMatches:576,hardDefenderMatches:576,
+            holdoutQKeys:q.candidates.map(x=>({name:x.label,count:x.keys,train:x.train.meanLearner,unseen:x.holdout.meanLearner})),
+            hardDefender:{baseline:baseline.wins,rawQ:raw.wins,
+              gatedQ:gated.wins,twoTurn:lookahead.wins},
+            qGatedBeatsBaseline:safeGated,
+            twoTurnBeatsBaseline:safeLookahead,
+            approvedForLiveAI:false,
+            reason:!safeLookahead?'Two-turn search has not demonstrated a defensive holdout winrate improvement; retain existing live AI.':
+              'A holdout benefit may justify further independent validation; no automatic release.',
+            limitations:['Bounded public-board opponent reply and next own attack, not full future draw/fusion/turn resolution.',
+             'Difficult DEF starts are an explicit handicap, not standard career opens.',
+             'Frozen balanced opponent is not a strong opponent league.',
+             'Learned Q parameters and action selection remain experimental until repeat holdouts and arena-decay-on trials.']};
+          fs.writeFileSync('artifacts/v1500/conclusion.json',JSON.stringify(decision,null,2)+'\n');
+          console.log('ARCANE_V14910_VERIFIED '+JSON.stringify({
+            qContinuation:q.priorCheckpointLoaded,
+            qApprovedUpdates:q.updatedQArms,
+            difficultDefender:decision.hardDefender,
+            safeGated, safeLookahead,
+            arms:m.arms.map(x=>({name:x.label,hard:x.defenderLead,
+              wins:x.wins,q:x.qMoves,rollouts:x.lookaheadChecks,changed:x.lookaheadChanges}))}));
+          JS
+      - name: Preserve updated Q memory, action options and paired full-duel holdouts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v14910-predator-learn-and-lookahead
+          path: artifacts/v1500/
+          retention-days: 90
+          if-no-files-found: warn

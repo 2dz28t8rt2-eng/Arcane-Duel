@@ -12,12 +12,24 @@ document.getElementById('app').addEventListener('load',async()=>{
   w.eval("window.__savedRoleFn=ArcaneEssenceCombat.roleOf;delete ArcaneEssenceCombat.roleOf;");
   w.eval("startDuel('pve',1,'tournament','easy')");
   check(w.eval("uiMode==='duel'&&!!game"),'Turnierduell gestartet');
-  check(d.getElementById('handCount').textContent.includes('5 / 5'),'Handzähler korrekt');
-  check(d.querySelectorAll('#hand [data-hand]').length===5,'Alle fünf Handkarten sichtbar');
+  check(d.getElementById('handCount').textContent.includes('0 / 5'),'Handzähler vor dem LP-Aufbau bei 0 / 5');
+  check(d.getElementById('duelScreen').classList.contains('ad-opening-hand-wait'),
+   'Handkarten während des LP-Aufbaus verborgen');
+  check(d.querySelectorAll('#hand [data-hand]').length===5,'Alle fünf Handkarten für die Animation vorhanden');
   check(d.querySelectorAll('#hand .ad-hand-role').length===5,'Rollenmarkierungen ohne roleOf');
   check(!!d.getElementById('modalGo'),'Startdialog vorhanden');
   d.getElementById('modalGo')?.click();
   check(d.getElementById('overlay').classList.contains('hidden'),'Startdialog schließt');
+  // The five authoritative cards enter only after the LP-fill sequence.
+  // Wait for the real cinematic rather than overriding busy mid-animation.
+  let ready=false;
+  for(let i=0;i<85;i++){
+   ready=!d.getElementById('duelScreen').classList.contains('ad-opening-hand-wait')&&
+    d.getElementById('handCount').textContent.includes('5 / 5')&&!w.eval('busy');
+   if(ready)break;
+   await new Promise(resolve=>setTimeout(resolve,100));
+  }
+  check(ready,'Handzähler nach dem LP-Aufbau bei 5 / 5 und Karten freigegeben');
   w.eval('game.active=0;busy=false;aiRunning=false;render()');
   d.querySelector('#hand [data-hand]')?.click();
   check(w.eval("game.selection?.type==='hand'||!!game.pending"),'Handkarte ist anklickbar');
@@ -26,6 +38,8 @@ document.getElementById('app').addEventListener('load',async()=>{
   w.eval("game=null;profile.activeDuel=null;profile.cleared=[1];uiMode='menu';busy=false;aiRunning=false;hideModal()");
   w.eval("startDuel('pve',1,'free','easy')");
   check(w.eval("uiMode==='duel'&&!!game"),'Freiduell gestartet');
+  check(d.getElementById('handCount').textContent.includes('0 / 5'),
+   'Freiduell beginnt ebenfalls mit verborgener Hand');
   check(d.querySelectorAll('#hand [data-hand]').length===5,'Fünf Handkarten im Freiduell');
  }catch(e){fail.push(String(e.stack||e));}
  document.getElementById('result').textContent=lines.join('\n')+(fail.length?'\nFEHLER: '+fail.join('; '):'');

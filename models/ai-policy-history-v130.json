@@ -1,0 +1,694 @@
+{
+  "schema": "arcane-ai-policy-history-v130",
+  "source": "12 exact GitHub Actions v11.7–v12.9 JSON artifacts; independently checked aggregate outcomes",
+  "generatedFrom": "Prior per-career raw data, NOT hypothetical move rewards",
+  "noHiddenInformation": true,
+  "modelFit": false,
+  "actionTransitionsAvailable": false,
+  "comparableOnlyWithinSameSchema": true,
+  "holdoutNeverForTraining": true,
+  "strategyGate": {
+    "rulesRegime": "full-v128-x-with-1.0-power-and-five-lv9",
+    "sourceSchema": "arcane-strategic-board-lookahead-v129",
+    "trainedWith": "train-only-16-origins",
+    "tier9": {
+      "winner": "tempo-baseline",
+      "vsStrategicWinCounts": {
+        "baseline": 10,
+        "planner": 6,
+        "plannerWithFeedback": 6
+      },
+      "action": "keep-existing-tempo-until-new-action-level-evidence"
+    }
+  },
+  "history": [
+    {
+      "schema": "arcane-ascension-v116-farming-v117",
+      "comparisonRegime": "arcane-ascension-v116-farming-v117",
+      "arms": {
+        "progressive-no-forge": {
+          "train": [
+            7,
+            7,
+            7,
+            0
+          ],
+          "holdout": [
+            9,
+            9,
+            7,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "progressive-ascension-forge": {
+          "train": [
+            10,
+            10,
+            9,
+            1
+          ],
+          "holdout": [
+            8,
+            8,
+            7,
+            2
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        }
+      },
+      "tiers": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "actionTransitionsAvailable": false
+    },
+    {
+      "schema": "arcane-boss-roster-v118-farming-v118",
+      "comparisonRegime": "arcane-boss-roster-v118-farming-v118",
+      "arms": {
+        "original-opponents": {
+          "train": [
+            9,
+            9,
+            4,
+            0
+          ],
+          "holdout": [
+            10,
+            10,
+            7,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "balanced-vi-vii-x": {
+          "train": [
+            12,
+            12,
+            11,
+            0
+          ],
+          "holdout": [
+            10,
+            10,
+            4,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        }
+      },
+      "tiers": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "actionTransitionsAvailable": false
+    },
+    {
+      "schema": "arcane-adaptive-farming-and-forge-v120",
+      "comparisonRegime": "arcane-adaptive-farming-and-forge-v120",
+      "arms": {
+        "fixed-source-forge": {
+          "train": [
+            12,
+            12,
+            11,
+            0
+          ],
+          "holdout": [
+            12,
+            12,
+            10,
+            1
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "adaptive-source-forge": {
+          "train": [
+            11,
+            11,
+            7,
+            0
+          ],
+          "holdout": [
+            10,
+            10,
+            6,
+            1
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        }
+      },
+      "tiers": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "actionTransitionsAvailable": false
+    },
+    {
+      "schema": "arcane-card-acquisition-factorial-v121",
+      "comparisonRegime": "arcane-card-acquisition-factorial-v121",
+      "arms": {
+        "baseline": {
+          "train": [
+            12,
+            12,
+            9,
+            1
+          ],
+          "holdout": [
+            13,
+            13,
+            9,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "memory-only": {
+          "train": [
+            15,
+            14,
+            7,
+            1
+          ],
+          "holdout": [
+            11,
+            11,
+            9,
+            1
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "forge-only": {
+          "train": [
+            13,
+            12,
+            8,
+            5
+          ],
+          "holdout": [
+            13,
+            12,
+            8,
+            1
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "combined": {
+          "train": [
+            12,
+            12,
+            6,
+            0
+          ],
+          "holdout": [
+            12,
+            11,
+            6,
+            1
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        }
+      },
+      "tiers": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "actionTransitionsAvailable": false
+    },
+    {
+      "schema": "arcane-endgame-card-utility-v122",
+      "comparisonRegime": "arcane-endgame-card-utility-v122",
+      "arms": {
+        "forge-v121": {
+          "train": [
+            4,
+            4,
+            4,
+            0
+          ],
+          "holdout": [
+            3,
+            3,
+            3,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "endgame-memory": {
+          "train": [
+            4,
+            4,
+            4,
+            0
+          ],
+          "holdout": [
+            3,
+            3,
+            3,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "phase-switch": {
+          "train": [
+            4,
+            4,
+            4,
+            1
+          ],
+          "holdout": [
+            2,
+            2,
+            1,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "combined-v122": {
+          "train": [
+            4,
+            4,
+            4,
+            1
+          ],
+          "holdout": [
+            2,
+            2,
+            1,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        }
+      },
+      "tiers": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "actionTransitionsAvailable": false
+    },
+    {
+      "schema": "arcane-opponent-iv-balance-v123",
+      "comparisonRegime": "arcane-opponent-iv-balance-v123",
+      "arms": {
+        "iv-original": {
+          "train": [
+            3,
+            3,
+            3,
+            0
+          ],
+          "holdout": [
+            4,
+            4,
+            4,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "iv-softened": {
+          "train": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "holdout": [
+            5,
+            5,
+            5,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        }
+      },
+      "tiers": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "actionTransitionsAvailable": false
+    },
+    {
+      "schema": "arcane-opponent-iv-tempo-corrected-v124",
+      "comparisonRegime": "arcane-opponent-iv-tempo-corrected-v124",
+      "arms": {
+        "iv-original-no-tempo": {
+          "train": [
+            3,
+            3,
+            3,
+            0
+          ],
+          "holdout": [
+            4,
+            4,
+            4,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "iv-original": {
+          "train": [
+            11,
+            11,
+            9,
+            1
+          ],
+          "holdout": [
+            12,
+            12,
+            5,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "iv-softened": {
+          "train": [
+            11,
+            11,
+            8,
+            0
+          ],
+          "holdout": [
+            12,
+            12,
+            10,
+            1
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        }
+      },
+      "tiers": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "actionTransitionsAvailable": false
+    },
+    {
+      "schema": "arcane-vii-x-roster-skills-boosters-v125",
+      "comparisonRegime": "arcane-vii-x-roster-skills-boosters-v125",
+      "arms": {
+        "v125-control": {
+          "train": [
+            12,
+            12,
+            8,
+            0
+          ],
+          "holdout": [
+            11,
+            11,
+            8,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "v125-balanced": {
+          "train": [
+            12,
+            12,
+            12,
+            0
+          ],
+          "holdout": [
+            11,
+            11,
+            7,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        }
+      },
+      "tiers": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "actionTransitionsAvailable": false
+    },
+    {
+      "schema": "arcane-x-targeted-cards-economy-v126",
+      "comparisonRegime": "arcane-x-targeted-cards-economy-v126",
+      "arms": {
+        "buy-immediately": {
+          "train": [
+            12,
+            12,
+            12,
+            2
+          ],
+          "holdout": [
+            12,
+            12,
+            10,
+            2
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "save-for-10": {
+          "train": [
+            12,
+            12,
+            6,
+            1
+          ],
+          "holdout": [
+            13,
+            12,
+            8,
+            1
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        }
+      },
+      "tiers": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "actionTransitionsAvailable": false
+    },
+    {
+      "schema": "arcane-x-offense-role-economy-v127",
+      "comparisonRegime": "arcane-x-offense-role-economy-v127",
+      "arms": {
+        "tempo-buy-now": {
+          "train": [
+            12,
+            12,
+            9,
+            2
+          ],
+          "holdout": [
+            11,
+            11,
+            9,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "aggressive-buy-now": {
+          "train": [
+            12,
+            12,
+            11,
+            0
+          ],
+          "holdout": [
+            12,
+            12,
+            9,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "aggressive-adaptive-buy": {
+          "train": [
+            11,
+            11,
+            6,
+            0
+          ],
+          "holdout": [
+            9,
+            9,
+            5,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        }
+      },
+      "tiers": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "actionTransitionsAvailable": false
+    },
+    {
+      "schema": "arcane-boss-x-power-level-balance-v128",
+      "comparisonRegime": "arcane-boss-x-power-level-balance-v128",
+      "arms": {
+        "x-original": {
+          "train": [
+            12,
+            12,
+            9,
+            2
+          ],
+          "holdout": [
+            11,
+            11,
+            9,
+            0
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "x-power-one": {
+          "train": [
+            12,
+            12,
+            9,
+            9
+          ],
+          "holdout": [
+            11,
+            11,
+            9,
+            9
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "x-power-one-five-lv9": {
+          "train": [
+            12,
+            12,
+            9,
+            9
+          ],
+          "holdout": [
+            11,
+            11,
+            9,
+            9
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        }
+      },
+      "tiers": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "actionTransitionsAvailable": false
+    },
+    {
+      "schema": "arcane-strategic-board-lookahead-v129",
+      "comparisonRegime": "arcane-strategic-board-lookahead-v129",
+      "arms": {
+        "tempo-baseline": {
+          "train": [
+            12,
+            12,
+            10,
+            8
+          ],
+          "holdout": [
+            12,
+            12,
+            11,
+            11
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "strategic-lookahead": {
+          "train": [
+            12,
+            12,
+            6,
+            6
+          ],
+          "holdout": [
+            13,
+            13,
+            7,
+            7
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        },
+        "strategic-online-feedback": {
+          "train": [
+            12,
+            12,
+            6,
+            6
+          ],
+          "holdout": [
+            13,
+            13,
+            7,
+            7
+          ],
+          "trainCareers": 16,
+          "holdoutCareers": 16
+        }
+      },
+      "tiers": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "actionTransitionsAvailable": false
+    }
+  ]
+}

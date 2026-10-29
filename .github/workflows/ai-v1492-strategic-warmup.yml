@@ -1,0 +1,61 @@
+name: Arcane Duel - v14.9.2 Strategic Warmup and Full-Board Curriculum
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/game.js'
+      - 'assets/essence-combat.js'
+      - 'tests/strategic-warmup-v1492.test.cjs'
+      - 'tests/ai-v1492-strategic-warmup-curriculum.cjs'
+      - '.github/workflows/ai-v1492-strategic-warmup.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v1492-full-board-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  strategic-curriculum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 130
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax, regression and experimental rule gates
+        run: |
+          node --check assets/game.js
+          node --check assets/essence-combat.js
+          node --check tests/ai-v1492-strategic-warmup-curriculum.cjs
+          node --test tests/strategic-warmup-v1492.test.cjs tests/essence-combat.test.cjs tests/opening-grace-postsummon-v149.test.cjs tests/defender-soul-update.test.cjs
+      - name: Train on each staged attack unlock, from ten global prep turns to normal initiative
+        run: |
+          set -euo pipefail
+          for stage in 0 1 2 3 4 5; do
+            node --max-old-space-size=4096 tests/ai-v1492-strategic-warmup-curriculum.cjs "$stage"
+          done
+      - name: Verify completed report and unmodified production AI
+        run: |
+          node - <<'JS'
+          const assert=require('node:assert/strict');
+          const r=require('./artifacts/v1492/report.json');
+          assert.equal(r.schema,'arcane-v1492-staged-strategic-curriculum');
+          assert.deepEqual(r.stageOrder,[10,8,6,4,2,0]);
+          assert.equal(r.stages.length,6);
+          assert.equal(r.productionActive,false);
+          assert.equal(r.championPromoted,false);
+          assert.equal(r.totals.illegal,0);
+          assert.equal(r.totals.beforeUnlockSoulViolations,0);
+          assert.ok(r.totals.changes>0);
+          console.log('ARCANE_V1492_GATE '+JSON.stringify(r.totals));
+          JS
+      - name: Save all weights, scene decisions, stage outcomes and independent holdouts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1492-strategic-full-board-learning
+          path: artifacts/v1492/
+          retention-days: 90
+          if-no-files-found: warn

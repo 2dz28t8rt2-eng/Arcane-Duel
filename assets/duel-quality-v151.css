@@ -1,0 +1,25 @@
+/* Arcane Duel · Duel Quality 15.1: compact, voluntary combat learning UI. */
+#ad151-forecast{display:grid;gap:8px;margin-top:12px;padding:10px 12px;border-radius:11px;
+  border:1px solid rgba(220,181,122,.25);background:linear-gradient(128deg,rgba(32,35,59,.74),rgba(20,40,51,.61));color:#eadfea}
+.ad151-tools-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+#ad151-forecast-switch{cursor:pointer;background:rgba(59,48,72,.83);color:#f3dcb6;
+  border:1px solid rgba(223,189,132,.38);border-radius:8px;padding:7px 10px;font:inherit;font-size:.77rem}
+#ad151-forecast-switch[aria-pressed=true]{background:rgba(118,78,59,.43);border-color:#d9ac69}
+.ad151-tools-head small,#ad151-forecast p,.ad151-disclaimer{margin:0;color:#c5c1d1;font-size:.74rem;line-height:1.48}
+.ad151-forecast-targets{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,205px),1fr));gap:8px}
+.ad151-forecast-targets article{display:grid;gap:4px;min-width:0;text-align:left;
+  padding:10px 11px;border-radius:10px;border:1px solid rgba(222,185,130,.2);background:rgba(14,27,42,.74)}
+.ad151-forecast-targets strong{color:#f3dcb6;font-size:.82rem;overflow-wrap:anywhere}
+.ad151-forecast-targets span{font-size:.79rem;color:#ded6eb}
+.ad151-forecast-targets small{font-size:.69rem;line-height:1.48;color:#c9c1cd}
+.ad151-forecast-targets .ad151-notes{color:#d4baaa}
+#ad151-fusion-explanation{margin-top:8px;padding:9px 11px;border-radius:10px;
+  border:1px solid rgba(229,186,125,.36);background:rgba(30,38,62,.62);font-size:.79rem}
+#ad151-fusion-explanation summary{cursor:pointer;color:#f2d9b2;font-weight:700;line-height:1.5}
+.ad151-fusion-content{display:grid;gap:7px;margin-top:9px;color:#d9d3e0;line-height:1.47}
+.ad151-fusion-content p{margin:0;font-size:.78rem}
+.ad151-fusion-content b{color:#f7e1b7}
+.ad151-fusion-content small{font-size:.71rem;color:#cbc0d0}
+.ad151-fusion-content .ad151-fusion-note{border-left:2px solid #d6ac6c;padding-left:9px;color:#e9c9ae}
+@media(max-width:680px){#ad151-forecast{padding:9px}.ad151-forecast-targets{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){#ad151-forecast,#ad151-fusion-explanation{transition:none!important;animation:none!important}}

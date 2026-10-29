@@ -1,0 +1,87 @@
+name: Arcane Duel - v14.9.7 Predator Swarm & Learning
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/essence-combat.js'
+      - 'assets/game.js'
+      - 'tests/predator-swarm-v1497.test.cjs'
+      - 'tests/ai-v1497-predator-swarm-counterfactual.cjs'
+      - 'tests/ai-v1497-swarm-fullmatch-holdout.cjs'
+      - '.github/workflows/ai-v1497-predator-swarm-learning.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v1497-predator-swarm-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  swarm-and-learning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify research-only Predator swarm mechanic and older parity rules
+        run: |
+          node --check tests/ai-v1497-predator-swarm-counterfactual.cjs
+          node --check tests/ai-v1497-swarm-fullmatch-holdout.cjs
+          node --test tests/predator-swarm-v1497.test.cjs tests/predator-armor-pierce-v1496.test.cjs tests/strategic-seat-parity-v1495.test.cjs
+      - name: Restore historical learned Q only, never historical holdout scenarios
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p artifacts/v1497 /tmp/arcane-prior
+          PREVIOUS=$(gh run list --workflow ai-v1497-predator-swarm-learning.yml --branch development --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+          if [ -n "$PREVIOUS" ] && gh run download "$PREVIOUS" --name arcane-v1497-swarm-and-learned-Q --dir /tmp/arcane-prior; then
+            if [ -f /tmp/arcane-prior/training-q-and-examples.json ]; then
+              cp /tmp/arcane-prior/training-q-and-examples.json artifacts/v1497/previous-training-q.json
+              echo "ARCANE_V1497_RESTORED_Q $PREVIOUS"
+            fi
+          fi
+          LEGACY=$(gh run list --workflow ai-v1496-predator-counterfactual.yml --branch development --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+          if [ -n "$LEGACY" ] && gh run download "$LEGACY" --name arcane-v1496-predator-counterfactual-learning --dir /tmp/arcane-legacy; then
+            if [ -f /tmp/arcane-legacy/training-q-and-examples.json ]; then
+              cp /tmp/arcane-legacy/training-q-and-examples.json artifacts/v1497/v1496-prior-q.json
+              echo "ARCANE_V1497_TRANSFER_PRIOR_Q $LEGACY"
+            fi
+          fi
+      - name: Learn swarm-aware Q values from legal counterfactual attacks and enemy replies
+        run: |
+          node --max-old-space-size=4096 tests/ai-v1497-predator-swarm-counterfactual.cjs
+      - name: Real 40-card duels Predator versus Guardian Soul Fusion Hybrid, both starters and seats
+        run: |
+          node --max-old-space-size=4096 tests/ai-v1497-swarm-fullmatch-holdout.cjs
+      - name: Audit disjoint tactical holdout, complete-duel samples, symmetry and production isolation
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const s=JSON.parse(fs.readFileSync('artifacts/v1497/report.json','utf8'));
+          const d=JSON.parse(fs.readFileSync('artifacts/v1497/fullmatch.json','utf8'));
+          assert.equal(s.schema,'arcane-v1497-predator-swarm-counterfactual-learning');
+          assert.equal(s.trainingCasesPerArm,450);assert.equal(s.holdoutCasesPerArm,150);
+          assert.deepEqual(s.candidates.map(x=>x.swarm),[0,.02,.02]);
+          assert.deepEqual(s.candidates.map(x=>x.pierce),[0,0,.08]);
+          assert.equal(s.productionEnabled,false);
+          assert.equal(d.totalMatches,576);
+          assert.equal(d.controls.productionEnabled,false);
+          assert.ok(d.arms.every(x=>x.games===144&&x.seatWins.length===2));
+          assert.ok(d.arms.filter(x=>x.learnQ).every(x=>x.qKeys>0));
+          console.log('ARCANE_V1497_COMPLETED '+JSON.stringify({selectedTrainingOnly:{
+            swarm:s.chosenResearchSwarm,pierce:s.chosenResearchPierce},
+            tacticalHoldout:s.candidates.map(x=>({arm:x.label,mean:x.holdout.meanLearner,
+              baseline:x.holdout.meanBaseline})),
+            fullDuels:d.arms.map(x=>({arm:x.label,wins:x.wins,
+              games:x.games,seatWins:x.seatWins,qMoves:x.qMoves}))}));
+          JS
+      - name: Preserve every learned Q checkpoint, public-board decision and full-match output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1497-swarm-and-learned-Q
+          path: artifacts/v1497/
+          retention-days: 90
+          if-no-files-found: warn

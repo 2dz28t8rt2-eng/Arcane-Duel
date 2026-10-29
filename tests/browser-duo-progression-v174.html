@@ -1,0 +1,41 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8">
+<title>Arcane Duel v17.4 economy milestones QA</title></head><body>
+<pre id="result">Lädt …</pre>
+<iframe id="duo" src="../duo-campaign-v2.html" width="1000" height="980"></iframe>
+<script>
+document.getElementById('duo').addEventListener('load',()=>{
+ setTimeout(()=>{
+  const f=document.getElementById('duo'),d=f.contentDocument,w=f.contentWindow;
+  let ok=true;const notes=[];
+  const check=(value,label)=>{if(!value)ok=false;notes.push((value?'OK ':'FAIL ')+label);};
+  try{
+   const e=w.ArcaneDuoEconomy172;
+   check(e?.version==='20.0','Current 2v2 progression helper is loaded');
+   check(!!d.getElementById('duoChapterCardClaim'),
+    'Card milestone claim is visible');
+   check(d.getElementById('duoChapterCardClaim').disabled,
+    'No unearned milestone claim before login');
+   check(!!d.getElementById('duoBalancePack')&&
+    !!d.getElementById('duoBalanceGoal'),'Clear booster cost estimator controls');
+   check(!!d.getElementById('duoFirstClearCards')&&
+    !!d.getElementById('duoChapterClearPreview'),
+    'Reward and chapter projection fields exist');
+   check(d.getElementById('duoCreate').disabled,
+    'Separate 2v2 account required to create a room');
+   const all=e.rewardTable();
+   check(all.length===15&&all[0].first.chapterCards===3,
+    'Guaranteed rewards cover ten chapters and five side quests');
+   const p={cleared_chapters:[1],owned_main:[],owned_fusions:[]};
+   const template={id:9,name:'QA',playable:true,fusionOnly:false,level:5,ace:false};
+   check(e.chapterCardPool(p,{9:template}).length===1,
+    'Milestone card pool uses unlocked upper-tier levels');
+   check(e.afford({essence:105,shards:2},e.PACKS.fusion,1).repeatsNeeded===2,
+    'Cost estimates consider both essence and shards');
+   check(d.querySelector('.duo-team-definition').textContent.includes('Du und dein Partner gegen zwei Gegner'),
+    'Duo team guidance remains visible');
+  }catch(error){check(false,error.stack||error.message);}
+  document.getElementById('result').textContent=notes.join('\n');
+  document.documentElement.dataset.duoPacing=ok?'pass':'fail';
+ },1400);
+});
+</script></body></html>

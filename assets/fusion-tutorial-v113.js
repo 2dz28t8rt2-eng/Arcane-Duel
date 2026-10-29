@@ -14,9 +14,9 @@
   {levels:[2,2],summary:'Level 2 + 2 bleibt in der frühen Entwicklung. Kein kostenloser Level-6-Sprung.'},
   {levels:[6,5],summary:'Ein Level-6-Kernmonster und Level 5 passen sehr gut zusammen.'},
   {levels:[6,5,1,1,1],summary:'Drei schwache Füllkarten geben keinen zusätzlichen Levelaufstieg und verschlechtern die Qualität.'},
-  {levels:[3,4,5],summary:'Eine Kleine Straße schützt die Qualität vor Abstandsabzügen und gibt Pokerwürfe.'},
+  {levels:[3,4,5],summary:'Eine Kleine Straße schützt deine Fusionsqualität und schenkt zusätzliche Spezialwürfe.'},
   {levels:[3,4,5,6],summary:'Große Straße: vier aufeinanderfolgende Level in beliebiger Reihenfolge.'},
-  {levels:[2,3,4,5,6],summary:'Gigantische Straße: fünf aufeinanderfolgende Level. Extra Rang, starke Pokerwürfe.'}
+  {levels:[2,3,4,5,6],summary:'Gigantische Straße: fünf aufeinanderfolgende Level. Extra Rang und zusätzliche Spezialwürfe.'}
  ];
  function selected(){
   if(!game||game.mode!=='pve')return null;
@@ -68,7 +68,8 @@
   const role=materials.length>=2?window.ArcaneRoleFusion?.inheritance?.(materials):null;
   const detail=rule.others?.map((level,i)=>'Material '+(i+2)+': Lv '+level+
    ' · Gewicht '+Math.round((rule.weights[i]||0)*100)+' %').join(' · ')||'';
-  return {g,rule,budget,best,pattern,quality,coreName,role,suggestion,detail,pending,
+  const partialStreet=!rule.street&&/^(Kleine|Große|Gigantische) Straße/.test(pattern.name);
+  return {g,rule,budget,best,pattern,quality,coreName,role,suggestion,detail,pending,partialStreet,
    inherited:quality.heritagePct||0,resonance:quality.resonancePct||0};
  }
  function openHelp(){
@@ -86,10 +87,16 @@
    (q.street?'<p class="ad113-positive"><b>✦ '+esc(q.streetName)+
     '!</b> Die Materiallevel bilden eine geschlossene Folge. Der normale Qualitätsabzug für Levelabstände entfällt. '+
     'Die Reihenfolge des Anklickens ist egal.</p>':
+    info.partialStreet?
+    '<p class="ad113-positive"><b>✦ '+esc(info.pattern.name)+
+    ' als Teilkombination erkannt.</b> Die aufeinanderfolgenden Level behalten ihren Spezialbonus, '+
+    'auch wenn weitere Materialien doppelt vorkommen. Alle übrigen Karten werden mitverbraucht und '+
+    'gehen weiterhin in die Level- und Qualitätsberechnung ein; nur die vollständige Straße '+
+    'schützt vor dem gesamten Levelabstands-Abzug.</p>':
     '<p>Unterschiedliche Materiallevel beeinflussen die Qualität. Schwache Füllkarten zählen mit, '+
     'geben aber keinen kostenlosen Levelaufstieg.</p>')+
    '<p><b>Kombination:</b> '+esc(info.pattern.name)+' · '+
-    (info.quality.rollBonus||0)+' zusätzliche Pokerwürfe. '+
+    (info.quality.rollBonus||0)+' zusätzliche Spezialwürfe. '+
     (info.role?'Kampfrolle: '+esc(roleLabels[info.role]||info.role)+'. ':'')+
     (info.resonance?'Resonanz: +'+info.resonance+' %. ':'')+
     (info.inherited?'Geerbte Qualität: +'+info.inherited.toFixed(1)+' %.':'')+'</p>'+
@@ -153,7 +160,7 @@
    'Die Qualität verbessert ATK/DEF vor den echten Wertewürfen, Rollenzugehörigkeit verschiebt ATK/DEF '+
    'vor dem Würfeln und die Resonanz von Allroundern/Resonatoren addiert einen eigenen Bonus. '+
    'Materialboni kommen anschließend hinzu.</p>'+
-   '<p><b>4. Pokerstraßen:</b> 3 Karten = Kleine Straße, 4 = Große Straße, '+
+   '<p><b>4. Spezialstraßen:</b> 3 Karten = Kleine Straße, 4 = Große Straße, '+
    '5 = <b>Gigantische Straße</b>. Die Level müssen ohne Lücke aufeinanderfolgen; '+
    'die Reihenfolge ist egal. Straßen haben eigene Qualitäts- und Würfelboni, '+
    'statt für notwendige Levelunterschiede abgestraft zu werden.</p>'+

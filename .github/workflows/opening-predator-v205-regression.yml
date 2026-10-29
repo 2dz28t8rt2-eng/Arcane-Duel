@@ -1,0 +1,38 @@
+name: Arcane Duel - v20.5 Opening Guard & Predator Development
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/game.js'
+      - 'assets/essence-combat.js'
+      - 'assets/predator-pack-v198.js'
+      - 'assets/opening-predator-development-v205.js'
+      - 'assets/opening-predator-development-v205.css'
+      - 'index.html'
+      - 'tests/opening-predator-v205.test.cjs'
+      - '.github/workflows/opening-predator-v205-regression.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    name: Validate direct guard, developing Predators, Swarm, snapshots and inspector
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check modified runtime modules
+        run: |
+          node --check assets/game.js
+          node --check assets/essence-combat.js
+          node --check assets/predator-pack-v198.js
+          node --check assets/opening-predator-development-v205.js
+          node --check tests/opening-predator-v205.test.cjs
+      - name: Run opening guard and Predator development regressions
+        run: |
+          node --test tests/opening-predator-v205.test.cjs tests/opening-shield-removal-v1592.test.cjs tests/predator-pack-v198.test.cjs tests/duel-ux-v203.test.cjs tests/essence-combat.test.cjs
+      - name: Verify bootable full game
+        run: node tests/helpers/game-runtime.cjs

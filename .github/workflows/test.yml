@@ -14,6 +14,20 @@ jobs:
           node-version: '22'
       - name: Run tests
         run: npm test
+      - name: Compare all four 2v2 chapters with unchanged AI
+        run: node scripts/bench-duo-progression-v174.cjs
+      - name: Verify live 2v2 independent progression once
+        if: contains(github.event.head_commit.message, '[duo-live-v171]')
+        run: node scripts/smoke-duo-progression-v171.cjs
+      - name: Verify live 2v2 economy once
+        if: contains(github.event.head_commit.message, '[duo-live-v172]')
+        run: node scripts/smoke-duo-economy-v172.cjs
+      - name: Verify 2v2 v17.3 card upgrade and recycle safety live
+        if: contains(github.event.head_commit.message, '[duo-live-v173]')
+        run: node scripts/smoke-duo-economy-v173.cjs
+      - name: Verify 2v2 chapter claims online
+        if: contains(github.event.head_commit.message, '[duo-live-v174]')
+        run: node scripts/smoke-duo-progression-v174.cjs
       - name: Render cards in headless Chrome
         shell: bash
         run: |
@@ -252,3 +266,102 @@ jobs:
               exit 1
             fi
           done
+
+          echo "Checking real-card 2v2 beta lobby on desktop and mobile..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=12000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-duo-parity-v160.html >"/tmp/arcane-duo-v160-${size}.html" 2>/tmp/arcane-duo-v160-chrome.log
+            if ! grep -q 'data-duo-parity="pass"' "/tmp/arcane-duo-v160-${size}.html"; then
+              echo "2v2 v16.0 browser beta FAILED at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/arcane-duo-v160-${size}.html" | head -75 || true
+              tail -25 /tmp/arcane-duo-v160-chrome.log || true
+              exit 1
+            fi
+          done
+
+          echo "Checking 2v2 v16.7 choreography and room synchronisation on desktop and mobile..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=13000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-duo-cinematics-v167.html >"/tmp/arcane-duo-fx-${size}.html" 2>/tmp/arcane-duo-fx.log
+            if ! grep -q 'data-duo-cinematics="pass"' "/tmp/arcane-duo-fx-${size}.html"; then
+              echo "2v2 v16.7 visual/sync regression FAILED at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/arcane-duo-fx-${size}.html" | head -90 || true
+              exit 1
+            fi
+          done
+
+                    echo "Checking 2v2 v16.8 recovery links and cross-device UI on desktop and mobile..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=13000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-duo-recovery-v168.html >"/tmp/arcane-duo-recovery-${size}.html" 2>/tmp/arcane-duo-recovery.log
+            if ! grep -q 'data-duo-recovery="pass"' "/tmp/arcane-duo-recovery-${size}.html"; then
+              echo "2v2 v16.8 recovery browser QA failed at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/arcane-duo-recovery-${size}.html" | head -90 || true
+              exit 1
+            fi
+          done
+
+                    echo "Checking 2v2 v17.0 confirmed fusion dice, concealed draws, and seat contract..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=14000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-duo-cinema-v170.html >"/tmp/arcane-duo-cinema170-${size}.html" 2>/tmp/arcane-duo-cinema170-chrome.log
+            if ! grep -q 'data-duo-cinema170="pass"' "/tmp/arcane-duo-cinema170-${size}.html"; then
+              echo "2v2 v17.0 cinema/seat QA failed at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/arcane-duo-cinema170-${size}.html" | head -100 || true
+              exit 1
+            fi
+          done
+
+                    echo "Checking isolated 2v2 v17.1 profiles and progression on desktop/mobile..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=14000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-duo-progression-v171.html >"/tmp/duo-progression-${size}.html" 2>/tmp/duo-progression-chrome.log
+            if ! grep -q 'data-duo-progression="pass"' "/tmp/duo-progression-${size}.html"; then
+              echo "2v2 independent progression browser test failed at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/duo-progression-${size}.html" | head -90 || true
+              exit 1
+            fi
+          done
+
+                    echo "Checking 2v2 v17.3 collection and recycling safeguards at desktop/mobile widths..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=14000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-duo-collection-v173.html >"/tmp/duo-collection-${size}.html" 2>/tmp/duo-collection-chrome.log
+            if ! grep -q 'data-duo-collection="pass"' "/tmp/duo-collection-${size}.html"; then
+              echo "2v2 collection browser test failed at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/duo-collection-${size}.html" | head -80 || true
+              exit 1
+            fi
+          done
+
+                    echo "Checking 2v2 v17.4 chapter rewards and pacing guidance on desktop/mobile..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=14000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-duo-progression-v174.html >"/tmp/duo-v174-${size}.html" 2>/tmp/duo-v174-chrome.log
+            if ! grep -q 'data-duo-pacing="pass"' "/tmp/duo-v174-${size}.html"; then
+              echo "v17.4 2v2 pacing browser test failed at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/duo-v174-${size}.html" | head -90 || true
+              exit 1
+            fi
+          done
+
+                    echo "Checking beginner-friendly v15.6 fusion assistant on desktop and mobile..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=14000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-fusion-coach-v156.html >"/tmp/arcane-fusion-coach-${size}.html" 2>/tmp/arcane-fusion-coach.log
+            if ! grep -q 'data-fusion-coach-test="pass"' "/tmp/arcane-fusion-coach-${size}.html"; then
+              echo "v15.6 beginner fusion assistant FAILED at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/arcane-fusion-coach-${size}.html" | head -100 || true
+              tail -25 /tmp/arcane-fusion-coach.log || true
+              exit 1
+            fi
+          done
+
+          echo "Checking event-driven v15.7 effects, particle limits and reduced motion..."
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --disable-background-timer-throttling --virtual-time-budget=16000 --window-size="${size},980" --dump-dom http://127.0.0.1:8757/tests/browser-element-events-v157.html >"/tmp/arcane-event-fx-${size}.html" 2>/tmp/arcane-event-fx.log
+            if ! grep -q 'data-event-effects-test="pass"' "/tmp/arcane-event-fx-${size}.html"; then
+              echo "v15.7 event FX FAILED at ${size}px" >&2
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/arcane-event-fx-${size}.html" | head -100 || true
+              tail -25 /tmp/arcane-event-fx.log || true
+              exit 1
+            fi
+          done
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --force-prefers-reduced-motion=reduce --virtual-time-budget=12000 --window-size="410,980" --dump-dom http://127.0.0.1:8757/tests/browser-element-events-v157.html >/tmp/arcane-event-fx-reduced.html 2>/tmp/arcane-event-fx.log
+          if ! grep -q 'data-event-effects-test="pass"' /tmp/arcane-event-fx-reduced.html; then
+            echo "v15.7 reduced motion FAILED" >&2
+            sed -n '/<pre id="result"/,/<\/pre>/p' /tmp/arcane-event-fx-reduced.html | head -100 || true
+            exit 1
+          fi

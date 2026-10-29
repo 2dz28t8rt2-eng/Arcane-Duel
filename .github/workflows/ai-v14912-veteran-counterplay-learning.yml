@@ -1,0 +1,122 @@
+name: Arcane Duel - v14.9.12 Veteran Counterplay Persistent Q Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v14912-veteran-counterplay-learning.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v14912-veteran-counterplay-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  train-veteran-counterplay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 160
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax, Predator swarm/penetration and symmetric rule smoke tests
+        run: |
+          node --check tests/ai-v1512-heldout-Q-continuation.cjs
+          node --check tests/ai-v1512-fusion-counterplay-shards.cjs
+          node --check tests/ai-v1512-aggregate-counterplay.cjs
+          node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
+      - name: Restore verified previous Q checkpoint (mandatory, never reset learning)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/v1512 /tmp/arcane-prior
+          LAST=$(gh run list --workflow ai-v14912-veteran-counterplay-learning.yml --branch development --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+          if [ -n "$LAST" ]; then
+            gh run download "$LAST" --repo "$GITHUB_REPOSITORY" --name arcane-v14912-veteran-predator-training --dir /tmp/arcane-prior
+            echo "ARCANE_V1512_RESTORED_FROM_CURRENT $LAST"
+          else
+            gh run download 39803691439 --repo "$GITHUB_REPOSITORY" --name arcane-v14911-summon-fusion-training --dir /tmp/arcane-prior
+            echo "ARCANE_V1512_RESTORED_FROM_V1511 39803691439"
+          fi
+          test -s /tmp/arcane-prior/training-q-and-examples.json
+          cp /tmp/arcane-prior/training-q-and-examples.json artifacts/v1512/previous-training-q.json
+          cp /tmp/arcane-prior/training-q-and-examples.json artifacts/v1512/v1497-prior-q.json
+          node - <<'JS'
+          const a=require('./artifacts/v1512/previous-training-q.json');
+          if(!Array.isArray(a)||a.length!==3||a.some(x=>!x.learnedQ||Object.keys(x.learnedQ).length<20))
+            throw Error('Previous learning checkpoint missing or corrupted; refuse reset');
+          console.log('ARCANE_V1512_CHECKPOINT '+JSON.stringify(a.map(x=>({swarm:x.swarm,pierce:x.pierce,keys:Object.keys(x.learnedQ).length}))));
+          JS
+      - name: Update Q on 300 training cases and accept only on separate 150-case training validation
+        run: |
+          node --expose-gc --max-old-space-size=3200 tests/ai-v1512-heldout-Q-continuation.cjs
+      - name: Veteran opponents, 2-DEF-1-ATK + LP handicap, 24 isolated 64-duel shards
+        run: |
+          set -euo pipefail
+          for shard in $(seq 0 23); do
+            echo "::group::v14.9.12 veteran duel shard $shard"
+            node --expose-gc --max-old-space-size=1800 tests/ai-v1512-fusion-counterplay-shards.cjs "$shard"
+            echo "::endgroup::"
+          done
+      - name: Strictly reconcile 1536 unique complete duel records
+        run: |
+          node --max-old-space-size=1800 tests/ai-v1512-aggregate-counterplay.cjs
+      - name: Verify independent holdout, robust policy comparisons, and nonpromotion
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const q=JSON.parse(fs.readFileSync('artifacts/v1512/report.json','utf8'));
+          const d=JSON.parse(fs.readFileSync('artifacts/v1512/fullmatch.json','utf8'));
+          assert.equal(q.schema,'arcane-v1512-validated-predator-Q-continuation');
+          assert.equal(q.priorCheckpointLoaded,true,'Lost historical learning');
+          assert.equal(q.trainingCasesPerArm,450);
+          assert.equal(q.updateCasesPerArm,300);
+          assert.equal(q.validationCasesPerArm,150);
+          assert.equal(q.holdoutCasesPerArm,150);
+          assert.equal(q.candidates.length,3);
+          assert.equal(q.productionEnabled,false);
+          assert.ok(q.candidates.every(x=>x.keys>20&&x.holdout.cases===150));
+          assert.equal(d.schema,'arcane-v1512-predator-veteran-fusion-counterplay-fullmatch');
+          assert.equal(d.totalMatches,1536);
+          assert.equal(d.shardCount,24);
+          assert.equal(d.arms.length,8);
+          assert.ok(d.arms.every(x=>x.games===192&&x.seatWins[0]+x.seatWins[1]===x.wins));
+          const full=d.arms.filter(x=>x.summonForecast);
+          assert.equal(full.length,4);
+          assert.ok(full.every(x=>x.summonLegal>0));
+          const harder=d.arms.filter(x=>x.defenderLead);
+          const pick=name=>harder.find(x=>x.label===name);
+          const cmp={
+            oldHeuristic:pick('baseline-heuristic').wins,
+            gatedQ:pick('gated-Q').wins,
+            lastBest:pick('Q-summon-fusion-and-attacks').wins,
+            twoCounter:pick('Q-two-counter-fusion-planner').wins
+          };
+          const decision={schema:'arcane-v14912-veteran-counterplay-comparison',
+            sourceSha:process.env.GITHUB_SHA,shards:24,fullDuels:1536,
+            tacticTrain:1350,tacticHoldout:450,
+            retainedPreviousQ:q.priorCheckpointLoaded,
+            acceptedQUpdates:q.updatedQArms,
+            comparison:cmp,
+            doubleOpponentCounters:full.reduce((n,x)=>n+x.doubleCounters,0),
+            noAutomaticPromotion:true,
+            conclusion:'Select for further research only; never silently change live AI or main.',
+            arms:d.arms.map(x=>({name:x.label,hard:x.defenderLead,
+              wins:x.wins,games:x.games,qMoves:x.qMoves,
+              summonForecastChanges:x.summonChanges,
+              fusionsChosen:x.fusionChanges,
+              doubleCounters:x.doubleCounters,
+              seatWins:x.seatWins,byOpponent:x.opponents}))};
+          fs.writeFileSync('artifacts/v1512/conclusion.json',JSON.stringify(decision,null,2)+'\n');
+          console.log('ARCANE_V1512_VERIFIED '+JSON.stringify(decision));
+          JS
+      - name: Upload full learning record, Q checkpoint and unique paired duel logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v14912-veteran-predator-training
+          path: artifacts/v1512/
+          if-no-files-found: warn
+          retention-days: 90

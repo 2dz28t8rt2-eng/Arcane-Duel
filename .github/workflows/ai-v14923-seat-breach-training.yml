@@ -1,0 +1,144 @@
+name: Arcane Duel - v14.9.23 Seven-Stage Seat Bias and Proactive Board Breach Research
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v14923-seat-breach-training.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  strategic-siege-curriculum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify research source and combat rules
+        run: |
+          set -euo pipefail
+          node --check tests/ai-v1523-history.cjs
+          node --check tests/ai-v1523-Q.cjs
+          node --check tests/ai-v1523-seat-breach-research.cjs
+          node --check tests/ai-v1523-seat-breach-aggregate.cjs
+          node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
+      - name: Restore verified Q checkpoint and nine historical TRAIN-only archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/arcane-prev /tmp/arcane-history/{v1511,v1512,v1513,v1514,v1515,v1516,v1517,v1518,v1519,v1520,v1521,v1522} artifacts/v1523
+          for rid in 39803691439 39843438099 39847734409 39851537706 39855753529 39858417967 39862370629 39904678414 39907484021 39911997726 39919243971 39925937764; do
+            test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$rid" --jq '.conclusion')" = success
+          done
+          gh run download 39803691439 --repo "$GITHUB_REPOSITORY" --name arcane-v14911-summon-fusion-training --dir /tmp/arcane-history/v1511
+          gh run download 39843438099 --repo "$GITHUB_REPOSITORY" --name arcane-v14912-veteran-predator-training --dir /tmp/arcane-history/v1512
+          gh run download 39847734409 --repo "$GITHUB_REPOSITORY" --name arcane-v14913-symmetric-history --dir /tmp/arcane-history/v1513
+          gh run download 39851537706 --repo "$GITHUB_REPOSITORY" --name arcane-v14914-crossdeck-history --dir /tmp/arcane-history/v1514
+          gh run download 39855753529 --repo "$GITHUB_REPOSITORY" --name arcane-v14915-crossdeck-rollout --dir /tmp/arcane-history/v1515
+          gh run download 39858417967 --repo "$GITHUB_REPOSITORY" --name arcane-v14916-risk-aware-crossdeck --dir /tmp/arcane-history/v1516
+          gh run download 39862370629 --repo "$GITHUB_REPOSITORY" --name arcane-v14917-role-aware-crossdeck --dir /tmp/arcane-history/v1517
+          gh run download 39904678414 --repo "$GITHUB_REPOSITORY" --name arcane-v14918-optimized-roles-decay --dir /tmp/arcane-history/v1518
+          gh run download 39907484021 --repo "$GITHUB_REPOSITORY" --name arcane-v14919-fusion-soul-isolation --dir /tmp/arcane-history/v1519
+          gh run download 39911997726 --repo "$GITHUB_REPOSITORY" --name arcane-v14920-siege-curriculum --dir /tmp/arcane-history/v1520
+          gh run download 39919243971 --repo "$GITHUB_REPOSITORY" --name arcane-v14921-progressive-siege --dir /tmp/arcane-history/v1521
+          gh run download 39925937764 --repo "$GITHUB_REPOSITORY" --name arcane-v14922-finishers-seat-parity --dir /tmp/arcane-history/v1522
+          LAST=$(gh run list --workflow ai-v14923-seat-breach-training.yml --branch development --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+          if [ -n "$LAST" ]; then
+            gh run download "$LAST" --repo "$GITHUB_REPOSITORY" --name arcane-v14923-seat-breach-training --dir /tmp/arcane-prev
+            echo "ARCANE_V1523_RESTORED $LAST"
+          else
+            cp /tmp/arcane-history/v1522/training-q-and-examples.json /tmp/arcane-prev/training-q-and-examples.json
+            echo "ARCANE_V1523_RESTORED 39925937764"
+          fi
+          node tests/ai-v1523-history.cjs
+      - name: Continue protected tactical Predator Q independently of siege optimization
+        run: node --expose-gc --max-old-space-size=3200 tests/ai-v1523-Q.cjs
+      # Stage 0 isolates basic offensive planning: no active enemy attacks, no Soul burn, no counterstrike LP retaliation.
+      - name: Stage 0 – simple fortress and empty-board finisher proof
+        run: |
+          set -euo pipefail
+          node --expose-gc --max-old-space-size=2500 tests/ai-v1523-seat-breach-research.cjs 0
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const m=JSON.parse(fs.readFileSync('artifacts/v1523/stage-0.json','utf8'));
+          a.equal(m.allCases.length,512);
+          a.ok(m.allCases.every(x=>x.enemyOffense===0&&x.enemySummons===0&&x.soulDisabled&&x.counterDisabled),
+           'A static fortress acted offensively or grew');
+          a.ok(m.allCases.every(x=>x.turn>0&&x.seedA!==x.seedB));
+          a.ok(m.allCases.some(x=>x.enemyDamage>0),'Fortress stage produced no actual offensive damage');
+          a.ok(m.allCases.some(x=>x.arm!=='role-reference'&&x.finishAttacks>0),
+           'New finisher never performs a direct attack');
+          a.ok(m.allCases.some(x=>x.arm==='finish-stance'&&x.finishSwitches>0),
+           'DEF-to-ATK finisher never uses a position change');
+          a.equal(m.holdoutCandidate.games,32);
+          a.ok(m.allCases.some(x=>x.arm==='breach-ready'&&x.breachSwitches>0),
+           'New proactive defense-to-attack policy never switched any creature');
+          console.log('ARCANE_V1523_STATIC_SMOKE '+JSON.stringify({games:512,
+           selected:m.chosenArm,train:m.trainCandidate.wins,holdout:m.holdoutCandidate.wins}));
+          JS
+      - name: Stage 1 – two defenders with no passive retaliation
+        run: node --expose-gc --max-old-space-size=2500 tests/ai-v1523-seat-breach-research.cjs 1
+      - name: Stage 2 – enable real Guardian counterstrike
+        run: node --expose-gc --max-old-space-size=2500 tests/ai-v1523-seat-breach-research.cjs 2
+      - name: Stage 3 – enable passive and active Soul effects
+        run: node --expose-gc --max-old-space-size=2500 tests/ai-v1523-seat-breach-research.cjs 3
+      - name: Stage 4 – growing fortress with legal summons and fusion
+        run: node --expose-gc --max-old-space-size=2500 tests/ai-v1523-seat-breach-research.cjs 4
+      - name: Stage 5 – escalation from no attacks to active counterattacks
+        run: node --expose-gc --max-old-space-size=2500 tests/ai-v1523-seat-breach-research.cjs 5
+      - name: Stage 6 – varied fully active opponents and 50 percent matched-deck mirror stress
+        run: node --expose-gc --max-old-space-size=2500 tests/ai-v1523-seat-breach-research.cjs 6
+      - name: Aggregate empty-board mistakes, proactive breach and mirrored seat parity
+        run: node --max-old-space-size=2800 tests/ai-v1523-seat-breach-aggregate.cjs
+      - name: Enforce seat balance, no silent policy promotion and independent holdout
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const root='artifacts/v1523/';
+          const m=JSON.parse(fs.readFileSync(root+'report.json','utf8'));
+          const q=JSON.parse(fs.readFileSync(root+'report.json','utf8'));
+          const historical=JSON.parse(fs.readFileSync(root+'historical-train.json','utf8'));
+          a.equal(m.totalDuels,3584);a.equal(m.holdoutDuels,896);
+          a.equal(m.controls.arenaLPDecayDisabled,true);
+          a.equal(m.controls.noOpponentActiveOffenseStages0to4,true);
+          a.equal(m.controls.promotionRequiresStrictTrainingWinAdvantage,true);
+          a.equal(m.controls.seatParityIsPromotionGate,true);
+          a.equal(m.controls.finishOnEmptyFieldTested,true);
+          a.equal(m.controls.seatSymmetricDecksOnTransferStage,true);
+          a.equal(m.controls.stageSixMirrorCasesHalf,true);
+          a.equal(m.controls.fullOpponentsVaryAcrossScenarios,true);
+          a.equal(m.controls.fullCombatTransferStage6,true);
+          a.equal(m.productionModified,false);
+          a.ok(historical.sources.length>=12);
+          for(let i=0;i<7;i++){
+            const s=JSON.parse(fs.readFileSync(root+'stage-'+i+'.json','utf8'));
+            a.equal(s.allCases.length,512);
+            a.ok(s.trainCandidate.games===96&&s.holdoutCandidate.games===32);
+            if(i<5)a.ok(s.allCases.every(x=>x.enemyOffense===0));
+            if(i<=3)a.ok(s.allCases.every(x=>x.enemySummons===0));
+            if(i<=2)a.ok(s.allCases.every(x=>x.soulDisabled===true));
+            if(i<=1)a.ok(s.allCases.every(x=>x.counterDisabled===true));
+            if(!s.promoted)a.equal(s.chosenArm,'role-reference');
+            if(s.promoted)for(const seat of ['0','1'])a.ok(s.trainCandidate.bySeat[seat].wins>=s.trainBaseline.bySeat[seat].wins,
+              'Candidate loses on player seat '+seat);
+            a.ok(s.allCases.every(x=>x.arm==='role-reference'?x.finishAttacks===0&&x.finishSwitches===0&&x.breachSwitches===0:true));
+            a.ok(s.allCases.every(x=>x.mirror===(i===6&&x.pair%2===0)));
+            a.ok(s.allCases.every(x=>x.readyDirectOpportunities>=x.missedDirectOpportunities));
+            if(i===6)a.ok(s.allCases.some(x=>x.mirror));
+          }
+          console.log('ARCANE_V1523_VERIFIED '+JSON.stringify({duels:m.totalDuels,
+           holdout:m.holdoutDuels,selected:m.stages.map(x=>x.selected),
+           controls:m.controls}));
+          JS
+      - name: Archive direct attack diagnostics, proactive breach matches, twelve-run Q and holdout
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v14923-seat-breach-training
+          path: artifacts/v1523/
+          retention-days: 90
+          if-no-files-found: warn

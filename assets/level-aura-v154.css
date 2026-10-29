@@ -1,0 +1,57 @@
+/* One visual aura ON TOP of the canonical card frame; no replacement frame. */
+.hand-card.tc-card .ad154-aura,.board-creature.tc-card .ad154-aura{
+  position:absolute;inset:3px;z-index:6;pointer-events:none;overflow:hidden;
+  border-radius:6px;isolation:isolate;--ad154-rgb:218,222,255;
+}
+.tc-card[data-element="FEUER"] .ad154-aura,.tc-card[data-element="Feuer"] .ad154-aura{--ad154-rgb:255,157,99}
+.tc-card[data-element="WASSER"] .ad154-aura,.tc-card[data-element="Wasser"] .ad154-aura{--ad154-rgb:116,215,252}
+.tc-card[data-element="ERDE"] .ad154-aura,.tc-card[data-element="Erde"] .ad154-aura{--ad154-rgb:178,235,131}
+.tc-card[data-element="WIND"] .ad154-aura,.tc-card[data-element="Wind"] .ad154-aura{--ad154-rgb:150,235,201}
+.tc-card[data-element="LICHT"] .ad154-aura,.tc-card[data-element="Licht"] .ad154-aura{--ad154-rgb:255,225,139}
+.tc-card[data-element="DUNKEL"] .ad154-aura,.tc-card[data-element="Dunkel"] .ad154-aura{--ad154-rgb:200,145,255}
+.ad154-aura::before,.ad154-aura::after,.ad154-aura .ad154-motes,.ad154-aura .ad154-runes{
+  content:"";position:absolute;inset:0;pointer-events:none;
+}
+.ad154-aura::before{
+  opacity:.32;background:linear-gradient(118deg,transparent 30%,rgba(var(--ad154-rgb),.26) 49%,transparent 60%);
+  transform:translateX(-135%);animation:ad154-sheen 8s ease-in-out infinite;
+}
+.ad154-aura::after{
+  background:radial-gradient(circle at 13% 15%,rgba(var(--ad154-rgb),.75) 0 1px,transparent 3px),
+    radial-gradient(circle at 91% 56%,rgba(var(--ad154-rgb),.75) 0 1px,transparent 3px),
+    radial-gradient(circle at 25% 82%,rgba(var(--ad154-rgb),.6) 0 1px,transparent 3px);
+  opacity:.23;animation:ad154-breathe 7s ease-in-out infinite;
+}
+.ad154-tier-2 .ad154-aura::before{opacity:.54;animation-duration:6.5s}
+.ad154-tier-2 .ad154-aura::after{opacity:.5;animation-duration:4.5s}
+.ad154-tier-3 .ad154-aura::before{opacity:.7;animation-duration:5s}
+.ad154-tier-3 .ad154-aura::after{opacity:.8;animation-duration:3.8s}
+.ad154-tier-3 .ad154-aura .ad154-motes,.ad154-tier-4 .ad154-aura .ad154-motes{
+  background:radial-gradient(circle at 12% 42%,rgba(var(--ad154-rgb),.7) 0 1px,transparent 3px),
+    radial-gradient(circle at 84% 19%,rgba(var(--ad154-rgb),.85) 0 1px,transparent 3px),
+    radial-gradient(circle at 64% 73%,rgba(var(--ad154-rgb),.65) 0 1px,transparent 3px),
+    radial-gradient(circle at 29% 61%,rgba(var(--ad154-rgb),.85) 0 1px,transparent 3px);
+  opacity:.56;animation:ad154-drift 5s ease-in-out infinite alternate;
+}
+.ad154-tier-4 .ad154-aura::before{opacity:.94;animation-duration:3.6s}
+.ad154-tier-4 .ad154-aura::after{opacity:1;animation-duration:2.7s}
+.ad154-tier-4 .ad154-aura .ad154-motes{opacity:.95;animation-duration:3.7s}
+.ad154-tier-4 .ad154-aura .ad154-runes{
+  inset:3px;border-radius:inherit;opacity:.65;
+  background:linear-gradient(90deg,rgba(var(--ad154-rgb),.37),transparent 17%,transparent 83%,rgba(var(--ad154-rgb),.37));
+  mask-image:linear-gradient(180deg,transparent 3%,#000 25%,#000 75%,transparent 97%);
+  animation:ad154-breathe 4.1s ease-in-out infinite;
+}
+/* Large collections stay still: cards shimmer when hovered or played, not 200 at once. */
+.collection-grid .tc-card .ad154-aura *, .collection-grid .tc-card .ad154-aura::before,
+.collection-grid .tc-card .ad154-aura::after{animation-play-state:paused}
+.collection-grid .tc-card:is(:hover,:focus-within) .ad154-aura *,
+.collection-grid .tc-card:is(:hover,:focus-within) .ad154-aura::before,
+.collection-grid .tc-card:is(:hover,:focus-within) .ad154-aura::after{animation-play-state:running}
+@keyframes ad154-sheen{0%,24%{transform:translateX(-135%)}64%,100%{transform:translateX(135%)}}
+@keyframes ad154-breathe{0%,100%{opacity:.3}50%{opacity:.9}}
+@keyframes ad154-drift{from{transform:translateY(7px)}to{transform:translateY(-7px)}}
+body.ad-motion-disabled .ad154-aura *,body.ad-motion-disabled .ad154-aura::before,
+body.ad-motion-disabled .ad154-aura::after{animation:none!important}
+@media(max-width:700px){.ad154-aura .ad154-motes{opacity:.4!important}.ad154-aura .ad154-runes{opacity:.25!important}}
+@media(prefers-reduced-motion:reduce){.ad154-aura *, .ad154-aura::before,.ad154-aura::after{animation:none!important}}

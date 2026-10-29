@@ -14,7 +14,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   img.onerror=()=>{}; // Preserve previous image when binary is not deployed.
   img.src=path;
  }
- const state={level:'all',search:'',art:'all',sort:'level'};
+ const state={level:'all',search:'',art:'all',type:'all',sort:'level'};
  const tierList=$('tierList');
  for(let level=1;level<=12;level++){
   const count=cards.filter(c=>c.level===level).length;
@@ -28,9 +28,9 @@ window.addEventListener('DOMContentLoaded',()=>{
  function render(){
   document.querySelectorAll('.tier').forEach(b=>{const active=b.dataset.level===state.level;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
   const query=state.search.trim().toLocaleLowerCase('de');
-  let visible=cards.filter(c=>(state.level==='all'||c.level===Number(state.level))&&(!query||(c.name+' '+c.element).toLocaleLowerCase('de').includes(query))&&(state.art==='all'||(state.art==='custom' ? !!c.art : !c.art)));
+  let visible=cards.filter(c=>(state.level==='all'||c.level===Number(state.level))&&(!query||(c.name+' '+c.element).toLocaleLowerCase('de').includes(query))&&(state.art==='all'||(state.art==='custom' ? !!c.art : !c.art))&&(state.type==='all'||(state.type==='fusion'?!!c.fusion:!c.fusion)));
   visible.sort((a,b)=>state.sort==='name'?a.name.localeCompare(b.name,'de'):state.sort==='level-desc'?b.level-a.level||a.id-b.id:a.level-b.level||a.id-b.id);
-  $('resultCount').textContent=`${visible.length} von ${cards.length} Kartenvorlagen · ${new Set(cards.filter(c=>c.art).map(c=>c.art)).size} individuelle Illustrationsdateien`;
+  $('resultCount').textContent=`${visible.length} von ${cards.length} Karten in der Galerie`;
   $('empty').hidden=visible.length>0;
   const frag=document.createDocumentFragment();
   for(const c of visible){
@@ -40,15 +40,29 @@ window.addEventListener('DOMContentLoaded',()=>{
    if(!c.art)img.style.objectFit='contain';frame.append(img);
    const title=document.createElement('h3');title.textContent=c.name;
    const info=document.createElement('div');info.className='meta';info.textContent=`LV ${c.level} · ${c.element} · ${c.fusion?'FUSION':'MONSTER'}`;
-   const tag=document.createElement('span');tag.className='tag';tag.textContent=c.variantOf!=null?'Stufenreihe':c.art?'Illustration':'Generator';
-   article.append(frame,title,info,tag);frag.append(article);
+   const tag=document.createElement('span');tag.className='tag';tag.textContent=c.fusion?'✧ Fusion':c.level>=9?'✦ Mächtiges Wesen':c.variantOf!=null?'Teil einer Monsterfamilie':'✧ Monster';
+   const show=document.createElement('button');show.type='button';show.className='ad184-view-card';show.textContent='Monster ansehen';
+   show.setAttribute('aria-label',c.name+' ansehen');
+   show.addEventListener('click',()=>{
+    $('spotlightName').textContent=c.name;
+    $('spotlightMeta').textContent=`Stufe ${c.level} · ${c.element} · ${c.fusion?'Fusion':'Monster'}`;
+    $('spotlightDescription').textContent=c.desc||'Eine Kreatur aus der Welt von Arcane Duel.';
+    const portrait=$('spotlightArt');portrait.src=imageFor(c);portrait.alt=c.name;
+    $('catalogSpotlight').hidden=false;
+    $('catalogSpotlight').scrollIntoView({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'nearest'});
+  });
+   article.append(frame,title,info,tag,show);frag.append(article);
   }
   $('cards').replaceChildren(frag);
  }
  document.querySelectorAll('.tier').forEach(b=>b.addEventListener('click',()=>{state.level=b.dataset.level;render();}));
  $('search').addEventListener('input',e=>{state.search=e.target.value;render();});
  $('artFilter').addEventListener('change',e=>{state.art=e.target.value;render();});
+ $('typeFilter').addEventListener('change',e=>{state.type=e.target.value;render();});
  $('sort').addEventListener('change',e=>{state.sort=e.target.value;render();});
+ $('spotlightClose').addEventListener('click',()=>{$('catalogSpotlight').hidden=true;});
+ const regular=cards.filter(c=>!c.fusion).length,fusion=cards.length-regular,highest=Math.max(0,...cards.map(c=>Number(c.level)||0));
+ $('catalogStats').innerHTML='<div><b>'+cards.length+'</b><span>Kartenporträts</span></div><div><b>'+regular+'</b><span>Normale Monster</span></div><div><b>'+fusion+'</b><span>Fusionen</span></div><div><b>'+highest+'</b><span>Höchste Stufe der Galerie</span></div>';
  $('totalCount').textContent=cards.length;
  $('counter').textContent=cards.length+' Kartenvorlagen';
  window.addEventListener('arcane-lategame-art-ready',render);

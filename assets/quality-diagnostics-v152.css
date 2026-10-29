@@ -1,0 +1,18 @@
+/* On-demand, read-only diagnostics. */
+#modal:has(.ad152-diagnostics){width:min(780px,94vw);max-width:94vw;max-height:90vh;overflow:auto}
+.ad152-diagnostics{text-align:left;display:grid;gap:15px;color:#eee4eb}
+.ad152-diagnostics h2{margin:0;color:#ffddad}
+.ad152-diagnostics p{margin:0;line-height:1.5}
+.ad152-numbers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.ad152-numbers>div{min-width:0;display:grid;gap:7px;background:#241e37;border:1px solid #c8a56c50;padding:12px;border-radius:10px}
+.ad152-numbers small{color:#d2c3ce;font-size:.75rem}
+.ad152-numbers b{color:#f5ddac;font-size:clamp(.9rem,2.4vw,1.3rem);overflow-wrap:anywhere}
+.ad152-diagnostics summary{cursor:pointer;color:#ffdc9c}
+.ad152-diagnostics ol{margin:10px 0;padding-left:24px;line-height:1.9}
+.ad152-diagnostics li{display:flex;justify-content:space-between;gap:8px;overflow-wrap:anywhere}
+.ad152-diagnostics li span{flex:none;color:#ddc496}
+.ad152-diagnostics>small{line-height:1.45;color:#c7b7ca}
+.ad152-frame-check{display:grid;gap:9px;padding:12px;border:1px solid #aeb9da55;border-radius:10px;background:#151e32}
+.ad152-frame-check .btn{justify-self:start;min-height:44px}
+.ad152-frame-check p{font-size:.85rem;color:#dcd5e9;overflow-wrap:anywhere}
+@media(max-width:700px){.ad152-numbers{grid-template-columns:repeat(2,minmax(0,1fr))}}

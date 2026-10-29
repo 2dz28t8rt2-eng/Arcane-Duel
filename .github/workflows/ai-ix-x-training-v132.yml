@@ -1,0 +1,57 @@
+name: Arcane Duel - v13.2 IX X Fusion Board ACE Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-ix-x-strategy-v132.cjs'
+      - '.github/workflows/ai-ix-x-training-v132.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-ix-x-v132-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  ix-x-strategy-learning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm current game rules and optimizer parse correctly
+        run: |
+          node --check tests/ai-ix-x-strategy-v132.cjs
+          node --test tests/ai-history-v130.test.cjs tests/ai-board-planner-v129.test.cjs
+      - name: Retrieve actually fitted v13.1 model, not merely its metrics
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v131-rule-learning-and-lookahead
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39627739090
+          github-token: ${{ github.token }}
+          path: artifacts/v131
+      - name: Pilot tactical scenarios against IX and X
+        env:
+          ARCANE_V132_TRAIN_STARTS: '2'
+          ARCANE_V132_HOLDOUT_STARTS: '2'
+          ARCANE_V132_CANDIDATES: '4'
+        run: node tests/ai-ix-x-strategy-v132.cjs
+      - name: Train strategy weights and benchmark fresh matched holdout IX X and VII
+        env:
+          ARCANE_V132_TRAIN_STARTS: '8'
+          ARCANE_V132_HOLDOUT_STARTS: '16'
+          ARCANE_V132_CANDIDATES: '14'
+        run: node tests/ai-ix-x-strategy-v132.cjs
+      - name: Archive frozen policy and independent opponent-specific report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v132-ix-x-trained-board-ace-policy
+          path: |
+            artifacts/ai-ix-x-strategy-report-v132.json
+            artifacts/ai-ix-x-trained-policy-v132.json
+          retention-days: 60
+          if-no-files-found: warn

@@ -1,0 +1,204 @@
+name: Arcane Duel - v14.8.6 Controlled A/B/C Fusion Fairness Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-v1486-three-arm-symmetric-training.cjs'
+      - 'tests/ai-v1486-aggregate-arm.cjs'
+      - 'tests/ai-v1486-three-arm-mechanics-gate.cjs'
+      - 'tests/ai-v1486-compare-ablations.cjs'
+      - '.github/workflows/ai-v1486-three-arm-fusion-training.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v1486-fusion-ablation-training-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verified-planner-transparency:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check game mechanics and trainer syntax
+        run: |
+          node --check tests/ai-v1486-three-arm-symmetric-training.cjs
+          node --check tests/ai-v1486-aggregate-arm.cjs
+          node --check tests/ai-v1486-three-arm-mechanics-gate.cjs
+          node --check tests/ai-v1486-compare-ablations.cjs
+          node --test \
+            tests/ai-history-v130.test.cjs \
+            tests/ai-board-planner-v129.test.cjs \
+            tests/ai-fusion-choice-v61.test.cjs \
+            tests/ai-fusion-preservation-v62.test.cjs \
+            tests/fusion-rework-v113.test.cjs \
+            tests/fusion-utility-v55.test.cjs \
+            tests/defender-soul-update.test.cjs \
+            tests/allrounder-resonance-v41.test.cjs \
+            tests/role-inheritance-regression.test.cjs \
+            tests/role-budget-resonator-v41.test.cjs \
+            tests/essence-combat.test.cjs \
+            tests/lv1-fusion-and-ghost-v47.test.cjs \
+            tests/lv1-fanatic-ace-v48.test.cjs \
+            tests/balance-economy-v109.test.cjs \
+            tests/progression-real-inventory-audit.test.cjs
+      - name: Restore original selfplay training generations
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v136-extensive-1200-episode-selfplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39637833422
+          github-token: ${{ github.token }}
+          path: artifacts/history
+      - name: Restore v14.2 audit
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v142-planner-action-override-and-mechanic-coverage
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39647899323
+          github-token: ${{ github.token }}
+          path: artifacts/history-v142
+      - name: Restore v14.3 fusion results
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v143-fusion-value-training-and-verified-placement
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39650698039
+          github-token: ${{ github.token }}
+          path: artifacts/history-v143
+      - name: Restore v14.4 followup results
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v144-historical-fusion-followup-counterplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39653165893
+          github-token: ${{ github.token }}
+          path: artifacts/history-v144
+      - name: Restore v14.5 strategy results
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v145-three-strategy-rule-curriculum-and-training
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39657418644
+          github-token: ${{ github.token }}
+          path: artifacts/history-v145
+      - name: Restore v14.6 original verified decision-explanation evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v146-mirror-strategy-decision-explanations
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39663274946
+          github-token: ${{ github.token }}
+          path: artifacts/history-v146
+      - name: Restore v14.7 final planner score audit
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v147-final-score-transparency-and-mirror-training
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39666712311
+          github-token: ${{ github.token }}
+          path: artifacts/history-v147
+      - name: Restore v14.8 activation-gate failure report for regression check
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v148-real-tactical-strategy-mirrors
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39713425902
+          github-token: ${{ github.token }}
+          path: artifacts/history-v148
+      - name: Restore prior v14.8.1 successful activated tactical report
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1481-activated-tactical-strategy-mirrors
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39717386115
+          github-token: ${{ github.token }}
+          path: artifacts/history-v1481
+      - name: Restore v14.8.2 genuine seat advantage report
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1482-real-controller-seat-mirror-diagnostics
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39720256066
+          github-token: ${{ github.token }}
+          path: artifacts/history-v1482
+      - name: Restore validated v14.8.3 skill-neutral fairness results
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1483-skills-disabled-starter-and-opening-hand-factorial
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39723695611
+          github-token: ${{ github.token }}
+          path: artifacts/history-v1483
+      - name: Restore v14.8.4 exact matching hand and deck benchmark
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1484-verified-identical-starting-hand-and-deck-fairness
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39729970919
+          github-token: ${{ github.token }}
+          path: artifacts/history-v1484
+      - name: Require genuine previous reports and frozen champion
+        run: |
+          test "$(find artifacts/history -name ai-v136-training-report.json | wc -l)" -eq 3
+          node - <<'JS'
+          const assert=require('node:assert/strict');
+          const frozen=require('./models/ai-selfplay-v136.json');
+          const prior=require('./artifacts/history-v146/report.json');
+          assert.equal(frozen.gamesTrained,1920);
+          assert.equal(frozen.productionActive,false);
+          assert.equal(prior.schema,'arcane-v146-verified-mirror-explanations');
+          assert.equal(prior.qualifiesForPromotion,false);
+          console.log('Frozen champion, independent historical curriculum and last failure verified');
+          JS
+      - name: Verify that all three fusion ablations are real, controlled and reversible
+        run: |
+          node tests/ai-v1485-fusion-side-audit.cjs
+          node tests/ai-v1486-three-arm-mechanics-gate.cjs
+      - name: Small fail-closed pilot for all three ablation arms
+        env:
+          ARCANE_V1486_TRAIN: '9'
+          ARCANE_V1486_HOLDOUT: '9'
+          ARCANE_V1486_LEAGUE: '3'
+        run: |
+          set -euo pipefail
+          for arm in baseline neutral symmetric; do
+            echo "=== Pilot: $arm ==="
+            ARCANE_V1486_ARM="$arm" node --max-old-space-size=4096 tests/ai-v1486-three-arm-symmetric-training.cjs
+          done
+      - name: Extensive 84-scene A/B/C independent and memory-safe mirrors
+        env:
+          ARCANE_V1486_TRAIN: '84'
+          ARCANE_V1486_HOLDOUT: '84'
+          ARCANE_V1486_LEAGUE: '14'
+        run: |
+          set -euo pipefail
+          for arm in baseline neutral symmetric; do
+            for shard in 0 1 2 3; do
+              echo "=== Full $arm shard $shard/3 (21 independent holdouts) ==="
+              ARCANE_V1486_ARM="$arm" ARCANE_V1486_SHARD="$shard" \
+                node --max-old-space-size=4096 tests/ai-v1486-three-arm-symmetric-training.cjs
+            done
+            ARCANE_V1486_ARM="$arm" node tests/ai-v1486-aggregate-arm.cjs
+          done
+      - name: Verify paired identical starts, all three complete arms and compare strategic results
+        env:
+          ARCANE_V1486_TRAIN: '84'
+          ARCANE_V1486_HOLDOUT: '84'
+        run: node tests/ai-v1486-compare-ablations.cjs
+      - name: Archive full original independent reports plus three-arm causal comparison
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1486-three-arm-fusion-fairness-extensive-mirror-training
+          path: |
+            artifacts/v1486/comparison.json
+            artifacts/v1486/baseline/
+            artifacts/v1486/neutral/
+            artifacts/v1486/symmetric/
+          retention-days: 90
+          if-no-files-found: warn

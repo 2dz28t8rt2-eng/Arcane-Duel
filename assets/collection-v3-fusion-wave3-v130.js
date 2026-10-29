@@ -1,0 +1,20 @@
+/* Monsterlexikon companion: v130 regular role-free fusion art. */
+'use strict';
+(()=>{
+ const specs=[{"id":752,"name":"Kristallwyvern im Ruinenkathedralenlicht","level":2,"kind":"dragon","element":"WASSER","desc":"Reguläre Fusionsvorlage ohne festen Rollentag. Die tatsächliche Rolle wird ausschließlich aus ihren Fusionsmaterialien bestimmt.","art":"assets/custom-art/fusion-wave3-v130/kristallwyvern-im-ruinenkathedralenlicht.webp"},{"id":753,"name":"Violettes Chimärenbiest in Ruinen","level":2,"kind":"wolf","element":"DUNKEL","desc":"Reguläre Fusionsvorlage ohne festen Rollentag. Die tatsächliche Rolle wird ausschließlich aus ihren Fusionsmaterialien bestimmt.","art":"assets/custom-art/fusion-wave3-v130/violettes-chimaerenbiest-in-ruinen.webp"},{"id":754,"name":"Runenbasilisk im Kathedralengarten","level":2,"kind":"serpent","element":"ERDE","desc":"Reguläre Fusionsvorlage ohne festen Rollentag. Die tatsächliche Rolle wird ausschließlich aus ihren Fusionsmaterialien bestimmt.","art":"assets/custom-art/fusion-wave3-v130/runenbasilisk-im-kathedralengarten.webp"},{"id":755,"name":"Dreiköpfiger Sturmwolf im Ruinenheiligtum","level":3,"kind":"wolf","element":"WIND","desc":"Reguläre Fusionsvorlage ohne festen Rollentag. Die tatsächliche Rolle wird ausschließlich aus ihren Fusionsmaterialien bestimmt.","art":"assets/custom-art/fusion-wave3-v130/dreikoepfiger-sturmwolf-im-ruinenheiligtum.webp"},{"id":756,"name":"Kosmischer Kristallkoloss im Mondlicht","level":3,"kind":"golem","element":"LICHT","desc":"Reguläre Fusionsvorlage ohne festen Rollentag. Die tatsächliche Rolle wird ausschließlich aus ihren Fusionsmaterialien bestimmt.","art":"assets/custom-art/fusion-wave3-v130/kosmischer-kristallkoloss-im-mondlicht.webp"},{"id":757,"name":"Kathedralenhydra im Himmelsheiligtum","level":3,"kind":"serpent","element":"WASSER","desc":"Reguläre Fusionsvorlage ohne festen Rollentag. Die tatsächliche Rolle wird ausschließlich aus ihren Fusionsmaterialien bestimmt.","art":"assets/custom-art/fusion-wave3-v130/kathedralenhydra-im-himmelsheiligtum.webp"},{"id":758,"name":"Himmlischer Zeitdrache über den Ruinen","level":5,"kind":"dragon","element":"LICHT","desc":"Reguläre Fusionsvorlage ohne festen Rollentag. Die tatsächliche Rolle wird ausschließlich aus ihren Fusionsmaterialien bestimmt.","art":"assets/custom-art/fusion-wave3-v130/himmlischer-zeitdrache-ueber-den-ruinen.webp"},{"id":759,"name":"Infernaler Mantikor im Ruinenhimmel","level":5,"kind":"lion","element":"FEUER","desc":"Reguläre Fusionsvorlage ohne festen Rollentag. Die tatsächliche Rolle wird ausschließlich aus ihren Fusionsmaterialien bestimmt.","art":"assets/custom-art/fusion-wave3-v130/infernaler-mantikor-im-ruinenhimmel.webp"},{"id":760,"name":"Vulkanischer Löwenkönig im Ruinensturm","level":7,"kind":"lion","element":"FEUER","desc":"Reguläre Fusionsvorlage ohne festen Rollentag. Die tatsächliche Rolle wird ausschließlich aus ihren Fusionsmaterialien bestimmt.","art":"assets/custom-art/fusion-wave3-v130/vulkanischer-loewenkoenig-im-ruinensturm.webp"},{"id":761,"name":"Kosmischer Dornenkoloss im Eclipse-Tempel","level":7,"kind":"golem","element":"DUNKEL","desc":"Reguläre Fusionsvorlage ohne festen Rollentag. Die tatsächliche Rolle wird ausschließlich aus ihren Fusionsmaterialien bestimmt.","art":"assets/custom-art/fusion-wave3-v130/kosmischer-dornenkoloss-im-eclipse-tempel.webp"}];
+ const ARTWORKS_COMPLETE=true;
+ if(!ARTWORKS_COMPLETE){
+  window.ArcaneCollectionFusionWaveV130=Object.freeze({
+   status:'awaiting-artwork-upload',count:0,plannedCount:specs.length});
+  return;
+ }
+ const collection=window.ARCANE_COLLECTION_V3;
+ if(!Array.isArray(collection)||collection.some(c=>c.id>=752))
+  throw Error('Fusion Wave v130: existing monster lexicon IDs changed');
+ for(const s of specs)collection.push({
+  id:s.id,name:s.name,level:s.level,kind:s.kind,element:s.element,
+  art:s.art,desc:s.desc,fusion:true,manifestOf:null,variantOf:null
+ });
+ window.ArcaneCollectionFusionWaveV130=Object.freeze({
+  status:'active',count:specs.length,firstId:752});
+})();

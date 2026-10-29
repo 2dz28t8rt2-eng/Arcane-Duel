@@ -24,7 +24,7 @@ test('existing legal low-level field chain preserves a spent attack',()=>{
 });
 test('tournament defeat grants no drop charge; free defeat retains its historic reward',()=>{
  const r=run(`(()=>{
-  profile=freshProfile();profile.trainingWins=3;profile.dropCharges=0;
+  profile=freshProfile();profile.trainingWins=3;profile.mastery[0]=3;profile.dropCharges=0;
   const a=createGame({id:'charged-loss112-a',mode:'pve',context:'tournament',opponentId:1,seed:1190});
   a.winner=1;const lost=rewardMatch(a),afterLost=profile.dropCharges;
   const b=createGame({id:'charged-loss112-b',mode:'pve',context:'free',opponentId:0,seed:1191});

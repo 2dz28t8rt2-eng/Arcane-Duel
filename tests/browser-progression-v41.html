@@ -78,6 +78,10 @@ document.getElementById('app').addEventListener('load',async()=>{
   await pause(750);
   check(Number(d.getElementById('myLP').textContent)>0&&Number(d.getElementById('myLP').textContent)<w.eval('game.players[0].lp'),'Der langsamere LP-Aufbau ist sichtbar zwischen null und Endwert');
   await pause(1900);
+  // The opening hand now enters AFTER the LP bar is full. Its asynchronous
+  // cinematic keeps busy=true until all five real cards have settled.
+  // Wait for that release before testing a subsequent fusion interaction.
+  for(let i=0;i<55&&w.eval('busy');i++)await pause(100);
   check(!d.getElementById('duelScreen').dataset.lpPhase&&!w.eval('busy')&&Number(d.getElementById('myLP').textContent)===w.eval('game.players[0].lp'),'LP enden exakt am echten Wert und die Steuerung wird freigegeben');
   w.requestAnimationFrame=nativeRAF;w.cancelAnimationFrame=nativeCancel;
   w.eval(`game.players[0].field[2]=null;game.summoned=false;game.selection=null;const t=RPG_FUSIONS.find(c=>c.level===2&&!c.retired&&!c.enemyOnly);const f=newInstance(game,t.id,0);f.fusion=true;f.materialsUsed=3;game.pending={kind:'fusion',card:f,levels:[1,1],revealed:true};render();`);

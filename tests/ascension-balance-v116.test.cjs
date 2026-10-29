@@ -11,12 +11,12 @@ test('two true Resonators earn exactly +1 rank ONCE in chain, not every recombin
  assert.equal(r.bonus,1);assert.equal(r.repeat,0);assert.equal(r.used,true);
  assert.equal(r.firstLevel-r.repeatLevel,1);
 });
-test('opponent VII has guardian archetype, exactly three Lv10 fusions including its unique ACE',()=>{
+test('opponent VII has guardian archetype, exactly four Lv10 fusions including its unique ACE',()=>{
  const r=execute("(()=>{const o=RPG_OPPONENTS[7],p=rpgEnemyLoadout(7,'easy');const ace=ACE_CARD_IDS[7];const dec=p.fusionDeck.map(id=>({id,level:CARDS[id].level,ace:id===ace}));return {style:o.aiArchetype,policy:o.policy,main:p.deck.length,templates:dec,aceLevel:CARDS[ace].level,normalTags:p.deck.filter(id=>['guardian','soul'].includes(CARDS[id].role)).length};})()");
  assert.equal(r.style,'defense');assert.equal(r.policy,'guardian');
  assert.equal(r.main,40);assert.equal(r.aceLevel,10);
- assert.equal(r.templates.filter(x=>x.level===10).length,3,JSON.stringify(r));
- assert.equal(r.templates.filter(x=>x.level===10&&!x.ace).length,2);
+ assert.equal(r.templates.filter(x=>x.level===10).length,4,JSON.stringify(r));
+ assert.equal(r.templates.filter(x=>x.level===10&&!x.ace).length,3);
  assert.equal(r.templates.filter(x=>x.level===10&&x.ace).length,1);
  assert.ok(r.normalTags>=5,JSON.stringify(r));
 });
@@ -49,4 +49,21 @@ test('actual PvE two-resonator fusion grants exactly one template level and save
 test('the forge always requires available individual copies, including repeated same-card recipes',()=>{
  const r=execute("(()=>{profile=freshProfile();profile.cleared=[1,2,3,4,5,6];profile.coins=2000;const forge=window.ArcaneAscensionForge116;const c=CARDS.find(x=>x.level===9&&x.rpg&&!x.fusionOnly&&!x.ace&&!x.enemyOnly&&!x.retired&&!x.essenceMonster);addCard(c.id);return {free:freeCopies(c.id),recipe:forge.safeRecipe([c.id,c.id,c.id],9),blocked:forge.forge(9,[c.id,c.id,c.id]).ok,coins:profile.coins};})()");
  assert.equal(r.recipe,false);assert.equal(r.blocked,false);assert.equal(r.coins,2000);
+});
+
+test('three actual fusion materials guarantee a fusion of the next rank (without relying on pity)',()=>{
+ const r=execute("(()=>{profile=freshProfile();profile.cleared=[1,2,3,4,5,6];profile.coins=100000;const f=window.ArcaneAscensionForge116,c=CARDS.find(c=>c.rpg&&c.level===8&&c.fusionOnly&&!c.ace&&!c.enemyOnly&&!c.retired&&!c.hard&&!c.questOnly&&!c.milestoneOnly);if(!c)throw Error('Missing Lv8 fusion');for(let i=0;i<4;i++)addCard(c.id);profile.ascensionPity[9]=0;const before=f.normalInventory(),old=profile.inventory[c.id];const o=f.forge(8,[c.id,c.id,c.id]);return {ok:o.ok,type:o.fusion,level:o.level,copies:old-profile.inventory[c.id],normalCount:[before,f.normalInventory()],pity:profile.ascensionPity[9]};})()");
+ assert.equal(r.ok,true,JSON.stringify(r));assert.equal(r.type,true);assert.equal(r.level,9);
+ assert.equal(r.copies,3);assert.equal(r.normalCount[0],r.normalCount[1]);assert.equal(r.pity,0);
+});
+test('normal main-deck stock can never be consumed below 40; failure is informative and leaves resources intact',()=>{
+ const r=execute("(()=>{profile=freshProfile();profile.cleared=[1,2,3,4,5,6];profile.coins=15000;const f=window.ArcaneAscensionForge116,c=CARDS.find(c=>c.rpg&&c.level===8&&!c.fusionOnly&&!c.ace&&!c.enemyOnly&&!c.retired&&!c.hard&&!c.questOnly&&!c.essenceMonster);if(!c)throw Error('Missing Lv8 normal');for(let i=0;i<4;i++)addCard(c.id);const ids=[c.id,c.id,c.id];const before=f.normalInventory(),old=profile.coins;const valid=f.safeRecipe(ids,8);const forged=f.forge(8,ids);return {before,valid,result:forged.ok,message:forged.message,coins:old-profile.coins,after:f.normalInventory(),spare:freeCopies(c.id)};})()");
+ // If the player already owned 40 main-deck cards, three spare cards are
+ // safely consumable; otherwise neither the saved inventory nor currency moves.
+ if(r.before-3<40){assert.equal(r.valid,false);assert.equal(r.result,false);assert.match(r.message,/40 normale Monsterkarten/);assert.equal(r.coins,0);assert.equal(r.after,r.before);}
+ else {assert.equal(r.valid,true,JSON.stringify(r));assert.equal(r.result,true,JSON.stringify(r));assert.ok(r.after>=40);}
+});
+test('exact minimum normal-stock boundary rejects even free unreserved copies in incomplete decks',()=>{
+ const r=execute("(()=>{profile=freshProfile();profile.cleared=[1,2,3,4,5,6];profile.coins=15000;const f=window.ArcaneAscensionForge116,c=CARDS.find(c=>c.rpg&&c.level===8&&!c.fusionOnly&&!c.ace&&!c.enemyOnly&&!c.retired&&!c.essenceMonster&&!c.hard);for(let i=0;i<4;i++)addCard(c.id);const ids=[c.id,c.id,c.id];const originals={...profile.inventory};const protectedIds=new Set(profile.activeDeck);for(const x of CARDS)if(x&&x.rpg&&!x.fusionOnly&&!x.enemyOnly&&!x.retired&&!protectedIds.has(x.id)&&x.id!==c.id)delete profile.inventory[x.id];let excess=f.normalInventory()-42;for(const id of profile.activeDeck){if(excess<=0)break;if(id!==c.id&&profile.inventory[id]>0){const take=Math.min(excess,profile.inventory[id]);profile.inventory[id]-=take;excess-=take;}}const stock=f.normalInventory(),before=profile.coins;const result=f.forge(8,ids);return {stock,blocked:!result.ok,message:result.message,spent:before-profile.coins,after:f.normalInventory()};})()");
+ if(r.stock<43){assert.ok(r.blocked,JSON.stringify(r));assert.match(r.message,/40 normale Monsterkarten/);assert.equal(r.spent,0);assert.equal(r.stock,r.after);}
 });

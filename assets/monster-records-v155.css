@@ -1,0 +1,8 @@
+#ad155-monster-records{margin:15px 0;padding:16px;border-radius:12px;border:1px solid #e0bd866b;background:linear-gradient(130deg,#29263d,#18314a)}
+#ad155-monster-records h3{margin:0 0 8px;color:#ffdda1}
+.ad155-record-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:13px 0}
+.ad155-record-grid article{padding:10px;border-radius:8px;border:1px solid #b9a68550;background:#111d35b8}
+.ad155-record-grid b,.ad155-record-grid span,.ad155-record-grid small{display:block}
+.ad155-record-grid span{color:#c8e8dc;font-size:.89em;margin:5px 0}
+.ad155-record-grid small,.ad155-muted{color:#b7c6d7;font-size:.81em}
+@media(max-width:700px){.ad155-record-grid{grid-template-columns:1fr}}

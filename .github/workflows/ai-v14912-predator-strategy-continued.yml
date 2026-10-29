@@ -1,0 +1,139 @@
+name: Arcane Duel - v14.9.12 Predator Fusion Strategy Continuation
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v14912-predator-strategy-continued.yml'
+      - 'tests/ai-v1512-persistent-Q-continuation.cjs'
+      - 'tests/ai-v1512-safer-fusion-forecast-shards.cjs'
+      - 'tests/ai-v1512-aggregate-shards.cjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v14912-summon-fusion-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  train-summon-fusion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 160
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Enforce current game rules, mirrored Predator buffs and training syntax
+        run: |
+          node --check tests/ai-v1512-persistent-Q-continuation.cjs
+          node --check tests/ai-v1512-safer-fusion-forecast-shards.cjs
+          node --check tests/ai-v1512-aggregate-shards.cjs
+          node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
+      - name: Restore and verify the last SUCCESSFUL learned Q checkpoint (required)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/v1512 /tmp/arcane-prior
+          rm -f artifacts/v1512/previous-training-q.json
+          # Explicit fallback to VERIFIED successful v14.9.11 artifact.
+          # Do not silently restart learning from zero when gh run list is empty.
+          PREVIOUS=$(gh run list --repo "${GITHUB_REPOSITORY}" --workflow ai-v14912-predator-strategy-continued.yml --branch development --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+          if [ -n "$PREVIOUS" ]; then
+            gh run download "$PREVIOUS" --repo "${GITHUB_REPOSITORY}" --name arcane-v14912-predator-training --dir /tmp/arcane-prior || true
+          fi
+          if [ ! -s /tmp/arcane-prior/training-q-and-examples.json ]; then
+            gh run download 39803691439 --repo "${GITHUB_REPOSITORY}" --name arcane-v14911-summon-fusion-training --dir /tmp/arcane-prior
+            echo "ARCANE_V1512_RESTORED_KNOWN_SUCCESS_RUN 39803691439"
+          else
+            echo "ARCANE_V1512_RESTORED_LAST_SUCCESS_RUN $PREVIOUS"
+          fi
+          test -s /tmp/arcane-prior/training-q-and-examples.json
+          cp /tmp/arcane-prior/training-q-and-examples.json artifacts/v1512/previous-training-q.json
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const data=JSON.parse(fs.readFileSync('artifacts/v1512/previous-training-q.json','utf8'));
+          assert.equal(data.length,3,'Three prior research arms required');
+          for(const [swarm,pierce] of [[0,0],[.02,0],[.02,.1]]){
+           const a=data.find(x=>x.swarm===swarm&&x.pierce===pierce);
+           assert.ok(a&&Object.keys(a.learnedQ||{}).length>=100,
+             'Missing trained prior Q checkpoint for '+swarm+'/'+pierce);
+           console.log('ARCANE_V1512_CHECKPOINT '+JSON.stringify({swarm,pierce,
+             keys:Object.keys(a.learnedQ).length,priorMean:a.holdout?.meanLearner}));
+          }
+          JS
+      - name: Continue outcome-safe Q learning on fresh public-board action alternatives
+        run: |
+          node --expose-gc --max-old-space-size=4096 tests/ai-v1512-persistent-Q-continuation.cjs
+      - name: Run 24 isolated 64-duel batches with a NEW Node.js heap per batch
+        run: |
+          set -euo pipefail
+          for shard in $(seq 0 23); do
+            echo "::group::Predator fusion comparison - shard $shard / 23"
+            node --expose-gc --max-old-space-size=1800 tests/ai-v1512-safer-fusion-forecast-shards.cjs "$shard"
+            echo "::endgroup::"
+          done
+      - name: Verify all 1536 unique comparisons and merge saved shards
+        run: |
+          node --max-old-space-size=1800 tests/ai-v1512-aggregate-shards.cjs
+      - name: Validate fair seats independent holdout and observed legal summon/fusion simulations
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const q=JSON.parse(fs.readFileSync('artifacts/v1512/report.json','utf8'));
+          const m=JSON.parse(fs.readFileSync('artifacts/v1512/fullmatch.json','utf8'));
+          assert.equal(q.schema,'arcane-v1512-continued-predator-Q-training');
+          assert.equal(q.trainingCasesPerArm,450);
+          assert.equal(q.holdoutCasesPerArm,150);
+          assert.equal(q.candidates.length,3);
+          assert.equal(q.priorCheckpointLoaded,true,'Q memory not restored – cannot claim continued learning');
+          assert.ok(q.candidates.every(x=>x.keys>0&&x.holdout.cases===150));
+          assert.equal(m.schema,'arcane-v1512-predator-summon-fusion-forecast-fullmatch');
+          assert.equal(m.totalMatches,1536);
+          assert.equal(m.arms.length,8);
+          assert.ok(m.arms.every(x=>x.games===192&&x.seatWins[0]+x.seatWins[1]===x.wins));
+          const forecast=m.arms.filter(x=>x.summonForecast);
+          assert.equal(forecast.length,4);
+          assert.ok(forecast.reduce((n,x)=>n+x.summonChecks,0)>0,
+            'Summon planning was never called');
+          assert.ok(forecast.reduce((n,x)=>n+x.summonLegal,0)>0,
+            'Summon/fusion forecast failed to simulate any legal choice');
+          const difficult=(name)=>m.arms.find(x=>x.defenderLead&&x.label===name);
+          const controls={
+           baseline:difficult('baseline-heuristic').wins,
+           gatedQ:difficult('gated-Q').wins,
+           previousFullPlan:difficult('old-fusion-and-attacks').wins,
+           conservativeFullPlan:difficult('conservative-fusion-and-attacks').wins
+          };
+          const cautious=controls.conservativeFullPlan>=controls.gatedQ;
+          const deeper=controls.conservativeFullPlan>=controls.previousFullPlan;
+          const result={schema:'arcane-v14912-summon-fusion-forecast-conclusion',
+            sourceSha:process.env.GITHUB_SHA,
+            trainingCases:1350,tacticalHoldout:450,
+            fullDuels:1536,normalDuels:768,hardDefenderDuels:768,
+            historicQRestored:q.priorCheckpointLoaded,
+            acceptedQUpdates:q.updatedQArms,
+            difficultDefenderWins:controls,
+            conservativeBeatsGatedQ:cautious,
+            conservativeBeatsOldPlanning:deeper,
+            liveAIPromotion:false,
+            arms:m.arms.map(x=>({name:x.label,hard:x.defenderLead,
+              games:x.games,wins:x.wins,qMoves:x.qMoves,
+              summonChecks:x.summonChecks,summonLegal:x.summonLegal,
+              summonChanges:x.summonChanges,fusionChanges:x.fusionChanges,
+              lookaheadChanges:x.lookaheadChanges,seatWins:x.seatWins})),
+            limitations:['Opponent uses economy Guardian/Soul and offensive Fusion/Hybrid AI, not a frozen champion league.',
+             'Summon/fusion projection is a bounded engine clone plus one visible enemy attack, not full rounds.',
+             'Arena LP decay disabled in research; boss/quest-specific mechanics outside test.',
+             'Paired seat starter and match seeds are correlated; no statistical significance implied.']};
+          fs.writeFileSync('artifacts/v1512/conclusion.json',JSON.stringify(result,null,2)+'\n');
+          console.log('ARCANE_V1512_VERIFIED '+JSON.stringify(result));
+          JS
+      - name: Archive learned Q, independent holdouts and full matched-duel decision traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v14912-predator-training
+          path: artifacts/v1512/
+          retention-days: 90
+          if-no-files-found: warn

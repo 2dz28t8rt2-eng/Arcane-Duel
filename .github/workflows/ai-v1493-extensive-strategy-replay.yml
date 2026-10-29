@@ -1,0 +1,73 @@
+name: Arcane Duel - v14.9.3 Extensive Strategic Replay Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-v1493-extensive-strategy-replay-training.cjs'
+      - '.github/workflows/ai-v1493-extensive-strategy-replay.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v1493-extensive-replay-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  extensive-strategy-training:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate isolated research rules, strategy and regression tests
+        run: |
+          node --check tests/ai-v1493-extensive-strategy-replay-training.cjs
+          node --check tests/ai-v1492-strategic-warmup-curriculum.cjs
+          node --test tests/strategic-warmup-v1492.test.cjs tests/essence-combat.test.cjs tests/opening-grace-postsummon-v149.test.cjs tests/defender-soul-update.test.cjs
+      - name: Extensive six-stage policy replay, train-only selection and unseen holdout
+        run: |
+          set -euo pipefail
+          for stage in 0 1 2 3 4 5; do
+            node --expose-gc --max-old-space-size=4096 tests/ai-v1493-extensive-strategy-replay-training.cjs "$stage"
+          done
+      - name: Verify disjoint training and holdout, symmetric Soul locks and no live promotion
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const r=JSON.parse(fs.readFileSync('artifacts/v1493/report.json','utf8'));
+          assert.equal(r.schema,'arcane-v1493-extensive-strategic-replay');
+          assert.deepEqual(r.stageOrder,[10,8,6,4,2,0]);
+          assert.equal(r.stages.length,6);
+          assert.equal(r.holdoutMatches,288);
+          assert.ok(r.trainingMatches>=1000);
+          assert.ok(r.trainingReplaySamples>0);
+          assert.equal(r.productionActive,false);
+          assert.equal(r.championPromoted,false);
+          assert.equal(r.totals.soulViolations,0);
+          assert.equal(r.totals.illegalActions,0);
+          assert.equal(r.totals.firstAttackViolations,0);
+          assert.ok(r.totals.actualChangedActions>0);
+          for(let i=0;i<6;i++){
+            const x=JSON.parse(fs.readFileSync('artifacts/v1493/stage-'+i+'.json','utf8'));
+            assert.equal(x.holdout.summary.games,48);
+            assert.equal(x.controls.rolesEnabled,true);
+            const training=new Set(x.training.deckFingerprints);
+            const holdout=new Set(x.holdout.deckFingerprints);
+            assert.equal(training.size,12);assert.equal(holdout.size,12);
+            assert.ok([...training].every(x=>!holdout.has(x)));
+            assert.equal(x.training.outcomeCredit.replayOnlyFromTraining,true);
+          }
+          console.log('ARCANE_V1493_FINAL_VALIDATION '+JSON.stringify({
+            train:r.trainingMatches,holdout:r.holdoutMatches,
+            credit:r.trainingReplaySamples,totals:r.totals}));
+          JS
+      - name: Preserve individual training revisions, action traces and independent holdout reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1493-extensive-strategy-replay-training
+          path: artifacts/v1493/
+          retention-days: 90
+          if-no-files-found: warn

@@ -1,0 +1,41 @@
+name: Arcane Duel - v12.4 Opponent IV AI and Combat Diagnostics
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-opponent-iv-combat-v124.cjs'
+      - '.github/workflows/opponent-iv-ai-v124.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  iv-ai-controls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check training and real IV legal decks
+        run: |
+          node --check tests/ai-opponent-iv-combat-v124.cjs
+          node --test tests/opponent-iv-balance-v123.test.cjs tests/opponent-roster-v118.test.cjs tests/ascension-balance-v116.test.cjs
+      - name: Pilot three matched IV conditions on two origins
+        env:
+          ARCANE_V124_CAREERS: '2'
+          ARCANE_V124_TIER_ATTEMPTS: '8'
+        run: node tests/ai-opponent-iv-combat-v124.cjs
+      - name: Full diagnostic 32 seeds times three IV conditions
+        env:
+          ARCANE_V124_CAREERS: '32'
+          ARCANE_V124_TIER_ATTEMPTS: '30'
+        run: node tests/ai-opponent-iv-combat-v124.cjs
+      - name: Preserve raw career, combat and controller measurements
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v124-iv-ai-3way-combat-diagnostics
+          path: artifacts/ai-opponent-iv-combat-v124.json
+          retention-days: 30
+          if-no-files-found: warn

@@ -1,0 +1,68 @@
+name: Arcane Duel - v14.9.4 Soul Unlock and Seat Parity Audit
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/game.js'
+      - 'assets/evolution.js'
+      - 'assets/allrounder-resonance-v41.js'
+      - 'assets/essence-combat.js'
+      - 'assets/fusion-rework-v113.js'
+      - 'assets/qa-followup-v51.js'
+      - 'tests/strategic-warmup-v1492.test.cjs'
+      - 'tests/strategic-seat-parity-v1494.test.cjs'
+      - 'tests/strategic-seat-parity-v1495.test.cjs'
+      - 'tests/ai-v1493-extensive-strategy-replay-training.cjs'
+      - 'tests/ai-v1494-seat-bias-investigation.cjs'
+      - '.github/workflows/ai-v1494-seat-parity-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v1494-parity-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  symmetric-research-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate source and exact dynamic Soul gates
+        run: |
+          node --check assets/game.js
+          node --check assets/essence-combat.js
+          node --check tests/ai-v1494-seat-bias-investigation.cjs
+          node --test tests/strategic-warmup-v1492.test.cjs tests/strategic-seat-parity-v1494.test.cjs tests/strategic-seat-parity-v1495.test.cjs tests/essence-combat.test.cjs tests/opening-grace-postsummon-v149.test.cjs
+      - name: Matched starter/seat mirror comparisons with symmetric research enabled or disabled
+        run: |
+          node --max-old-space-size=4096 tests/ai-v1494-seat-bias-investigation.cjs
+      - name: Fail closed on missing or incomplete parity comparisons
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const r=JSON.parse(fs.readFileSync('artifacts/v1494/report.json','utf8'));
+          assert.equal(r.schema,'arcane-v1494-seat-bias-investigation');
+          assert.equal(r.matchCount,360);
+          assert.equal(r.groups.length,12);
+          for(const group of r.groups){
+            assert.equal(group.total,30);
+            assert.equal(group.seat0Wins+group.seat1Wins,group.decided);
+            assert.equal(group.starterWins+group.secondWins,group.decided);
+          }
+          console.log('ARCANE_V1494_AUDITED '+JSON.stringify(r.groups.map(x=>({
+            stage:x.stage,mode:x.controls,policy:x.policy,
+            seat0:x.seat0Wins,seat1:x.seat1Wins,
+            starter:x.starterWins,second:x.secondWins,timeouts:x.timeouts}))));
+          JS
+      - name: Preserve transparent seat, initiative and role diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1494-mirrored-seat-parity-audit
+          path: artifacts/v1494/
+          retention-days: 90
+          if-no-files-found: warn

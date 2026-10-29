@@ -1,0 +1,73 @@
+name: Arcane Duel - v13.4 Boss IX X Loss-Diagnostic Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-loss-diagnostics-v134.cjs'
+      - '.github/workflows/ai-loss-diagnostics-v134.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-ai-v134-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  learn-from-lost-duels:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check game engine and training syntax
+        run: |
+          node --check tests/ai-loss-diagnostics-v134.cjs
+          node --test tests/ai-history-v130.test.cjs tests/ai-board-planner-v129.test.cjs
+      - name: Restore fitted v13.1 attack reward history
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v131-rule-learning-and-lookahead
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39627739090
+          github-token: ${{ github.token }}
+          path: artifacts/v131
+      - name: Restore prior v13.2 strategy
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v132-ix-x-trained-board-ace-policy
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39629620617
+          github-token: ${{ github.token }}
+          path: artifacts/v132
+      - name: Restore frozen v13.3 policy without refitting on former holdout
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v133-robust-multideck-policy-report
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39631169966
+          github-token: ${{ github.token }}
+          path: artifacts/v133
+      - name: Pilot loss tracking and legal tactical alternatives
+        env:
+          ARCANE_V134_TRAIN_REPEATS: '1'
+          ARCANE_V134_HOLDOUT_REPEATS: '1'
+          ARCANE_V134_CANDIDATES: '4'
+        run: node tests/ai-loss-diagnostics-v134.cjs
+      - name: Optimize loss-focused IX X decisions and diagnose independent holdouts
+        env:
+          ARCANE_V134_TRAIN_REPEATS: '2'
+          ARCANE_V134_HOLDOUT_REPEATS: '3'
+          ARCANE_V134_CANDIDATES: '12'
+        run: node tests/ai-loss-diagnostics-v134.cjs
+      - name: Archive source-grounded failure analysis and frozen next policy
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v134-late-boss-loss-diagnostics-and-trained-policy
+          path: |
+            artifacts/ai-v134-loss-analysis.json
+            artifacts/ai-v134-policy.json
+          retention-days: 60
+          if-no-files-found: warn

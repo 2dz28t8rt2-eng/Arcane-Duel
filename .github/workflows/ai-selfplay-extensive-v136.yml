@@ -1,0 +1,133 @@
+name: Arcane Duel - v13.6 Extensive Self-Play Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-selfplay-extensive-v136.cjs'
+      - '.github/workflows/ai-selfplay-extensive-v136.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: arcane-v136-extensive-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  extensive-learning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: development
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate engine regression and learning implementation
+        run: |
+          node --check tests/ai-selfplay-extensive-v136.cjs
+          node --test tests/ai-history-v130.test.cjs tests/ai-board-planner-v129.test.cjs
+      - name: Confirm durable trained starting checkpoint and replay data
+        run: |
+          node - <<'JS'
+          const fs=require('fs'),assert=require('assert');
+          const model=JSON.parse(fs.readFileSync('models/ai-selfplay-v135.json'));
+          assert.equal(model.schema,'arcane-v135-selfplay-checkpoint');
+          assert.equal(model.weights.length,15);
+          assert.ok(model.gamesTrained>=720);
+          assert.ok(model.replay.length>0);
+          console.log('Starting with trained duels:',model.gamesTrained,'replay entries:',model.replay.length);
+          JS
+      - name: Pilot legal actions with restored generation
+        env:
+          ARCANE_V136_PRIOR: 'models/ai-selfplay-v135.json'
+          ARCANE_V136_MODEL_OUT: 'models/ai-selfplay-v136-pilot.json'
+          ARCANE_V136_REPORT_DIR: 'artifacts/v136/pilot'
+          ARCANE_V136_EPISODES: '8'
+          ARCANE_V136_HOLDOUT: '1'
+        run: node tests/ai-selfplay-extensive-v136.cjs
+      - name: Generation 1 - mirrored, cross-archetype, boss sparring
+        env:
+          ARCANE_V136_PRIOR: 'models/ai-selfplay-v135.json'
+          ARCANE_V136_MODEL_OUT: 'models/ai-selfplay-v136.json'
+          ARCANE_V136_REPORT_DIR: 'artifacts/v136/gen1'
+          ARCANE_V136_EPISODES: '400'
+          ARCANE_V136_HOLDOUT: '6'
+        run: node tests/ai-selfplay-extensive-v136.cjs
+      - name: Generation 2 - resume learned policy and replay
+        env:
+          ARCANE_V136_PRIOR: 'models/ai-selfplay-v136.json'
+          ARCANE_V136_MODEL_OUT: 'models/ai-selfplay-v136.json'
+          ARCANE_V136_REPORT_DIR: 'artifacts/v136/gen2'
+          ARCANE_V136_EPISODES: '400'
+          ARCANE_V136_HOLDOUT: '6'
+        run: node tests/ai-selfplay-extensive-v136.cjs
+      - name: Generation 3 - improve against older champion and new heldouts
+        env:
+          ARCANE_V136_PRIOR: 'models/ai-selfplay-v136.json'
+          ARCANE_V136_MODEL_OUT: 'models/ai-selfplay-v136.json'
+          ARCANE_V136_REPORT_DIR: 'artifacts/v136/gen3'
+          ARCANE_V136_EPISODES: '400'
+          ARCANE_V136_HOLDOUT: '6'
+        run: node tests/ai-selfplay-extensive-v136.cjs
+      - name: Consolidate verified learning reports and checkpoint decision
+        if: always()
+        run: |
+          node - <<'JS'
+          const fs=require('fs');
+          const dirs=['gen1','gen2','gen3'];
+          const reports=[];
+          for (const dir of dirs) {
+            const f='artifacts/v136/'+dir+'/ai-v136-training-report.json';
+            if(fs.existsSync(f)){
+              const r=JSON.parse(fs.readFileSync(f,'utf8'));
+              reports.push({generation:dir,previousModelGames:r.previousModelGames,
+                episodes:r.training.episodeCount,replayUpdates:r.training.replayUpdates,
+                mirroredDuels:r.training.mirroredDuels,crossArchetypeDuels:r.training.crossArchetypeDuels,
+                bossSparringDuels:r.training.bossSparringDuels,
+                checkpointAccepted:r.checkpointAccepted,
+                candidateEvaluation:r.evaluation,
+                productionIntegrated:r.productionIntegrated});
+            }
+          }
+          const finalModel=fs.existsSync('models/ai-selfplay-v136.json')?
+            JSON.parse(fs.readFileSync('models/ai-selfplay-v136.json','utf8')):null;
+          const out={schema:'arcane-v136-extensive-run',status:reports.length===3?'completed':'partial',
+            expectedGenerations:3,completedGenerations:reports.length,
+            totalTrainedEpisodes:reports.reduce((n,r)=>n+r.episodes,0),
+            initialTrainedGames:720,finalTrainedGames:finalModel?.gamesTrained??null,
+            recentReplayEntries:finalModel?.replay?.length??0,
+            generations:reports,productionIntegrated:false};
+          fs.mkdirSync('artifacts/v136',{recursive:true});
+          fs.writeFileSync('artifacts/v136/consolidated.json',JSON.stringify(out,null,2)+'\n');
+          console.log('ARCANE_V136_CONSOLIDATED '+JSON.stringify({
+            status:out.status,generations:reports.length,trainEpisodes:out.totalTrainedEpisodes,
+            finalTrainedGames:out.finalTrainedGames,
+            acceptance:reports.map(r=>r.checkpointAccepted)}));
+          JS
+      - name: Upload reports, checkpoint and complete model history
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v136-extensive-1200-episode-selfplay
+          path: |
+            artifacts/v136/consolidated.json
+            artifacts/v136/gen1/
+            artifacts/v136/gen2/
+            artifacts/v136/gen3/
+            models/ai-selfplay-v136.json
+          retention-days: 90
+          if-no-files-found: warn
+      - name: Persist separate experimental model for next training
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add models/ai-selfplay-v136.json
+          if git diff --cached --quiet; then
+            echo "No model change"
+          else
+            git commit -m "chore(ai): checkpoint extensive v13.6 self-play experience"
+            git pull --rebase origin development
+            git push origin HEAD:development
+          fi

@@ -38,3 +38,29 @@ button.primary{background:linear-gradient(#826d3b,#4e3b2d)}
 #duoEntry{border-color:#d0ad71;font-weight:700}
 #duoChapterSelect:not([hidden]){animation:adDuoChapterShow .22s ease-out}
 @keyframes adDuoChapterShow{from{opacity:.3;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+
+/* 15.8 — room onboarding, server save status and explicit combat decisions. */
+.duo-steps{counter-reset:duo-step;list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:0;margin:12px 0 18px}
+.duo-steps li{min-width:0;padding:9px 5px;background:#0a1728;border:1px solid #5f6582;border-radius:8px;color:#c5c7d4;text-align:center;font-size:11px}
+.duo-steps li::before{counter-increment:duo-step;content:counter(duo-step) ' · ';font-weight:750}
+.duo-steps li.current{border-color:#edc47c;background:#3b302a;color:#ffebb6}
+.duo-steps li.done{border-color:#689c8d;color:#bcf4d2}
+.duo-save-state{margin:12px 0;background:#122535;border:1px solid #668a9a;border-radius:9px;padding:11px 12px;color:#cce5ed;font-size:12px}
+.duo-save-state.error{border-color:#c77e78;background:#39222b;color:#ffd8d2}
+.duo-guide{margin-top:14px;border:1px solid #65738a;border-radius:10px;background:#101d30;padding:10px 13px;color:#e5dfd2}
+.duo-guide summary{cursor:pointer;color:#f7dca2;font-weight:750}
+.duo-guide ul{padding-left:20px;font-size:13px;line-height:1.65}
+.duo-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px;align-items:end;width:100%;margin:12px 0}
+.duo-choice{display:grid;gap:5px;min-width:0;font-size:12px;color:#e9d6b4;font-weight:700}
+.duo-choice select{width:100%;margin:0;padding:10px;font-weight:500}
+.duo-action-group{display:grid;gap:7px;padding:12px;border:1px solid #546779;border-radius:10px;background:#101b2a;margin:10px 0}
+.duo-action-group,.duo-turn-note,.duo-actions-footer{width:100%}
+.duo-action-group h3{font:750 14px system-ui;color:#e8d5b1;margin:0}
+.duo-action-group button{justify-self:start}
+.duo-action-help{margin:0;color:#c7c2ce;font-size:12px}
+.duo-actions-footer{border-top:1px solid #53677b;padding-top:12px}
+.field-cell{position:relative;line-height:1.25}
+.field-cell.filled{flex-direction:column;gap:3px}
+.field-cell .duo-field-meta{font-size:10px;color:#c4d4e2}
+.duo-turn-note{font-size:12px;color:#d7d2e3;padding:9px 11px;border-left:3px solid #c7a36e;background:#1b2235;border-radius:5px}
+@media(max-width:530px){.duo-steps li{font-size:10px}.duo-choices{grid-template-columns:1fr}.duo-action-group button{width:100%}}

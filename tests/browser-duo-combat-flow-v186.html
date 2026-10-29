@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcane Duel · 2v2-Aktionsmenü v18.6</title>
+<link rel="stylesheet" href="../assets/duo-campaign-demo.css">
+<link rel="stylesheet" href="../assets/duo-experience-v185.css">
+<link rel="stylesheet" href="../assets/duo-combat-flow-v186.css">
+<style>
+ .duo-wrap{max-width:1050px}.demo-box{background:linear-gradient(140deg,#161e2f,#10192a);border:1px solid #a18b64;border-radius:12px;padding:15px;margin:18px 0}
+ .demo-controls{display:flex;flex-wrap:wrap;gap:10px;margin:15px 0}.demo-controls button{min-height:44px}
+ .demo-caption{font-size:12px;color:#c0cde0}
+ #duoActions{margin-top:13px}
+</style>
+</head><body><main class="duo-wrap">
+<header class="duo-header"><div><p class="kicker">✧ ARCANE DUEL · KLICKBARE VORSCHAU</p>
+<h1>Kampfmenü v18.6</h1><p>Alle Aktionen sind weiterhin da – jetzt übersichtlich gruppiert und aufklappbar.</p></div>
+<a href="../duo-campaign-v2.html">← Zur 2v2-Kampagne</a></header>
+<div class="duo-panel duo-battle">
+<div class="demo-box"><h2>Deine Zugsteuerung</h2>
+<p class="demo-caption">Wähle die Bereiche über die Leiste oder öffne sie direkt. Probiere die Materialauswahl aus und wechsle anschließend zwischen den Bereichen.</p>
+<div class="demo-controls"><button id="refreshDemo">↻ Ansicht neu aufbauen</button>
+<button id="nextDemo">✦ Nächsten eigenen Zug zeigen</button></div>
+<p id="demoStatus" role="status" aria-live="polite">Keine Aktion ausgeführt – dies ist eine reine Oberflächenvorschau.</p></div>
+<div id="duoActions" class="action-dock"></div>
+</div></main>
+<script src="../assets/duo-combat-flow-v186.js"></script>
+<script>
+(()=>{
+ const dock=document.getElementById('duoActions');
+ const status=document.getElementById('demoStatus');
+ const mock={status:'active',activeSeat:0,roomId:'v186-demo',players:[{seat:0,ownTurns:1}]};
+ const make=(tag,parent,text,cls)=>{const el=document.createElement(tag);if(cls)el.className=cls;
+  if(text!==undefined)el.textContent=text;parent.append(el);return el;};
+ const group=(name,help)=>{const section=make('section',dock,undefined,'duo-action-group');
+  make('h3',section,name);make('p',section,help,'duo-action-help');return section;};
+ const choices=(parent,label,values,multiple=false)=>{const line=make('label',parent,undefined,'duo-choice');
+  make('span',line,label);const select=make('select',line);select.multiple=multiple;if(multiple)select.size=4;
+  values.forEach(value=>{const option=make('option',select,value);option.value=value;});return select;};
+ const action=(parent,label,getValue)=>{const button=make('button',parent,label);
+  button.onclick=()=>{status.textContent='Vorschau: '+label+(getValue?' · '+getValue():'')+' (kein echter Spielzug).';};return button;};
+ function render(){
+  dock.replaceChildren();dock.classList.remove('ad186-enhanced');
+  make('p',dock,'Du bist dran! Wähle eine Aktion.','duo-turn-note');
+  const summon=group('✦ Monster beschwören','Wähle eine Handkarte und einen freien Feldplatz.');
+  const srow=make('div',summon,undefined,'duo-choices');
+  const hand=choices(srow,'Handkarte',['Sternenwächter · Lv 4','Glutwolf · Lv 3','Waldgeist · Lv 2']);
+  choices(srow,'Freier Feldplatz',['Feld 1','Feld 3','Feld 7']);
+  action(summon,'Monster beschwören',()=>hand.value);
+  const fusion=group('✦ Fusion','Wähle 2–5 Materialien. Halte Strg gedrückt, um mehrere auszuwählen.');
+  const cards=choices(fusion,'Fusionsmaterialien',['Hand · Sternenwächter','Hand · Glutwolf','Feld · Mondritter','Feld · Felsenwächter'],true);
+  const frow=make('div',fusion,undefined,'duo-choices');
+  choices(frow,'Fusionsvorlage',['Sternenlord · Lv 5','Feuerhüter · Lv 4']);
+  choices(frow,'Ergebnis-Feld',['Feld 1','Feld 3']);
+  action(fusion,'Jetzt fusionieren',()=>[...cards.selectedOptions].map(x=>x.textContent).join(' + '));
+  const lv=group('✧ Verbotene Forschung · Level-1-Schwarm','Nutze deine Geisterzonen und Schwarm-Echos.');
+  choices(lv,'Geistermonster',['Geisterecho A','Geisterecho B']);action(lv,'Echo beschwören');
+  const switcher=group('🛡 Position wechseln','Ein Positionswechsel je eigenem Zug und Monster.');
+  choices(switcher,'Monster',['Sternenwächter → DEF','Mondritter → ATK']);action(switcher,'Position ändern');
+  const predator=group('✦ Reißzahn · Angriffswahl','Wähle zwischen einem starken oder zwei schnelleren Treffern.');
+  action(predator,'Zweifachangriff wählen');
+  const soul=group('✦ Seelenzehrer','Seelenentzug, Verdichten und Seelenentladung.');
+  choices(soul,'Seelenzehrer',['Nebelzehrer · 80 Seele','Nachthüter · 40 Seele']);
+  const grow=make('div',soul,undefined,'duo-soul-actions');
+  action(grow,'Verdichten · ATK und DEF stärken');action(grow,'Seelenentladung');
+  const attack=group('⚔ Angriff','Wähle den Angreifer und sein Ziel.');
+  const arow=make('div',attack,undefined,'duo-choices');
+  choices(arow,'Angreifer',['Mondritter · 560 ATK','Sternenwächter · 480 ATK']);
+  choices(arow,'Ziel',['Gegner · Feld 1','Gegner · Feld 2']);
+  action(attack,'Angriff bestätigen');
+  const footer=make('div',dock,undefined,'duo-actions-footer');action(footer,'Zug beenden →');
+  window.ArcaneDuoCombatFlow186.enhance({dock,game:mock,roomId:mock.roomId,seat:0});
+ }
+ document.getElementById('refreshDemo').onclick=render;
+ document.getElementById('nextDemo').onclick=()=>{mock.players[0].ownTurns++;
+  status.textContent='Neuer Zug – das Aktionsmenü startet wieder mit einem passenden Bereich.';render();};
+ render();
+})();
+</script></body></html>

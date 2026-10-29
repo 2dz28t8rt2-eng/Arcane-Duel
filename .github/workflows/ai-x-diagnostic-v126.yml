@@ -1,0 +1,44 @@
+name: Arcane Duel - v12.6 X Deep Diagnosis and 10er Pack Policy
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-x-diagnostic-v126.cjs'
+      - 'tests/perks-v126.test.cjs'
+      - 'tests/opponent-vii-viii-roster-v126.test.cjs'
+      - '.github/workflows/ai-x-diagnostic-v126.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  x-economy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify bonuses and all adjusted NPC decks
+        run: |
+          node --check tests/ai-x-diagnostic-v126.cjs
+          node --check assets/opponent-vii-viii-roster-v126.js
+          node --test tests/perks-v126.test.cjs tests/opponent-vii-viii-roster-v126.test.cjs tests/opponent-vii-x-roster-v125.test.cjs tests/opponent-roster-v118.test.cjs tests/ascension-balance-v116.test.cjs
+      - name: Pilot two origins with real booster purchases and X telemetry
+        env:
+          ARCANE_V126_CAREERS: '2'
+          ARCANE_V126_TIER_ATTEMPTS: '8'
+        run: node tests/ai-x-diagnostic-v126.cjs
+      - name: Main 32 matched careers per booster policy
+        env:
+          ARCANE_V126_CAREERS: '32'
+          ARCANE_V126_TIER_ATTEMPTS: '30'
+        run: node tests/ai-x-diagnostic-v126.cjs
+      - name: Upload all actual X duels and purchase logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v126-x-10pack-ai-deep-diagnostic
+          path: artifacts/ai-x-diagnostic-v126.json
+          retention-days: 30
+          if-no-files-found: warn

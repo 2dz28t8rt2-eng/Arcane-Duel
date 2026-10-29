@@ -1,0 +1,52 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>2v2 current rules browser QA</title></head>
+<body><pre id="result">Lädt …</pre><iframe id="duo" src="../duo-campaign-v2.html" width="1000" height="900"></iframe>
+<script>
+document.getElementById('duo').addEventListener('load',()=>{
+ setTimeout(()=>{
+  const f=document.getElementById('duo'),d=f.contentDocument,notes=[];
+  let ok=true;
+  const check=(v,t)=>{notes.push((v?'OK ':'FAIL ')+t);if(!v)ok=false;};
+  try{
+   check(!!f.contentWindow.ArcaneDuoRules,'Same reducer as deployed on the Edge Function');
+   check(f.contentWindow.ArcaneDuoRules?.version==='20.2-beta','Correct rules version');
+   check(!!f.contentWindow.ArcaneFateVisuals?.artFor(0),
+    'Singleplayer Fate illustrations are available for temporary creatures');
+   check(d.querySelector('.notice').textContent.includes('Einzelspieler-Fortschritt')&&
+    d.querySelector('.notice').textContent.includes('getrennt'),
+    '2v2 progression is explicitly separated from singleplayer');
+   check(!!d.getElementById('duoProfileCreate')&&
+    d.getElementById('duoCreate').disabled,
+    'Creating a room requires an independent server profile');
+   check(!!d.getElementById('duoProfileStats')&&
+    !!d.getElementById('duoProfileDeckSave')&&
+    !!d.getElementById('duoProfileBuyPack')&&
+    !!d.getElementById('duoProfileUpgrade'),
+    'Dedicated 2v2 progression, deck builder and store are present');
+   check(d.getElementById('duoEntry').value==='new','Chapter I is default');
+   check(d.getElementById('duoChapterSelect').hidden,'Chapter picker hidden by default');
+   check(d.getElementById('duoChapter').options.length===
+     f.contentWindow.ArcaneDuoRules.ENCOUNTERS.length&&
+     f.contentWindow.ArcaneDuoRules.CHAPTERS.length===10&&
+     f.contentWindow.ArcaneDuoRules.QUESTS.length===5,
+     'All ten chapters and five side quests remain');
+   check(d.getElementById('duoChapterInfo').textContent.includes('Level 2'),
+    'Chapter I preview uses canonical level');
+   check(d.querySelectorAll('#duoSeats .seat').length===0,
+    'No opponent or hidden information before authorization');
+   check(!!d.getElementById('duoInviteBox')&&!!d.getElementById('duoRefresh'),
+    'Invitations, autosave and refresh remain present');
+   check(d.querySelector('.notice').textContent.includes('keinen Import'),
+    'No solo/duo import is explicitly stated');
+   check(d.querySelector('.duo-guide').textContent.includes('Schicksalszug')&&
+    d.querySelector('.duo-guide').textContent.includes('Ab Runde 10')&&
+    d.querySelector('.duo-guide').textContent.includes('Lebenspunkte durch die Arena'),
+    'Core 2v2 combat rules remain documented');
+   check(d.querySelector('.duo-team-definition').textContent.includes('Du und dein Partner gegen zwei Gegner')&&
+    d.querySelector('.notice').textContent.includes('zwei Computergegner'),
+    'Exactly two humans play against two AI opponents');
+  }catch(e){check(false,e.stack||e.message);}
+  document.getElementById('result').textContent=notes.join('\n');
+  document.documentElement.dataset.duoParity=ok?'pass':'fail';
+ },1200);
+});
+</script></body></html>

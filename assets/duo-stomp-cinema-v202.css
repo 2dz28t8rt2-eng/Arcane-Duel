@@ -1,0 +1,33 @@
+/* Server-confirmed duo Stomp: element-coloured primary beam followed by splash rays. */
+.ad202-stomp-stage{position:fixed;inset:0;pointer-events:none;z-index:11000;overflow:hidden;
+ --ad202-color:#a05aff;--ad202-light:#f1b5ff;mix-blend-mode:screen}
+.ad202-stomp-stage svg{position:absolute;inset:0;overflow:visible}
+.ad202-ray{fill:none;stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;
+ opacity:0;filter:drop-shadow(0 0 9px var(--ad202-color))}
+.ad202-halo{stroke:var(--ad202-color);stroke-width:28;filter:blur(9px)}
+.ad202-core{stroke:var(--ad202-light);stroke-width:7;filter:drop-shadow(0 0 7px var(--ad202-light))}
+.ad202-secondary.ad202-halo{stroke-width:17}
+.ad202-secondary.ad202-core{stroke-width:4}
+.ad202-firing .ad202-primary{opacity:1;animation:ad202-lightning .28s cubic-bezier(.12,.7,.2,1) forwards}
+.ad202-splitting .ad202-secondary{opacity:1;animation:ad202-lightning .24s cubic-bezier(.12,.7,.2,1) forwards}
+.ad202-burst{position:absolute;width:0;height:0;transform:translate(-50%,-50%);opacity:0;
+ filter:drop-shadow(0 0 15px var(--ad202-color))}
+.ad202-burst::before{content:'';position:absolute;left:50%;top:50%;border-radius:100%;
+ transform:translate(-50%,-50%) scale(.2);background:var(--ad202-light);
+ box-shadow:0 0 50px 24px var(--ad202-color),0 0 85px 50px var(--ad202-color)}
+.ad202-burst-primary::before{width:42px;height:42px}
+.ad202-burst-splash::before{width:26px;height:26px}
+.ad202-burst i{position:absolute;display:block;width:5px;height:13px;border-radius:80%;
+ background:var(--ad202-light);box-shadow:0 0 6px var(--ad202-color);opacity:0}
+.ad202-burst strong{position:absolute;left:14px;top:-36px;color:white;font-size:13px;
+ white-space:nowrap;text-shadow:0 0 10px var(--ad202-color),0 2px 3px #070319}
+.ad202-splitting .ad202-burst{opacity:1;animation:ad202-flash .4s ease-out forwards}
+.ad202-splitting .ad202-burst i{animation:ad202-spark .38s ease-out var(--delay) forwards}
+.ad202-shake{animation:ad202-board-shake .17s ease-in-out 2}
+@keyframes ad202-lightning{0%{stroke-dashoffset:100}100%{stroke-dashoffset:0}}
+@keyframes ad202-flash{0%{opacity:0}23%{opacity:1}100%{opacity:0}}
+@keyframes ad202-spark{0%{opacity:1;transform:rotate(var(--angle)) translateY(0) scale(1)}
+ 100%{opacity:0;transform:rotate(var(--angle)) translateY(var(--distance)) scale(.3)}}
+@keyframes ad202-board-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}
+ 75%{transform:translateX(3px)}}
+@media (prefers-reduced-motion:reduce){.ad202-stomp-stage,.ad202-shake{display:none!important}}

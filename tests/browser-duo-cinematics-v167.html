@@ -1,0 +1,41 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8">
+<title>2v2 v16.7 visual/sync QA</title></head><body>
+<pre id="result">Lädt …</pre>
+<iframe id="duo" src="../duo-campaign-v2.html" width="1000" height="1000"></iframe>
+<script>
+const frame=document.getElementById('duo');
+frame.addEventListener('load',()=>{
+ setTimeout(()=>{
+  let ok=true;const notes=[];
+  function check(value,label){if(!value)ok=false;notes.push((value?'OK ':'FAIL ')+label);}
+  try{
+   const w=frame.contentWindow,d=frame.contentDocument,fx=w.ArcaneDuoCinematics167;
+   check(!!fx&&fx.version==='16.7','v16.7 presentation module available');
+   check(!!d.querySelector('#duoSaveState'),'Visible server save indicator');
+   check(!!d.querySelector('#duoRefresh'),'Manual sync recovery button');
+   const p=(seat,name,card)=>({seat,name,field:[card,null],lv1:{ghostSlots:[]}});
+   const base={roomId:'fixture',revision:1,chapter:1,
+    log:[],players:[p(0,'Host',{id:1,uid:'a',atk:100,def:100,used:false}),
+      p(1,'Rivale',{id:2,uid:'b',atk:100,def:100,used:false}),
+      p(2,'Partner',null),p(3,'Gegner B',null)]};
+   const next=JSON.parse(JSON.stringify(base));
+   next.revision=2;next.log=['Host greift Rivale in DEF an'];
+   next.players[0].field[0].used=true;next.players[1].field[0].def=40;
+   const observed=fx.onState(base,next);
+   check(observed.length===1&&observed[0].type==='attack',
+    'Confirmed attack triggers public visual event');
+   check(fx.onState(next,next).length===0,
+    'Repeated equal revision cannot replay animations');
+   check(!!d.getElementById('duoFxStage')&&!!d.getElementById('duoFxNotice'),
+    'FX overlay and accessible narration created');
+   check(!!d.querySelector('link[href*="duo-cinematics-v167.css"]'),
+    '2v2 visual presentation stylesheet loaded');
+   // Tokens and private hands must not be written into a visual overlay.
+   const text=d.getElementById('duoFxNotice').textContent||'';
+   check(!text.includes('token')&&!text.includes('secret'),'Public-only narration');
+  }catch(error){check(false,error.stack||error.message);}
+  document.getElementById('result').textContent=notes.join('\n');
+  document.documentElement.dataset.duoCinematics=ok?'pass':'fail';
+ },1400);
+});
+</script></body></html>

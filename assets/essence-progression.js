@@ -80,19 +80,19 @@
   if(menuTab==='upgrades')p.insertAdjacentHTML('beforeend',essenceDashboard());
   if(menuTab==='lexicon'&&E().school)p.insertAdjacentHTML('beforeend','<section class="menu-panel essence-lore-teaser"><h2>✧ Die vergessenen Schriften</h2><p>Ein neues Kapitel erzählt vom Bund zwischen Duellanten und Essenzwesen.</p>'+loreMarkup()+'</section>');
  }
- const roleLabel={predator:'PREDATOR',guardian:'WÄCHTER',soul:'SEELENZEHRER',support:'UNTERSTÜTZER',weaver:'RUNENWEBER',hunter:'JÄGER',combatant:'ALLROUNDER',resonator:'RESONATOR'};
+ const roleLabel={predator:'PREDATOR',guardian:'WÄCHTER',soul:'SEELENZEHRER',support:'UNTERSTÜTZER',weaver:'RUNENWEBER',combatant:'ALLROUNDER',resonator:'RESONATOR'};
  const roleText={
-  predator:'Predator: verursacht erhöhten Druck gegen Verteidiger-HP.',
+  predator:'Predator: +2 % Angriffsschaden je eigenem Predator am Feld, maximal +10 %. Gegen Wächter/Seelenzehrer in DEF ignoriert Predator-Angriff 10 Prozentpunkte Rüstung (35 % → 25 %). Predator-Fusionen zählen.',
   guardian:'Wächter: regeneriert in DEF-Position die Grund-DEF verbündeter Verteidiger.',
   soul:'Seelenzehrer: saugt ATK und DEF aller gegnerischen Monster ab. Gespeicherte Seelen-DEF verursacht beim Zerfall Burn; Verdichten schafft stabilen Schutz.',
   support:'Unterstützer: verstärkt in DEF-Position den Angriff verbündeter gewöhnlicher Monster.',
   weaver:'Runenweber: unterstützt präzise Fusionen.',
-  hunter:'Jäger: spezialisiert auf große Fusionsgegner.',
   combatant:'Allrounder: eine ausgewogene Kreatur ohne zusätzlichen Rollenbonus.'
  };
  const originalFullCardHtml=fullCardHtml;
  fullCardHtml=function(card,attrs='',classes='',badge=''){
   const html=originalFullCardHtml(card,attrs,classes,badge),c=CARDS[card?.id],role=roleOf(card);
+  if(c?.fusionOnly&&!card?.fusion)return html; // Fusion blueprints have NO role stamp.
   if(!role||role==='combatant'||!html.includes('<div class="hand-title">'))return html;
   const text=c.essenceMonster?'ESSENZWESEN':roleLabel[role]||role;
   return html.replace('<div class="hand-title">','<span class="essence-role-chip essence-role-'+role+'">'+esc(text)+'</span><div class="hand-title">');
@@ -317,7 +317,9 @@
   bar.querySelector('.essence-actions')?.remove();
   if(g.active!==0||g.winner!==null||busy||aiRunning)return;
   const sel=g.selection?.type==='field'?g.players[0].field[g.selection.idx]:null;if(!sel)return;
-  const e=sel.essenceCombat;if(!e)return;
+  // A newly selected Seelenzehrer already owns its action panel. Do not
+  // require a different monster to trigger the first stat-layer init.
+  const e=C.statLayer(sel);
   let html='';
   if(CARB(sel)==='soul'&&sel.mode==='def'){
    const spent=e.lastSoulAction===g.turn;
@@ -346,11 +348,18 @@
   const button=ev.target.closest('button[data-essence-combat],button[data-essence-drain],button[data-essence-target]');if(!button)return;
   if(!game||game.selection?.type!=='field')return;
   const idx=game.selection.idx;
-  if(button.dataset.essenceCombat==='condense')C.condense(idx);
-  if(button.dataset.essenceTarget!==undefined)C.soulRaid(idx,Number(button.dataset.essenceTarget));
-  if(button.dataset.essenceDrain)C.chooseDrain(idx,button.dataset.essenceDrain);
-  else if(button.dataset.essenceCombat==='discharge')C.discharge(idx);
-  else if(button.dataset.essenceCombat==='predator')C.predatorMode(idx);
+  let used=false;
+  if(button.dataset.essenceCombat==='condense')used=C.condense(idx);
+  else if(button.dataset.essenceTarget!==undefined)used=C.soulRaid(idx,Number(button.dataset.essenceTarget));
+  else if(button.dataset.essenceDrain)used=C.chooseDrain(idx,button.dataset.essenceDrain);
+  else if(button.dataset.essenceCombat==='discharge')used=C.discharge(idx);
+  else if(button.dataset.essenceCombat==='predator')used=C.predatorMode(idx);
+  if(used&&(button.dataset.essenceCombat==='condense'||button.dataset.essenceCombat==='discharge'||button.dataset.essenceTarget!==undefined)){
+   const tray=$('hand')?.closest('.cardtray');
+   if(tray){tray.classList.remove('ad203-soul-ability');void tray.offsetWidth;
+    tray.classList.add('ad203-soul-ability');
+    setTimeout(()=>tray.classList.remove('ad203-soul-ability'),1550);}
+  }
  });
  window.ArcaneEssenceProgression={version:'1.0.0'};
  if(uiMode==='menu')renderMenu();

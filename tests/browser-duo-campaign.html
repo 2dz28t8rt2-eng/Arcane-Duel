@@ -22,6 +22,11 @@ frame.addEventListener('load',()=>{
   check(d.getElementById('duoRewardInfo').textContent.includes('Aetherarchon'),'Late chapter preview contains correct card');
   check(!!d.getElementById('duoInviteBox')&&!!d.getElementById('duoCopy'),'Invite link controls present');
   check(!!d.getElementById('duoAccept'),'Invitation acceptance available');
+  check(!!d.getElementById('duoRefresh'),'Manual online room refresh available');
+  check(d.getElementById('duoSaveState').textContent.includes('automatisch'),'Server-save explanation visible before room creation');
+  check(d.getElementById('duoSteps').children.length===3,'Create, invite, battle onboarding shown');
+  check(d.querySelector('.duo-guide')?.textContent.includes('Zugfolge'),'Four-seat beginner rules available');
+  check(!!frame.contentWindow.ArcaneDuoBattleUI,'Read-only combat target chooser loaded');
   check(d.querySelectorAll('#duoSeats .seat').length===0,'No room data rendered before authorization');
   check(d.getElementById('duoAlliedLP').textContent.includes('16.000'),'Double LP shown before starting');
   check(getComputedStyle(d.createElement('div')).display!=='not-a-real-display','DOM accessible');

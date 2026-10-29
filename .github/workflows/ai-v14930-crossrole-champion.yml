@@ -1,0 +1,231 @@
+name: Arcane Duel - v14.9.30 Guardian/Soul Cross-Role Transfer and Balanced Policy Replication
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v14930-crossrole-champion.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  two-sided-soul-guardian-learning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify syntax, legal position rules and combat mechanics
+        run: |
+          set -euo pipefail
+          node --check tests/ai-v1530-history.cjs
+          node --check tests/ai-v1530-Q.cjs
+          node --check tests/ai-v1530-crossrole-champion-selfplay.cjs
+          node --check tests/ai-v1530-crossrole-champion-aggregate.cjs
+          node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
+      - name: Restore verified Q checkpoint and nineteen historical TRAIN-only archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/arcane-prev /tmp/arcane-history/{v1511,v1512,v1513,v1514,v1515,v1516,v1517,v1518,v1519,v1520,v1521,v1522,v1523,v1524,v1525,v1526,v1527,v1528,v1529} artifacts/v1530
+          for rid in 39803691439 39843438099 39847734409 39851537706 39855753529 39858417967 39862370629 39904678414 39907484021 39911997726 39919243971 39925937764 39930044938 39933155444 39937859539 39942452732 39963832441 39974390088 39983397260; do
+            test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$rid" --jq '.conclusion')" = success
+          done
+          gh run download 39803691439 --repo "$GITHUB_REPOSITORY" --name arcane-v14911-summon-fusion-training --dir /tmp/arcane-history/v1511
+          gh run download 39843438099 --repo "$GITHUB_REPOSITORY" --name arcane-v14912-veteran-predator-training --dir /tmp/arcane-history/v1512
+          gh run download 39847734409 --repo "$GITHUB_REPOSITORY" --name arcane-v14913-symmetric-history --dir /tmp/arcane-history/v1513
+          gh run download 39851537706 --repo "$GITHUB_REPOSITORY" --name arcane-v14914-crossdeck-history --dir /tmp/arcane-history/v1514
+          gh run download 39855753529 --repo "$GITHUB_REPOSITORY" --name arcane-v14915-crossdeck-rollout --dir /tmp/arcane-history/v1515
+          gh run download 39858417967 --repo "$GITHUB_REPOSITORY" --name arcane-v14916-risk-aware-crossdeck --dir /tmp/arcane-history/v1516
+          gh run download 39862370629 --repo "$GITHUB_REPOSITORY" --name arcane-v14917-role-aware-crossdeck --dir /tmp/arcane-history/v1517
+          gh run download 39904678414 --repo "$GITHUB_REPOSITORY" --name arcane-v14918-optimized-roles-decay --dir /tmp/arcane-history/v1518
+          gh run download 39907484021 --repo "$GITHUB_REPOSITORY" --name arcane-v14919-fusion-soul-isolation --dir /tmp/arcane-history/v1519
+          gh run download 39911997726 --repo "$GITHUB_REPOSITORY" --name arcane-v14920-siege-curriculum --dir /tmp/arcane-history/v1520
+          gh run download 39919243971 --repo "$GITHUB_REPOSITORY" --name arcane-v14921-progressive-siege --dir /tmp/arcane-history/v1521
+          gh run download 39925937764 --repo "$GITHUB_REPOSITORY" --name arcane-v14922-finishers-seat-parity --dir /tmp/arcane-history/v1522
+          gh run download 39930044938 --repo "$GITHUB_REPOSITORY" --name arcane-v14923-seat-breach-training --dir /tmp/arcane-history/v1523
+          gh run download 39933155444 --repo "$GITHUB_REPOSITORY" --name arcane-v14924-active-transfer --dir /tmp/arcane-history/v1524
+          gh run download 39937859539 --repo "$GITHUB_REPOSITORY" --name arcane-v14925-test-ai-selfplay --dir /tmp/arcane-history/v1525
+          gh run download 39942452732 --repo "$GITHUB_REPOSITORY" --name arcane-v14926-guardian-soul-selfplay --dir /tmp/arcane-history/v1526
+          gh run download 39963832441 --repo "$GITHUB_REPOSITORY" --name arcane-v14927-role-generalization --dir /tmp/arcane-history/v1527
+          gh run download 39974390088 --repo "$GITHUB_REPOSITORY" --name arcane-v14928-global-policy-selection --dir /tmp/arcane-history/v1528
+          gh run download 39983397260 --repo "$GITHUB_REPOSITORY" --name arcane-v14929-champion-transfer --dir /tmp/arcane-history/v1529
+          cp /tmp/arcane-history/v1529/training-q-and-examples.json /tmp/arcane-prev/training-q-and-examples.json
+          echo "ARCANE_V1530_RESTORED 39983397260"
+          node tests/ai-v1530-history.cjs
+      - name: Restore prior Q and weights as FROZEN opponent checkpoint
+        run: |
+          set -euo pipefail
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const old=JSON.parse(fs.readFileSync('/tmp/arcane-history/v1525/training-q-and-examples.json','utf8'));
+          const previousQ=old.find(x=>x.swarm===.02&&x.pierce===.10)?.learnedQ;
+          a.ok(previousQ&&Object.keys(previousQ).length>=160);
+          fs.writeFileSync('artifacts/v1530/older-q-checkpoint.json',JSON.stringify(previousQ));
+          const last=JSON.parse(fs.readFileSync('/tmp/arcane-history/v1526/stage-4.json','utf8'));
+          const priors=JSON.parse(fs.readFileSync('/tmp/arcane-history/v1526/selfplay-priors.json','utf8'));
+          a.equal(priors.holdoutUsed,false);
+          const weights=last.selectedWeights||priors.weights;
+          a.ok(['breach','reserve','support'].every(k=>Number.isFinite(weights[k])));
+          fs.writeFileSync('artifacts/v1530/prior-selfplay-checkpoint.json',
+            JSON.stringify({source:39942452732,holdoutUsed:false,weights}));
+          console.log('ARCANE_V1530_OLDER_CHECKPOINT '+JSON.stringify({
+            qKeys:Object.keys(previousQ).length,weights}));
+          const lastReport=JSON.parse(fs.readFileSync('/tmp/arcane-history/v1528/report.json','utf8'));
+          const selection=lastReport.globalSelection;
+          a.equal(selection.arm,'guardian-soul-board','Last successful champion must be selected');
+          a.equal(selection.promoted,true);
+          a.equal(selection.holdoutSeenBySelector,false);
+          a.deepEqual(selection.policy,{guardian:1.15,soul:1.3,material:.85,risk:.95});
+          fs.writeFileSync('artifacts/v1530/incumbent-policy.json',
+            JSON.stringify({sourceRun:39974390088,arm:selection.arm,
+             policy:selection.policy,holdoutUsedForSelection:false}));
+          console.log('ARCANE_V1530_CHAMPION '+JSON.stringify(selection.policy));
+          const priorReport=JSON.parse(fs.readFileSync('/tmp/arcane-history/v1529/report.json','utf8'));
+          const priorBalanced=priorReport.stages[0].summaries.find(v=>v.arm==='guardian-soul-balanced');
+          a.ok(priorBalanced,'Historical balanced research candidate absent');
+          a.deepEqual(priorBalanced.rolePolicy,
+            {guardian:1.22,soul:1.38,material:1.30,risk:1.42,adaptive:true});
+          fs.writeFileSync('artifacts/v1530/research-balanced-policy.json',
+            JSON.stringify({sourceRun:39983397260,arm:'guardian-soul-balanced',
+              policy:priorBalanced.rolePolicy,holdoutUsedToSelect:false}));
+          console.log('ARCANE_V1530_BALANCED_RESEARCH '+JSON.stringify(priorBalanced.rolePolicy));
+          JS
+      - name: Continue 19-run protected tactical Q learning
+        run: node --expose-gc --max-old-space-size=3200 tests/ai-v1530-Q.cjs
+      # Deck builder accepts only integer seeds between 0 and 9999; values bounded in research runner.
+      # Batch isolation fixes confirmed 2.9GB Node OOM in 960-match monolithic phase. Each batch handles exactly 120 matches.
+      # Research v14.9.30 opponent labels: champion-v1528 and balanced-v1529; the old v1526 label is historical archive data only.
+      - name: Phase 0 - Level-8 identical-deck transfer
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 tests/ai-v1530-crossrole-champion-selfplay.cjs 0 "$pair"
+          done
+          node --max-old-space-size=1400 tests/ai-v1530-crossrole-champion-selfplay.cjs 0 finalize
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const s=JSON.parse(fs.readFileSync('artifacts/v1530/stage-0.json','utf8'));
+          a.equal(s.allCases.length,960);a.equal(s.summaries.length,5);
+          a.equal(s.trainCandidate.games,64);
+          a.equal(s.validationCandidate.games,64);
+          a.equal(s.holdoutCandidate.games,64);
+          a.ok(s.allCases.every(r=>r.mirror&&r.illegalSwitchesBySeat.every(n=>n===0)));
+          a.ok(s.allCases.every(r=>r.selfPlayStrategicBySeat.every(n=>n>0)));
+          a.ok(s.allCases.some(r=>r.foeCheckpoint==='champion-v1528'));
+          a.ok(s.allCases.some(r=>r.foeCheckpoint==='balanced-v1529'));
+          a.ok(s.allCases.every(r=>['champion-v1528','balanced-v1529'].includes(r.foeCheckpoint)));
+          a.equal(s.chosenArm,'guardian-champion','No stage selection before the global gate');
+          a.equal(s.promoted,false);
+          a.equal(s.controls.globalSelectionOnly,true);
+          a.equal(s.controls.noStageToStagePolicyInheritance,true);
+          a.ok(s.summaries.some(r=>r.arm==='enemy-role-aware'&&r.rolePolicy.roleCounter));
+          a.ok(s.summaries.some(r=>r.arm==='balanced-retest'&&r.rolePolicy.adaptive));
+          a.ok(s.allCases.some(r=>r.foeCheckpoint==='champion-v1528'));
+          a.ok(s.allCases.some(r=>r.foeCheckpoint==='balanced-v1529'));
+          a.equal(s.controls.enemyRoleAdaptationEnabled,true);
+          a.equal(s.controls.currentOpponentAlsoUsesChampion,true);
+          console.log('ARCANE_V1530_PHASE0 '+JSON.stringify({games:960,
+            fixedCandidateNames:s.summaries.map(x=>x.arm),
+            training:s.trainBaseline.wins,validation:s.validationBaseline.wins}));
+          JS
+      - name: Phase 1 - Level-9 identical-deck transfer
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 tests/ai-v1530-crossrole-champion-selfplay.cjs 1 "$pair"
+          done
+          node --max-old-space-size=1400 tests/ai-v1530-crossrole-champion-selfplay.cjs 1 finalize
+      - name: Phase 2 - Level-10 identical-deck transfer
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 tests/ai-v1530-crossrole-champion-selfplay.cjs 2 "$pair"
+          done
+          node --max-old-space-size=1400 tests/ai-v1530-crossrole-champion-selfplay.cjs 2 finalize
+      - name: Phase 3 - Level-8 cross-role transfer
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 tests/ai-v1530-crossrole-champion-selfplay.cjs 3 "$pair"
+          done
+          node --max-old-space-size=1400 tests/ai-v1530-crossrole-champion-selfplay.cjs 3 finalize
+      - name: Phase 4 - Level-10 cross-role transfer
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 tests/ai-v1530-crossrole-champion-selfplay.cjs 4 "$pair"
+          done
+          node --max-old-space-size=1400 tests/ai-v1530-crossrole-champion-selfplay.cjs 4 finalize
+      - name: Compare balanced replication and enemy-aware candidates against Guardian Soul champion
+        run: node --max-old-space-size=3200 tests/ai-v1530-crossrole-champion-aggregate.cjs
+      - name: Validate 4800-duel expanded cross-role benchmark and champion promotion gate
+        run: |
+          set -euo pipefail
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict'),root='artifacts/v1530/';
+          const r=JSON.parse(fs.readFileSync(root+'report.json','utf8'));
+          const h=JSON.parse(fs.readFileSync(root+'historical-train.json','utf8'));
+          const c=JSON.parse(fs.readFileSync(root+'incumbent-policy.json','utf8'));
+          a.equal(h.sources.length,19);
+          a.equal(r.totalDuels,4800);
+          a.equal(r.trainDuels,1600);
+          a.equal(r.validationDuels,1600);
+          a.equal(r.holdoutDuels,1600);
+          a.equal(c.arm,'guardian-soul-board');
+          a.equal(c.holdoutUsedForSelection,false);
+          a.equal(r.controls.reigningChampionAsReference,true);
+          a.equal(r.controls.currentOpponentUsesChampion,true);
+          a.equal(r.controls.balancedResearchOpponent,true);
+          a.equal(r.controls.expandedCrossRoleDecks,true);
+          a.equal(r.controls.globalFiveStageSelection,true);
+          a.equal(r.controls.stageLocalPromotionDisabled,true);
+          a.equal(r.controls.holdoutNeverUsedForSelection,true);
+          const chosen=r.globalSelection;
+          a.equal(chosen.incumbent,'guardian-champion');
+          a.equal(chosen.incumbentFromRun,39974390088);
+          a.equal(chosen.holdoutSeenBySelector,false);
+          a.deepEqual(chosen.selectionBasedOn,['train','validation']);
+          const base=r.arms.find(x=>x.arm==='guardian-champion');
+          const win=r.arms.find(x=>x.arm===chosen.arm);
+          a.ok(base&&win);
+          a.equal(chosen.holdoutDifference,win.splits.holdout.wins-base.splits.holdout.wins);
+          for(let i=0;i<5;i++){
+            const s=JSON.parse(fs.readFileSync(root+'stage-'+i+'.json','utf8'));
+            a.equal(s.allCases.length,960);
+            a.equal(s.summaries.length,5);
+            a.equal(s.chosenArm,'guardian-champion');
+            a.equal(s.promoted,false);
+            a.equal(s.previousSelectedRolePolicy,null);
+            a.deepEqual(s.selectedRolePolicy,c.policy);
+            a.equal(s.trainCandidate.games,64);
+            a.equal(s.validationCandidate.games,64);
+            a.equal(s.holdoutCandidate.games,64);
+            a.ok(s.allCases.every(x=>x.illegalSwitchesBySeat.every(n=>n===0)));
+            a.ok(s.allCases.every(x=>x.selfPlayStrategicBySeat.every(n=>n>0)));
+            a.ok(s.allCases.some(x=>x.foeCheckpoint==='champion-v1528'));
+            a.ok(s.allCases.some(x=>x.foeCheckpoint==='balanced-v1529'));
+            a.equal(s.controls.enemyRoleAdaptationEnabled,true);
+          }
+          if(chosen.promoted){
+            const gate=chosen.candidates.find(x=>x.arm===chosen.arm);
+            a.ok(gate&&gate.qualifies&&gate.seatParity);
+            a.ok(gate.trainGain>=8&&gate.validationGain>=8);
+            a.ok(Object.values(gate.groups).every(v=>v>=-3));
+          }else a.equal(chosen.arm,'guardian-champion');
+          console.log('ARCANE_V1530_CHAMPION_VALIDATED '+JSON.stringify({
+            duels:r.totalDuels,selected:chosen.arm,promoted:chosen.promoted,
+            holdoutVsChampion:chosen.holdoutDifference,
+            candidates:chosen.candidates}));
+          JS
+      - name: Archive balanced retest, cross-role duel outcomes and sealed holdout
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v14930-crossrole-champion
+          path: artifacts/v1530/
+          retention-days: 90
+          if-no-files-found: warn

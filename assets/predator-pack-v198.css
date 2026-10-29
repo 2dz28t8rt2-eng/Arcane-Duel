@@ -1,0 +1,86 @@
+/* Predator pack v19.8 – presentation only; compact persistent indicators. */
+.ad198-alpha-card{position:relative;overflow:visible!important}
+.ad198-leader-crown{position:absolute;z-index:14;top:-12px;right:-8px;display:grid;place-items:center;
+ width:29px;height:28px;font-size:24px;line-height:1;color:#ffdf8f;pointer-events:none;
+ filter:drop-shadow(0 0 4px #ffad47) drop-shadow(0 0 10px #9d401f);
+ animation:ad198-crown-glimmer 2.2s ease-in-out infinite;text-shadow:0 1px 1px #361400}
+.ad198-perk-badges{position:absolute;z-index:15;right:0;bottom:-9px;max-width:100%;display:flex;
+ flex-wrap:wrap;justify-content:flex-end;gap:2px;pointer-events:none}
+.ad198-perk-badge{display:inline-block;padding:2px 4px;border:1px solid #ffdca7;
+ border-radius:4px;background:#210f21ee;color:#fff0d2;font-size:9px;font-weight:900;
+ line-height:1.15;text-shadow:0 1px 2px #000;box-shadow:0 0 7px #ffab7466}
+.ad198-perk-mark{color:#ffd1d8;border-color:#ff747e}
+.ad198-perk-token{color:#d5d0ff;border-color:#a9a2ff}
+@keyframes ad198-crown-glimmer{0%,100%{opacity:.78;transform:translateY(0) scale(.94)}
+ 50%{opacity:1;transform:translateY(-2px) scale(1.13)}}
+.ad198-token-badge{position:absolute;left:1px;bottom:29px;z-index:12;border:1px solid #ba685c;
+ border-radius:5px;padding:1px 4px;background:#261319e6;color:#f3c2b3;font-size:9px;font-weight:750;pointer-events:none}
+.ad198-crosshair{position:absolute;z-index:14;top:28%;left:50%;transform:translate(-50%,-50%);
+ display:block;width:36px;height:36px;pointer-events:none;filter:drop-shadow(0 0 8px #e04f50);
+ animation:ad198-hunt-glow 1s ease-in-out infinite}
+.ad198-crosshair:before,.ad198-crosshair:after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+ border:2px solid #ffa6a0;border-radius:50%;width:28px;height:28px;box-shadow:0 0 12px #db344e99}
+.ad198-crosshair:after{width:10px;height:10px;border:1px solid #ffdcd2;box-shadow:0 0 9px #e6434d}
+.ad198-crosshair span:before,.ad198-crosshair span:after{content:"";position:absolute;background:#ffe1c9;
+ box-shadow:0 0 6px #ff5259;top:50%;left:50%;transform:translate(-50%,-50%)}
+.ad198-crosshair span:before{height:2px;width:40px}.ad198-crosshair span:after{height:40px;width:2px}
+@keyframes ad198-hunt-glow{0%,100%{opacity:.72}50%{opacity:1}}
+#duelScreen.ad198-pack-shake{animation:ad198-hunt-shake .27s ease-out 1}
+@keyframes ad198-hunt-shake{0%,100%{transform:translate(0,0)}18%{transform:translate(-5px,2px)}
+ 32%{transform:translate(4px,-3px)}52%{transform:translate(-3px,1px)}72%{transform:translate(2px,1px)}}
+.ad198-blood-impact{position:fixed;z-index:18005;pointer-events:none;width:0;height:0;
+ filter:drop-shadow(0 0 5px #e03844)}
+.ad198-blood-impact i{position:absolute;display:block;width:5px;height:9px;border-radius:55% 70% 65% 50%;
+ background:linear-gradient(160deg,#ff9075,#a30c2d);transform:translate(0,0) scale(.6);
+ animation:ad198-spray .5s ease-out forwards;opacity:0}
+@keyframes ad198-spray{8%{opacity:.92}90%{opacity:.82}
+ 100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.26)}}
+.ad198-claw-finish{position:fixed;z-index:18006;display:block;pointer-events:none;transform:translate(-50%,-50%);
+ filter:drop-shadow(0 0 18px #d5222a);animation:ad198-tear-fade .85s ease-out forwards}
+.ad198-claw-finish img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ad198-torn-left{clip-path:polygon(0 0,53% 0,42% 21%,56% 44%,45% 61%,53% 100%,0 100%);
+ animation:ad198-tear-left .7s ease-out forwards}
+.ad198-torn-right{clip-path:polygon(53% 0,100% 0,100% 100%,53% 100%,45% 61%,56% 44%,42% 21%);
+ animation:ad198-tear-right .7s ease-out forwards}
+.ad198-claw-lines{position:absolute;inset:0;z-index:2}
+.ad198-claw-lines i{position:absolute;top:5%;left:24%;width:6px;height:100%;background:linear-gradient(90deg,#ffdfac,#e84847,#b21a28);
+ transform:rotate(31deg);box-shadow:0 0 10px #fa5c58;border-radius:100% 10%}
+.ad198-claw-lines i:nth-child(2){left:48%}.ad198-claw-lines i:nth-child(3){left:72%}
+@keyframes ad198-tear-left{to{transform:translate(-35px,19px) rotate(-21deg);opacity:0}}
+@keyframes ad198-tear-right{to{transform:translate(34px,-10px) rotate(16deg);opacity:0}}
+@keyframes ad198-tear-fade{0%,35%{opacity:1}100%{opacity:0}}
+.ad198-leader-reveal .evo-popup-panel{opacity:1!important;visibility:visible!important;
+ transform:none!important;filter:none!important;overflow:auto!important;
+ border:1px solid #e3ac69;box-shadow:0 0 25px #e58c5c62;background:#180e1de8;
+ animation:ad198-awake-panel .5s ease-out;transition:opacity .9s ease-in!important}
+.ad198-leader-reveal.ad198-reveal-fade .evo-popup-panel{opacity:0!important}
+.ad198-leader-reveal .evo-rolls{display:flex;flex-direction:column;align-items:center;gap:8px;max-height:100%;
+ overflow:auto;padding:9px 8px 14px}
+.ad198-pack-paw{font-size:66px;text-align:center;filter:drop-shadow(0 0 18px #ed9868);
+ animation:ad198-paw-reveal 1.5s ease-out forwards}
+.ad198-awake-title{text-align:center;color:#ffe0b5;font-weight:950;letter-spacing:.14em;
+ font-size:clamp(16px,2vw,28px);text-shadow:0 0 17px #ff6c49;
+ animation:ad198-awake-panel .45s ease-out both}
+.ad198-awake-sub{font-size:12px;font-weight:850;letter-spacing:.1em;color:#f4c49a}
+.ad198-perk-heading{margin-top:8px;font-size:13px;font-weight:950;letter-spacing:.11em;
+ color:#ffefc0;text-shadow:0 0 10px #ef8f50}
+.ad198-skill{width:min(100%,470px);display:flex;flex-direction:column;gap:5px;padding:10px 14px;
+ border:1px solid #bd7d6c99;border-radius:10px;background:#311c29ed;color:#fff1df;
+ animation:ad198-awake-panel .6s ease-out both}
+.ad198-skill b{font-size:15px;color:#ffe0a0}.ad198-skill span{font-size:14px;line-height:1.45}
+.ad198-skill-chosen{border-width:2px;box-shadow:0 0 18px #f8bd7a66;
+ background:linear-gradient(135deg,#613625,#311822);color:#fff9f2}
+.ad198-skill-swarm{border-color:#ffdb7b;box-shadow:0 0 17px #ffbe6388}
+.ad198-skill-swarm b{color:#ffe591}
+.ad198-skill-mark{border-color:#ff7487;box-shadow:0 0 17px #e8486880}
+.ad198-skill-mark b{color:#ffb1bd}
+.ad198-skill-token{border-color:#aea0ff;box-shadow:0 0 17px #ac91ff88}
+.ad198-skill-token b{color:#ded0ff}
+@keyframes ad198-paw-reveal{0%{opacity:0;transform:scale(.5)}30%{opacity:1;transform:scale(1.13)}
+ 80%{opacity:.9}100%{opacity:.35;transform:scale(1.02)}}
+@keyframes ad198-awake-panel{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.ad198-leader-crown,.ad198-crosshair,.ad198-blood-impact i,
+.ad198-claw-finish,.ad198-pack-paw,.ad198-awake-title,.ad198-skill,#duelScreen.ad198-pack-shake{animation:none!important}
+ .ad198-leader-reveal .evo-popup-panel{transition:none!important}}
+@media(max-width:600px){.ad198-skill{padding:9px 10px}.ad198-skill b{font-size:14px}
+ .ad198-skill span{font-size:13px}.ad198-awake-title{font-size:19px}}

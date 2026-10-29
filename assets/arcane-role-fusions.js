@@ -70,7 +70,7 @@
   return {p,hand};
  }
  function picked(){
-  const q=candidates();return q?zones.map(i=>({i,c:q.p.field[i]})).filter(x=>x.c&&!isFateCard(x.c)):[];
+  const q=candidates();return q?zones.map(i=>({i,c:q.p.field[i]})).filter(x=>x.c&&!isFateCard(x.c)&&!x.c.predatorToken):[];
  }
  function commitFusion(id){
   const q=candidates(),m=picked();if(!q||!m.length||m.length>4)return false;
@@ -80,6 +80,7 @@
   if(!q.p.remainingFusion.includes(id))return false;
   if(m.some(x=>q.p.field[x.i]!==x.c))return false;
   if(q.p.hand.findIndex(c=>c.uid===q.hand.uid)<0)return false;
+  const previousAlpha=window.ArcanePredatorShowdownSolo199?.capture(game);
   const previousChoice=game.fusionChoice;
   game.fusionChoice=id;
   game.arcaneFieldInputs=m.map(x=>x.c);
@@ -92,6 +93,8 @@
   for(const x of m)q.p.field[x.i]=null;
   q.p.field[m[0].i]=result;
   result.summonedTurn=game.turn;
+  // Free hand+field synthesis bypasses placePending; use identical succession.
+  window.ArcanePredatorShowdownSolo199?.resolve(game,previousAlpha,result);
   game.totalFusions[0]++;
   game.summoned=true;game.pending=null;game.selection=null;game.materials=[];game.lastSummoned=result;
   logEvent(game,'Gezielte Feldfusion: 1 Handkarte + '+m.length+' Feldmonster → '+dataOf(result).name+'.');
@@ -104,10 +107,18 @@
   const options=fusionOptions(game,levels,materials);if(!options.length){toast('Mit diesen Monsterstufen ist derzeit keine passende Fusionskarte verfügbar.');return;}
   const visualMaterials=materials.map(c=>({art:dataOf(c).art,name:dataOf(c).name,level:dataOf(c).level,field:m.some(x=>x.c.uid===c.uid),soul:Math.max(0,c.essenceCombat?.soul||0)}));
   chooseFusionModal(levels,materials,async id=>{
+   const beforeShowdown=game?.predatorShowdown;
    if(!commitFusion(id)){toast('Die Feldfusion konnte nicht abgeschlossen werden.');return;}
    const result=game.lastSummoned;if(!result)return;
    busy=true;
-   try{await fusionAnimation(dataOf(result).level,visualMaterials,'field');}
+   try{
+    await fusionAnimation(dataOf(result).level,visualMaterials,'field');
+    const showdown=game.predatorShowdown;
+    if(showdown&&showdown!==beforeShowdown&&!showdown.presented){
+     showdown.presented=true;
+     await window.ArcanePredatorShowdown199?.play(showdown);
+    }
+   }
    finally{busy=false;game.cinemaActive=false;render();}
   },'Feldmonster werden tatsächlich verbraucht. Gespeicherte Seelenenergie verleiht der neuen Fusion zusätzlich DEF; Seelenzehrer können einen Teil davon als Energie übernehmen.');
  }
@@ -115,7 +126,7 @@
   if(!fieldPick||!candidates())return;
   const b=ev.target.closest('[data-mine]');if(!b)return;
   const idx=Number(b.dataset.mine),c=game.players[0].field[idx];
-  if(!c||isFateCard(c))return;
+  if(!c||isFateCard(c)||c.predatorToken)return;
   ev.stopImmediatePropagation();ev.preventDefault();
   if(zones.includes(idx))zones=zones.filter(x=>x!==idx);
   else if(zones.length<4)zones.push(idx);

@@ -1,0 +1,94 @@
+name: Arcane Duel - v14.0 Planner A-B and Full Curriculum
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-planner-ab-curriculum-v140.cjs'
+      - '.github/workflows/ai-planner-ab-curriculum-v140.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v140-planner-ab-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  planner-ab-and-mechanic-lessons:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check curriculum code and game mechanic regressions
+        run: |
+          node --check tests/ai-planner-ab-curriculum-v140.cjs
+          node --test tests/ai-history-v130.test.cjs tests/ai-board-planner-v129.test.cjs tests/defender-soul-update.test.cjs tests/allrounder-resonance-v41.test.cjs tests/fusion-rework-v113.test.cjs tests/lv1-fusion-and-ghost-v47.test.cjs tests/role-inheritance-regression.test.cjs
+      - name: Restore v13.6 historical learning state
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v136-extensive-1200-episode-selfplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39637833422
+          github-token: ${{ github.token }}
+          path: artifacts/history
+      - name: Restore historical v13.7 paired decisions
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v137-history-curriculum-league-counterfactual-report
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39641190561
+          github-token: ${{ github.token }}
+          path: artifacts/v137history
+      - name: Restore historical v13.8 outcome-labeled decisions
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v138-rule-decision-memory-and-trained-candidate
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39642462976
+          github-token: ${{ github.token }}
+          path: artifacts/history-v138
+      - name: Restore v13.9 decision replay and frozen planner validation
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v139-confidence-lookahead-league-report
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39643785644
+          github-token: ${{ github.token }}
+          path: artifacts/history-v139
+      - name: Verify lineage and historical evidence (no holdout fitting)
+        run: |
+          test "$(find artifacts/history -name ai-v136-training-report.json | wc -l)" -eq 3
+          node - <<'JS'
+          const fs=require('fs'),assert=require('node:assert/strict');
+          const base=JSON.parse(fs.readFileSync('models/ai-selfplay-v136.json','utf8'));
+          const prev=JSON.parse(fs.readFileSync('artifacts/history-v139/decision-replay.json','utf8'));
+          assert.equal(base.gamesTrained,1920);
+          assert.equal(prev.items.length,81);
+          assert.equal(base.productionActive,false);
+          console.log('Verified 1920 old training episodes, 81 prior paired decisions, and unchanged production');
+          JS
+      - name: Pilot legal-action and matched-policy planner test
+        env:
+          ARCANE_V140_CASES: '8'
+          ARCANE_V140_HOLDOUT: '24'
+          ARCANE_V140_LEAGUE: '3'
+        run: node tests/ai-planner-ab-curriculum-v140.cjs
+      - name: Extensive confidence-gated curriculum and planner A-B training
+        env:
+          ARCANE_V140_CASES: '160'
+          ARCANE_V140_HOLDOUT: '64'
+          ARCANE_V140_LEAGUE: '14'
+        run: node tests/ai-planner-ab-curriculum-v140.cjs
+      - name: Preserve training reports, opponent comparisons and paired decisions
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v140-extensive-planner-ab-and-mechanic-replay
+          path: |
+            artifacts/v140/training-report.json
+            artifacts/v140/decision-history.json
+            artifacts/v140/candidate.json
+          retention-days: 90
+          if-no-files-found: warn

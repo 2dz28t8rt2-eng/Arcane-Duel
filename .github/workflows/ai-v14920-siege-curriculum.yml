@@ -1,0 +1,112 @@
+name: Arcane Duel - v14.9.20 Four-Stage Fortress Siege Curriculum
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v14920-siege-curriculum.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  strategic-siege-curriculum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify research source and combat rules
+        run: |
+          set -euo pipefail
+          node --check tests/ai-v1520-history.cjs
+          node --check tests/ai-v1520-Q.cjs
+          node --check tests/ai-v1520-siege-curriculum.cjs
+          node --check tests/ai-v1520-siege-aggregate.cjs
+          node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
+      - name: Restore verified Q checkpoint and nine historical TRAIN-only archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/arcane-prev /tmp/arcane-history/{v1511,v1512,v1513,v1514,v1515,v1516,v1517,v1518,v1519} artifacts/v1520
+          for rid in 39803691439 39843438099 39847734409 39851537706 39855753529 39858417967 39862370629 39904678414 39907484021; do
+            test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$rid" --jq '.conclusion')" = success
+          done
+          gh run download 39803691439 --repo "$GITHUB_REPOSITORY" --name arcane-v14911-summon-fusion-training --dir /tmp/arcane-history/v1511
+          gh run download 39843438099 --repo "$GITHUB_REPOSITORY" --name arcane-v14912-veteran-predator-training --dir /tmp/arcane-history/v1512
+          gh run download 39847734409 --repo "$GITHUB_REPOSITORY" --name arcane-v14913-symmetric-history --dir /tmp/arcane-history/v1513
+          gh run download 39851537706 --repo "$GITHUB_REPOSITORY" --name arcane-v14914-crossdeck-history --dir /tmp/arcane-history/v1514
+          gh run download 39855753529 --repo "$GITHUB_REPOSITORY" --name arcane-v14915-crossdeck-rollout --dir /tmp/arcane-history/v1515
+          gh run download 39858417967 --repo "$GITHUB_REPOSITORY" --name arcane-v14916-risk-aware-crossdeck --dir /tmp/arcane-history/v1516
+          gh run download 39862370629 --repo "$GITHUB_REPOSITORY" --name arcane-v14917-role-aware-crossdeck --dir /tmp/arcane-history/v1517
+          gh run download 39904678414 --repo "$GITHUB_REPOSITORY" --name arcane-v14918-optimized-roles-decay --dir /tmp/arcane-history/v1518
+          gh run download 39907484021 --repo "$GITHUB_REPOSITORY" --name arcane-v14919-fusion-soul-isolation --dir /tmp/arcane-history/v1519
+          LAST=$(gh run list --workflow ai-v14920-siege-curriculum.yml --branch development --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+          if [ -n "$LAST" ]; then
+            gh run download "$LAST" --repo "$GITHUB_REPOSITORY" --name arcane-v14920-siege-curriculum --dir /tmp/arcane-prev
+            echo "ARCANE_V1520_RESTORED $LAST"
+          else
+            cp /tmp/arcane-history/v1519/training-q-and-examples.json /tmp/arcane-prev/training-q-and-examples.json
+            echo "ARCANE_V1520_RESTORED 39907484021"
+          fi
+          node tests/ai-v1520-history.cjs
+      - name: Continue protected tactical Predator Q independently of siege optimization
+        run: node --expose-gc --max-old-space-size=3200 tests/ai-v1520-Q.cjs
+      # Stage 0 verifies that the garrison is assembled exclusively from legal cards in the opposing 40-card deck.
+      - name: Stage 0 – static Guardian Soul fortress with no enemy actions
+        run: |
+          set -euo pipefail
+          node --expose-gc --max-old-space-size=2500 tests/ai-v1520-siege-curriculum.cjs 0
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const m=JSON.parse(fs.readFileSync('artifacts/v1520/stage-0.json','utf8'));
+          a.equal(m.allCases.length,512);
+          a.ok(m.allCases.every(x=>x.enemyOffense===0&&x.enemySummons===0),
+           'A static fortress acted offensively or grew');
+          a.ok(m.allCases.every(x=>x.turn>0&&x.seedA!==x.seedB));
+          a.ok(m.allCases.some(x=>x.enemyDamage>0),'Fortress stage produced no actual offensive damage');
+          a.equal(m.holdoutCandidate.games,32);
+          console.log('ARCANE_V1520_STATIC_SMOKE '+JSON.stringify({games:512,
+           selected:m.chosenArm,train:m.trainCandidate.wins,holdout:m.holdoutCandidate.wins}));
+          JS
+      - name: Stage 1 – growing fortress with absolutely no active attacks
+        run: node --expose-gc --max-old-space-size=2500 tests/ai-v1520-siege-curriculum.cjs 1
+      - name: Stage 2 – fortified high-defense strategy puzzles
+        run: node --expose-gc --max-old-space-size=2500 tests/ai-v1520-siege-curriculum.cjs 2
+      - name: Stage 3 – escalating opponent counterattacks and independent holdout
+        run: node --expose-gc --max-old-space-size=2500 tests/ai-v1520-siege-curriculum.cjs 3
+      - name: Aggregate genuine fortress learning curriculum and validate holdout segregation
+        run: node --max-old-space-size=2800 tests/ai-v1520-siege-aggregate.cjs
+      - name: Enforce independent research-only model and stage controls
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const root='artifacts/v1520/';
+          const m=JSON.parse(fs.readFileSync(root+'report.json','utf8'));
+          const q=JSON.parse(fs.readFileSync(root+'report.json','utf8'));
+          const historical=JSON.parse(fs.readFileSync(root+'historical-train.json','utf8'));
+          a.equal(m.totalDuels,2048);a.equal(m.holdoutDuels,512);
+          a.equal(m.controls.arenaLPDecayDisabled,true);
+          a.equal(m.controls.noOpponentActiveOffenseStages012,true);
+          a.equal(m.productionModified,false);
+          a.ok(historical.sources.length>=9);
+          for(let i=0;i<4;i++){
+            const s=JSON.parse(fs.readFileSync(root+'stage-'+i+'.json','utf8'));
+            a.equal(s.allCases.length,512);
+            a.ok(s.trainCandidate.games===96&&s.holdoutCandidate.games===32);
+            if(i<3)a.ok(s.allCases.every(x=>x.enemyOffense===0));
+          }
+          console.log('ARCANE_V1520_VERIFIED '+JSON.stringify({duels:m.totalDuels,
+           holdout:m.holdoutDuels,selected:m.stages.map(x=>x.selected),
+           controls:m.controls}));
+          JS
+      - name: Archive siege scenarios, train-only trajectories, Q checkpoints and holdouts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v14920-siege-curriculum
+          path: artifacts/v1520/
+          retention-days: 90
+          if-no-files-found: warn

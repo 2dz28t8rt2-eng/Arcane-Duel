@@ -8,8 +8,10 @@ function setup(){
   function fixture(templateRole,inherited,{owner=0,seed=60139,bonus=false,opponentId=7}={}){
    profile=freshProfile();profile.cleared=[1,2,3,4,5,6,7];
    const pool=RPG_FUSIONS.filter(c=>!c.retired&&!c.enemyOnly&&c.level<=6);
-   const lv=[2,3,4,5,6].find(l=>['predator','guardian'].every(r=>pool.some(c=>c.level===l&&c.role===r)));
-   const stock=['predator','guardian'].map(r=>pool.find(c=>c.level===lv&&c.role===r).id);
+   // Fusion templates have no permanent role. Compare two distinct Lv5
+   // blueprints while obtaining the live fusion role exclusively from materials.
+   const stock=pool.filter(c=>c.level===5).slice(0,2).map(c=>c.id);
+   if(stock.length!==2)throw Error('Insufficient role-neutral Lv5 fusion templates');
    const g=createGame({id:'role-regression-'+seed+'-'+owner,mode:'pve',context:'tournament',opponentId,
     seed,starter:owner,deck:RPG_DEFAULT_DECK,fusionDeck:stock});
    g.active=owner;
@@ -65,14 +67,14 @@ test('An inherited rank-three Soul Eater can switch focus only once per turn',()
  assert.equal(r.role,'soul');assert.equal(r.level,5);assert.equal(r.accepted,true);
  assert.equal(r.repeat,false);assert.equal(r.preference,2);assert.equal(r.lowRankAccepted,false);
 });
-test('Full card previews label the actual Soul role rather than the Predator template',()=>{
+test('Full card previews label the actual Soul role while the template stays role-free',()=>{
  const r=setup().run(`(()=>{
   const {f}=RoleRegression.fixture('predator','soul');
   const html=fullCardHtml(f);
-  return {template:CARDS[f.id].role,soulChip:html.includes('essence-role-chip essence-role-soul'),
+  return {template:CARDS[f.id].role??null,soulChip:html.includes('essence-role-chip essence-role-soul'),
    predatorChip:html.includes('essence-role-chip essence-role-predator')};
  })()`);
- assert.deepEqual(r,{template:'predator',soulChip:true,predatorChip:false});
+ assert.deepEqual(r,{template:null,soulChip:true,predatorChip:false});
 });
 test('A Soul Eater fusion actually heals LP from its chosen DEF focus',()=>{
  const r=setup().run(`(()=>{

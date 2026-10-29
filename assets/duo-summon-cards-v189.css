@@ -1,0 +1,50 @@
+/* Arcane Duel v18.9 – hand-to-field selection for 2v2 summoning. */
+.duo-battle .duo178-hand-card.ad189-eligible-hand{cursor:pointer;touch-action:manipulation;
+ border-color:#8fd9dc!important;box-shadow:0 0 0 1px #8be1dc66,0 0 16px #64d5cc48}
+.duo-battle .duo178-hand-card.ad189-eligible-hand:hover{filter:brightness(1.17)}
+.duo-battle .duo178-hand-card.ad189-selected-hand{position:relative;border-color:#ffe0a1!important;
+ outline:3px solid #ffe2a2!important;outline-offset:2px;
+ box-shadow:0 0 0 1px #ffe1a0cc,0 0 26px #f2bc739c!important;filter:brightness(1.12)}
+.duo-battle .duo178-hand-card.ad189-selected-hand::after{content:'✦';position:absolute;top:4px;right:4px;
+ width:22px;height:22px;border-radius:50%;background:#785124;color:#fff2c7;border:1px solid #ffdba2;
+ display:grid;place-items:center;font-size:13px;pointer-events:none;z-index:35}
+.duo-battle .field-cell.ad189-eligible-slot{cursor:pointer;touch-action:manipulation;
+ border:2px dashed #80d6cb!important;background:#173c48aa;box-shadow:inset 0 0 10px #7ddacf44}
+.duo-battle .field-cell.ad189-eligible-slot::after{content:'+';position:absolute;top:3px;right:3px;
+ font:bold 16px system-ui;color:#ebfff5;border:1px solid #9fe3d7;background:#205565db;
+ border-radius:50%;height:21px;width:21px;display:grid;place-items:center;pointer-events:none}
+.duo-battle .field-cell.ad189-eligible-slot:hover{filter:brightness(1.2)}
+.duo-battle .field-cell.ad189-selected-slot{border:2px solid #ffe29c!important;
+ background:linear-gradient(145deg,#56452a,#34374d)!important;
+ box-shadow:0 0 0 2px #ffdda58c,0 0 22px #ffd3898c!important}
+.duo-battle .field-cell.ad189-selected-slot::after{content:'✓';background:#76592b;border-color:#ffe19e;color:#fff1b4}
+.duo-battle .ad189-eligible-hand:focus-visible,.duo-battle .ad189-eligible-slot:focus-visible{
+ outline:3px solid #fff1bc!important;outline-offset:4px}
+/* When summoning, an earlier (preserved) fusion-material choice must not
+   visually compete with the active selection. It reappears in Fusion mode. */
+.duo-battle.ad189-summon-mode .ad188-material-selected:not(.ad189-selected-hand){
+ outline:none!important;border-color:#b9934c!important;filter:none!important;
+ box-shadow:none!important;background-image:linear-gradient(#342d3a,#2e2927)!important}
+.duo-battle.ad189-summon-mode .duo178-hand-card.ad188-material-selected:not(.ad189-selected-hand){
+ background-image:linear-gradient(145deg,#3a3149,#15243a)!important}
+.duo-battle.ad189-summon-mode .duo178-hand-card.ad188-material-selected.ad189-eligible-hand:not(.ad189-selected-hand){
+ border-color:#8fd9dc!important;box-shadow:0 0 0 1px #8be1dc66,0 0 16px #64d5cc48!important}
+.duo-battle.ad189-summon-mode .ad188-material-selected:not(.ad189-selected-hand)::after{display:none!important}
+.ad189-summon-guide{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:240;
+ width:min(680px,calc(100vw - 26px));padding:13px 15px;border:2px solid #efcb8a;border-radius:14px;
+ background:linear-gradient(125deg,#263d43f5,#20273ef8 80%);color:#ffebcc;
+ box-shadow:0 0 30px #e9c37a3f,0 16px 30px #010817d9;backdrop-filter:blur(8px);
+ display:flex;align-items:center;justify-content:space-between;gap:12px;
+ animation:ad189Enter .2s ease-out both}
+.ad189-summon-guide[hidden]{display:none!important}
+.ad189-guide-description{margin:0;flex:1 1 auto;color:#f2e8d4;font:650 12px/1.5 system-ui}
+.ad189-guide-actions{display:flex;gap:7px;flex:0 0 auto;align-items:center}
+.ad189-guide-actions button{font:750 11px system-ui;min-height:42px;padding:9px 12px;
+ border-radius:8px;white-space:nowrap;border:1px solid #96a9b4;background:#2f4253;color:#f7f2de}
+.ad189-guide-actions .ad189-guide-confirm{border-color:#ffe09a;color:#fff4d1;
+ background:linear-gradient(140deg,#8b6034,#68402e)}
+.ad189-guide-actions button:disabled{opacity:.46;cursor:not-allowed}
+@keyframes ad189Enter{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+@media(max-width:680px){.ad189-summon-guide{flex-direction:column;align-items:stretch;bottom:8px;padding:11px}
+ .ad189-guide-actions button{flex:1 1 auto;min-width:0}.ad189-guide-actions{width:100%}}
+@media(prefers-reduced-motion:reduce){.ad189-summon-guide{animation:none!important}}

@@ -1,0 +1,163 @@
+name: Arcane Duel - v14.9.66 Soul Threat Strategy Training
+on:
+  push:
+    branches: [development]
+    paths: ['.github/workflows/ai-v14966-soul-threat.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  soul-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      SELFPLAY: tests/ai-v1566-soul-threat-selfplay.cjs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and combat rules preflight
+        run: |
+          set -euo pipefail
+          for f in tests/ai-v1566-{history,Q,soul-threat-selfplay,soul-threat-aggregate}.cjs; do test -f "$f"; node --check "$f"; done
+          node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
+      - name: Restore sealed previous TRAIN checkpoint
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARCANE_PREVIOUS_ARTIFACT_DIR: /tmp/arcane-v1566-prior
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40400362272" --jq '.conclusion')" = success
+          mkdir -p /tmp/arcane-v1566-prior artifacts/v1566
+          gh run download 40400362272 --repo "$GITHUB_REPOSITORY" --name arcane-v14965-raid-discharge --dir /tmp/arcane-v1566-prior
+          for f in older-q-checkpoint.json prior-selfplay-checkpoint.json incumbent-policy.json research-balanced-policy.json; do cp "/tmp/arcane-v1566-prior/$f" "artifacts/v1566/$f"; done
+          node tests/ai-v1566-history.cjs
+      - name: Independent TRAIN-only Q check
+        run: node --expose-gc --max-old-space-size=3200 tests/ai-v1566-Q.cjs
+      - name: Sample legal threat comparisons
+        run: |
+          set -euo pipefail
+          node --expose-gc --max-old-space-size=2400 "$SELFPLAY" 8 0 0
+          node - <<'JS'
+          const a=require('node:assert/strict'),f=require('./artifacts/v1566/stage-8-pair-0-chunk-0.json');
+          a.equal(f.cases.length,144);
+          a.ok(f.cases.some(x=>x.arm==='defender-v1565-raid-contest-control'));
+          a.ok(f.cases.some(x=>x.arm==='defender-threat-survival'));
+          a.ok(f.cases.every(x=>x.illegalSwitchesBySeat.every(n=>n===0)));
+          console.log('ARCANE_V1566_PREVIEW_PASS');
+          JS
+      - name: Phase 0 - mirrored level-8
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 0 "$pair"
+          done
+          node "$SELFPLAY" 0 finalize
+      - name: Phase 1 - mirrored level-9
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 1 "$pair"
+          done
+          node "$SELFPLAY" 1 finalize
+      - name: Phase 2 - cross-role level-10
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 2 "$pair"
+          done
+          node "$SELFPLAY" 2 finalize
+      - name: Phase 3 - symmetric LP decay
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 3 "$pair"
+          done
+          node "$SELFPLAY" 3 finalize
+      - name: Phase 4 - extended role/fusion checks
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            for chunk in 0 1 2 3; do node --expose-gc --max-old-space-size=2400 "$SELFPLAY" 4 "$pair" "$chunk"; done
+          done
+          node "$SELFPLAY" 4 finalize
+      - name: Phase 5 - level-10 baseline
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 5 "$pair"
+          done
+          node "$SELFPLAY" 5 finalize
+      - name: Phase 6 - level-10 with decay
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            node --expose-gc --max-old-space-size=1900 "$SELFPLAY" 6 "$pair"
+          done
+          node "$SELFPLAY" 6 finalize
+      - name: Phase 7 - frozen-champion head-to-head
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            for chunk in 0 1 2 3; do node --expose-gc --max-old-space-size=2400 "$SELFPLAY" 7 "$pair" "$chunk"; done
+          done
+          node "$SELFPLAY" 7 finalize
+      - name: Phase 8 - Soul and fusion focus
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            for chunk in 0 1; do node --expose-gc --max-old-space-size=2400 "$SELFPLAY" 8 "$pair" "$chunk"; done
+          done
+          node "$SELFPLAY" 8 finalize
+      - name: Aggregate reports
+        run: node --max-old-space-size=3200 tests/ai-v1566-soul-threat-aggregate.cjs
+      - name: Validate 18432 mirrored duels and champion gates
+        run: |
+          set -euo pipefail
+          node - <<'JS'
+          const a=require('node:assert/strict'),fs=require('node:fs'),root='artifacts/v1566/';
+          const read=f=>JSON.parse(fs.readFileSync(root+f,'utf8'));
+          const r=read('report.json'),h=read('historical-train.json'),prov=read('provenance.json');
+          a.equal(r.status,'completed');a.equal(r.totalDuels,18432);a.equal(r.primaryDuels,9216);
+          a.equal(r.stages.length,9);a.equal(r.arms.length,6);
+          a.equal(h.sources.length,55);a.equal(h.examples.length,7287);
+          a.equal(h.sources.at(-1),40400362272);a.equal(prov.holdoutAsTraining,false);
+          a.equal(r.globalSelection.holdoutSeenBySelector,false);
+          a.deepEqual(r.globalSelection.selectionGateStages,[0,1,2,3,4,7,8]);
+          a.ok(r.controls.holdoutNeverUsedForSelection);a.ok(r.controls.noProductionChanges);
+          a.ok(r.controls.nonDefenderExactReplayParity);
+          for(let i=0;i<9;i++){
+            const s=read('stage-'+i+'.json');
+            a.equal(s.allCases.length,i===4||i===7?4608:i===8?2304:1152);
+            a.ok(s.allCases.every(x=>x.illegalSwitchesBySeat.every(n=>n===0)));
+            a.ok(s.allCases.every(x=>x.selfPlayStrategicBySeat.every(n=>n>0)));
+            a.ok(s.allCases.every(x=>x.decayEnabled===(i===3||i===6)));
+          }
+          const old=r.arms.find(x=>x.arm==='defender-v1565-raid-contest-control');
+          const current=r.arms.find(x=>x.arm==='defender-threat-survival');
+          a.ok(old?.evaluations.defenderContestChecks>0);
+          a.ok(current?.evaluations.defenderThreatCompareChecks>0);
+          a.ok(current?.evaluations.defenderThreatReplyAttacks>0);
+          a.ok(current?.evaluations.defenderThreatRaidCredits>0);
+          a.ok(current?.evaluations.defenderThreatDischargePenalties>0);
+          a.ok(current?.evaluations.defenderThreatGuardianChecks>0);
+          a.ok(r.controls.roleScopedVerifiedSoulThreatRelief);
+          a.ok(r.controls.conditionalNonLethalDischargeSurvivalValue);
+          if(r.globalSelection.promoted){
+            const w=r.globalSelection.candidates.find(x=>x.arm===r.globalSelection.arm);
+            a.ok(w?.qualifies&&w.guardianGate&&w.seatNonRegressionVsFrozen);
+            a.ok(w.h2hTrainGain>=4&&w.h2hValidationGain>=8);
+            a.ok(w.decayValidationVsFrozen>=0&&w.fusionNonRegression);
+          }else a.equal(r.globalSelection.arm,'l10-guarded-worst-reply');
+          console.log('ARCANE_V1566_REPORT_OK');
+          JS
+      - name: Archive complete sealed research
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v14966-soul-threat
+          path: artifacts/v1566/
+          retention-days: 90
+          if-no-files-found: warn

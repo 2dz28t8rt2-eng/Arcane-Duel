@@ -1,0 +1,126 @@
+name: Arcane Duel - v14.7 Transparent Final Scores and Mirror Tests
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-final-score-transparency-v147.cjs'
+      - '.github/workflows/ai-final-score-transparency-v147.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v147-audit-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verified-planner-transparency:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check game mechanics and trainer syntax
+        run: |
+          node --check tests/ai-final-score-transparency-v147.cjs
+          node --test \
+            tests/ai-history-v130.test.cjs \
+            tests/ai-board-planner-v129.test.cjs \
+            tests/ai-fusion-choice-v61.test.cjs \
+            tests/ai-fusion-preservation-v62.test.cjs \
+            tests/fusion-rework-v113.test.cjs \
+            tests/fusion-utility-v55.test.cjs \
+            tests/defender-soul-update.test.cjs \
+            tests/allrounder-resonance-v41.test.cjs \
+            tests/role-inheritance-regression.test.cjs \
+            tests/role-budget-resonator-v41.test.cjs \
+            tests/essence-combat.test.cjs \
+            tests/lv1-fusion-and-ghost-v47.test.cjs \
+            tests/lv1-fanatic-ace-v48.test.cjs \
+            tests/balance-economy-v109.test.cjs \
+            tests/progression-real-inventory-audit.test.cjs
+      - name: Restore original selfplay training generations
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v136-extensive-1200-episode-selfplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39637833422
+          github-token: ${{ github.token }}
+          path: artifacts/history
+      - name: Restore v14.2 audit
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v142-planner-action-override-and-mechanic-coverage
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39647899323
+          github-token: ${{ github.token }}
+          path: artifacts/history-v142
+      - name: Restore v14.3 fusion results
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v143-fusion-value-training-and-verified-placement
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39650698039
+          github-token: ${{ github.token }}
+          path: artifacts/history-v143
+      - name: Restore v14.4 followup results
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v144-historical-fusion-followup-counterplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39653165893
+          github-token: ${{ github.token }}
+          path: artifacts/history-v144
+      - name: Restore v14.5 strategy results
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v145-three-strategy-rule-curriculum-and-training
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39657418644
+          github-token: ${{ github.token }}
+          path: artifacts/history-v145
+      - name: Restore v14.6 original verified decision-explanation evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v146-mirror-strategy-decision-explanations
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39663274946
+          github-token: ${{ github.token }}
+          path: artifacts/history-v146
+      - name: Require genuine previous reports and frozen champion
+        run: |
+          test "$(find artifacts/history -name ai-v136-training-report.json | wc -l)" -eq 3
+          node - <<'JS'
+          const assert=require('node:assert/strict');
+          const frozen=require('./models/ai-selfplay-v136.json');
+          const prior=require('./artifacts/history-v146/report.json');
+          assert.equal(frozen.gamesTrained,1920);
+          assert.equal(frozen.productionActive,false);
+          assert.equal(prior.schema,'arcane-v146-verified-mirror-explanations');
+          assert.equal(prior.qualifiesForPromotion,false);
+          console.log('Frozen champion, independent historical curriculum and last failure verified');
+          JS
+      - name: Pilot decision-score reconstruction on real engine actions
+        env:
+          ARCANE_V147_TRAIN: '21'
+          ARCANE_V147_HOLDOUT: '21'
+          ARCANE_V147_LEAGUE: '3'
+        run: node tests/ai-final-score-transparency-v147.cjs
+      - name: Extensive transparent and source-legal three-strategy mirror training
+        env:
+          ARCANE_V147_TRAIN: '63'
+          ARCANE_V147_HOLDOUT: '63'
+          ARCANE_V147_LEAGUE: '12'
+        run: node tests/ai-final-score-transparency-v147.cjs
+      - name: Preserve final score traces and independent evaluation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v147-final-score-transparency-and-mirror-training
+          path: |
+            artifacts/v147/report.json
+            artifacts/v147/decision-evidence.json
+            artifacts/v147/candidate.json
+          retention-days: 90
+          if-no-files-found: warn

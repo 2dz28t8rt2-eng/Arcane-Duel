@@ -1,0 +1,39 @@
+{
+  "name": "arcane-duel-desktop",
+  "private": true,
+  "version": "0.1.4",
+  "description": "Arcane Duel desktop preview for Windows",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.cjs",
+    "dist:portable": "electron-builder --win portable --x64"
+  },
+  "devDependencies": {
+    "electron": "45.0.0",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "at.arcane.duel.desktop",
+    "productName": "Arcane Duel",
+    "asar": true,
+    "files": [
+      "main.cjs",
+      "url-policy.cjs",
+      "revision-resolver.cjs",
+      "offline.html",
+      "build/icon.ico",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "build/icon.ico",
+      "target": ["portable"]
+    },
+    "portable": {
+      "artifactName": "ArcaneDuel-${version}-portable.exe"
+    }
+  }
+}

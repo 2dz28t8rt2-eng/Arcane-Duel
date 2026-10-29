@@ -1,0 +1,48 @@
+/* Arcane Duel v20.5: unobtrusive Predator development feedback */
+.board-creature .ad205-first-guard{
+ position:absolute;z-index:16;left:4px;top:5px;border:1px solid #b3d5ff;
+ border-radius:5px;padding:2px 5px;color:#e6f3ff;
+ background:rgba(21,58,103,.94);font-size:9px;font-weight:800;
+ box-shadow:0 0 12px rgba(88,168,255,.42);pointer-events:none;
+}
+.board-creature .ad205-total-bonus{
+ z-index:15;white-space:nowrap;border-color:rgba(102,223,179,.75);
+ color:#b8ffda;background:rgba(14,57,51,.93);
+}
+.board-creature .ad205-fallback-bonus{
+ position:absolute;right:4px;top:5px;padding:3px 5px;border:1px solid;
+ border-radius:5px;font-size:10px;font-weight:800;pointer-events:none;
+}
+.ad205-growth-detail{
+ margin:10px 0 0;padding:10px 12px;border:1px solid rgba(108,216,170,.55);
+ border-radius:10px;background:rgba(21,54,47,.88);
+ color:#e5fff1;display:grid;gap:5px;line-height:1.45;
+ font-size:12px;text-align:left;
+}
+.ad205-growth-detail strong{color:#9eeac5;font-size:12px;}
+.ad205-growth-detail .ad205-growth-sum{
+ border-top:1px solid rgba(150,230,197,.22);padding-top:6px;font-size:14px;
+}
+.ad205-growth-detail small{font-size:11px;color:#c6ded3;line-height:1.5;}
+.ad205-guard-detail{color:#b5d8ff;}
+.monster-slot{position:relative;}
+.ad205-growth-pop{
+ position:absolute;pointer-events:none;z-index:35;left:50%;top:10%;
+ transform:translate(-50%,0);min-width:125px;padding:7px 10px;
+ border-radius:9px;border:1px solid rgba(146,255,189,.95);
+ background:linear-gradient(160deg,rgba(11,52,42,.97),rgba(21,85,67,.97));
+ color:#d9ffe8;text-align:center;font-size:12px;
+ box-shadow:0 0 20px rgba(79,229,152,.5);
+ animation:ad205-evolve 1.6s ease-out both;
+}
+.ad205-growth-pop strong{display:block;letter-spacing:.12em;font-size:11px;}
+.ad205-growth-pop span{display:block;margin-top:3px;font-weight:800;white-space:nowrap;}
+@keyframes ad205-evolve{
+ 0%{opacity:0;transform:translate(-50%,18px) scale(.75);}
+ 20%{opacity:1;transform:translate(-50%,-12px) scale(1.08);}
+ 65%{opacity:1;transform:translate(-50%,-18px) scale(1);}
+ 100%{opacity:0;transform:translate(-50%,-32px) scale(.96);}
+}
+@media(prefers-reduced-motion:reduce){
+ .ad205-growth-pop{animation:none;opacity:1;}
+}

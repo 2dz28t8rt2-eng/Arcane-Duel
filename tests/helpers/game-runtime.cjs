@@ -4,7 +4,7 @@ const repo=process.env.ARCANE_AUDIT_REPO?path.resolve(process.env.ARCANE_AUDIT_R
 const index=fs.readFileSync(path.join(repo,'index.html'),'utf8');
 const scripts=[...index.matchAll(/<script\b[^>]*\bsrc="([^"]+)"[^>]*>/g)].map(m=>m[1].split('?')[0]);
 const source=new Map(scripts.map(file=>[file,fs.readFileSync(path.join(repo,file),'utf8')]));
-function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster118=false,fusionReworkSides='both',saved=null}={}){
+function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster118=false,withoutIV123=false,withoutRoster125=false,withoutRoster126=false,x128Mode='full',fusionReworkSides='both',saved=null}={}){
  const nodes=new Map(),storage=new Map(saved?Object.entries(saved):[]);
  function el(id=''){
   const attributes=new Map(),classes=new Set();
@@ -13,7 +13,7 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster
    append(...c){this.children.push(...c);},prepend(...c){this.children.unshift(...c);},appendChild(c){this.children.push(c);return c;},insertBefore(c){this.children.unshift(c);return c;},replaceChildren(...c){this.children=[...c];},replaceWith(){},remove(){},setAttribute(k,v){attributes.set(k,String(v));},getAttribute(k){return attributes.get(k)||null;},removeAttribute(k){attributes.delete(k);},addEventListener(){},removeEventListener(){},insertAdjacentHTML(){},querySelector(){return null;},querySelectorAll(){return [];},closest(){return null;},contains(){return false;},focus(){},click(){this.onclick?.();},getBoundingClientRect(){return {left:0,top:0,width:100,height:100,right:100,bottom:100};}};
  }
  const document={body:el('body'),documentElement:el('html'),hidden:false,visibilityState:'visible',readyState:'complete',
-  getElementById(id){if(!nodes.has(id))nodes.set(id,el(id));return nodes.get(id);},createElement:el,createElementNS:(ns,t)=>el(t),querySelector(){return null;},querySelectorAll(){return [];},createTreeWalker(){return {nextNode(){return null;}};},addEventListener(){},removeEventListener(){},elementFromPoint(){return null;}};
+   getElementById(id){if(!nodes.has(id))nodes.set(id,el(id));return nodes.get(id);},createElement:el,createElementNS:(ns,t)=>el(t),createTextNode(value){const text=String(value);return {nodeType:3,nodeName:'#text',textContent:text,data:text};},querySelector(){return null;},querySelectorAll(){return [];},createTreeWalker(){return {nextNode(){return null;}};},addEventListener(){},removeEventListener(){},elementFromPoint(){return null;}};
  const localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,String(v)),removeItem:k=>storage.delete(k)};
  let state=seed>>>0||1,clock=Date.parse('2026-10-17T05:04:03Z');
  const random=()=>{state=(state+0x6D2B79F5)>>>0;let t=state;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};
@@ -34,10 +34,23 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster
  // Per-actor fusion rules are a simulation-only audit switch. Production never sets this.
  if(!['both','player','npc'].includes(fusionReworkSides))throw Error('Invalid fusionReworkSides');
  ctx.__arcaneFusionAuditMask={player:fusionReworkSides!=='npc',npc:fusionReworkSides!=='player'};
+ if(!['full','off','power-only'].includes(x128Mode))throw Error('Invalid X v12.8 test control');
+ ctx.__arcaneX128Mode=x128Mode;
  vm.createContext(ctx);
  for(const file of scripts){
+  // Render-only cinematic title has no duel mechanics and needs a real DOM.
+  // Keep gameplay identical while running the headless benchmark.
+  if(file==='assets/arcane-title-v196.js')continue;
   // Only the offline matched-career control disables the optional v11.8 NPC roster.
   if(withoutRoster118&&file==='assets/opponent-roster-balance-v118.js')continue;
+  // Regression-only control retains all other balances while leaving IV unchanged.
+  if((withoutIV123||withoutRoster118)&&file==='assets/opponent-iv-balance-v123.js')continue;
+  // Dedicated matched experimental control: all older rosters remain active.
+  if((withoutRoster125||withoutRoster118)&&file==='assets/opponent-vii-x-roster-v125.js')continue;
+  // v12.6 tier VII/VIII overlay is independent; older roster controls skip it.
+  if((withoutRoster126||withoutRoster125||withoutRoster118)&&file==='assets/opponent-vii-viii-roster-v126.js')continue;
+  // Historical roster-control tests must not receive newer X-specific balance.
+  if((withoutRoster118||withoutRoster125)&&file==='assets/opponent-x-balance-v128.js')continue;
   // Control arm uses the same current game and economy, only the v11.3 fusion
   // calculator and its dependent interactive tutorial are switched off.
   if(withoutFusionRework&&['assets/fusion-rework-v113.js','assets/fusion-tutorial-v113.js'].includes(file))continue;

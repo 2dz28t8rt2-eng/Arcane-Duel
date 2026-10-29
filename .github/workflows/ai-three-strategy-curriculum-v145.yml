@@ -1,0 +1,111 @@
+name: Arcane Duel - v14.5 Three-Strategy Rules Curriculum
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-three-strategy-curriculum-v145.cjs'
+      - '.github/workflows/ai-three-strategy-curriculum-v145.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v145-three-strategy-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  offensive-defensive-fusion-curriculum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 95
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify three strategies and full available game rule regressions
+        run: |
+          node --check tests/ai-three-strategy-curriculum-v145.cjs
+          node --test \
+            tests/ai-history-v130.test.cjs \
+            tests/ai-board-planner-v129.test.cjs \
+            tests/ai-fusion-choice-v61.test.cjs \
+            tests/ai-fusion-preservation-v62.test.cjs \
+            tests/fusion-rework-v113.test.cjs \
+            tests/fusion-utility-v55.test.cjs \
+            tests/defender-soul-update.test.cjs \
+            tests/allrounder-resonance-v41.test.cjs \
+            tests/role-inheritance-regression.test.cjs \
+            tests/role-budget-resonator-v41.test.cjs \
+            tests/essence-combat.test.cjs \
+            tests/lv1-fusion-and-ghost-v47.test.cjs \
+            tests/lv1-fanatic-ace-v48.test.cjs \
+            tests/balance-economy-v109.test.cjs \
+            tests/progression-real-inventory-audit.test.cjs
+      - name: Restore genuine v13.6 training history
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v136-extensive-1200-episode-selfplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39637833422
+          github-token: ${{ github.token }}
+          path: artifacts/history
+      - name: Restore v14.2 action diagnostics
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v142-planner-action-override-and-mechanic-coverage
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39647899323
+          github-token: ${{ github.token }}
+          path: artifacts/history-v142
+      - name: Restore v14.3 fully resolved fusion learning
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v143-fusion-value-training-and-verified-placement
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39650698039
+          github-token: ${{ github.token }}
+          path: artifacts/history-v143
+      - name: Restore v14.4 failed followup and counterplay evaluation
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v144-historical-fusion-followup-counterplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39653165893
+          github-token: ${{ github.token }}
+          path: artifacts/history-v144
+      - name: Verify exact past failures and champion provenance
+        run: |
+          test "$(find artifacts/history -name ai-v136-training-report.json | wc -l)" -eq 3
+          node - <<'JS'
+          const assert=require('node:assert/strict');
+          const champ=require('./models/ai-selfplay-v136.json');
+          const last=require('./artifacts/history-v144/report.json');
+          assert.equal(champ.gamesTrained,1920);
+          assert.equal(champ.productionActive,false);
+          assert.equal(last.schema,'arcane-v144-history-driven-followup-training');
+          assert.equal(last.promoted,false);
+          assert.equal(last.independentHoldout.boss.byTier['10'].candidate,0);
+          console.log('Verified protected champion, historical training and boss X failure.');
+          JS
+      - name: Pilot three strategies, legal phases and abilities
+        env:
+          ARCANE_V145_TRAIN: '21'
+          ARCANE_V145_HOLDOUT: '21'
+          ARCANE_V145_LEAGUE: '3'
+        run: node tests/ai-three-strategy-curriculum-v145.cjs
+      - name: Extensive 3-archetype curriculum training and fresh independent evaluation
+        env:
+          ARCANE_V145_TRAIN: '84'
+          ARCANE_V145_HOLDOUT: '84'
+          ARCANE_V145_LEAGUE: '14'
+        run: node tests/ai-three-strategy-curriculum-v145.cjs
+      - name: Archive strategy decisions, rule curriculum and candidate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v145-three-strategy-rule-curriculum-and-training
+          path: |
+            artifacts/v145/report.json
+            artifacts/v145/historical-rule-curriculum.json
+            artifacts/v145/candidate.json
+          retention-days: 90
+          if-no-files-found: warn

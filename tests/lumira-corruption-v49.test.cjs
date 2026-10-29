@@ -26,7 +26,7 @@ test('chapter V prioritizes Lumira hand fusion over a normal summon',()=>{
  assert.deepEqual(r,{fusion:true,prepared:true,fall:true,aceConsumed:true,aceNotOnField:true});
 });
 test('only the real Lumira plus two to four hand cards can make the scripted boss fusion',()=>{
- const r=setup().run("(()=>{const g=game,p=g.players[1],ace=p.hand.find(c=>c.id===ArcaneLv1Swarm.ids.ace),extra=p.hand.filter(c=>c.uid!==ace.uid).slice(0,2),all=[ace,...extra],recipe=ArcaneLumiraCorruption.recipe(g,all),missing=extra.map(c=>c.uid);const rejected=prepareHandFusion(g,missing,ArcaneLv1Saga.corruptedId),created=prepareHandFusion(g,all.map(c=>c.uid),ArcaneLv1Saga.corruptedId);return {recipe,rejected,created,pending:g.pending?.card?.id===ArcaneLv1Saga.corruptedId};})()");
+ const r=setup().run("(()=>{const g=game,p=g.players[1],ace=p.hand.find(c=>c.id===ArcaneLv1Swarm.ids.ace),extra=p.hand.filter(c=>c.uid!==ace.uid).slice(0,2),all=[ace,...extra],recipe=ArcaneLumiraCorruption.recipe(g,all),missing=extra.map(c=>c.uid);const rejected=prepareHandFusion(g,missing,ArcaneLv1Saga.corruptedId);g.lv1FanaticCorruptIntent=true;const created=prepareHandFusion(g,all.map(c=>c.uid),ArcaneLv1Saga.corruptedId);return {recipe,rejected,created,pending:g.pending?.card?.id===ArcaneLv1Saga.corruptedId};})()");
  assert.deepEqual(r,{recipe:true,rejected:false,created:true,pending:true});
 });
 test('the boss fusion is never legal without Lumira or outside chapter V',()=>{

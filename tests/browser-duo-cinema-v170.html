@@ -1,0 +1,49 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8">
+<title>2v2 v17.0 Dice Cinema / Hidden Draw Smoke Test</title></head><body>
+<pre id="result">Lädt …</pre><iframe id="duo" src="../duo-campaign-v2.html" width="1000" height="950"></iframe>
+<script>
+document.getElementById('duo').addEventListener('load',()=>{
+ setTimeout(()=>{
+  const f=document.getElementById('duo'),w=f.contentWindow,d=f.contentDocument,
+    cine=w.ArcaneDuoCinema170,notes=[];let ok=true;
+  const check=(value,label)=>{if(!value)ok=false;notes.push((value?'OK ':'FAIL ')+label);};
+  try{
+   check(cine?.version==='17.0','New v17.0 cinema module loaded');
+   check(!!d.querySelector('link[href*="duo-cinema-v170.css"]'),
+    'Fusion and handdraw CSS installed');
+   check(d.querySelector('.duo-team-definition')?.textContent.includes('Du und dein Partner gegen zwei Gegner'),
+    'User guidance describes the duo team and both opponents');
+   const card={uid:501,id:25,level:3,atk:780,def:820,
+    role:'predator',fusion:true,pattern:'Drilling',
+    quality:1.04,rollTrace:[{atk:700,def:720},{atk:780,def:820}],
+    materialBonus:{atk:20,def:0},rollMath:{winnerIndex:1}};
+   const player=(seat,field,hand=[])=>({seat,name:['Gast','KI A','Partner','KI B'][seat],
+     kind:seat%2?'ai':'human',field,hand,lv1:{ghostSlots:[]}});
+   const old={roomId:'browser-fixture',revision:1,chapter:1,
+    players:[player(0,[null]),player(1,[null],[null]),
+     player(2,[null],[10]),player(3,[null])]};
+   const next=JSON.parse(JSON.stringify(old));
+   next.revision=2;next.players[0].field[0]=card;
+   next.players[1].hand=[null,null,null];next.players[2].hand=[10,11,12];
+   const events=cine.observed(old,next);
+   check(events.length===3&&events[0].kind==='fusion',
+    'Fusion priority with two independently concealed draws');
+   check(events[0].result.rolls[1].atk===780,
+    'Shown fusion dice originate in confirmed game state');
+   check(events.filter(x=>x.kind==='draw').every(x=>x.hidden),
+    'AI and partner draw contents remain concealed');
+   check(cine.observed(next,next).length===0,'Same revision cannot replay rolls');
+   check(!!d.getElementById('duoRecoveryArea'),
+    'Existing recovery UI is kept');
+   const live=cine.onState(old,next,{25:{name:'Testfusion',art:''}});
+   check(live[0].kind==='fusion'&&!!d.querySelector('.duo-cinema170'),
+    'Accessible active cinematic DOM appeared');
+   cine.setEnabled(false);
+   check(!d.querySelector('.duo-cinema170'),'Visual effects can be cancelled');
+   cine.setEnabled(true);
+  }catch(error){check(false,error.stack||error.message);}
+  document.getElementById('result').textContent=notes.join('\n');
+  document.documentElement.dataset.duoCinema170=ok?'pass':'fail';
+ },1500);
+});
+</script></body></html>

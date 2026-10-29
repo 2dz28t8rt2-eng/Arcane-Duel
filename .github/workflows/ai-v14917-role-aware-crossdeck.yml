@@ -1,0 +1,145 @@
+name: Arcane Duel - v14.9.17 Role-Aware Two-Counter Cross-Deck Study
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v14917-role-aware-crossdeck.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  role-aware-curriculum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify syntax and strategic-combat regression tests
+        run: |
+          set -euo pipefail
+          node --check tests/ai-v1517-history.cjs
+          node --check tests/ai-v1517-Q.cjs
+          node --check tests/ai-v1517-crossdeck-shards.cjs
+          node --check tests/ai-v1517-aggregate.cjs
+          node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
+      - name: Restore verified previous Q, prior training-only examples and complete action trajectories
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/arcane-prev /tmp/arcane-history/{v1511,v1512,v1513,v1514,v1515,v1516} artifacts/v1517
+          for rid in 39803691439 39843438099 39847734409 39851537706 39855753529 39858417967; do
+            status=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$rid" --jq '.conclusion')
+            test "$status" = success
+          done
+          gh run download 39803691439 --repo "$GITHUB_REPOSITORY" --name arcane-v14911-summon-fusion-training --dir /tmp/arcane-history/v1511
+          gh run download 39843438099 --repo "$GITHUB_REPOSITORY" --name arcane-v14912-veteran-predator-training --dir /tmp/arcane-history/v1512
+          gh run download 39847734409 --repo "$GITHUB_REPOSITORY" --name arcane-v14913-symmetric-history --dir /tmp/arcane-history/v1513
+          gh run download 39851537706 --repo "$GITHUB_REPOSITORY" --name arcane-v14914-crossdeck-history --dir /tmp/arcane-history/v1514
+          gh run download 39855753529 --repo "$GITHUB_REPOSITORY" --name arcane-v14915-crossdeck-rollout --dir /tmp/arcane-history/v1515
+          gh run download 39858417967 --repo "$GITHUB_REPOSITORY" --name arcane-v14916-risk-aware-crossdeck --dir /tmp/arcane-history/v1516
+          LAST=$(gh run list --workflow ai-v14917-role-aware-crossdeck.yml --branch development --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+          if [ -n "$LAST" ]; then
+            gh run download "$LAST" --repo "$GITHUB_REPOSITORY" --name arcane-v14917-role-aware-crossdeck --dir /tmp/arcane-prev
+            echo "ARCANE_V1517_RESTORED $LAST"
+          else
+            cp /tmp/arcane-history/v1516/training-q-and-examples.json /tmp/arcane-prev/training-q-and-examples.json
+            echo "ARCANE_V1517_RESTORED 39858417967"
+          fi
+          node tests/ai-v1517-history.cjs
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const t=JSON.parse(fs.readFileSync('/tmp/arcane-history/v1516/training-action-trajectories.json','utf8'));
+          a.ok(t.examples.length>=2350,'Incomplete previous training-only action histories');
+          let actions=0;const roles={};
+          for(const e of t.examples){
+            a.ok(e.matchKey&&Array.isArray(e.trajectory));
+            actions+=e.trajectory.length;
+            const key=e.candidateRole+' vs '+e.opponentRole;
+            const m=roles[key]||(roles[key]={games:0,losses:0,actions:0});
+            m.games++;m.losses+=Number(e.won===0);m.actions+=e.trajectory.length;
+          }
+          a.ok(actions>=140000,'Previous successful full action traces incomplete');
+          const hard=[...Object.entries(roles)].sort((a,b)=>(b[1].losses/b[1].games)-(a[1].losses/a[1].games));
+          const report={sourceRun:39858417967,games:t.examples.length,actions,hardest:hard.slice(0,15),trainingOnly:true};
+          fs.writeFileSync('artifacts/v1517/prior-trajectory-analysis.json',JSON.stringify(report,null,2)+'\n');
+          console.log('ARCANE_V1517_HISTORY_ACTIONS '+JSON.stringify({games:report.games,actions:report.actions,hardest:hard.slice(0,4)}));
+          JS
+      - name: Update research Q only if both independent internal validations pass
+        run: node --expose-gc --max-old-space-size=3200 tests/ai-v1517-Q.cjs
+      - name: Smoke test unmatched decks, mirrors and both two-counter branches
+        run: |
+          set -euo pipefail
+          node --expose-gc --max-old-space-size=1800 tests/ai-v1517-crossdeck-shards.cjs 0
+          node --expose-gc --max-old-space-size=1800 tests/ai-v1517-crossdeck-shards.cjs 32
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const cases=[0,32].flatMap(i=>JSON.parse(fs.readFileSync(
+            'artifacts/v1517/shards/part-'+String(i).padStart(2,'0')+'.json','utf8')).cases);
+          const models=['baseline-heuristic','gated-Q','Q-one-counter-planner',
+            'Q-two-counter-planner','Q-two-counter-role-aware'];
+          for(const label of models)a.equal(cases.filter(x=>x.arm===label).length,32);
+          const counters=label=>cases.filter(x=>x.arm===label).reduce((n,r)=>n+r.doubleCounters+r.attackSecondCounters,0);
+          a.equal(counters('Q-one-counter-planner'),0);
+          a.ok(counters('Q-two-counter-planner')>0,'Plain two-counter planner never attacks twice');
+          a.ok(counters('Q-two-counter-role-aware')>0,'Risk-aware planner never attacks twice');
+          console.log('ARCANE_V1517_SMOKE '+JSON.stringify({plain:counters('Q-two-counter-planner'),
+           risk:counters('Q-two-counter-role-aware')}));
+          JS
+      - name: Evaluate role-specific AI against offensive, economy, and balanced rivals – 3200 matched duels
+        run: |
+          set -euo pipefail
+          for shard in $(seq 1 39); do
+            if [ "$shard" = "32" ]; then continue; fi
+            echo "::group::v14.9.17 shard $shard"
+            node --expose-gc --max-old-space-size=1800 tests/ai-v1517-crossdeck-shards.cjs "$shard"
+            echo "::endgroup::"
+          done
+      - name: Aggregate paired control-vs-risk results and independent holdout
+        run: node --max-old-space-size=2800 tests/ai-v1517-aggregate.cjs
+      - name: Verify matched roles, decisions, multi-tactic opponents and protected Q weights
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const root='artifacts/v1517/';
+          const m=JSON.parse(fs.readFileSync(root+'fullmatch.json','utf8'));
+          const q=JSON.parse(fs.readFileSync(root+'report.json','utf8'));
+          const t=JSON.parse(fs.readFileSync(root+'training-action-trajectories.json','utf8'));
+          a.equal(m.totalMatches,3200);a.equal(m.controls.crossDeckRatio,.8);
+          a.equal(m.controls.mirrorRatio,.2);a.equal(m.independentHoldoutGames,800);
+          a.equal(m.modelSummary.length,5);a.equal(m.controls.noAsymmetricHandicaps,true);
+          a.equal(q.priorCheckpointLoaded,true);a.ok(q.historicalSources.length>=6);
+          a.equal(q.productionEnabled,false);a.equal(m.controls.noProductionPromotion,true);
+          a.equal(t.examples.length,m.archivedTrainingTrajectories);
+          a.ok(m.modelSummary.every(x=>x.games===640&&x.cross.games===512&&
+           x.mirror.games===128&&x.holdout.games===160));
+          const plain=m.modelSummary.find(x=>x.model==='Q-two-counter-planner');
+          const risk=m.modelSummary.find(x=>x.model==='Q-two-counter-role-aware');
+          const shallow=m.modelSummary.find(x=>x.model==='Q-one-counter-planner');
+          for(const arm of [plain,risk])a.ok(arm.doubleCounters+arm.attackSecondCounters>0,
+           'No legal second opponent counter performed');
+          a.equal(shallow.doubleCounters+shallow.attackSecondCounters,0);
+          a.ok(q.candidates.every(x=>!x.updated||
+            (x.validationAfter>=x.validationBefore&&x.confirmationAfter>=x.confirmationBefore)));
+          a.equal(m.pairedRoleVersusPlainDepth2.holdout.games,160);
+          a.equal(m.roleDecisionDifferences.pairs,480);
+          a.ok(m.roleDecisionDifferences.differentGames>0,'Role-aware arm produced no different TRAIN actions');
+          a.ok(m.modelSummary.every(x=>x.byOpponentPolicy.offensive.games===160&&x.byOpponentPolicy.economy.games===160&&x.byOpponentPolicy.balanced.games===320));
+          console.log('ARCANE_V1517_VERIFIED '+JSON.stringify({
+           games:m.totalMatches,cross:2560,mirrors:640,holdout:800,
+           trainingTrajectories:t.examples.length,qArmsAccepted:q.updatedQArms,
+           scores:m.modelSummary.map(x=>({name:x.model,wins:x.wins,
+            holdout:x.holdout.wins,secondCounters:x.doubleCounters+x.attackSecondCounters})),
+           roleVersusDepth2:m.pairedRoleVersusPlainDepth2,decisionDiffs:m.roleDecisionDifferences.differentGames}));
+          JS
+      - name: Upload historical models, all games, action traces and diagnostic comparisons
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v14917-role-aware-crossdeck
+          path: artifacts/v1517/
+          retention-days: 90
+          if-no-files-found: warn

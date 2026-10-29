@@ -1,0 +1,44 @@
+name: Arcane Duel – v11.9 Bestiary and Human-Friendly Handbook QA
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/handbook-lexicon-v119.js'
+      - 'assets/handbook-lexicon-v119.css'
+      - 'tests/handbook-lexicon-v119.test.cjs'
+      - 'tests/browser-handbook-v41.html'
+      - 'index.html'
+      - '.github/workflows/handbook-lexicon-v119.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  docs-and-bestiary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate handbook code and unchanged combat mechanics
+        run: |
+          node --check assets/handbook-lexicon-v119.js
+          node --test tests/handbook-lexicon-v119.test.cjs tests/fusion-cinema-rulebook.test.cjs tests/ascension-balance-v116.test.cjs tests/opponent-roster-v118.test.cjs
+      - name: Test full guide and searchable bestiary in desktop and mobile Chrome
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          if [ -z "$CHROME" ]; then echo 'Chrome unavailable' >&2; exit 1; fi
+          python3 -m http.server 8779 --bind 127.0.0.1 >/tmp/ad119-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          for n in $(seq 1 40); do curl -fsS http://127.0.0.1:8779/index.html >/dev/null && break || sleep .2; done
+          for width in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=16000 --window-size="$width,980" --dump-dom http://127.0.0.1:8779/tests/browser-handbook-v41.html >"/tmp/ad119-$width.html" 2>/tmp/ad119-errors.log
+            if ! grep -q 'data-handbook-test="pass"' "/tmp/ad119-$width.html"; then
+              grep -o 'FEHLER: [^<]*' "/tmp/ad119-$width.html" | head -25 || true
+              tail -30 /tmp/ad119-errors.log || true
+              exit 1
+            fi
+          done

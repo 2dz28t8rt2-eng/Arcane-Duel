@@ -19,6 +19,9 @@
  function renderStage(){
   const host=document.getElementById('summonStage');
   if(!host||!game||uiMode!=='duel')return;
+  const oldViewport=host.querySelector('.ad117-mat-viewport');
+  const previousScroll=oldViewport?.scrollTop||0;
+  const previousCount=Number(host.dataset.ad117MaterialCount||0);
   const g=game,human=g.mode==='pvp'||g.active===0,
         me=currentPlayer(g),isReady=human&&!g.summoned&&!g.pending,
         pending=human?g.pending:null,
@@ -26,10 +29,11 @@
         material=human?(g.materials||[]).map(uid=>me.hand.find(c=>c.uid===uid)).filter(Boolean):[],
         levels=material.map(c=>dataOf(c).level),
         cost=levels.length>=2?qualityRolls(levels):null,
-        current=pending?.card||chosen;
+        poker=levels.length>=2?window.ArcaneFusionMath?.pattern?.(levels,material.map(c=>dataOf(c).element)):null,
+        current=pending?.card||chosen||material[material.length-1];
   const phase=!human?'Gegnerzug':pending?'Feldplatz wählen':g.summoned?'Beschwörung verbraucht':material.length>=2?'Fusion vorbereiten':chosen?'Normale Beschwörung':'Karte wählen';
   const phaseId=!human?'opponent':pending?'placement':g.summoned?'spent':material.length>=2?'fusion':chosen?'summon':'select';
-  const label=pending?.kind==='fusion'?'Fusionskarte':pending?'Ausgewählte Beschwörung':chosen?'Ausgewählte Handkarte':'Kartenvorschau';
+  const label=pending?.kind==='fusion'?'Fusionskarte':pending?'Ausgewählte Beschwörung':chosen?'Deine Handkarte':material.length?'Zuletzt markierte Karte':'Kartenvorschau';
   const fusionReady=pending?.kind==='fusion'&&pending.revealed===true;
   const showStats=pending?.kind!=='fusion'||fusionReady;
   const actualBonus=pending?.kind==='fusion'?window.ArcaneFusionBonus?.describe?.(pending.card):null;
@@ -53,7 +57,7 @@
   if(levels.length>=2){
    const options=fusionOptions(g,levels,material).filter(c=>canCompleteHandFusion(g,levels,c.id));
    limits='<div class="ad56-material-status"><strong>'+levels.length+' / 5 Materialien</strong>'+
-    '<span>Qualität: '+cost+' Würfe</span><span>Materialbudget: bis Lv '+fusionBudget(levels,g)+'</span><span>'+options.length+' verfügbare Vorlagen</span>'+
+    '<span>Qualitätswürfe: '+cost+(poker?.rollBonus?' · Spezial +'+poker.rollBonus:'')+'</span><span>'+esc(poker?.name||'Freie Fusion')+'</span><span>Mögliche Stufe: bis Lv '+fusionBudget(levels,g)+'</span><span>'+options.length+' passende Vorlagen</span>'+
     (options.length?'<span>Höchste verfügbare Vorlage: Lv '+Math.max(...options.map(c=>c.level))+'</span>':
      '<span class="ad56-warning">Derzeit keine legale Fusionsvorlage</span>')+'</div>';
   }else if(material.length){
@@ -71,8 +75,13 @@
        chosen?'„Beschwören“ wählen oder eine andere Handkarte anklicken.':
        material.length?'Weitere Materialien markieren oder „Fusionieren“ drücken.':
        'Du darfst pro Zug eine Karte beschwören oder eine Fusion ausführen.')+'</p></section>'+
-    '<section class="ad56-block ad56-material"><h3>Fusionsmaterial</h3>'+materialHtml+limits+'</section></div>'+
+    '<section class="ad56-block ad56-material"><h3>Fusionsmaterial</h3><div class="ad117-mat-viewport">'+materialHtml+'</div>'+limits+'</section></div>'+
    '</div>';
+  // Do not send the page or material list back to the top on every pick.
+  host.dataset.ad117MaterialCount=String(material.length);
+  const viewport=host.querySelector('.ad117-mat-viewport');
+  if(viewport)viewport.scrollTop=material.length>previousCount&&material.length>=4?
+   viewport.scrollHeight:previousScroll;
  }
  render=function(){const result=previousRender();renderStage();return result;};
  document.getElementById('summonStage')?.addEventListener('click',event=>{

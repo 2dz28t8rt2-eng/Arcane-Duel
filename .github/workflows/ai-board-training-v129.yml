@@ -1,0 +1,42 @@
+name: Arcane Duel - v12.9 Strategic AI Career Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-board-strategy-v129.cjs'
+      - '.github/workflows/ai-board-training-v129.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  strategic-training:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify strategy source and legal actual duels
+        run: |
+          node --check tests/ai-board-strategy-v129.cjs
+          node --check tests/helpers/ai-board-planner-v129.cjs
+          node --test tests/ai-board-planner-v129.test.cjs
+      - name: Pilot three real matched strategies with two starts
+        env:
+          ARCANE_V129_CAREERS: '2'
+          ARCANE_V129_TIER_ATTEMPTS: '8'
+        run: node tests/ai-board-strategy-v129.cjs
+      - name: Full matched train-holdout 32 starts times 3 strategies
+        env:
+          ARCANE_V129_CAREERS: '32'
+          ARCANE_V129_TIER_ATTEMPTS: '30'
+        run: node tests/ai-board-strategy-v129.cjs
+      - name: Preserve complete late-game strategic AI evaluation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v129-strategic-board-96-careers
+          path: artifacts/ai-board-strategy-v129.json
+          retention-days: 30
+          if-no-files-found: warn

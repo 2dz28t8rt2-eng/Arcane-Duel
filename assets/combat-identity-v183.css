@@ -1,0 +1,100 @@
+/* v18.3 – Recognizable identities without changing the cards or their hitboxes. */
+#duelScreen .monster-slot.ad183-role,
+.duo-battle .field-cell.ad183-role{--ad183-accent:#d4c5a2;--ad183-aura:#dac58c40;isolation:isolate}
+#duelScreen .monster-slot.ad183-role-predator,.duo-battle .field-cell.ad183-role-predator{
+ --ad183-accent:#f17e6f;--ad183-aura:#fa594942}
+#duelScreen .monster-slot.ad183-role-guardian,.duo-battle .field-cell.ad183-role-guardian{
+ --ad183-accent:#80ddef;--ad183-aura:#69c8fb40}
+#duelScreen .monster-slot.ad183-role-soul,.duo-battle .field-cell.ad183-role-soul{
+ --ad183-accent:#d9a8ff;--ad183-aura:#bb6cfb44}
+#duelScreen .monster-slot.ad183-role-resonator,.duo-battle .field-cell.ad183-role-resonator{
+ --ad183-accent:#f0d394;--ad183-aura:#f4be6540}
+#duelScreen .monster-slot.ad183-role-combatant,.duo-battle .field-cell.ad183-role-combatant{
+ --ad183-accent:#a4e9ca;--ad183-aura:#85c9b840}
+#duelScreen .monster-slot.ad183-role:not(.empty):not(.selected):not(.targetable){
+ border-color:var(--ad183-accent)!important;
+ box-shadow:inset 0 0 0 1px #fff1,inset 0 0 17px var(--ad183-aura),0 0 10px var(--ad183-aura);
+}
+.duo-battle .field-cell.ad183-role.filled{
+ border-color:var(--ad183-accent);box-shadow:inset 0 0 11px var(--ad183-aura),0 0 8px var(--ad183-aura);
+}
+#duelScreen .monster-slot .ad183-role-crest,
+.duo-battle .field-cell .ad183-role-crest{
+ position:absolute;z-index:20;top:28px;right:3px;
+ width:22px;height:22px;display:grid;place-items:center;box-sizing:border-box;
+ border-radius:50%;border:1px solid var(--ad183-accent);
+ color:var(--ad183-accent);background:#101b2beb;
+ font:800 16px Georgia,serif;text-shadow:0 0 9px var(--ad183-accent);
+ box-shadow:0 0 9px var(--ad183-aura),inset 0 0 8px var(--ad183-aura);
+ pointer-events:none;
+}
+#duelScreen .monster-slot.ad183-defending.ad183-role-guardian .ad183-role-crest,
+#duelScreen .monster-slot.ad183-defending.ad183-role-soul .ad183-role-crest,
+.duo-battle .field-cell.ad183-defending .ad183-role-crest{
+ border-width:2px;box-shadow:0 0 15px var(--ad183-aura),inset 0 0 9px var(--ad183-aura);
+}
+#duelScreen .monster-slot.ad183-charged .ad183-role-crest,
+.duo-battle .field-cell.ad183-charged .ad183-role-crest{
+ animation:ad183Resonance 2.2s ease-in-out infinite;
+}
+#duelScreen .monster-slot .ad183-condense-badge,
+.duo-battle .field-cell .ad183-condense-badge{
+ position:absolute;z-index:21;top:52px;right:2px;max-width:80%;
+ border-radius:7px;padding:3px 5px;background:#432257ee;
+ color:#f2dcff;border:1px solid #ddaaff;
+ font:800 9px system-ui,sans-serif;line-height:1.15;
+ text-shadow:0 0 7px #d39bf8;pointer-events:none;
+}
+#duelScreen .monster-slot.ad183-condensed:not(.selected) {
+ box-shadow:inset 0 0 0 1px #d9a8ff5c,inset 0 0 17px #b26dea44,0 0 14px #c98bff55;
+}
+#duelScreen .monster-slot.ad183-role-pulse,
+.duo-battle .field-cell.ad183-role-pulse{
+ animation:ad183RoleStrike 1s ease-out 1;
+}
+.ad183-combat-notice{
+ --ad183-note:#d9b977;
+ position:fixed;z-index:280;pointer-events:none;transform:translate(-50%,-110%);
+ max-width:min(290px,83vw);min-width:140px;text-align:center;
+ padding:9px 12px;border:1px solid var(--ad183-note);
+ border-radius:999px;background:linear-gradient(135deg,#121b2bf5,#28223bf5);
+ color:#fff7e6;text-shadow:0 0 12px var(--ad183-note);
+ box-shadow:0 0 20px color-mix(in srgb,var(--ad183-note) 45%,transparent),0 8px 20px #050812bb;
+ font:800 12px system-ui,sans-serif;line-height:1.35;letter-spacing:.01em;
+ animation:ad183Notice 1.33s ease-out both;
+}
+.ad183-notice-predator{--ad183-note:#fd8475}
+.ad183-notice-guardian{--ad183-note:#8bdff2}
+.ad183-notice-soul{--ad183-note:#dfa8ff}
+.ad183-notice-resonator{--ad183-note:#f2d798}
+@keyframes ad183RoleStrike{
+ 0%{filter:brightness(1)}18%{filter:brightness(1.45);outline:4px solid var(--ad183-accent)}
+ 62%{filter:brightness(1.12);outline:2px solid transparent}
+ 100%{filter:brightness(1);outline:0 solid transparent}
+}
+@keyframes ad183Notice{
+ 0%{opacity:0;transform:translate(-50%,-72%) scale(.76)}
+  19%{opacity:1;transform:translate(-50%,-113%) scale(1.05)}
+  75%{opacity:1;transform:translate(-50%,-140%) scale(1)}
+  100%{opacity:0;transform:translate(-50%,-177%) scale(.95)}
+}
+@keyframes ad183Resonance{
+  0%,100%{box-shadow:0 0 7px var(--ad183-aura),inset 0 0 8px var(--ad183-aura)}
+  50%{box-shadow:0 0 18px var(--ad183-accent),inset 0 0 11px var(--ad183-aura)}
+}
+@media(max-width:760px){
+ #duelScreen .monster-slot .ad183-role-crest{width:17px;height:17px;font-size:12px;top:23px;right:1px}
+ #duelScreen .monster-slot .ad183-condense-badge{font-size:8px;top:43px;padding:2px 3px}
+}
+@media(max-width:830px){
+ .duo-battle .field-cell .ad183-role-crest{top:2px;right:2px;width:17px;height:17px;font-size:12px}
+ .duo-battle .field-cell .ad183-condense-badge{top:19px;font-size:8px;padding:2px 3px}
+}
+@media(prefers-reduced-motion:reduce){
+ #duelScreen .monster-slot.ad183-role-pulse,.duo-battle .field-cell.ad183-role-pulse,
+ #duelScreen .monster-slot.ad183-charged .ad183-role-crest,
+ .duo-battle .field-cell.ad183-charged .ad183-role-crest{animation:none!important}
+ .ad183-combat-notice{animation:none!important;display:none!important}
+}
+body.instant #duelScreen .monster-slot.ad183-role-pulse,
+body.instant #duelScreen .monster-slot.ad183-charged .ad183-role-crest{animation:none!important}

@@ -1,0 +1,36 @@
+/* Arcane Duel v18.7 – direct card selection in 2v2, never auto-attack. */
+.duo-battle .field-cell.ad187-interactive{cursor:pointer;touch-action:manipulation;transition:border-color .18s,box-shadow .18s,filter .18s}
+.duo-battle .field-cell.ad187-valid-attacker{border-color:#7ec9cb!important;box-shadow:0 0 0 1px #64c5c876,0 0 13px #72e2d54a}
+.duo-battle .field-cell.ad187-valid-attacker::before{content:'⚔';position:absolute;top:2px;left:3px;
+ width:17px;height:17px;border-radius:50%;display:grid;place-items:center;color:#d8ffed;
+ background:#1b515cd9;border:1px solid #91e7d4;font-size:11px;z-index:22;pointer-events:none}
+.duo-battle .field-cell.ad187-selected-attacker{border:2px solid #ffdc87!important;
+ box-shadow:0 0 0 2px #ffe3a48a,0 0 25px #ffc9706b,inset 0 0 14px #f9c76f36!important;
+ filter:brightness(1.09)}
+.duo-battle .field-cell.ad187-targetable{border:2px solid #e99a9c!important;box-shadow:0 0 13px #fd8e9659}
+.duo-battle .field-cell.ad187-targetable::after{content:'◎';position:absolute;top:2px;left:3px;
+ display:grid;place-items:center;width:19px;height:19px;border-radius:50%;color:#fff1e3;
+ background:#763748dd;border:1px solid #f4a5aa;font-size:17px;line-height:1;pointer-events:none;z-index:23}
+.duo-battle .field-cell.ad187-selected-target{border:2px solid #ffdb92!important;
+ box-shadow:0 0 0 2px #ffdb9790,0 0 24px #ff9b7678!important;filter:brightness(1.12)}
+.duo-battle .field-cell.ad187-interactive:focus-visible{outline:3px solid #fff1b9;outline-offset:3px}
+.duo-battle .field-cell.ad187-interactive:hover{filter:brightness(1.2)}
+.ad187-attack-guide{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:220;
+ width:min(680px,calc(100vw - 26px));padding:13px 16px;border:2px solid #e9c78d;border-radius:15px;
+ background:linear-gradient(130deg,#29394af5,#18253bf7 80%);color:#fff0ce;
+ box-shadow:0 0 32px #f9c87235,0 14px 35px #020612c9;backdrop-filter:blur(9px);
+ display:flex;align-items:center;justify-content:space-between;gap:13px;animation:ad187Enter .2s ease-out both}
+.ad187-attack-guide[hidden]{display:none!important}
+.ad187-guide-description{margin:0;flex:1 1 auto;color:#f5e8d2;font:600 13px/1.5 system-ui}
+.ad187-guide-actions{display:flex;flex:0 0 auto;gap:7px;align-items:center}
+.ad187-guide-confirm{border:1px solid #ffdd97;border-radius:8px;padding:10px 13px;
+ background:linear-gradient(140deg,#86572d,#604531);color:#fff4d9;font:800 12px system-ui;white-space:nowrap;min-height:43px}
+.ad187-guide-cancel{border:1px solid #8194a5;border-radius:8px;background:#263447;color:#e3e9ef;
+ font:650 12px system-ui;padding:10px 12px;min-height:43px}
+.ad187-guide-confirm:disabled{opacity:.46;cursor:not-allowed}
+@keyframes ad187Enter{from{opacity:0;transform:translate(-50%,13px)}to{opacity:1;transform:translate(-50%,0)}}
+@media(max-width:650px){.ad187-attack-guide{flex-direction:column;align-items:stretch;gap:10px;bottom:8px;padding:11px}
+ .ad187-guide-actions{width:100%}.ad187-guide-actions button{flex:1 1 auto;min-width:0}
+ .ad187-guide-description{font-size:12px}.duo-battle .field-cell.ad187-valid-attacker::before{width:15px;height:15px;font-size:9px}}
+@media(prefers-reduced-motion:reduce){.ad187-attack-guide{animation:none!important}
+ .duo-battle .field-cell.ad187-interactive{transition:none!important}}

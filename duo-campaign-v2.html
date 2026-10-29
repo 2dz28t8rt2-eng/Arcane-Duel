@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="de"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Arcane Duel · Das Bündnis der Vier</title>
+<link rel="stylesheet" href="assets/duo-campaign-demo.css?v=duo-v166">
+<link rel="stylesheet" href="assets/duo-parity-v160.css?v=duo-v174">
+<link rel="stylesheet" href="assets/duo-cinematics-v167.css?v=duo-v167">
+<link rel="stylesheet" href="assets/duo-cinema-v170.css?v=duo-v170b">
+<link rel="stylesheet" href="assets/pack-cinema-v178.css?v=duo-v178">
+<link rel="stylesheet" href="assets/pack-cinema-v181.css?v=20261026-v181">
+<link rel="stylesheet" href="assets/pack-cinema-v195.css?v=20261026-v195">
+<link rel="stylesheet" href="assets/duo-hand-cinema-v178.css?v=duo-v178">
+<link rel="stylesheet" href="assets/duo-comfort-v182.css?v=20261026-v182">
+<link rel="stylesheet" href="assets/collection-rewards-v184.css?v=20261026-v184">
+<link rel="stylesheet" href="assets/combat-identity-v183.css?v=20261026-v183">
+<link rel="stylesheet" href="assets/duo-experience-v185.css?v=20261026-v185">
+<link rel="stylesheet" href="assets/duo-combat-flow-v186.css?v=20261026-v186">
+<link rel="stylesheet" href="assets/duo-direct-cards-v187.css?v=20261026-v187">
+<link rel="stylesheet" href="assets/duo-fusion-cards-v188.css?v=20261026-v188">
+<link rel="stylesheet" href="assets/duo-summon-cards-v189.css?v=20261026-v189">
+<link rel="stylesheet" href="assets/duo-summon-cinema-v190.css?v=20261026-v190">
+<link rel="stylesheet" href="assets/duo-stance-cinema-v191.css?v=20261026-v191">
+<link rel="stylesheet" href="assets/duo-impact-cinema-v192.css?v=20261026-v192">
+<link rel="stylesheet" href="assets/duo-stomp-cinema-v202.css?v=20261027-v202">
+<link rel="stylesheet" href="assets/duo-abilities-cinema-v193.css?v=20261026-v193">
+<link rel="stylesheet" href="assets/duo-sound-v194.css?v=20261026-v194">
+<link rel="stylesheet" href="assets/duo-predator-pack-v198.css?v=20261027-v198">
+<link rel="stylesheet" href="assets/duo-ux-v204.css?v=20261029-predator205">
+<link rel="stylesheet" href="assets/predator-showdown-v199.css?v=20261027-v199">
+<link rel="stylesheet" href="assets/arcane-soundscape-v196.css?v=20261026-v196">
+<link rel="stylesheet" href="assets/arcane-track-catalog-v014.css?v=20261027-v014">
+</head><body><main class="duo-wrap">
+<header class="duo-header">
+ <div><p class="kicker">✧ ARCANE DUEL · GEMEINSAME KAMPAGNE</p>
+ <h1>Das Bündnis der Vier</h1>
+ <p>Schließ dich mit einem Freund zusammen und stellt euch zu zweit den Gegnern der Arena.</p></div>
+ <nav class="ad185-header-nav" aria-label="Schnellnavigation"><a class="ad185-jump-to-battle" href="#duoBattleArena">⚔ Zum Duell</a><a href="index.html">← Zum Hauptspiel</a></nav>
+</header>
+<aside class="notice">
+ <b>Gemeinsam kämpfen, gemeinsam wachsen.</b>
+ Ihr tretet zu zweit gegen zwei Computergegner an. Jeder beginnt mit einem eigenen
+ 2v2-Deck und sammelt neue Karten und Verbesserungen. Dein Einzelspieler-Fortschritt
+ bleibt davon getrennt. Es gibt keinen Import aus deinem Einzelspieler-Spielstand.
+ Euer Duell wird nach jedem Zug automatisch gespeichert.
+</aside>
+<section id="duoProfilePanel" class="duo-panel duo-profile-panel">
+ <h2>✧ Dein 2v2-Abenteuer</h2>
+ <p class="micro">Deine Karten und Fortschritte gehören nur zu dieser gemeinsamen Kampagne.</p>
+ <div id="duoProfileCreateArea">
+  <p>Erstelle deinen Duellanten und beginne mit einem eigenen Startdeck. Alles, was du erspielst, bleibt dir erhalten.</p>
+  <button id="duoProfileCreate" type="button">Meinen Duellanten erstellen</button>
+ </div>
+ <div id="duoProfileActive" hidden>
+  <p id="duoProfileStats" class="duo-profile-stats"></p>
+  <p id="duoProfileCleared" class="micro"></p>
+  <p id="duoProfileUnlockInfo" class="micro"></p>
+   <section class="duo-balance-panel" aria-label="Fortschritt und Kapitelbelohnungen">
+    <h3>Deine nächsten Ziele</h3>
+    <p id="duoFirstClearCards" class="duo-chapter-credits"></p>
+    <button id="duoChapterCardClaim" type="button" disabled>Kapitelkarte abholen</button>
+    <p id="duoChapterClearPreview" class="micro"></p>
+    <label>Für welches Kartenpaket sparst du?
+     <select id="duoBalancePack"></select>
+    </label>
+    <p id="duoBalanceGoal" class="micro"></p>
+    <p class="micro">Beim ersten Sieg in einem Kapitel erwarten dich besondere Belohnungen.
+     Du darfst frühere Kapitel wiederholen, um für neue Karten zu sparen. Bis zu drei Wiederholungssiege
+     pro Kapitel und Tag bringen zusätzliche Ressourcen.</p>
+   </section>
+  <div class="actions">
+   <button id="duoProfileBackup" type="button">Profil-Zugangslink sichern</button>
+   <button id="duoProfileReload" type="button">Spielstand aktualisieren</button>
+   <button id="duoProfileContinue" type="button" hidden>Letztes Duell fortsetzen</button>
+  </div>
+  <label id="duoProfileBackupBox" hidden>Bewahre diesen Link sicher auf. Wer ihn besitzt, kann auf dein Profil zugreifen.
+   <input id="duoProfileBackupLink" readonly autocomplete="off" spellcheck="false">
+  </label>
+  <div class="duo-profile-shop">
+   <div>
+    <h3>Verbesserungen</h3>
+    <select id="duoProfilePerk"></select>
+    <button id="duoProfileUpgrade" type="button">Verbesserung kaufen</button>
+   </div>
+   <div>
+    <h3>Kartenpakete</h3>
+    <select id="duoProfilePack">
+     <option value="normal">Normale Karte · 90 Essenz + 1 Splitter</option>
+     <option value="fusion">Fusion · 160 Essenz + 2 Splitter</option>
+     <option value="essence">Essenzwesen · 350 Essenz + 4 Splitter (ab Kapitel II)</option>
+     <option value="material3">3 normale Karten · 230 Essenz + 2 Splitter</option>
+     <option value="fusion3">3er Fusionsmix · 390 Essenz + 4 Splitter</option>
+     <option value="fusion5">5er Fusionsmix · 600 Essenz + 6 Splitter</option>
+     <option value="fusion10">10er Fusionsmix · 1.100 Essenz + 10 Splitter</option>
+    </select>
+    <button id="duoProfileBuyPack" type="button">Paket öffnen</button>
+   </div>
+   <div class="duo-research">
+    <h3>Besondere Fähigkeiten</h3>
+    <p class="micro" id="duoResearchLv1Status">Deine Fähigkeiten werden geladen …</p>
+    <button type="button" id="duoResearchLv1Buy">Verbotene Forschung freischalten</button>
+    <p class="micro" id="duoResearchEssenceStatus">Deine Fähigkeiten werden geladen …</p>
+    <button type="button" id="duoResearchEssenceBuy">Essenzforschung freischalten</button>
+    <label>Eigene Essenzbindung
+      <select id="duoEssenceBindCard"></select>
+    </label>
+    <button type="button" id="duoEssenceBindSave">Essenzwesen binden</button>
+    <p class="micro">Neue Fähigkeiten schaltest du im Lauf deiner gemeinsamen Kampagne frei.
+     Was du dafür brauchst, steht direkt bei der Fähigkeit.</p>
+   </div>
+   <div>
+    <h3>Deck bearbeiten</h3>
+    <label>Deck <select id="duoProfileDeckZone"><option value="main">Hauptdeck</option>
+     <option value="fusion">Fusionsdeck</option></select></label>
+    <label>Platz <select id="duoProfileDeckSlot"></select></label>
+    <label>Karte <select id="duoProfileDeckCard"></select></label>
+    <button id="duoProfileDeckSave" type="button">Deckplatz ersetzen</button>
+    <p class="micro">Du kannst nur Karten einsetzen, die du besitzt. Änderungen gelten ab dem nächsten Duell.</p>
+   </div>
+  </div>
+  <section class="duo-collection" aria-label="Eigene 2v2-Sammlung und Kartenschmiede">
+   <h3>Sammlung und Kartenschmiede</h3>
+   <p id="duoCollectionTotals" class="micro">Sammlung wird geladen …</p>
+   <div id="ad184-duo-collection-showcase" aria-live="polite"></div>
+   <div class="duo-collection-controls">
+    <label>Kartentyp
+     <select id="duoCollectionFilter">
+      <option value="all">Alle Karten</option>
+      <option value="main">Normale Monster</option>
+      <option value="fusion">Fusionen</option>
+     </select>
+    </label>
+    <label>Suche
+     <input id="duoCollectionSearch" type="search" placeholder="Monstername oder Level" autocomplete="off">
+    </label>
+    <label class="duo-check"><input id="duoCollectionOnlySpare" type="checkbox"> Nur freie Exemplare</label>
+   </div>
+   <div class="duo-collection-scroll">
+    <table class="duo-collection-table"><thead>
+     <tr><th>Karte</th><th>Art / Lv</th><th>Besitz</th><th>Im Deck</th><th>Frei</th><th>Verstärkung</th></tr>
+    </thead><tbody id="duoCollectionRows"></tbody></table>
+   </div>
+   <p class="micro">Karten aus deinem Deck und wichtige Questkarten bleiben geschützt. Änderungen gelten ab dem nächsten Duell.</p>
+   <div class="duo-collection-actions">
+    <section>
+     <h4>Karte verbessern</h4>
+     <label>Aktive Deckkarte <select id="duoCardEnhanceSelect"></select></label>
+     <p id="duoCardEnhanceOffer" class="micro"></p>
+     <button id="duoCardEnhanceBuy" type="button">Verstärkung kaufen</button>
+    </section>
+    <section>
+     <h4>Überzählige Karte zerlegen</h4>
+     <label>Freies Exemplar <select id="duoCardRecycleSelect"></select></label>
+     <p id="duoCardRecycleOffer" class="micro"></p>
+     <label class="duo-check"><input id="duoCardRecycleConfirm" type="checkbox"> Ein freies Exemplar dauerhaft zerlegen</label>
+     <button id="duoCardRecycleApply" type="button" disabled>Zerlegen und Ressourcen erhalten</button>
+    </section>
+   </div>
+  </section>
+  <p id="duoProfileMessage" role="status" aria-live="polite"></p>
+ </div>
+</section>
+<div class="duo-layout">
+<section class="duo-panel">
+ <h2>✦ Gemeinsam starten</h2>
+  <p class="micro duo-team-definition"><strong>Du und dein Partner gegen zwei Gegner.</strong> Sobald dein Freund beitritt, kann euer Abenteuer beginnen.</p>
+ <ol class="duo-steps">
+  <li id="duoStepCreate">Raum erstellen</li>
+  <li id="duoStepInvite">Partner einladen</li>
+  <li id="duoStepBattle">Kämpfen</li>
+ </ol>
+ <label>Spielstart
+  <select id="duoEntry"><option value="new">Kampagne mit Kapitel I beginnen</option>
+   <option value="chapter">Kapitel direkt auswählen</option>
+   <option value="quest">✧ Level-1-Fanatiker · fünfteilige Questreihe</option></select>
+ </label>
+ <label id="duoChapterSelect" hidden>Kapitel
+  <select id="duoChapter"></select></label>
+ <p id="duoQuestInfo" class="micro" hidden>✧ Eine eigene fünfteilige Fanatiker-Saga mit Floating, Schwarm, Spezialfusionen und Lumiras Fall. Freischaltung nach Kapitel II; ihr braucht beide einen passenden 2v2-Spielstand.</p>
+ <label>Spielername <input id="duoHostName" maxlength="32" value="Duellant A"></label>
+ <div id="duoDeckInfo" class="duo-deck-info">Dein Deck wird vorbereitet …</div>
+ <div class="actions">
+  <button id="duoCreate" disabled>Raum erstellen</button>
+  <button id="duoAccept" hidden disabled>Einladung annehmen</button>
+ </div>
+ <div id="duoInviteBox" hidden>
+  <label>Einmaliger Einladungslink <input id="duoInvite" readonly></label>
+  <button id="duoCopy">Link kopieren</button>
+ </div>
+ <p class="room-code">Euer Duell: <code id="duoRoomId">—</code></p>
+ <div class="duo-save-state" id="duoSaveState" role="status" aria-live="polite">
+  Dein Duell wird nach jedem Zug gespeichert.</div>
+ <div class="actions"><button id="duoRefresh" disabled>↻ Spielstand aktualisieren</button></div>
+ <section id="duoRecoveryArea" class="duo-recovery" hidden>
+  <h3>Privaten Raumzugang sichern</h3>
+  <p>Du kannst später weiterspielen – sogar auf einem anderen Gerät. Sichere dafür deinen persönlichen Zugangslink.
+   Der Link gilt nur für deinen Platz in diesem Duell, nicht für dein gesamtes Profil.</p>
+  <button id="duoRecoveryCopy" type="button">🔐 Privaten Wiederherstellungslink kopieren</button>
+  <label id="duoRecoveryHelp" hidden>Nur für dich – niemals an Mitspieler weitergeben!
+   Wer diesen Link besitzt, kann deinen Sitzplatz übernehmen.
+   <input id="duoRecoveryLink" type="text" readonly hidden autocomplete="off" spellcheck="false">
+  </label>
+ </section>
+ <details class="duo-guide"><summary>Wie funktioniert ein gemeinsames Duell?</summary>
+  <h3>So spielt ihr zusammen</h3>
+  <ul>
+   <li>Die Reihenfolge ist immer gleich: Du → erster Gegner → dein Partner → zweiter Gegner.
+    Eure gemeinsamen LP betragen immer <b>das Doppelte der jeweiligen Singleplayer-Turnierstufe</b>
+    (8.000 / 12.000 / 14.000 / 20.000). Handkarten, Monster und Fusionen besitzt jeder selbst.</li>
+   <li>Jeder spielt mit 40 Hauptkarten und bis zu sieben Monstern auf dem Feld.
+    Zu Beginn und beim Nachziehen kommen die Karten nacheinander sichtbar in deine Hand.
+    Du darfst normalerweise einmal pro Zug beschwören und deine bereiten Monster angreifen lassen.</li>
+   <li>Ist dein Nachziehstapel zu Beginn deines Zuges leer, verliert euer Team.
+    Ab Runde 10 verliert jedes Team zusätzlich Lebenspunkte durch die Arena.</li>
+  </ul>
+  <h3>Welche Monster passen zusammen?</h3>
+  <ul>
+   <li><b>Predatoren</b> greifen entschlossen an. Jeder eigene Predator auf dem Feld verstärkt
+    ihren Angriff um 2 %, höchstens 10 %. Mit Rudelführer sind es 3 % je Predator,
+    mit der Rudelinstinkt-Fähigkeit sogar 3,5 % (jeweils maximal fünf Predatoren).
+    Normale Predatoren starten bei 90 % Angriffskraft und entwickeln sich nach jedem
+    weiteren eigenen abgeschlossenen Zug um 3 Prozentpunkte bis höchstens 102 %.
+    Entwicklung und Schwarmbonus werden addiert; die Feldkarte zeigt den Gesamtprozentsatz.
+    DEF und gespeicherte Grund-ATK bleiben unverändert.
+    Gegen verteidigende Wächter und Seelenzehrer überwinden Predatoren einen Teil des Schutzes.</li>
+   <li><b>Wächter</b> schützen eure Stellung und heilen verbündete Verteidiger.
+    <b>Seelenzehrer</b> sammeln Kraft aus den Gegnern. Beide halten in Verteidigung
+    35 % des Treffers ab und schlagen mit der Hälfte ihrer Angriffskraft zurück.</li>
+   <li><b>Verdichten</b> stärkt beim Seelenzehrer sowohl DEF als auch ATK.
+    Die Fähigkeit verbraucht seinen Zug nicht: Er darf danach die Position wechseln und
+    angreifen, sofern seine übrigen Aktionen bereit sind. Die Abklingzeit bleibt bestehen.</li>
+  </ul>
+  <h3>Fusionen und besondere Fähigkeiten</h3>
+  <ul>
+   <li>Für eine Fusion wählst du zwei bis fünf <b>eigene</b> Karten aus Hand oder Feld.
+    Die Stufen, ihre Rollen und Kombinationen wie Straßen oder Full House beeinflussen das Ergebnis.
+    Die Vorschau zeigt dir, welche Fusionen möglich sind.</li>
+   <li><b>ACE-Monster können niemals als Fusionsmaterial dienen.</b> Das gilt für Karten auf
+    der Hand und auf dem Feld. Rudel-Tokens und Schicksalsmonster sind ebenfalls nicht fusionierbar.</li>
+   <li><b>Rudelführer</b> können bei einer Predator-Fusion entstehen. Die große Kartenansicht
+    zeigt ihre Krone, ausgewürfelte Fähigkeiten und den aktuellen Angriffsbonus.
+    Klicke dafür auf die Lupe der Feldkarte.</li>
+   <li>Später kannst du besondere Level-1-Karten, Geisterzonen und Essenzwesen freischalten.
+    Geister schützen vor direkten Angriffen und können dir beim Fusionieren helfen.
+    Die Fähigkeiten erspielst du in deinem eigenen 2v2-Fortschritt.</li>
+   <li>In großer Bedrängnis kann ab Runde 3 ein <b>Schicksalszug</b> mit fünf vorübergehenden
+    Monstern helfen. Er ist selten und kann pro Duellant nur einmal je Kapitel gelingen.</li>
+  </ul>
+  <h3>Tasten und Kampfanzeigen</h3>
+  <ul>
+   <li><b>D</b>: ein bereites eigenes Monster von Angriff auf Verteidigung drehen.
+    <b>A</b>: mit dem gewählten Monster direkt angreifen, aber nur wenn das gegnerische Feld frei ist.</li>
+   <li><b>H</b>: die eigenen Handkarten minimieren oder wieder zeigen, damit das Feld frei bleibt.
+    Mit der Lupe kannst du einzelne Karten einschließlich ihrer aktuellen Werte groß ansehen.</li>
+   <li>Schwarmverstärkungen und Angriffszerfall werden kurz über der betroffenen Karte eingeblendet.
+    Nach einem Kampfende bleibt das Spielfeld erst stehen; danach erscheinen Sieg oder Niederlage
+    und die Abschlussanzeige.</li>
+   <li>Bei einer aktiven Seelenzehrer-Fähigkeit blendet die Hand vorübergehend aus.
+    Du kannst solche Fähigkeiten unabhängig von einer Beschwörung einsetzen, wenn der
+    Seelenzehrer in DEF steht und genügend Seelenkraft sowie eine bereite Fähigkeit besitzt.</li>
+  </ul>
+  <h3>Karten sammeln und weiterspielen</h3>
+  <ul>
+   <li>Wiederhole ruhig frühere Kapitel, um Essenz, Splitter und neue Karten zu sammeln.
+    Deine Sammlung gehört allein dir und bleibt von deinem Einzelspieler-Deck getrennt.</li>
+   <li>Dein Spielstand wird nach jedem bestätigten Zug gespeichert. Mit deinem persönlichen
+    Profil-Link kannst du später weiterspielen. Teile diesen Link mit niemandem.</li>
+  </ul>
+ </details>
+ <p id="duoChapterInfo" class="micro"></p>
+ <p id="duoStatus" role="status" aria-live="polite"></p>
+</section>
+<section class="duo-panel duo-battle" id="duoBattleArena">
+ <div id="ad194-sound-controls" class="ad194-sound-controls" data-enabled="false" role="group" aria-label="Duellklänge">
+  <button type="button" id="ad194-sound-toggle" aria-pressed="false">🔇 Ton aus</button>
+  <label for="ad194-sound-volume" class="ad194-sound-level">Lautstärke
+   <input id="ad194-sound-volume" type="range" min="0" max="100" step="5" value="35" aria-label="Lautstärke der Duellklänge">
+   <output id="ad194-sound-value" for="ad194-sound-volume">35 %</output>
+  </label>
+  <small id="ad194-sound-hint" class="ad194-sound-hint" role="status" aria-live="polite"></small>
+ </div>
+ <div class="stats">
+  <div><small>EUER TEAM</small><strong id="duoAlliedLP">8.000 LP</strong><div id="ad185-allied-bar" class="ad185-lp-gauge" role="progressbar" aria-label="Lebenspunkte der Verbündeten" aria-valuemin="0" aria-valuemax="8000" aria-valuenow="8000"><span id="ad185-allied-fill"></span></div><span id="ad185-allied-ratio" class="ad185-lp-ratio">100 %</span></div>
+  <div><small>DIE GEGNER</small><strong id="duoEnemyLP">8.000 LP</strong><div id="ad185-enemy-bar" class="ad185-lp-gauge ad185-lp-foe" role="progressbar" aria-label="Lebenspunkte der Gegner" aria-valuemin="0" aria-valuemax="8000" aria-valuenow="8000"><span id="ad185-enemy-fill"></span></div><span id="ad185-enemy-ratio" class="ad185-lp-ratio">100 %</span></div>
+ </div>
+ <section id="ad185-turn-banner" class="ad185-turn-banner" aria-label="Aktuelle Zuganzeige" hidden>
+  <span class="ad185-turn-crest" aria-hidden="true">✧</span>
+  <div class="ad185-turn-content"><span id="ad185-turn-eyebrow" class="ad185-turn-eyebrow"></span>
+   <h3 id="ad185-turn-title"></h3><p id="ad185-turn-hint"></p></div>
+ </section>
+ <p id="ad185-team-event" class="ad185-team-event" role="status" aria-live="polite" hidden></p>
+ <div class="turn-track" id="duoTrack"></div>
+ <h2 id="duoTurnName">Noch kein Raum</h2>
+ <p id="duoCurrentReward" class="duo-chapter-rewards"></p>
+  <details class="duo-progress ad182-duo-fold" aria-label="Kampagnenfortschritt">
+   <summary>✧ Kampagnenfortschritt <small>Kapitel ansehen</small></summary>
+   <ol id="duoChapterProgress" class="duo-chapter-progress"></ol>
+   <p class="micro">Kapitel-Siege werden im separaten 2v2-Profil gespeichert und belohnt. Leihkarten bleiben auf das laufende Duell begrenzt.</p>
+  </details>
+ <div class="four-seats" id="duoSeats"></div>
+ <div id="ad187-attack-guide" class="ad187-attack-guide" aria-label="Angriffsauswahl" hidden></div>
+ <div id="ad188-fusion-guide" class="ad188-fusion-guide" aria-label="Fusionsauswahl" hidden></div>
+ <div id="ad189-summon-guide" class="ad189-summon-guide" aria-label="Beschwörungsauswahl" hidden></div>
+ <div class="action-dock" id="duoActions"></div>
+ <details class="duo-log ad182-duo-fold"><summary>▤ Kampfprotokoll <small>Duellverlauf ansehen</small></summary><ol id="duoLog"></ol></details>
+</section>
+</div></main>
+<div id="ad185-turn-cue" class="ad185-turn-cue" aria-hidden="true" hidden></div>
+<script src="assets/fate-illustrations.js?v=duo-v166"></script>
+<script src="assets/duo-shared-rules-v160.js?v=20261029-predator205"></script>
+<script src="assets/duo-battle-ui-v158.js?v=duo-v166"></script>
+<script src="assets/duo-cinematics-v167.js?v=duo-v167"></script>
+<script src="assets/duo-cinema-v170.js?v=20261027-predator198"></script>
+<script src="assets/duo-recovery-v168.js?v=duo-v168"></script>
+<script src="assets/duo-economy-v172.js?v=duo-v200-saga"></script>
+<script src="assets/pack-cinema-v178.js?v=duo-v178"></script>
+<script src="assets/pack-cinema-v181.js?v=20261026-v181"></script>
+<script src="assets/duo-hand-cinema-v178.js?v=duo-v178"></script>
+<script src="assets/combat-identity-v183.js?v=20261026-v183"></script>
+<script src="assets/collection-rewards-v184.js?v=20261026-v184"></script>
+<script src="assets/duo-experience-v185.js?v=20261026-v185"></script>
+<script src="assets/duo-combat-flow-v186.js?v=20261026-v186"></script>
+<script src="assets/duo-direct-cards-v187.js?v=20261026-v187"></script>
+<script src="assets/duo-fusion-cards-v188.js?v=20261026-v188"></script>
+<script src="assets/duo-summon-cards-v189.js?v=20261026-v189"></script>
+<script src="assets/duo-summon-cinema-v190.js?v=20261026-v190"></script>
+<script src="assets/duo-stance-cinema-v191.js?v=20261026-v191"></script>
+<script src="assets/duo-impact-cinema-v192.js?v=20261026-v192"></script>
+<script src="assets/duo-stomp-cinema-v202.js?v=20261027-v202"></script>
+<script src="assets/duo-abilities-cinema-v193.js?v=fix-v200"></script>
+<script src="assets/duo-sound-v194.js?v=20261027-predator198&amp;pack=v195"></script>
+<script src="assets/duo-predator-pack-v198.js?v=20261027-v198"></script>
+<script src="assets/predator-showdown-v199.js?v=20261027-v199"></script>
+<script src="assets/pack-cinema-v195.js?v=20261026-v195"></script>
+<script src="assets/duo-parity-v160.js?v=duo-v200-saga"></script>
+<script src="assets/arcane-track-catalog-v014.js?v=20261027-v014"></script>
+<script src="assets/arcane-soundscape-v196.js?v=20261027-v014"></script>
+<script src="assets/duo-ux-v204.js?v=20261029-predator205"></script>
+</body></html>

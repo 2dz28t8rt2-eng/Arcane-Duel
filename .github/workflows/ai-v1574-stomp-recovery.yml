@@ -1,0 +1,74 @@
+name: Arcane Duel - v15.74 Saved Stomp Research Recovery
+on:
+  push:
+    branches: [development]
+    paths: ['.github/workflows/ai-v1574-stomp-recovery.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  recover:
+    name: Analyze preserved 23040 games without resimulating
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore all 11 immutable phase archives from run 40631509643
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 40631509643
+          github-token: ${{ github.token }}
+          pattern: arcane-v1574-stage-*
+          path: artifacts/v1574
+          merge-multiple: true
+      - name: Verify every phase and untouched benchmark source
+        run: |
+          set -euo pipefail
+          for stage in {0..10}; do
+            test -s "artifacts/v1574/stage-${stage}.json"
+            test -s "artifacts/v1574/stage-${stage}-train-actions.json"
+            test -s "artifacts/v1574/stage-${stage}-decision-diffs.json"
+          done
+          node --check tests/ai-v1574-stomp-recovery-aggregate.cjs
+          node --check tests/ai-v1574-stomp-aggregate.cjs
+          node --check tests/ai-v1573-multifusion-aggregate.cjs
+      - name: Re-evaluate all frozen champion gates with scoped Challenger exception
+        run: node --max-old-space-size=3200 tests/ai-v1574-stomp-recovery-aggregate.cjs
+      - name: Validate saved report and explicit scope audit
+        run: |
+          set -euo pipefail
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const root='artifacts/v1574/';
+          const report=JSON.parse(fs.readFileSync(root+'report.json'));
+          const audit=JSON.parse(fs.readFileSync(root+'recovery-audit.json'));
+          a.equal(report.status,'completed');
+          a.equal(report.totalDuels,23040);
+          a.equal(report.stages.length,11);
+          a.equal(report.arms.length,6);
+          a.equal(audit.sourceRun,40631509643);
+          a.equal(audit.allElevenStagesReused,true);
+          a.equal(audit.simulationRerun,false);
+          a.equal(audit.frozenPromotionAndHoldoutGatesRetained,true);
+          a.equal(report.controls.holdoutNeverUsedForSelection,true);
+          a.equal(report.globalSelection.holdoutSeenBySelector,false);
+          if(report.globalSelection.promoted){
+            const winner=report.globalSelection.candidates.find(x=>x.arm===report.globalSelection.arm);
+            a.ok(winner?.qualifies&&winner.guardianGate&&winner.seatNonRegressionVsFrozen);
+          }else a.equal(report.globalSelection.arm,'l10-guarded-worst-reply');
+          console.log('ARCANE_V1574_RECOVERED_AND_VERIFIED '+JSON.stringify({duels:report.totalDuels,selected:audit.selected,promoted:audit.promoted}));
+          JS
+      - name: Preserve finished report or any partial diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1574-recovered-23040-duel-report
+          path: |
+            artifacts/v1574/report.json
+            artifacts/v1574/recovery-audit.json
+          retention-days: 90
+          if-no-files-found: warn

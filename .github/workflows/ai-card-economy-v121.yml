@@ -1,0 +1,41 @@
+name: Arcane Duel - v12.1 Card Acquisition and Strategy Isolation
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-card-economy-training-v121.cjs'
+      - '.github/workflows/ai-card-economy-v121.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  four-arm-careers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify engine, real card inventory and training script
+        run: |
+          node --check tests/ai-card-economy-training-v121.cjs
+          node --test tests/ascension-balance-v116.test.cjs tests/opponent-roster-v118.test.cjs tests/handbook-lexicon-v119.test.cjs
+      - name: Pilot two matched origins across four strategies
+        env:
+          ARCANE_V121_CAREERS: '2'
+          ARCANE_V121_TIER_ATTEMPTS: '8'
+        run: node tests/ai-card-economy-training-v121.cjs
+      - name: Main training 32 matched origins and four arms
+        env:
+          ARCANE_V121_CAREERS: '32'
+          ARCANE_V121_TIER_ATTEMPTS: '30'
+        run: node tests/ai-card-economy-training-v121.cjs
+      - name: Upload complete card-drop and career diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v121-card-acquisition-four-arm
+          path: artifacts/ai-card-economy-training-v121.json
+          retention-days: 30
+          if-no-files-found: warn

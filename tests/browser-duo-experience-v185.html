@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcane Duel · 2v2-Teamgefühl v18.5</title>
+<link rel="stylesheet" href="../assets/duo-campaign-demo.css">
+<link rel="stylesheet" href="../assets/duo-experience-v185.css">
+<style>
+ .duo-wrap{max-width:1150px}.demo-controls{display:flex;gap:9px;flex-wrap:wrap;margin:17px 0}
+ .demo-controls button{flex:1 1 160px;min-height:44px}.demo-notice{font-size:13px;color:#bac9dd}
+ .demo .seat .field{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .demo .field-cell{height:100px;flex-direction:column;padding:8px;gap:5px;font-size:12px}
+ .demo .field-cell small{font-size:10px}
+</style>
+</head><body><main class="duo-wrap">
+ <header class="duo-header"><div><p class="kicker">✧ ARCANE DUEL · KLICKBARE VORSCHAU</p>
+  <h1>Duo Experience v18.5</h1><p>Erlebe die neuen Teamfarben, die Zuganzeige und bestätigte Teameffekte.</p></div>
+  <a href="../duo-campaign-v2.html">← Zur 2v2-Kampagne</a></header>
+ <section class="duo-panel duo-battle demo">
+  <div class="stats"><div><small>EUER TEAM</small><strong id="duoAlliedLP">16.000 LP</strong>
+   <div id="ad185-allied-bar" class="ad185-lp-gauge" role="progressbar" aria-label="Verbündete LP" aria-valuemin="0" aria-valuemax="16000" aria-valuenow="16000"><span id="ad185-allied-fill"></span></div><span id="ad185-allied-ratio" class="ad185-lp-ratio">100 %</span></div>
+  <div><small>DIE GEGNER</small><strong id="duoEnemyLP">16.000 LP</strong>
+   <div id="ad185-enemy-bar" class="ad185-lp-gauge ad185-lp-foe" role="progressbar" aria-label="Gegner LP" aria-valuemin="0" aria-valuemax="16000" aria-valuenow="16000"><span id="ad185-enemy-fill"></span></div><span id="ad185-enemy-ratio" class="ad185-lp-ratio">100 %</span></div></div>
+  <section id="ad185-turn-banner" class="ad185-turn-banner" aria-label="Aktuelle Zuganzeige" hidden>
+   <span class="ad185-turn-crest" aria-hidden="true">✧</span>
+   <div class="ad185-turn-content"><span id="ad185-turn-eyebrow" class="ad185-turn-eyebrow"></span><h3 id="ad185-turn-title"></h3><p id="ad185-turn-hint"></p></div>
+  </section>
+  <p id="ad185-team-event" class="ad185-team-event" role="status" aria-live="polite" hidden></p>
+  <div id="duoTrack" class="turn-track"></div><h2 id="duoTurnName">Noch kein Zug</h2>
+  <div id="duoSeats" class="four-seats"></div>
+  <div class="demo-controls">
+   <button id="mine">✦ Mein Zug</button><button id="partner">⚔ Partner greift an</button>
+   <button id="shield">✧ Team-Schutz</button><button id="enemy">◆ Gegnerangriff</button>
+   <button id="win">✦ Gemeinsamer Sieg</button><button id="perspective">↔ Als Partner ansehen</button>
+  </div>
+  <p class="demo-notice">Diese Vorschau verwendet erfundene Spielstände. Sie verbindet sich mit keinem Online-Duell und verändert keinen Fortschritt.
+   Bei reduzierter Bewegung bleiben die Teamfarben und Hinweise sichtbar.</p>
+ </section>
+</main><div id="ad185-turn-cue" class="ad185-turn-cue" aria-hidden="true" hidden></div>
+<script src="../assets/duo-experience-v185.js"></script>
+<script>
+(()=>{
+ const roster=[['Hannes',0],['Schattenjäger',1],['Freund',0],['Dunkelritter',1]];
+ let viewer=0;
+ const game={roomId:'v185-demo',revision:1,round:1,chapter:1,status:'active',activeSeat:0,
+  teams:[{lp:16000,maxLp:16000,shield:0},{lp:16000,maxLp:16000,shield:0}],
+  players:roster.map(([name,team],seat)=>({seat,name,team,kind:team?'ai':'human'})),log:[]};
+ const id=name=>document.getElementById(name);
+ function render(){
+  id('duoTrack').replaceChildren();id('duoSeats').replaceChildren();
+  roster.forEach(([name,team],seat)=>{
+   const turn=document.createElement('span');turn.className='turn-seat'+(team?' enemy':'')+(game.activeSeat===seat?' current':'');
+   turn.textContent=name;id('duoTrack').append(turn);
+   const panel=document.createElement('article');panel.className='seat'+(game.activeSeat===seat?' active':'');panel.dataset.seat=seat;
+   const heading=document.createElement('h3');heading.textContent=name;panel.append(heading);
+   const field=document.createElement('div');field.className='field';
+   for(let n=0;n<3;n++){const cell=document.createElement('div');cell.className='field-cell'+(n===0?' filled':'');
+    cell.textContent=n===0?(team?'Schattenwächter':'Mondritter'):'◇';field.append(cell);}
+   panel.append(field);id('duoSeats').append(panel);
+  });
+  id('duoAlliedLP').textContent=game.teams[0].lp.toLocaleString('de-AT')+' LP';
+  id('duoEnemyLP').textContent=game.teams[1].lp.toLocaleString('de-AT')+' LP';
+  id('duoTurnName').textContent=game.status==='finished'?'Duell beendet':'Runde '+game.round;
+  window.ArcaneDuoExperience185.didRender({game,seat:viewer,roomId:game.roomId});
+ }
+ const action=(button,fn)=>id(button).addEventListener('click',()=>{fn();game.revision++;render();});
+ action('mine',()=>{game.status='active';game.activeSeat=viewer;});
+ action('partner',()=>{const other=viewer===0?2:0;game.status='active';game.activeSeat=other;
+  game.teams[1].lp=Math.max(0,game.teams[1].lp-2800);
+  game.log.push(game.players[other].name+' greift Dunkelritter in DEF an.');});
+ action('shield',()=>{game.status='active';game.activeSeat=viewer;game.teams[0].shield+=430;});
+ action('enemy',()=>{game.status='active';game.activeSeat=1;game.teams[0].lp=Math.max(0,game.teams[0].lp-2500);});
+ action('win',()=>{game.status='finished';game.winner=0;});
+ id('perspective').onclick=()=>{viewer=viewer===0?2:0;id('perspective').textContent=viewer===0?'↔ Als Partner ansehen':'↔ Als Gastgeber ansehen';render();};
+ render();
+})();
+</script>
+</body></html>

@@ -1,0 +1,85 @@
+name: Arcane Duel - v14.9.1 Post-Summon and Opening Grace Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-v1491-postsummon-opening-grace-training.cjs'
+      - '.github/workflows/ai-v1491-postsummon-grace-training.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: arcane-v1491-matched-grace-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  matched-mechanics-training:
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate current gameplay and isolated AI trainer
+        run: |
+          node --check tests/ai-v1491-postsummon-opening-grace-training.cjs
+          node --check assets/game.js
+          node --check assets/qa-followup-v51.js
+          node tests/ai-v1486-three-arm-mechanics-gate.cjs
+          node --test tests/opening-grace-postsummon-v149.test.cjs tests/defender-soul-update.test.cjs tests/ai-board-planner-v129.test.cjs
+      - name: Restore immutable 1,200-episode history
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v136-extensive-1200-episode-selfplay
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39637833422
+          github-token: ${{ github.token }}
+          path: artifacts/history
+      - name: Restore frozen v14.7 comparison profile
+        uses: actions/download-artifact@v4
+        with:
+          name: arcane-v147-final-score-transparency-and-mirror-training
+          repository: 2dz28t8rt2-eng/Arcane-Duel
+          run-id: 39666712311
+          github-token: ${{ github.token }}
+          path: artifacts/history-v147
+      - name: Verify immutable history inputs
+        run: |
+          test "$(find artifacts/history -name ai-v136-training-report.json | wc -l)" -eq 3
+          test -f artifacts/history-v147/report.json
+          node -e 'if(require("./artifacts/history-v147/report.json").schema!=="arcane-v147-final-score-transparent-mirrors")process.exit(1)'
+      - name: Train counterplay weights then independently assess 2 grace arms and live role synergy
+        env:
+          ARCANE_V1486_TRAIN: '21'
+          ARCANE_V1486_HOLDOUT: '21'
+          ARCANE_V1486_LEAGUE: '3'
+        run: node --max-old-space-size=6144 tests/ai-v1491-postsummon-opening-grace-training.cjs
+      - name: Fail closed on missing outcomes, false active synergy, role/seat skew or illegal actions
+        run: |
+          node - <<'JS'
+          const assert=require('node:assert/strict'),fs=require('node:fs');
+          const r=JSON.parse(fs.readFileSync('artifacts/v1491/report.json','utf8'));
+          assert.equal(r.schema,'arcane-v1491-symmetric-opening-grace-postsummon-research');
+          assert.equal(r.productionIntegrated,false);
+          assert.equal(r.championPromoted,false);
+          assert.equal(r.holdout.byGrace.true.games,84);
+          assert.equal(r.holdout.byGrace.false.games,84);
+          assert.equal(r.holdout.byGrace.true.invalid,0);
+          assert.equal(r.holdout.byGrace.false.invalid,0);
+          assert.ok(r.guardianSoulActiveRuleProbe.mixed.delta>r.guardianSoulActiveRuleProbe.solo.delta);
+          assert.ok(r.holdout.byGrace.true.afterSummon>0);
+          console.log('ARCANE_V1491_VERIFIED '+JSON.stringify({
+            graceOff:r.holdout.byGrace.false,
+            graceOn:r.holdout.byGrace.true,
+            guardianSoul:r.guardianSoulActiveRuleProbe,
+            selectedRisk:r.selectedRisk}));
+          JS
+      - name: Archive training selection, decision explanations and both arms
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1491-postsummon-grace-matched-training
+          path: artifacts/v1491/
+          retention-days: 90
+          if-no-files-found: warn

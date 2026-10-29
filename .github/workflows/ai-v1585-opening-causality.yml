@@ -1,0 +1,175 @@
+name: Arcane Duel - v15.85 First Attack and Monster Removal Study
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v1585-opening-causality.yml'
+      - 'tests/ai-v1585-opening-causality.cjs'
+      - 'tests/ai-v1585-opening-causality-aggregate.cjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preflight:
+    name: Verify unchanged combat mechanics, source anchors and sealed TRAIN priors
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check scripts and five combat regressions
+        run: |
+          set -euo pipefail
+          node --check tests/ai-v1585-opening-causality.cjs
+          node --check tests/ai-v1585-opening-causality-aggregate.cjs
+          node --check tests/ai-v1584-initiative-windows.cjs
+          node --test tests/ai-v1575-counterplay.test.cjs tests/ai-v1574-stomp.test.cjs tests/fusion-stomp-v200.test.cjs tests/essence-combat.test.cjs tests/predator-pack-v198.test.cjs
+          node tests/helpers/game-runtime.cjs
+      - name: Verify completed v15.84 and certified TRAIN-only historical priors
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40711679090" --jq '.conclusion')" = success
+          mkdir -p /tmp/arcane-v1585-priors artifacts/v1585-priors
+          gh run download 40513311546 --repo "$GITHUB_REPOSITORY" --name arcane-v14972-counterplay --dir /tmp/arcane-v1585-priors
+          for f in historical-train.json frozen-v1555-champion.json incumbent-policy.json older-q-checkpoint.json previous-training-q.json prior-selfplay-checkpoint.json provenance.json research-balanced-policy.json v1499-prior-q.json endgame-learner.json training-q-and-examples.json; do
+            test -s "/tmp/arcane-v1585-priors/$f"
+            cp "/tmp/arcane-v1585-priors/$f" "artifacts/v1585-priors/$f"
+          done
+          node - <<'JS'
+          const assert=require('node:assert/strict');
+          const x=require('./artifacts/v1585-priors/endgame-learner.json');
+          assert.equal(x.sourceRun,40499008498);
+          assert.equal(x.split,'train');
+          assert.equal(x.holdoutUsed,false);
+          assert.equal(x.validationUsed,false);
+          console.log('ARCANE_V1585_SEALED_PRIORS_VERIFIED');
+          JS
+      - name: Smoke-test both real-game timing arms with first-hit telemetry
+        run: |
+          set -euo pipefail
+          for mode in baseline release3; do
+            dir="artifacts/v1585/r0/mirror/$mode"
+            mkdir -p "$dir"
+            cp artifacts/v1585-priors/*.json "$dir/"
+            ARCANE_V1580_MATCH=mirror ARCANE_V1585_MODE="$mode" ARCANE_V1585_REPLICATE=0 \
+              node --expose-gc --max-old-space-size=2400 tests/ai-v1585-opening-causality.cjs 10 0 0
+          done
+          node - <<'JS'
+          const assert=require('node:assert/strict');
+          for(const mode of ['baseline','release3']){
+            const data=require('./artifacts/v1585/r0/mirror/'+mode+'/stage-10-pair-0-chunk-0.json');
+            assert.equal(data.cases.length,24);
+            assert.ok(data.cases.every(c=>Array.isArray(c.realAttackActions1585)));
+            assert.ok(data.cases.every(c=>c.firstAttack1585===null||c.firstAttack1585.turn>=(mode==='baseline'?2:3)));
+          }
+          console.log('ARCANE_V1585_TELEMETRY_SMOKE_VERIFIED');
+          JS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1585-verified-priors
+          path: artifacts/v1585-priors/
+          retention-days: 90
+  research:
+    name: ${{ matrix.match }}-stage${{ matrix.stage }}-${{ matrix.mode }}-r${{ matrix.replicate }}
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        match: [mirror, cross]
+        stage: [9, 10]
+        mode: [baseline, release3]
+        replicate: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1585-verified-priors
+          path: artifacts/v1585/r${{ matrix.replicate }}/${{ matrix.match }}/${{ matrix.mode }}
+      - name: Run matched seeded duels and record actual attacks, removals and LP effects
+        env:
+          ARCANE_V1580_MATCH: ${{ matrix.match }}
+          ARCANE_V1585_MODE: ${{ matrix.mode }}
+          ARCANE_V1585_REPLICATE: ${{ matrix.replicate }}
+          ARCANE_STAGE: ${{ matrix.stage }}
+        run: |
+          set -euo pipefail
+          for pair in 0 1 2 3 4 5 6 7; do
+            for chunk in 0 1; do
+              node --expose-gc --max-old-space-size=2400 tests/ai-v1585-opening-causality.cjs "$ARCANE_STAGE" "$pair" "$chunk"
+            done
+          done
+      - name: Preserve partial research data even on failure
+        if: always()
+        env:
+          ARCANE_V1580_MATCH: ${{ matrix.match }}
+          ARCANE_V1585_MODE: ${{ matrix.mode }}
+          ARCANE_V1585_REPLICATE: ${{ matrix.replicate }}
+          ARCANE_STAGE: ${{ matrix.stage }}
+        run: |
+          set -euo pipefail
+          dir="r${ARCANE_V1585_REPLICATE}/${ARCANE_V1580_MATCH}/${ARCANE_V1585_MODE}"
+          mkdir -p "artifacts/v1585-export/$dir"
+          find "artifacts/v1585/$dir" -maxdepth 1 -name "stage-$ARCANE_STAGE-pair-*.json" -type f -exec cp {} "artifacts/v1585-export/$dir/" \;
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-v1585-data-${{ matrix.match }}-${{ matrix.mode }}-stage${{ matrix.stage }}-r${{ matrix.replicate }}
+          path: artifacts/v1585-export/
+          retention-days: 90
+          if-no-files-found: warn
+  aggregate:
+    name: Audit 12288 records, 6144 starter pairs and first-removal attribution
+    needs: [preflight, research]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: arcane-v1585-data-*
+          merge-multiple: true
+          path: artifacts/v1585
+      - name: Run draw-safe, marker-safe mechanism and damage audit
+        run: node --max-old-space-size=3200 tests/ai-v1585-opening-causality-aggregate.cjs
+      - name: Require unchanged gameplay and sealed holdout selection
+        run: |
+          node - <<'JS'
+          const assert=require('node:assert/strict');
+          const r=require('./artifacts/v1585/analysis/report.json');
+          assert.equal(r.status,'completed');
+          assert.equal(r.totalDuels,12288);
+          assert.equal(r.starterPairs,6144);
+          assert.equal(r.labelChecks,3072);
+          assert.equal(r.matchedMechanismPairs,6144);
+          assert.deepEqual(r.modes,['baseline','release3']);
+          assert.deepEqual(r.replicates,[0,1,2,3]);
+          assert.equal(r.controls.gameplayUntouched,true);
+          assert.equal(r.controls.attackTimingOnly,true);
+          assert.equal(r.controls.oneSidedSeatPerksOff,true);
+          assert.equal(r.controls.replicateSpecificRngAndDeckSeeds,true);
+          assert.equal(r.controls.noSixthCard,true);
+          assert.equal(r.selection.calculatedFrom,'TRAIN+VALIDATION only');
+          assert.equal(r.selection.anyGameplayChange,false);
+          console.log('ARCANE_V1585_FIRST_REMOVAL_CAUSAL_AUDIT_VERIFIED');
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-v1585-causal-12288-report
+          path: artifacts/v1585/analysis/report.json
+          retention-days: 90
+          if-no-files-found: warn

@@ -1,0 +1,41 @@
+name: Arcane Duel - v12.2 Endgame Farming and Card Utilization
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/ai-endgame-card-utility-training-v122.cjs'
+      - '.github/workflows/ai-endgame-card-utility-v122.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  matched-careers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate scripts and legal earned crafting
+        run: |
+          node --check tests/ai-endgame-card-utility-training-v122.cjs
+          node --test tests/ascension-balance-v116.test.cjs tests/opponent-roster-v118.test.cjs tests/handbook-lexicon-v119.test.cjs
+      - name: Pilot four arms on two matched origins
+        env:
+          ARCANE_V122_CAREERS: '2'
+          ARCANE_V122_TIER_ATTEMPTS: '8'
+        run: node tests/ai-endgame-card-utility-training-v122.cjs
+      - name: Main v12.2 32 matched origins four arms
+        env:
+          ARCANE_V122_CAREERS: '32'
+          ARCANE_V122_TIER_ATTEMPTS: '30'
+        run: node tests/ai-endgame-card-utility-training-v122.cjs
+      - name: Save complete earned inventories and deck utilization
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v122-endgame-card-utility
+          path: artifacts/ai-endgame-card-utility-training-v122.json
+          retention-days: 30
+          if-no-files-found: warn

@@ -1,0 +1,46 @@
+name: Arcane Duel - v12.8 X Power and Five Card Balance
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/opponent-x-balance-v128.js'
+      - 'tests/opponent-x-balance-v128.test.cjs'
+      - 'tests/helpers/game-runtime.cjs'
+      - 'tests/opponent-vii-x-roster-v125.test.cjs'
+      - 'tests/ai-x-balance-v128.cjs'
+      - '.github/workflows/ai-x-balance-v128.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  paired-x-careers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check X power and five legal card swaps in both difficulties
+        run: |
+          node --check assets/opponent-x-balance-v128.js
+          node --check tests/ai-x-balance-v128.cjs
+          node --test tests/opponent-x-balance-v128.test.cjs tests/opponent-vii-viii-roster-v126.test.cjs tests/opponent-vii-x-roster-v125.test.cjs tests/perks-v126.test.cjs tests/ascension-balance-v116.test.cjs
+      - name: Pilot two matched seeds per X condition
+        env:
+          ARCANE_V128_CAREERS: '2'
+          ARCANE_V128_TIER_ATTEMPTS: '8'
+        run: node tests/ai-x-balance-v128.cjs
+      - name: Full 32 matched seeds times three X conditions
+        env:
+          ARCANE_V128_CAREERS: '32'
+          ARCANE_V128_TIER_ATTEMPTS: '30'
+        run: node tests/ai-x-balance-v128.cjs
+      - name: Upload X balance, causal and holdout comparison
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v128-x-power-and-five-lv9-96-careers
+          path: artifacts/ai-x-balance-v128.json
+          retention-days: 30
+          if-no-files-found: warn

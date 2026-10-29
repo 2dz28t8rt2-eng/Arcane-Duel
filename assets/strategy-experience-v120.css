@@ -1,0 +1,88 @@
+/* Arcane Duel 12.0 · strategy insight, battle review and real unlock celebration. */
+.ad120-menu-tools{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+.ad120-menu-tools .btn{border-color:#bda87599;background:linear-gradient(145deg,#2a2439,#171825);color:#ffe6b9}
+.ad120-report{margin:18px 0;padding:18px;border:1px solid #ae8b50a3;border-radius:14px;
+ background:linear-gradient(135deg,#2d263b 0%,#191b2a 80%);text-align:left;color:#f8f0df}
+.ad120-report h3{margin:0 0 14px;font-size:1.12rem;color:#f5d795}
+.ad120-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.ad120-metrics>div{padding:11px;border:1px solid #a18a674a;border-radius:8px;
+ background:#100f1e88;min-width:0}
+.ad120-metrics small{display:block;font-size:.73rem;color:#d7c7b4;line-height:1.25}
+.ad120-metrics b{display:block;margin-top:5px;color:#fff3d4;font-size:1.25rem;font-variant-numeric:tabular-nums}
+.ad120-note{padding:11px 13px;background:#b88d3a1a;border-left:3px solid #d3af64;border-radius:4px;line-height:1.5}
+.ad120-report details{margin:12px 0;max-height:180px;overflow:auto}
+.ad120-report summary{cursor:pointer;color:#f9d999}
+.ad120-report ol{padding-left:20px;font-size:.88rem;line-height:1.45}
+.ad120-report li{padding:3px 0}
+.ad120-report>small{color:#c7bdab;line-height:1.4}
+.ad120-fusion-preview{margin-top:12px;padding:12px;border:1px solid #9564d277;border-radius:10px;
+ background:linear-gradient(135deg,#351e4bb8,#211d34d9);color:#f7eeff;min-height:174px;box-sizing:border-box}
+.ad120-preview-title{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#e5c7ff}
+.ad120-preview-title span{font-size:.8rem;border:1px solid #b88fee66;border-radius:999px;padding:3px 8px}
+.ad120-fusion-preview p{margin:8px 0;font-size:.82rem}
+.ad120-fusion-preview ol{margin:7px 0;padding:0;list-style:none;display:grid;gap:5px;max-height:115px;overflow:auto}
+.ad120-fusion-preview li{display:flex;flex-direction:column;gap:2px;padding:5px 7px;border-radius:6px;background:#130f2677}
+.ad120-fusion-preview li b{font-size:.82rem}
+.ad120-fusion-preview li span{font-size:.73rem;color:#ebd5ff}
+.ad120-fusion-preview>small{display:block;font-size:.7rem;line-height:1.35;color:#d8c9e9}
+.ad120-unlock{position:fixed;right:20px;bottom:25px;z-index:2500;display:flex;align-items:center;gap:12px;
+ width:min(430px,calc(100vw - 36px));box-sizing:border-box;padding:15px 13px;
+ border:1px solid #ffe2a9;border-radius:14px;color:#fff2d5;
+ background:linear-gradient(115deg,#251d40,#503247 65%,#302133);
+ box-shadow:0 14px 65px #000b,0 0 28px #dca14d66,inset 0 0 28px #e7b86a19;
+ animation:ad120UnlockIn .55s cubic-bezier(.17,.89,.27,1.15) both}
+.ad120-unlock::before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+ background:linear-gradient(112deg,transparent 24%,#fff8cf3a 46%,transparent 65%);
+ animation:ad120UnlockShine 1.2s ease-out .12s both}
+.ad120-unlock .ad120-unlock-symbol{font-size:2.1rem;color:#ffde89;filter:drop-shadow(0 0 7px #e4ae4f)}
+.ad120-unlock img{width:62px;height:62px;border-radius:9px;object-fit:cover;border:1px solid #edc47c99}
+.ad120-unlock div{position:relative;flex:1;min-width:0}
+.ad120-unlock small{display:block;font-size:.66rem;letter-spacing:.16em;color:#ffe0a0}
+.ad120-unlock strong{display:block;font-size:1.02rem;margin:3px 0;line-height:1.2}
+.ad120-unlock p{font-size:.77rem;line-height:1.35;color:#e7d8cf;margin:0}
+.ad120-unlock button{position:relative;align-self:flex-start;border:0;background:transparent;color:#fff;font-size:20px;cursor:pointer}
+.ad120-unlock.ad120-leave{animation:ad120UnlockOut .26s ease-in both}
+.ad120-coach{position:fixed;z-index:1200;left:18px;bottom:18px;width:min(330px,calc(100vw - 36px));
+ box-sizing:border-box;padding:16px;border:1px solid #cfae6ca8;border-radius:12px;
+ background:linear-gradient(135deg,#2b2339eF,#191d2bf5);color:#fff1db;
+ box-shadow:0 14px 45px #000a,0 0 25px #bb8c452c}
+.ad120-coach>small{letter-spacing:.12em;color:#e2bf78;font-size:.69rem}
+.ad120-coach b{display:block;margin-top:7px;font-size:1.07rem}
+.ad120-coach p{margin:8px 0 12px;line-height:1.45;font-size:.9rem}
+.ad120-coach-actions{display:flex;align-items:center;justify-content:space-between;font-size:.77rem}
+.ad120-coach-actions button{border:1px solid #e8ca8299;border-radius:8px;padding:7px 10px;
+ background:#40304d;color:#fff1cd;cursor:pointer}
+.ad120-lesson-list{display:grid;gap:10px;margin:16px 0;text-align:left}
+.ad120-lesson-list .ad120-lesson{width:100%;min-height:48px;text-align:left;white-space:normal;
+ color:#ffe6b0;border:1px solid #c9a76b88;background:linear-gradient(115deg,#30263d,#211e2d);border-radius:10px}
+.ad120-lesson-list .ad120-lesson:hover,.ad120-lesson-list .ad120-lesson:focus-visible{
+ border-color:#f4d99f;background:#393048;outline:2px solid #f1d29b44}
+#modal:has(.ad120-lab){width:min(880px,92vw);max-width:92vw;max-height:85vh;overflow:auto}
+.ad120-lab{text-align:left;color:#f6ead7}
+.ad120-lab>p{line-height:1.55;max-width:690px}
+.ad120-lab-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}
+.ad120-lab-controls label{display:grid;gap:5px;color:#e2c998;font-size:.83rem}
+.ad120-lab select{padding:9px;border:1px solid #ac9063;border-radius:7px;background:#211c2c;color:#fff0cf;max-width:100%}
+.ad120-lab-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
+.ad120-lab-results article{padding:13px;border:1px solid #9a7d5299;border-radius:10px;background:#232039}
+.ad120-lab-results h3{font-size:.93rem;margin:0 0 7px;color:#e7d6bb}
+.ad120-lab-results strong{display:block;color:#ffdf95;font-size:1.5rem}
+.ad120-lab-results small{display:block;margin-top:6px;color:#d6c8d4;line-height:1.45}
+.ad120-lab-caption{font-size:.79rem;color:#d3beaa}
+@keyframes ad120UnlockIn{0%{opacity:0;transform:translateX(110%) scale(.85)}
+ 70%{opacity:1;transform:translateX(-8px) scale(1.03)}100%{opacity:1;transform:none}}
+@keyframes ad120UnlockOut{to{opacity:0;transform:translateX(60px) scale(.92)}}
+@keyframes ad120UnlockShine{from{opacity:0;transform:translateX(-130%)}
+ 42%{opacity:1}to{opacity:0;transform:translateX(130%)}}
+@media(max-width:760px){
+ .ad120-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .ad120-lab-controls{grid-template-columns:1fr}
+ .ad120-lab-results{grid-template-columns:1fr}
+ #modal:has(.ad120-lab){width:94vw;max-width:94vw}
+ .ad120-unlock{bottom:12px;right:12px}
+ .ad120-coach{left:12px;bottom:auto;top:calc(70px + env(safe-area-inset-top,0px));
+  width:min(340px,calc(100vw - 24px));max-height:min(38vh,280px);overflow:auto}
+}
+@media(prefers-reduced-motion:reduce){
+ .ad120-unlock,.ad120-unlock.ad120-leave,.ad120-unlock::before{animation:none!important}
+}

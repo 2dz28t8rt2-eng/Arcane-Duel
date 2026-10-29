@@ -1,0 +1,130 @@
+name: Arcane Duel - v14.9.26 Guardian Soul Self-Play Strategy Learning
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v14926-guardian-soul-selfplay.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  two-sided-soul-guardian-learning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify syntax, legal position rules and combat mechanics
+        run: |
+          set -euo pipefail
+          node --check tests/ai-v1526-history.cjs
+          node --check tests/ai-v1526-Q.cjs
+          node --check tests/ai-v1526-fit-priors.cjs
+          node --check tests/ai-v1526-selfplay-synergy-training.cjs
+          node --check tests/ai-v1526-selfplay-aggregate.cjs
+          node --test tests/predator-armor-live-v1499.test.cjs tests/predator-swarm-live-v1498.test.cjs tests/essence-combat.test.cjs tests/strategic-seat-parity-v1495.test.cjs
+      - name: Restore verified Q checkpoint and fifteen historical TRAIN-only archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/arcane-prev /tmp/arcane-history/{v1511,v1512,v1513,v1514,v1515,v1516,v1517,v1518,v1519,v1520,v1521,v1522,v1523,v1524,v1525} artifacts/v1526
+          for rid in 39803691439 39843438099 39847734409 39851537706 39855753529 39858417967 39862370629 39904678414 39907484021 39911997726 39919243971 39925937764 39930044938 39933155444 39937859539; do
+            test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$rid" --jq '.conclusion')" = success
+          done
+          gh run download 39803691439 --repo "$GITHUB_REPOSITORY" --name arcane-v14911-summon-fusion-training --dir /tmp/arcane-history/v1511
+          gh run download 39843438099 --repo "$GITHUB_REPOSITORY" --name arcane-v14912-veteran-predator-training --dir /tmp/arcane-history/v1512
+          gh run download 39847734409 --repo "$GITHUB_REPOSITORY" --name arcane-v14913-symmetric-history --dir /tmp/arcane-history/v1513
+          gh run download 39851537706 --repo "$GITHUB_REPOSITORY" --name arcane-v14914-crossdeck-history --dir /tmp/arcane-history/v1514
+          gh run download 39855753529 --repo "$GITHUB_REPOSITORY" --name arcane-v14915-crossdeck-rollout --dir /tmp/arcane-history/v1515
+          gh run download 39858417967 --repo "$GITHUB_REPOSITORY" --name arcane-v14916-risk-aware-crossdeck --dir /tmp/arcane-history/v1516
+          gh run download 39862370629 --repo "$GITHUB_REPOSITORY" --name arcane-v14917-role-aware-crossdeck --dir /tmp/arcane-history/v1517
+          gh run download 39904678414 --repo "$GITHUB_REPOSITORY" --name arcane-v14918-optimized-roles-decay --dir /tmp/arcane-history/v1518
+          gh run download 39907484021 --repo "$GITHUB_REPOSITORY" --name arcane-v14919-fusion-soul-isolation --dir /tmp/arcane-history/v1519
+          gh run download 39911997726 --repo "$GITHUB_REPOSITORY" --name arcane-v14920-siege-curriculum --dir /tmp/arcane-history/v1520
+          gh run download 39919243971 --repo "$GITHUB_REPOSITORY" --name arcane-v14921-progressive-siege --dir /tmp/arcane-history/v1521
+          gh run download 39925937764 --repo "$GITHUB_REPOSITORY" --name arcane-v14922-finishers-seat-parity --dir /tmp/arcane-history/v1522
+          gh run download 39930044938 --repo "$GITHUB_REPOSITORY" --name arcane-v14923-seat-breach-training --dir /tmp/arcane-history/v1523
+          gh run download 39933155444 --repo "$GITHUB_REPOSITORY" --name arcane-v14924-active-transfer --dir /tmp/arcane-history/v1524
+          gh run download 39937859539 --repo "$GITHUB_REPOSITORY" --name arcane-v14925-test-ai-selfplay --dir /tmp/arcane-history/v1525
+          cp /tmp/arcane-history/v1525/training-q-and-examples.json /tmp/arcane-prev/training-q-and-examples.json
+          echo "ARCANE_V1526_RESTORED 39937859539"
+          node tests/ai-v1526-history.cjs
+      - name: Fit bounded weights from previous selfplay TRAIN matches only
+        run: node tests/ai-v1526-fit-priors.cjs
+      - name: Continue protected 15-run tactical Predator Q learning
+        run: node --expose-gc --max-old-space-size=3200 tests/ai-v1526-Q.cjs
+      - name: Phase 0 - Level-eight identical deck guardian/soul selfplay
+        run: |
+          set -euo pipefail
+          node --expose-gc --max-old-space-size=2800 tests/ai-v1526-selfplay-synergy-training.cjs 0
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const r=JSON.parse(fs.readFileSync('artifacts/v1526/stage-0.json','utf8'));
+          const priors=JSON.parse(fs.readFileSync('artifacts/v1526/selfplay-priors.json','utf8'));
+          a.equal(r.allCases.length,640);
+          a.equal(r.summaries.length,5);
+          a.equal(r.holdoutCandidate.games,32);
+          a.equal(priors.holdoutUsed,false);
+          a.ok(priors.samples>=400);
+          a.ok(Object.values(priors.weights).every(Number.isFinite));
+          a.ok(r.allCases.every(x=>x.mirror&&x.illegalSwitchesBySeat.every(n=>n===0)));
+          a.ok(r.allCases.every(x=>x.selfPlayStrategicBySeat[0]>0&&x.selfPlayStrategicBySeat[1]>0));
+          a.ok(r.allCases.some(x=>x.arm==='guardian-soul'&&x.weights.support>1));
+          console.log('ARCANE_V1526_SELFPLAY_SMOKE '+JSON.stringify({games:640,
+            selected:r.chosenArm,train:r.trainCandidate.wins,
+            holdout:r.holdoutCandidate.wins,priors:priors.weights}));
+          JS
+      - name: Phase 1 - Level-nine identical deck guardian/soul selfplay
+        run: node --expose-gc --max-old-space-size=2800 tests/ai-v1526-selfplay-synergy-training.cjs 1
+      - name: Phase 2 - Level-ten identical deck guardian/soul selfplay
+        run: node --expose-gc --max-old-space-size=2800 tests/ai-v1526-selfplay-synergy-training.cjs 2
+      - name: Phase 3 - Level-eight cross-role guarded selfplay
+        run: node --expose-gc --max-old-space-size=2800 tests/ai-v1526-selfplay-synergy-training.cjs 3
+      - name: Phase 4 - Level-ten cross-role guarded selfplay
+        run: node --expose-gc --max-old-space-size=2800 tests/ai-v1526-selfplay-synergy-training.cjs 4
+      - name: Aggregate 3200 matched selfplay matches and independent holdout
+        run: node --max-old-space-size=3200 tests/ai-v1526-selfplay-aggregate.cjs
+      - name: Verify zero illegal moves, both test AIs and no silent promotion
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const root='artifacts/v1526/';
+          const m=JSON.parse(fs.readFileSync(root+'report.json','utf8'));
+          const h=JSON.parse(fs.readFileSync(root+'historical-train.json','utf8'));
+          const p=JSON.parse(fs.readFileSync(root+'selfplay-priors.json','utf8'));
+          a.equal(m.totalDuels,3200);a.equal(m.trainDuels,2400);a.equal(m.holdoutDuels,800);
+          a.equal(h.sources.length,15);a.equal(p.holdoutUsed,false);
+          a.equal(m.controls.illegalSwitchesFailFast,true);
+          a.equal(m.controls.trainOnlyFittedSelfplayPriors,true);
+          a.equal(m.controls.referenceAndAdaptiveSymmetricSelfplayArms,true);
+          a.equal(m.productionModified,false);
+          for(let i=0;i<5;i++){
+            const stage=JSON.parse(fs.readFileSync(root+'stage-'+i+'.json','utf8'));
+            a.equal(stage.allCases.length,640);
+            a.equal(stage.summaries.length,5);
+            a.equal(stage.trainCandidate.games,96);
+            a.equal(stage.holdoutCandidate.games,32);
+            a.ok(stage.allCases.every(x=>x.illegalSwitchesBySeat[0]===0&&x.illegalSwitchesBySeat[1]===0));
+            a.ok(stage.allCases.every(x=>x.selfPlayCallsBySeat[0]>0&&x.selfPlayCallsBySeat[1]>0));
+            a.ok(stage.allCases.every(x=>x.selfPlayStrategicBySeat[0]>0&&x.selfPlayStrategicBySeat[1]>0));
+            if(stage.promoted){
+              a.ok(stage.trainCandidate.wins>=stage.trainBaseline.wins+4);
+              for(const seat of ['0','1'])a.ok(stage.trainCandidate.bySeat[seat].wins>=stage.trainBaseline.bySeat[seat].wins);
+            }else a.equal(stage.chosenArm,'symmetric-reference');
+          }
+          console.log('ARCANE_V1526_VERIFIED '+JSON.stringify({
+            duels:m.totalDuels,holdout:m.holdoutDuels,
+            selected:m.stages.map(x=>x.selected),learnedPriors:p.weights}));
+          JS
+      - name: Archive all selfplay results, fitted weights and protected Q
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v14926-guardian-soul-selfplay
+          path: artifacts/v1526/
+          retention-days: 90
+          if-no-files-found: warn

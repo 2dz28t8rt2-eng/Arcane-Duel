@@ -1,0 +1,27 @@
+name: Arcane Duel - v12.9 Strategic Board AI Pilot
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'tests/helpers/ai-board-planner-v129.cjs'
+      - 'tests/ai-board-planner-v129.test.cjs'
+      - '.github/workflows/ai-board-planner-v129.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  strategic-board-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify strategic action generator compiles and duels remain legal
+        run: |
+          node --check tests/helpers/ai-board-planner-v129.cjs
+          node --check tests/ai-board-planner-v129.test.cjs
+          node --test tests/ai-board-planner-v129.test.cjs
+      - name: Confirm existing fusion and opponent mechanics unaffected
+        run: node --test tests/opponent-x-balance-v128.test.cjs tests/perks-v126.test.cjs

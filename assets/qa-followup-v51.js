@@ -48,8 +48,8 @@
  const lastChoose=chooseAiAction;
  chooseAiAction=function(g,...args){
   const action=lastChoose(g,...args);
-  if(g?.mode==='pve'&&g.active===1&&action?.type==='switch'){
-   const unit=g.players[1]?.field?.[action.idx];
+  if(g?.mode==='pve'&&(g.active===1||g.strategicTraining?.symmetricSides)&&action?.type==='switch'){
+   const unit=g.players[g.active]?.field?.[action.idx];
    if(unit?.attacked||unit?.arcaneAttackTurn===g.turn){
     // Do not get stuck in an invalid AI switch loop.
     g.aiPhase='end';
@@ -64,7 +64,8 @@
   const turn=g.turn,owner=g.active;
   const eligible=g.mode==='pve'&&g.winner===null&&!g.pending&&
     g.evolutionMode!=='burst'?
-    g.players[owner].field.filter(c=>c?.card&&c.summonedTurn!==turn):[];
+    g.players[owner].field.filter(c=>c?.card&&c.summonedTurn!==turn&&
+     !(g.openingDecayGrace&&c.summonedTurn===1&&turn===3)):[];
   const result=lastAdvance(g,...args);
   if(result===false||g.turn===turn||g.mode!=='pve')return result;
   for(const c of eligible){

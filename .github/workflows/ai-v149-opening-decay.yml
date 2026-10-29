@@ -1,0 +1,29 @@
+name: Arcane Duel - v14.9 Opening Decay Grace and Post-Summon Board Tests
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/game.js'
+      - 'assets/qa-followup-v51.js'
+      - 'tests/opening-grace-postsummon-v149.test.cjs'
+      - '.github/workflows/ai-v149-opening-decay.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolate-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax validation
+        run: |
+          node --check assets/game.js
+          node --check tests/opening-grace-postsummon-v149.test.cjs
+      - name: Compare old and proposed decay timing, both starting seats, and live post-summon AI
+        run: node --test tests/opening-grace-postsummon-v149.test.cjs
+      - name: Preserve existing defender and board-planner mechanics
+        run: node --test tests/defender-soul-update.test.cjs tests/ai-board-planner-v129.test.cjs
