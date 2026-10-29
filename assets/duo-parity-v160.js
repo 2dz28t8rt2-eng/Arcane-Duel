@@ -411,6 +411,7 @@
   window.ArcaneDuoUX204?.onState(previous,game,{seat,roomId,catalog});
   window.ArcaneDuoSoulBond206?.onState?.(previous,game);
   window.ArcaneDuoSound194?.onState(previous,game,catalog,seat);
+  window.ArcaneSfx208?.onDuoState?.(previous,game,catalog,seat);
   if(previous&&previous.status!=='finished'&&game.status==='finished'&&
    game.winner===0&&duoProfileToken)fetchProfile();
  }
