@@ -14,7 +14,7 @@
   menu:['menu.ogg',.40,1.5],win:['win.ogg',.92,4.0],
   calc:['fusion-calc.ogg',.35,.65]
  });
- const live=new Set(),missing=new Set(),last={time:0,outcome:'',scene:''};
+ const live=new Set(),missing=new Set(),loops=new Map(),last={time:0,outcome:'',scene:''};
  let lastSnapshot=null,duoGame=null,duoSeat=-1,nextIdle=0;
  const timers=new Set();
  const duo=()=>!!document.getElementById('duoSeats');
@@ -65,6 +65,36 @@
     if(n>=5){clearInterval(fade);a.pause();live.delete(a);}},32);
   },Math.max(100,1000*duration-170));
   return a;
+ }
+ // A calculation cue repeats until the animation itself ends; the brief
+ // fade prevents an audible click and does not change the other SFX.
+ function startLoop(kind,{gain=1}={}){
+  const spec=sounds[kind];if(!spec||!enabled()||typeof Audio!=='function'||missing.has(kind))return ()=>{};
+  loops.get(kind)?.();
+  const a=new Audio(ROOT+spec[0]);a.preload='auto';a.loop=true;
+  a.volume=Math.min(1,Math.max(0,spec[1]*gain*vol()));
+  let active=true;
+  function stop(){
+   if(!active)return;
+   active=false;if(loops.get(kind)===stop)loops.delete(kind);
+   const initial=a.volume;
+   for(let i=1;i<=4;i++)schedule(()=>{
+    if(!live.has(a))return;
+    if(i===4){a.pause();live.delete(a);}
+    else a.volume=Math.max(0,initial*(1-i/4));
+   },i*30);
+  }
+  loops.set(kind,stop);live.add(a);
+  a.addEventListener('error',()=>{
+   missing.add(kind);stop();
+  },{once:true});
+  const begin=()=>{
+   if(!active||!enabled())return stop();
+   try{const p=a.play();p?.catch?.(()=>stop());}catch{stop();}
+  };
+  if(a.readyState>=1)begin();
+  else{a.addEventListener('loadedmetadata',begin,{once:true});a.load();}
+  return stop;
  }
  function result(kind){
   const token=kind+':'+(duo()?duoGame?.roomId+':'+duoGame?.revision:typeof game!=='undefined'?game?.id+':'+game?.turn:'');
@@ -142,7 +172,9 @@
    if(player)result(player.team===after.winner?'win':'lose');
   }
  }
- function stopAll(){for(const a of live){try{a.pause();}catch{}}live.clear();}
+ function stopAll(){
+  for(const a of live){try{a.pause();}catch{}}live.clear();loops.clear();
+ }
  function listenMenu(){document.getElementById('ad196-title')?.addEventListener('click',event=>{
   if(event.target.closest('[data-ad196-action]'))play('menu');});
  }
@@ -152,7 +184,7 @@
   setInterval(soloTick,260);setInterval(idleTick,2600);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAll();});
  }
- window.ArcaneSfx208=Object.freeze({play,onDuoState,result,leaderPresent,stopAll,sounds});
+ window.ArcaneSfx208=Object.freeze({play,startLoop,onDuoState,result,leaderPresent,stopAll,sounds});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
  else install();
 })();
