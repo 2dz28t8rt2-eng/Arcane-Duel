@@ -66,6 +66,13 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster
   // balance; no production assets are modified by the simulator.
   if(file==='assets/essence-combat.js'&&process.env.ARCANE_RESEARCH_GUARDIAN_HEAL)
    code=require('./research-guardian-heal-v171.cjs').transform(code,process.env.ARCANE_RESEARCH_GUARDIAN_HEAL);
+  // v17.2 counterstrike baseline and 85% Guardian heal are an offline-only
+  // controlled overlay, applied after the fixed 15/90/100/120 role rules.
+  if(file==='assets/essence-combat.js'&&process.env.ARCANE_RESEARCH_COUNTERSTRIKE_V172){
+   if(process.env.ARCANE_RESEARCH_GUARDIAN_HEAL)
+    throw Error('Do not combine v17.1 and v17.2 healing overlays');
+   code=require('./research-counterstrike-v172.cjs').transform(code,process.env.ARCANE_RESEARCH_COUNTERSTRIKE_V172);
+  }
   if(withoutArmor&&file==='assets/essence-combat.js'){
    const needle='const mitigation=isDefender(d)?.35:0;';if(!code.includes(needle))throw Error('Armor control hook changed');
    code=code.replace(needle,'const mitigation=isDefender(d)?(q.id===0?0:.35):0;');
