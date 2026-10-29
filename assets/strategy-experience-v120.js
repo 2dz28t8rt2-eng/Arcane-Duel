@@ -28,6 +28,13 @@
   }
   function drainUnlocks(){
     if(unlockBusy||!unlockQueue.length)return;
+    // Do not reveal level-ups or ACE rewards while the end-of-battle
+    // victory/defeat lettering is still on screen.
+    if(document.body?.classList?.contains('ad197-result-hold')||
+       document.querySelector?.('.ad197-outcome')||
+       document.getElementById?.('overlay')?.classList?.contains('ad197-result-reveal')){
+      window.setTimeout(drainUnlocks,500);return;
+    }
     unlockBusy=true;
     const item=unlockQueue.shift();
     const el=document.createElement('aside');
