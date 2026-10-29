@@ -64,23 +64,16 @@ source=source.replace(switchAnchor,[
  "'   else if(switchCard.mode===\"def\")row.switchToDef++;',",
  "'  }',"
 ].join("\n"));
-const matchAnchor="guardianHealMetrics:m.stats.guardianHealMetrics,";
-assert.equal(source.split(matchAnchor).length,2,'v17.5 row telemetry anchor changed');
-source=source.replace(matchAnchor,matchAnchor+"\n      offenseBySeat:m.stats.offenseBySeat,");
-const statsAnchor="guardianHealMetrics:g.__researchGuardianHealMetrics||null}};";
-assert.equal(source.split(statsAnchor).length,2,'v17.5 stats telemetry anchor changed');
-source=source.replace(statsAnchor,"guardianHealMetrics:g.__researchGuardianHealMetrics||null,offenseBySeat:counter.offenseBySeat}};");
-
 const candidateAnchor="' g.strategicTraining.siegeStage=scene.siegeStage;',";
 assert.equal(source.split(candidateAnchor).length,2,'v17.4 candidate anchor changed');
 source=source.replace(candidateAnchor,candidateAnchor+"\n' g.strategicTraining.researchHealCandidateSeat=learner;',");
 const caseAnchor="focusMode,focusGroup:stage===8||stage===9||stage===10?sameOpponentPair:null,";
 assert.equal(source.split(caseAnchor).length,2,'v17.4 full-match case anchor changed');
-source=source.replace(caseAnchor,caseAnchor+"\n      guardianHealMetrics:m.stats.guardianHealMetrics,");
+source=source.replace(caseAnchor,caseAnchor+"\n      guardianHealMetrics:m.stats.guardianHealMetrics,\n      offenseBySeat:m.stats.offenseBySeat,");
 const execAnchor="const inner='\\nnew Function";
 assert.equal(source.split(execAnchor).length,2,'v17.4 inner simulator anchor changed');
 source=source.replace(execAnchor,
- "patchLines.push('patch('+JSON.stringify('stats:counter};')+','+JSON.stringify('stats:{...counter,guardianHealMetrics:g.__researchGuardianHealMetrics||null}};')+');');\n"+execAnchor);
+ "patchLines.push('patch('+JSON.stringify('stats:counter};')+','+JSON.stringify('stats:{...counter,guardianHealMetrics:g.__researchGuardianHealMetrics||null,offenseBySeat:counter.offenseBySeat}};')+');');\n"+execAnchor);
 
 all('artifacts/v1571','artifacts/v1750/'+balance);
 all('arcane-v1571-','arcane-v1750-');
