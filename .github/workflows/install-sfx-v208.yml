@@ -1,0 +1,33 @@
+name: Arcane Duel - install sampled sound pack v20.8
+on:
+  push:
+    branches: [development]
+    paths:
+      - .github/workflows/install-sfx-v208.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  install-sounds:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: development
+          persist-credentials: true
+      - name: Install sound dependencies
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - name: Import only sound files that match uploaded ZIP hashes
+        run: python3 scripts/install-sfx-v208.py
+      - name: Commit verified local sound effects
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/sfx-v208/*.ogg
+          if git diff --cached --quiet; then
+            echo "No sound effect bytes required a commit."
+          else
+            git commit -m "assets: import verified and compressed Game Sound 2 effects"
+            git push origin HEAD:development
+          fi
