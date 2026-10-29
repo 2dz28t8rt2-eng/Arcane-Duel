@@ -55,6 +55,10 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster
   // calculator and its dependent interactive tutorial are switched off.
   if(withoutFusionRework&&['assets/fusion-rework-v113.js','assets/fusion-tutorial-v113.js'].includes(file))continue;
   let code=source.get(file);
+  // v17.6 Guardian stat reweighting is injected ONLY into the headless
+  // runtime. All real card IDs/art and production JS remain untouched.
+  if(file==='assets/game.js'&&process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V176)
+   code=require('./research-guardian-stats-v176.cjs').transform(code,process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V176);
   // Research-only balance, highest version wins. Never injected into production pages.
   if(file==='assets/essence-combat.js'&&process.env.ARCANE_RESEARCH_BALANCE_V169)
    code=require('./research-role-balance-v169.cjs').transform(code,process.env.ARCANE_RESEARCH_BALANCE_V169);
