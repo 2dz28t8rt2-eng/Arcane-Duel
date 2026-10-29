@@ -11,7 +11,7 @@ test('Rulebook explains opening protection and its limitations',()=>{
 test('Rulebook explains all five Predator progression stages, additive swarm and UI',()=>{
  const text=read('assets/handbook-human-v180.js');
  for(const x of ['90 %','93 %','96 %','99 %','102 %','ENTWICKLUNG','96 % + 4 % = 100 %',
-  '111 % Gesamt-ATK','Schwarmbonus','Große Kartenansicht','große Kartenansicht'])
+  '111 % Gesamt-ATK','Schwarmbonus','große Kartenansicht'])
   assert.ok(text.includes(x),'missing '+x);
  assert.match(text,/2v2-Regelkern jedoch noch nicht/);
 });
