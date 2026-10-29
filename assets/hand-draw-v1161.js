@@ -10,8 +10,12 @@
   const screen=document.getElementById('duelScreen'),root=document.getElementById('hand');
   screen?.classList.remove('ad-opening-hand-wait');
   root?.removeAttribute('aria-hidden');
-  if(!root||motionOff())return Promise.resolve();
+  if(!root)return Promise.resolve();
   const cards=[...root.querySelectorAll('[data-hand]')];
+  if(motionOff()){
+   cards.forEach((_,i)=>setTimeout(()=>window.ArcaneSfx208?.play?.('draw'),i*190));
+   return Promise.resolve();
+  }
   cards.forEach((node,i)=>{
    setTimeout(()=>window.ArcaneSfx208?.play?.('draw'),i*440);
    const rect=node.getBoundingClientRect();
