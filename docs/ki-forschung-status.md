@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-29 · Branch `development` · dynamische Wächter-Heilungsforschung v17.3 (85-%-Regel abgelöst)
+**Aktualisiert:** 2026-10-29 · Branch `development` · Kausalstudie Wächterheilung v17.4 abgeschlossen
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -140,7 +140,37 @@ Die allgemeine Defender-Survival-HOLDOUT-Verbesserung **276 → 278/512** ist se
 
 **Neu gemessene Telemetrie pro echtem Duell:** Anzahl Züge mit jeweils 0–5 aktiven DEF-Wächtern **getrennt je Spieler**, Heilungsauslösungen, tatsächlich wiederhergestellte DEF-Punkte, mögliche DEF-Regeneration ohne Staffel, durch Staffel verhinderte Heilung, an maximalem DEF verpufftes Heilbudget und Aufteilung Wächter- vs Seelenzehrer-Ziele. Die Szenario-/Sitz-/Seed-Zuordnung und paarweisen Gewinneränderungen werden mitgeführt; die Anzahl verschiedener Versuchsaufbauten wird separat ausgewiesen.
 
-**Trainingslauf:** [GitHub Actions #40958426063](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40958426063), vier gepaarte Forschungsarme mit **92.160 geplanten Duellen** (4 × 23.040, 11 Phasen pro Arm), gleicher eingefrorener Champion und unveränderte Aufstiegshürden. Keine automatische Champion-Beförderung oder Produktionsübernahme; HOLDOUT und VALIDATION bleiben von TRAIN getrennt.
+**Abgeschlossen:** [GitHub Actions #40958426063](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40958426063), **53/53 Jobs erfolgreich**, **92.160/92.160 Duelle** (4 × 23.040; 11 Phasen pro Arm). Keine automatische Champion-Beförderung und keine Änderung des Solo-Produktionscodes.
+
+**Allgemeine Defender-Survival-KI, Siege je 512 TRAIN/VALIDATION/HOLDOUT-Partien:**
+
+| Regelarm | TRAIN | VALIDATION | HOLDOUT |
+|---|---:|---:|---:|
+| `none` | 268 | 265 | 267 |
+| `candidateOnly` | 278 | 271 | 272 |
+| `opponentOnly` | 274 | 267 | 266 |
+| `both` | 280 | 272 | 271 |
+
+**Eigene echte Heilung – Fokus-Stage 8, 384 Partien mit Defender-Survival-Profil:**
+- 139 Partien mit mindestens einem eigenen Wächter-Heilereignis, aber nur **96 Partien**, in denen mindestens **zwei** eigene DEF-Wächter gleichzeitig als Heiler aktiv waren; 288/384 Partien erlebten daher **keinen eigenen 2+-DEF-Wächter-Heilungsversuch**.
+- `candidateOnly`: **253.942 mögliche DEF** bei unveränderter Höhe unter den beobachteten Spielzuständen; **116.378 tatsächlich regeneriert**, **137.564 durch Staffelung verhindert** (54,2 % des hypothetischen Budgets nach Max-DEF-Begrenzung). Vergleich `none`: 239.474 tatsächliche eigene DEF-Regeneration unter anderem Spielverlauf (nicht als 1:1-Behandlungseffekt verrechnen).
+- `opponentOnly`: Gegenseite unter beobachteten Spielzuständen **298.540 mögliche**, **129.891 echte**, **168.649 verhinderte DEF**. Gegenseiten-DEF-Erholung ist damit separat gemessen; bei `candidateOnly` wurden auf der Gegenseite **0 DEF durch Staffelung verhindert** (Kontrollbedingung korrekt).
+
+**Gepaarte Gewinnerwechsel (Stage 8, 2.304 Profil-Partien je Regel, 384 einzigartige Szenario-/Sitz-Konfigurationen):**
+- `candidateOnly` ↔ `none`: **96 Gewinnerwechsel**, 21 zugunsten Kandidat und **75 zulasten Kandidat**, ausgelöst innerhalb von 22 verschiedenen Szenario-/Sitz-Konfigurationen. **Alle 96** hatten messbare verhinderte Heilung auf der Kandidatenseite, **0** ohne wirksame Staffelungsreduktion.
+- `opponentOnly` ↔ `none`: **46 Wechsel**, **31 zugunsten** Kandidat / 15 zulasten, in 17 verschiedenen Szenario-/Sitz-Konfigurationen; alle 46 mit reduzierter Heilung auf Gegnerseite.
+- `both` ↔ `none`: **121 Wechsel**, 45 zugunsten / **76 zulasten**, in 32 verschiedenen Konfigurationen; alle mit mindestens einer reduzierten Heilung. Die 2.304 Duelle sind wegen sechs KI-Profilen pro Konfiguration **keine 2.304 statistisch unabhängigen Szenarien**.
+
+**Defender-Survival / pure vs gemischt, jeweils nur 16 Duelle je Rollenpaar:**
+- **VALIDATION gegen Predatoren:** reine Wächter `11/16` → `11/16`, 50/50 gemischt `12/16` → `12/16` (Kontrolle → `candidateOnly`).
+- **HOLDOUT gegen Predatoren:** reine Wächter `7/16` → **`6/16`**, 50/50 gemischt `7/16` → `7/16`.
+- **VALIDATION gegen Fusionen:** reine Wächter `10/16` → **`9/16`**, gemischt `10/16` → `10/16`.
+- **HOLDOUT gegen Fusionen:** reine Wächter `6/16` → **`4/16`**, gemischt `7/16` → `6/16`; reine Seelenzehrer `7/16` unverändert.
+- Das weist auf eine **relative Schwächung reiner Wächter** in fokussierten Paarungen hin, aber noch nicht auf eine robuste optimale Rolle im gesamten Meta.
+
+**Champion-Hürden:** Kein Kandidat befördert; `l10-guarded-worst-reply` bleibt Champion. Der stärkste Kandidat im Arm `both` liegt bei **+11 VALIDATION** versus eingefrorenem Champion und **+5 direktem H2H-TRAIN**, aber nur **+6 direktem H2H-VALIDATION** statt benötigten **+8**. Neu aus ausschließlich TRAIN generierte Endgame-Folgemodelle mit 20/22/24/22 Kontextwerten (`none`/`candidateOnly`/`opponentOnly`/`both`, je 1.280 TRAIN-Partien) sind **keine automatisch beförderte KI**.
+
+**Entscheidung:** Die 100/55/40/33/28-%-Staffelung erzielt gemessene DEF-Reduktion und reduziert fokussiert reine Wächter, ohne andere Rollen immer vollständig zu schützen. **Noch nicht produktiv übernehmen:** Im echten Turnier sind Kartenzugang, Fortification, KI-Kartenwahl, Häufigkeit von zwei bis fünf Wächtern sowie langfristiger H2H-Effekt gesondert abzunehmen. Mehr unabhängige Matchup-/Turnier-Szenarien statt gleich viele KI-Profil-Replikate testen; **keine weitere pauschale Werteabsenkung**.
 
 ## C. KI-Forschungsstatus
 
