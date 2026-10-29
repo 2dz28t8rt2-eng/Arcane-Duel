@@ -289,8 +289,6 @@
  effectiveAttack=function(g,a,d){
   let atk=oldEffective(g,a,d);
   if(isEssenceDuel(g)){
-   if(!a?.fusion&&g.players[g.active].field.some(c=>c&&c!==a&&CARDS[c.id]?.role==='support'&&c.mode==='def'))
-    atk+=Math.min(160,25+dataOf(a).level*8);
    if(a?.id===essence().chosen&&CARDS[a.id]?.essenceSchool==='predator'&&a.essenceCombat?.doubleChoice===2)
     atk=Math.floor(atk*.7);
   }
