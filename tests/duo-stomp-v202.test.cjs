@@ -99,6 +99,22 @@ test('Duo splash against a destroyed Guardian or Soul cannot counter',()=>{
   assert.equal(after.teams[0].lp,g.teams[0].lp,role);
  }
 });
+test('Duo normal DEF counters also require surviving the attack and use 35% of ATK',()=>{
+ const survivor=room();shooter(survivor,3);
+ foe(survivor,1,3,{atk:600,def:3000,role:'guardian'});
+ const result=move(survivor,0,{type:'attack',slot:0,targetSeat:1,targetSlot:3});
+ assert.ok(result.players[1].field[3]&&result.players[1].field[3].def>0);
+ assert.equal(survivor.teams[0].lp-result.teams[0].lp,210);
+ const lethal=room();shooter(lethal,3);
+ foe(lethal,1,3,{atk:600,def:200,role:'guardian'});
+ const after=move(lethal,0,{type:'attack',slot:0,targetSeat:1,targetSlot:3});
+ assert.equal(after.players[1].field[3],null);
+ assert.equal(lethal.teams[0].lp-after.teams[0].lp,0);
+ const immune=room();shooter(immune,3);
+ foe(immune,1,3,{atk:600,def:2000,role:'soul',guardLeft:1});
+ const shielded=move(immune,0,{type:'attack',slot:0,targetSeat:1,targetSlot:3});
+ assert.equal(immune.teams[0].lp-shielded.teams[0].lp,0);
+});
 test('old room fusions default to no splash and normal attack costs one 3% hit',()=>{
  const g=room();g.players[0].field[0]=creature(9,
   {atk:1000,def:1200,fusion:true,materialsUsed:undefined,stompBonusPP:undefined});
