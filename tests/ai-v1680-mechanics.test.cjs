@@ -56,4 +56,6 @@ for(const m of MODES){
   activeRaidFusion:drain?135:112,activeRaidNormal:112,
   predatorPierce:Math.round(pierce*100)}));
 }
-assert.equal(mode(),process.env.ARCANE_RESEARCH_BALANCE_V168);
+if(process.env.ARCANE_RESEARCH_BALANCE_V168)
+ assert.equal(mode(),process.env.ARCANE_RESEARCH_BALANCE_V168);
+else assert.throws(()=>mode(),/requires explicit balanced research mode/);
