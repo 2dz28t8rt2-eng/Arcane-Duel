@@ -39,7 +39,7 @@
     if(text!==undefined)result.textContent=text;
     return result;
   }
-  function enhance({game,seat,roomId,dock,busy=false,syncError=''}={}){
+  function enhance({game,seat,roomId,dock,send,busy=false,syncError=''}={}){
     const helper=document.getElementById('ad188-fusion-guide');
     if(!helper)return;
     helper.hidden=true;helper.replaceChildren();
@@ -56,10 +56,11 @@
     const optionByKey=new Map([...select.options].map(o=>[o.value,o]));
     const scope=(roomId||game.roomId||'duo')+':'+seat+':'+(player.ownTurns??game.round);
     const previous=saved.get(scope);
+    let stageMode='fusion',keepKey=null;
     if(previous?.length){
       for(const entry of previous){
         const option=optionByKey.get(entry.key);
-        if(option&&entry.id!==null&&entry.id===materialIdentity(player,entry.key))option.selected=true;
+        if(option&&entry.id!==null&&entry.id===materialIdentity(player,entry.key)){option.selected=true;select.append(option);}
       }
       // The original on-change callback recalculates every legal template and slot.
       select.dispatchEvent(new Event('change',{bubbles:true}));
@@ -75,7 +76,7 @@
       'Ein zweiter Klick entfernt die Karte wieder.');
     fold.parentNode.insertBefore(instruction,fold);
     const selectionBox=element('div','ad188-selected-materials');
-    fold.parentNode.insertBefore(selectionBox,fold);
+    // The selected cards are displayed inside the shared summon workspace.
     const sparks=[...optionByKey.keys()].filter(key=>key.startsWith('charge:'));
     const sparkBox=element('div','ad188-spark-options');
     if(sparks.length){
@@ -92,7 +93,22 @@
     const confirm=element('button','ad188-confirm','✦ Jetzt fusionieren');confirm.type='button';
     const details=element('button','ad188-details','Vorlage / Feld ändern');details.type='button';
     const clear=element('button','ad188-clear','Auswahl leeren');clear.type='button';
-    actions.append(confirm,details,clear);helper.append(heading,message,notice,actions);
+    const stageModes=element('div','ad207-duo-stage-modes');
+    const fusionMode=element('button','ad207-mode-fusion','✧ Fusionieren');fusionMode.type='button';
+    const discardMode=element('button','ad207-mode-discard','↘ Wegwerfen');discardMode.type='button';
+    const discardHelp=element('p','ad207-duo-discard-help','Rechtsklick: eine Handkarte zum Behalten auswählen.');
+    const discardSlot=element('select','ad207-discard-zone');
+    discardSlot.setAttribute('aria-label','Monsterzone nach dem Wegwerfen');
+    for(const [i,c] of player.field.entries()){
+      const option=element('option','', 'Zone '+(i+1)+(c?' · '+(catalog?.[c.id]?.name||'Monster')+' ersetzen':' · frei'),discardSlot);
+      option.value=String(i);
+    }
+    const empty=player.field.findIndex(c=>!c);discardSlot.value=String(empty<0?0:empty);
+    const discardCommit=element('button','ad207-discard-commit','Nur markierte Karte behalten und beschwören');
+    discardCommit.type='button';
+    stageModes.append(fusionMode,discardMode);
+    actions.append(confirm,discardSlot,discardCommit,details,clear);
+    helper.append(heading,message,notice,stageModes,selectionBox,discardHelp,actions);
 
     const attackGuide=document.getElementById('ad187-attack-guide');
     let attackGuideWasVisible=false;
@@ -120,11 +136,21 @@
     function paint(){
       const keys=selectedKeys(select),count=keys.length,active=fusionPanel.open;
       selectionBox.replaceChildren();
-      for(const key of keys){
+      for(const [index,key] of keys.entries()){
         const option=optionByKey.get(key);if(!option)continue;
-        const chip=element('button','ad188-chip',option.textContent+' ×');chip.type='button';
-        chip.setAttribute('aria-label','Material entfernen: '+option.textContent);
-        chip.addEventListener('click',()=>toggle(key));selectionBox.append(chip);
+        const chip=element('button','ad188-chip'+(stageMode==='discard'&&keepKey===key?' ad207-keep':''),(index+1)+' · '+option.textContent+' ×');
+        chip.type='button';chip.setAttribute('aria-label','Material entfernen: '+option.textContent);
+        chip.title=stageMode==='discard'?'Rechtsklick: Diese Handkarte behalten':'Rechtsklick: Karte ans Ende der Fusionsreihenfolge';
+        chip.addEventListener('click',()=>toggle(key));
+        chip.addEventListener('contextmenu',event=>{
+          event.preventDefault();event.stopPropagation();
+          if(stageMode==='discard'){
+            if(!key.startsWith('hand:')){notice.textContent='Im Wegwerfen-Modus sind nur Handkarten zulässig.';return;}
+            keepKey=key;paint();return;
+          }
+          const selected=optionByKey.get(key);if(selected){select.append(selected);select.dispatchEvent(new Event('change',{bubbles:true}));}
+        });
+        selectionBox.append(chip);
       }
       if(!keys.length)selectionBox.append(element('span','ad188-empty','Noch keine Materialien gewählt.'));
       for(const [key,{cell,option,original}] of cellEntries){
@@ -147,7 +173,7 @@
         button.addEventListener('click',()=>toggle(key));sparkBox.append(button);
       }
       helper.hidden=!active;
-      heading.textContent='✧ Fusion vorbereiten · '+count+'/5 Materialien';
+      heading.textContent='✧ Beschwörungszone · '+count+'/5 Karten';
       const ready=count>=2&&!commit.disabled;
       const templateText=template?.selectedOptions?.[0]?.textContent||'–';
       const slotText=resultSlot?.selectedOptions?.[0]?.textContent||'–';
@@ -155,7 +181,21 @@
         ' aus der Hand oder deinem Spielfeld.':ready?
         (hint?.textContent||'Fusion möglich')+' · '+templateText+' → '+slotText:
         (hint?.textContent||'Diese Kombination ist noch nicht möglich.');
-      confirm.disabled=!ready;
+      confirm.disabled=!ready||stageMode==='discard';
+      const handOnly=keys.length>=2&&keys.length<=5&&keys.every(x=>x.startsWith('hand:'));
+      if(keepKey&&!keys.includes(keepKey))keepKey=null;
+      if(stageMode==='discard'&&!keepKey&&handOnly)keepKey=keys[0];
+      discardHelp.hidden=stageMode!=='discard';
+      discardSlot.hidden=stageMode!=='discard';
+      discardCommit.hidden=stageMode!=='discard';
+      discardCommit.disabled=!handOnly||!keepKey||!Number.isInteger(Number(discardSlot.value))||
+       typeof send!=='function'||busy||!!syncError;
+      fusionMode.classList.toggle('selected',stageMode==='fusion');
+      discardMode.classList.toggle('selected',stageMode==='discard');
+      if(stageMode==='discard')message.textContent=handOnly?
+       'Rechtsklick bestimmt die zu behaltende Karte. Die übrigen '+(keys.length-1)+
+       ' Handkarten gehen erst bei Bestätigung auf den Friedhof.':
+       'Wegwerfen benötigt 2–5 ausgewählte Handkarten; Feld- und Geisterkarten sind nicht erlaubt.';
       clear.disabled=!count;
       if(active&&attackGuide&&!attackGuide.hidden){
         attackGuide.hidden=true;attackGuideWasVisible=true;
@@ -177,12 +217,25 @@
     }
     select.addEventListener('change',()=>{remember(scope,select,player);paint();});
     fusionPanel.addEventListener('toggle',paint);
-    confirm.addEventListener('click',()=>{if(!confirm.disabled&&!commit.disabled)commit.click();});
+    fusionMode.addEventListener('click',()=>{stageMode='fusion';paint();});
+    discardMode.addEventListener('click',()=>{stageMode='discard';paint();});
+    discardCommit.addEventListener('click',()=>{
+      const keys=selectedKeys(select);
+      if(stageMode!=='discard'||discardCommit.disabled||!keys.every(k=>k.startsWith('hand:'))||
+         !keepKey||!keys.includes(keepKey)||typeof send!=='function')return;
+      const slot=Number(discardSlot.value),handIndex=Number(keepKey.split(':')[1]);
+      const occupied=!!player.field[slot];
+      if(occupied&&!window.confirm('Monster in Zone '+(slot+1)+' wirklich ersetzen?'))return;
+      send({type:occupied?'replace':'summon',slot,handIndex,
+       discardIndices:keys.filter(key=>key!==keepKey).map(key=>Number(key.split(':')[1]))});
+    });
+    confirm.addEventListener('click',()=>{if(stageMode==='fusion'&&!confirm.disabled&&!commit.disabled)commit.click();});
     details.addEventListener('click',()=>{
       fusionPanel.open=true;
       native?.scrollIntoView?.({behavior:'smooth',block:'nearest'});
     });
-    clear.addEventListener('click',()=>{notice.textContent='';setKeys([]);});
+    clear.textContent='✕ Alles abwählen';
+    clear.addEventListener('click',()=>{notice.textContent='';keepKey=null;stageMode='fusion';setKeys([]);});
     if(!previous)remember(scope,select,player);
     paint();
   }
