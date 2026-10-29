@@ -121,31 +121,30 @@
    return {id:game.id,turn:game.turn,active:game.active,log:[...(game.log||[])],
     players:game.players.map(p=>({hp:p.hp??p.lp??0,
      hand:(p.hand||[]).length,
-     field:(p.field||[]).map(c=>c?{uid:c.uid,atk:c.atk,def:c.def,leader:!!c.predatorLeader}:null)}))};
+     field:(p.field||[]).map(c=>c?{uid:c.uid,atk:c.card?.atk??c.atk??0,def:c.card?.def??c.def??0,leader:!!c.predatorLeader}:null)}))};
   }catch{return null;}
  }
  function soloTick(){
   const now=snapshot();if(!now){lastSnapshot=null;return;}
   const old=lastSnapshot;lastSnapshot=now;
   if(!old||old.id!==now.id)return;
-  let decayed=0,buffed=false,summoned=false;
+  let decayed=0,buffed=false;
   for(let side=0;side<2;side++){
    const a=old.players[side],b=now.players[side];
    const oldCards=new Map(a.field.filter(Boolean).map(c=>[c.uid,c]));
    const newCards=new Map(b.field.filter(Boolean).map(c=>[c.uid,c]));
    for(const [id,card] of newCards){
-    if(!oldCards.has(id))summoned=true;
-    else{const before=oldCards.get(id);if(card.atk<before.atk||card.def<before.def)decayed++;
+    if(oldCards.has(id)){const before=oldCards.get(id);if(card.atk<before.atk||card.def<before.def)decayed++;
      if(card.atk>before.atk||card.def>before.def)buffed=true;}
    }
-   for(const id of oldCards.keys())if(!newCards.has(id))destroyed=true;
   }
-  const inFusion=!!document.querySelector('.ritual-overlay,.duo-cinema170');
-  // Draw, damage, and destruction are synchronized at the corresponding
-  // animation rather than observed late through the 260 ms polling loop.
-  if(!inFusion&&summoned&&old.turn!==now.turn)play('summon');
+  // Draw, summon, damage and destruction are emitted from the corresponding
+  // animation/commit callback, never from delayed snapshot polling.
   // A whole turn's decay is one global cue, not one per affected monster.
-  const newLogs=(now.log||[]).slice((old.log||[]).length);
+  // Game log is newest-first (unshift), not append-only. Compare its head.
+  const oldHead=old.log?.[0];
+  const oldAt=oldHead==null?-1:now.log.indexOf(oldHead);
+  const newLogs=oldAt>=0?now.log.slice(0,oldAt):[];
   const turnDecay=old.turn!==now.turn;
   const decayLogged=newLogs.some(line=>/zerfall|verwitter|verfall|decay/i.test(line));
   if((turnDecay&&decayed)||decayLogged){
