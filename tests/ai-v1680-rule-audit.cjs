@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const {MODES,mode}=require('./helpers/research-role-balance-v168.cjs');
 const {boot}=require('./helpers/game-runtime.cjs');
 const m=mode(),t=boot({seed:16800042});
-assert.equal(MODES.length,5);
+assert.equal(MODES.length,6);
 const rules=t.run('({n:CARDS.length,bond:typeof window.ArcaneEssenceCombat?.soulBonds,raid:typeof window.ArcaneEssenceCombat?.researchSoulAction,liveRpg:!!createGame({mode:"pve",opponentId:1}).essenceRules})');
 assert.ok(rules.n>50&&rules.liveRpg);assert.equal(rules.bond,'function');
 assert.equal(rules.raid,'function');
