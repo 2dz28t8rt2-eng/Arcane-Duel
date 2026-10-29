@@ -10,10 +10,10 @@
 .ad203-pack-pulse.ad203-pack-loss{color:#ffeaed;background:#8f3447e8;border-color:#ff9faa}
 @keyframes ad203-pack-float{0%{opacity:0;transform:translate(-50%,0) scale(.8)}13%,74%{opacity:1}100%{opacity:0;transform:translate(-50%,-60px) scale(1.05)}}
 #duelScreen #largeCardPreview>.hand-card{position:relative}
-#duelScreen #largeCardPreview .ad203-preview-leader{position:absolute;left:4px;top:42%;z-index:30;
+#duelScreen #largeCardPreview .ad203-preview-leader{position:absolute;left:50%;top:auto;bottom:41px;z-index:30;
  padding:6px 8px;background:#3c2715f2;border:1px solid #edc36b;border-radius:8px;
  color:#ffe6a3;font:900 11px/1.15 Segoe UI,sans-serif;box-shadow:0 0 16px #e5bd5b77;
- pointer-events:none;transform:rotate(-6deg)}
+ pointer-events:none;transform:translateX(-50%) rotate(-3deg);white-space:nowrap}
 #duelScreen #largeCardPreview .ad203-live-inspector{max-width:280px;width:100%;padding:9px 10px;
  border:1px solid #8aaf8b;background:#152f29;color:#ddffe8;border-radius:8px;
  font-size:12px;line-height:1.6;text-align:center}
