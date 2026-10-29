@@ -120,7 +120,7 @@
   const particleTask=motes(overlay,role).catch(()=>null);
   let stopCalcLoop=null;
   const fusionAudio=window.ArcaneSfx208?.play?.('orbit')||null;
-  else playSound('summon');
+  if(!window.ArcaneSfx208)playSound('summon');
   try{
    // 1. Material orbit and actual fusion merge: there is no popup yet.
    await phases.run('Materialrotation',async()=>{
