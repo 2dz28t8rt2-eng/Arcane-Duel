@@ -118,6 +118,7 @@
    announcement.textContent=victory?'Sieg':'Niederlage';
    announcement.setAttribute('role','status');
    document.body.append(announcement);
+   window.ArcaneSfx208?.result?.(victory?'win':'lose');
    await delay(reduce()?300:1000);
    if(game!==g||uiMode!=='duel'){announcement.remove();document.body.classList.remove('ad197-result-hold');return;}
    const overlay=id('overlay');
