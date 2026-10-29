@@ -9,7 +9,8 @@
 .ad202-secondary.ad202-halo{stroke-width:17}
 .ad202-secondary.ad202-core{stroke-width:4}
 .ad202-firing .ad202-primary{opacity:1;animation:ad202-lightning .28s cubic-bezier(.12,.7,.2,1) forwards}
-.ad202-splitting .ad202-secondary{opacity:1;animation:ad202-lightning .24s cubic-bezier(.12,.7,.2,1) forwards}
+.ad202-splitting .ad202-secondary{animation:ad202-lightning .24s cubic-bezier(.12,.7,.2,1) both;
+ animation-delay:var(--ad202-branch-delay,0ms)}
 .ad202-burst{position:absolute;width:0;height:0;transform:translate(-50%,-50%);opacity:0;
  filter:drop-shadow(0 0 15px var(--ad202-color))}
 .ad202-burst::before{content:'';position:absolute;left:50%;top:50%;border-radius:100%;
@@ -21,10 +22,16 @@
  background:var(--ad202-light);box-shadow:0 0 6px var(--ad202-color);opacity:0}
 .ad202-burst strong{position:absolute;left:14px;top:-36px;color:white;font-size:13px;
  white-space:nowrap;text-shadow:0 0 10px var(--ad202-color),0 2px 3px #070319}
-.ad202-splitting .ad202-burst{opacity:1;animation:ad202-flash .4s ease-out forwards}
-.ad202-splitting .ad202-burst i{animation:ad202-spark .38s ease-out var(--delay) forwards}
+.ad202-splitting .ad202-burst{animation:ad202-flash .4s ease-out both}
+/* Each splash burst waits for its own 240ms ray to reach the destination. */
+.ad202-splitting .ad202-burst-splash{
+ animation-delay:calc(240ms + var(--ad202-branch-delay,0ms))}
+.ad202-splitting .ad202-burst i{animation:ad202-spark .38s ease-out var(--delay) both}
+.ad202-splitting .ad202-burst-splash i{
+ animation-delay:calc(240ms + var(--ad202-branch-delay,0ms) + var(--delay,0ms))}
 .ad202-shake{animation:ad202-board-shake .17s ease-in-out 2}
-@keyframes ad202-lightning{0%{stroke-dashoffset:100}100%{stroke-dashoffset:0}}
+@keyframes ad202-lightning{0%{stroke-dashoffset:100;opacity:0}15%{opacity:1}
+ 100%{stroke-dashoffset:0;opacity:1}}
 @keyframes ad202-flash{0%{opacity:0}23%{opacity:1}100%{opacity:0}}
 @keyframes ad202-spark{0%{opacity:1;transform:rotate(var(--angle)) translateY(0) scale(1)}
  100%{opacity:0;transform:rotate(var(--angle)) translateY(var(--distance)) scale(.3)}}

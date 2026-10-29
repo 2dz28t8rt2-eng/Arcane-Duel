@@ -61,11 +61,11 @@
   ATK-Duell mit gewöhnlichem LP-Differenzschaden.</p>
   <p>Ein <b>Wächter oder Seelenzehrer in DEF</b> reduziert auch Nebenschaden
   um <b>35 %</b>. Vor der Grund-DEF werden vorhandene Verdichtungs- und
-  Seelenschichten aufgebraucht. Ein solcher Verteidiger kann selbst nach
-  seiner Zerstörung noch einen Gegenschlag auslösen: Beim Nebentreffer beträgt
-  dieser nur <b>40 % des gewöhnlichen Gegenschlags</b>, also rechnerisch
-  20 % seiner aktuellen ATK statt der normalen 50 %. Vollständig geschützte
-  Ziele werden nicht zusätzlich verletzt oder zum Gegenangriff aktiviert.</p>
+  Seelenschichten aufgebraucht. Nur ein <b>überlebender, nicht immuner</b>
+  Verteidiger darf einen Gegenschlag auslösen. Beim Nebentreffer beträgt
+  dieser <b>40 % des gewöhnlichen 35-%-ATK-Gegenschlags</b>, also insgesamt
+  <b>14 % der aktuellen ATK</b> (zweimal abgerundet). Ein zerstörtes
+  oder vollständig geschütztes Ziel löst keinen Gegenschlag aus.</p>
 
   <h3>Die Kehrseite: 3 % ATK UND DEF pro getroffenem Ziel</h3>
   <p>Mit dem neuen System wurde im Einzelspieler-PvE der frühere feste

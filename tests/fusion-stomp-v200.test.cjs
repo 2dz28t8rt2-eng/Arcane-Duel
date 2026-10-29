@@ -17,7 +17,7 @@ function run(source){const b=boot({seed:200127});return b.run('(()=>{'+BASE+sour
 test('loaded after Predator, without overwriting regular impact effects',()=>{
  const b=boot();const files=b.scripts;
  assert.ok(files.indexOf('assets/fusion-stomp-v200.js')>files.indexOf('assets/predator-pack-v198.js'));
- assert.equal(b.run('window.ArcaneFusionStomp.version'),'20.0');
+ assert.equal(b.run('window.ArcaneFusionStomp.version'),'20.3');
 });
 test('five-material Stomp distributes 100/50/50/30%, destroys unique ATK targets and costs both stats',()=>{
  const r=run(`const a=card(sample.id,0,0,1000,1200,'atk',5);
@@ -60,13 +60,32 @@ test('AI side flips right/left from its own viewpoint',()=>{
   const x=attack(g,0,2);return {hit:x.stomp.hits.map(h=>h.index),fatigue:a.attackFatigue};`);
  assert.deepEqual(r.hit,[1]);assert.equal(r.fatigue,60);
 });
-test('collateral Guardian in DEF sends 40%-strength counter to player LP',()=>{
+test('surviving collateral Guardian in DEF counters for 40% of the current 35%-ATK rule',()=>{
  const r=run(`const a=card(sample.id,0,0,1000,1200,'atk',3);
   card(ordinary.id,1,2,100,400);const d=card(guardian.id,1,3,600,2500,'def');
   const x=attack(g,0,2);return {hp:g.players[0].lp,def:d.card.def,
    counter:x.stomp.hits[0].counter,fatigue:a.attackFatigue};`);
- assert.equal(r.counter,120);assert.equal(r.hp,9880);
+ assert.equal(r.counter,84);assert.equal(r.hp,9916); // floor(floor(600 × 35%) × 40%)
  assert.equal(r.def,2045);assert.equal(r.fatigue,60);
+});
+test('Stomp cannot counter after collateral defender destruction, for Guardian or Soul',()=>{
+ for(const role of ['guardian','soul']){
+  const r=run(`const a=card(sample.id,0,0,1000,1200,'atk',3);
+   card(ordinary.id,1,2,100,400);
+   const id=CARDS.find(c=>c.role===${JSON.stringify(role)}&&!c.fusionOnly&&!c.essenceMonster).id;
+   const d=card(id,1,3,600,300,'def');
+   const out=attack(g,0,2);const h=out.stomp.hits[0];
+   return {destroyed:h.destroyed,counter:h.counter,lp:g.players[0].lp,
+    field:g.players[1].field[3]===null};`);
+  assert.deepEqual(r,{destroyed:true,counter:0,lp:10000,field:true},role);
+ }
+});
+test('Stomp respects Last Bastion immunity: no collateral damage or counter',()=>{
+ const r=run(`card(sample.id,0,0,1000,1200,'atk',3);
+  card(ordinary.id,1,2,100,400);
+  const d=card(guardian.id,1,3,600,1000,'def');d.essenceCombat={guardLeft:2,soul:0,condensed:0};
+  const out=attack(g,0,2);return {counter:out.stomp.hits[0].counter,def:d.card.def,lp:g.players[0].lp};`);
+ assert.deepEqual(r,{counter:0,def:1000,lp:10000});
 });
 test('ordinary attacks also pay a single target cost in ATK and DEF',()=>{
  const r=run(`const a=card(ordinary.id,0,0,1000,1200);

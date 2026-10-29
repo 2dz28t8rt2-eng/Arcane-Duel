@@ -61,14 +61,14 @@
    (destroyed?'vernichtet':immune?'Letztes Bollwerk blockiert':
     '−'+defLost+' DEF'+(soulLost?' / −'+soulLost+' Seele':'')+'.'));
   let counter=0;
-  if(mode==='def'&&defender&&!immune){
-   // Normal DEF counters hit the mage's LP. Splash counters have only 40%
-   // of their previous strength, even when the monster is destroyed.
-   const base=Math.floor(Math.max(0,value.atk)*.5);
+  if(mode==='def'&&defender&&!immune&&!destroyed&&foe.field[index]===target){
+   // A surviving defender may counter at 35% of current ATK. Splash
+   // counter damage is only 40% of that normal counter, rounded down.
+   const base=Math.floor(Math.max(0,value.atk)*.35);
    counter=Math.floor(base*.4);
    if(counter>0){const actual=damagePlayer(g,owner,counter);counter=actual;
     g.damageDealt[foe.id]=(g.damageDealt[foe.id]||0)+actual;
-    logEvent(g,value.name+' · Stomp-Gegenschlag: '+actual+' LP (40 %).');
+    logEvent(g,value.name+' · Stomp-Gegenschlag: '+actual+' LP (40 % des 35%-Gegenschlags, nur bei Überleben).');
     window.ArcaneDefenderFX?.record(g,{type:'counter',owner:foe.id,uid:target.uid,index,element:value.element,amount:actual});}
   }
   return {index,uid:target.uid,pct,raw:hit,defLost,destroyed,counter};
@@ -189,16 +189,25 @@
   const w=window.innerWidth||1280,h=window.innerHeight||800;
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
   svg.setAttribute('viewBox','0 0 '+w+' '+h);svg.setAttribute('width',w);svg.setAttribute('height',h);
-  function beam(a,b,kind){const d='M '+a.x+' '+a.y+' L '+b.x+' '+b.y;
+  function beam(a,b,kind,branch=0){const d='M '+a.x+' '+a.y+' L '+b.x+' '+b.y;
    for(const layer of ['glow','core']){
     const path=document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('d',d);path.setAttribute('class','ad-stomp-ray '+kind+' ad-stomp-'+layer);
-    path.setAttribute('pathLength','100');svg.append(path);
+    path.setAttribute('pathLength','100');
+    if(kind==='ad-stomp-secondary')path.style.setProperty('--stomp-branch-delay',branch*55+'ms');
+    svg.append(path);
    }
   }
-  beam(from,to,'ad-stomp-primary');for(const t of targets)beam(to,t,'ad-stomp-secondary');
+  beam(from,to,'ad-stomp-primary');
+  targets.forEach((t,i)=>beam(to,t,'ad-stomp-secondary',i));
   const core=document.createElement('div');core.className='ad-stomp-impact';core.style.left=to.x+'px';core.style.top=to.y+'px';
-  const bursts=[core];for(const t of targets){const n=document.createElement('div');n.className='ad-stomp-impact ad-stomp-small';n.style.left=t.x+'px';n.style.top=t.y+'px';bursts.push(n);}
+  const bursts=[core];targets.forEach((t,i)=>{
+   const n=document.createElement('div');n.className='ad-stomp-impact ad-stomp-small';
+   n.style.left=t.x+'px';n.style.top=t.y+'px';
+   // Match each burst's start to the END of its corresponding 190ms ray.
+   n.style.setProperty('--stomp-branch-delay',i*55+'ms');
+   bursts.push(n);
+  });
   for(const burst of bursts){const amount=burst===core?30:16;
    for(let i=0;i<amount;i++){const spark=document.createElement('i');
     spark.style.setProperty('--stomp-angle',(i*137.508)+'deg');
@@ -242,11 +251,13 @@
   try{
    beamSound();host.classList.add('ad-stomp-firing');await delay(260);
    table?.classList.add('ad-stomp-shake');host.classList.add('ad-stomp-splitting');
-   await delay(360);host.classList.add('ad-stomp-afterglow');await delay(180);
+   // Three branches arrive at 190/245/300ms after the split begins.
+   // Keep the scene alive through the last collision, rings and sparks.
+   await delay(680);host.classList.add('ad-stomp-afterglow');await delay(200);
    return true;
   }finally{host.remove();table?.classList.remove('ad-stomp-shake');}
  }
- window.ArcaneAttackFX=Object.freeze({...originalFX,version:'20.0-stomp',
+ window.ArcaneAttackFX=Object.freeze({...originalFX,version:'20.3-stomp',
   play:async(g,owner,ai,di)=>await beamFX(g,owner,ai,di)||await originalFX?.play?.(g,owner,ai,di)||false});
- window.ArcaneFusionStomp=Object.freeze({version:'20.0',adjacent,percentByHit,fatigue,materialBoost});
+ window.ArcaneFusionStomp=Object.freeze({version:'20.3',adjacent,percentByHit,fatigue,materialBoost});
 })();

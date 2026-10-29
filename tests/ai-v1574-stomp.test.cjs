@@ -9,8 +9,8 @@ const data=c=>c.card;
 const role=c=>c.role||'predator';
 const card=(atk,def,mode='atk',kind='predator')=>({card:{atk,def},mode,role:kind});
 
-test('the new training policy requires the actual v20.0 Stomp runtime',()=>{
- assert.equal(stomp.version,'20.0');
+test('the new training policy accepts the current v20.3 Stomp runtime',()=>{
+ assert.equal(stomp.version,'20.3');
  assert.throws(()=>forecastStomp({monster:{materialsUsed:5},enemyField:[],
   dataOf:data,cardValue:value,role,stompEngine:{}}),/actual v20.0 Stomp runtime/);
  assert.equal(typeof enumerateLargeFusions,'function');

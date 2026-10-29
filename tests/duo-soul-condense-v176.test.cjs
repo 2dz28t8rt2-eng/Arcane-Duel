@@ -49,7 +49,7 @@ test('condensation shield loss immediately reduces the defender counterstrike',(
  g=move(g,0,{type:'attack',slot:0,targetSeat:1,targetSlot:0});
  const remaining=g.players[1].field[0].condensed;
  assert.ok(remaining>0&&remaining<200);
- assert.equal(g.teams[0].lp,INITIAL_LP-Math.floor((400+Math.floor(remaining*.5))*.5));
+ assert.equal(g.teams[0].lp,INITIAL_LP-Math.floor((400+Math.floor(remaining*.5))*.35));
  assert.equal(g.players[1].field[0].atk,400);
 });
 test('ATK-position enemy Soul Eater resists with its current temporary ATK',()=>{

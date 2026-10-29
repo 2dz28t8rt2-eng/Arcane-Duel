@@ -33,19 +33,22 @@
    rect.bottom<0||rect.top>innerHeight)return null;
   return {x:rect.left+rect.width/2,y:rect.top+rect.height/2};
  }
- function ray(svg,start,end,type){
+ function ray(svg,start,end,type,branch=0){
   for(const layer of ['halo','core']){
    const line=document.createElementNS(NS,'path');
    line.setAttribute('d','M '+start.x+' '+start.y+' L '+end.x+' '+end.y);
    line.setAttribute('class','ad202-ray ad202-'+type+' ad202-'+layer);
-   line.setAttribute('pathLength','100');svg.append(line);
+   line.setAttribute('pathLength','100');
+   if(type==='secondary')line.style.setProperty('--ad202-branch-delay',branch*45+'ms');
+   svg.append(line);
   }
  }
- function burst(host,where,primary,pct){
+ function burst(host,where,primary,pct,branch=0){
   const p=point(where);if(!p)return;
   const el=document.createElement('div');el.className='ad202-burst'+
    (primary?' ad202-burst-primary':' ad202-burst-splash');
   el.style.left=p.x+'px';el.style.top=p.y+'px';
+  if(!primary)el.style.setProperty('--ad202-branch-delay',branch*45+'ms');
   for(let i=0;i<(primary?28:13);i++){
    const particle=document.createElement('i');
    particle.style.setProperty('--angle',(i*137.508)+'deg');
@@ -69,10 +72,10 @@
   svg.setAttribute('viewBox','0 0 '+innerWidth+' '+innerHeight);
   svg.setAttribute('width',String(innerWidth));svg.setAttribute('height',String(innerHeight));
   ray(svg,start,primary,'primary');
-  for(const hit of event.hits){const secondary=point(hit);
-   if(secondary)ray(svg,primary,secondary,'secondary');}
+  event.hits.forEach((hit,i)=>{const secondary=point(hit);
+   if(secondary)ray(svg,primary,secondary,'secondary',i);});
   stage.append(svg);burst(stage,event.primary,true);
-  for(const hit of event.hits)burst(stage,hit,false,hit.pct);
+  event.hits.forEach((hit,i)=>burst(stage,hit,false,hit.pct,i));
   document.body.append(stage);return true;
  }
  function onState(before,after){
@@ -90,8 +93,9 @@
   schedule(270,()=>stage.classList.add('ad202-splitting'));
   schedule(340,()=>document.getElementById('duoSeats')?.classList.add('ad202-shake'));
   schedule(510,()=>document.getElementById('duoSeats')?.classList.remove('ad202-shake'));
-  schedule(750,()=>{document.getElementById('duoSeats')?.classList.remove('ad202-shake');clear();});
+  // Preserve the last branch's arrival, ring and particle fade before cleanup.
+  schedule(1250,()=>{document.getElementById('duoSeats')?.classList.remove('ad202-shake');clear();});
   return event;
  }
- window.ArcaneDuoStompCinema202=Object.freeze({version:'20.2',inspect,onState,clear});
+ window.ArcaneDuoStompCinema202=Object.freeze({version:'20.3',inspect,onState,clear});
 })();

@@ -395,7 +395,7 @@ test('DEF attacks are persistent, armoured, layered and counterattack with both 
  assert.equal(defender.condensed,0);
  assert.equal(defender.soul,0);
  assert.equal(defender.def,160);
- assert.equal(after.teams[0].lp,INITIAL_LP-50-200); // lost soul + defender's 50% ATK
+ assert.equal(after.teams[0].lp,INITIAL_LP-50-140); // lost soul + 35% survivor counter
  assert.equal(after.players[0].field[0].atk,970); // attack fatigue
  assert.equal(after.players[0].field[0].used,true);
  assert.equal(state.players[1].field[0].def,1000,'Reducer must not mutate input');
@@ -406,7 +406,7 @@ test('Soul defender counters in DEF; Predator in DEF has no armor',()=>{
  state.players[1].field[0]=live(7,{atk:300,def:300,mode:'def'});
  state=move(state,0,{type:'attack',slot:0,targetSeat:1,targetSlot:0});
  assert.equal(state.players[1].field[0].def,117); // 200 * 1.02 swarm * 0.90 unbound armor = 183
- assert.equal(state.teams[0].lp,INITIAL_LP-150);
+ assert.equal(state.teams[0].lp,INITIAL_LP-105);
  let predator=setup();predator.round=2;
  predator.players[0].field[0]=live(0,{atk:200});
  predator.players[1].field[0]=live(4,{def:250,mode:'def'});
