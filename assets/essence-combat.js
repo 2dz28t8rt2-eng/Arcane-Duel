@@ -274,7 +274,10 @@
   if(percent&&(g?.mode==='pve'||g?.mode==='pvp')&&roleOf(a)==='predator'&&
    g.players[g.active]?.field?.includes(a)){
    const deployed=g.players[g.active].field.filter(c=>c&&roleOf(c)==='predator').length;
-   atk=Math.floor(atk*(1+Math.min(5,deployed)*percent));
+   const swarm=Math.min(5,deployed)*percent;
+   const developing=!a.fusion&&!a.predatorToken;
+   const growth=developing?predatorDevelopmentPct(a)/100:1;
+   atk=Math.floor(atk*(growth+swarm));
   }
   return atk;
  };
@@ -293,6 +296,7 @@
   const beforeEnemyLP=g.players[1].lp;
   let result;
   if(d?.mode==='def'){
+   const openingProtected=takeOpeningGuard(g,d);
    const s=statLayer(d),rawStrength=guardedFirst?Math.floor(effectiveAttack(g,a,d)*.5):effectiveAttack(g,a,d);
     // PvE only: guardian and soul roles dampen incoming HP damage.
     // Attackers still win via focused fire; no immunity and no free ATK counter buff.
@@ -317,6 +321,7 @@
    const baseLoss=Math.min(d.card?.def||0,remaining);
    if(d.card)d.card.def=Math.max(0,d.card.def-baseLoss);
    let destroyed=[],endDefense=d.card?.def===0;
+   if(endDefense&&openingProtected){d.card.def=1;endDefense=false;savedByOpeningGuard(g,d);}
    if(endDefense&&q.id===0&&activeSchool(g)==='defense'&&perkRank(buffTier(g))>=5&&!g.essenceGuardSpent&&isDefender(d)){
     g.essenceGuardSpent=true;d.card.def=1;s.guardLeft=2;s.guardGrantedTurn=g.turn;endDefense=false;
     logEvent(g,'Letztes Bollwerk: '+dataOf(d).name+' überlebt und ist für zwei weitere gegnerische Züge angriffsimmun.');
