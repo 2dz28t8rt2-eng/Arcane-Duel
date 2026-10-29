@@ -261,8 +261,8 @@
     return '<div class="ad120-lab"><div class="modal-kicker">TAKTIKLABOR</div><h2>Deine drei Decks im Vergleich</h2>'+
       '<p>Probiere deine Decks gegen dieselben Gegner aus. Hier kannst du gefahrlos vergleichen: Dein Spielstand bleibt unverändert, es gibt keine Kosten und keine Belohnungen.</p>'+
       '<div class="ad120-lab-controls"><label>Gegner<select id="ad120-lab-foe">'+available.map(o=>'<option value="'+o.id+'">'+esc(o.name)+'</option>').join('')+'</select></label>'+
-      '<label>Eigene KI-Strategie<select id="ad120-lab-policy"><option value="balanced">Ausgewogen</option><option value="offensive">Offensiv</option><option value="guardian">Defensiv</option><option value="economy">Ressourcenorientiert</option></select></label></div>'+
-      '<p class="ad120-lab-caption">Je Deck 5 gepaarte Probeduelle. Das ist ein schneller Vergleich, keine belastbare Langzeit-Balanceanalyse.</p>'+
+      '<label>Eigene KI-Strategie<select id="ad120-lab-policy"><option value="balanced">Ausgewogen</option><option value="offensive">Offensiv</option><option value="guardian">Defensiv</option><option value="economy">Vorausschauend (Karten &amp; Fusionen sparen)</option></select></label></div>'+
+      '<p class="ad120-lab-caption">Vorausschauend heißt: Die KI setzt Karten und Fusionen gezielt ein und versucht, gute Möglichkeiten für spätere Züge aufzuheben. Je Deck 5 gepaarte Probeduelle. Das ist ein schneller Vergleich, keine belastbare Langzeit-Balanceanalyse.</p>'+
       '<div id="ad120-lab-results" aria-live="polite"></div><div class="modal-actions">'+
       '<button class="btn primary" id="ad120-lab-run">5 Duelle je Deck testen</button><button class="btn" id="ad120-lab-close">Schließen</button></div></div>';
   }
