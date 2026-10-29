@@ -8,7 +8,8 @@ function healed(v,kind,level,def,maxDef){
  const code=transform(source,v);
  const reg=/const layer=statLayer\(ally\),[^\n]*?;\n     const before=ally\.card\.def;ally\.card\.def=Math\.min\(layer\.maxDef,ally\.card\.def\+amount\);/;
  const match=code.match(reg);assert.ok(match,'missing real Guardian heal statement');
- const ally={role:kind,card:{def}},guardian={level},statLayer:()=>({maxDef}),dataOf:g=>({level:g.level}),roleOf:c=>c.role;
+ const ally={role:kind,card:{def}},guardian={level};
+ const statLayer=()=>({maxDef}),dataOf=g=>({level:g.level}),roleOf=c=>c.role;
  const context={ally,guardian,statLayer,dataOf,roleOf,Math};
  vm.runInNewContext(match[0],context);
  return ally.card.def-def;
