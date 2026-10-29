@@ -59,7 +59,7 @@ test('Only DEF-preferred Seelenzehrer has healing trigger',()=>{
 test('Last Bastion attack immunity cannot repeatedly counterstrike',()=>{
  const code=fs.readFileSync(path.join(__dirname,'../assets/essence-combat.js'),'utf8');
  assert.match(code,/const immuneBefore=s\.guardLeft>0/);
- assert.match(code,/if\(isDefender\(d\)&&!immuneBefore\)/);
+ assert.match(code,/if\(isDefender\(d\)&&!immuneBefore&&!endDefense&&q\.field\[di\]===d\)/);
 });
 
 test('Essence companion never drains currency banked before the duel',()=>{
@@ -247,7 +247,7 @@ test('Verdichten boosts surviving Soul counterstrikes using remaining shield, wi
  assert.ok(g.attack(duel,0,0));
  const remaining=layer.condensed;
  assert.ok(remaining<150&&remaining>=0);
- assert.equal(before-duel.players[1].lp,Math.floor((baseAtk+Math.floor(remaining*.5))*.5));
+ assert.equal(before-duel.players[1].lp,Math.floor((baseAtk+Math.floor(remaining*.5))*.35));
  assert.equal(c.card.atk,baseAtk,'Permanent stats are never modified by condense');
 });
 
@@ -267,7 +267,7 @@ test('Unbound Guardians absorb 20 percent of PvE DEF-HP damage but do not become
  assert.equal(guard.card.def,1000-Math.floor(Math.floor(800*(.90+.02))*.90),
   'Fresh Predator begins at 90% ATK plus 2% Swarm and pierces 10pp of Guardian armor (10% remains without a linked Soul)');
  assert.equal(duel.players[0].field[0],guard,'Guardian survives first predator attack');
- assert.ok(duel.players[1].shield<200||duel.players[1].lp<duel.maxLP,'Counterattack still deals 60 damage to shield or LP');
+ assert.ok(duel.players[1].shield<200||duel.players[1].lp<duel.maxLP,'Counterstrike deals 35% ATK to attacker shield or LP');
 });
 test('Rune Fusion trial loans diverse fusion levels without unlocking inventory',()=>{
  const {g}=start();
