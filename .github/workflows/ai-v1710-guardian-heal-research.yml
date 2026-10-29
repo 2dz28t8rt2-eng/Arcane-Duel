@@ -4,6 +4,7 @@ on:
     branches: [development]
     paths:
       - '.github/workflows/ai-v1710-guardian-heal-research.yml'
+      - 'tests/ai-v1710-guardian-heal.test.cjs'
   workflow_dispatch:
 permissions:
   contents: read
