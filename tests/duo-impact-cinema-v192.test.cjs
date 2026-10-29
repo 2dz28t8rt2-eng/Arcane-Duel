@@ -59,8 +59,8 @@ test('real DEF attack reports lost DEF/essence and the actual separate counterst
  const events=f.api.analyze(before,after,catalog);
  const hit=events.find(e=>e.kind==='hit'),counter=events.find(e=>e.kind==='counter');
  assert.ok(hit&&counter);
- assert.equal(hit.amount,825,'50 condensation + 100 soul + 675 DEF');
- assert.equal(hit.armor,25);
+ assert.equal(hit.amount,990,'50 condensation + 100 soul + 840 DEF after unbound armor');
+ assert.equal(hit.armor,10);
  assert.equal(hit.where.seat,1);
  assert.equal(hit.where.slot,0);
  assert.equal(counter.team,0,'counterstrike damages the attacking team');

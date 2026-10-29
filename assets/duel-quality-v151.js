@@ -62,7 +62,8 @@
     const armored=defenderRole==='guardian'||defenderRole==='soul';
     const pierce=attackerRole==='predator'?
       (g.strategicTraining?.symmetricSides?Math.max(0,Number(g.strategicTraining.predatorArmorPierce)||0):.10):0;
-    const mitigation=armored?Math.max(0,.35-pierce):0;
+    const linked=window.ArcaneEssenceCombat?.soulBonds?.(g,1-g.active)?.some(x=>x.guardian===d||x.soul===d);
+    const mitigation=armored?Math.max(0,(linked?.35:.20)-pierce):0;
     const strength=Math.floor(atk*(1-mitigation));
     const shield=d.essenceCombat||{};
     const immune=whole(shield.guardLeft)>0;

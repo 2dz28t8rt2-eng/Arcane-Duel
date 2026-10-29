@@ -39,9 +39,9 @@ test('live Predator ignores 10 percentage points of Guardian / Soul DEF armor; n
    equivalent=run(seat,role,'predator','research-ten');
   assert.equal(live.atk,736);
   assert.equal(bare.atk,736);
-  assert.equal(live.defLost,552,'25% remaining armor: 736 * .75');
-  assert.equal(bare.defLost,478,'Without penetration: 736 * .65 floor');
-  assert.equal(live.remaining,948);
+  assert.equal(live.defLost,662,'Unlinked 10% armor after Predator piercing');
+  assert.equal(bare.defLost,588,'Unlinked 20% armor without piercing');
+  assert.equal(live.remaining,838);
   assert.equal(live.opponentLP,0);
   assert.deepEqual(live.defLost,equivalent.defLost);
  }
@@ -58,7 +58,7 @@ test('Predator armor penetration is not granted to non-Predator attackers',()=>{
  for(const seat of [0,1])for(const role of ['guardian','soul']){
   const live=run(seat,role,'guardian'),research=run(seat,role,'guardian','research-zero');
   assert.equal(live.defLost,research.defLost);
-  assert.equal(live.defLost,520,'Non-Predator 800 * .65');
+  assert.equal(live.defLost,640,'Non-Predator 800 * .80');
  }
 });
 test('swarm + armor pierce stacks only once; same results on both seats',()=>{
@@ -67,7 +67,7 @@ test('swarm + armor pierce stacks only once; same results on both seats',()=>{
    const a=run(0,role,'predator','live',count);
    const b=run(1,role,'predator','live',count);
    assert.equal(a.atk,Math.floor(800*(.9+count*.02)));
-   assert.equal(a.defLost,Math.floor(a.atk*.75));
+   assert.equal(a.defLost,Math.floor(a.atk*.90));
    assert.equal(a.defLost,b.defLost);
   }
  }

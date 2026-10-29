@@ -2,6 +2,7 @@
 'use strict';
 (()=>{
   const $id=id=>document.getElementById(id);
+  const roleOf=c=>c?.roleOverride||CARDS[c?.id]?.role||'combatant';
   const seen=new WeakMap();
 
   function placeFusionHelp(){
