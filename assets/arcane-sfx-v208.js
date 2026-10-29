@@ -28,12 +28,33 @@
   return Math.min(1,Math.max(0,window.ArcaneSoundscape?.getSettings?.()?.volume??.35))/.35;
  };
  function schedule(fn,delay){const timer=setTimeout(()=>{timers.delete(timer);fn();},delay);timers.add(timer);return timer;}
+ // Fallback only for a not-yet-installed winning sample; the supplied file
+ // always takes priority when available.
+ function fallbackWin(){
+  if(!enabled())return;
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  try{
+   const ctx=new AC(),base=ctx.currentTime+.05;
+   [523.25,659.25,783.99,1046.5].forEach((hz,i)=>{
+    const t=base+i*.28,o=ctx.createOscillator(),v=ctx.createGain();
+    o.type='triangle';o.frequency.value=hz;
+    v.gain.setValueAtTime(.0001,t);
+    v.gain.exponentialRampToValueAtTime(Math.max(.0002,.11*vol()),t+.025);
+    v.gain.exponentialRampToValueAtTime(.0001,t+1.25);
+    o.connect(v);v.connect(ctx.destination);o.start(t);o.stop(t+1.26);
+   });
+   schedule(()=>ctx.close().catch(()=>{}),2500);
+  }catch{}
+ }
  function play(kind,{gain=1,stopAfter=0,startAt=0}={}){
-  const spec=sounds[kind];if(!spec||missing.has(kind)||!enabled()||typeof Audio!=='function')return null;
+  const spec=sounds[kind];if(!spec||!enabled()||typeof Audio!=='function')return null;
+  if(missing.has(kind)){if(kind==='win')fallbackWin();return null;}
   const a=new Audio(ROOT+spec[0]);a.preload='auto';
   a.volume=Math.min(1,Math.max(0,spec[1]*gain*vol()));
   a.addEventListener('ended',()=>live.delete(a),{once:true});
-  a.addEventListener('error',()=>{missing.add(kind);live.delete(a);},{once:true});
+  a.addEventListener('error',()=>{
+   missing.add(kind);live.delete(a);if(kind==='win')fallbackWin();
+  },{once:true});
   live.add(a);
   const duration=Math.min(spec[2],stopAfter||spec[2]);
   const begin=()=>{if(!enabled()){live.delete(a);return;}try{if(startAt)a.currentTime=startAt;}catch{}
