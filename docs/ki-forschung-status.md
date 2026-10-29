@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-29 · Branch `development` · Forschungsplanung v17.1
+**Aktualisiert:** 2026-10-29 · Branch `development` · Abschlussforschung v17.1
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -48,7 +48,11 @@ Die Werte können von `main` abweichen. Dieses Dokument macht keine Aussage dar�
 
 Die bestehende Heilformel `min(150, 25 + Level × 12)` und die effektive Begrenzung durch das verbleibende DEF-Maximum bleiben erhalten. Die Reduktion erfolgt **nur** bei Heilempfängern der Rolle Wächter. Die 75-%-Variante ist eine **Forschungshypothese**, keine bestätigte Spielbalance.
 
-**Neuer Trainingslauf:** [GitHub Actions #40933610167](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40933610167), geplant **69.120 gepaarte Duelle** (23.040 pro Variante), identische KI-Strategien, Seeds, Spielerpositionen und 15/90/100/120-Regeln. Erst nach Abschluss sind Balanceergebnisse und eventuelle Champion-Gates auswertbar.
+**v17.1 abgeschlossen:** [GitHub Actions #40933610167](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40933610167), **40/40 Jobs erfolgreich**, **69.120 Duelle** (23.040 je Variante). Im gezielten 16-Spiele-VALIDATION-Vergleich (Defender-Survival) gegen Predatoren: reine Wächter **8/16 → 9/16** (100 % → 85/75 % Heilung), gemischt **6/16 unverändert**. Im HOLDOUT gegen Predatoren: reine Wächter **11/16 unverändert**, gemischt **9/16 unverändert**. Gegen Fusionen: reine Wächter VALIDATION **9 → 8/16**, HOLDOUT **8 → 6/16**, gemischt **10/16 VALIDATION und 9/16 HOLDOUT unverändert**. Damit zeigt sich bislang **keine Verringerung der reinen Wächter-Dominanz gegen Predatoren**, aber ein günstigerer relativer Mix gegen Fusionen. Je Fokusvergleich nur 16 Duelle.
+
+**Generelle Defender-Survival-Ergebnisse (Siege von jeweils 512):** 100 % Wächterheilung **270/274/274** (TRAIN/VALIDATION/HOLDOUT), 85 % **274/275/274**, 75 % **273/275/271**. Die 75-%-Variante hat im HOLDOUT **3 Siege weniger** als 85 %, ohne bessere fokussierte Rollenresultate. Die paarweisen Stage-8-Veränderungen bestätigen wirksames, aber kleines Signal: von 2.304 Partien 100 %↔85 % **60** geänderte Sieger, 100 %↔75 % **74**, 85 %↔75 % **34**; bei 85 %↔75 % lagen 29 Änderungen im TRAIN, drei in VALIDATION und zwei im HOLDOUT.
+
+**Kein Champion-Aufstieg:** alle Kandidaten verfehlen die direkten H2H-Hürden und den Nachweis `mixedBeatsBothPure`. Eingefrorener Champion bleibt `l10-guarded-worst-reply`. Frische Modelle aus TRAIN-only je **1.280** Duellen (20/21/17 Kontextwerte). Kein automatischer Regel- oder KI-Import. **Forschungsempfehlung:** 85 % als vorsichtigeren Kandidaten offenhalten, 75 % nicht produktiv übernehmen; künftig tatsächliche Heilungsereignisse, Häufigkeit der Wächter-zu-Wächter-Regeneration, Seelenbund-Vorteile und mehr unabhängige Rollenduelle instrumentieren, statt vorzeitig erneut Werte zu verschieben.
 
 **Designziel:** Reine Wächter- und reine Seelenzehrer-Decks sollen gegen Predatoren verwundbar sein. Der **reale Wächter-/Seelenzehrer-Bund** soll strategischen Mehrwert haben; Predatoren sollen dagegen gefährlich, aber nicht automatisch überlegen sein. Keine pauschalen Stat-Buffs, nur um ein Zielverhältnis zu erzwingen.
 
