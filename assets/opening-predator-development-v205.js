@@ -5,7 +5,8 @@
 'use strict';
 (()=>{
  const isPredator=c=>(c?.roleOverride||CARDS[c?.id]?.role)==='predator';
- const eligible=c=>!!c&&isPredator(c)&&!c.fusion&&!c.predatorToken;
+ const eligible=c=>!!c&&isPredator(c)&&!c.fusion&&!c.predatorToken&&
+  !CARDS[c.id]?.essenceMonster;
  const asText=n=>String(Math.round(n*10)/10).replace('.',',');
  function breakdown(g,c,owner){
   if(!g||!c||!isPredator(c))return null;
