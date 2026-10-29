@@ -1290,7 +1290,20 @@
    const fate=handCard?.fate===true?handCard:null;
    assert(allowed(catalog,id)||fate&&definition(catalog,id)?.fateTemplate,
     'Karte ist nicht regulär beschwörbar.');
-   p.hand.splice(action.handIndex,1);
+   // A discard-stage summon keeps exactly one selected hand card and
+   // atomically sends every other selected material to the graveyard.
+   const discardIndices=action.discardIndices??[];
+   assert(Array.isArray(discardIndices)&&discardIndices.length<=4&&
+    new Set(discardIndices).size===discardIndices.length&&
+    discardIndices.every(i=>Number.isInteger(i)&&i>=0&&i<p.hand.length&&
+     i!==action.handIndex),'Ungültige Wegwerfen-Auswahl.');
+   const discarded=discardIndices.map(i=>p.hand[i]);
+   for(const index of [action.handIndex,...discardIndices].sort((a,b)=>b-a))
+    p.hand.splice(index,1);
+   if(discarded.length){
+    p.graveyard.push(...discarded.map(c=>typeof c==='number'?{id:c,from:'discard'}:{...c,from:'discard'}));
+    g.log.push(p.name+' behält ein Monster und wirft '+discarded.length+' Handkarten ab.');
+   }
    if(action.type==='replace'){
     const old=p.field[action.slot];
     p.graveyard.push(old);lv1Leave(g,p,old,catalog);
