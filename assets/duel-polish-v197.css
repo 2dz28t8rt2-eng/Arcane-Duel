@@ -27,7 +27,7 @@
 #duelScreen .ad182-quick-actions #ad197-switch:disabled{display:none}
 @media(min-width:761px) and (max-width:1180px){
  #duelScreen .ad182-inspector[open]{width:min(350px,100%);max-width:100%;margin-right:auto}
- #duelScreen .ad182-fusion-workspace[open] #summonStage .ad56-columns{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #duelScreen .ad182-fusion-workspace[open] #summonStage .ad56-columns{grid-template-columns:minmax(0,1fr)!important}
 }
 @media(max-width:760px){
  #duelScreen #largeCardPreview>.hand-card.tc-card{min-width:0!important}
@@ -67,3 +67,11 @@ body.ad197-result-hold #overlay,body.ad197-result-hold .ad-card-reward-scene{vis
 
 /* No ACE reward cards or stat panes can appear over the result title. */
 body:has(.ad197-outcome) :is(.ad-card-reward-scene,.ad120-unlock){visibility:hidden!important;pointer-events:none!important}
+
+/* A selected card needs the actual available column width, never a 115px slit. */
+#duelScreen #summonStage .ad56-selection{display:flex;flex-direction:column;min-width:0}
+#duelScreen #summonStage .ad56-stage-card{width:min(210px,100%)!important;max-width:100%!important;min-width:0!important;margin-inline:auto;align-self:center;justify-self:center}
+#duelScreen #summonStage .ad56-stage-card .hand-card{display:block;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
+#duelScreen #summonStage .ad56-stage-card .hand-card :is(.hand-stats,.hand-title,.hand-card-name){min-width:0;max-width:100%;box-sizing:border-box}
+#duelScreen #summonStage .ad56-stage-card .hand-card .hand-stats{display:grid;grid-template-columns:1fr auto 1fr;gap:3px}
+#duelScreen #summonStage .ad56-selection .ad56-hint{align-self:stretch;overflow-wrap:anywhere}
