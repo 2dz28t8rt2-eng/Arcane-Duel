@@ -1013,7 +1013,13 @@ const roleCounts=Object.fromEntries(REASSIGNABLE_ROLES.map(role=>[role,liveRoles
 for(const c of liveRoles.filter(c=>c.role==='support').sort((a,b)=>a.id-b.id)){
  const winner=[...REASSIGNABLE_ROLES].sort((a,b)=>roleCounts[a]-roleCounts[b]||REASSIGNABLE_ROLES.indexOf(a)-REASSIGNABLE_ROLES.indexOf(b))[0];
  c.role=winner;roleCounts[winner]++;
- if(winner==='soul')c.soulRank=Math.min(5,Math.max(1,Math.ceil(c.level/2)));
+ if(winner==='soul'){
+  c.soulRank=Math.min(5,Math.max(1,Math.ceil(c.level/2)));
+  // Former supporters retained offensive stat weights after the role swap.
+  // Rebalance without changing overall ATK+DEF budget or card identity.
+  const total=(c.atk||0)+(c.def||0);
+  if(total>0){c.atk=round10(total*.28);c.def=total-c.atk;}
+ }
 }
 // Normalize legacy per-card combat perks after ALL RPG templates and workshop stages
 // have been registered. General role abilities are deliberately unaffected.
