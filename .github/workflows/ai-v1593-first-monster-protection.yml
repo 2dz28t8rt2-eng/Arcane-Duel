@@ -26,7 +26,7 @@ jobs:
           node --check tests/ai-v1593-first-monster-protection.cjs
           node --check tests/ai-v1593-first-monster-protection-aggregate.cjs
           node --check tests/ai-v1584-initiative-windows.cjs
-          node --test tests/opening-shield-removal-v1593.test.cjs
+          node --test tests/opening-shield-removal-v1592.test.cjs
           node --test tests/ai-v1575-counterplay.test.cjs tests/ai-v1574-stomp.test.cjs tests/fusion-stomp-v200.test.cjs tests/essence-combat.test.cjs tests/predator-pack-v198.test.cjs
           node tests/helpers/game-runtime.cjs
       - name: Verify completed v15.92 and sealed TRAIN-only historical priors
