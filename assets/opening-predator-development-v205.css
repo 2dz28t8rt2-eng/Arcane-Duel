@@ -1,6 +1,6 @@
 /* Arcane Duel v20.5: unobtrusive Predator development feedback */
 .board-creature .ad205-first-guard{
- position:absolute;z-index:16;left:4px;top:5px;border:1px solid #b3d5ff;
+ position:absolute;z-index:16;left:auto;right:4px;top:5px;border:1px solid #b3d5ff;
  border-radius:5px;padding:2px 5px;color:#e6f3ff;
  background:rgba(21,58,103,.94);font-size:9px;font-weight:800;
  box-shadow:0 0 12px rgba(88,168,255,.42);pointer-events:none;
