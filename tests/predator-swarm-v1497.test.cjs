@@ -13,7 +13,7 @@ function probe(count,seat,percent=.02,override=false,attackRole='predator'){
  if(!pred||!guard)throw Error('Role cards not found');
  const a=newInstance(g,attackRole==='predator'?pred.id:guard.id,seat);
  a.card.atk=1000;a.mode='atk';
- if(override)a.roleOverride='predator';
+ if(override){a.roleOverride='predator';a.fusion=true;} // Actual role-inherited Predator Fusion, not a normal card
  const owner=g.players[seat];owner.field=[a,null,null,null,null];
  for(let i=1;i<count;i++){
   const add=newInstance(g,pred.id,seat);add.card.atk=1000;
