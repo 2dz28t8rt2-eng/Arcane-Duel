@@ -55,6 +55,9 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster
   // calculator and its dependent interactive tutorial are switched off.
   if(withoutFusionRework&&['assets/fusion-rework-v113.js','assets/fusion-tutorial-v113.js'].includes(file))continue;
   let code=source.get(file);
+  // v16.7 only: simulation-scoped mechanism variants. No production files change.
+  if(file==='assets/essence-combat.js'&&process.env.ARCANE_RESEARCH_BALANCE)
+   code=require('./research-role-balance-v167.cjs').transform(code,process.env.ARCANE_RESEARCH_BALANCE);
   if(withoutArmor&&file==='assets/essence-combat.js'){
    const needle='const mitigation=isDefender(d)?.35:0;';if(!code.includes(needle))throw Error('Armor control hook changed');
    code=code.replace(needle,'const mitigation=isDefender(d)?(q.id===0?0:.35):0;');
