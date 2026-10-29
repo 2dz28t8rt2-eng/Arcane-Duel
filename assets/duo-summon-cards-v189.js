@@ -29,7 +29,13 @@
     if(!panel||!summonPanel||!handSelect||!slotSelect||!commit)return;
 
     const handChoices=new Map(legal.hand.map(x=>[x.index,x]));
-    const freeSlots=new Set((game.players?.[seat]?.field||[]).map((_,i)=>i));
+    // Legacy offline fixtures expose only freeSlots; a live room exposes
+    // the full authoritative board, including occupied replacement zones.
+    const actualField=game.players?.[seat]?.field;
+    const allSlots=Array.isArray(actualField)&&actualField.length?
+      actualField.map((_,i)=>i):legal.freeSlots;
+    if(!allSlots?.length)return;
+    const freeSlots=new Set(allSlots);
     const handNodes=new Map(),slotNodes=new Map();
     const chosen={hand:null,slot:null};
     const scope=(game.roomId||'duo')+':'+(game.chapter||0)+':'+seat+':'+
