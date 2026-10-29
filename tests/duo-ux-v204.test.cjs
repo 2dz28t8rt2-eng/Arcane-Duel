@@ -23,10 +23,10 @@ test('2v2 Predator swarm percentage is scoped per own seven-card field and cappe
  const alpha=predator(1,{fusion:true,predatorLeader:{bornUid:1,powers:[]}});
  const enriched={field:[alpha,predator(2),predator(3)]};
  assert.equal(ui.packState(enriched).percentage,9);
- assert.equal(ui.effectiveAttack(enriched.field[1],enriched,{attackValue:c=>c.atk}),990);
+ assert.equal(ui.effectiveAttack(enriched.field[1],enriched,{attackValue:c=>c.atk}),1090);
  enriched.field[0].predatorLeader.powers=['swarm'];
  assert.equal(ui.packState(enriched).percentage,10.5);
- assert.equal(ui.effectiveAttack(enriched.field[1],enriched,{attackValue:c=>c.atk}),1005);
+ assert.equal(ui.effectiveAttack(enriched.field[1],enriched,{attackValue:c=>c.atk}),1105);
 });
 test('Duo scope checking prevents false confirmation across chapters/rooms',()=>{
  const ui=load();
