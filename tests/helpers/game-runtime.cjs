@@ -55,8 +55,10 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster
   // calculator and its dependent interactive tutorial are switched off.
   if(withoutFusionRework&&['assets/fusion-rework-v113.js','assets/fusion-tutorial-v113.js'].includes(file))continue;
   let code=source.get(file);
-  // Test-only independent rule overlays. Never injected into production pages.
-  if(file==='assets/essence-combat.js'&&process.env.ARCANE_RESEARCH_BALANCE_V168)
+  // Research-only balance, highest version wins. Never injected into production pages.
+  if(file==='assets/essence-combat.js'&&process.env.ARCANE_RESEARCH_BALANCE_V169)
+   code=require('./research-role-balance-v169.cjs').transform(code,process.env.ARCANE_RESEARCH_BALANCE_V169);
+  else if(file==='assets/essence-combat.js'&&process.env.ARCANE_RESEARCH_BALANCE_V168)
    code=require('./research-role-balance-v168.cjs').transform(code,process.env.ARCANE_RESEARCH_BALANCE_V168);
   else if(file==='assets/essence-combat.js'&&process.env.ARCANE_RESEARCH_BALANCE)
    code=require('./research-role-balance-v167.cjs').transform(code,process.env.ARCANE_RESEARCH_BALANCE);
