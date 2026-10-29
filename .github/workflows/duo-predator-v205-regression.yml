@@ -1,0 +1,34 @@
+name: Arcane Duel - v20.5 Duo Predator Development Parity
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'assets/duo-shared-rules-v160.js'
+      - 'supabase/functions/arcane-duo-v2/duo-rules.js'
+      - 'assets/duo-ux-v204.js'
+      - 'duo-campaign-v2.html'
+      - 'tests/duo-predator-development-v205.test.cjs'
+      - 'tests/duo-predator-pack-v198.test.cjs'
+      - 'tests/duo-ux-v204.test.cjs'
+      - '.github/workflows/duo-predator-v205-regression.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check client, server and card UI scripts
+        run: |
+          node --check assets/duo-shared-rules-v160.js
+          node --check supabase/functions/arcane-duo-v2/duo-rules.js
+          node --check assets/duo-ux-v204.js
+          cmp assets/duo-shared-rules-v160.js supabase/functions/arcane-duo-v2/duo-rules.js
+      - name: Full duo Predator and parity regressions
+        run: |
+          node --test tests/duo-predator-development-v205.test.cjs tests/duo-predator-pack-v198.test.cjs tests/duo-ux-v204.test.cjs tests/duo-single-parity-v201.test.cjs tests/duo-parity-v160.test.cjs
