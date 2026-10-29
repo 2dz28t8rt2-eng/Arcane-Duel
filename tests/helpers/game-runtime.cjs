@@ -73,6 +73,13 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster
     throw Error('Do not combine v17.1 and v17.2 healing overlays');
    code=require('./research-counterstrike-v172.cjs').transform(code,process.env.ARCANE_RESEARCH_COUNTERSTRIKE_V172);
   }
+  // v17.3 preferred experiment replaces (never stacks with) v17.1/17.2
+  // reduced-healing overlays; no production assets are touched.
+  if(file==='assets/essence-combat.js'&&process.env.ARCANE_RESEARCH_GUARDIAN_SCALE_V173){
+   if(process.env.ARCANE_RESEARCH_GUARDIAN_HEAL||process.env.ARCANE_RESEARCH_COUNTERSTRIKE_V172)
+    throw Error('v17.3 healing replaces earlier 85% and counterstrike ablation overlays');
+   code=require('./research-guardian-scale-v173.cjs').transform(code,process.env.ARCANE_RESEARCH_GUARDIAN_SCALE_V173);
+  }
   if(withoutArmor&&file==='assets/essence-combat.js'){
    const needle='const mitigation=isDefender(d)?.35:0;';if(!code.includes(needle))throw Error('Armor control hook changed');
    code=code.replace(needle,'const mitigation=isDefender(d)?(q.id===0?0:.35):0;');
