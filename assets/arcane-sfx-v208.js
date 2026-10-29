@@ -116,7 +116,7 @@
   // A whole turn's decay is one global cue, not one per affected monster.
   if(decayed){
    // One cue for global round decay; discrete debuffs have individual cues.
-   const count=old.turn!==now.turn?1:Math.min(3,decayed);
+   const count=old.turn!==now.turn?1:Math.min(5,decayed);
    for(let i=0;i<count;i++)schedule(()=>play('decay'),i*155);
   }
   if(buffed)play('powerup');
