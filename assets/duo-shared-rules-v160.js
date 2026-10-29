@@ -1590,8 +1590,11 @@
       definition(catalog,target.id).name+' · erzwungener Seelenverlust');
      removeIfEmpty(g,enemy,targetSlot,catalog,targetArea);
      if(!guarded)awardBond(g,enemy,armor);
-     if(target.mode==='def'&&defensive(target)&&!guarded)
-      score(g,enemy.team,Math.floor(attackValue(target)*.5),
+     // Same 35%-ATK survivor-only defender rule as the solo combat core.
+     // A killed or fully immune defender cannot retaliate.
+     if(target.mode==='def'&&defensive(target)&&!guarded&&
+        targetZone[targetSlot]===target&&target.def>0)
+      score(g,enemy.team,Math.floor(attackValue(target)*.35),
       definition(catalog,target.id).name+' · Gegenschlag');
      g.log.push(p.name+' greift '+enemy.name+' in DEF an: '+original+
       ' Trefferstärke, −'+condensedLost+' Verdichtung / −'+soulLost+
