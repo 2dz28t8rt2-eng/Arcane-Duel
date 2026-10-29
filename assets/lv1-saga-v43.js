@@ -91,7 +91,9 @@
   return {n:owned.length,total:ids.length,threshold:Math.ceil(ids.length/3)};
  }
  function forced(){
-  return playerLevel(profile)>=6||highestCleared(profile)>=5||fraction().n>=fraction().threshold;
+  // By the third tournament victory the quest giver must be discoverable;
+  // prior to that, ordinary encounters can still offer the quest early.
+  return playerLevel(profile)>=6||highestCleared(profile)>=3||fraction().n>=fraction().threshold;
  }
  function maybeOffer(g){
   const s=state();if(s.offered||s.stage>0||s.perk||g?.mode!=='pve'||g.surrendered||
