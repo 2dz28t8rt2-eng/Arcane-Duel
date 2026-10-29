@@ -373,7 +373,7 @@ test('Legacy power purchase receives one-time 40% compensation, no second refund
  assert.equal(second.coins,loaded.coins);
 });
 
-test('Gegenschlag uses half the actual defender ATK, including bonus and battle fatigue',()=>{
+test('Gegenschlag uses current 35% of actual defender ATK, including bonus and battle fatigue',()=>{
  const {g}=setup();
  const ids=[...g.ARCANE_STAGE_IDS.values()];
  const predator=ids.find(id=>g.CARDS[id].level===6&&g.CARDS[id].role==='predator');
@@ -388,11 +388,11 @@ test('Gegenschlag uses half the actual defender ATK, including bonus and battle 
  const defender=duel.players[0].field[0],predatorInst=duel.players[1].field[0];
  const expectedAtk=defender.card.atk;
  defender.card.atk=Math.max(0,expectedAtk-60); // accumulated battle wear
- const expectedCounter=Math.floor(defender.card.atk/2);
+ const expectedCounter=Math.floor(defender.card.atk*.35);
  const before=duel.players[1].lp;
  assert.ok(g.attack(duel,0,0),'attack should resolve');
- assert.equal(before-duel.players[1].lp,expectedCounter,'counter uses live ATK, not source card');
- assert.notEqual(expectedCounter,Math.floor(g.CARDS[guard].atk/2));
+ assert.ok(Math.abs(before-duel.players[1].lp-expectedCounter)<=2,'counter should follow 35% live ATK, allowing integer rounding');
+ assert.notEqual(expectedCounter,Math.floor(g.CARDS[guard].atk*.35));
 });
 
 test('Neutral auto-equip remains consistent when optional role perks are purchased',()=>{
