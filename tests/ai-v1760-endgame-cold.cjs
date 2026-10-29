@@ -1,8 +1,8 @@
 'use strict';
-if(process.env.ARCANE_RESEARCH_BALANCE_V169!=='predator15Triad90')throw Error('v17.3 must retain 15/90/100/120');
+if(process.env.ARCANE_RESEARCH_BALANCE_V169!=='predator15Triad90')throw Error('v17.6 must retain 15/90/100/120');
 // v20.7 rule regime break: no v20.6 duel-outcome labels used at evaluation.
 // The new learner is trained POST-run on fresh v20.7 TRAIN only.
-const fs=require('node:fs');const {mode}=require('./helpers/research-guardian-causal-v174.cjs');
+const fs=require('node:fs');const {mode}=require('./helpers/research-guardian-stats-v176.cjs');
 const balance=mode(),root='artifacts/v1760/'+balance;fs.mkdirSync(root,{recursive:true});
 const data={schema:'arcane-v1760-cold-start',sourceRun:0,sourceRules:'v20.7',
  balance,split:'train',ruleChangeReset:true,holdoutUsed:false,validationUsed:false,
