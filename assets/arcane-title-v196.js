@@ -9,6 +9,7 @@
  const skipKey='arcane-duel-title-skip-intro-v1';
  const nav=title.querySelector('.ad196-nav');
  const options=title.querySelector('#ad196-settings');
+ const credits=title.querySelector('#ad208-credits');
  const checkbox=title.querySelector('#ad196-music-enabled');
  const volume=title.querySelector('#ad196-volume');
  const volumeLabel=title.querySelector('#ad196-volume-label');
@@ -40,12 +41,19 @@
  }
  function syncResume(){resume.hidden=!saved();choose(0);}
  function openSettings(){
+  if(credits)credits.hidden=true;title.classList.remove('ad196-credits-open');
   syncSettings();options.hidden=false;title.classList.add('ad196-options-open');
   checkbox.focus({preventScroll:true});
  }
  function closeSettings(){
-  options.hidden=true;title.classList.remove('ad196-options-open');
+  options.hidden=true;if(credits)credits.hidden=true;title.classList.remove('ad196-options-open','ad196-credits-open');
   const selected=buttons()[selection];selected?.focus({preventScroll:true});
+ }
+ function openCredits(){
+  options.hidden=true;title.classList.remove('ad196-options-open');
+  if(!credits)return;
+  credits.hidden=false;credits.scrollTop=0;title.classList.add('ad196-credits-open');
+  credits.focus({preventScroll:true});
  }
  function hideThen(callback){
   if(closing)return;
@@ -69,6 +77,7 @@
  function action(type){
   if(!title.classList.contains('ad196-ready')||closing)return;
   if(type==='settings'){openSettings();return;}
+  if(type==='credits'){openCredits();return;}
   if(type==='back'){closeSettings();return;}
   if(type==='duo'){hideThen(()=>window.location.assign('duo-campaign-v2.html'));return;}
   if(type==='collection'){hideThen(()=>window.location.assign('collection-v3.html'));return;}
@@ -86,8 +95,8 @@
  function open({instant=false}={}){
   if(!title.hidden&&!closing)return;
   closing=false;title.hidden=false;title.classList.remove('ad196-exiting');
-  title.classList.remove('ad196-reveal','ad196-ready','ad196-options-open');
-  options.hidden=true;app.inert=true;
+  title.classList.remove('ad196-reveal','ad196-ready','ad196-options-open','ad196-credits-open');
+  options.hidden=true;if(credits)credits.hidden=true;app.inert=true;
   syncResume();audio()?.setScene?.('title');
   // Reflow is intentional: replay the reveal after the player returns to title.
   void title.offsetWidth;
@@ -108,7 +117,7 @@
  });
  document.addEventListener('keydown',event=>{
   if(title.hidden||closing||!title.classList.contains('ad196-ready'))return;
-  if(!options.hidden){
+  if(!options.hidden||(credits&&!credits.hidden)){
    if(event.key==='Escape'){event.preventDefault();closeSettings();}
    return;
   }
