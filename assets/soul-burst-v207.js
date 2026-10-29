@@ -29,6 +29,7 @@
    await sleep(305);
    const hit=document.createElement('div');hit.className='ad207-soul-hit';
    hit.style.left=b.x+'px';hit.style.top=b.y+'px';stage.append(hit);
+   window.ArcaneSfx208?.play?.('damage');
    for(let i=0;i<9;i++){const skull=document.createElement('span');skull.textContent=i%3?'☠':'✧';skull.style.setProperty('--angle',i*40+'deg');skull.className='ad207-soul-skull';hit.append(skull);}
    const popup=document.createElement('strong');popup.className='ad207-soul-damage';popup.textContent='SEELENSTOSS · −'+Math.max(0,damage)+' LP';
    popup.style.left=b.x+'px';popup.style.top=(b.y-48)+'px';stage.append(popup);
