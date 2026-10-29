@@ -121,10 +121,6 @@
      if(possible.length){
       const target=el('select','ad207-soul-target',undefined,box);
       for(const t of possible){const option=el('option','',t.name+' · Gegner '+t.seat+' / Zone '+(t.slot+1),target);option.value=t.seat+':'+t.slot;}
-      const raid=action('◇ Gezielter Seelenraub (250 %)', 'soulRaid',
-       used||card.raidCooldown>0);
-      raid.addEventListener('click',()=>{}); // Target is wired below through its own button.
-      raid.remove();
       const doRaid=el('button','ad207-soul-action','◇ Seelenraub auf Ziel',box);
       doRaid.type='button';doRaid.disabled=used||card.raidCooldown>0;
       doRaid.addEventListener('click',()=>{const [targetSeat,targetSlot]=target.value.split(':').map(Number);sendAction('soulRaid',{targetSeat,targetSlot});});
