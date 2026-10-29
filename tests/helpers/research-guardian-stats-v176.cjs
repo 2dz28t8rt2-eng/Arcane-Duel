@@ -22,7 +22,7 @@ function reweight(c,variant){
  if(!Number.isFinite(oldPool)||oldPool<160||beforeAtk<0||beforeDef<0)
   throw Error('Unusable Guardian template stat pool');
  const pool=round10(oldPool*SPECS[variant].budget);
- const floor=Math.min(80,Math.floor(pool/20)*10);
+ const floor=Math.min(80,beforeAtk,Math.floor(pool/20)*10);
  const targetAtk=Math.max(floor,Math.min(pool-floor,round10(pool*SPECS[variant].atkShare)));
  const atk=Math.min(beforeAtk,targetAtk),def=pool-atk;
  if(atk<floor||def<floor||atk>beforeAtk||atk+def!==pool)
@@ -44,11 +44,11 @@ function transform(src,variant){
   ' const __originalAtk=__card.atk,__originalDef=__card.def;',
   ' const __oldPool=__originalAtk+__originalDef;',
   ' const __pool=round10(__oldPool*.95);',
-  ' const __min=Math.min(80,Math.floor(__pool/20)*10);',
+  ' const __min=Math.min(80,__originalAtk,Math.floor(__pool/20)*10);',
   ' const __targetAtk=Math.max(__min,Math.min(__pool-__min,round10(__pool*'+SPECS[variant].atkShare+')));',
   ' const __newAtk=Math.min(__originalAtk,__targetAtk);',
   ' const __newDef=__pool-__newAtk;',
-  " if(__newAtk<__min||__newDef<__min||__newAtk>__originalAtk||__pool!==__newAtk+__newDef)throw Error('Illegal test Guardian stat distribution');",
+  " if(__newAtk<__min||__newDef<__min||__newAtk>__originalAtk||__pool!==__newAtk+__newDef)throw Error('Illegal test Guardian stat distribution for card '+__card.id+': '+JSON.stringify({oldAtk:__originalAtk,oldDef:__originalDef,newAtk:__newAtk,newDef:__newDef,pool:__pool,min:__min}));",
   ' __arcaneResearchGuardianStats.changed++;',
   ' __arcaneResearchGuardianStats.unchangedAtk+=Number(__newAtk===__originalAtk);',
   ' __arcaneResearchGuardianStats.oldAtk+=__originalAtk;',
