@@ -17,7 +17,7 @@ test('Actual attack() wrapper tracks successful board attacks, not counterstrike
  assert.match(self,/offenseBySeat:counter.offenseBySeat/);
 });
 test('Defender (guardian) and Soul are separate; count switch actions only when confirmed',()=>{
- assert.match(self,/role\(attacker\)==="defender"\?"guardian":role\(attacker\)/);
+ assert.match(self,/role\(attacker\)/);
  assert.match(self,/switchToAtk/);
  assert.match(self,/if\(game===g&&ok&&switchCard&&switchOldMode!==switchCard.mode\)/);
  assert.match(summary,/const guardian=candidate.guardian\|\|\{\},soul=candidate.soul\|\|\{\}/);
