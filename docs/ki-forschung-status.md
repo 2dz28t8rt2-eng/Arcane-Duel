@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-29 · Branch `development` · Abschlussforschung v17.1
+**Aktualisiert:** 2026-10-29 · Branch `development` · Solo-Gegenschlag-Nerf v17.2 / KI-Forschung v17.1
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -14,9 +14,19 @@ Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur s
 | Passiver Seelenentzug | Pro getroffenem Gegner **10 ATK und 10 DEF** als Grundentzug plus levelbasierte 5er-Schritte (gedeckelt durch verbleibende Werte), ohne Predator-/Fusionsrollenbonus | `absorb` |
 | Aktiver Seelenraub | Basisbudget `floor((20 + 5 * Level) * 2.5)`, unabhängig vom Zieltyp; dreizügiger Cooldown | `soulRaid` |
 | Aktive Seelenfähigkeiten | Nur in **DEF-Position** verfügbar; Forschung beachtet dieselbe Einschränkung | `soulRaid`, `researchSoulAction` |
+| **Solo-DEF-Gegenschlag (Wächter/Seelenzehrer)** | **35 % des effektiven ATK-Wertes**, ausschließlich wenn der Verteidiger den Treffer überlebt und nicht angriffsimmun war; zerstörte Monster schlagen **nicht** mehr zurück | `attack` / `attackPlan` in `assets/essence-combat.js` · **seit Solo-v17.2 auf `development`** |
 | Essenzspeicherung | Aus **tatsächlich abgezogenen** Werten nach normalen Speicher-/Konversionsregeln, ohne zusätzlichen Fusions-Speichermultiplikator | `storeDrainedEnergy` |
 
 Die Werte können von `main` abweichen. Dieses Dokument macht keine Aussage darüber, dass alle übrigen Solo-/2v2-Funktionen bereits vollständig implementiert oder released sind.
+
+### Solo v17.2 – Gegenschlag-Nerf aus Spielerfeedback
+
+- **Bereits im regulären Solo-Spielcode auf `development` umgesetzt:** 50 % → **35 % ATK** direkter Gegenschlag für Wächter und Seelenzehrer. Voraussetzung: Das Monster überlebt den gegnerischen Angriff; bei Zerstörung **0 Gegenschaden**. Immunität `guardLeft` bleibt von Gegenschlägen ausgeschlossen.
+- **Ebenso im Spielcode angepasst:** Der gegnerische KI-Angriffsplaner kalkuliert den reduzierten 35-%-Gegenschlag und keinen Gegenschlag von regulär tödlich getroffenen Verteidigern.
+- **Browser-Cache aktualisiert:** `index.html` lädt `assets/essence-combat.js?v=20261029-v2072-counter35`.
+- **Unverändert:** Andere aktive Verteidigerfähigkeiten, Soul-Heilung, Verteidigungsrüstung, Fusion, Produktions-Predator-Durchdringung 10 Prozentpunkte und gewöhnlicher Seelenentzug. **2v2** wurde durch diesen gezielten Solo-Patch nicht verändert.
+- **Separat weiterhin Forschung:** 15-Prozentpunkte-Predator-Durchdringung, zielabhängiger Seelenentzug 90/100/120 %, reduzierte Wächter-zu-Wächter-Heilung 85/75 % sowie noch nicht beförderte KI-Modelle. Diese Forschungsvarianten werden nicht automatisch in den Solo-Spielcode übernommen.
+- **Abnahme:** [Solo-v17.2-Gegenschlag-QA](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40946070508). Die QA prüft überlebende und zerstörte Wächter/Seelenzehrer, Immunität, KI-Bedrohungsbewertung und vorhandene Combat-Regressionen.
 
 ## B. Als künftige Spielbalance gewünscht, **derzeit NUR in der Forschung**
 
