@@ -82,9 +82,9 @@
     if(souls)outcome.notes.push(pretty(souls)+' durch Seelenenergie aufgefangen.');
     const soulAvailable=!g.strategicTraining||g.turn>=g.strategicTraining.soulUnlockTurn;
     outcome.burn=soulAvailable?Math.floor(souls*.5):0;
-    outcome.counter=armored&&!immune?Math.floor(whole(dData.atk)*.5):0;
+    outcome.counter=armored&&!immune&&!outcome.destroyDefender?Math.floor(whole(dData.atk)*.35):0;
     outcome.ownLoss=fromShield(outcome.burn+outcome.counter,mine.shield,mine.lp);
-    if(outcome.counter)outcome.notes.push('Wächter/Seelenzehrer: 50 % ATK als Gegenschlag.');
+    if(outcome.counter)outcome.notes.push('Wächter/Seelenzehrer: 35 % ATK als Gegenschlag.');
     if(outcome.burn)outcome.notes.push('Seelenverlust verursacht zusätzlich LP-Burn.');
     // A defender-only late perk can rescue a player guardian at 1 DEF. The
     // opponent is owner 1 in a human PvE attack, so it cannot trigger here.
