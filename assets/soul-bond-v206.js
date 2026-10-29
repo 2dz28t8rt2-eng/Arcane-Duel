@@ -23,8 +23,8 @@
     for(const [i,kind] of [[bond.guardianIndex,'guard'],[bond.soulIndex,'soul']]){
      taken.add(i);const el=slot(owner,i);if(!el)continue;
      el.classList.add('ad206-linked','ad206-'+kind);
-     const mark=make(el,'span','ad206-mark','🛡 35 %');
-     mark.title='Seelenbund aktiv · DEF-Rüstung 35 % statt 20 %';mark.setAttribute('aria-label',mark.title);
+     const mark=make(el,'span','ad206-mark','✦ SEELENBUND · 35 %');
+     mark.title='Seelenbund: Benachbarter Wächter und Seelenzehrer halten 35 % statt 20 % Angriffsschaden ab.';mark.setAttribute('aria-label',mark.title);
      const icon=kind==='soul'?'☠':'✦';
      for(let n=0;n<2;n++){const fx=make(el,'span',kind==='soul'?'ad206-soul-particle':'ad206-guardian-particle',icon);fx.style.setProperty('--ad206-i',String(n));fx.setAttribute('aria-hidden','true');}
     }
@@ -60,12 +60,12 @@
    if(i<0||!['guardian','soul'].includes(role(field[i])))continue;
    const bond=pairs(g,owner).find(b=>b.guardian.uid===uid||b.soul.uid===uid);
    const info=make(preview,'div','ad206-preview');
-   make(info,'strong','','🛡 DEF-Rüstung: '+(bond?'35 % · Seelenbund aktiv':'20 % · kein Seelenbund'));
+   make(info,'strong','','🛡 Schutz in DEF: '+(bond?'35 % des Schadens werden abgewehrt · Seelenbund aktiv':'20 % des Schadens werden abgewehrt'));
    if(bond){
     const other=bond.guardian.uid===uid?bond.soul:bond.guardian;
-    make(info,'p','','Gebunden mit: '+dataOf(other).name+' · Basis 20 % + Schutzbindung 15 Prozentpunkte.');
+    make(info,'p','','Verbunden mit '+dataOf(other).name+'. Wenn Wächter und Seelenzehrer direkt nebeneinander in DEF stehen, halten sie 35 % statt 20 % des eingehenden Schadens ab.');
     make(info,'small','','25 % des zusätzlich verhinderten Schadens werden als Seelenessenz gespeichert (maximal 50 pro Runde und Bindung).');
-   }else make(info,'small','','Setze die jeweils andere Rolle direkt links oder rechts daneben, um die Schutzbindung zu aktivieren.');
+   }else make(info,'small','','Tipp: Setze einen Wächter direkt links oder rechts neben einen Seelenzehrer – beide können dann mehr Schaden abwehren.');
    break;
   }
  }

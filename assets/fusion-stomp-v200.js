@@ -214,6 +214,28 @@
     spark.style.setProperty('--stomp-distance','-'+(52+(i%7)*13)+'px');
     spark.style.setProperty('--stomp-delay',(i%7)*13+'ms');burst.append(spark);}
   }
+  // Predict *only* obvious lethal hits for visual removal. The authoritative
+  // attack reducer still calculates every result after the full cinematic.
+  const attacker=g.players[owner].field[ai],primary=field[di],
+   primaryValue=primary&&dataOf(primary),primaryPower=primary&&effectiveAttack(g,attacker,primary);
+  const primaryShields=(primary?.essenceCombat?.soul||0)+(primary?.essenceCombat?.condensed||0);
+  // The main target also shatters at its FIRST impact, before branch collisions.
+  // Conservative checks avoid visually killing an immune or protected card.
+  host.stompPrimaryDoomed=!!primary&&!(primary.essenceCombat?.guardLeft>0)&&(
+   primary.mode==='atk'&&primaryPower>=primaryValue.atk||
+   primary.mode==='def'&&primaryShields===0&&primaryPower*.55>(primary.card?.def||0));
+  const percent=percentByHit(count,indexes.length,materialBoost(attacker));
+  host.stompDoomed=indexes.flatMap((index,i)=>{
+   const c=field[index],value=c&&dataOf(c);
+   if(!c||!value||c.essenceCombat?.guardLeft>0)return [];
+   const raw=Math.max(0,Math.floor(effectiveAttack(g,attacker,c)*(percent[i]||0)/100));
+   const defense=['guardian','soul'].includes(roleOf(c))&&c.mode==='def'?
+    Math.floor(raw*.65):raw;
+   const shield=(c.essenceCombat?.condensed||0)+(c.essenceCombat?.soul||0);
+   const lethal=c.mode==='atk'&&raw>=value.atk||
+    (c.mode==='def'||raw<value.atk)&&defense>=shield+(c.card?.def||0);
+   return lethal?[{index,order:i}]:[];
+  });
   host.append(svg,...bursts);document.body.append(host);
   return host;
  }
@@ -247,15 +269,32 @@
   if(!g||di===null||reduced()||g!==game||uiMode!=='duel')return false;
   const card=g.players[owner]?.field?.[ai];if(!card?.fusion||materialsOf(card)<3)return false;
   const host=scene(g,owner,ai,di);if(!host)return false;
-  const table=document.querySelector('.table-surface');
+  const table=document.querySelector('.table-surface'),timers=[];
   try{
    beamSound();host.classList.add('ad-stomp-firing');await delay(260);
    table?.classList.add('ad-stomp-shake');host.classList.add('ad-stomp-splitting');
+   const dissolve=index=>{
+    const selector='#'+(1-owner===0?'ownRow':'enemyRow')+
+     ' [data-'+(1-owner===0?'mine':'enemy')+'="'+index+'"] .board-creature';
+    const card=document.querySelector(selector);
+    if(card){card.classList.add('ad-stomp-visual-destroy');
+     setTimeout(()=>card.classList.remove('ad-stomp-visual-destroy'),1600);}
+   };
+   if(host.stompPrimaryDoomed)dissolve(di);
+   // Resolve each destroyed card visually exactly when its branch arrives.
+   // The actual destruction is still committed once by attack(), afterwards.
+   for(const item of host.stompDoomed||[]){
+    const slot=item.index,order=item.order;
+    timers.push(setTimeout(()=>{
+     if(game!==g||uiMode!=='duel')return;
+     dissolve(slot);
+    },190+order*55));
+   }
    // Three branches arrive at 190/245/300ms after the split begins.
    // Keep the scene alive through the last collision, rings and sparks.
    await delay(680);host.classList.add('ad-stomp-afterglow');await delay(200);
    return true;
-  }finally{host.remove();table?.classList.remove('ad-stomp-shake');}
+  }finally{timers.forEach(clearTimeout);host.remove();table?.classList.remove('ad-stomp-shake');}
  }
  window.ArcaneAttackFX=Object.freeze({...originalFX,version:'20.3-stomp',
   play:async(g,owner,ai,di)=>await beamFX(g,owner,ai,di)||await originalFX?.play?.(g,owner,ai,di)||false});

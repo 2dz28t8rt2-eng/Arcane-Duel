@@ -18,8 +18,8 @@ test('cinema distinguishes the existing card types without inventing rewards',()
  assert.deepEqual(values.map(api.glowFor),['normal','fusion','ace']);
  assert.equal(api.glowFor({fusion:true,level:7}),'grand');
  assert.equal(api.glowFor({level:9}),'high');
- assert.equal(api.staggerFor(3),260);
- assert.ok(api.staggerFor(20)<100);
+ assert.equal(api.staggerFor(3),610);
+ assert.ok(api.staggerFor(20)>=160);
 });
 
 function fakeBrowser({fast=false,reduced=false}={}){

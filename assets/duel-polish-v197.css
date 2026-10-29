@@ -83,3 +83,9 @@ body:has(.ad197-outcome) :is(.ad-card-reward-scene,.ad120-unlock){visibility:hid
 
 /* Hide development percentage until summoned monster has actually landed. */
 #duelScreen :is(.ad-summon-hidden,.evo-fusion-awaiting,.ad-summon-ghost,.evo-summon-ghost) :is(.ad203-pack-bonus,.ad205-total-bonus,.ad205-fallback-bonus){display:none!important}
+
+/* Card and stat reward showcases belong to the post-duel menu, not the victory title. */
+body.ad211-deferring-rewards #overlay .arcane-reward-showcase,
+body.ad211-deferring-rewards :is(.ad-card-reward-scene,.ad120-unlock){display:none!important}
+/* Resonator bonuses only appear on actual landed cards. */
+:is(.ad-summon-ghost,.evo-summon-ghost,.ad113-attack-ghost,.ad-summon-hidden) :is(.ad-resonance-chip,.evo-seal-resonator){visibility:hidden!important}

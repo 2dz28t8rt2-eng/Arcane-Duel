@@ -154,14 +154,14 @@
   }
   function labHtml(){
     const foes=OPPONENTS.map((o,i)=>({id:i,name:i===0?'Training':o?.name||'Gegner '+i})).filter(o=>o.id===0||opponentUnlocked(o.id));
-    return '<div class="ad121-lab"><div class="modal-kicker">STRATEGIELABOR · ERWEITERT</div><h2>Drei Decks. Identische Test-Seeds.</h2>'+ 
-      '<p>Die KI spielt deine gespeicherten Decks gegen einen freigeschalteten Gegner. Keine Belohnungen, Käufe, Karteneingriffe oder gespeicherten Duelle.</p>'+ 
+    return '<div class="ad121-lab"><div class="modal-kicker">STRATEGIELABOR · ERWEITERT</div><h2>Welches Deck funktioniert besser?</h2>'+ 
+      '<p>Die KI spielt deine gespeicherten Decks mehrfach gegen denselben Gegner. So siehst du, welche Kartenkombinationen in diesen Probeduellen häufiger gewinnen. Dein Spielstand und deine Karten bleiben unverändert.</p>'+ 
       '<div class="ad121-lab-controls"><label>Gegner<select id="ad121-foe">'+foes.map(o=>'<option value="'+o.id+'">'+esc(o.name)+'</option>').join('')+'</select></label>'+ 
       '<label>Spielweise deiner KI<select id="ad121-policy"><option value="balanced">Ausgewogen</option><option value="offensive">Offensiv</option>'+ 
-      '<option value="guardian">Defensiv</option><option value="economy">Ressourcenorientiert</option></select></label>'+ 
+      '<option value="guardian">Defensiv</option><option value="economy">Vorausschauend (Karten &amp; Fusionen sparen)</option></select></label>'+ 
       '<label>Testumfang<select id="ad121-samples"><option value="5">Schnell · 5 je Deck</option><option value="30">Vertieft · 30 je Deck</option>'+ 
       '<option value="50">Umfangreich · 50 je Deck</option></select></label></div>'+ 
-      '<p class="ad121-lab-note">Gleiche Start-Seeds verbessern die Vergleichbarkeit, garantieren aber bei unterschiedlichen Decks nicht dieselbe Starthand. Siege aus fünf Spielen sind noch keine verlässliche Rangliste.</p>'+ 
+      '<p class="ad121-lab-note">Vorausschauend bedeutet: lieber Karten und Fusionsmöglichkeiten für einen passenden Moment aufheben. Gleiche Start-Seeds verbessern die Vergleichbarkeit, garantieren aber bei unterschiedlichen Decks nicht dieselbe Starthand. Siege aus fünf Spielen sind noch keine verlässliche Rangliste.</p>'+ 
       '<div id="ad121-lab-status" role="status" aria-live="polite"></div><div id="ad121-lab-results"></div>'+ 
       '<div class="modal-actions"><button type="button" class="btn primary" id="ad121-lab-run">Strategietest starten</button>'+ 
       '<button type="button" class="btn" id="ad121-lab-cancel">Schließen / abbrechen</button></div></div>';

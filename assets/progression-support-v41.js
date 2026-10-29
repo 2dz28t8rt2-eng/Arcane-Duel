@@ -102,7 +102,7 @@
   const data=helpData(tier);if(!data)return;
   const levels=data.fusionLevels.length?data.fusionLevels.join(', '):'keine';
   openModal(modalHtml('HILFE ZUR TURNIERPRÜFUNG','Ein neuer Plan für Prüfung '+numerals[tier-1],'?',
-   'Du kannst dein Deck gezielt weiterentwickeln. Diese Hinweise sind kostenlos und verändern deine Karten nicht.',
+   '✦ Kostenlose Deck-Tipps für deinen nächsten Kampf. Du entscheidest selbst, was du ausprobierst – keine Karte wird automatisch geändert.',
    '<div class="ad-progression-help"><div class="info-pills"><span>Hauptdeck bis Lv '+data.highest+'</span><span>Werkstatt bis Lv '+data.cap+'</span><span>Vorlagenstufen: '+esc(levels)+'</span></div>'+
    '<ol>'+data.messages.map(text=>'<li>'+esc(text)+'</li>').join('')+'</ol>'+
    '<div class="ad-help-links"><button class="btn" data-progression-go="collection">Hauptdeck prüfen</button><button class="btn" data-progression-go="workshop">Monsterwerkstatt</button><button class="btn" data-progression-go="fusions">Fusionsdeck prüfen</button><button class="btn" data-progression-go="upgrades">Skills & Perks</button></div></div>',
@@ -129,8 +129,8 @@
   if(!['tournament','free'].includes(menuTab))return;
   const tier=tierOf()+1,data=helpData(tier),panel=$('menuContent');
   if(!data||!panel||panel.querySelector('.ad-progress-help-entry'))return;
-  const node=document.createElement('section');node.className='menu-panel ad-progress-help-entry';
-  node.innerHTML='<h2>Eine Idee für Prüfung '+numerals[tier-1]+'</h2><p>Die letzten Versuche waren schwierig. Schau dir passende Möglichkeiten für deine aktuelle Sammlung an.</p><button class="btn" data-progression-help="'+tier+'">? Hinweise zu dieser Prüfung</button>';
+  const node=document.createElement('section');node.className='menu-panel ad-progress-help-entry ad-progress-help-featured';
+  node.innerHTML='<h2>✦ Deck-Tipps für Prüfung '+numerals[tier-1]+'</h2><p>Die letzten Versuche waren schwierig. Schau dir passende Möglichkeiten für deine aktuelle Sammlung an.</p><button class="btn" data-progression-help="'+tier+'">✦ Tipps für mein Deck ansehen</button>';
   const banner=panel.querySelector('.atlas-content-banner');
   if(banner)banner.insertAdjacentElement('afterend',node);else panel.prepend(node);
  }

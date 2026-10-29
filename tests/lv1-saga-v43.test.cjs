@@ -7,9 +7,9 @@ test('Lv1 research registers four cards and allows original PvE and PvP to boot'
  assert.equal(r.cards,Math.max(...Object.values(r.ids))+2+r.late+r.newLate+r.newFusions+r.v130Fusions);
  assert.equal(r.duel,'pvp');
 });
-test('Encounter uses independent OR conditions and recognizes exact unique Lv1 collection',()=>{
+test('Researcher appears only after the third real tournament victory, never through XP or card collection',()=>{
  const r=boot().run("(()=>{profile=freshProfile();const a=ArcaneLv1Saga;profile.xp=1500;const level=a.forced();profile.xp=0;profile.cleared=[1,2,3,4,5];const tournament=a.forced();profile.cleared=[];const {threshold}=a.fraction();for(const c of RPG_BASE_CARDS.filter(c=>c.level===1&&c.rpg&&!c.ace&&!c.fusionOnly&&!c.milestoneOnly).slice(0,threshold))profile.inventory[c.id]=1;return {level,tournament,collection:a.forced(),threshold};})()");
- assert.equal(r.level,true);assert.equal(r.tournament,true);assert.equal(r.collection,true);assert.ok(r.threshold>1);
+ assert.equal(r.level,false);assert.equal(r.tournament,true);assert.equal(r.collection,false);assert.ok(r.threshold>1);
 });
 test('Saga first fight features a forty-card Lv1 opponent and 2000 LP',()=>{
  const r=boot().run("(()=>{profile=freshProfile();profile.lv1Saga.offered=true;profile.lv1Saga.met=true;startDuel('pve',1,'lv1-saga','easy',1);return {stage:game.lv1Saga?.stage,maxLP:game.maxLP,player:game.players[0].lp,enemy:game.players[1].lp,deck:game.players[1].originalDeck.length,levels: [...new Set(game.players[1].originalDeck.map(id=>CARDS[id].level))]};})()");

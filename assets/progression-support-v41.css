@@ -20,3 +20,7 @@
 .ad-fusion-role-preview small{display:block;font:11px/1.5 system-ui;color:#c6cce0;margin-top:3px}
 .modal .ad-fusion-role-preview p{font:11px/1.5 system-ui;margin:7px 0 0;text-align:left;color:#c4dfdd}
 @media(max-width:550px){.ad-fusion-decision{padding:12px}.ad-reward-step{min-height:80px;flex:1 1 78px!important}.ad-challenge-prize-note{font-size:9px}.ad-progression-help .info-pills span{font-size:10px}}
+
+/* Gentle but noticeable deck assistance for early tournament play. */
+.ad-progress-help-featured{border:1px solid #e5c482!important;background:linear-gradient(110deg,#25383b,#232239)!important;box-shadow:0 0 17px #c8aa4a48;padding:15px!important}
+.ad-progress-help-featured h2{color:#ffe1a3}.ad-progress-help-featured button{font-weight:800;border-color:#dfbf75!important}

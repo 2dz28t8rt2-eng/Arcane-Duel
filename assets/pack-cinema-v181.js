@@ -20,7 +20,7 @@
  }));
  const glowFor=c=>c.ace?'ace':c.fusion&&c.level>=7?'grand':
   c.fusion?'fusion':(c.level>=8?'high':'normal');
- const staggerFor=count=>count<=3?260:Math.max(42,Math.floor(950/Math.max(1,count-1)));
+ const staggerFor=count=>count<=3?610:Math.max(160,Math.floor(1650/Math.max(1,count-1)));
  const fast=()=>{try{return root?.localStorage?.getItem(FAST_KEY)==='true';}catch(_){return false;}};
  const setFast=value=>{try{root?.localStorage?.setItem(FAST_KEY,value?'true':'false');}catch(_){}};
  let active=null;
@@ -115,7 +115,7 @@
    cinematic('reveal',{index,position,item:rewards[index]});
    if(position===rewardNodes.length-1){
     status.textContent=titleEnd;
-    later(complete,420);
+    later(complete,1000);
    }else status.textContent='Karte '+(position+1)+' von '+rewardNodes.length+' enthüllt …';
   }
   function begin(){
@@ -125,9 +125,9 @@
    cinematic('break');
    const spacing=staggerFor(rewardNodes.length);
    later(()=>{overlay.classList.add('ad178-pack-dealt');
-    status.textContent='Welche Monster verbergen sich darin?';cinematic('rift');},500);
+    status.textContent='Ein Licht erscheint …';cinematic('rift');},570);
    revealOrder.forEach((index,position)=>later(()=>revealCard(index,position),
-    760+position*spacing));
+    1210+position*spacing));
   }
   function onKey(e){
    if(e.key==='Escape'){

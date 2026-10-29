@@ -53,7 +53,13 @@
  let ctx=null,output=null,wet=null,limiter=null,loop=null,current='',nextBarAt=0,barIndex=0,forced='';
  const catalog=window.ArcaneTrackCatalog?.tracks||null;
  let media=null,mediaTrack=null,battleMatch='',battleTheme=null;
- let duckFactor=1,duckSerial=0;
+ let duckFactor=1,duckSerial=0,resultFadeAt=0,resultFadeMs=5300,resultFadeMatch='';
+ const musicScale=scene=>['duel','shadow','boss'].includes(scene)?.76:1;
+ const resultScale=()=>{
+  if(!resultFadeAt)return 1;
+  if(resultFadeMatch!==matchId()){resultFadeAt=0;return 1;}
+  return Math.max(0,1-(Date.now()-resultFadeAt)/resultFadeMs);
+ };
  const missingFiles=new Set();
  function bossDialogVisible(){
   const overlay=document.getElementById('overlay');
@@ -98,7 +104,8 @@
    mediaTrack=song;player.pause();player.src=song.file;player.load?.();
    try{window.dispatchEvent?.(new CustomEvent('arcane:music-change',{detail:{...song}}));}catch{}
   }
-  player.volume=(!document.hidden&&state.enabled&&!state.transientMuted)?state.volume*duckFactor:0;
+  player.volume=(!document.hidden&&state.enabled&&!state.transientMuted)?
+   state.volume*duckFactor*musicScale(scene)*resultScale():0;
   if(state.transientMuted||!state.enabled||document.hidden){player.pause();return true;}
   if(player.paused){try{const promise=player.play();promise?.catch?.(()=>{});}catch{}}
   return true;
@@ -209,6 +216,7 @@
  }
  function tick(){
   const scene=sceneForPage();state.scene=scene;
+  if(!['duel','shadow','boss'].includes(scene))resultFadeAt=0;
   if(!state.enabled){muteLicensed();if(ctx&&output)output.gain.setTargetAtTime(0,ctx.currentTime,.045);return;}
   if(playLicensed(scene)){
    if(ctx&&output)output.gain.setTargetAtTime(0,ctx.currentTime,.045);
@@ -217,7 +225,7 @@
   if(!ctx||ctx.state!=='running')return;
   if(state.transientMuted){output.gain.setTargetAtTime(0,ctx.currentTime,.045);current='';nextBarAt=ctx.currentTime+.2;return;}
   if(scene!==current){current=scene;barIndex=0;nextBarAt=ctx.currentTime+.18;output.gain.setTargetAtTime(0,ctx.currentTime,.06);}
-  const volume=(!document.hidden?state.volume:0)*.9*duckFactor;
+  const volume=(!document.hidden?state.volume:0)*.9*duckFactor*musicScale(scene)*resultScale();
   output.gain.setTargetAtTime(volume,ctx.currentTime+.25,.2);
   const score=scores[scene]||scores.mystery,barTime=score.beats*60/score.bpm;
   while(nextBarAt<ctx.currentTime+.28){schedule(score,barIndex++,nextBarAt);nextBarAt+=barTime;}
@@ -231,17 +239,23 @@
  }
  function setEnabled(value){state.enabled=!!value;save();updateButton();if(!state.enabled){muteLicensed();if(output&&ctx)output.gain.setTargetAtTime(0,ctx.currentTime,.06);}else start();}
  function setVolume(value){state.volume=Math.max(0,Math.min(1,Number(value)||0));save();updateButton();if(state.enabled)start();}
+ function fadeOutForResult(ms=5300){
+  if(!resultFadeAt){resultFadeAt=Date.now();resultFadeMatch=matchId();
+   resultFadeMs=Math.max(2000,Math.min(12000,ms));}
+  tick();
+ }
+ function resetResultFade(){resultFadeAt=0;if(state.enabled)tick();}
  function setScene(value){forced=value&&scores[value]?value:'';current='';if(state.enabled)tick();}
  // Temporary music ducking preserves the track, the playback position and saved volume.
  function setDuck(factor=1,durationMs=0){
   const serial=++duckSerial;
   duckFactor=Math.max(0,Math.min(1,Number(factor)||0));
-  if(media&&!media.paused)media.volume=state.volume*duckFactor;
+  if(media&&!media.paused)media.volume=state.volume*duckFactor*musicScale(state.scene)*resultScale();
   if(state.enabled)tick();
   if(durationMs>0)setTimeout(()=>{
    if(serial!==duckSerial)return;
    duckFactor=1;
-   if(media&&!media.paused)media.volume=state.volume;
+   if(media&&!media.paused)media.volume=state.volume*musicScale(state.scene)*resultScale();
    if(state.enabled)tick();
   },durationMs);
  }
@@ -257,7 +271,7 @@
  }
  function settings(){return Object.freeze({enabled:state.enabled,volume:state.volume,scene:state.scene,running:!!(media&&!media.paused)||!!ctx&&ctx.state==='running'});}
  function nowPlaying(){return mediaTrack?Object.freeze({...mediaTrack}):null;}
- window.ArcaneSoundscape=Object.freeze({start,setEnabled,setVolume,setScene,setTransientMuted,setDuck,refresh:tick,getSettings:settings,getNowPlaying:nowPlaying,scores});
+ window.ArcaneSoundscape=Object.freeze({start,setEnabled,setVolume,setScene,setTransientMuted,setDuck,fadeOutForResult,resetResultFade,refresh:tick,getSettings:settings,getNowPlaying:nowPlaying,scores});
  function ready(){
   installToggle();
   // Try to begin during the initial black frame, before the title typography

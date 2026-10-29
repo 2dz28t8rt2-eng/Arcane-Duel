@@ -9,9 +9,9 @@
   orbit:['fusion-orbit.ogg',.64,5.75],summon:['summon.ogg',.47,1.1],
   draw:['draw.ogg',.36,.75],destroy:['destroy.ogg',.66,1.95],
   lose:['lose.ogg',.9,4.4],damage:['damage.ogg',.66,1.8],
-  decay:['decay.ogg',.35,1.7],powerup:['powerup.ogg',.33,.42],
+  powerup:['powerup.ogg',.33,.42],
   idle:['leader-idle.ogg',.12,3.4],roar:['leader-roar.ogg',.76,1.1],
-  menu:['menu.ogg',.40,1.5],win:['win.ogg',.92,4.0],
+  menu:['menu.ogg',.40,1.5],win:['win.ogg',1,4.0],
   calc:['fusion-calc.ogg',.35,.65]
  });
  const live=new Set(),missing=new Set(),loops=new Map(),last={time:0,outcome:'',scene:''};
@@ -47,6 +47,7 @@
   }catch{}
  }
  function play(kind,{gain=1,stopAfter=0,startAt=0}={}){
+  if(kind==='decay')return null; // Intentionally silent: no debuff/decay cue.
   const spec=sounds[kind];if(!spec||!enabled()||typeof Audio!=='function')return null;
   if(missing.has(kind)){if(kind==='win')fallbackWin();return null;}
   const a=new Audio(ROOT+spec[0]);a.preload='auto';
@@ -102,8 +103,8 @@
   const token=kind+':'+(duo()?duoGame?.roomId+':'+duoGame?.revision:typeof game!=='undefined'?game?.id+':'+game?.turn:'');
   if(last.outcome===token)return;
   last.outcome=token;
-  // Keep battle music at its normal level, as requested in the playtest.
-  play(kind);
+  // Full victory sample volume; long music fade is controlled separately.
+  play(kind,{gain:kind==='win'?1.35:1});
  }
  function leaderPresent(){
   if(duo())return !!duoGame?.players?.some(p=>(p.field||[]).some(c=>c?.predatorLeader));
@@ -147,12 +148,8 @@
   const newLogs=oldAt>=0?now.log.slice(0,oldAt):[];
   const turnDecay=old.turn!==now.turn;
   const decayLogged=newLogs.some(line=>/zerfall|verwitter|verfall|decay/i.test(line));
-  if((turnDecay&&decayed)||decayLogged){
-   // One shared sound per turn-based decay, never one sound per monster.
-   play('decay');
-  }else if(decayed){
-   for(let i=0;i<Math.min(5,decayed);i++)schedule(()=>play('decay'),i*155);
-  }
+  // Debuff/decay effects are now visual only, including at turn boundaries.
+  void turnDecay;void decayLogged;void decayed;
   if(buffed)play('powerup');
  }
  function onDuoState(before,after,catalog,seat){
@@ -169,7 +166,7 @@
   // only for visible confirmed consequences, never speculative actions.
   if(events.some(x=>x.type==='destroy'))play('destroy');
   if(events.some(x=>x.type==='summon'))play('summon');
-  if(events.some(x=>x.type==='arena')||logs.some(x=>/arena-zerfall/i.test(x)))play('decay');
+  // Arena decay no longer triggers a sound.
   if(events.some(x=>x.type==='fate'))play('powerup');
   if(events.some(x=>x.type==='attack')&&logs.some(x=>/direkter Angriff/i.test(x)))
    schedule(()=>play('damage'),280);

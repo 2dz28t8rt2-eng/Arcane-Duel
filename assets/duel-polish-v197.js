@@ -41,7 +41,9 @@
   const root=id('duelScreen');if(!root)return;
   const active=!root.hidden;
   if(lastDuelState===null){lastDuelState=active;return;}
-  if(lastDuelState!==active){lastDuelState=active;void blackout(active?2850:1950,active);}
+  if(lastDuelState!==active){lastDuelState=active;
+   if(active)window.ArcaneSoundscape?.resetResultFade?.();
+   void blackout(active?2850:1950,active);}
  }
  const root=id('duelScreen');
  if(root){new MutationObserver(syncDuel).observe(root,{attributes:true,attributeFilter:['hidden']});syncDuel();}
@@ -103,6 +105,7 @@
   // Leave the last battle position readable. There is intentionally NO black
   // curtain here: the outcome lettering belongs on the unchanged battlefield.
   const victory=g.winner===0;
+  window.ArcaneSoundscape?.fadeOutForResult?.(5300);
   // Claim rewards and persist the finished game immediately. Only the RESULT
   // display is delayed: asynchronous saving must never alter duel semantics.
   document.body.classList.add('ad197-result-hold');
@@ -117,8 +120,11 @@
    announcement.className='ad197-outcome '+(victory?'ad197-victory':'ad197-defeat');
    announcement.textContent=victory?'Sieg':'Niederlage';
    announcement.setAttribute('role','status');
-   document.body.append(announcement);
+   // Start the cue just BEFORE the word appears, so the impact leads its reveal.
    window.ArcaneSfx208?.result?.(victory?'win':'lose');
+   await delay(reduce()?40:145);
+   if(game!==g||uiMode!=='duel'){document.body.classList.remove('ad197-result-hold');return;}
+   document.body.append(announcement);
    await delay(reduce()?300:1000);
    if(game!==g||uiMode!=='duel'){announcement.remove();document.body.classList.remove('ad197-result-hold');return;}
    const overlay=id('overlay');

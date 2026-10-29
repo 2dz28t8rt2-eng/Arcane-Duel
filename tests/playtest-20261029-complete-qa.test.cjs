@@ -37,7 +37,7 @@ test('audio snapshot uses actual card values and newest-first duel logs, with no
  g.turn=2;g.log.unshift('Zerfall: Monster verlieren Kampfwerte.');
  g.players[0].field[0].card.atk-=30;
  assert.doesNotThrow(()=>tick());
- assert.equal(calls.filter(src=>src.endsWith('/decay.ogg')).length,1);
+ assert.equal(calls.filter(src=>src.endsWith('/decay.ogg')).length,0); // Debuff cue intentionally removed.
  g.players[0].field[0]=null;
  assert.doesNotThrow(()=>tick(),'a destroyed field card cannot crash the audio timer');
  assert.equal(calls.filter(src=>src.endsWith('/destroy.ogg')).length,0,
@@ -48,7 +48,7 @@ test('audio snapshot uses actual card values and newest-first duel logs, with no
   'normal summons use placement callbacks, not late polling');
 });
 
-test('Lv1 researcher unlock is deterministic by tournament III with optional early encounters',()=>{
+test('Lv1 researcher unlock is deterministic by tournament III and never before tournament progression',()=>{
  const result=boot().run("(()=>{profile=freshProfile();const s=window.ArcaneLv1Saga;const before=s.forced();profile.cleared=[1,2,3];const guaranteed=s.forced();s.maybeOffer({mode:'pve',context:'tournament',surrendered:false,automatic:false});return {before,guaranteed,offered:profile.lv1Saga.offered};})()");
  assert.equal(result.guaranteed,true);
  assert.equal(result.offered,true);
@@ -61,13 +61,13 @@ test('all major audio cues are anchored at actual actions and soundscape never d
  const draw=read('assets/hand-draw-v1161.js');
  assert.match(sfx,/pointerdown/);
  assert.match(sfx,/newLogs=oldAt>=0\?now\.log\.slice\(0,oldAt\)/);
- assert.match(sfx,/\(turnDecay&&decayed\)\|\|decayLogged/);
+ assert.match(sfx,/Intentionally silent: no debuff\/decay cue/);
  assert.match(battle,/if\(res\?\.destroyed\?\.length&&g===game&&uiMode==='duel'\)/);
  assert.match(attack,/if\(di===null\)window\.ArcaneSfx208\?\.play\?\.\('damage'\)/);
  assert.match(solo,/if\(a\.type==='place'&&result\.card&&!fusion\)window\.ArcaneSfx208/);
  assert.match(soul,/await sleep\(305\);[\s\S]*?\.play\?\.\('damage'\)/);
- assert.match(finale,/announcement\.textContent=victory\?'Sieg':'Niederlage';[\s\S]*?\.result\?\.\(victory\?'win':'lose'\)/);
- assert.match(sfx,/Keep battle music at its normal level/);
+ assert.match(finale,/\.result\?\.\(victory\?'win':'lose'\);[\s\S]*?document\.body\.append\(announcement\)/);
+ assert.match(sfx,/long music fade is controlled separately/);
  assert.doesNotMatch(sfx,/\.setDuck\s*\(/);
  assert.match(draw,/newly\.forEach/);
  assert.match(draw,/revealOpeningHand/);

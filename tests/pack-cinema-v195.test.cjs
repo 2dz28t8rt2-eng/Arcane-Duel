@@ -92,20 +92,20 @@ test('the visual reveal order does not reorder cards or alter the reward list',a
  assert.equal(h.byClass('ad195-audio-panel').attributes.get('aria-label'),'Booster-Klänge');
  h.byClass('ad178-pack').onclick();
  assert.equal(h.byClass('ad195-seal-breaking')!==null,true);
- h.advance(500);
+ h.advance(570);
  assert.ok(h.byClass('ad195-pack-rifted'));
- h.advance(760);
+ h.advance(1210);
  assert.equal(nodes[1].classList.contains('ad178-is-revealed'),true);
  assert.equal(nodes[0].classList.contains('ad178-is-revealed'),false);
- h.advance(1020);assert.equal(nodes[2].classList.contains('ad178-is-revealed'),true);
- h.advance(1280);assert.equal(nodes[3].classList.contains('ad178-is-revealed'),true);
- h.advance(1540);assert.equal(nodes[4].classList.contains('ad178-is-revealed'),true);
- h.advance(1800);assert.equal(nodes[0].classList.contains('ad178-is-revealed'),true);
+ h.advance(1622);assert.equal(nodes[2].classList.contains('ad178-is-revealed'),true);
+ h.advance(2034);assert.equal(nodes[3].classList.contains('ad178-is-revealed'),true);
+ h.advance(2446);assert.equal(nodes[4].classList.contains('ad178-is-revealed'),true);
+ h.advance(2858);assert.equal(nodes[0].classList.contains('ad178-is-revealed'),true);
  assert.ok(nodes[0].classList.contains('ad195-tier-4'));
  assert.match(h.byClass('ad195-special-notice').textContent,/ACE/);
  assert.deepEqual(nodes.map(n=>n.children[1].children[1].textContent),cards.map(c=>c.name));
  assert.equal(JSON.stringify(cards),original);
- h.advance(2400);
+ h.advance(3858);
  assert.ok(h.byClass('ad195-pack-finished'));
  assert.ok(h.byClass('ad195-special-reveal'),
   'the ACE spotlight stays visible even after another rare card');
@@ -125,7 +125,7 @@ test('sound starts muted, is opt-in, and accentuates the rare cards',async()=>{
  assert.equal(h.byClass('ad195-volume-label').hidden,false);
  slider.value='60';slider.events.get('input')();
  assert.equal(h.byClass('ad195-volume-value').textContent,'60 %');
- h.byClass('ad178-pack').onclick();h.advance(2600);
+ h.byClass('ad178-pack').onclick();h.advance(3600);
  assert.deepEqual(h.played,['packBreak','packOpen','packFlip','packFlip',
   'packRare','packRare','packAce']);
  h.byClass('ad178-pack-controls').children[2].onclick();await finished;
@@ -147,7 +147,7 @@ test('the cinematic is optional: a failed effect cannot block existing loot or f
  const h=harness({sound:false});
  h.root.ArcanePackExperience195={onPhase(){throw Error('effect failure');}};
  const finished=h.api.open(cards);
- h.byClass('ad178-pack').onclick();h.advance(2500);
+ h.byClass('ad178-pack').onclick();h.advance(4200);
  assert.equal(h.all('ad178-is-revealed').length,cards.length);
  h.byClass('ad178-pack-controls').children[2].onclick();
  assert.equal(await finished,true);

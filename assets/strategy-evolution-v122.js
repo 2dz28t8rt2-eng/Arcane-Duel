@@ -9,7 +9,7 @@
   const DATA_KEY='arcane-duel-v122-strategy';
   const RADAR_KEY='arcane-duel-v122-radar';
   const ROLE_LABELS={predator:'Predator',guardian:'Wächter',soul:'Seelenzehrer',resonator:'Resonator',combatant:'Allrounder',allrounder:'Allrounder',support:'Support',weaver:'Runenweber'};
-  const POLICIES=[['balanced','Ausgewogen'],['offensive','Offensiv'],['guardian','Defensiv'],['economy','Ressourcenorientiert']];
+  const POLICIES=[['balanced','Ausgewogen'],['offensive','Offensiv'],['guardian','Defensiv'],['economy','Vorausschauend (Karten schonen)']];
   function pairedSchedule(i,foe,policy){
     // Both seat positions share a seed before the next seed is sampled; the
     // original and modified decks then see the same schedule and AI policy.
@@ -95,8 +95,8 @@
   }
   function openOptimizer(){
     if(game||uiMode!=='menu')return;
-    openModal('<section class="ad122-panel"><div class="modal-kicker">DECKLABOR · KARTENWECHSEL</div><h2>Deck-Optimierer</h2>'+ 
-      '<p>Ein überprüfbarer Vorschlag auf Grundlage von Rollenverteilung, Duplikaten und Stufenmix. Das System kann die Spielstärke nicht allein aus Kartenwerten beweisen.</p>'+ 
+    openModal('<section class="ad122-panel"><div class="modal-kicker">DECKLABOR · KARTENWECHSEL</div><h2>Eine Karte austauschen – wird dein Deck dadurch besser?</h2>'+ 
+      '<p><b>So funktioniert es:</b> Das Spiel schlägt dir genau eine Karte zum Austauschen vor. Danach spielt die KI Probe-Duelle mit deinem bisherigen Deck und mit dem neuen Vorschlag. Du entscheidest erst am Ende, ob du den Wechsel übernehmen möchtest. Es werden keine Karten verbraucht.</p>'+ 
       '<div class="ad122-controls"><label>Deckplatz<select id="ad122-opt-slot">'+options(slots().map(x=>[x.id,x.name]),profile.activeSlot)+'</select></label>'+ 
       '<label>Gegner<select id="ad122-opt-foe">'+options(foes().map(x=>[x.id,x.name]),0)+'</select></label>'+ 
       '<label>KI-Stil<select id="ad122-opt-policy">'+options([...POLICIES,['mixed','Mix aus vier Strategien']],'mixed')+'</select></label>'+ 
@@ -109,10 +109,10 @@
       const slot=Number($id('ad122-opt-slot')?.value),deck=activeDeckFor(slot),fusion=fusionDeckFor(slot);
       const suggestion=deckLegal(deck,fusion)?proposeSwap(deck):null;
       const host=$id('ad122-opt-suggestion');if(!host)return;
-      host.innerHTML=suggestion?'<b>Hypothese für '+esc(slots()[slot].name)+'</b><p><strong>'+esc(CARDS[suggestion.before].name)+
+      host.innerHTML=suggestion?'<b>Möglicher Tausch in '+esc(slots()[slot].name)+'</b><p><strong>'+esc(CARDS[suggestion.before].name)+
         ' · Lv '+suggestion.fromLevel+'</strong> ersetzen durch <strong>'+esc(CARDS[suggestion.after].name)+
         ' · Lv '+suggestion.toLevel+'</strong>.</p><small>'+esc(roleLabel(suggestion.fromRole))+' → '+esc(roleLabel(suggestion.toRole))+
-        ' · Mehr Ausgewogenheit oder leichter einsetzbares Material. Der Test muss zeigen, ob das hilft.</small>':
+        ' · Das könnte dein Deck vielseitiger machen. Ob es tatsächlich gewinnt, prüft der Test.</small>':
         '<p>Für dieses Deck ist kein besitzlegaler, regelkonformer Austausch nach den gewählten Kriterien verfügbar.</p>';
       $id('ad122-opt-run').disabled=!suggestion;
       $id('ad122-opt-result').innerHTML='';return suggestion;
@@ -402,12 +402,12 @@
   }
   function openRadar(){
     if(game||uiMode!=='menu')return;
-    openModal('<section class="ad122-panel"><div class="modal-kicker">LOKALER BALANCE-RADAR</div><h2>Strategie- und Startspielercheck</h2>'+ 
-      '<p>Ein wiederholbarer Diagnosetest für dein gewähltes Deck. Wir vergleichen drei KI-Stile und beide Startpositionen bei gleichen Seeds. Keine Änderung am Balancing.</p>'+ 
+    openModal('<section class="ad122-panel"><div class="modal-kicker">LOKALER BALANCE-RADAR</div><h2>Was bringt dir der erste Zug?</h2>'+ 
+      '<p>Die KI spielt mit deinem Deck gegen denselben Gegner. Mal beginnst du, mal dein Gegner. Wir probieren drei Spielweisen aus und zeigen, wann dein Deck häufiger gewinnt. Das ist nur ein Test – deine Karten bleiben unverändert.</p>'+ 
       '<div class="ad122-controls"><label>Deck<select id="ad122-radar-slot">'+options(slots().map(x=>[x.id,x.name]),profile.activeSlot)+'</select></label>'+ 
       '<label>Gegner<select id="ad122-radar-foe">'+options(foes().map(x=>[x.id,x.name]),0)+'</select></label>'+ 
       '<label>Testumfang<select id="ad122-radar-n">'+options([[12,'12 je Stil und Startplatz'],[24,'24 je Stil und Startplatz']],12)+'</select></label></div>'+ 
-      '<div id="ad122-radar-result" aria-live="polite"><p class="ad122-muted">Wahlweise 72 oder 144 simulierte Duelle. Die Startposition wird kontrolliert; Ergebnisse können lokal mit späteren Messungen verglichen werden.</p></div>'+ 
+      '<div id="ad122-radar-result" aria-live="polite"><p class="ad122-muted">Wähle, wie viele Testkämpfe du möchtest: 72 sind schneller, 144 liefern ein etwas stabileres Bild. Die Ergebnisse kannst du später erneut vergleichen.</p></div>'+ 
       '<div class="modal-actions"><button type="button" class="btn primary" id="ad122-radar-run">Radar starten</button>'+modalEnd+'</div></section>');
     bindClose();
     $id('ad122-radar-run').onclick=async()=>{
@@ -448,7 +448,7 @@
       }).join('')+'</div>'+ 
       (errors?'<p class="ad122-warning">'+errors+' Simulationen hatten keinen gültigen Abschluss und fehlen in der Quote.</p>':'')+
       (comparison?'<p>'+esc(comparison)+'</p>':'')+
-      '<p class="ad122-muted">Wichtig: Je Stil nur '+n+' Spiele pro Startposition. Große Unterschiede sind Hinweise für weitere Tests, keine belastbaren Beweise für ein globales Startspieler- oder Rollenproblem. Diese lokale Historie enthält keine GitHub-Trainingsberichte.</p>';
+      '<p class="ad122-muted">Diese Ergebnisse sind Orientierungshilfen, keine Garantie: Je Spielweise nur '+n+' Spiele pro Startposition. Große Unterschiede sind Hinweise für weitere Tests, keine belastbaren Beweise für ein globales Startspieler- oder Rollenproblem. Diese lokale Historie enthält keine GitHub-Trainingsberichte.</p>';
       button.disabled=false;
     };
   }
