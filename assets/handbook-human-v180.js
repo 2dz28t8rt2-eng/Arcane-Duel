@@ -128,9 +128,11 @@
     Später muss dein Monster bereit sein und in Angriffsposition liegen.
     Ein bereits verbrauchter Angriff wird durch einen Positionswechsel nicht erneuert.</p>
     <h3>Warum wird mein Monster schwächer?</h3>
-    <p>Im Einzelspieler-PvE kosten Angriffe seit dem Fusions-Stomp-Update <b>3 % ATK und DEF je tatsächlich getroffenem Ziel</b>. Im 2v2 gelten vorerst noch die eigenen bisherigen Regeln. Außerdem verlieren Monster nach
-    ihrem geschützten ersten Zug mit der Zeit ATK und DEF. Das ist der
-    <b>Kreaturenzerfall</b>. Auf höheren Stufen ist er stärker.</p>
+    <p>Im Einzelspieler-PvE und in der 2v2-Kampagne kosten Angriffe
+    <b>3 % ATK und DEF je tatsächlich getroffenem Ziel</b>.
+    Der Kreaturenzerfall am eigenen Zugende ist ein eigener Effekt.
+    Predator-Entwicklung erhöht den berechneten Angriffsfaktor;
+    sie heilt <b>keine</b> bereits verlorenen ATK oder DEF.</p>
     <h3>Warum sehe ich eine Fusion, kann sie aber nicht beschwören?</h3>
     <p>Du brauchst die passende Vorlage in deinem Fusionsdeck und geeignete
     Materialien. Eine im Lexikon entdeckte Karte gehört dir nicht automatisch.</p>
@@ -203,10 +205,12 @@
     ins Deck oder in die Sammlung und verschwindet nach seiner Zerstörung.
     Bei vollem Feld wird die Token-Erschaffung auf einen späteren
     eigenen Zug verschoben.</p>
-    <p>Diese neue Rudelführer-Mechanik gilt derzeit im
-    <b>Einzelspieler-PvE</b>. Klassisches PvP, 2v2 und symmetrische
-    KI-Forschungsduelle bleiben unverändert.</p>`],
-  ['combat-controls','23 · Duellbedienung, Feldwerte und neue Animationen',
+    <p><b>Unterschiede der Modi:</b> Im 2v2 sind Schwarmbonus und
+    Predator-Entwicklung ebenfalls im serverseitigen Kampfsystem
+    umgesetzt; die besonderen Rudelführer-Fähigkeiten und
+    ihre Balance müssen nicht in jedem Modus genau gleich sein.
+    Symmetrische KI-Forschung kann eigene Sonderregeln verwenden.</p>`],
+  ['combat-controls','24 · Duellbedienung, Feldwerte und neue Animationen',
    `<h3>Tasten und Übersicht</h3>
     <p><b>D</b> wechselt das ausgewählte eigene Monster zwischen ATK und DEF,
     sofern es in diesem Zug noch wechseln darf. <b>A</b> löst einen direkten Angriff
@@ -219,12 +223,13 @@
     von Kreaturenfähigkeiten, Angriffsermüdung oder Zerfall hinzukommen. Die
     große Kartenansicht zeigt für ein Monster auf dem Feld nun seine
     <b>aktuellen Feldwerte</b> an, damit du nicht zwischen zwei Zahlen rätseln musst.</p>
-    <p>Predatoren erhalten für jedes aktive Rudelmitglied einen Schwarmbonus.
-    Die kleine Prozentanzeige am Monster zeigt den <b>gerade wirkenden Bonus</b>.
-    Sobald weitere Predatoren hinzukommen oder wegfallen, erscheint eine kurze
-    grüne oder rote Änderungsanzeige. Eine aktive Rudelführer-Fusion ist auch
-    auf der großen Karte gekennzeichnet. Der Rudelbonus ist nicht dauerhaft
-    in der Karte gespeichert.</p>
+    <p>Bei normalen Predatoren zeigt die kleine Prozentanzeige jetzt den
+    <b>Gesamtfaktor aus Entwicklung und Schwarm</b>: zunächst
+    90 % Entwicklung, später schrittweise bis 102 %, plus den
+    aktuell wirkenden Rudelbonus. Beispiel: <b>96 % + 4 % = 100 % ATK</b>.
+    Wachstum zeigt kurz <b>ENTWICKLUNG</b>; die große Kartenansicht erklärt
+    beide Anteile getrennt. Fusionen und Tokens entwickeln sich nicht.
+    Ein Rudelführer bleibt zusätzlich durch seine Krone erkennbar.</p>
     <h3>Welche Karten dürfen niemals Fusionsmaterial werden?</h3>
     <p><b>ACE-Monster sind keine Fusionsmaterialien</b> – weder für dich noch
     für Turniergegner. Das gilt für Hand- und Feldfusionen. Auch
@@ -259,6 +264,124 @@
     aktivierst, bringt ein Autokampf <b>50 % statt 30 % Essenz und XP</b>
     sowie <b>20 % statt 12 % Kartenchance</b>. Pro Autokampf wird eine Ladung
     verbraucht – auch bei einer Niederlage. Du kannst sie zum Sparen ausschalten.</p>`],
+  ['opening-development','25 · Eröffnungsschutz & Predator-Entwicklung',
+   `<h3>1 · Eröffnungsschutz – das erste Monster soll eine Chance haben</h3>
+<p>Das <b>erste normal beschworene Monster des Startspielers</b> erhält
+im ersten Gesamtzug einen einmaligen Schutz gegen einen Angriff, der es
+sonst sofort zerstören würde. Dieser Schutz wirkt nur im
+<b>zweiten Gesamtzug</b>, aber sowohl in <b>ATK</b> als auch in
+<b>DEF</b>. Die Rettung findet direkt während der
+Schadensberechnung statt – die Karte wird nicht erst zerstört
+und anschließend zurückgebracht.</p>
+<p>Bei einer tödlichen DEF-Attacke bleibt das Monster mit
+<b>mindestens 1 DEF</b> auf dem Feld, statt auf dem Friedhof zu
+landen. Das ist <b>keine vollständige Schadensimmunität</b> und
+kein Schild für die Team-LP. Ein nicht tödlicher Treffer
+verbraucht die Rettung nicht.</p>
+<h3>2 · Einmalig bedeutet einmalig</h3>
+<p>Verbraucht wird der Schutz beim ersten <b>tödlichen</b> Treffer
+in Zug 2. Ein weiterer tödlicher Angriff kann die Karte anschließend
+ganz normal zerstören. Falls der Schutz bis zum Ende des zweiten
+Gesamtzugs nicht benötigt wurde, verfällt er automatisch.</p>
+<p><b>Ausnahmen:</b> Eine <b>Fusion</b> erhält keinen Eröffnungsschutz.
+Auch kurzfristige Predator-Tokens sind nicht geschützt.
+Der normale Schutz ersetzt weder Wächter-Fähigkeiten noch
+Seelenzehrer-Effekte oder den Kreaturenzerfall.</p>
+<p><b>Beispiel:</b> Dein erstes normales Monster besitzt 200 DEF und
+wird in Zug 2 so stark angegriffen, dass es sonst zerstört wäre.
+Mit Eröffnungsschutz überlebt es mit 1 DEF. Der Schutz verschwindet;
+ein zweiter tödlicher Angriff darf es zerstören.</p>
+<h3>3 · Predator-Entwicklung: 90 % bis 102 %</h3>
+<p><b>Normale Predatoren</b> starten beim Ausspielen mit
+<b>90 % Angriffsfaktor</b> und wachsen in <b>vier Schritten
+zu je +3 Prozentpunkten</b> auf höchstens <b>102 %</b>.
+Das eigene Zugende direkt nach der Beschwörung gibt noch
+keinen Fortschritt. Erst nach <b>späteren abgeschlossenen
+eigenen Zügen</b> steigt der Faktor von 90 auf 93, 96, 99
+und schließlich 102 Prozent. Ein Prozentpunkt ist nicht
+dasselbe wie eine Steigerung um 3 % des vorherigen Werts.</p>
+<table class="arcane-rule-table"><thead><tr>
+<th>Stand</th><th>Entwicklung</th><th>Bei 1.000 Grund-ATK ohne Schwarm</th>
+</tr></thead><tbody>
+<tr><td>Beschwörung + erstes eigenes Zugende</td><td>90 %</td><td>900 ATK</td></tr>
+<tr><td>1. späterer eigener Abschluss</td><td>93 %</td><td>930 ATK</td></tr>
+<tr><td>2. späterer eigener Abschluss</td><td>96 %</td><td>960 ATK</td></tr>
+<tr><td>3. späterer eigener Abschluss</td><td>99 %</td><td>990 ATK</td></tr>
+<tr><td>4. späterer Abschluss und danach</td><td>102 %</td><td>1.020 ATK</td></tr>
+</tbody></table>
+<p><b>Wichtig:</b> Entwicklung verändert nur die
+<b>effektive ATK beim Kampf</b>, nicht die DEF.
+Sie schreibt die gespeicherten Grundwerte nicht bei jedem
+Schritt um. <b>Fusionen, Predator-Tokens und besondere
+Essenzwesen</b> entwickeln sich nicht über diesen Mechanismus.</p>
+<h3>4 · Schwarm und Entwicklung addieren sich</h3>
+<p>Zusätzlich zur Entwicklung gibt es den <b>Schwarmbonus</b>:
+Normalerweise gewährt jeder aktive eigene Predator auf dem Feld
+<b>+2 Prozentpunkte</b> Angriffsstärke, höchstens fünf
+zählen. Der Predator zählt selbst mit.
+Mit aktivem Rudelführer sind es <b>+3 Prozentpunkte</b>
+je Predator; mit dessen Rudelinstinkt <b>+3,5</b>.</p>
+<p><b>Beispiel A:</b> 96 % Entwicklung und zwei aktive
+Predatoren (+4 % Schwarm) ergeben
+<b>96 % + 4 % = 100 % Gesamt-ATK</b>.
+Bei 1.000 Grund-ATK entspricht das 1.000 effektiver ATK.</p>
+<p><b>Beispiel B:</b> Ein frisch beschworener Predator ist
+allein: 90 % + 2 % = <b>92 % Gesamt-ATK</b>.
+Bei 1.000 Grund-ATK sind das 920 effektive ATK.</p>
+<p><b>Beispiel C:</b> Ein voll entwickelter Predator
+steht mit zwei anderen Predatoren und einem aktiven
+Rudelführer auf dem Feld, ohne dessen Rudelinstinkt.
+102 % + (3 × 3 %) = <b>111 % Gesamt-ATK</b>.
+Andere Effekte wie Jagdmarkierung, Rüstung und
+Spezialfähigkeiten werden getrennt berücksichtigt.</p>
+<h3>5 · Was bedeutet die Prozentanzeige?</h3>
+<p>Die kleine Anzeige auf einer Predator-Feldkarte zeigt
+<b>den Gesamtfaktor</b> aus Entwicklung und Schwarm;
+<b>100 % bedeutet normale Angriffsstärke</b>, nicht
++100 % Bonus. Ein Monster mit 96 % Gesamtfaktor schlägt
+gegenüber seinem unmodifizierten aktuellen ATK-Wert
+um 4 % schwächer zu.</p>
+<p>Wenn ein Predator wächst, erscheint kurz
+<b>ENTWICKLUNG</b> zusammen mit +3 % und dem neuen
+Gesamtwert. Beschwörst du weitere Predatoren oder
+verlierst Rudelmitglieder, ändert sich der Schwarmanteil
+entsprechend. Deshalb kann ein angezeigter Prozentwert
+<b>auch ohne eigene Entwicklung steigen oder sinken</b>.</p>
+<p>Klickst du das Monster an, zeigt die
+<b>große Kartenansicht</b> die Werte
+<b>Entwicklung</b>, <b>Schwarmbonus</b> und
+<b>Gesamt-ATK-Faktor</b> einzeln an. Eine
+Rudelführer-Fusion wird eigens gekennzeichnet.</p>
+<h3>6 · Warum kann die ATK trotz Entwicklung sinken?</h3>
+<p>Angriffsverschleiß und Kreaturenzerfall verringern
+reale ATK- und DEF-Punkte. Die Entwicklung ist dagegen
+ein <b>Faktor auf die aktuelle Angriffsstärke</b>.
+Sie ersetzt keinen verlorenen Wert und stellt keine DEF
+wieder her. Ein Predator kann von 99 % auf 102 %
+wachsen und trotzdem insgesamt weniger Schaden
+verursachen, wenn seine ATK inzwischen stark gefallen ist.</p>
+<h3>7 · Speichern, Laden und ältere Spielstände</h3>
+<p>Der aktuelle <b>Entwicklungsfortschritt</b> wird
+im Spielstand mitgeführt. Ebenso bleibt erfasst,
+ob der <b>Eröffnungsschutz noch verfügbar oder schon
+verbraucht</b> ist. Das Laden soll keinen zusätzlichen
+Schutz oder neue Entwicklungszüge erzeugen.
+Bei älteren Spielständen ohne diese Angaben startet
+die Entwicklung mit einem sicheren Anfangswert.</p>
+<h3>8 · Welche Modi verwenden diese Regeln?</h3>
+<p><b>Predator-Entwicklung samt addiertem Schwarmbonus</b>
+gibt es im Einzelspieler und im <b>2v2-Modus</b>.
+Im Duo berechnet der Server die wirksame Angriffsstärke,
+und die Kartenansicht erklärt die Prozentanteile.
+Der <b>einmalige Eröffnungsschutz</b> ist aktuell
+in der Einzelspieler-Kampfberechnung umgesetzt,
+<b>im eigenständigen 2v2-Regelkern jedoch noch nicht</b>.
+Die KI-Forschung kann eigene Testregeln verwenden.</p>
+<p><b>Strategie-Tipp:</b> Ein normaler Predator ist
+anfangs schwächer, gewinnt aber nach einigen eigenen
+Zügen an Angriffskraft. Schutzmonster helfen ihm,
+diese Entwicklung zu überleben; Rudelmitglieder
+geben bereits vorher einen sofortigen Schwarmbonus.</p>`],
  ];
  function refresh(){
   const modal=document.getElementById('modal'),book=modal?.querySelector('.arcane-handbook');

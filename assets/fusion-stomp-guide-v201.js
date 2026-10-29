@@ -95,12 +95,12 @@
   Mechanik und wird durch den Stomp nicht ersetzt.</p>
 
   <h3>Was gilt in anderen Spielmodi?</h3>
-  <p>Der beschriebene Fusions-Stomp ist derzeit im <b>Singleplayer-PvE</b>
-  aktiv – sowohl für den Spieler als auch für die gegnerische KI.
-  <b>Lokales klassisches PvP und die unabhängige 2v2-Kampagne</b> nutzen
-  diese Mehrfachtreffer- und Verschleißregeln noch nicht. Insbesondere
-  das 2v2 berechnet den Angriff weiterhin im eigenen serverseitigen
-  Regelkern. Die Angleichung wird gesondert geprüft und getestet.</p>
+  <p>Der Fusions-Stomp ist im <b>Einzelspieler-PvE</b>
+  und inzwischen auch in der <b>2v2-Kampagne</b> umgesetzt.
+  Im Duo verteilt der eigene serverseitige Kampfrechner Nebentreffer
+  gegebenenfalls über <b>beide gegnerischen 7er-Felder</b>.
+  Klassisches lokales PvP nutzt seinen separaten Regelkern
+  und kann von diesen PvE-Regeln abweichen.</p>
   <h3>Zum Ausprobieren</h3>
   <p>Unter <b>Herausforderungen → Lernherausforderungen</b> gibt es
   <b>Der geteilte Strahl</b> und <b>Prisma der Fünf</b>. Du erhältst
@@ -142,7 +142,9 @@
   node.id='ad201-fusion-stomp';
   const summary=document.createElement('summary');summary.textContent=title;
   const body=document.createElement('div');body.className='arcane-rule-body';
-  body.innerHTML=handbook;node.append(summary,body);book.append(node);
+  body.innerHTML=handbook;node.append(summary,body);
+  const before=book.querySelector('#ad180-rule-combat-controls');
+  if(before)book.insertBefore(node,before);else book.append(node);
  }
  const oldRules=showRules;
  showRules=function(...args){const result=oldRules.apply(this,args);addRules();return result;};
