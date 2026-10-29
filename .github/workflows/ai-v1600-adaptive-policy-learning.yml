@@ -51,7 +51,8 @@ jobs:
           a.equal(learned.split,'train');
           a.equal(learned.holdoutUsed,false);
           a.equal(learned.validationUsed,false);
-          a.ok(learned.games>0&&learned.actions>0);
+          a.ok(learned.games>=500&&learned.actions>200&&learned.nonzero>=3,
+            'Historical TRAIN cohort for v14.9.72 not present or has insufficient actionable contexts');
           const q=JSON.parse(fs.readFileSync(root+'training-q-and-examples.json'));
           a.equal(q.length,3);
           a.ok(q.every(x=>x.learnedQ&&Object.keys(x.learnedQ).length>0));
