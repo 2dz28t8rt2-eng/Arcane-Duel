@@ -43,8 +43,8 @@ once('       tacticalCorrection+=correction*.75;','       tacticalCorrection+=co
  // These parameters are predeclared before any current validation/holdout games.
  once('defenderPairedActionForecast:.74,defenderSelectiveL10Branches:true',
       'defenderPairedActionForecast:.88,defenderSelectiveL10Branches:true');
- once('defenderRaidDischargeContest:.80,defenderPairedActionForecast:.88',
-      'defenderRaidDischargeContest:.90,defenderPairedActionForecast:.88');
+ once('defenderRaidDischargeContest:.80,',
+      'defenderRaidDischargeContest:.90,');
  once('predatorSwarmPreservation:true};',
       'predatorSwarmPreservation:true,counterfactualFusion:.55,postReplyMaterial:.85,sequenceFusion:.30};');
  new Function('require','process','console',source)(require,process,console);
