@@ -440,7 +440,7 @@ geben bereits vorher einen sofortigen Schwarmbonus.</p>`],
     Die noch laufende KI-Forschung benötigt eigene
     Trainingsläufe für taktische Seelenbund-Platzierungen.
     Die Mechanik allein garantiert noch keine bessere KI.</p>`],
-  ['turn-flow-v207','27 · Beschwören, Seelenstoß, Lebenspunkte und Unterstützer',
+  ['turn-flow-v207','27 · Beschwören, Seelenstoß, Lebenspunkte und Rollen',
    `<h3>So funktioniert die Beschwörungszone</h3>
    <p>Du darfst auch bei einem vollständig belegten Feld eine Handkarte
    vorbereiten. Eine <b>leere Zone</b> beschwört sie normal.
@@ -469,9 +469,10 @@ geben bereits vorher einen sofortigen Schwarmbonus.</p>`],
    <h3>Seelenstoß und weitere aktive Fähigkeiten</h3>
    <p>Ein Seelenzehrer kann seine <b>aktiven</b>
    Fähigkeiten unmittelbar nach der Beschwörung
-   <b>in ATK und DEF</b> einsetzen, sobald die
+   ausschließlich <b>in DEF</b> einsetzen, sobald die
    jeweiligen Energiekosten und Abklingzeiten erfüllt sind.
-   Der <b>passive</b> Seelenentzug bleibt DEF-gebunden.
+   Wechsle dafür nötigenfalls nach dem Beschwören in die Verteidigung.
+   Der <b>passive</b> Seelenentzug bleibt ebenfalls DEF-gebunden.
    Die Buttons findest du in der <b>großen Monsteransicht</b>,
    nicht mehr lose unter den Kampfschaltflächen.
    Bei einer Seelenaktion blendet die gesamte Handkartenleiste
@@ -481,19 +482,12 @@ geben bereits vorher einen sofortigen Schwarmbonus.</p>`],
    Ein Seelenstoß verbraucht ab 40 gespeicherter
    Essenz den gesamten Vorrat und verursacht 130 % davon als
    LP-Schaden, vorbehaltlich Schild und Schutzregeln.</p>
-   <h3>Was macht ein Unterstützer?</h3>
-   <p>Ein <b>Unterstützer</b> ist ein taktisches
-   Hilfsmonster. Solange mindestens ein Unterstützer
-   <b>in DEF</b> auf deiner Seite steht, bekommen
-   deine <b>normalen, nicht fusionierten</b> Angreifer
-   einen <b>festen ATK-Zusatz</b>.
-   Dieser beträgt 25 plus 8 Punkte je Level
-   des angreifenden Monsters, höchstens 160 Punkte.
-   Mehrere Unterstützer stapeln diesen Bonus nicht.
-   Fusionierte Monster profitieren nicht davon.
-   Beispiel: Ein normaler Angreifer auf Level 5
-   erhält <b>+65 ATK</b>. Der Unterstützer
-   selbst muss nicht angreifen, um zu helfen.</p>
+   <h3>Wohin sind die Unterstützer verschwunden?</h3>
+   <p>Die frühere Unterstützerklasse wurde abgeschafft.
+   Ihre Monsterkarten behalten Namen, Artwork, Level, Werte und Karten-ID,
+   gehören jetzt aber zu <b>Predator, Seelenzehrer oder Wächter</b>.
+   Die Verteilung erfolgt nach der zahlenmäßig kleinsten Klasse;
+   der alte Unterstützer-ATK-Bonus existiert nicht mehr.</p>
    <h3>Lebenspunkte im Turnier</h3>
    <p>Training und Turnier I–III starten mit
    <b>2.000 LP</b> je Spieler. Von IV–VIII
