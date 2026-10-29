@@ -41,7 +41,7 @@ test('Soul abilities, DEF welcome cue, essence loss, leader onboarding and menu 
  assert.match(ui,/RUDELFÜHRER/);
  assert.match(ui,/postRewards\.set\(g/);
  assert.match(ui,/setTimeout\(show,reduce\(\)\?450:2150\)/);
- assert.match(ui,/await sleep\(reduce\(\)\?800:1500\)/);
+ assert.match(read('assets/game.js'),/setTimeout\(done,window\.matchMedia/);
  assert.match(style,/#ad211-board-tools/);
  assert.match(style,/#ad211-board-zoom/);
  assert.match(bond,/SEELENBUND · 35 %/);
