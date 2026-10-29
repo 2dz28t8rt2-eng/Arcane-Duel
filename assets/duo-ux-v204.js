@@ -28,7 +28,8 @@
   return {leader,percentage:Math.min(5,count)*rate};
  }
  function growthPct(card){
-  return isPredator(card)&&!card.fusion&&!card.predatorToken&&!card.fate?
+  return isPredator(card)&&!card.fusion&&!card.predatorToken&&!card.fate&&
+   Number.isInteger(card.predatorEvolutionAge)?
    90+3*Math.max(0,Math.min(4,card.predatorEvolutionAge||0)):100;
  }
  function effectiveAttack(card,player,rules){
