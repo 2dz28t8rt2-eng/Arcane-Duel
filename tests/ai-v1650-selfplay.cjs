@@ -143,11 +143,11 @@ once('       tacticalCorrection+=correction*.75;','       tacticalCorrection+=co
   '     }'
  ];
  const marker="'     return before*.2+future*.8+entry.score*.2-(scene.roleAware?fragile:0)+tacticalCorrection;'";
- once(marker,bondLines.map(l=>JSON.stringify(l)).join(',\\n')+',\\n'+marker);
+ once(marker,bondLines.map(l=>JSON.stringify(l)).join(',\n')+',\n'+marker);
  // On the attack/ability branch, compare actual surviving links and real
  // newly stored essence after cloned legal opponent actions; never assume
  // two same-deck roles means they are adjacent.
  once("const change=Math.max(-340,Math.min(230,realOutcome))*.72;",
-      "const validLinks=window.ArcaneEssenceCombat.soulBonds(z,me);\\n    const oldLinks=window.ArcaneEssenceCombat.soulBonds(x,me);\\n    const newEnergy=validLinks.reduce((n,b)=>n+(b.soul.essenceCombat?.soul||0),0);\\n    const oldEnergy=oldLinks.reduce((n,b)=>n+(b.soul.essenceCombat?.soul||0),0);\\n    const protectedLinks=validLinks.filter(b=>b.guardian.mode==='def'&&b.soul.mode==='def').length;\\n    const bondScore=w.defenderBondPlanner?Math.max(-160,Math.min(110,(newEnergy-oldEnergy)*.85+protectedLinks*25-Math.max(0,oldLinks.length-validLinks.length)*120))*w.defenderBondPlanner:0;\\n    value+=bondScore;\\n    counter.defenderBondReplyChecks=(counter.defenderBondReplyChecks||0)+Number(!!w.defenderBondPlanner);\\n    const change=Math.max(-340,Math.min(230,realOutcome))*.72;");
+      "const validLinks=window.ArcaneEssenceCombat.soulBonds(z,me);\n    const oldLinks=window.ArcaneEssenceCombat.soulBonds(x,me);\n    const newEnergy=validLinks.reduce((n,b)=>n+(b.soul.essenceCombat?.soul||0),0);\n    const oldEnergy=oldLinks.reduce((n,b)=>n+(b.soul.essenceCombat?.soul||0),0);\n    const protectedLinks=validLinks.filter(b=>b.guardian.mode==='def'&&b.soul.mode==='def').length;\n    const bondScore=w.defenderBondPlanner?Math.max(-160,Math.min(110,(newEnergy-oldEnergy)*.85+protectedLinks*25-Math.max(0,oldLinks.length-validLinks.length)*120))*w.defenderBondPlanner:0;\n    value+=bondScore;\n    counter.defenderBondReplyChecks=(counter.defenderBondReplyChecks||0)+Number(!!w.defenderBondPlanner);\n    const change=Math.max(-340,Math.min(230,realOutcome))*.72;");
 
  new Function('require','process','console',source)(require,process,console);
