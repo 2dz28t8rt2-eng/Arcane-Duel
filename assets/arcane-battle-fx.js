@@ -129,11 +129,14 @@
    }
   }
   const res=oldAttack(g,ai,di);
-  if(res?.destroyed?.length&&locations.length){
+  if(res?.destroyed?.length&&g===game&&uiMode==='duel'){
+   // This is the committed destruction event, after the impact cinematic.
+   // Sound must also work in instant/reduced-motion mode, where visual
+   // locations and particles are intentionally unavailable.
    for(const id of res.destroyed){
+    window.ArcaneSfx208?.play?.('destroy');
     const item=locations.find(x=>x.id===id);if(!item)continue;
     sparks('ad-sparks-destruction',item.x,item.y,24);
-    window.ArcaneSfx208?.play?.('destroy');
     const ghost=document.createElement('div');ghost.className='ad-monster-dissolve';
     ghost.style.left=item.x+'px';ghost.style.top=item.y+'px';
     const img=document.createElement('img');img.src=item.art;img.alt='';ghost.append(img);

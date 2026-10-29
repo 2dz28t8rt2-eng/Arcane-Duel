@@ -1768,6 +1768,9 @@ async function runAi(){
    result=applyAiAction(g,a);if(!result)throw Error('KI-Aktion nicht möglich.');
    if(a.type==='attack'&&result.damage&&animationSpeed!=='instant')await window.ArcaneDamageFX?.play?.(result.damaged,result.damage);
    const fusion=a.type==='place'&&result.card?.fusion;
+   // Enemy normal summons make their sound at the actual, confirmed
+   // placement event, before the card's landing animation starts.
+   if(a.type==='place'&&result.card&&!fusion)window.ArcaneSfx208?.play?.('summon');
    const lumiraFall=!!(fusion&&result.card?.id===window.ArcaneLumiraCorruption?.id);
    g.cinemaActive=!!fusion;render();if(g.fateEvent)await fateAnimation(g);
    try{
