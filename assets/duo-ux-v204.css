@@ -82,3 +82,11 @@
 @media(prefers-reduced-motion:reduce){.ad204-stat-flash,.ad204-soul-hide .duo178-hand-cards,
  .ad204-soul-reveal .duo178-hand-cards{animation:none!important}
  .ad204-result-title,.ad204-result-dialog{transition:none!important}}
+
+/* v20.7.1: DEF-only Soul abilities live inside the large monster inspector. */
+.ad207-soul-abilities{margin:13px 0;padding:13px;border:1px solid #926cb6;border-radius:11px;display:flex;flex-direction:column;gap:9px;background:linear-gradient(125deg,#4f276456,#24243a77)}
+.ad207-soul-abilities>strong{color:#f2d5ff;font-weight:800}
+.ad207-soul-abilities>small{opacity:.85}
+.ad207-soul-abilities .ad207-soul-action{padding:9px 10px;color:#f7edff;background:#493064;border:1px solid #9871c5;border-radius:9px;cursor:pointer}
+.ad207-soul-abilities .ad207-soul-action:disabled{opacity:.42;cursor:not-allowed}
+.ad207-soul-abilities .ad207-soul-target{max-width:100%;padding:9px;background:#28213b;color:#f5eaff;border:1px solid #8466ae;border-radius:8px}
