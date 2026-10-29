@@ -670,7 +670,7 @@
   window.ArcaneCombatIdentity183?.duoDidRender?.({game,roomId});
   window.ArcaneDuoExperience185?.didRender?.({game,seat,roomId});
   window.ArcaneDuoPredator198?.decorate?.({game,seat});
-  window.ArcaneDuoUX204?.decorate?.({game,seat,roomId,catalog});
+  window.ArcaneDuoUX204?.decorate?.({game,seat,roomId,catalog,send});
   window.ArcaneDuoSoulBond206?.decorate?.({game,seat,roomId,catalog});
   if(game.status!=='active'){
    const canContinue=game.entry==='quest'?game.chapter<15&&game.questPassed===true:
@@ -921,47 +921,7 @@
      c.essenceLastToggle===p.ownTurns;
    }
   }
-  const souls=p.field.flatMap((c,slot)=>c?.role==='soul'&&c.mode==='def'?
-   [{c,slot}]:[]);
-  if(souls.length){
-   const part=section(dock,'✦ Seelenzehrer','Aktive Fähigkeiten nur in DEF: Pro Monster '+
-    'eine Seelenaktion je eigenem Zug. Passive Seelenentzüge erfolgen beim nächsten eigenen Zug.');
-   const which=selector('Seelenzehrer',souls.map(x=>[x.slot,
-    'Feld '+(x.slot+1)+' · '+name(x.c.id)+' · '+(x.c.soul||0)+' Seele']),part);
-   const actions=el('div',part,undefined,'duo-soul-actions');
-   const focus=selector('Entzugsfokus',[['atk','ATK bevorzugen'],['def','DEF bevorzugen']],actions);
-   const focusButton=button('Fokus setzen',actions,()=>send({type:'soulFocus',
-    slot:Number(which.value),stat:focus.value}));
-   const condense=button('Verdichten · DEF und ATK stärken',actions,
-    ()=>send({type:'soulCondense',slot:Number(which.value)}));
-   const discharge=button('Seelenentladung (130 % → LP)',actions,
-    ()=>send({type:'soulDischarge',slot:Number(which.value)}));
-   const raidTargets=game.players.filter(x=>x.team!==p.team)
-    .flatMap(x=>x.field.flatMap((c,slot)=>c?[{seat:x.seat,slot,c,name:x.name}]:[]));
-   if(raidTargets.length){
-    const target=selector('Raubziel',raidTargets.map(x=>[x.seat+':'+x.slot,
-     x.name+' · Feld '+(x.slot+1)+' · '+format(x.c)]),actions);
-    const raid=button('Gezielter Seelenraub (250 %)',actions,()=>{
-     const [targetSeat,targetSlot]=target.value.split(':').map(Number);
-     send({type:'soulRaid',slot:Number(which.value),targetSeat,targetSlot});
-    });
-    const enabled=()=>{
-     const c=p.field[Number(which.value)],used=c.lastSoulAction===p.ownTurns;
-     raid.disabled=used||(c.raidCooldown||0)>0||busy||!!syncError;
-     condense.disabled=used||(c.soulCooldown||0)>0||(c.soul||0)<40||busy||!!syncError;
-     discharge.disabled=used||(c.soul||0)<40||busy||!!syncError;
-     focusButton.disabled=c.level<5||c.lastDrainSwitch===p.ownTurns||busy||!!syncError;
-    };
-    which.onchange=enabled;enabled();
-   }else{
-    const enabled=()=>{
-     const c=p.field[Number(which.value)],used=c.lastSoulAction===p.ownTurns;
-     condense.disabled=used||(c.soulCooldown||0)>0||(c.soul||0)<40||busy||!!syncError;
-     discharge.disabled=used||(c.soul||0)<40||busy||!!syncError;
-     focusButton.disabled=c.level<5||c.lastDrainSwitch===p.ownTurns||busy||!!syncError;
-    };which.onchange=enabled;enabled();
-   }
-  }
+  // Soul actions are hosted by the selected card inspector (v20.7.1).
   if(legal.attackers.length){
    const part=section(dock,'⚔ Angriff','Gegnerische Monster blockieren direkte Angriffe.');
    const row=el('div',part,undefined,'duo-choices');
@@ -988,7 +948,7 @@
   window.ArcaneDuoDirectCards187?.enhance?.({game,seat,legal,dock,catalog,busy,syncError});
   window.ArcaneDuoFusion188?.enhance?.({game,seat,roomId,dock,busy,syncError});
   window.ArcaneDuoSummon189?.enhance?.({game,seat,legal,dock,catalog,busy,syncError});
-  window.ArcaneDuoUX204?.decorate?.({game,seat,roomId,catalog});
+  window.ArcaneDuoUX204?.decorate?.({game,seat,roomId,catalog,send});
  }
  async function init(){
   try{
