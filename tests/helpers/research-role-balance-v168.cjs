@@ -20,11 +20,7 @@ function patch(code,before,after,label){
 }
 function transform(code,m){
  assert.ok(MODES.includes(m),'Invalid mode '+m);
- // Align actual v20.7 ability legality in the headless simulation.
- code=patch(code,
- "const owner=g.active,creature=g.players[owner].field[action.idx];\n  if(!creature||!isSoul(creature)||creature.mode!=='def')return false;",
- "const owner=g.active,creature=g.players[owner].field[action.idx];\n  if(!creature||!isSoul(creature))return false;",
- 'v20.7 stance parity');
+ // Research overlays must not change DEF-only activation legality.
  const pierce=m.includes('predator125')?.125:m.includes('predator15')?.15:.10;
  if(pierce!==.10)code=patch(code,
   "const predatorPierce=roleOf(a)==='predator'?\n     (g.strategicTraining?.symmetricSides?\n      (g.strategicTraining.predatorArmorPierce||0):.10):0;",
