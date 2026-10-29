@@ -56,6 +56,8 @@
    burst.innerHTML='<span class="ad113-impact-core"></span><span class="ad117-impact-ring"></span><span class="ad117-impact-ring ad117-second-ring"></span>'+
     Array.from({length:32},(_,i)=>'<i style="--impact-index:'+i+';--impact-deg:'+(i*137.5%360)+'deg;--impact-distance:'+(38+i%7*9)+'px;--impact-delay:'+(i%5*12)+'ms"></i>').join('');
    document.body.appendChild(burst);
+   // SFX starts at the actual collision/explosion, not at delayed state polling.
+   if(di===null)window.ArcaneSfx208?.play?.('damage');
    ghost.classList.add('ad113-attack-hit');
    await delay(830);
    // Return the striking card to its zone BEFORE combat changes the board.
