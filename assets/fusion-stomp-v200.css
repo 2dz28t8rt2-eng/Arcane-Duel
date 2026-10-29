@@ -17,7 +17,8 @@
 .ad-stomp-secondary.ad-stomp-glow{stroke-width:20;filter:blur(5px)}
 .ad-stomp-secondary.ad-stomp-core{stroke-width:5}
 .ad-stomp-firing .ad-stomp-primary{animation:ad-stomp-drive .26s cubic-bezier(.12,.7,.2,1) forwards}
-.ad-stomp-splitting .ad-stomp-secondary{animation:ad-stomp-branch .19s cubic-bezier(.05,.64,.05,1) forwards}
+.ad-stomp-splitting .ad-stomp-secondary{animation:ad-stomp-branch .19s cubic-bezier(.05,.64,.05,1) both;
+ animation-delay:var(--stomp-branch-delay,0ms)}
 .ad-stomp-afterglow .ad-stomp-ray{opacity:.3;transition:opacity .14s}
 .ad-stomp-impact{position:absolute;width:140px;height:140px;margin:-70px 0 0 -70px;
   border:3px solid var(--stomp-light);border-radius:50%;opacity:0;
@@ -29,11 +30,21 @@
 .ad-stomp-impact i{position:absolute;top:50%;left:50%;width:6px;height:18px;border-radius:70%;
   background:var(--stomp-light);box-shadow:0 0 8px var(--stomp-color);
   opacity:0;transform:translate(-50%,-50%) rotate(var(--stomp-angle))}
-.ad-stomp-splitting .ad-stomp-impact{animation:ad-stomp-burst .35s cubic-bezier(.13,.8,.2,1) forwards}
-.ad-stomp-splitting .ad-stomp-impact::before{animation:ad-stomp-ring .35s ease-out forwards}
-.ad-stomp-splitting .ad-stomp-impact::after{animation:ad-stomp-ring .43s ease-out forwards}
-.ad-stomp-splitting .ad-stomp-impact i{animation:ad-stomp-spark .48s ease-out forwards;
-  animation-delay:var(--stomp-delay)}
+.ad-stomp-splitting .ad-stomp-impact{animation:ad-stomp-burst .35s cubic-bezier(.13,.8,.2,1) both}
+/* Primary collision begins when the main beam arrives at 260ms. Each secondary
+   collision is delayed until its own 190ms travelling ray reaches the target. */
+.ad-stomp-splitting .ad-stomp-impact.ad-stomp-small{
+ animation-delay:calc(190ms + var(--stomp-branch-delay,0ms))}
+.ad-stomp-splitting .ad-stomp-impact::before{animation:ad-stomp-ring .35s ease-out both}
+.ad-stomp-splitting .ad-stomp-impact::after{animation:ad-stomp-ring .43s ease-out both}
+.ad-stomp-splitting .ad-stomp-impact.ad-stomp-small::before{
+ animation-delay:calc(190ms + var(--stomp-branch-delay,0ms))}
+.ad-stomp-splitting .ad-stomp-impact.ad-stomp-small::after{
+ animation-delay:calc(190ms + var(--stomp-branch-delay,0ms))}
+.ad-stomp-splitting .ad-stomp-impact i{animation:ad-stomp-spark .48s ease-out both;
+ animation-delay:var(--stomp-delay)}
+.ad-stomp-splitting .ad-stomp-impact.ad-stomp-small i{
+ animation-delay:calc(190ms + var(--stomp-branch-delay,0ms) + var(--stomp-delay,0ms))}
 .ad-stomp-small{width:95px;height:95px;margin:-47.5px 0 0 -47.5px;border-width:2px}
 .ad-stomp-small::after{inset:-28px}
 .ad-stomp-small i{width:4px;height:11px}
