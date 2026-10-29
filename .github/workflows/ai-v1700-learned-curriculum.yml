@@ -1,0 +1,251 @@
+name: Arcane Duel - v17.0 Frozen vs TRAIN-learned AI Under Fixed 15/90/100/120
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v1700-learned-curriculum.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preflight:
+    name: v17.0 verify ${{ matrix.cohort }} same rules and prior TRAIN provenance
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        cohort: [cold, learned]
+    env:
+      ARCANE_RESEARCH_BALANCE_V169: predator15Triad90
+      ARCANE_V1700_COHORT: ${{ matrix.cohort }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check fixed research rules, audit and legal DEF actions
+        run: |
+          set -euo pipefail
+          for f in tests/ai-v1700-{research-baseline,aggregate,Q,selfplay,endgame-cold,endgame-posttrain,rule-audit,compare}.cjs tests/ai-v1700-research-baseline.test.cjs; do node --check "$f"; done
+          node --test tests/ai-v1700-research-baseline.test.cjs tests/soul-bond-v206.test.cjs tests/opening-predator-v205.test.cjs
+          node tests/ai-v1690-mechanics.test.cjs
+          node tests/ai-v1700-rule-audit.cjs
+      - name: Import same-rule frozen champion and strictly TRAIN-only prior model
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARCANE_PREVIOUS_ARTIFACT_DIR: /tmp/v1700-prior
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40917461921" --jq '.conclusion')" = success
+          mkdir -p "$ARCANE_PREVIOUS_ARTIFACT_DIR" "artifacts/v1700/$ARCANE_V1700_COHORT" /tmp/v1700-previous-trained
+          gh run download 40917461921 --repo "$GITHUB_REPOSITORY" --name arcane-v1690-checkpoints-predator15Triad90 --dir "$ARCANE_PREVIOUS_ARTIFACT_DIR"
+          gh run download 40917461921 --repo "$GITHUB_REPOSITORY" --name arcane-v1690-report-predator15Triad90 --dir /tmp/v1700-previous-trained
+          for f in historical-train.json frozen-v1555-champion.json incumbent-policy.json older-q-checkpoint.json previous-training-q.json prior-selfplay-checkpoint.json provenance.json research-balanced-policy.json v1499-prior-q.json; do
+            test -s "$ARCANE_PREVIOUS_ARTIFACT_DIR/$f"
+            cp "$ARCANE_PREVIOUS_ARTIFACT_DIR/$f" "artifacts/v1700/$ARCANE_V1700_COHORT/$f"
+          done
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const prev=process.env.ARCANE_PREVIOUS_ARTIFACT_DIR,cohort=process.env.ARCANE_V1700_COHORT;
+          const prior=JSON.parse(fs.readFileSync(prev+'/training-q-and-examples.json','utf8'));
+          assert.equal(prior.length,3);
+          const accepted=prior.map(x=>({label:x.label,swarm:x.swarm,pierce:x.pierce,learnedQ:x.learnedQ}));
+          assert.ok(accepted.every(x=>x.learnedQ&&Object.keys(x.learnedQ).length));
+          fs.writeFileSync('artifacts/v1700/'+cohort+'/previous-training-q.json',JSON.stringify(accepted,null,2)+'\n');
+          const learned=JSON.parse(fs.readFileSync('/tmp/v1700-previous-trained/next-run-endgame-learner.json'));
+          assert.equal(learned.split,'train');assert.equal(learned.sourceRun,0);
+          assert.equal(learned.holdoutUsed,false);assert.equal(learned.validationUsed,false);
+          assert.ok(learned.games>=500&&learned.nonzero>=3);
+          assert.ok(Object.values(learned.learned).some(x=>x.n>=8&&x.delta!==0));
+          // Do not allow any VALIDATION or HOLDOUT information into v17.0 priors.
+          console.log('ARCANE_V1700_PRIOR_TRAIN_ONLY_SEALED '+JSON.stringify({cohort,contextValues:learned.nonzero,games:learned.games}));
+          JS
+          node tests/ai-v1700-endgame-cold.cjs
+          node --expose-gc --max-old-space-size=3200 tests/ai-v1700-Q.cjs
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const cohort=process.env.ARCANE_V1700_COHORT,root='artifacts/v1700/'+cohort+'/';
+          const cold=JSON.parse(fs.readFileSync(root+'endgame-learner.json'));
+          assert.equal(cold.ruleChangeReset,true);assert.equal(cold.nonzero,0);
+          if(cohort==='learned'){
+            const prior=JSON.parse(fs.readFileSync('/tmp/v1700-previous-trained/next-run-endgame-learner.json'));
+            assert.equal(prior.split,'train');assert.equal(prior.validationUsed,false);assert.equal(prior.holdoutUsed,false);
+            assert.ok(prior.nonzero>=3&&prior.games>=500);
+            const next={...prior,sourceRun:40917461921,sourceRuleVariant:'predator15Triad90',
+              ruleChangeReset:false,predecessorModelOnly:true,
+              // Stored only as a previous-run training prior, never a validated policy.
+              observationPriorNotCausalProof:true};
+            fs.writeFileSync(root+'endgame-learner.json',JSON.stringify(next,null,2)+'\n');
+          }
+          const used=JSON.parse(fs.readFileSync(root+'endgame-learner.json'));
+          assert.equal(used.sourceRun,cohort==='learned'?40917461921:0);
+          assert.equal(used.nonzero>=3,cohort==='learned');
+          assert.equal(used.validationUsed,false);assert.equal(used.holdoutUsed,false);
+          const q=JSON.parse(fs.readFileSync(root+'training-q-and-examples.json'));
+          assert.equal(q.length,3);
+          console.log('ARCANE_V1700_COHORT_INPUT_READY '+JSON.stringify({cohort,endgameContextValues:used.nonzero,previousRun:used.sourceRun,qGroups:q.length}));
+          JS
+      - name: Run small seat-and-seed-matched safety simulations
+        run: |
+          set -euo pipefail
+          root="artifacts/v1700/$ARCANE_V1700_COHORT"
+          node --expose-gc --max-old-space-size=2400 tests/ai-v1700-selfplay.cjs 0 0
+          node --expose-gc --max-old-space-size=2400 tests/ai-v1700-selfplay.cjs 8 0 0
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const root='artifacts/v1700/'+process.env.ARCANE_V1700_COHORT+'/';
+          const basic=JSON.parse(fs.readFileSync(root+'stage-0-pair-0.json'));
+          const focus=JSON.parse(fs.readFileSync(root+'stage-8-pair-0-chunk-0.json'));
+          assert.ok(basic.cases.length>0);
+          assert.ok(basic.cases.every(x=>x.illegalSwitchesBySeat.every(n=>n===0)));
+          assert.equal(focus.cases.length,144);
+          const sample=focus.cases.filter(x=>x.arm.startsWith('defender-v1700-'));
+          assert.ok(sample.length);
+          assert.ok(sample.every(x=>Number.isFinite(x.defenderBondPlacementChecks)&&
+            Number.isFinite(x.defenderBondSurvivingPairs)&&Number.isFinite(x.defenderBondObservedEssenceGain)));
+          console.log('ARCANE_V1700_PREFLIGHT_SUCCESS '+JSON.stringify({cohort:process.env.ARCANE_V1700_COHORT,focusCases:focus.cases.length}));
+          JS
+          rm -f "$root"/stage-*.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1700-input-${{ matrix.cohort }}
+          path: artifacts/v1700/${{ matrix.cohort }}/
+          retention-days: 90
+          if-no-files-found: error
+  selfplay:
+    name: v17.0 ${{ matrix.cohort }} - stage ${{ matrix.stage }}
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        cohort: [cold, learned]
+        stage: [0,1,2,3,4,5,6,7,8,9,10]
+    env:
+      ARCANE_RESEARCH_BALANCE_V169: predator15Triad90
+      ARCANE_V1700_COHORT: ${{ matrix.cohort }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1700-input-${{ matrix.cohort }}
+          path: artifacts/v1700/${{ matrix.cohort }}
+      - name: Run matched frozen baseline vs prior TRAIN-learned AI without changing monster stats
+        env:
+          ARCANE_STAGE: ${{ matrix.stage }}
+        run: |
+          set -euo pipefail
+          stage="$ARCANE_STAGE"
+          chunks=1
+          if [ "$stage" = 4 ] || [ "$stage" = 7 ]; then chunks=4; fi
+          if [ "$stage" -ge 8 ]; then chunks=2; fi
+          for pair in 0 1 2 3 4 5 6 7; do
+            if [ "$chunks" -eq 1 ]; then
+              node --expose-gc --max-old-space-size=2400 tests/ai-v1700-selfplay.cjs "$stage" "$pair"
+            else
+              for ((chunk=0;chunk<chunks;chunk++)); do
+                node --expose-gc --max-old-space-size=2400 tests/ai-v1700-selfplay.cjs "$stage" "$pair" "$chunk"
+              done
+            fi
+          done
+          node --max-old-space-size=3200 tests/ai-v1700-selfplay.cjs "$stage" finalize
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-v1700-${{ matrix.cohort }}-stage-${{ matrix.stage }}
+          path: artifacts/v1700/${{ matrix.cohort }}/stage-${{ matrix.stage }}*.json
+          retention-days: 90
+          if-no-files-found: warn
+  aggregate:
+    name: v17.0 ${{ matrix.cohort }} - champion gates and NEXT TRAIN learner
+    needs: [preflight, selfplay]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        cohort: [cold, learned]
+    env:
+      ARCANE_RESEARCH_BALANCE_V169: predator15Triad90
+      ARCANE_V1700_COHORT: ${{ matrix.cohort }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1700-input-${{ matrix.cohort }}
+          path: artifacts/v1700/${{ matrix.cohort }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: arcane-v1700-${{ matrix.cohort }}-stage-*
+          merge-multiple: true
+          path: artifacts/v1700/${{ matrix.cohort }}
+      - name: Aggregate 23040 duels and learn NEXT model exclusively from current TRAIN
+        run: |
+          set -euo pipefail
+          node --max-old-space-size=3200 tests/ai-v1700-aggregate.cjs
+          ARCANE_PREVIOUS_ARTIFACT_DIR="artifacts/v1700/$ARCANE_V1700_COHORT" node tests/ai-v1700-endgame-posttrain.cjs
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const root='artifacts/v1700/'+process.env.ARCANE_V1700_COHORT+'/';
+          const r=JSON.parse(fs.readFileSync(root+'report.json'));
+          const next=JSON.parse(fs.readFileSync(root+'next-run-endgame-learner.json'));
+          a.equal(r.status,'completed');a.equal(r.totalDuels,23040);
+          a.equal(r.stages.length,11);a.equal(r.arms.length,6);
+          a.equal(r.globalSelection.holdoutSeenBySelector,false);
+          a.ok(r.controls.holdoutNeverUsedForSelection&&r.controls.noProductionChanges);
+          a.equal(next.split,'train');a.equal(next.validationUsed,false);a.equal(next.holdoutUsed,false);
+          console.log('ARCANE_V1700_RESEARCH_VERIFIED '+JSON.stringify({
+            cohort:process.env.ARCANE_V1700_COHORT,games:r.totalDuels,
+            championPromotionDiagnostic:r.globalSelection.promoted,
+            selected:r.globalSelection.arm,nextTrainGames:next.games,nextContextValues:next.nonzero}));
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-v1700-report-${{ matrix.cohort }}
+          path: |
+            artifacts/v1700/${{ matrix.cohort }}/report.json
+            artifacts/v1700/${{ matrix.cohort }}/stage-8.json
+            artifacts/v1700/${{ matrix.cohort }}/endgame-learner.json
+            artifacts/v1700/${{ matrix.cohort }}/next-run-endgame-learner.json
+            artifacts/v1700/${{ matrix.cohort }}/training-q-and-examples.json
+          retention-days: 90
+          if-no-files-found: warn
+  compare:
+    name: v17.0 matched cold vs v16.9 learned context (never auto-promote)
+    needs: aggregate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1700-report-cold
+          path: artifacts/v1700/cold
+      - uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1700-report-learned
+          path: artifacts/v1700/learned
+      - name: Validate 46080 matched games and Defender link survival
+        run: |
+          set -euo pipefail
+          node tests/ai-v1700-compare.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1700-learned-vs-cold-comparison
+          path: artifacts/v1700/cold-vs-learned-comparison.json
+          retention-days: 90
+          if-no-files-found: error
