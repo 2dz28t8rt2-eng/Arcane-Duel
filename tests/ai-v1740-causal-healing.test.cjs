@@ -60,7 +60,7 @@ test('Stairs 1-5, self-exclusion, observed losses at max DEF and absent defender
  }
  let max=heal('both',{guardians:3,initialDef:90,maxDef:100});
  assert.equal(max.soul.card.def,100);
- assert.equal(max.metrics.actualDefByOwner[0][3],(3*3)*10);
+ assert.equal(max.metrics.actualDefByOwner[0][3],4*10,'Only four targets can fill a 10 DEF deficit; repeated sources do not over-heal');
  assert.ok(max.metrics.budgetLostAtCapByOwner[0][3]>0);
  let empty=heal('both',{guardians:0});
  assert.equal(empty.soul.card.def,0);
