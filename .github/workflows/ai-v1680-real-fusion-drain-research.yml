@@ -25,7 +25,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check simulation overlays, updated v20.7 rule parity and basic legality
+      - name: Check six true-drain / Predator variants, updated v20.7 parity and legal play
         run: |
           set -euo pipefail
           for f in tests/helpers/{game-runtime,research-role-balance-v168}.cjs tests/ai-v1680-{selfplay,aggregate,Q,endgame-cold,endgame-posttrain,rule-audit,balance-compare,mechanics.test}.cjs; do node --check "$f"; done
