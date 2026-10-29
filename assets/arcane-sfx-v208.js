@@ -59,7 +59,9 @@
   const duration=Math.min(spec[2],stopAfter||spec[2]);
   const begin=()=>{if(!enabled()){live.delete(a);return;}try{if(startAt)a.currentTime=startAt;}catch{}
    const p=a.play();p?.catch?.(()=>live.delete(a));};
-  if(a.readyState>=1)begin();else{a.addEventListener('loadedmetadata',begin,{once:true});a.load();}
+  // Start inside the real click/impact task rather than waiting for metadata.
+  // HTMLAudioElement.play() initiates loading itself if necessary.
+  begin();
   schedule(()=>{if(!live.has(a))return;const initial=a.volume;let n=0;
    const fade=setInterval(()=>{n++;a.volume=Math.max(0,initial*(1-n/5));
     if(n>=5){clearInterval(fade);a.pause();live.delete(a);}},32);
@@ -99,7 +101,8 @@
  function result(kind){
   const token=kind+':'+(duo()?duoGame?.roomId+':'+duoGame?.revision:typeof game!=='undefined'?game?.id+':'+game?.turn:'');
   if(last.outcome===token)return;
-  last.outcome=token;window.ArcaneSoundscape?.setDuck?.(.16,4300);
+  last.outcome=token;
+  // Keep battle music at its normal level, as requested in the playtest.
   play(kind);
  }
  function leaderPresent(){
@@ -115,7 +118,7 @@
   try{
    if(typeof game==='undefined'||typeof uiMode==='undefined'||!game||
     uiMode!=='duel'||game.mode!=='pve'||game.winner!==null)return null;
-   return {id:game.id,turn:game.turn,active:game.active,
+   return {id:game.id,turn:game.turn,active:game.active,log:[...(game.log||[])],
     players:game.players.map(p=>({hp:p.hp??p.lp??0,
      hand:(p.hand||[]).length,
      field:(p.field||[]).map(c=>c?{uid:c.uid,atk:c.atk,def:c.def,leader:!!c.predatorLeader}:null)}))};
@@ -125,11 +128,9 @@
   const now=snapshot();if(!now){lastSnapshot=null;return;}
   const old=lastSnapshot;lastSnapshot=now;
   if(!old||old.id!==now.id)return;
-  let decayed=0,buffed=false,drawn=false,summoned=false,destroyed=false,damage=false;
+  let decayed=0,buffed=false,summoned=false;
   for(let side=0;side<2;side++){
    const a=old.players[side],b=now.players[side];
-   if(b.hand>a.hand)drawn=true;
-   if(b.hp<a.hp)damage=true;
    const oldCards=new Map(a.field.filter(Boolean).map(c=>[c.uid,c]));
    const newCards=new Map(b.field.filter(Boolean).map(c=>[c.uid,c]));
    for(const [id,card] of newCards){
@@ -140,14 +141,18 @@
    for(const id of oldCards.keys())if(!newCards.has(id))destroyed=true;
   }
   const inFusion=!!document.querySelector('.ritual-overlay,.duo-cinema170');
-  if(drawn)play('draw');if(damage)play('damage');
-  if(!inFusion&&summoned)play('summon');
-  if(!inFusion&&destroyed)play('destroy');
+  // Draw, damage, and destruction are synchronized at the corresponding
+  // animation rather than observed late through the 260 ms polling loop.
+  if(!inFusion&&summoned&&old.turn!==now.turn)play('summon');
   // A whole turn's decay is one global cue, not one per affected monster.
-  if(decayed){
-   // One cue for global round decay; discrete debuffs have individual cues.
-   const count=old.turn!==now.turn?1:Math.min(5,decayed);
-   for(let i=0;i<count;i++)schedule(()=>play('decay'),i*155);
+  const newLogs=(now.log||[]).slice((old.log||[]).length);
+  const turnDecay=old.turn!==now.turn;
+  const decayLogged=newLogs.some(line=>/zerfall|verwitter|verfall|decay/i.test(line));
+  if((turnDecay&&decayed)||decayLogged){
+   // One shared sound per turn-based decay, never one sound per monster.
+   play('decay');
+  }else if(decayed){
+   for(let i=0;i<Math.min(5,decayed);i++)schedule(()=>play('decay'),i*155);
   }
   if(buffed)play('powerup');
  }
@@ -158,15 +163,17 @@
   const events=window.ArcaneDuoCinematics167?.describe?.(before,after)||[];
   const logs=window.ArcaneDuoSound194?.linesSince?.(before,after)||[];
   const draws=window.ArcaneDuoCinema170?.observed?.(before,after)||[];
-  if(draws.some(x=>x.kind==='draw'&&x.count>0&&x.seat===seat))play('draw');
+  const drawn=draws.filter(x=>x.kind==='draw'&&x.count>0&&x.seat===seat)
+   .reduce((sum,x)=>sum+x.count,0);
+  for(let i=0;i<drawn;i++)schedule(()=>play('draw'),i*200);
   // The actual fusion cinema owns the orbit sound. Event sounds here play
   // only for visible confirmed consequences, never speculative actions.
-  if(events.some(x=>x.type==='destroy'))schedule(()=>play('destroy'),390);
-  if(events.some(x=>x.type==='summon'))schedule(()=>play('summon'),280);
+  if(events.some(x=>x.type==='destroy'))play('destroy');
+  if(events.some(x=>x.type==='summon'))play('summon');
   if(events.some(x=>x.type==='arena')||logs.some(x=>/arena-zerfall/i.test(x)))play('decay');
   if(events.some(x=>x.type==='fate'))play('powerup');
   if(events.some(x=>x.type==='attack')&&logs.some(x=>/direkter Angriff/i.test(x)))
-   schedule(()=>play('damage'),410);
+   schedule(()=>play('damage'),280);
   if(before.status!=='finished'&&after.status==='finished'){
    const player=after.players?.find(x=>x.seat===seat);
    if(player)result(player.team===after.winner?'win':'lose');
@@ -177,10 +184,23 @@
   for(const stop of [...loops.values()])stop();
   for(const a of live){try{a.pause();}catch{}}live.clear();loops.clear();
  }
- function listenMenu(){document.getElementById('ad196-title')?.addEventListener('click',event=>{
-  if(event.target.closest('[data-ad196-action]'))play('menu');});
+ function listenMenu(){
+  const title=document.getElementById('ad196-title');if(!title)return;
+  let pressedAt=0;
+  title.addEventListener('pointerdown',event=>{
+   if(!event.target.closest('[data-ad196-action]'))return;
+   pressedAt=Date.now();play('menu');
+  },{capture:true});
+  title.addEventListener('click',event=>{
+   if(event.target.closest('[data-ad196-action]')&&Date.now()-pressedAt>240)play('menu');
+  });
  }
  function install(){
+  // Warm audio resources early, especially the menu cue. No autoplay.
+  if(typeof Audio==='function')for(const [kind,spec] of Object.entries(sounds)){
+   if(kind==='calc')continue;
+   try{const a=new Audio(ROOT+spec[0]);a.preload='auto';a.load();}catch{}
+  }
   listenMenu();
   // No gameplay overrides: observe the current solo snapshot only.
   setInterval(soloTick,260);setInterval(idleTick,2600);
