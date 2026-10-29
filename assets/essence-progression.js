@@ -357,7 +357,7 @@
    const tray=$('hand')?.closest('.cardtray');
    if(tray){tray.classList.remove('ad203-soul-ability');void tray.offsetWidth;
     tray.classList.add('ad203-soul-ability');
-    setTimeout(()=>tray.classList.remove('ad203-soul-ability'),1550);}
+    setTimeout(()=>tray.classList.remove('ad203-soul-ability'),2550);}
   }
  });
  window.ArcaneEssenceProgression={version:'1.0.0'};
