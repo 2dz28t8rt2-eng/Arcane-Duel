@@ -1,0 +1,34 @@
+name: Temporary Normal Card Series Diagnostic v20.9
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/diagnose-normal-series-v209-temporary.yml'
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: development
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Identify stage that violates root progression
+        run: |
+          node <<'NODE'
+          const {boot}=require('./tests/helpers/game-runtime.cjs');
+          const b=boot({seed:151002});
+          const invalid=b.run(`NORMAL_LINE_VARIANT_IDS.filter(id=>{
+            const c=CARDS[id],root=CARDS[c.variantOf];
+            return !root||root.fusionOnly||root.ace||root.manifestOf!=null||
+            c.fusionOnly||c.ace||c.manifestOf!=null||
+            c.lineRoot!==root.id||c.lineStep<1||c.lineStep>3||
+            c.level!==root.level+c.lineStep||c.art!==root.art||
+            c.name!==root.name||c.kind!==root.kind||
+            c.element!==root.element||
+            (c.level<=4&&(c.atk<=root.atk||c.def<=root.def))||
+            c.requiredTier<1||c.requiredTier>10
+          }).map(id=>{const c=CARDS[id],r=CARDS[c.variantOf];return {id,name:c.name,level:c.level,atk:c.atk,def:c.def,role:c.role,rootId:r?.id,rootAtk:r?.atk,rootDef:r?.def,rootRole:r?.role}})`);
+          console.log('INVALID_NORMAL_SERIES',JSON.stringify(invalid));
+          NODE
