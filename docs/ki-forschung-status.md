@@ -66,6 +66,14 @@ Die bestehende Heilformel `min(150, 25 + Level × 12)` und die effektive Begrenz
 
 **Designziel:** Reine Wächter- und reine Seelenzehrer-Decks sollen gegen Predatoren verwundbar sein. Der **reale Wächter-/Seelenzehrer-Bund** soll strategischen Mehrwert haben; Predatoren sollen dagegen gefährlich, aber nicht automatisch überlegen sein. Keine pauschalen Stat-Buffs, nur um ein Zielverhältnis zu erzwingen.
 
+### v17.2 – Gegenschlag-Vergleich nach Spielerfeedback
+
+- **Produktiv im Solo-Code von `development`:** 35 % ATK-Gegenschlag **nur bei überlebendem Verteidiger** (Wächter/Seelenzehrer). Das ist bereits implementiert; **nicht** auf `main` und **nicht** automatisch in 2v2 übernommen.
+- **Drei offline experimentelle Vergleichsarme bei konstanten sonstigen Testregeln** (15 Prozentpunkte Predator-Durchdringung, 90/100/120 % entzogenes ATK/DEF): `legacy50` = historischer Gegenschlag 50 % auch bei Zerstörung + volle Wächterheilung; `survivor35` = neuer 35-%-Gegenschlag nur bei Überleben + volle Wächterheilung; `survivor35Heal85` = neuer Gegenschlag + Wächter-zu-Wächter-Heilung 85 %, Wächter-zu-Seelenzehrer-Heilung 100 %.
+- **Trainingsdurchgang:** [GitHub Actions #40947684440](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40947684440), **69.120 geplante gepaarte Selbstspiel-Duelle** (23.040 pro Variante), gleiche Seeds, Sitzwechsel und KI-Kandidaten, unveränderte Level-10- und H2H-Champion-Gates. Vorherige nicht validierte Endgame-Lernwerte werden wegen der Regeländerung **nicht** auf die neuen Ergebnisse übertragen; Folge-Lernmodelle entstehen ausschließlich aus aktuellem TRAIN.
+- **Forschungsziele:** Verhindert der Survivor-Only-Gegenschlag den Wegwerf-Verteidiger-Exploit? Können Predatoren gegen reine Wächter/Seelenzehrer besser gewinnen, ohne gemischte Decks zu überwältigen? Bringt die 85-%-Heilung unter den neuen Gegenschlagsregeln Vorteile?
+- **Status:** Vorabnahme und Duellserie durch GitHub Actions; Ergebnisse und Champion-Entscheidung erst nach vollständigem Lauf. **Kein automatischer Produktionspatch oder KI-Champion-Aufstieg.**
+
 ## C. KI-Forschungsstatus
 
 - **v16.9:** 138.240 Duelle, sechs Varianten, GitHub Actions #40917461921 erfolgreich; neu erzeugtes TRAIN-only Endgame-Modell für `predator15Triad90`.
