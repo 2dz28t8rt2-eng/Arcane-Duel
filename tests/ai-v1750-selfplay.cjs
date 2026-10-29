@@ -48,7 +48,7 @@ source=source.replace(attackCall,[
  "'  }finally{delete game.__siegeSilentCounter;}',"
 ].join("\n"));
 const switchAnchor="'  const ok=baseApply(game,action);',";
-assert.equal(source.split(switchAnchor).length,2,'v17.5 switch action anchor must be unique');
+assert.equal(source.split(switchAnchor).length,4,'v17.5 expects three upstream switch/apply references; instrument first real apply action only');
 source=source.replace(switchAnchor,[
  "'  const actionSeat=game.active;',",
  "'  const actionIndex=Number.isInteger(action?.idx)?action.idx:Number.isInteger(action?.ai)?action.ai:null;',",
