@@ -37,7 +37,8 @@ for(const mode of MODES){
   }
  }
  const telemetry=s.allCases.filter(x=>x.arm===arms[0]&&x.split==='train');
- out.modes[mode]={\n  researchGoal:'Predator competitive, not dominant vs Guardian/Soul (evaluate only, do not auto-balance)',
+ out.modes[mode]={
+  researchGoal:'Predator competitive, not dominant vs Guardian/Soul (evaluate only, do not auto-balance)',
   totalDuels:r.totalDuels,
   promotionDiagnostic:r.globalSelection.promoted,
   electedDiagnostic:r.globalSelection.arm,
