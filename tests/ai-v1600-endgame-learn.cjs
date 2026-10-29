@@ -12,4 +12,13 @@ for(const [a,b] of [
  assert.ok(source.includes(a),'Missing learner anchor '+a);
  source=source.split(a).join(b);
 }
-new Function('require','process','console',source)(require,process,console);
+// The v14.9.72 actual TRAIN traces use the renamed challenger arms;
+ // do not mistake legacy v14.9.71 arm labels for evidence of zero training.
+ for(const [oldName,newName] of [
+  ['defender-v1569-mixed-control','defender-v1572-counterplay'],
+  ['defender-v1569-endgame-control','defender-v1572-survival-control']
+ ]){
+  assert.ok(source.includes(oldName),'Missing historical arm '+oldName);
+  source=source.split(oldName).join(newName);
+ }
+ new Function('require','process','console',source)(require,process,console);
