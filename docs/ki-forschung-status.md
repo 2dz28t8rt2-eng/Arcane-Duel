@@ -42,7 +42,8 @@ Die Werte können von `main` abweichen. Dieses Dokument macht keine Aussage dar�
 - **v16.9:** 138.240 Duelle, sechs Varianten, GitHub Actions #40917461921 erfolgreich; neu erzeugtes TRAIN-only Endgame-Modell für `predator15Triad90`.
 - **v17.0 Basisprüfung:** GitHub Actions #40926000841 erfolgreich.
 - **KI-Champion:** `l10-guarded-worst-reply` bleibt eingefrorene Referenz, bis ein Kandidat sämtliche unabhängigen Aufstiegstests erfüllt.
-- **Nächster Schritt:** Vergleiche innerhalb der **gleichen 15/90/100/120-Regeln** eine Cold-Start-Forschungs-KI mit der KI, die das v16.9-TRAIN-only-Endgame-Modell nutzt. Beide erhalten gleiche Seed-, Sitz- und Deck-Szenarien. VALIDATION/HOLDOUT dürfen nicht trainieren oder die Strategie unzulässig vorab auswählen.
+- **v17.0-Trainingslauf gestartet:** GitHub Actions **#40927268085** – **46.080 geplante Selbstspiel-Duelle** (23.040 ohne und 23.040 mit dem TRAIN-only-Endgame-Modell aus v16.9), gleiche 15/90/100/120-Regeln, Seed-, Sitz- und Deck-Szenarien. **Beide Vorprüfungen bestanden.** VALIDATION/HOLDOUT dienen ausschließlich der Bewertung und dürfen weder die KI trainieren noch eine automatische Beförderung auslösen.
+- **Ausstehend:** Finaler v17.0-Prüfbericht mit direktem Vergleich und neuen TRAIN-only-Kontextwerten. Vollständiger Lauf und bessere KI-Qualität sind noch nicht bestätigt.
 - **Spiel- und KI-Übernahme:** Weder Forschungsergebnisse noch vorgeschlagene KI werden automatisch in das reguläre Spiel geschrieben. Ein separater Patch und dessen Abnahme sind erforderlich.
 
 **Wichtig:** Ein erfolgreich beendeter GitHub-Trainingslauf bestätigt ausschließlich die technische Durchführung, nicht die spielerische Überlegenheit einer KI oder die endgültige Balance.
