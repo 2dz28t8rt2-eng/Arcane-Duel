@@ -118,13 +118,14 @@
   const phases=window.ArcaneCinemaPhases.create(overlay,wait);
   wait=phases.wait;
   const particleTask=motes(overlay,role).catch(()=>null);
-  playSound('summon');
+  if(window.ArcaneSfx208)window.ArcaneSfx208.play('orbit');
+  else playSound('summon');
   try{
    // 1. Material orbit and actual fusion merge: there is no popup yet.
    await phases.run('Materialrotation',async()=>{
-   overlay.classList.add('evo-phase-orbit');await wait(samples.length>=4?1100:960);
+   overlay.classList.add('evo-phase-orbit');await wait(3900);
    overlay.classList.remove('evo-phase-orbit');overlay.classList.add('evo-phase-merge');
-   await wait(670);
+   await wait(1850);
    });
    // 2. Open a completely empty calculation window, card rises above it.
    await phases.run('Enthüllung',async()=>{
@@ -150,6 +151,7 @@
    }
    await phases.run('Werteberechnung',async()=>{
    overlay.classList.add('evo-phase-rolls','evo-stamp-settled');
+   window.ArcaneSfx208?.play?.('calc');
    const weights=math.roleWeights||{atk:1,def:1};
    const information=document.createElement('div');
    information.className='evo-role-math';
