@@ -47,6 +47,7 @@
  const own=onOwnSlot;
  onOwnSlot=async function(index,...args){
   const g=game,pending=g?.pending,before=g?.players[g.active]?.field[index]?.uid;
+  if(pending?.kind==='normal')window.ArcaneSfx208?.play?.('summon');
   await own(index,...args);
   const c=g?.players[g.active]?.field[index];
   if(game===g&&pending&&!g.pending&&c&&c.uid!==before&&!c.fusion){
