@@ -173,6 +173,8 @@
   }
  }
  function stopAll(){
+  // Invalidate pending metadata/play callbacks as well as currently audible loops.
+  for(const stop of [...loops.values()])stop();
   for(const a of live){try{a.pause();}catch{}}live.clear();loops.clear();
  }
  function listenMenu(){document.getElementById('ad196-title')?.addEventListener('click',event=>{
