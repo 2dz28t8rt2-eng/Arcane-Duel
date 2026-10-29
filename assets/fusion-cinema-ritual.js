@@ -134,6 +134,8 @@
    overlay.classList.remove('evo-phase-orbit');overlay.classList.add('evo-phase-merge');
    await wait(1850);
    });
+   // Skipping this phase must also silence the long fusion sample immediately.
+   fusionAudio?.pause?.();
    // 2. Open a completely empty calculation window, card rises above it.
    await phases.run('Enthüllung',async()=>{
    overlay.classList.add('evo-phase-shell');await wait(590);
