@@ -1008,7 +1008,7 @@ for(const card of RPG_BASE_CARDS){
 // Assign every former supporter to whichever of Predator, Soul or Guardian has
 // the fewest ordinary RPG cards (stable ID order; Soul wins genuine ties).
 const REASSIGNABLE_ROLES=['soul','guardian','predator'];
-const liveRoles=CARDS.filter(c=>c.rpg&&!c.fusionOnly&&!c.essenceMonster&&!c.retired);
+const liveRoles=CARDS.filter(c=>!c.fusionOnly&&!c.essenceMonster);
 const roleCounts=Object.fromEntries(REASSIGNABLE_ROLES.map(role=>[role,liveRoles.filter(c=>c.role===role).length]));
 for(const c of liveRoles.filter(c=>c.role==='support').sort((a,b)=>a.id-b.id)){
  const winner=[...REASSIGNABLE_ROLES].sort((a,b)=>roleCounts[a]-roleCounts[b]||REASSIGNABLE_ROLES.indexOf(a)-REASSIGNABLE_ROLES.indexOf(b))[0];
