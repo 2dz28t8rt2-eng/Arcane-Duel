@@ -182,6 +182,7 @@
         (hint?.textContent||'Fusion möglich')+' · '+templateText+' → '+slotText:
         (hint?.textContent||'Diese Kombination ist noch nicht möglich.');
       confirm.disabled=!ready||stageMode==='discard';
+      commit.hidden=stageMode==='discard';
       const handOnly=keys.length>=2&&keys.length<=5&&keys.every(x=>x.startsWith('hand:'));
       if(keepKey&&!keys.includes(keepKey))keepKey=null;
       if(stageMode==='discard'&&!keepKey&&handOnly)keepKey=keys[0];
