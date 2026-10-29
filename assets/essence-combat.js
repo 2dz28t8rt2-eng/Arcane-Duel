@@ -276,7 +276,10 @@
   let best=null;
   for(const a of attackers)for(const d of defenders){
    const atk=effectiveAttack(g,a.c,d.c),hp=dataOf(d.c).def,role=CARDS[d.c.id]?.role;
-   const counter=isDefender(d.c)?Math.floor(Math.max(0,dataOf(d.c).atk)*.5):0;
+   const shield=statLayer(d.c);
+   const effectiveDef=Math.max(0,d.c.card?.def||0)+Math.max(0,shield.soul||0)+Math.max(0,shield.condensed||0);
+   const canCounter=effectiveDef>atk || shield.guardLeft>0;
+   const counter=isDefender(d.c)&&canCounter?Math.floor(Math.max(0,dataOf(d.c).atk)*.35):0;
    // Favor damage that can be completed by the team; avoid avoidable self-lethality.
    const score=Math.min(hp,atk)*1.3+(role==='soul'?200:role==='guardian'?120:0)
     -(hp>atk?Math.max(0,hp-atk)*.14:0)-counter*.6;
@@ -355,8 +358,8 @@
    // The new essence is granted after existing soul shields have absorbed this attack.
    if(bond&&!immuneBefore&&q.field.includes(bond.soul))
     bondCharge(g,q.id,bond,rawStrength,strength,predatorPierce);
-   if(isDefender(d)&&!immuneBefore){
-    const counter= Math.floor(Math.max(0,dataOf(d).atk)*.5);
+   if(isDefender(d)&&!immuneBefore&&!endDefense&&q.field[di]===d){
+    const counter= Math.floor(Math.max(0,dataOf(d).atk)*.35);
     if(counter>0){const actual=damagePlayer(g,p.id,counter);g.damageDealt[q.id]+=actual;logEvent(g,dataOf(d).name+' · Gegenschlag: '+actual+' LP.');window.ArcaneDefenderFX?.record(g,{type:'counter',owner:q.id,uid:d.uid,index:di,element:dataOf(d).element,amount:actual});}
    }
    if(p.field[ai]===a){
