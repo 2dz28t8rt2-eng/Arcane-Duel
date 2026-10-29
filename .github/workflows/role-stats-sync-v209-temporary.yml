@@ -1,0 +1,32 @@
+name: Temporary Role Stat Catalog Sync v20.9
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/role-stats-sync-v209-temporary.yml'
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: development
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Regenerate browser and server catalogs
+        run: |
+          node scripts/build-duo-catalog-v160.cjs
+          node scripts/build-duo-opponents-v201.cjs
+      - name: Commit generated catalogs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/duo-card-catalog-v160.json assets/duo-opponent-catalog-v201.json supabase/functions/arcane-duo-v2/catalog.json supabase/functions/arcane-duo-v2/opponents.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: finalize normalized Soul series stats [skip ci]"
+            git push origin HEAD:development
+          fi
