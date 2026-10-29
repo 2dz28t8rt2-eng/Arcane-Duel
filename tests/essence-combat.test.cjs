@@ -264,8 +264,8 @@ test('Guardians absorb 35 percent of PvE DEF-HP damage but do not become invulne
  duel.players[0].field[0]=guard;duel.players[1].field[0]=pred;duel.active=1;duel.turn=4;
  const out=g.attack(duel,0,0);
  assert.ok(out);
- assert.equal(guard.card.def,1000-Math.floor(Math.floor(800*1.02)*.75),
-  'Single Predator gets +2% swarm damage and pierces 10 percentage points of Guardian armor (25% remains)');
+ assert.equal(guard.card.def,1000-Math.floor(Math.floor(800*(.90+.02))*.75),
+  'Fresh Predator begins at 90% ATK plus 2% Swarm and pierces 10pp of Guardian armor (25% remains)');
  assert.equal(duel.players[0].field[0],guard,'Guardian survives first predator attack');
  assert.ok(duel.players[1].shield<200||duel.players[1].lp<duel.maxLP,'Counterattack still deals 60 damage to shield or LP');
 });
