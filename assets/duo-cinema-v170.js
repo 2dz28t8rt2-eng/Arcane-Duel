@@ -62,7 +62,7 @@
   return fusion?[fusion,...actions.filter(x=>x.kind==='draw').slice(0,2)]:
    actions.filter(x=>x.kind==='draw').slice(0,3);
  };
- let timers=[],sequence=0,layer=null,enabled=true;
+ let timers=[],sequence=0,layer=null,enabled=true,stopCalcLoop=null;
  const reduced=()=>!!(typeof window!=='undefined'&&window.matchMedia&&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches);
  function make(tag,cls,text,parent){
@@ -73,6 +73,7 @@
   return el;
  }
  function clear(){
+  stopCalcLoop?.();stopCalcLoop=null;
   timers.forEach(clearTimeout);timers=[];
   if(layer?.isConnected)layer.remove();layer=null;
  }
@@ -116,7 +117,8 @@
   const stages=[
    ()=>{status.textContent='1 · ROLLENSTEMPEL';orbit.remove();role.classList.add('active');},
    ()=>{
-    window.ArcaneSfx208?.play?.('calc');
+    stopCalcLoop?.();
+    stopCalcLoop=window.ArcaneSfx208?.startLoop?.('calc')||null;
     status.textContent='2 · ATK-/DEF-WÜRFE';
     role.classList.remove('active');role.classList.add('stamped');
     r.rolls.forEach((x,i)=>{
@@ -133,6 +135,7 @@
      ' DEF · Qualität '+(quality>=0?'+':'')+quality+' %';
    },
    ()=>{
+    stopCalcLoop?.();stopCalcLoop=null;
     status.textContent='4 · FUSION VOLLENDET';
     reward.replaceChildren();
     make('strong','duo-cinema170-level','LEVEL '+r.level,reward);
