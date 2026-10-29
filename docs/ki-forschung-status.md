@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-29 · Branch `development` · KI-Angriffshäufigkeit v17.5 abgeschlossen
+**Aktualisiert:** 2026-10-29 · Branch `development` · Wächter-Wertepool v17.6 in KI-Forschung
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -202,6 +202,26 @@ Die allgemeine Defender-Survival-HOLDOUT-Verbesserung **276 → 278/512** ist se
 **Champion-Gate:** `l10-guarded-worst-reply` bleibt **unverändert**. Bester allgemeiner Kandidat in `candidateOnly` erreicht **+16 allgemeine VALIDATION** und **+10 harte Level-10-VALIDATION** vs eingefrorenem Champion, scheitert aber an direkten H2H-Gates (**+1 TRAIN statt +4, +6 VALIDATION statt +8**) sowie an Deck-Synergiegates. `none` erreicht maximal +15 allgemeine VALIDATION, +9 harte Level-10-VALIDATION sowie H2H +2 TRAIN / +6 VALIDATION. Neue Endgame-Modelle mit je **22 TRAIN-only-Kontextwerten** erzeugt, nicht unabhängig befördert.
 
 **Empfehlung v17.6:** Erst valide **Angriffsgelegenheiten pro Wächter/Seelenzehrer in ATK** und Anteil ungenutzter, sinnvoller Angriffe erfassen, getrennt nach Zeitpunkt und Kampfphase. Dazu einen gezielten kontrollierten Fokus auf 40/60-, 50/50-, 60/40-Decks, direkte LP-Finishfenster versus Monsterangriff und die Opportunitätskosten des Wechsels aus DEF (Heilung, Seelenfähigkeit, Überlebenschance). Aktuell **keine zusätzlichen Rohwerte-/Heilungsänderungen** übernehmen.
+
+### v17.6 – Wächter-Wertepool und ATK/DEF-Gewichtung (Trainingslauf gestartet)
+
+**Testlauf:** [GitHub Actions #40970409352](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40970409352) · Branch `development` · **69.120 geplante gepaarte KI-Duelle** (drei Arme × 23.040 Duelle, je elf Trainings-/Evaluierungsphasen). **Alle drei automatisierten Vorprüfungen inklusive tatsächlicher Spielsimulationen erfolgreich**; die umfangreichen Duelljobs wurden gestartet.
+
+**Varianten bei ansonsten identischen Kampfregeln:**
+
+| Forschungsarm | Wertepool gewöhnlicher Wächter | angestrebter Anteil ATK / DEF |
+|---|---:|---|
+| `control` | unveränderte Kartenwerte | bestehende individuelle Kartenverhältnisse |
+| `guardian22` | **95 %** des aktuellen Karten-ATK+DEF-Pools | **22 / 78** |
+| `guardian20` | **95 %** des aktuellen Karten-ATK+DEF-Pools | **20 / 80** |
+
+Die Punkte werden auf Zehnerwerte gerundet. Bei historischen Karten mit bereits niedriger ATK **wird der Angriff nicht künstlich angehoben**, selbst wenn dadurch der nominale ATK-Anteil unter 22 % bzw. 20 % liegt. Bei Karten mit geringem Gesamtpool gilt die vorhandene Mindestwert-Beschränkung. Beide Versuchswerte sind für gewöhnliche **aktuelle Level-1–10-Wächterkarten** bestimmt; **Seelenzehrer, Predatoren, ACE-, Fusions-, Essenz- und sonstige Karten bleiben unverändert**. Karten-ID, Level, Rolle, Artwork, Seltenheit und Inventar bleiben unangetastet.
+
+**Implementierung nur für die KI-Forschung:** `tests/helpers/research-guardian-stats-v176.cjs` injiziert die neue Statverteilung **erst nach dem vollständigen Laden aller zusätzlichen Karten- und Rollen-Erweiterungen** in den Headless-VM-Katalog. `assets/game.js` und der tatsächlich gespeicherte Einzelspieler- und 2v2-Kartensatz werden **nicht verändert**. Die Tests vergleichen alle Karten-IDs und Rollen gegen den unveränderten Originalkatalog und sichern die reale resultierende ATK/DEF-Verteilung ab.
+
+**Konstante Rahmenbedingungen:** 35-%-Gegenschlag nur bei überlebenden Verteidigern, unveränderte **100-%-Heilung je Wächter** in allen drei Forschungsarmen (keine 85-%-Regel und keine zusätzliche 100/55/40/33/28-Heilungsstaffel in diesem isolierten Statvergleich), experimentelle Predator-Durchdringung 15 Prozentpunkte, zielabhängiger Seelenentzug 90/100/120 %. Unveränderte KI-Profile und Gegner, gleiche Deck-/Seed-/Sitz-Paarungen; Training getrennt von VALIDATION/HOLDOUT.
+
+**Auswertung:** Champion-Hürden, reine Wächter versus 50/50-Wächter/Seelenzehrer und Predator/Fusionsgegner sowie echte Angriffe, Direktangriffe, Zielzerstörungen, LP-Schaden und bestätigte ATK-/DEF-Positionswechsel je Rolle. **Keine automatische Champion-Beförderung**, kein Produktionspatch. 22/78 ist die bevorzugte Testhypothese, 20/80 die stärkere Kontrollalternative.
 
 ## C. KI-Forschungsstatus
 
