@@ -312,7 +312,7 @@
  const oldRender=render;
  render=function(){
   oldRender();
-  const g=game,bar=$('duelScreen')?.querySelector('.control-stack');
+  const g=game,bar=$('largeCardPreview');
   if(!bar||!g||!g.essenceRules||g.mode!=='pve')return;
   bar.querySelector('.essence-actions')?.remove();
   if(g.active!==0||g.winner!==null||busy||aiRunning)return;
