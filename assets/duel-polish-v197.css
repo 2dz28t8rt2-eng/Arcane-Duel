@@ -64,3 +64,6 @@ body.ad197-result-hold #overlay,body.ad197-result-hold .ad-card-reward-scene{vis
 @keyframes ad197-modal-screen{from{background:#050a1200;backdrop-filter:blur(0)}to{background:#050a12f4;backdrop-filter:blur(20px)}}
 @keyframes ad197-modal-surface{from{opacity:0;transform:translateY(26px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(prefers-reduced-motion:reduce){.ad197-outcome,#overlay.ad197-result-reveal,#overlay.ad197-result-reveal #modal{animation:none!important}}
+
+/* No ACE reward cards or stat panes can appear over the result title. */
+body:has(.ad197-outcome) :is(.ad-card-reward-scene,.ad120-unlock){visibility:hidden!important;pointer-events:none!important}
