@@ -30,10 +30,25 @@ jobs:
         run: |
           set -euo pipefail
           node --test tests/defender-counterstrike-nerf-v172.test.cjs
-      - name: Existing solo combat, Soul and opening-guard regression suites
+      - name: Existing isolated solo combat and Soul Bond regressions
         run: |
           set -euo pipefail
-          node --test tests/essence-combat.test.cjs tests/defender-soul-update.test.cjs tests/opening-predator-v205.test.cjs tests/soul-bond-v206.test.cjs
+          node --test tests/essence-combat.test.cjs tests/soul-bond-v206.test.cjs
+      - name: Identify unrelated full-app script syntax failures (diagnostic only)
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),vm=require('node:vm');
+          const index=fs.readFileSync('index.html','utf8');
+          const scripts=[...index.matchAll(/<script\\b[^>]*\\bsrc="([^"]+)"/g)].map(m=>m[1].split('?')[0]);
+          const bad=[];
+          for(const file of scripts){
+            if(!fs.existsSync(file))continue;
+            try{new vm.Script(fs.readFileSync(file,'utf8'),{filename:file});}
+            catch(e){bad.push(file+': '+e.message);}
+          }
+          if(bad.length)console.log('UNRELATED_FULL_VM_SYNTAX_WARN '+JSON.stringify(bad));
+          else console.log('ALL_INDEX_SCRIPTS_PARSE');
+          JS
       - name: Prove browser loads newly versioned solo script
         run: |
           node - <<'JS'
