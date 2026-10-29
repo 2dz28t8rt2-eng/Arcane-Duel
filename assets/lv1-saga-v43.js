@@ -509,8 +509,22 @@
  }
  renderMenu=function(){
   oldRenderMenu();
-  if(uiMode!=='menu'||menuTab!=='challenges')return;
-  const host=$('menuContent');if(host&&!host.querySelector('#lv1Saga'))host.insertAdjacentHTML('afterbegin',panel());
+  if(uiMode!=='menu')return;
+  const host=$('menuContent');if(!host)return;
+  if(menuTab==='challenges'){
+   if(!host.querySelector('#lv1Saga'))host.insertAdjacentHTML('afterbegin',panel());
+  }else if(['tournament','free'].includes(menuTab)){
+   // Quest giver stays discoverable from the screens players actually visit.
+   const quest=state();
+   if((quest.offered||forced())&&quest.stage<5&&!host.querySelector('#lv1QuestTeaser')){
+    const section=document.createElement('section');section.id='lv1QuestTeaser';
+    section.className='menu-panel lv1-saga-panel';
+    section.innerHTML='<h3>✧ Der unbekannte Forscher</h3><p>Ein geheimnisvoller Duellant wartet auf deine Hilfe bei der verbotenen Level-1-Forschung.</p>'+
+     '<button type="button" class="btn primary" data-lv1-open>Zur Forschungsreihe</button>';
+    section.querySelector('[data-lv1-open]').onclick=()=>{menuTab='challenges';renderMenu();};
+    host.prepend(section);
+   }
+  }
  };
  $('menuContent')?.addEventListener('click',e=>{
   const upgrade=e.target.closest('[data-lv1-skill-upgrade]');
