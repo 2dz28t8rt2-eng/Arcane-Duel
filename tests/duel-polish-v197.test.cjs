@@ -52,7 +52,7 @@ test('blackout transiently mutes the music without changing persisted audio sett
 test('integrated scripts preserve engine rules and settle attacks after the returned lunge',()=>{
  const game=read('assets/game.js'),attack=read('assets/attack-impact-v113.js');
  assert.match(game,/chosen\.switched\|\|chosen\.attacked/);
- assert.match(game,/inspector\.open=true;render\(\)/);
+ assert.match(game,/details\.open=true;render\(\)/);
  const pathOfFx=game.indexOf('ArcaneAttackFX?.play?.(g,viewId,ai,di)');
  const commit=game.indexOf('const result=attack(g,ai,di)',pathOfFx);
  const hit=game.indexOf('ArcaneDamageFX?.play?.(result.damaged,result.damage)',commit);

@@ -110,10 +110,10 @@
  const DECK_PROFILES=[
   null,
   {name:'Die schwächsten Funken',cap:1,lv1:40,power:.38,lp:2000},
-  {name:'Der unruhige Sammler',cap:2,lv1:32,power:.49,lp:3000},
-  {name:'Der neidische Jäger',cap:4,lv1:14,power:.77,lp:4500},
-  {name:'Die verworfene Lehre',cap:5,lv1:5,power:.73,lp:5200},
-  {name:'Das letzte Aufbäumen',cap:7,lv1:0,power:.93,lp:7000}
+  {name:'Der unruhige Sammler',cap:2,lv1:32,power:.49,lp:2000},
+  {name:'Der neidische Jäger',cap:4,lv1:14,power:.77,lp:4000},
+  {name:'Die verworfene Lehre',cap:5,lv1:5,power:.73,lp:4000},
+  {name:'Das letzte Aufbäumen',cap:7,lv1:0,power:.93,lp:8000}
  ];
  const OBJECTIVES=[
   {name:'Einführung',description:'Besiege den Level-1-Fanatiker im 2.000-LP-Duell.',goal:null},

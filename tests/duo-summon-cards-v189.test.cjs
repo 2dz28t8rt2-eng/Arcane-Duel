@@ -191,7 +191,7 @@ test('v18.9 is purely visual, loads last and preserves the original summon comma
  assert.ok(html.indexOf('duo-fusion-cards-v188.js')<html.indexOf('duo-summon-cards-v189.js'));
  assert.ok(html.indexOf('duo-summon-cards-v189.js')<html.indexOf('duo-parity-v160.js'));
  assert.ok(parity.includes('summonCommit.dataset.ad189Commit'));
- assert.match(parity,/send\(\{type:'summon',\s*handIndex:Number\(hand\.value\),slot:Number\(slot\.value\)\}\)/);
+ assert.match(parity,/type:occupied\?'replace':'summon'/);
  assert.ok(parity.indexOf('ArcaneDuoFusion188?.enhance')<parity.indexOf('ArcaneDuoSummon189?.enhance'));
  assert.match(mod,/commit\.click\(\)/);
  assert.doesNotMatch(mod,/\b(fetch|send|saveRoom|localStorage|createClient)\s*\(/);

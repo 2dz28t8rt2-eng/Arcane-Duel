@@ -10,11 +10,11 @@ function boot(){
 }
 test('Tournament and free duels have matching LP by opponent, with no asymmetry',()=>{
  const run=boot();const r=run(`(()=>{let out=[];for(const context of ['tournament','free'])for(let id=0;id<=10;id++){const g=createGame({id:'lp-'+context+'-'+id,mode:'pve',context,opponentId:id});out.push({context,id,lp:g.maxLP,players:g.players.map(p=>p.lp)});}return out;})()`);
- for(const x of r){const expected=x.id<=3?4000:x.id<=6?6000:x.id<=8?7000:10000;assert.equal(x.lp,expected,`${x.context} vs ${x.id}`);assert.deepEqual(x.players,[expected,expected]);}
+ for(const x of r){const expected=x.id<=3?2000:x.id<=8?4000:8000;assert.equal(x.lp,expected,`${x.context} vs ${x.id}`);assert.deepEqual(x.players,[expected,expected]);}
 });
-test('Hard, PvP and late-game visitor retain 8,000 LP',()=>{
+test('Hard follows story LP; classic PvP and showcase visitor retain 8,000 LP',()=>{
  const run=boot();const r=run(`(()=>{const cases=[{mode:'pve',opponentId:2,difficulty:'hard',context:'free'},{mode:'pvp'},{mode:'pve',opponentId:8,context:'challenge',enemy:showcaseEnemy(),showcase:true}];return cases.map((o,i)=>{const g=createGame({...o,id:'lp-extra-'+i});return {maxLP:g.maxLP,players:g.players.map(p=>p.lp)}});})()`);
- for(const x of r){assert.equal(x.maxLP,8000);assert.deepEqual(x.players,[8000,8000]);}
+ for(const [i,x] of r.entries()){const lp=i===0?2000:8000;assert.equal(x.maxLP,lp);assert.deepEqual(x.players,[lp,lp]);}
 });
 test('Snapshot restores its original 4,000 LP, or higher LP from new matches',()=>{
  const run=boot();const r=run(`(()=>{let results=[];for(const id of [2,4,7,10]){const g=createGame({id:'snapshot-'+id,mode:'pve',context:'tournament',opponentId:id});const raw=JSON.parse(JSON.stringify(g));const restored=validateDuelSnapshot(raw);results.push({id,expected:g.maxLP,actual:restored.maxLP,players:restored.players.map(p=>p.lp)});}const old=createGame({id:'old',mode:'pve',context:'free',opponentId:9});old.maxLP=4000;old.players.forEach(p=>p.lp=4000);const oldRestored=validateDuelSnapshot(JSON.parse(JSON.stringify(old)));return {results,old:oldRestored.maxLP};})()`);
@@ -22,5 +22,5 @@ test('Snapshot restores its original 4,000 LP, or higher LP from new matches',()
 });
 test('Rulebook and opponent cards display current LP progression',()=>{
  const run=boot();const r=run(`(()=>{showRules();const rules=document.getElementById('modal').innerHTML;const p=regularOpponentPanel(OPPONENTS[4],true);return {rules,card:p};})()`);
- assert.match(r.rules,/4\.000/);assert.match(r.rules,/6\.000/);assert.match(r.rules,/7\.000/);assert.match(r.rules,/8\.000/);assert.match(r.card,/6[\.\s\u00a0]000 LP/);
+ assert.match(r.rules,/2\.000/);assert.match(r.rules,/4\.000/);assert.match(r.rules,/8\.000/);assert.match(r.card,/4[\.\s\u00a0]000 LP/);
 });

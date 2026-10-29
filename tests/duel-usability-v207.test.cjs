@@ -32,7 +32,7 @@ test('full five-slot solo field accepts staging and replaces exactly one card',(
 });
 test('pending solo summon is reversible without spending the hand card',()=>{
  const r=inspect(`(()=>{
- profile=freshProfile();game=createGame({mode:'pve',opponentId:1,seed:2027});game.active=0;uiMode='duel';
+ profile=freshProfile();game=createGame({mode:'pve',opponentId:1,seed:2027});game.active=0;uiMode='duel';$('overlay').classList.add('hidden');
  const p=game.players[0],uid=p.hand[0].uid;
  game.selection={type:'hand',uid};prepareSummon();
  const pending=!!game.pending,kept=p.hand.some(c=>c.uid===uid);

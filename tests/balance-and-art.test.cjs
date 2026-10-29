@@ -22,9 +22,9 @@ test('Charakterpacks liefern drei verschiedene Angebote und höchstens eine selt
  assert.equal(r.violations,0);assert.equal(r.packs,1980);
  assert.ok(r.rate>0&&r.rate<0.8,'Packs sollen seltene Karten ermöglichen, aber nicht garantieren');
 });
-test('Gameplay-Kern bleibt unangetastet: 4000 LP, Zerfall',()=>{
+test('Gameplay-Kern startet bei 2000 LP und erhält Zerfall',()=>{
  const run=boot(),r=run('(()=>{const g=createGame({mode:"pve",starter:0,seed:8});const c=newInstance(g,RPG_DEFAULT_DECK[0],0);c.decayClass="starter";c.summonedTurn=1;c.decayTotal=0;g.players[0].field[0]=c;const before=dataOf(c).atk;advanceTurn(g);return {maxLP:g.maxLP,atk:before,after:dataOf(c).atk};})()');
- assert.equal(r.maxLP,4000);assert.equal(r.after,r.atk);
+ assert.equal(r.maxLP,2000);assert.equal(r.after,r.atk);
 });
 test('11 Gegnertexte und eindeutige Kernmonster-Namen bleiben erhalten',()=>{
  const run=boot(),r=run('({stories:RPG_OPPONENTS.filter(o=>o.profileLine&&o.profileLine.length>35).length,people:new Set(RPG_OPPONENTS.map(o=>o.name)).size,core:new Set(RPG_OPPONENTS.flatMap(o=>[...o.loot,...o.hardLoot].map(id=>CARDS[id].name))).size})');

@@ -4,7 +4,7 @@ const root=path.resolve(__dirname,'..'),read=p=>fs.readFileSync(path.join(root,p
 test('Hand fusion reveals before placement; occupied zone runs a second fast ritual',()=>{
  const js=read('assets/game.js');
  assert.ok(js.includes("result.fused?'field':'full'"));
- assert.ok(js.includes("!wasRevealed"));
+ assert.ok(js.includes("!revealed"));
  const evo=read('assets/evolution.js');
  assert.ok(evo.includes('game.pending.revealed=true'));
  assert.ok(evo.includes("variant==='field'"));

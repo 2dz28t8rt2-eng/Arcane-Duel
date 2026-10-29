@@ -15,12 +15,12 @@ test('the introductory lesson only advances after an ordinary hand selection',()
   assert.match(source,/g\.winner===0/);
 });
 
-test('only the explicit introductory matches use 2,000 LP',()=>{
+test('Campaign starts at 2,000 LP and escalates to 4,000 and 8,000',()=>{
   const game=read('assets/game.js'),intro=read('assets/strategy-experience-v120.js');
   assert.match(game,/options\.lessonStage>=1&&options\.lessonStage<=3.*?\?2000:duelStartingLP/);
   assert.match(game,/\[2000,4000,6000,7000,8000,10000\]/);
   assert.match(intro,/startDuel\('pve',0,'free','easy',null,stage\)/);
-  assert.match(game,/if\(mode!=='pve'\|\|!Number\.isInteger\(opponentId\)\|\|opponentId<=3\)return 4000/);
+  assert.match(game,/if\(mode!=='pve'\|\|!Number\.isInteger\(opponentId\)\|\|opponentId<=3\)return 2000/);
 });
 
 test('the attack charges halfway and the duel guidance no longer expands above the hand',()=>{

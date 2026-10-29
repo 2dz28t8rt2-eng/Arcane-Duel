@@ -29,7 +29,7 @@ test('lesson duel uses loan deck without changing player inventory or deck and r
   const g=game;
   return {lesson:g.lessonId,context:g.context,maxLP:g.maxLP,firstDeck:mainDeckError(g.players[0].originalDeck),fusion:fusionDeckError(g.players[0].fusionDeck),snapshot:validateDuelSnapshot(JSON.parse(JSON.stringify(g))).lessonId,sameDeck:JSON.stringify(before.deck)===JSON.stringify(profile.activeDeck),sameFusions:JSON.stringify(before.fusions)===JSON.stringify(profile.fusionDeck),sameInventory:before.inventory===JSON.stringify(profile.inventory)};
  })()`);
- assert.equal(r.lesson,'pair');assert.equal(r.context,'challenge');assert.equal(r.maxLP,6000);assert.equal(r.firstDeck,'');assert.equal(r.fusion,'');assert.equal(r.snapshot,'pair');
+ assert.equal(r.lesson,'pair');assert.equal(r.context,'challenge');assert.equal(r.maxLP,2000);assert.equal(r.firstDeck,'');assert.equal(r.fusion,'');assert.equal(r.snapshot,'pair');
  assert.equal(r.sameDeck,true);assert.equal(r.sameFusions,true);assert.equal(r.sameInventory,true);
 });
 test('first successful lesson awards one character pack, no repeat farming or unmatched reward',()=>{

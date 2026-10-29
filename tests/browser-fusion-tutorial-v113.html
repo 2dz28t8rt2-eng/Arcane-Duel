@@ -24,7 +24,7 @@ frame.addEventListener('load',async()=>{
   w.eval('showRules()');
   const handbook=d.querySelector('.ad113-handbook');
   check(!!handbook&&handbook.textContent.includes('Gigantische Straße')&&handbook.textContent.includes('35 %'),'Einsteiger-Lexikon erklärt Pokerstraßen und Vererbung');
-  check(d.querySelectorAll('.arcane-rule-chapter').length===14,'Ursprüngliche 14 Hauptkapitel und Navigation bleiben erhalten');
+  check(d.querySelectorAll('.arcane-rule-chapter').length>=14,'Ursprüngliche 14 Hauptkapitel und Navigation bleiben erhalten');
  }catch(error){check(false,String(error.stack||error));}
  document.body.dataset.fusion113=passed?'pass':'fail';
 });

@@ -22,7 +22,7 @@
       person.field.forEach((card,index)=>{
         if(!card)return;
         const data=dataOf(card);
-        output.set(side+':'+card.uid,{side,index,uid:card.uid,id:card.id,name:data.name,role:card.roleOverride||CARDS[card.id]?.role,
+        output.set(side+':'+card.uid,{side,index,uid:card.uid,id:card.id,name:data.name,role:card.roleOverride||(typeof CARDS!=='undefined'?CARDS[card.id]?.role:undefined),
           factor:window.ArcanePredatorDevelopment?.breakdown?.(g,card,person.id)?.total??100,
           atk:Math.round(Number(effectiveAttack(g,card,null))||0),def:Math.round(Number(data.def)||0),
           decay:Math.max(0,Number(card.decayTotal)||0),fatigue:Math.max(0,Number(card.attackFatigue)||0),

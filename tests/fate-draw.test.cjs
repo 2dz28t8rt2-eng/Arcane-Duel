@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const src=fs.readFileSync(require('node:path').join(__dirname,'../assets/game.js'),'utf8');
 const cut=src.slice(0,src.indexOf('/* Ace-Karten werden vor dem Laden'));
 test('Schicksalszug exists, hidden templates and equal access',()=>{assert.match(src,/function fatePressure\(/);assert.match(src,/function maybeFate\(/);assert.match(src,/g\.fateUsed\[id\]=true/);assert.match(src,/roundNumber\(g\)<3/);assert.match(src,/chance=pressure.score>=90\?5:pressure.score>=75\?3:pressure.score>=60\?1:0/);assert.match(src,/g\.mode!=='pve'/);assert.match(src,/FATE_CARD_IDS=CARDS\.filter/);assert.match(src,/if\(m.some\(c=>!c\|\|isFusionForbidden\(c,g\)\)\)return false/);});
-test('visual animation and card protection',()=>{const css=fs.readFileSync(require('node:path').join(__dirname,'../assets/fate.css'),'utf8');assert.match(css,/fate-cinema/);assert.match(css,/fateFlip/);assert.match(src,/if\(old&&\(isFusionForbidden\(old\)\|\|isFusionForbidden\(incoming\)\)\)return null/);assert.match(src,/g\.fateEvent=\{owner:id/);});
+test('visual animation and card protection',()=>{const css=fs.readFileSync(require('node:path').join(__dirname,'../assets/fate.css'),'utf8');assert.match(css,/fate-cinema/);assert.match(css,/fateFlip/);assert.match(src,/if\(old&&!replacing&&\(isFusionForbidden\(old\)\|\|isFusionForbidden\(incoming\)\)\)return null/);assert.match(src,/g\.fateEvent=\{owner:id/);});
 
 // Runtime smoke tests use the actual browser game engine with a small DOM shim.
 const path=require('node:path');
