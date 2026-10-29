@@ -3,7 +3,7 @@ on:
   push:
     branches: [development]
     paths:
-      - '.github/workflows/ai-v1690-real-fusion-drain-research.yml'
+      - '.github/workflows/ai-v1690-role-triangle-research.yml'
   workflow_dispatch:
 permissions:
   contents: read
