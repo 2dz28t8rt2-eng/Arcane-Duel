@@ -275,7 +275,7 @@
    g.players[g.active]?.field?.includes(a)){
    const deployed=g.players[g.active].field.filter(c=>c&&roleOf(c)==='predator').length;
    const swarm=Math.min(5,deployed)*percent;
-   const developing=!a.fusion&&!a.predatorToken;
+   const developing=!a.fusion&&!a.predatorToken&&!CARDS[a.id]?.essenceMonster;
    const growth=developing?predatorDevelopmentPct(a)/100:1;
    atk=Math.floor(atk*(growth+swarm));
   }
