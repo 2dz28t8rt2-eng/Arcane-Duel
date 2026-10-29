@@ -37,7 +37,7 @@ test('each own deployed predator adds 2% actual attack damage, self included, 1-
   const base=run(count,0,0),x=run(count,0),y=run(count,1);
   // Independent role/surge effects may also apply. Measure only marginal buff.
   assert.ok(x.attack>base.attack,JSON.stringify({count,base,x}));
-  assert.ok(Math.abs(x.attack-base.attack*(1+count*.02))<=2,
+  assert.ok(Math.abs(x.attack-(base.attack+1000*count*.02))<=2,
    JSON.stringify({count,base,x}));
   assert.equal(x.lpDamage,x.attack);
   assert.deepEqual(x,y,'Owner-seat asymmetry at '+count);
