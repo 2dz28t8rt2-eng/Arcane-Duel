@@ -51,9 +51,24 @@ test('real essence defense accounts for armor piercing, condensed reserve, souls
   assert.equal(result.prevented,100); // Unbound Guardian: 20 % armor - 10 percentage points Predator pierce.
   assert.equal(result.defenseDamage,500);
   assert.equal(result.destroyDefender,true);
-  assert.equal(result.counter,100);
+  assert.equal(result.counter,0); // Destroyed defenders cannot counterattack.
+  assert.equal(result.burn,50); // Soul loss still reflects damage independently.
+  assert.equal(result.ownLoss,10); // Attacker's shield absorbs 40 LP from 50 burn.
+});
+
+test('surviving guardian counters with 35% ATK, independently of soul burn',()=>{
+  const {api,creature,game}=setup();
+  const d=creature(1,'def');
+  d.essenceCombat={condensed:600,soul:100,guardLeft:0};
+  const g=game(creature(0),d,{essenceRules:true});
+  g.players[0].shield=40;
+  const result=api.combatForecast(g,0,0);
+  assert.equal(result.defenseDamage,200);
+  assert.equal(result.remainingDefense,300);
+  assert.equal(result.destroyDefender,false);
+  assert.equal(result.counter,70); // 35% of Guardian's 200 ATK.
   assert.equal(result.burn,50);
-  assert.equal(result.ownLoss,110); // Attacker's shield absorbs 40 LP.
+  assert.equal(result.ownLoss,80); // 70 counter + 50 burn - 40 shield.
 });
 
 test('guardian immunity prevents both DEF damage and counter',()=>{
