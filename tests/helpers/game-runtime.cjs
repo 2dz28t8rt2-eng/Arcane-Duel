@@ -80,6 +80,15 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster
     throw Error('v17.3 healing replaces earlier 85% and counterstrike ablation overlays');
    code=require('./research-guardian-scale-v173.cjs').transform(code,process.env.ARCANE_RESEARCH_GUARDIAN_SCALE_V173);
   }
+  // v17.4 side-specific causal test supersedes 85%-flat and v17.3
+  // global scaling. Candidate seat is supplied by actual selfplay scene.
+  if(file==='assets/essence-combat.js'&&process.env.ARCANE_RESEARCH_GUARDIAN_CAUSAL_V174){
+   if(process.env.ARCANE_RESEARCH_GUARDIAN_HEAL||
+      process.env.ARCANE_RESEARCH_COUNTERSTRIKE_V172||
+      process.env.ARCANE_RESEARCH_GUARDIAN_SCALE_V173)
+    throw Error('v17.4 is mutually exclusive with historical healing overlays');
+   code=require('./research-guardian-causal-v174.cjs').transform(code,process.env.ARCANE_RESEARCH_GUARDIAN_CAUSAL_V174);
+  }
   if(withoutArmor&&file==='assets/essence-combat.js'){
    const needle='const mitigation=isDefender(d)?.35:0;';if(!code.includes(needle))throw Error('Armor control hook changed');
    code=code.replace(needle,'const mitigation=isDefender(d)?(q.id===0?0:.35):0;');
