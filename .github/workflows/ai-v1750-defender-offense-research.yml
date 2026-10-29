@@ -5,6 +5,8 @@ on:
     paths:
       - '.github/workflows/ai-v1750-defender-offense-research.yml'
       - 'tests/ai-v1750-attack-telemetry.test.cjs'
+      - 'tests/ai-v1750-selfplay.cjs'
+      - 'tests/ai-v1750-attack-aggregate.cjs'
   workflow_dispatch:
 permissions:
   contents: read
