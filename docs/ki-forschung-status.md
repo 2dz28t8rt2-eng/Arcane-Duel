@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-29 · Branch `development` · Solo-Gegenschlag-Nerf und abgeschlossene KI-Forschung v17.2
+**Aktualisiert:** 2026-10-29 · Branch `development` · dynamische Wächter-Heilungsforschung v17.3 (85-%-Regel abgelöst)
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -81,6 +81,24 @@ Die bestehende Heilformel `min(150, 25 + Level × 12)` und die effektive Begrenz
 **Champion-Gates:** Defender-Survival mit 35 % erreicht **+9** allgemeine VALIDATION- und **+6** harte Level-10-Siege gegenüber eingefrorenem Champion, scheitert aber an direktem H2H (**+3 TRAIN statt +4, +0 VALIDATION statt +8**), Guardian-Gate und Sitzparität. Neue Folgemodelle aus **je 1.280 TRAIN-only-Partien** erzeugt (22/21/21 gelernte Kontextwerte bei 50/35/35+85), **noch nicht als neue KI validiert**.
 
 **Forschungsempfehlung:** Solo-Gegenschlag 35 % und Überlebensbedingung auf `development` belassen. 85-%-Heilung vorerst nur Forschungsalternative. Nächstes gezieltes KI-Experiment: Gegnerstärke/Turnier-Exploits mit echten Gegenschlag-Ereigniszählern, separate 40/60-, 50/50- und 60/40-Synergien gegen Predatoren und Fusionen in größeren HOLDOUT-Stichproben, statt weitere pauschale Stat-Anpassungen.
+
+### v17.3 – Aktive Forschungsregel ersetzt den bisherigen 85-%-Heilungsnerf
+
+Die 85-%-Pauschalregel ist **aus dem neuen Forschungsplan gestrichen**. Historische v17.1/v17.2-Befunde bleiben zur Nachvollziehbarkeit archiviert. `assets/essence-combat.js` im regulären Solo-Spiel bleibt zunächst bei **100 % Wächterheilung**; dieser neue Staffelungsversuch wird **ausschließlich im Offline-KI-Simulator** injiziert.
+
+| Wächter gleichzeitig in DEF | `control100` (je aktivem Wächter) | `guardianScale` (je aktivem Wächter) |
+|---|---:|---:|
+| 1 | 100 % | **100 %** |
+| 2 | 100 % | **55 %** |
+| 3 | 100 % | **40 %** |
+| 4 | 100 % | **33 %** |
+| 5 | 100 % | **28 %** |
+
+Die Anzahl umfasst ausschließlich Wächter in **DEF**, die tatsächlich heilen können. Die Staffel gilt für jede Heilung von einem Wächter an einen **anderen Wächter oder Seelenzehrer in DEF**; Selbstheilung bleibt ausgeschlossen. Das ursprüngliche pro-Wächter-Heilbudget `min(150,25+12×Level)` und das DEF-Maximum bleiben bestehen. Erst nach Berechnung des Budgets wird die prozentuale Staffel per `floor` angewandt; effek­tiver Heilempfang hängt weiter von vorhandener DEF-Lücke ab. Wächter in ATK zählen nicht mit.
+
+**Unveränderte Vergleichsbasis:** Aktueller **35-%-Gegenschlag nur bei überlebendem Verteidiger** aus dem regulären Solo-`development`-Code; im Test weiterhin 15 Prozentpunkte Predator-Durchdringung und 90/100/120 % zielabhängiger Seelenentzug.
+
+**Trainingslauf v17.3:** [GitHub Actions #40952987191](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40952987191), zwei gepaarte Forschungsarme mit **46.080 geplanten Duellen** (23.040 je Regel, 11 Stages), identische Seeds, Sitze und KI-Arme. Das bisherige Champion-Gating bleibt bestehen; validiert wird ausschließlich mit VALIDATION/HOLDOUT, trainiert wird auf TRAIN. **Keine automatische Champion-Beförderung und kein Übertrag der Staffel in den regulären Spielcode.**
 
 ## C. KI-Forschungsstatus
 
