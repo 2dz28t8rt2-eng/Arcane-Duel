@@ -30,7 +30,7 @@ function run(pierce,seat,role='guardian',mode='def'){
 test('0/8/12pp predator armour-pierce damages defender DEF, not their LP',()=>{
  for(const role of ['guardian','soul'])for(const seat of [0,1]){
   const a=run(0,seat,role),b=run(.08,seat,role),c=run(.12,seat,role);
-  assert.equal(a.dealtDef,325);assert.equal(b.dealtDef,365);assert.equal(c.dealtDef,385);
+  assert.equal(a.dealtDef,292);assert.equal(b.dealtDef,328);assert.equal(c.dealtDef,346); // 90% Predator baseline, 0/8/12pp of armor pierce
   assert.equal(a.oppLP,0);assert.equal(b.oppLP,0);assert.equal(c.oppLP,0);
   assert.equal(a.myLP,b.myLP);assert.equal(b.myLP,c.myLP);
  }
