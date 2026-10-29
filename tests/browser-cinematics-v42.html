@@ -25,7 +25,7 @@ document.getElementById('app').addEventListener('load',async()=>{
    check(transform.startsWith('matrix(0, 1, -1, 0,'),row+': echte Drehung um 90° · '+transform);
   }
   check([...d.querySelectorAll('.board-stats b')].every(b=>b.scrollWidth<=b.clientWidth+1),'Kleine Feldwerte bleiben bis 10000 ohne Abschneiden lesbar');
-  check(!!d.querySelector('#largeCardPreview .ad-defender-ability')&&d.querySelector('#largeCardPreview').textContent.includes('50 %'),'Große Verteidigerkarte erklärt den Gegenschlag');
+  check(!!d.querySelector('#largeCardPreview .ad-defender-ability')&&d.querySelector('#largeCardPreview').textContent.includes('35 %')&&d.querySelector('#largeCardPreview').textContent.includes('überlebt'),'Große Verteidigerkarte erklärt den Gegenschlag');
   check(!!d.querySelector('#ownRow .ad-overcharged')&&!!d.querySelector('#largeCardPreview .ad-charge-note'),'Überladene DEF sind an Feldkarte und großer Ansicht erkennbar');
   const stats=[...d.querySelectorAll('#largeCardPreview .stat')];
   check(stats.length===2&&stats.every(s=>w.getComputedStyle(s).opacity==='1'&&!w.getComputedStyle(s).backgroundColor.endsWith(', 0)')),'Große ATK/DEF-Boxen sind vollständig blickdicht');
@@ -80,7 +80,7 @@ document.getElementById('app').addEventListener('load',async()=>{
    await w.__ownSummon;w.eval('__observer.disconnect();');
    check(w.__ghostOwners.includes('0')&&!w.eval('busy'),'Eigene Normalbeschwörung verwendet denselben Flug ohne blockierte Steuerung');
    w.eval(`game.active=0;game.turn=12;game.pending=null;game.players[0].field=[__make('predator',0),null,null,null,null];game.players[0].field[0].mode='atk';game.players[0].field[0].attacked=false;
-    game.players[1].field=[__make('guardian',1),null,null,null,null];render();window.__counterSeen=0;window.__counterObserver=new MutationObserver(records=>{for(const record of records)for(const n of record.addedNodes){if(n.classList?.contains('ad-projectile-counter')||n.querySelector?.('.ad-projectile-counter'))__counterSeen++;}});__counterObserver.observe(document.body,{childList:true,subtree:true});window.__counter=performAttack(0,0);`);
+    game.players[1].field=[__make('guardian',1),null,null,null,null];game.players[1].field[0].card.def=10000;render();window.__counterSeen=0;window.__counterObserver=new MutationObserver(records=>{for(const record of records)for(const n of record.addedNodes){if(n.classList?.contains('ad-projectile-counter')||n.querySelector?.('.ad-projectile-counter'))__counterSeen++;}});__counterObserver.observe(document.body,{childList:true,subtree:true});window.__counter=performAttack(0,0);`);
    await pause(240);check(!!d.querySelector('.ad113-attack-ghost'),'Ein angreifendes Monster prescht sichtbar als Karte auf das Ziel zu');
    await w.__counter;w.eval('__counterObserver.disconnect()');check(w.__counterSeen>0,'Nach dem Karteneinschlag startet der echte Gegenschlag als gebogenes Projektil mit Sternenschweif');
    await w.__counter;check(!d.querySelector('.ad-projectile-counter')&&!w.eval('busy'),'Gegenschlag endet sauber und gibt die Eingabe frei');
