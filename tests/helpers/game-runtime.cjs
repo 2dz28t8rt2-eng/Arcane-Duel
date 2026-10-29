@@ -99,6 +99,14 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster
   }
   vm.runInContext(code,ctx,{filename:file,timeout:30000});
  }
+ // All late card/role synchronization scripts must finish BEFORE research
+ // changes the stats of actual eligible Guardian cards for live duels.
+ if(process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V176 &&
+    process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V176!=='control'){
+  if(typeof ctx.__arcaneResearchGuardianStatsApply!=='function')
+   throw Error('Guardian stat research apply function missing after asset load');
+  ctx.__arcaneResearchGuardianStatsApply();
+ }
  return {ctx,storage,scripts,run(code,timeout=120000){return JSON.parse(vm.runInContext('JSON.stringify(('+code+'))',ctx,{timeout}));},exec(code,timeout=120000){return vm.runInContext(code,ctx,{timeout});},advanceClock(ms=1000){clock+=ms;}};
 }
 module.exports={boot,repo,scripts};
