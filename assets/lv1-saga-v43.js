@@ -521,7 +521,8 @@
     section.className='menu-panel lv1-saga-panel';
     section.innerHTML='<h3>✧ Der unbekannte Forscher</h3><p>Ein geheimnisvoller Duellant wartet auf deine Hilfe bei der verbotenen Level-1-Forschung.</p>'+
      '<button type="button" class="btn primary" data-lv1-open>Zur Forschungsreihe</button>';
-    section.querySelector('[data-lv1-open]').onclick=()=>{menuTab='challenges';renderMenu();};
+    const openQuest=section.querySelector?.('[data-lv1-open]');
+    if(openQuest)openQuest.onclick=()=>{menuTab='challenges';renderMenu();};
     host.prepend(section);
    }
   }
