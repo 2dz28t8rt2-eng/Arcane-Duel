@@ -35,7 +35,7 @@ test('duo shows rotating material cards and delays reveal until after fusion orb
  assert.doesNotMatch(cinema,/ArcaneSfx208\?\.startLoop\?\.\('calc'\)/);
  assert.match(cinema,/stopCalcLoop\?\.\(\);stopCalcLoop=null/);
 });
-test('result SFX no longer ducks battle music; result plays on visible announcement',()=>{
+test('result SFX plays just before the title; battle music fades gradually',()=>{
  const music=read('assets/arcane-soundscape-v196.js');
  const solo=read('assets/duel-cinematics-v42.js');
  assert.match(music,/setDuck/);
@@ -47,7 +47,7 @@ test('new sampled pack is not required for combat determinism',()=>{
  const sfx=read('assets/arcane-sfx-v208.js');
  assert.match(sfx,/onDuoState/);
  assert.match(sfx,/decayed/);
- assert.match(sfx,/Math\.min\(5,decayed\)/);
+ assert.match(sfx,/Intentionally silent: no debuff\/decay cue/);
  const soundFiles=['damage','decay','destroy','draw','fusion-calc','fusion-orbit',
   'leader-idle','leader-roar','lose','menu','powerup','summon'];
  for(const f of soundFiles)assert.ok(fs.existsSync(path.join(ROOT,'assets/sfx-v208',f+'.ogg')),f);
