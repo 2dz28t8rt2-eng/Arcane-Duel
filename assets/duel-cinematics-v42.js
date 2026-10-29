@@ -91,6 +91,13 @@
    await Promise.all(paths.map(p=>projectile(p.from,p.to,event.activeRaid?'#e155ff':color,'soul')));if(game===g){flash(node,event.activeRaid?'#d978ff':color);if(event.gain>0)roleStatFloat(node,'+'+event.gain+' Seele · '+(event.activeRaid?'SEELENRAUB':'Entzug'),'soul');}
   }else if(event.type==='heal'){
    await projectile(point(creatureNode(g,event.owner,event.fromUid,event.fromIndex)),point(node),'#a9e58d','heal');if(game===g){flash(node,'#a9e58d');if(event.amount>0)roleStatFloat(node,'Wächter +'+event.amount+' DEF','guardian');}
+  }else if(event.type==='soulBurn'){
+   // Soul stored as a shield reflects 50% of consumed soul energy as LP damage.
+   // This event precedes the defender's distinct counterstrike, as in the rules.
+   const banner=document.getElementById(event.owner===0?'enemyBanner':'myBanner');
+   roleStatFloat(banner,'−'+event.amount+' LP · SEELENVERLUST (50 % von '+event.soulLost+' Essenz)','soul-burn');
+   flash(banner,'#c881ff');
+   window.ArcaneSfx208?.play?.('damage');
   }else if(event.type==='counter'){
    // Explicitly harmful: the red projectile travels from defender TO attacker LP.
    const banner=document.getElementById(event.owner===0?'enemyBanner':'myBanner');
