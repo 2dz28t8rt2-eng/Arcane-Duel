@@ -2,7 +2,7 @@
  * Client sends choices only. Deck legality, fusion levels, roles, damage,
  * draw order, turn ownership and private state live on the server.
  */
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+// Deno.serve and Deno.env are native Supabase Edge runtime globals.
 import {createClient} from "npm:@supabase/supabase-js@2";
 import snapshot from "./catalog.json" with {type:"json"};
 import soloOpponents from "./opponents.json" with {type:"json"};
