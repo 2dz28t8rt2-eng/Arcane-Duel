@@ -409,6 +409,7 @@
   window.ArcaneDuoAbilitiesCinema193?.onState(previous,game,catalog);
   window.ArcaneDuoPredator198?.onState(previous,game,catalog);
   window.ArcaneDuoUX204?.onState(previous,game,{seat,roomId,catalog});
+  window.ArcaneDuoSoulBond206?.onState?.(previous,game);
   window.ArcaneDuoSound194?.onState(previous,game,catalog,seat);
   if(previous&&previous.status!=='finished'&&game.status==='finished'&&
    game.winner===0&&duoProfileToken)fetchProfile();
@@ -670,6 +671,7 @@
   window.ArcaneDuoExperience185?.didRender?.({game,seat,roomId});
   window.ArcaneDuoPredator198?.decorate?.({game,seat});
   window.ArcaneDuoUX204?.decorate?.({game,seat,roomId,catalog});
+  window.ArcaneDuoSoulBond206?.decorate?.({game,seat,roomId,catalog});
   if(game.status!=='active'){
    const canContinue=game.entry==='quest'?game.chapter<15&&game.questPassed===true:
     game.chapter<rules.CHAPTERS.length;

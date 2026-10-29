@@ -57,6 +57,36 @@
  const roleOf=c=>c?.roleOverride||CARDS[c?.id]?.role||'combatant';
  const isSoul=c=>roleOf(c)==='soul';
  const isDefender=c=>['soul','guardian'].includes(roleOf(c));
+ // Dynamic, deterministic 1:1 adjacent links. Positions do not break the
+ // visual bond; armor only applies if the attacked member is in DEF.
+ function soulBonds(g,owner){
+  const field=g?.players?.[owner]?.field||[],taken=new Set(),out=[];
+  for(let i=0;i<field.length-1;i++){
+   const a=field[i],b=field[i+1],ar=roleOf(a),br=roleOf(b);
+   if(!a||!b||taken.has(i)||taken.has(i+1)||!
+      (ar==='guardian'&&br==='soul'||ar==='soul'&&br==='guardian'))continue;
+   const gi=ar==='guardian'?i:i+1,si=ar==='soul'?i:i+1;
+   out.push({guardian:field[gi],soul:field[si],guardianIndex:gi,soulIndex:si});
+   taken.add(i);taken.add(i+1);i++;
+  }
+  return out;
+ }
+ function bondCharge(g,owner,pair,original,withBond,predatorPierce){
+  if(!pair||!soulReady(g))return 0;
+  const basic=Math.max(0,.20-predatorPierce),strong=Math.max(0,.35-predatorPierce);
+  const extra=Math.max(0,Math.floor(original*(1-basic))-Math.floor(original*(1-strong)));
+  const energy=statLayer(pair.soul),round=Math.ceil(g.turn/2);
+  if(energy.bondChargeRound!==round){energy.bondChargeRound=round;energy.bondChargeUsed=0;}
+  const cap=250+dataOf(pair.soul).level*125;
+  const gain=Math.min(50-energy.bondChargeUsed,Math.floor(extra*.25),Math.max(0,cap-energy.soul));
+  if(gain>0){
+   energy.soul+=gain;energy.bondChargeUsed+=gain;
+   logEvent(g,'✦ Seelenbund: '+extra+' Schaden zusätzlich abgewehrt, +'+gain+
+    ' Seelenessenz ('+energy.bondChargeUsed+'/50 in dieser Runde).');
+  }
+  return gain;
+ }
+
  const soulRank=c=>isSoul(c)?(c.soulRank||CARDS[c.id]?.soulRank||Math.min(5,Math.max(1,Math.ceil(dataOf(c).level/2)))):0;
  const isEssenceDuel=g=>g?.mode==='pve'&&g.essenceRules===true;
  // Isolated research curriculum: passive and active Soul offense unlocks with
@@ -65,7 +95,7 @@
  const buffTier=g=>Math.max(0,g?.essenceTier||0);
  const activeSchool=g=>g?.essenceSchool||null;
  const statLayer=c=>{
-  if(!c.essenceCombat)c.essenceCombat={soul:0,condensed:0,cooldown:0,condenseLeft:0,condenseSlice:0,guardLeft:0,doubleChoice:1,lastToggle:0,maxDef:Math.max(0,c.card?.def||0),attacksThisTurn:0,lastDischarge:0,guardGrantedTurn:0,drainPreference:0,lastDrainSwitch:0,lastSoulAction:0,raidCooldown:0};
+  if(!c.essenceCombat)c.essenceCombat={soul:0,condensed:0,cooldown:0,condenseLeft:0,condenseSlice:0,guardLeft:0,doubleChoice:1,lastToggle:0,maxDef:Math.max(0,c.card?.def||0),attacksThisTurn:0,lastDischarge:0,guardGrantedTurn:0,drainPreference:0,lastDrainSwitch:0,lastSoulAction:0,raidCooldown:0,bondChargeRound:0,bondChargeUsed:0};
   return c.essenceCombat;
  };
  const roll=(g,n)=>randomInt(g,Math.max(1,n));
@@ -298,16 +328,13 @@
   if(d?.mode==='def'){
    const openingProtected=takeOpeningGuard(g,d);
    const s=statLayer(d),rawStrength=guardedFirst?Math.floor(effectiveAttack(g,a,d)*.5):effectiveAttack(g,a,d);
-    // PvE only: guardian and soul roles dampen incoming HP damage.
-    // Attackers still win via focused fire; no immunity and no free ATK counter buff.
-    // Predator's live defensive-armor penetration: the 35% DEF mitigation of
-    // Guardians and Soul Drainers becomes 25% for Predator attackers.
-    // An unarmored Predator in DEF has no armor to pierce; no extra damage.
-    // Research modes can still opt out or override this to compare balanced arms.
+    // Solo defenders have 20% armor. Adjacent Guardian/Soul bonds restore
+    // 35% on either bound card in DEF; Predator piercing applies afterward.
     const predatorPierce=roleOf(a)==='predator'?
      (g.strategicTraining?.symmetricSides?
       (g.strategicTraining.predatorArmorPierce||0):.10):0;
-    const mitigation=isDefender(d)?Math.max(0,.35-predatorPierce):0;
+    const bond=soulBonds(g,q.id).find(pair=>pair.guardian===d||pair.soul===d);
+    const mitigation=isDefender(d)?Math.max(0,(bond?.35:.20)-predatorPierce):0;
     const strength=Math.max(0,Math.floor(rawStrength*(1-mitigation)));
     if(mitigation&&strength<rawStrength)logEvent(g,dataOf(d).name+
       ' · Verteidiger-Rüstung: '+(rawStrength-strength)+' Schaden abgewehrt ('+Math.round(mitigation*100)+' %).');
@@ -327,6 +354,9 @@
     logEvent(g,'Letztes Bollwerk: '+dataOf(d).name+' überlebt und ist für zwei weitere gegnerische Züge angriffsimmun.');
    }
    if(endDefense){q.graveyard.push(d);q.field[di]=null;destroyed.push(q.id+':'+di);}
+   // The new essence is granted after existing soul shields have absorbed this attack.
+   if(bond&&!immuneBefore&&q.field.includes(bond.soul))
+    bondCharge(g,q.id,bond,rawStrength,strength,predatorPierce);
    if(isDefender(d)&&!immuneBefore){
     const counter= Math.floor(Math.max(0,dataOf(d).atk)*.5);
     if(counter>0){const actual=damagePlayer(g,p.id,counter);g.damageDealt[q.id]+=actual;logEvent(g,dataOf(d).name+' · Gegenschlag: '+actual+' LP.');window.ArcaneDefenderFX?.record(g,{type:'counter',owner:q.id,uid:d.uid,index:di,element:dataOf(d).element,amount:actual});}
@@ -572,5 +602,5 @@
    return researchSoulAction(g,action);
   return baseResearchApply(g,action);
  };
- window.ArcaneEssenceCombat={condense,discharge,soulRaid,researchSoulAction,conversionFactor,predatorMode,fusionRollBonus,beginTrial,chooseDrain,statLayer,roleOf,soulRank,perkRank,evolvedLevel,rankCap,nextCost,essence,schools,schoolName,monsterIds};
+ window.ArcaneEssenceCombat={condense,discharge,soulRaid,researchSoulAction,conversionFactor,soulBonds,predatorMode,fusionRollBonus,beginTrial,chooseDrain,statLayer,roleOf,soulRank,perkRank,evolvedLevel,rankCap,nextCost,essence,schools,schoolName,monsterIds};
 })();

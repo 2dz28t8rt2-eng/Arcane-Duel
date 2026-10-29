@@ -1,0 +1,25 @@
+/* Arcane Duel 20.6: restrained guardian/soul field synergy. */
+#ad206-unused{display:none}
+.ad206-invite-guardian,.ad206-invite-soul{position:relative;isolation:isolate}
+.ad206-invite-guardian::after,.ad206-invite-soul::after{content:"✦";position:absolute;inset:3px;display:grid;place-items:center;pointer-events:none;border-radius:10px;z-index:3;font-size:22px;animation:ad206-pulse 2.2s ease-in-out infinite}
+.ad206-invite-guardian::after{color:#f8fbff;border:2px solid #dcefff;background:radial-gradient(ellipse,#eff8ff44,transparent 75%);box-shadow:inset 0 0 15px #d3e7ff8a,0 0 16px #d6e8ffa8}
+.ad206-invite-soul::after{color:#e8a8ff;border:2px solid #b269fc;background:radial-gradient(ellipse,#bc73e755,transparent 75%);box-shadow:inset 0 0 16px #ad6ff5a8,0 0 16px #b06fffbd}
+.ad206-linked{position:relative;overflow:visible!important;isolation:isolate}
+.ad206-linked.ad206-guard{box-shadow:0 0 12px #ddeafd, inset 0 0 10px #dce7fa55!important;animation:ad206-guardian-glow 2.6s ease-in-out infinite}
+.ad206-linked.ad206-soul{box-shadow:0 0 14px #bc83f8,inset 0 0 14px #9956ea66!important;animation:ad206-soul-glow 2.6s ease-in-out infinite}
+.ad206-mark{position:absolute;z-index:8;top:2px;left:2px;font:700 10px/1.2 system-ui,sans-serif;color:#fff;background:#553b83e8;border:1px solid #e3c4f7;border-radius:6px;padding:2px 4px;pointer-events:none;box-shadow:0 0 7px #b4a2f9}
+.ad206-bridge{position:absolute;left:55%;top:46%;width:calc(95% + 14px);height:10px;z-index:7;pointer-events:none;border-radius:50%;background:linear-gradient(90deg,#edf5ff,#a8addb,#bb7bfc,#8a45d1);opacity:.92;filter:drop-shadow(0 0 6px #bd9efc);transform:translateY(-50%);animation:ad206-wave 2.8s ease-in-out infinite}
+.ad206-bridge::after{content:"";position:absolute;inset:-4px 0;border-radius:50%;border-top:2px solid #eee5ff;border-bottom:2px solid #a776db;animation:ad206-wave-alt 2.8s ease-in-out infinite}
+.ad206-soul-particle,.ad206-guardian-particle{position:absolute;right:calc(7% + var(--ad206-i)*65%);top:35%;z-index:7;pointer-events:none;font-size:13px;font-weight:900;text-shadow:0 0 9px currentColor;animation:ad206-rise 2.8s ease-in-out infinite;animation-delay:calc(var(--ad206-i)*-1.4s)}
+.ad206-soul-particle{color:#c6a3f9}.ad206-guardian-particle{color:#fff}
+.ad206-activated{position:absolute;left:50%;top:-30px;transform:translateX(-50%);z-index:12;white-space:nowrap;pointer-events:none;padding:5px 9px;border-radius:8px;color:#fff;background:#2e194a;box-shadow:0 0 22px #b48af8;font-weight:850;font-size:12px;animation:ad206-intro 1.65s ease-out both}
+.ad206-preview,.ad206-inspect{display:block;padding:9px 12px;margin:8px 0 0;border:1px solid #ac9ccf;border-radius:8px;background:linear-gradient(110deg,#e3e8ff18,#9b51e21f);color:inherit;font-size:13px;line-height:1.5}
+.ad206-preview p{margin:3px 0}
+@keyframes ad206-pulse{0%,100%{opacity:.45}50%{opacity:.95}}
+@keyframes ad206-wave{0%,100%{transform:translateY(-50%) scaleY(.65);opacity:.65}50%{transform:translateY(-60%) scaleY(1.35);opacity:1}}
+@keyframes ad206-wave-alt{0%,100%{transform:translateY(3px)}50%{transform:translateY(-3px)}}
+@keyframes ad206-guardian-glow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.09)}}
+@keyframes ad206-soul-glow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.13)}}
+@keyframes ad206-rise{0%{opacity:0;transform:translateY(10px) scale(.7)}35%{opacity:.9}100%{opacity:0;transform:translateY(-25px) scale(1.15)}}
+@keyframes ad206-intro{0%{opacity:0;transform:translate(-50%,15px) scale(.75)}25%,70%{opacity:1;transform:translate(-50%,-4px) scale(1)}100%{opacity:0;transform:translate(-50%,-18px) scale(1.03)}}
+@media (prefers-reduced-motion:reduce){.ad206-invite-guardian::after,.ad206-invite-soul::after,.ad206-linked,.ad206-bridge,.ad206-bridge::after,.ad206-soul-particle,.ad206-guardian-particle,.ad206-activated{animation:none!important}.ad206-activated{opacity:1}}

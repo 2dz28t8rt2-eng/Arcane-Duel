@@ -382,6 +382,64 @@ anfangs schwächer, gewinnt aber nach einigen eigenen
 Zügen an Angriffskraft. Schutzmonster helfen ihm,
 diese Entwicklung zu überleben; Rudelmitglieder
 geben bereits vorher einen sofortigen Schwarmbonus.</p>`],
+  ['soul-bond','26 · Seelenbund: Wächter & Seelenzehrer',
+   `<h3>Wächter und Seelenzehrer: 20 % allein, 35 % gemeinsam</h3>
+    <p>Wächter und Seelenzehrer besitzen allein <b>20 % Schadensminderung in DEF</b>.
+    Stehen sie <b>direkt nebeneinander</b>, bilden sie einen Seelenbund.
+    Beide gebundenen Monster haben nun <b>35 % DEF-Rüstung</b>.
+    In ATK bleibt die Bindung sichtbar, aber die DEF-Rüstung wird
+    nur bei einem Angriff auf ein Monster in DEF angewendet.
+    Die bisherige Wächter-Heilung bleibt erhalten.</p>
+    <h3>Passende Felder erkennen</h3>
+    <p>Spielst du einen Wächter, schimmern freie Nachbarfelder
+    <b>weiß/silbrig</b> für einen möglichen Seelenzehrer.
+    Spielst du zuerst einen Seelenzehrer, leuchten sie
+    <b>lila/violett</b> für einen Wächter.
+    Nur die Plätze unmittelbar links und rechts zählen.
+    Ein Wächter und ein Seelenzehrer dürfen jeweils
+    <b>nur eine einzige Verbindung</b> eingehen.
+    Mehrere Bindungen auf demselben Monster stapeln sich nicht.
+    Bei mehreren möglichen Paaren entscheidet die
+    Reihenfolge der Feldplätze von links nach rechts.
+    Wird eine Karte zerstört, wird die Bindung neu berechnet.</p>
+    <h3>Seelenresonanz: 25 % des zusätzlichen Schutzes</h3>
+    <p>Der gebundene Seelenzehrer erhält <b>25 % des durch
+    den Seelenbund zusätzlich verhinderten Schadens</b>
+    als gespeicherte Seelenessenz, <b>maximal 50 pro
+    Bindung und Runde</b>. Diese Energie wird <b>erst nach
+    dem aktuellen Treffer</b> gutgeschrieben und erzeugt
+    keine zusätzliche direkte LP-Verbrennung. Die normale
+    Seelenessenz-Speichergrenze bleibt bestehen.
+    Rüstungsdurchschlag von Predatoren und alle anderen
+    Schutz- und Gegenschlagregeln gelten weiterhin.</p>
+    <h3>Beispiel mit 1.000 Angriffsstärke</h3>
+    <table class="arcane-rule-table"><thead><tr>
+    <th>Situation</th><th>DEF-Schaden</th><th>Essenzgewinn</th>
+    </tr></thead><tbody>
+    <tr><td>Allein: 20 % Schutz</td><td>800</td><td>0</td></tr>
+    <tr><td>Im Seelenbund: 35 % Schutz</td><td>650</td><td>37</td></tr>
+    </tbody></table>
+    <p>150 Schaden werden zusätzlich verhindert; davon ein
+    Viertel = 37,5, abgerundet auf <b>37 Seelenessenz</b>.
+    Weitere Treffer derselben Runde können zusammen
+    höchstens 50 Essenz beitragen.</p>
+    <h3>Visuelle Rückmeldung</h3>
+    <p>Bei der Bindung erscheint kurz <b>SEELENBUND</b>
+    mit einem Schildindikator <b>🛡 35 %</b>.
+    Weiß-graue und violett-lila Wellen verbinden die beiden
+    Karten. Wächter erhalten Licht-Schimmerpartikel,
+    Seelenzehrer kleine Totenkopf-Partikel.
+    Die große Kartenansicht nennt den Partner und zeigt
+    den aktiven Rüstungswert. Wer reduzierte Bewegung
+    bevorzugt, sieht die Hinweise ohne ständige Animationen.</p>
+    <h3>2v2 und KI-Forschung</h3>
+    <p>Im 2v2 wird nur <b>innerhalb des jeweiligen
+    Siebener-Feldes eines Spielers</b> verbunden;
+    die Teamfelder zweier Partner sind getrennt.
+    Schaden und Essenzgewinn berechnet der 2v2-Server.
+    Die noch laufende KI-Forschung benötigt eigene
+    Trainingsläufe für taktische Seelenbund-Platzierungen.
+    Die Mechanik allein garantiert noch keine bessere KI.</p>`],
  ];
  function refresh(){
   const modal=document.getElementById('modal'),book=modal?.querySelector('.arcane-handbook');

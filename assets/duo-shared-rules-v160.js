@@ -434,6 +434,44 @@
  // Match solo Verdichten: the same remaining shield pool grants half as
  // much temporary ATK. Never write that bonus into base ATK, or decay and
  // incoming DEF damage would leave behind permanent/off-by-one attack.
+ // Per-seat adjacency: a Guardian can protect one neighboring Soul,
+ // and a Soul cannot receive protection from multiple Guardians.
+ function soulBonds(p){
+  const f=p?.field||[],seen=new Set(),pairs=[];
+  for(let i=0;i<f.length-1;i++){
+   const a=f[i],b=f[i+1];
+   if(!a||!b||seen.has(i)||seen.has(i+1)||!
+    (a.role==='guardian'&&b.role==='soul'||a.role==='soul'&&b.role==='guardian'))continue;
+   const guardianIndex=a.role==='guardian'?i:i+1,soulIndex=a.role==='soul'?i:i+1;
+   pairs.push({guardianIndex,soulIndex,guardianUid:f[guardianIndex].uid,soulUid:f[soulIndex].uid});
+   seen.add(i);seen.add(i+1);i++;
+  }
+  return pairs;
+ }
+ function bondArmor(g,enemy,target,attacker,raw){
+  if(target.mode!=='def'||!defensive(target))return {dealt:raw,mitigation:0,extra:0,link:null};
+  const link=soulBonds(enemy).find(pair=>pair.guardianUid===target.uid||pair.soulUid===target.uid);
+  const pierce=attacker.role==='predator'?.10:0;
+  const base=Math.max(0,.20-pierce),mitigation=Math.max(0,(link?.35:.20)-pierce);
+  const dealt=Math.max(0,Math.floor(raw*(1-mitigation)));
+  return {dealt,mitigation,link,extra:link?
+   Math.max(0,Math.floor(raw*(1-base))-dealt):0};
+ }
+ function awardBond(g,enemy,armor){
+  if(!armor?.link||armor.extra<=0)return 0;
+  const soul=enemy.field[armor.link.soulIndex];
+  if(!soul||soul.uid!==armor.link.soulUid)return 0;
+  combat(soul);
+  if(soul.bondChargeRound!==g.round){soul.bondChargeRound=g.round;soul.bondChargeUsed=0;}
+  const add=Math.min(Math.max(0,50-soul.bondChargeUsed),Math.floor(armor.extra*.25),
+   Math.max(0,soulCapacity(soul)-soul.soul));
+  if(add>0){
+   soul.soul+=add;soul.bondChargeUsed+=add;
+   g.log.push('✦ Seelenbund · '+armor.extra+' zusätzlicher Schutz, +'+add+
+    ' Seelenessenz ('+soul.bondChargeUsed+'/50 pro Runde).');
+  }
+  return add;
+ }
  const attackValue=c=>Math.min(10000,Math.max(0,Number(c?.atk)||0)+
   (c?.role==='soul'?Math.floor(Math.max(0,Number(c.condensed)||0)*.5):0));
  // v20.2: the same material-scaled Stomp and symmetric attack attrition as
@@ -484,7 +522,8 @@
    enemy.graveyard.push(target);enemy.field[candidate.slot]=null;
    lv1Leave(g,enemy,target,catalog);destroyed=true;
   }else if(!immune){
-   if(mode==='def'&&defender)dealt=Math.floor(raw*.65);
+   const sideArmor=mode==='def'&&defender?bondArmor(g,enemy,target,src,raw):null;
+   if(sideArmor)dealt=sideArmor.dealt;
    let remaining=dealt;
    shieldLost=Math.min(Math.max(0,target.lv1Shield||0),remaining);
    target.lv1Shield=(target.lv1Shield||0)-shieldLost;remaining-=shieldLost;
@@ -496,6 +535,7 @@
    if(soulLost)score(g,enemy.team,Math.floor(soulLost*.5),
     definition(catalog,target.id).name+' · Stomp-Seelenverlust');
    removeIfEmpty(g,enemy,candidate.slot,catalog);
+   if(sideArmor)awardBond(g,enemy,sideArmor);
    if(enemy.field[candidate.slot]===target&&target.def<=0&&mode==='atk'){
     enemy.graveyard.push(target);enemy.field[candidate.slot]=null;
     lv1Leave(g,enemy,target,catalog);
@@ -1512,10 +1552,10 @@
     }else{
      combat(target);
      const guarded=target.guardLeft>0;
-     const mitigation=target.mode==='def'&&defensive(target)?
-      (src.role==='predator'?.25:.35):0;
-     let remaining=guarded?0:Math.max(0,
-      Math.floor((taunt?Math.floor(raw*.5):raw)*(1-mitigation)));
+     const incoming=taunt?Math.floor(raw*.5):raw;
+     const armor=bondArmor(g,enemy,target,src,incoming);
+     const mitigation=armor.mitigation;
+     let remaining=guarded?0:armor.dealt;
      const original=remaining;
      const lv1ShieldLost=Math.min(target.lv1Shield||0,remaining);
      target.lv1Shield=(target.lv1Shield||0)-lv1ShieldLost;
@@ -1529,6 +1569,7 @@
      if(soulLost)score(g,enemy.team,Math.floor(soulLost*.5),
       definition(catalog,target.id).name+' · erzwungener Seelenverlust');
      removeIfEmpty(g,enemy,targetSlot,catalog,targetArea);
+     if(!guarded)awardBond(g,enemy,armor);
      if(target.mode==='def'&&defensive(target)&&!guarded)
       score(g,enemy.team,Math.floor(attackValue(target)*.5),
       definition(catalog,target.id).name+' · Gegenschlag');
@@ -1647,5 +1688,5 @@
   validNpcFusionDeck,soloStartingLp,duoStartingLp,packIds,
   chapterDeck,create,apply,aiTurn,view,attackValue,fusionLevel,fusionPattern,fusionOptions,
   fusionAnalysis,fusionPreview,fusionRole,arenaDamage,fatePressure,PERK_LIMITS,normalizedBuild,
-  stompCount,stompBonus,stompFatigue,stompLine});
+  stompCount,stompBonus,stompFatigue,stompLine,soulBonds,bondArmor});
 });

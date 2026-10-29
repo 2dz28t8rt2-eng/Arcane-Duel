@@ -89,6 +89,7 @@
    card.predatorLeader.materials+' Fusionsmaterialien · '+
    ((card.predatorLeader.powers||[]).map(k=>powers[k]||k).join(' · ')||'Rudelführer-Basisbonus'),panel);
   if(template.ace)el('p','ad204-inspect-hint','✦ ACE-Monster · darf nicht fusioniert werden.',panel);
+  if(!hand)root.ArcaneDuoSoulBond206?.inspect?.(card,player,panel,catalog);
   close.focus?.();
  }
  function fieldCell(seat,slot){return doc.querySelector('#duoSeats .seat[data-seat="'+seat+
