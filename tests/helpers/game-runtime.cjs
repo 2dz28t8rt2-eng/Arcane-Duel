@@ -62,6 +62,10 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster
    code=require('./research-role-balance-v168.cjs').transform(code,process.env.ARCANE_RESEARCH_BALANCE_V168);
   else if(file==='assets/essence-combat.js'&&process.env.ARCANE_RESEARCH_BALANCE)
    code=require('./research-role-balance-v167.cjs').transform(code,process.env.ARCANE_RESEARCH_BALANCE);
+  // v17.1 role-specific healing overlay is applied AFTER the selected role
+  // balance; no production assets are modified by the simulator.
+  if(file==='assets/essence-combat.js'&&process.env.ARCANE_RESEARCH_GUARDIAN_HEAL)
+   code=require('./research-guardian-heal-v171.cjs').transform(code,process.env.ARCANE_RESEARCH_GUARDIAN_HEAL);
   if(withoutArmor&&file==='assets/essence-combat.js'){
    const needle='const mitigation=isDefender(d)?.35:0;';if(!code.includes(needle))throw Error('Armor control hook changed');
    code=code.replace(needle,'const mitigation=isDefender(d)?(q.id===0?0:.35):0;');
