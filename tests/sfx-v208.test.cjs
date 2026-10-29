@@ -76,7 +76,7 @@ test('fusion calculation sample repeats natively until stopped, then fades',()=>
  assert.equal(typeof stop,'function');
  assert.equal(h.instances.length,1);
  const audio=h.instances[0];
- assert.match(audio.src,/fusion-calc\\.ogg$/);
+ assert.ok(audio.src.endsWith('/fusion-calc.ogg'));
  assert.equal(audio.loop,true);
  assert.equal(audio.playCalls,1);
  stop();stop();
