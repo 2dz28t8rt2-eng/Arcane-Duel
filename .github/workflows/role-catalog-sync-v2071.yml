@@ -1,0 +1,33 @@
+name: Arcane Duel v20.7.1 catalog regeneration (one-shot)
+on:
+  push:
+    branches: [development]
+    paths: ['.github/workflows/role-catalog-sync-v2071.yml']
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: development
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Rebuild canonical client and server catalogs
+        run: |
+          node scripts/build-duo-catalog-v160.cjs
+          node scripts/build-duo-opponents-v201.cjs
+          node scripts/build-duo-catalog-v160.cjs --check
+          node scripts/build-duo-opponents-v201.cjs --check
+      - name: Commit only generated catalogs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/duo-card-catalog-v160.json assets/duo-opponent-catalog-v201.json supabase/functions/arcane-duo-v2/catalog.json supabase/functions/arcane-duo-v2/opponents.json
+          if ! git diff --cached --quiet; then
+            git commit -m "build(v20.7.1): regenerate Solo/Duo card and opponent manifests"
+            git push origin HEAD:development
+          fi
