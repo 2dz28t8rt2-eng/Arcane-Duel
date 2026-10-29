@@ -80,12 +80,11 @@
   if(menuTab==='upgrades')p.insertAdjacentHTML('beforeend',essenceDashboard());
   if(menuTab==='lexicon'&&E().school)p.insertAdjacentHTML('beforeend','<section class="menu-panel essence-lore-teaser"><h2>✧ Die vergessenen Schriften</h2><p>Ein neues Kapitel erzählt vom Bund zwischen Duellanten und Essenzwesen.</p>'+loreMarkup()+'</section>');
  }
- const roleLabel={predator:'PREDATOR',guardian:'WÄCHTER',soul:'SEELENZEHRER',support:'UNTERSTÜTZER',weaver:'RUNENWEBER',combatant:'ALLROUNDER',resonator:'RESONATOR'};
+ const roleLabel={predator:'PREDATOR',guardian:'WÄCHTER',soul:'SEELENZEHRER',weaver:'RUNENWEBER',combatant:'ALLROUNDER',resonator:'RESONATOR'};
  const roleText={
   predator:'Predator: +2 % Angriffsschaden je eigenem Predator am Feld, maximal +10 %. Gegen Wächter/Seelenzehrer in DEF ignoriert Predator-Angriff 10 Prozentpunkte Rüstung (35 % → 25 %). Predator-Fusionen zählen.',
   guardian:'Wächter: regeneriert in DEF-Position die Grund-DEF verbündeter Verteidiger.',
   soul:'Seelenzehrer: saugt ATK und DEF aller gegnerischen Monster ab. Gespeicherte Seelen-DEF verursacht beim Zerfall Burn; Verdichten schafft stabilen Schutz.',
-  support:'Unterstützer: Gibt in DEF einmalig +25 + 8 × Angreiferlevel (max. 160) ATK für normale, nicht fusionierte Angreifer; der Bonus stapelt nicht.',
   weaver:'Runenweber: unterstützt präzise Fusionen.',
   combatant:'Allrounder: eine ausgewogene Kreatur ohne zusätzlichen Rollenbonus.'
  };
