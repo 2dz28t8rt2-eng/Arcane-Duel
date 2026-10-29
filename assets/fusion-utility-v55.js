@@ -81,7 +81,7 @@
      d.level<3||d.level>5)return response;
   const r=type(c),section=document.createElement('section');
   section.className='ad53-role-help ad55-utility-help';
-  const header=document.createElement('h4');header.textContent='✦ TAKTISCHER FUSIONSEFFEKT';section.append(header);
+  const header=document.createElement('h4');header.textContent=r==='predator'?'✦ RUDELFÜHRER FÄHIGKEIT':'✦ FUSIONSFÄHIGKEIT';section.append(header);
   const paragraph=document.createElement('p');
   paragraph.textContent=rules[r]||rules.combatant;
   section.append(paragraph);
