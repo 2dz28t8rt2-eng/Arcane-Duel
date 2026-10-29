@@ -1,9 +1,9 @@
 'use strict';
-if(process.env.ARCANE_RESEARCH_BALANCE_V169!=='predator15Triad90')throw Error('v17.3 must retain 15/90/100/120');
+if(process.env.ARCANE_RESEARCH_BALANCE_V169!=='predator15Triad90')throw Error('v17.6 must retain 15/90/100/120');
 // TRAIN-only endgame learning AFTER complete current-rules 5-arm research.
 // Output is a NEXT-GENERATION checkpoint, not retroactively applied to v16.7.
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
-const balance=require('./helpers/research-guardian-causal-v174.cjs').mode();
+const balance=require('./helpers/research-guardian-stats-v176.cjs').mode();
 const root='artifacts/v1760/'+balance;
 let source=fs.readFileSync(path.join(__dirname,'ai-v1571-endgame-learn.cjs'),'utf8');
 for(const [a,b] of [
