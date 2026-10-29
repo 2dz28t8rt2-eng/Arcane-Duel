@@ -216,7 +216,15 @@
   }
   // Predict *only* obvious lethal hits for visual removal. The authoritative
   // attack reducer still calculates every result after the full cinematic.
-  const attacker=g.players[owner].field[ai],percent=percentByHit(count,indexes.length,materialBoost(attacker));
+  const attacker=g.players[owner].field[ai],primary=field[di],
+   primaryValue=primary&&dataOf(primary),primaryPower=primary&&effectiveAttack(g,attacker,primary);
+  const primaryShields=(primary?.essenceCombat?.soul||0)+(primary?.essenceCombat?.condensed||0);
+  // The main target also shatters at its FIRST impact, before branch collisions.
+  // Conservative checks avoid visually killing an immune or protected card.
+  host.stompPrimaryDoomed=!!primary&&!(primary.essenceCombat?.guardLeft>0)&&(
+   primary.mode==='atk'&&primaryPower>=primaryValue.atk||
+   primary.mode==='def'&&primaryShields===0&&primaryPower*.55>(primary.card?.def||0));
+  const percent=percentByHit(count,indexes.length,materialBoost(attacker));
   host.stompDoomed=indexes.flatMap((index,i)=>{
    const c=field[index],value=c&&dataOf(c);
    if(!c||!value||c.essenceCombat?.guardLeft>0)return [];
@@ -265,17 +273,21 @@
   try{
    beamSound();host.classList.add('ad-stomp-firing');await delay(260);
    table?.classList.add('ad-stomp-shake');host.classList.add('ad-stomp-splitting');
+   const dissolve=index=>{
+    const selector='#'+(1-owner===0?'ownRow':'enemyRow')+
+     ' [data-'+(1-owner===0?'mine':'enemy')+'="'+index+'"] .board-creature';
+    const card=document.querySelector(selector);
+    if(card){card.classList.add('ad-stomp-visual-destroy');
+     setTimeout(()=>card.classList.remove('ad-stomp-visual-destroy'),1600);}
+   };
+   if(host.stompPrimaryDoomed)dissolve(di);
    // Resolve each destroyed card visually exactly when its branch arrives.
    // The actual destruction is still committed once by attack(), afterwards.
    for(const item of host.stompDoomed||[]){
     const slot=item.index,order=item.order;
     timers.push(setTimeout(()=>{
      if(game!==g||uiMode!=='duel')return;
-     const selector='#'+(1-owner===0?'ownRow':'enemyRow')+
-      ' [data-'+(1-owner===0?'mine':'enemy')+'="'+slot+'"] .board-creature';
-     const card=document.querySelector(selector);
-     if(card){card.classList.add('ad-stomp-visual-destroy');
-      setTimeout(()=>card.classList.remove('ad-stomp-visual-destroy'),1600);}
+     dissolve(slot);
     },190+order*55));
    }
    // Three branches arrive at 190/245/300ms after the split begins.
