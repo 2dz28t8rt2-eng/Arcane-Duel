@@ -74,7 +74,7 @@
   const now=snapshot();if(!now){lastSnapshot=null;return;}
   const old=lastSnapshot;lastSnapshot=now;
   if(!old||old.id!==now.id)return;
-  let decayed=false,buffed=false,drawn=false,summoned=false,destroyed=false,damage=false;
+  let decayed=0,buffed=false,drawn=false,summoned=false,destroyed=false,damage=false;
   for(let side=0;side<2;side++){
    const a=old.players[side],b=now.players[side];
    if(b.hand>a.hand)drawn=true;
@@ -83,7 +83,7 @@
    const newCards=new Map(b.field.filter(Boolean).map(c=>[c.uid,c]));
    for(const [id,card] of newCards){
     if(!oldCards.has(id))summoned=true;
-    else{const before=oldCards.get(id);if(card.atk<before.atk||card.def<before.def)decayed=true;
+    else{const before=oldCards.get(id);if(card.atk<before.atk||card.def<before.def)decayed++;
      if(card.atk>before.atk||card.def>before.def)buffed=true;}
    }
    for(const id of oldCards.keys())if(!newCards.has(id))destroyed=true;
@@ -93,7 +93,11 @@
   if(!inFusion&&summoned)play('summon');
   if(!inFusion&&destroyed)play('destroy');
   // A whole turn's decay is one global cue, not one per affected monster.
-  if(decayed)play('decay');
+  if(decayed){
+   // One cue for global round decay; discrete debuffs have individual cues.
+   const count=old.turn!==now.turn?1:Math.min(3,decayed);
+   for(let i=0;i<count;i++)schedule(()=>play('decay'),i*155);
+  }
   if(buffed)play('powerup');
  }
  function onDuoState(before,after,catalog,seat){
