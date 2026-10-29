@@ -39,7 +39,7 @@
     if(text!==undefined)result.textContent=text;
     return result;
   }
-  function enhance({game,seat,roomId,dock,send,busy=false,syncError=''}={}){
+  function enhance({game,seat,roomId,dock,catalog={},send,busy=false,syncError=''}={}){
     const helper=document.getElementById('ad188-fusion-guide');
     if(!helper)return;
     helper.hidden=true;helper.replaceChildren();
