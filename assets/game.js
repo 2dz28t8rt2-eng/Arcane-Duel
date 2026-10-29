@@ -1004,6 +1004,17 @@ for(const card of RPG_BASE_CARDS){
  card.atk=atk;
  card.def=budget-atk;
 }
+// v20.7.1: retire the Supporter role without changing stable card IDs or stats.
+// Assign every former supporter to whichever of Predator, Soul or Guardian has
+// the fewest ordinary RPG cards (stable ID order; Soul wins genuine ties).
+const REASSIGNABLE_ROLES=['soul','guardian','predator'];
+const liveRoles=CARDS.filter(c=>c.rpg&&!c.fusionOnly&&!c.essenceMonster&&!c.retired);
+const roleCounts=Object.fromEntries(REASSIGNABLE_ROLES.map(role=>[role,liveRoles.filter(c=>c.role===role).length]));
+for(const c of liveRoles.filter(c=>c.role==='support').sort((a,b)=>a.id-b.id)){
+ const winner=[...REASSIGNABLE_ROLES].sort((a,b)=>roleCounts[a]-roleCounts[b]||REASSIGNABLE_ROLES.indexOf(a)-REASSIGNABLE_ROLES.indexOf(b))[0];
+ c.role=winner;roleCounts[winner]++;
+ if(winner==='soul')c.soulRank=Math.min(5,Math.max(1,Math.ceil(c.level/2)));
+}
 // Normalize legacy per-card combat perks after ALL RPG templates and workshop stages
 // have been registered. General role abilities are deliberately unaffected.
 const RETIRED_SINGLE_CARD_ABILITIES=new Set(['aegis','pierce','hunt','guide','rush','guard']);
