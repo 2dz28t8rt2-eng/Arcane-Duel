@@ -106,7 +106,7 @@ function fixture(existing){
   createElement:tag=>new Element(tag)
  };
  api.enhance({game,seat:0,roomId:game.roomId,dock});
- const floatingConfirm=helper.children[3].children[0];
+ const floatingConfirm=helper.children.find(x=>x.className==='ad188-floating-actions').children[0];
  return {api,sandbox,game,dock,panel,helper,attackGuide,select,native,hint,template,slot,commit,
   fusionPanel,handCards,fieldCards,ghost,floatingConfirm,values};
 }
@@ -168,7 +168,7 @@ test('Geisterzone and spark buttons can be selected and removed; six materials a
  ui.fieldCards[1].click();
  assert.equal(ui.api.selectedKeys(ui.select).length,5);
  assert.match(ui.helper.children[2].textContent,/Höchstens fünf/);
- const chips=ui.native.children.find(x=>x.className==='ad188-selected-materials');
+ const chips=ui.helper.children.find(x=>x.className==='ad188-selected-materials');
  chips.children[0].click();
  assert.equal(ui.api.selectedKeys(ui.select).length,4);
 });
