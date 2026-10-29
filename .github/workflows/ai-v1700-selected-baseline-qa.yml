@@ -1,0 +1,39 @@
+name: Arcane Duel – v17.0 Selected Research Baseline QA
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v1700-selected-baseline-qa.yml'
+      - 'tests/ai-v1700-research-baseline.cjs'
+      - 'tests/ai-v1700-research-baseline.test.cjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  selected-baseline:
+    name: Confirm v17.0 15pp / 90% / 100% / 120% (research only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ARCANE_RESEARCH_BALANCE_V169: predator15Triad90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify selected baseline and current role drain
+        run: |
+          set -euo pipefail
+          node --check tests/ai-v1700-research-baseline.cjs
+          node --check tests/ai-v1700-research-baseline.test.cjs
+          node --test tests/ai-v1700-research-baseline.test.cjs
+          node tests/ai-v1690-mechanics.test.cjs
+          node tests/ai-v1700-research-baseline.cjs
+      - name: Confirm no production modifications in selection commit
+        run: |
+          set -euo pipefail
+          git diff --name-only HEAD^ HEAD | tee /tmp/changed.txt
+          if grep -Eq '^(assets/|index\.html|server/)' /tmp/changed.txt; then
+            echo "Unexpected game asset edit in research-only selection commit" >&2
+            exit 1
+          fi
