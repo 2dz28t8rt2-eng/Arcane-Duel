@@ -38,8 +38,15 @@ document.getElementById('app').addEventListener('load',async()=>{
   check(!d.querySelector('#ownRow .ad-overcharged'),'Statusleuchten endet ohne temporären DEF-Überschuss');
   if(!reduced){
    // Native committed fusion: each click finishes exactly one current phase.
-   w.eval(`const target=RPG_FUSIONS.find(c=>!c.retired&&!c.enemyOnly&&c.level===5);game.players[0].remainingFusion=[target.id];game.players[0].fusionDeck=[target.id];game.fusionChoice=target.id;
-    const materials=[__make('predator',0),__make('predator',0)];const f=fusedInstance(game,materials,[4,4]);delete game.fusionChoice;f.mode='def';game.players[0].field[2]=f;render();
+   w.eval(`const materials=[__make('predator',0),__make('predator',0)];
+    const available=RPG_FUSIONS.filter(c=>!c.retired&&!c.enemyOnly&&!c.ace&&c.level<=5);
+    game.players[0].remainingFusion=available.map(c=>c.id);game.players[0].fusionDeck=[...game.players[0].remainingFusion];
+    const target=fusionOptions(game,[4,4],materials).sort((a,b)=>b.level-a.level||a.id-b.id)[0];
+    if(!target)throw Error('Keine legale Fusion für Lv4+Lv4');
+    game.fusionChoice=target.id;
+    const f=fusedInstance(game,materials,[4,4]);delete game.fusionChoice;
+    if(!f)throw Error('Testfusion fehlgeschlagen trotz legaler Vorlage');
+    f.mode='def';game.players[0].field[2]=f;render();
     window.__beforeFusion=JSON.stringify({seed:game.seed,card:f.card,rolls:f.rollTrace,math:f.rollMath});
     window.__phaseSeen=[];window.__cinema=ArcaneFusionCinema.play({instance:f,materials:materials.map(c=>({art:dataOf(c).art,level:4})),battle:game,card:dataOf(f),level:5,wait:animationWait,playSound:()=>{}});`);
    const first=d.querySelector('.ritual-overlay');check(first?.dataset.cinemaPhase==='Materialrotation','Ritual beginnt mit einer eigenen Rotationsphase');first?.click();await pause(80);
