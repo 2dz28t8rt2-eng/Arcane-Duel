@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-29 · Branch `development` · Solo-Gegenschlag-Nerf v17.2 / KI-Forschung v17.1
+**Aktualisiert:** 2026-10-29 · Branch `development` · Solo-Gegenschlag-Nerf und abgeschlossene KI-Forschung v17.2
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -72,7 +72,15 @@ Die bestehende Heilformel `min(150, 25 + Level × 12)` und die effektive Begrenz
 - **Drei offline experimentelle Vergleichsarme bei konstanten sonstigen Testregeln** (15 Prozentpunkte Predator-Durchdringung, 90/100/120 % entzogenes ATK/DEF): `legacy50` = historischer Gegenschlag 50 % auch bei Zerstörung + volle Wächterheilung; `survivor35` = neuer 35-%-Gegenschlag nur bei Überleben + volle Wächterheilung; `survivor35Heal85` = neuer Gegenschlag + Wächter-zu-Wächter-Heilung 85 %, Wächter-zu-Seelenzehrer-Heilung 100 %.
 - **Trainingsdurchgang:** [GitHub Actions #40947684440](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40947684440), **69.120 geplante gepaarte Selbstspiel-Duelle** (23.040 pro Variante), gleiche Seeds, Sitzwechsel und KI-Kandidaten, unveränderte Level-10- und H2H-Champion-Gates. Vorherige nicht validierte Endgame-Lernwerte werden wegen der Regeländerung **nicht** auf die neuen Ergebnisse übertragen; Folge-Lernmodelle entstehen ausschließlich aus aktuellem TRAIN.
 - **Forschungsziele:** Verhindert der Survivor-Only-Gegenschlag den Wegwerf-Verteidiger-Exploit? Können Predatoren gegen reine Wächter/Seelenzehrer besser gewinnen, ohne gemischte Decks zu überwältigen? Bringt die 85-%-Heilung unter den neuen Gegenschlagsregeln Vorteile?
-- **Status:** Vorabnahme und Duellserie durch GitHub Actions; Ergebnisse und Champion-Entscheidung erst nach vollständigem Lauf. **Kein automatischer Produktionspatch oder KI-Champion-Aufstieg.**
+- **Status abgeschlossen:** GitHub Actions [#40947684440](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40947684440) **erfolgreich, 40/40 Jobs und 69.120/69.120 Duelle** (je 23.040 in drei gepaarten Forschungsvarianten). **Keine Champion-Beförderung**; `l10-guarded-worst-reply` bleibt eingefroren. **Keine weitere Produktionsänderung**.
+
+**v17.2-Resultat (Defender-Survival, Siege aus jeweils 512 TRAIN/VALIDATION/HOLDOUT-Duellen):** Historisch 50 % `266/251/279`; neuer 35-%-Gegenschlag `264/252/282`; neu mit 85-%-Wächterheilung `263/251/281`. Der neue Gegenschlag verändert nachweislich Duellresultate (im gepaarten Stage-8-Vergleich **131 von 2.304** Siegwechseln, 25 TRAIN / 59 VALIDATION / 47 HOLDOUT); die 85-%-Heilung verändert gegenüber 35 % allein weitere **46 von 2.304** Ergebnisse. Keiner dieser Unterschiede belegt allein eine generelle Überlegenheit.
+
+**Rollenfokus (je 16 Duelle, reine Wächter / gemischt 50:50 / reine Seelenzehrer):** Gegen Predatoren mit neuer 35-%-Regel **VALIDATION 5/9/8 Siege**, **HOLDOUT 10/6/8 Siege**. Gegen Fusionen **VALIDATION 8/8/6**, **HOLDOUT 6/7/8**. Die gemischte Synergie erscheint in der Validierung gegen Predatoren, aber **nicht zuverlässig im unabhängigen Holdout**. Der zusätzliche 85-%-Heilungsnerf ergibt in diesem fokussierten Vergleich keine Validierungsverbesserung.
+
+**Champion-Gates:** Defender-Survival mit 35 % erreicht **+9** allgemeine VALIDATION- und **+6** harte Level-10-Siege gegenüber eingefrorenem Champion, scheitert aber an direktem H2H (**+3 TRAIN statt +4, +0 VALIDATION statt +8**), Guardian-Gate und Sitzparität. Neue Folgemodelle aus **je 1.280 TRAIN-only-Partien** erzeugt (22/21/21 gelernte Kontextwerte bei 50/35/35+85), **noch nicht als neue KI validiert**.
+
+**Forschungsempfehlung:** Solo-Gegenschlag 35 % und Überlebensbedingung auf `development` belassen. 85-%-Heilung vorerst nur Forschungsalternative. Nächstes gezieltes KI-Experiment: Gegnerstärke/Turnier-Exploits mit echten Gegenschlag-Ereigniszählern, separate 40/60-, 50/50- und 60/40-Synergien gegen Predatoren und Fusionen in größeren HOLDOUT-Stichproben, statt weitere pauschale Stat-Anpassungen.
 
 ## C. KI-Forschungsstatus
 
