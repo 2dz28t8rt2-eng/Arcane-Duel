@@ -36,9 +36,11 @@ frame.addEventListener('load',async()=>{
   expect(w.ArcaneHandbookHuman180?.version==='18.0'&&
    chapters.some(c=>c.textContent.includes('Rudelführer')),
    'Rulebook includes the current v18.0 Predator and Fusion handbook');
-  expect(chapters.length>=22&&w.ArcaneHandbookHuman180?.chapterIds.length===8&&
-   w.ArcaneHandbookHuman180.chapterIds.every(id=>!!book.querySelector('#ad180-rule-'+id)),
-   'At least fourteen base chapters and eight newer gameplay chapters are present, including later additions');
+  expect(chapters.length>=25&&w.ArcaneHandbookHuman180?.chapterIds.length>=10&&
+   w.ArcaneHandbookHuman180.chapterIds.every(id=>!!book.querySelector('#ad180-rule-'+id))&&
+   !!book.querySelector('#ad201-fusion-stomp')&&
+   !!book.querySelector('#ad180-rule-opening-development'),
+   'At least fourteen base chapters, ten extended chapters and Fusion-Stomp are present');
   expect(chapters.every((c,i)=>parseInt(c.querySelector('summary').textContent,10)===i+1),'Chapter order stays complete for a new player');
   expect(links.length===chapters.length,'Directory includes chapters appended by later modules');
   expect(new Set(chapters.map(c=>c.id)).size===chapters.length,'All chapter anchors are unique');
