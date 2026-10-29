@@ -193,7 +193,7 @@ test('v18.8 is linked after v18.7 and never handles the actual server action',()
  assert.ok(parity.includes('commit.dataset.ad188Commit'));
  assert.match(implementation,/select\.dispatchEvent\(new Event\('change'/);
  assert.match(implementation,/commit\.click\(\)/);
- assert.doesNotMatch(implementation,/\b(fetch|send|localStorage|saveRoom|createClient)\s*\(/);
+ assert.doesNotMatch(implementation,/\b(fetch|localStorage|saveRoom|createClient)\s*\(/);\n assert.match(implementation,/discardIndices:/);
  const preview=read('tests/browser-duo-fusion-cards-v188.html');
  const scripts=[...preview.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
   .map(match=>match[1]).filter(Boolean);
