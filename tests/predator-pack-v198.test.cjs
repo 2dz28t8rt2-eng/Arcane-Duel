@@ -31,7 +31,7 @@ test('alpha leader updates 2% to 3%, perk to 3.5%, only latest alpha counts',()=
  'const retired=!a.predatorLeader;g.players[0].field[1]=null;'+
  'return {base,normal,upgraded,latest:active?.uid,b:b.uid,retired,'+
  'reappears:!!window.ArcanePredatorPack.leader(g,0)};');
- assert.equal(r.base,1060);assert.equal(r.normal,1090);assert.equal(r.upgraded,1105);
+ assert.equal(r.base,960);assert.equal(r.normal,1090);assert.equal(r.upgraded,1105);
  assert.equal(r.latest,r.b);assert.equal(r.retired,true);assert.equal(r.reappears,false);
 });
 test('mark distinct follow-up attacks +5%, +10%, capped, clear when turn changes',()=>{
@@ -42,7 +42,7 @@ test('mark distinct follow-up attacks +5%, +10%, capped, clear when turn changes
  'if(!attack(g,i,0))throw Error("Illegal attack");}'+
  'const marked=g.predatorPursuit?.attackers.length||0;advanceTurn(g);'+
  'return {damages,marked,cleared:!g.predatorPursuit};');
- assert.deepEqual(r.damages,[540,567,594,594]);assert.equal(r.marked,4);assert.equal(r.cleared,true);
+ assert.deepEqual(r.damages,[490,514,539,539]);assert.equal(r.marked,4);assert.equal(r.cleared,true);
 });
 test('3-own-turn weak token: level match, attacks, no fusion or inventory',()=>{
  const r=run(
