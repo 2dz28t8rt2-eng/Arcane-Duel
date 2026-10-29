@@ -290,8 +290,11 @@
   if(storyCorruption){atk=920;def=220;}
   // The stat multiplier comes from the exact solo NPC loadout, not a
   // second, independently balanced 2v2 number.
+  const develops=(roleOverride||c.role)==='predator'&&!fusion&&!fate&&
+   !c.essenceMonster;
   return {uid:g.uid++,id,level,atk,def,fate:!!fate,role:roleOverride||c.role||'combatant',
    fusion,mode:'atk',used:false,switched:false,placedRound:g.round,
+   ...(develops?{predatorEvolutionAge:0,predatorBornOwnTurn:p?.ownTurns||0}:{}),
    essenceChoice:1,essenceAttacks:0,essenceLastToggle:-1,
    guardLeft:0,guardGrantedTurn:-1,
    lv1Echo:false,lv1Effectless:false,lv1SwarmApplied:0,lv1Attacks:0,
@@ -728,6 +731,17 @@
     c.def+=Math.floor(Math.max(0,oldDef-c.def)*.3);
    }
    removeIfEmpty(g,p,slot,catalog);
+   // Growth follows a later completed OWN turn and affects only attack power,
+   // never the stored ATK/DEF (therefore creature decay stays untouched).
+   if(p.field[slot]===c&&c.role==='predator'&&!c.fusion&&!c.predatorToken&&!c.fate){
+    if(!Number.isInteger(c.predatorEvolutionAge))c.predatorEvolutionAge=0;
+    if(!Number.isInteger(c.predatorBornOwnTurn))c.predatorBornOwnTurn=p.ownTurns;
+    if(p.ownTurns>c.predatorBornOwnTurn&&c.predatorEvolutionAge<4){
+     c.predatorEvolutionAge++;
+     g.log.push('Entwicklung: '+definition(catalog,c.id).name+' · '+
+      (90+c.predatorEvolutionAge*3)+' % ATK-Grundfaktor.');
+    }
+   }
   }
  }
  function beginLv1Turn(g,p,catalog){
@@ -1432,8 +1446,12 @@
    const predators=p.field.filter(x=>x?.role==='predator').length;
    const alpha=predatorLeader(p);
    const swarmPct=alpha?(predatorPower(alpha,'swarm')?.035:.03):.02;
+   const developing=src.role==='predator'&&!src.fusion&&!src.predatorToken&&!src.fate;
+   const evolution=developing?
+    .90+.03*Math.max(0,Math.min(4,src.predatorEvolutionAge||0)):1;
+   // Evolution and active-team Swarm bonuses add on the same base ATK.
    let raw=Math.max(0,Math.floor(attackValue(src)*(src.role==='predator'?
-    1+swarmPct*Math.min(5,predators):1)));
+    evolution+swarmPct*Math.min(5,predators):1)));
    if(essenceCompanion(p,src,'predator')&&src.essenceChoice===2)
     raw=Math.floor(raw*.7);
    const stompPower=raw,stompBefore={atk:Math.max(0,src.atk),
