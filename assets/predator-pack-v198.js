@@ -71,11 +71,12 @@
   if(!p?.field?.includes(a))return actual;
   let value=actual;
   const alpha=leader(g,owner),count=Math.min(5,p.field.filter(c=>c&&isPredator(c)).length);
-  if(alpha){
-   // The live base engine already applied 2% per active Predator. Replace it,
-   // don't ADD a second copy. Qualified 3+-Predator leader has 3%,
-   // and the optional Rudelinstinkt perk raises that to 3.5%.
-   const base=1+count*.02, improved=1+count*(has(alpha,'swarm')?.035:.03);
+  if(alpha&&count){
+   // The earlier Essence layer includes development (90..102%) + 2% Swarm.
+   // Replace ONLY the 2% Swarm share with 3%/3.5%. Do not dilute growth.
+   const growth=!a.fusion&&!a.predatorToken?predatorDevelopmentPct(a)/100:1;
+   const base=growth+count*.02;
+   const improved=growth+count*(has(alpha,'swarm')?.035:.03);
    value=Math.floor(value*improved/base);
   }
   if(d){
