@@ -64,7 +64,10 @@ document.getElementById('app').addEventListener('load',async()=>{
    await w.__ai;w.eval('chooseAiAction=__choose;__observer.disconnect();');
    check(w.__ghostOwners.includes('1')&&!w.eval('busy||aiRunning'),'Gegnerische Normalbeschwörung verwendet die gemeinsame Animation und gibt den Zug frei');
    w.eval(`game.active=1;game.turn=8;game.summoned=false;game.pending=null;game.players[1].field.fill(null);game.players[0].field.fill(null);
-    const target=RPG_FUSIONS.find(c=>!c.retired&&!c.enemyOnly&&c.level===5);game.players[1].remainingFusion=[target.id];game.players[1].fusionDeck=[target.id];game.players[1].hand=[__make('predator',1),__make('predator',1)];
+    game.players[1].hand=[__make('predator',1),__make('predator',1)];
+    const choices=RPG_FUSIONS.filter(c=>!c.retired&&!c.enemyOnly&&!c.ace&&c.level<=5).map(c=>c.id);
+    game.players[1].remainingFusion=[...choices];game.players[1].fusionDeck=[...choices];
+    if(!fusionOptions(game,[4,4],game.players[1].hand).length)throw Error('KI-Test ohne legale Fusionsvorlage');
     window.__actions=[{type:'fusion',uids:game.players[1].hand.map(c=>c.uid)},{type:'place',idx:2},{type:'end'}];chooseAiAction=g=>__actions.shift()||{type:'end'};window.__aiFusion=runAi();`);
    await pause(180);
    check(d.querySelector('.ritual-overlay')?.dataset.owner==='1','Auch gegnerische Handfusionen öffnen das vollständige Ritual');
