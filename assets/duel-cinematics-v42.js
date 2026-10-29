@@ -98,7 +98,10 @@
    if(game===g){
     flash(banner,'#ff214c');
     banner?.classList.add('ad-counter-damage');
-    if(event.amount>0)roleStatFloat(banner,'−'+event.amount+' LP · GEGENSCHLAG','counter-damage');
+    if(event.amount>0){
+     roleStatFloat(banner,'−'+event.amount+' LP · GEGENSCHLAG','counter-damage');
+     window.ArcaneSfx208?.play?.('damage');
+    }
     const shock=document.createElement('div');
     shock.className='ad-counter-impact';shock.setAttribute('aria-hidden','true');
     if(goal){shock.style.left=goal.x+'px';shock.style.top=goal.y+'px';document.body.append(shock);setTimeout(()=>shock.remove(),480);}
@@ -162,7 +165,7 @@
   $('overlay').inert=true;document.body.append(scene);rewardScene=scene;scene.querySelector('[data-reward-close]')?.focus();
  }
  const finish=showFinished;
- showFinished=function(...args){if(game&&presented.has(game))return;const r=finish(...args),g=game;if(!g?.finishShown||g.winner===null||presented.has(g))return r;presented.add(g);window.ArcaneSfx208?.result?.(g.winner===0?'win':'lose');const modal=$('modal');modal?.classList.add('ad-result-scroll');
+ showFinished=function(...args){if(game&&presented.has(game))return;const r=finish(...args),g=game;if(!g?.finishShown||g.winner===null||presented.has(g))return r;presented.add(g);const modal=$('modal');modal?.classList.add('ad-result-scroll');
   rewardItems=[...modal.querySelectorAll('.arcane-reward-showcase')].map(node=>{const html=node.outerHTML;node.remove();return html;});
   if(rewardItems.length)nextReward();return r;
  };
