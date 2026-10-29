@@ -43,6 +43,8 @@ test('Solo and Edge Duo Stomp rules share survivor-only 35%-base 40%-splash coun
  assert.match(solo,/mode==='def'&&defender&&!immune&&!destroyed&&foe\.field\[index\]===target/);
  assert.match(duo,/mode==='def'&&defender&&!immune&&!destroyed&&enemy\.field\[candidate\.slot\]===target/);
  assert.match(duo,/Math\.floor\(Math\.floor\(oldAttack\*\.35\)\*\.4\)/);
+ assert.match(duo,/targetZone\[targetSlot\]===target&&target\.def>0/);
+ assert.match(duo,/Math\.floor\(attackValue\(target\)\*\.35\)/);
  const guide=read('assets/fusion-stomp-guide-v201.js');
  assert.match(guide,/14 % der aktuellen ATK/);
  assert.doesNotMatch(guide,/selbst nach\s+seiner Zerstörung noch einen Gegenschlag/);
