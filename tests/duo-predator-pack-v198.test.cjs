@@ -83,13 +83,13 @@ test('Predator mark is scoped to exact target UID, owner seat and own turn',()=>
  assert.equal(first.predatorImpact.followups,0);
  const second=act(first,0,{type:'attack',slot:1,targetSeat:1,targetSlot:0});
  assert.equal(target(first).def-target(second).def,
-  Math.floor(Math.floor(1000*(.90+3*.035))*1.08));
+  Math.floor(Math.floor(1000*(1+3*.035))*1.08));
  assert.equal(second.predatorImpact.followups,1);
  assert.equal(second.predatorImpact.bonusPct,.08);
  assert.equal(second.predatorPursuit.attackers.length,2);
  const third=act(second,0,{type:'attack',slot:2,targetSeat:1,targetSlot:0});
  assert.equal(target(second).def-target(third).def,
-  Math.floor(Math.floor(1000*(.90+3*.035))*1.13));
+  Math.floor(Math.floor(1000*(1+3*.035))*1.13));
  assert.equal(third.predatorImpact.followups,2);
  const next=act(third,0,{type:'end'});
  assert.equal(next.predatorPursuit,null);
