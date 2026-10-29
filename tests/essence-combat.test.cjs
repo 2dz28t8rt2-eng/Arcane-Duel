@@ -251,7 +251,7 @@ test('Verdichten boosts surviving Soul counterstrikes using remaining shield, wi
  assert.equal(c.card.atk,baseAtk,'Permanent stats are never modified by condense');
 });
 
-test('Guardians absorb 35 percent of PvE DEF-HP damage but do not become invulnerable',()=>{
+test('Unbound Guardians absorb 20 percent of PvE DEF-HP damage but do not become invulnerable',()=>{
  const {g}=start();
  const duel=g.createGame({id:'guardian-mitigation',mode:'pve',context:'free',opponentId:1,
   seed:98013,deck:g.RPG_DEFAULT_DECK,fusionDeck:g.RPG_START_FUSIONS});
@@ -264,8 +264,8 @@ test('Guardians absorb 35 percent of PvE DEF-HP damage but do not become invulne
  duel.players[0].field[0]=guard;duel.players[1].field[0]=pred;duel.active=1;duel.turn=4;
  const out=g.attack(duel,0,0);
  assert.ok(out);
- assert.equal(guard.card.def,1000-Math.floor(Math.floor(800*(.90+.02))*.75),
-  'Fresh Predator begins at 90% ATK plus 2% Swarm and pierces 10pp of Guardian armor (25% remains)');
+ assert.equal(guard.card.def,1000-Math.floor(Math.floor(800*(.90+.02))*.90),
+  'Fresh Predator begins at 90% ATK plus 2% Swarm and pierces 10pp of Guardian armor (10% remains without a linked Soul)');
  assert.equal(duel.players[0].field[0],guard,'Guardian survives first predator attack');
  assert.ok(duel.players[1].shield<200||duel.players[1].lp<duel.maxLP,'Counterattack still deals 60 damage to shield or LP');
 });
