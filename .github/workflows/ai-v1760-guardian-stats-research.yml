@@ -6,6 +6,8 @@ on:
       - '.github/workflows/ai-v1760-guardian-stats-research.yml'
       - 'tests/ai-v1760-guardian-stats.test.cjs'
       - 'tests/ai-v1760-selfplay.cjs'
+      - 'tests/helpers/research-guardian-stats-v176.cjs'
+      - 'tests/helpers/game-runtime.cjs'
       - 'tests/ai-v1760-attack-aggregate.cjs'
   workflow_dispatch:
 permissions:
