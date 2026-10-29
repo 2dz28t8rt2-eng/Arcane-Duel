@@ -125,6 +125,23 @@ Die allgemeine Defender-Survival-HOLDOUT-Verbesserung **276 → 278/512** ist se
 
 **Erforderliche Versuchsverbesserung:** Bei fixierten Seeds und derselben KI sowohl den **eigenen** als auch den **gegnerischen** Heilungsnerf getrennt abtragen (`beide`, `nur eigener Verteidiger`, `nur Gegner`, `keiner`); die **Wächteranzahl je eigener Runde**, Heilungsereignisse, verlorene/gewonnene DEF, Heilausfall durch Max-DEF sowie tatsächlich geänderte KI-Aktionen erfassen; die Auswertung nach **einzigartigen Szenarien** statt nur Profil-Replikaten absichern; auch gezielte 2–5-Wächter-Boards und Turnierkampf-Replays testen. Erst danach Balance-Schlussfolgerungen ziehen. **Keine neue Regel-/Champion-Übernahme.**
 
+### v17.4 – Kausalprüfung der Wächterheilung (gestartet)
+
+**Grund:** Der v17.3-Lauf wendete die neue Wächter-Heilungsstaffel symmetrisch auf beide Seiten an und lieferte nur Siegerzahlen statt tatsächlich geheilter DEF-Werte. Die 113 Siegerwechsel aus 2.304 Profil-/Szenario-Replikaten konnten nicht als 113 unabhängig beobachtete Effekte interpretiert werden.
+
+**Vier getrennte vollständige Forschungsregime, keine pauschale 85-%-Regel:**
+
+- `none`: Unveränderte Wächterheilung auf beiden Seiten, Kontrolle.
+- `candidateOnly`: 100/55/40/33/28 % abhängig von 1–5 DEF-Wächtern **ausschließlich für die Kandidaten-KI**.
+- `opponentOnly`: Dieselbe Staffel **ausschließlich für die gegnerische KI**.
+- `both`: Beide Seiten verwenden die neue Heilungsstaffel, wie in v17.3.
+
+**Feste Regeln für alle vier Arme:** 35 % Gegenschlag ausschließlich nach überlebtem Treffer; 15 Prozentpunkte Predator-Durchdringung; Seelenentzug 90/100/120 % je Zieltyp (Forschungsbaseline). Alle Heilungs-Nerfs werden **nur im Offline-Simulator** injiziert; die normale Solo-Version bleibt unverändert, und bestehende 85-%-Experimente werden weder kombiniert noch eingesetzt.
+
+**Neu gemessene Telemetrie pro echtem Duell:** Anzahl Züge mit jeweils 0–5 aktiven DEF-Wächtern **getrennt je Spieler**, Heilungsauslösungen, tatsächlich wiederhergestellte DEF-Punkte, mögliche DEF-Regeneration ohne Staffel, durch Staffel verhinderte Heilung, an maximalem DEF verpufftes Heilbudget und Aufteilung Wächter- vs Seelenzehrer-Ziele. Die Szenario-/Sitz-/Seed-Zuordnung und paarweisen Gewinneränderungen werden mitgeführt; die Anzahl verschiedener Versuchsaufbauten wird separat ausgewiesen.
+
+**Trainingslauf:** [GitHub Actions #40958426063](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40958426063), vier gepaarte Forschungsarme mit **92.160 geplanten Duellen** (4 × 23.040, 11 Phasen pro Arm), gleicher eingefrorener Champion und unveränderte Aufstiegshürden. Keine automatische Champion-Beförderung oder Produktionsübernahme; HOLDOUT und VALIDATION bleiben von TRAIN getrennt.
+
 ## C. KI-Forschungsstatus
 
 - **v16.9:** 138.240 Duelle, sechs Varianten, GitHub Actions #40917461921 erfolgreich; neu erzeugtes TRAIN-only Endgame-Modell für `predator15Triad90`.
