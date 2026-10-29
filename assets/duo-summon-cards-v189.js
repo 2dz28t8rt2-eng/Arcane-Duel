@@ -101,7 +101,7 @@
       confirm.disabled=!complete||commit.disabled;
       description.textContent=complete?
         '✦ '+cardName(handChoices.get(chosen.hand))+' auf Feld '+(chosen.slot+1)+
-          (game.players[seat].field[chosen.slot]?' ersetzen? Die alte Karte geht auf den Friedhof.':' beschwören?')+' Erst nach Bestätigung wird die Aktion ausgeführt.':
+          (game.players?.[seat]?.field?.[chosen.slot]?' ersetzen? Die alte Karte geht auf den Friedhof.':' beschwören?')+' Erst nach Bestätigung wird die Aktion ausgeführt.':
         chosen.hand!==null?'✦ '+cardName(handChoices.get(chosen.hand))+
           ' ist bereit. Wähle einen freien oder besetzten Platz auf deinem Feld.':
         chosen.slot!==null?'✦ Feld '+(chosen.slot+1)+
