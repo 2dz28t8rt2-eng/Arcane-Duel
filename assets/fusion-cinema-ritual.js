@@ -118,6 +118,7 @@
   const phases=window.ArcaneCinemaPhases.create(overlay,wait);
   wait=phases.wait;
   const particleTask=motes(overlay,role).catch(()=>null);
+  let stopCalcLoop=null;
   if(window.ArcaneSfx208)window.ArcaneSfx208.play('orbit');
   else playSound('summon');
   try{
@@ -151,7 +152,7 @@
    }
    await phases.run('Werteberechnung',async()=>{
    overlay.classList.add('evo-phase-rolls','evo-stamp-settled');
-   window.ArcaneSfx208?.play?.('calc');
+   stopCalcLoop=window.ArcaneSfx208?.startLoop?.('calc')||null;
    const weights=math.roleWeights||{atk:1,def:1};
    const information=document.createElement('div');
    information.className='evo-role-math';
@@ -211,6 +212,8 @@
     atk.textContent=num(t.atk);def.textContent=num(t.def);
    }
    });
+   // End the loop once the final ATK/DEF values reach the fusion card.
+   stopCalcLoop?.();stopCalcLoop=null;
    // Predator alpha's abilities are already rolled and saved on the instance.
    // Show the PAW + short skill explanations in the SAME calculation window,
    // after all numeric rolls have been absorbed and before landing.
@@ -246,6 +249,7 @@
    }else{overlay.classList.add('evo-card-land');await wait(550);}
    });
   }finally{
+   stopCalcLoop?.(); // Skipped, cancelled and failed rituals must not leave audio playing.
    phases.close();
    overlay.remove();running=false;
    particleTask.then(container=>container?.destroy?.()).catch(()=>{});
