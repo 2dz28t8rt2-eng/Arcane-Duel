@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-29 · Branch `development` · Kausalstudie Wächterheilung v17.4 abgeschlossen
+**Aktualisiert:** 2026-10-29 · Branch `development` · Angriffshäufigkeit- und Wächter-Kausalstudie v17.5 gestartet
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -171,6 +171,16 @@ Die allgemeine Defender-Survival-HOLDOUT-Verbesserung **276 → 278/512** ist se
 **Champion-Hürden:** Kein Kandidat befördert; `l10-guarded-worst-reply` bleibt Champion. Der stärkste Kandidat im Arm `both` liegt bei **+11 VALIDATION** versus eingefrorenem Champion und **+5 direktem H2H-TRAIN**, aber nur **+6 direktem H2H-VALIDATION** statt benötigten **+8**. Neu aus ausschließlich TRAIN generierte Endgame-Folgemodelle mit 20/22/24/22 Kontextwerten (`none`/`candidateOnly`/`opponentOnly`/`both`, je 1.280 TRAIN-Partien) sind **keine automatisch beförderte KI**.
 
 **Entscheidung:** Die 100/55/40/33/28-%-Staffelung erzielt gemessene DEF-Reduktion und reduziert fokussiert reine Wächter, ohne andere Rollen immer vollständig zu schützen. **Noch nicht produktiv übernehmen:** Im echten Turnier sind Kartenzugang, Fortification, KI-Kartenwahl, Häufigkeit von zwei bis fünf Wächtern sowie langfristiger H2H-Effekt gesondert abzunehmen. Mehr unabhängige Matchup-/Turnier-Szenarien statt gleich viele KI-Profil-Replikate testen; **keine weitere pauschale Werteabsenkung**.
+
+### v17.5 – KI-Angriffshäufigkeit bei Wächtern und Seelenzehrern
+
+**Forschungsstart:** [GitHub Actions #40964830451](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40964830451), `development`, 2 × 23.040 = **46.080 geplante gepaarte Vollduelle**. Beide Vorabnahmen einschließlich echter Stage-0/Stage-8-Stichprobenspiele **bestanden**; Start am 29.10.2026. Verwendet werden `none` (volle Guardian-Heilung) und `candidateOnly` (100/55/40/33/28-%-Wächterheilung nur beim betrachteten Kandidaten). Die bereits geprüften `opponentOnly` und `both` bleiben als v17.4-Historie erhalten, werden für die Angriffsfrequenz-Frage nicht erneut vierfach gerechnet.
+
+**Ab jetzt echte Offensive-Telemetrie je Rolle und Spieler:** Der Forschungs-Simulator protokolliert nur über die echte `attack(game,ai,di)`-Funktion vollzogene Angriffe auf `game===g`, **nicht** hypothetische Planer-Simulationen oder den passiven 35-%-Gegenschlag. `guardian` (einschließlich Alias `defender`), `soul`, `predator`, Fusions- und andere Rollen werden getrennt. Für sämtliche 11 Stages werden gezählt: versuchte und angenommene Angriffe, direkte LP-Ziele oder gegnerische Monster, zerstörte Zielkarten, tatsächlich verlorene gegnerische LP/Schilde, bestätigte Wechsel nach ATK und DEF sowie die Häufigkeit der Partien mit mindestens einem Angriff des jeweiligen Rollentyps. Beide Spieler/Seats werden getrennt erfasst, damit sie nicht künstlich die eigene Quote beeinflussen.
+
+**Warum diese Gegenprobe:** Defensive Rollen können nicht allein an der Zahl der gespielten Karten beurteilt werden. Viele Siege entstehen vermutlich durch DEF-Erholung, Seelenfähigkeiten, LP-Gegenschlag und Positionierung statt regulärer eigener Angriffe; die Messung trennt diese ausdrücklich, ohne den Kampfschaden auszudenken. Die KI bleibt mit dem eingefrorenen Champion und TRAIN/VALIDATION/HOLDOUT-Freigabekriterien vergleichbar; Folge-Endgame-Kandidaten werden nur aus TRAIN gebildet.
+
+**In allen Armen identisch:** 35-%-Gegenschlag **nur bei Überleben** aus `development`, experimentelle 15-Prozentpunkte-Predator-Durchdringung und Seelenentzug 90/100/120 %. Die 85-%-Pauschalheilung bleibt entfernt. Die Heilungsstaffel bleibt **nur im Offline-Test**, noch nicht im Solo-Spiel oder 2v2. **Keine automatische KI-Champion-Beförderung und kein Produktionspatch.**
 
 ## C. KI-Forschungsstatus
 
