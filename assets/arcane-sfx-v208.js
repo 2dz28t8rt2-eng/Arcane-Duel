@@ -100,7 +100,7 @@
   duoGame=after;duoSeat=seat;
   if(!before||!after||before.roomId!==after.roomId||
    before.revision>=after.revision)return;
-  const events=window.ArcaneDuoCinematics167?.analyze?.(before,after)||[];
+  const events=window.ArcaneDuoCinematics167?.describe?.(before,after)||[];
   const logs=(after.log||[]).slice(-(Math.max(0,(after.log||[]).length-(before.log||[]).length)||8));
   // The actual fusion cinema owns the orbit sound. Event sounds here play
   // only for visible confirmed consequences, never speculative actions.
