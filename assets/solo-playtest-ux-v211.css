@@ -1,0 +1,36 @@
+/* Arcane Duel 21.1 · readable duel field and post-battle rewards. */
+#duelScreen .table-surface{--ad211-board-zoom:1;zoom:var(--ad211-board-zoom)}
+#ad211-board-tools{position:sticky;top:5px;z-index:150;display:flex;align-items:center;justify-content:space-between;
+ flex-wrap:wrap;gap:7px;margin:3px 7px 12px;padding:8px 10px;
+ border:1px solid #b99b67;border-radius:9px;background:#101b31f5;box-shadow:0 3px 20px #0009;
+ color:#f5dfb2;font:700 12px/1.3 system-ui,sans-serif}
+#ad211-board-tools[hidden]{display:none!important}
+#ad211-board-tools .ad211-lp-meter{display:flex;gap:7px;align-items:center;white-space:nowrap}
+#ad211-board-tools .ad211-lp-meter b{font:900 16px/1.3 Georgia,serif;color:#fff2d3;font-variant-numeric:tabular-nums}
+#ad211-board-tools .ad211-lp-meter span{color:#8a90a3}
+#ad211-board-tools label{display:flex;gap:8px;align-items:center;white-space:nowrap;color:#e7cfac}
+#ad211-board-zoom{width:110px;accent-color:#d9ae62;cursor:pointer}
+#ad211-zoom-output{width:43px;text-align:right;font-variant-numeric:tabular-nums;color:#f2d38d}
+#duelScreen .slots [data-mine],#duelScreen .slots [data-enemy]{position:relative}
+.ad211-field-pop{position:absolute;left:50%;top:28%;z-index:65;pointer-events:none;max-width:185px;
+ width:max-content;transform:translate(-50%,-50%);padding:6px 10px;border-radius:10px;
+ border:1px solid #d6b0fc;background:#31214add;color:#f1daff;text-align:center;
+ font:850 11px/1.3 system-ui,sans-serif;text-shadow:0 1px 7px #000;
+ box-shadow:0 0 23px #8c50e999;animation:ad211-pop 1.9s ease-out both}
+.ad211-field-pop.ad211-decay{background:#352e47e6;border-color:#d5b8d9;color:#f4dcf9}
+.ad211-field-pop.ad211-resonance{background:#3c215be6;border-color:#e1baff}
+.ad211-field-pop.ad211-stance{background:#262d62ed;border-color:#aed9ff}
+@keyframes ad211-pop{0%{opacity:0;transform:translate(-50%,-20%) scale(.83)}
+ 12%,74%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+ 100%{opacity:0;transform:translate(-50%,-90%) scale(1.04)}}
+.ad211-soul-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;padding:12px;
+ background:linear-gradient(130deg,#362449c9,#15243e);border:1px solid #aa78d8;border-radius:9px}
+.ad211-soul-actions>strong,.ad211-soul-actions>small{width:100%;line-height:1.45}
+.ad211-soul-actions .btn{flex:1 1 165px;white-space:normal}
+.ad211-reward-level{font:900 clamp(18px,3vw,24px)/1.3 Georgia,serif;color:#ffda85;text-align:center}
+.ad211-earned-card{display:flex;flex-direction:column;align-items:center;gap:11px;padding:10px 0;border-top:1px solid #b49a6d66}
+.ad211-earned-card>b{color:#ffe3a4;text-align:center}
+.ad211-earned-card .hand-card{max-width:225px}
+@media(max-width:560px){#ad211-board-tools{padding:6px;justify-content:center}#ad211-board-tools .ad211-lp-meter b{font-size:14px}
+ #ad211-board-zoom{width:85px}}
+@media(prefers-reduced-motion:reduce){.ad211-field-pop{animation:none;opacity:1}}
