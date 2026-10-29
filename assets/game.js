@@ -1752,7 +1752,14 @@ async function endTurn(){
  if(g.mode==='pvp'&&g.active!==previousPlayer){
   openModal(modalHtml('SPIELERWECHSEL',`Duellant ${g.active+1} ist dran.`,roman[g.active],'Gebt das Gerät weiter und deckt danach die Hand auf.','','<button class="btn primary" id="modalGo">HAND AUFDECKEN →</button>'));
   $('hand').innerHTML='<div class="no-cards">Hand verdeckt · Spielerwechsel</div>';$('largeCardPreview').innerHTML='<p>Spielerwechsel · Kartenansicht verdeckt.</p>';$('selectedInfo').textContent='Spielerwechsel';$('modalGo').onclick=()=>{render();hideModal();};
- }else{render();runAi();}
+ }else{
+  render();
+  // Only a real player end-turn receives a reading pause. Manual AI resumes
+  // and direct AI tests should not incur a second waiting period.
+  if(g.mode==='pve'&&g.active===1)
+   await new Promise(done=>setTimeout(done,window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?800:1500));
+  if(game===g&&g.winner===null&&g.active===1)runAi();
+ }
 }
 async function runAi(){
  if(!game||game.mode!=='pve'||game.active!==1||game.winner!==null||aiRunning)return;
