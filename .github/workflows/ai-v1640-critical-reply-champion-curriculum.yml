@@ -1,0 +1,238 @@
+name: Arcane Duel - v16.4 Critical Reply, H2H & Mixed Defender Learning
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v1640-critical-reply-champion-curriculum.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preflight:
+    name: Verify rules, enforce role parity and learn only from prior TRAIN traces
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify AI scripts, current Predator evolution, opening guard and legal Fusion
+        run: |
+          set -euo pipefail
+          for f in tests/ai-v1640-{selfplay,aggregate,Q,endgame-learn,regression-audit}.cjs; do node --check "$f"; done
+          node --test tests/opening-predator-v205.test.cjs tests/opening-shield-removal-v1592.test.cjs tests/essence-combat.test.cjs tests/predator-pack-v198.test.cjs tests/ai-v1574-stomp.test.cjs
+          node tests/helpers/game-runtime.cjs
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const s=fs.readFileSync('tests/ai-v1640-selfplay.cjs','utf8');
+          a.ok(s.includes('defenderCriticalReplyPlanner:.60')&&s.includes('defenderCriticalReplyPlanner:.72'),
+            'Both distinct experimental Defender reply policies must be defined');
+          a.ok(s.includes('if(w.defenderCriticalReplyPlanner&&!lethal&&'),
+            'Critical legal reply simulation missing');
+          a.ok(s.includes('[4,7,8].includes(scene.studyStage)'),
+            'Critical reply must remain restricted to hard L10 and mixed role studies');
+          a.ok(!s.includes('once(\'predatorSwarmPreservation:true};\''),
+            'Global predator/fusion override must not be restored');
+          console.log('ARCANE_V1640_RESEARCH_SCOPE_OK');
+          JS
+      - name: Restore successful v16.3 TRAIN checkpoints and prior decision diagnostics
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARCANE_PREVIOUS_ARTIFACT_DIR: /tmp/arcane-v1640-training-sources
+        run: |
+          set -euo pipefail
+          # Only TRAIN observations and accepted checkpoints are reused.
+          # Prior validation/holdout remains sealed and never used as labels.
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40852605154" --jq '.conclusion')" = success
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40852605154/jobs?per_page=100" --jq '[.jobs[] | select(.name | startswith("Selfplay stage ")) | select(.conclusion == "success")] | length')" = 11
+          mkdir -p "$ARCANE_PREVIOUS_ARTIFACT_DIR" artifacts/v1640
+          gh run download 40852605154 --repo "$GITHUB_REPOSITORY" --name arcane-v1630-sealed-train-checkpoints --dir "$ARCANE_PREVIOUS_ARTIFACT_DIR"
+          for f in historical-train.json frozen-v1555-champion.json incumbent-policy.json older-q-checkpoint.json previous-training-q.json prior-selfplay-checkpoint.json provenance.json research-balanced-policy.json v1499-prior-q.json; do
+            test -s "$ARCANE_PREVIOUS_ARTIFACT_DIR/$f"
+            cp "$ARCANE_PREVIOUS_ARTIFACT_DIR/$f" "artifacts/v1640/$f"
+          done
+          test -s "$ARCANE_PREVIOUS_ARTIFACT_DIR/training-q-and-examples.json"
+          cp "$ARCANE_PREVIOUS_ARTIFACT_DIR/training-q-and-examples.json" "artifacts/v1640/previous-training-q.json"
+          for stage in 4 7 8; do
+            gh run download 40852605154 --repo "$GITHUB_REPOSITORY" --name "arcane-v1630-stage-$stage" --dir "$ARCANE_PREVIOUS_ARTIFACT_DIR"
+            test -s "$ARCANE_PREVIOUS_ARTIFACT_DIR/stage-$stage-train-actions.json"
+            test -s "$ARCANE_PREVIOUS_ARTIFACT_DIR/stage-$stage.json"
+            test -s "$ARCANE_PREVIOUS_ARTIFACT_DIR/stage-$stage-decision-diffs.json"
+            node - "$stage" <<'JS'
+          const a=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+          const stage=Number(process.argv[2]),dir=process.env.ARCANE_PREVIOUS_ARTIFACT_DIR;
+          const t=JSON.parse(fs.readFileSync(path.join(dir,'stage-'+stage+'-train-actions.json')));
+          a.ok(t.examples.length>100);
+          a.ok(t.examples.every(x=>Array.isArray(x.actions)&&x.win>=0&&x.win<=1));
+          console.log('ARCANE_V1640_PRIOR_TRAIN_ONLY_EVIDENCE',stage,t.examples.length);
+          JS
+          done
+          node tests/ai-v1640-regression-audit.cjs
+          node tests/ai-v1640-endgame-learn.cjs
+          node --expose-gc --max-old-space-size=3200 tests/ai-v1640-Q.cjs
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const root='artifacts/v1640/';
+          const learned=JSON.parse(fs.readFileSync(root+'endgame-learner.json'));
+          a.equal(learned.sourceRun,40852605154);
+          a.equal(learned.split,'train');
+          a.equal(learned.holdoutUsed,false);
+          a.equal(learned.validationUsed,false);
+          a.ok(learned.games>=500&&learned.actions>200&&learned.nonzero>=3,
+            'Prior v16.3 TRAIN cohort is missing or insufficient');
+          const q=JSON.parse(fs.readFileSync(root+'training-q-and-examples.json'));
+          a.equal(q.length,3);
+          a.ok(q.every(x=>x.learnedQ&&Object.keys(x.learnedQ).length>0));
+          console.log('ARCANE_V1640_TRAIN_ONLY_CHECKPOINTS '+JSON.stringify({
+            sourceRun:40852605154,learnedGames:learned.games,
+            learnedActionContexts:learned.actions,qArms:q.length,
+            qUpdates:q.map(x=>x.newQAccepted)}));
+          JS
+      - name: Preflight legal triple-reply model, H2H, mixed Defender and Predator parity
+        run: |
+          set -euo pipefail
+          node --expose-gc --max-old-space-size=2400 tests/ai-v1640-selfplay.cjs 0 0
+          for stage in 4 7 8 9 10; do
+            node --expose-gc --max-old-space-size=2400 tests/ai-v1640-selfplay.cjs "$stage" 0 0
+          done
+          node - <<'JS'
+          const a=require('node:assert/strict'),fs=require('node:fs');
+          // Catch v16's false role-control equivalence *before* full selfplay.
+          const control=JSON.parse(fs.readFileSync('artifacts/v1640/stage-0-pair-0.json'));
+          const fixture=r=>[r.pair,r.scenario,r.starter,r.seat].join('|');
+          const old=new Map(control.cases.filter(r=>r.arm==='l10-guarded-worst-reply')
+            .map(r=>[fixture(r),r]));
+          let parityChecks=0;
+          for(const r of control.cases.filter(r=>[
+            'defender-v1640-survival-control','defender-v1640-counterplay',
+            'fusion-v1640-role-economics'].includes(r.arm))){
+            const frozen=old.get(fixture(r));
+            a.ok(frozen,'Missing predator control');
+            a.equal(r.win,frozen.win,'Predator control outcome drift');
+            a.equal(r.reward,frozen.reward,'Predator control reward drift');
+            a.deepEqual(r.candidateActionMix,frozen.candidateActionMix,'Predator control decisions drift');
+            parityChecks++;
+          }
+          a.equal(parityChecks,72);
+          for(const stage of [8,9,10]){
+            const d=JSON.parse(fs.readFileSync('artifacts/v1640/stage-'+stage+'-pair-0-chunk-0.json'));
+            a.equal(d.cases.length,144);
+            a.ok(d.cases.some(x=>x.arm==='l10-guarded-worst-reply'));
+            a.ok(d.cases.some(x=>x.arm==='fusion-v1640-role-economics'));
+            a.ok(d.cases.some(x=>x.arm==='defender-v1640-survival-control'));
+            a.ok(d.cases.every(x=>x.illegalSwitchesBySeat.every(n=>n===0)));
+          }
+          console.log('ARCANE_V1640_CRITICAL_REPLY_PREFLIGHT_OK');
+          JS
+          rm -f artifacts/v1640/stage-*.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1640-sealed-train-checkpoints
+          path: artifacts/v1640/
+          retention-days: 90
+          if-no-files-found: error
+  research:
+    name: Selfplay stage ${{ matrix.stage }} - current rules / six policies
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        stage: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1640-sealed-train-checkpoints
+          path: artifacts/v1640
+      - name: Run seed-matched TRAIN, VALIDATION, HOLDOUT – six policies and both seats
+        env:
+          ARCANE_STAGE: ${{ matrix.stage }}
+        run: |
+          set -euo pipefail
+          stage="$ARCANE_STAGE"
+          chunks=1
+          if [ "$stage" = 4 ] || [ "$stage" = 7 ]; then chunks=4; fi
+          if [ "$stage" -ge 8 ]; then chunks=2; fi
+          for pair in 0 1 2 3 4 5 6 7; do
+            if [ "$chunks" -eq 1 ]; then
+              node --expose-gc --max-old-space-size=2400 tests/ai-v1640-selfplay.cjs "$stage" "$pair"
+            else
+              for ((chunk=0;chunk<chunks;chunk++)); do
+                node --expose-gc --max-old-space-size=2400 tests/ai-v1640-selfplay.cjs "$stage" "$pair" "$chunk"
+              done
+            fi
+          done
+          node --max-old-space-size=3200 tests/ai-v1640-selfplay.cjs "$stage" finalize
+      - name: Archive independent complete stage and decision-level TRAIN traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1640-stage-${{ matrix.stage }}
+          path: artifacts/v1640/stage-${{ matrix.stage }}*.json
+          retention-days: 90
+          if-no-files-found: warn
+  aggregate:
+    name: Verify 23040 games, frozen-champion promotion gates and clean holdout
+    needs: [preflight, research]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1640-sealed-train-checkpoints
+          path: artifacts/v1640
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: arcane-v1640-stage-*
+          merge-multiple: true
+          path: artifacts/v1640
+      - name: Compare learned policies against frozen champion; training-only selection
+        run: |
+          set -euo pipefail
+          node --max-old-space-size=3200 tests/ai-v1640-aggregate.cjs
+          node - <<'JS'
+          const a=require('node:assert/strict'),fs=require('node:fs');
+          const r=JSON.parse(fs.readFileSync('artifacts/v1640/report.json'));
+          a.equal(r.status,'completed');
+          a.equal(r.totalDuels,23040);
+          a.equal(r.stages.length,11);
+          a.equal(r.arms.length,6);
+          a.equal(r.globalSelection.holdoutSeenBySelector,false);
+          a.ok(r.controls.holdoutNeverUsedForSelection);
+          a.ok(r.controls.noProductionChanges);
+          if(r.globalSelection.promoted){
+            const candidate=r.globalSelection.candidates.find(x=>x.arm===r.globalSelection.arm);
+            a.ok(candidate?.qualifies&&candidate.guardianGate&&candidate.seatNonRegressionVsFrozen);
+          }else a.equal(r.globalSelection.arm,'l10-guarded-worst-reply');
+          console.log('ARCANE_V1640_VERIFIED '+JSON.stringify({
+            games:r.totalDuels,promoted:r.globalSelection.promoted,
+            selected:r.globalSelection.arm,
+            candidates:r.globalSelection.candidates.map(c=>({
+              name:c.arm,qualifies:c.qualifies,trainGain:c.trainGain,
+              validationGain:c.validationGain,h2hValidationGain:c.h2hValidationGain
+            }))}));
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-v1640-validated-adaptive-ai-report
+          path: |
+            artifacts/v1640/report.json
+            artifacts/v1640/training-q-and-examples.json
+            artifacts/v1640/endgame-learner.json
+            artifacts/v1640/prior-train-regression-hypotheses.json
+            artifacts/v1640/stage-*-decision-diffs.json
+          retention-days: 90
+          if-no-files-found: warn
