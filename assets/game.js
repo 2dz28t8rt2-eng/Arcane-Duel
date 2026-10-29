@@ -1807,13 +1807,13 @@ function renderHud(){
  if($('hudStopTraining'))$('hudStopTraining').onclick=()=>stopTraining();
  const warning=$('storageNotice');
  warning.hidden=!storageWarning||storageWarning===dismissedStorageWarning;
- warning.replaceChildren();
- if(!warning.hidden){
-  const message=document.createElement('span');message.textContent=storageWarning;warning.append(message);
+ // Keep compatibility with lightweight CLI/test DOM shims without replaceChildren().
+ warning.textContent=warning.hidden?'':storageWarning;
+ if(!warning.hidden&&typeof warning.appendChild==='function'){
   const close=document.createElement('button');close.type='button';close.textContent='✕';
   close.setAttribute('aria-label','Speicherwarnung schließen');close.title='Warnhinweis schließen';
   close.onclick=()=>{dismissedStorageWarning=storageWarning;warning.hidden=true;};
-  warning.append(close);
+  warning.appendChild(close);
  }
  $('soundBtn').textContent='♪ Ton: '+(soundOn?'An':'Aus');
  $('speedBtn').textContent='✧ Animationen: '+(animationSpeed==='instant'?'Aus':'An');
