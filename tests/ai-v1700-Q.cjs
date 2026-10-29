@@ -1,0 +1,17 @@
+'use strict';
+// v16.5 rule-regime reset: Q is revalidated on current v20.6 engine.
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const cohort=process.env.ARCANE_V1700_COHORT;
+if(!['cold','learned'].includes(cohort))throw Error('v17.0 requires cold or learned cohort');
+if(require('./ai-v1700-research-baseline.cjs').selectedVariant!=='predator15Triad90')throw Error('Unexpected v17.0 research rules');
+if(process.env.ARCANE_RESEARCH_BALANCE_V169!=='predator15Triad90')throw Error('v17.0 rule mismatch');
+
+let source=fs.readFileSync(path.join(__dirname,'ai-v1571-Q.cjs'),'utf8');
+for(const [a,b] of [['artifacts/v1571','artifacts/v1700/'+process.env.ARCANE_V1700_COHORT],['ARCANE_V1571','ARCANE_V1700']]){
+ assert.ok(source.includes(a),'Missing Q source anchor '+a);
+ source=source.split(a).join(b);
+}
+const stale='const older=historical.examples.filter(r=>r.swarm===swarm&&r.pierce===pierce);';
+assert.equal(source.split(stale).length,2,'Missing prior-rule outcome import');
+source=source.replace(stale,'const older=[]; // no historical labels from the pre-v20.6 rule regime');
+new Function('require','process','console',source)(require,process,console);
