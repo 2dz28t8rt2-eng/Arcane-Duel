@@ -449,7 +449,7 @@
  };
  function condense(idx){
   if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0||!soulReady(game))return false;
-  const c=game.players[0].field[idx];if(!c||!isSoul(c))return false;
+  const c=game.players[0].field[idx];if(!c||!isSoul(c)||c.mode!=='def')return false;
   const e=statLayer(c);if(e.soul<40||e.cooldown>0||e.lastSoulAction===game.turn)return false;
   const amount=Math.floor(e.soul*.75);
   e.soul-=amount;e.condensed=Math.min(9000,e.condensed+amount);
@@ -462,7 +462,7 @@
  }
  function discharge(idx){
   if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0||!soulReady(game))return false;
-  const c=game.players[0].field[idx];if(!c||!isSoul(c))return false;
+  const c=game.players[0].field[idx];if(!c||!isSoul(c)||c.mode!=='def')return false;
   const e=statLayer(c);
   // All Soul Eaters have an offensive release. Higher rank gains its edge
   // naturally by harvesting more essence; the one-use-per-turn gate remains.
@@ -484,7 +484,7 @@
   if(!inputAllowed()||!isEssenceDuel(game)||game.active!==0||!soulReady(game)||!Number.isInteger(targetIndex)||
      targetIndex<0||targetIndex>=5)return false;
   const creature=game.players[0].field[idx],target=game.players[1].field[targetIndex];
-  if(!creature||!isSoul(creature)||!target?.card)return false;
+  if(!creature||!isSoul(creature)||creature.mode!=='def'||!target?.card)return false;
   const layer=statLayer(creature);
   if(layer.raidCooldown>0||layer.lastSoulAction===game.turn||game.winner!==null)return false;
   const level=dataOf(creature).level,normal=20+5*level,budget=Math.floor(normal*2.5);
