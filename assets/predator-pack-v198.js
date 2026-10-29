@@ -74,7 +74,8 @@
   if(alpha&&count){
    // The earlier Essence layer includes development (90..102%) + 2% Swarm.
    // Replace ONLY the 2% Swarm share with 3%/3.5%. Do not dilute growth.
-   const growth=!a.fusion&&!a.predatorToken?predatorDevelopmentPct(a)/100:1;
+   const growth=!a.fusion&&!a.predatorToken&&!CARDS[a.id]?.essenceMonster?
+    predatorDevelopmentPct(a)/100:1;
    const base=growth+count*.02;
    const improved=growth+count*(has(alpha,'swarm')?.035:.03);
    value=Math.floor(value*improved/base);
