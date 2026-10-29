@@ -290,6 +290,7 @@
   overlay.classList.remove('evo-calc-absorb','ad198-reveal-fade');
   overlay.classList.add('ad198-leader-reveal');
   const chosen=(info.powers||[]).filter(p=>POWERS[p]);
+  window.ArcaneSfx208?.play?.('roar');
   rolls.innerHTML='<div class="ad198-pack-paw" aria-hidden="true">🐾</div>'+
    '<div class="ad198-awake-title">RUDELFÜHRER ERWACHT</div>'+
    '<div class="ad198-awake-sub">'+(info.predatorMaterials||info.materials)+
