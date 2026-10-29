@@ -345,7 +345,12 @@
    s.condensed-=condemned;remaining-=condemned;
    const soulLost=Math.min(s.soul,remaining);
    s.soul-=soulLost;remaining-=soulLost;
-   const burn=Math.floor(soulLost*.5);if(burn)addBurn(g,q.id,burn,dataOf(d).name+' · erzwungener Seelenverlust');
+   const burn=Math.floor(soulLost*.5);
+    if(burn){
+     const actualBurn=addBurn(g,q.id,burn,dataOf(d).name+' · erzwungener Seelenverlust');
+     if(actualBurn)window.ArcaneDefenderFX?.record(g,{type:'soulBurn',owner:q.id,uid:d.uid,index:di,
+      element:dataOf(d).element,amount:actualBurn,soulLost});
+    }
    const baseLoss=Math.min(d.card?.def||0,remaining);
    if(d.card)d.card.def=Math.max(0,d.card.def-baseLoss);
    let destroyed=[],endDefense=d.card?.def===0;
