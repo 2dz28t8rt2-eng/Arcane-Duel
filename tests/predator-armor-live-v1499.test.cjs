@@ -37,11 +37,11 @@ test('live Predator ignores 10 percentage points of Guardian / Soul DEF armor; n
  for(const seat of [0,1])for(const role of ['guardian','soul']){
   const live=run(seat,role),bare=run(seat,role,'predator','research-zero'),
    equivalent=run(seat,role,'predator','research-ten');
-  assert.equal(live.atk,816);
-  assert.equal(bare.atk,816);
-  assert.equal(live.defLost,612,'25% remaining armor: 816 * .75');
-  assert.equal(bare.defLost,530,'Without penetration: 816 * .65 floor');
-  assert.equal(live.remaining,888);
+  assert.equal(live.atk,736);
+  assert.equal(bare.atk,736);
+  assert.equal(live.defLost,552,'25% remaining armor: 736 * .75');
+  assert.equal(bare.defLost,478,'Without penetration: 736 * .65 floor');
+  assert.equal(live.remaining,948);
   assert.equal(live.opponentLP,0);
   assert.deepEqual(live.defLost,equivalent.defLost);
  }
@@ -51,7 +51,7 @@ test('Predator defender has zero DEF armor, so penetration never amplifies raw a
   const unarmored=run(seat,'predator'),zero=run(seat,'predator','predator','research-zero');
   assert.equal(unarmored.defLost,unarmored.atk);
   assert.equal(unarmored.defLost,zero.defLost);
-  assert.equal(unarmored.atk,816);
+  assert.equal(unarmored.atk,736);
  }
 });
 test('Predator armor penetration is not granted to non-Predator attackers',()=>{
@@ -66,7 +66,7 @@ test('swarm + armor pierce stacks only once; same results on both seats',()=>{
   for(const count of [1,2,3,4,5]){
    const a=run(0,role,'predator','live',count);
    const b=run(1,role,'predator','live',count);
-   assert.equal(a.atk,Math.floor(800*(1+count*.02)));
+   assert.equal(a.atk,Math.floor(800*(.9+count*.02)));
    assert.equal(a.defLost,Math.floor(a.atk*.75));
    assert.equal(a.defLost,b.defLost);
   }
