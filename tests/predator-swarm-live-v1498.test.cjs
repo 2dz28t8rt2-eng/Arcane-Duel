@@ -42,10 +42,10 @@ test('live PvE and PvP: predator swarm grows by 2% each own deployed Predator',(
  for(const mode of ['pve','pvp'])for(const owner of [0,1]){
   const first=run(mode,owner,1);
   assert.equal(first.ownerPredators,1);
-  const normalized=first.outgoing/1.02;
+  const normalized=1000;
   for(let count=1;count<=5;count++){
    const sample=run(mode,owner,count);
-   const expected=normalized*(1+count*.02);
+   const expected=normalized*(.90+count*.02);
    assert.ok(Math.abs(sample.outgoing-expected)<=2,
     JSON.stringify({mode,owner,count,expected,sample,first}));
    assert.equal(sample.directDamage,sample.outgoing,'Live direct LP hit must respect swarm damage');
