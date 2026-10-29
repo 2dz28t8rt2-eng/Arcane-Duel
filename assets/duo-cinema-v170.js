@@ -62,7 +62,7 @@
   return fusion?[fusion,...actions.filter(x=>x.kind==='draw').slice(0,2)]:
    actions.filter(x=>x.kind==='draw').slice(0,3);
  };
- let timers=[],sequence=0,layer=null,enabled=true,stopCalcLoop=null;
+ let timers=[],sequence=0,layer=null,enabled=true,stopCalcLoop=null,orbitAudio=null;
  const reduced=()=>!!(typeof window!=='undefined'&&window.matchMedia&&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches);
  function make(tag,cls,text,parent){
@@ -73,6 +73,7 @@
   return el;
  }
  function clear(){
+  orbitAudio?.pause?.();orbitAudio=null;
   stopCalcLoop?.();stopCalcLoop=null;
   timers.forEach(clearTimeout);timers=[];
   if(layer?.isConnected)layer.remove();layer=null;
@@ -107,7 +108,7 @@
    const mat=make('span','duo-cinema208-material','✧',orbit);
    mat.style.setProperty('--i',String(i));mat.style.setProperty('--n',String(matCount));
   }
-  window.ArcaneSfx208?.play?.('orbit');
+  orbitAudio=window.ArcaneSfx208?.play?.('orbit')||null;
   const role=make('div','duo-cinema170-role','✦ '+(ROLE_NAMES[r.role]||'FUSION')+' ✦',content);
   const rolls=make('div','duo-cinema170-rolls',undefined,content);
   const choice=make('p','duo-cinema170-note','',content);
@@ -117,8 +118,7 @@
   const stages=[
    ()=>{status.textContent='1 · ROLLENSTEMPEL';orbit.remove();role.classList.add('active');},
    ()=>{
-    stopCalcLoop?.();
-    stopCalcLoop=window.ArcaneSfx208?.startLoop?.('calc')||null;
+    // Calculation sound intentionally disabled pending a replacement.
     status.textContent='2 · ATK-/DEF-WÜRFE';
     role.classList.remove('active');role.classList.add('stamped');
     r.rolls.forEach((x,i)=>{
