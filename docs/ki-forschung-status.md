@@ -26,7 +26,7 @@ Die Werte können von `main` abweichen. Dieses Dokument macht keine Aussage dar�
 - **Browser-Cache aktualisiert:** `index.html` lädt `assets/essence-combat.js?v=20261029-v2072-counter35`.
 - **Unverändert:** Andere aktive Verteidigerfähigkeiten, Soul-Heilung, Verteidigungsrüstung, Fusion, Produktions-Predator-Durchdringung 10 Prozentpunkte und gewöhnlicher Seelenentzug. **2v2** wurde durch diesen gezielten Solo-Patch nicht verändert.
 - **Separat weiterhin Forschung:** 15-Prozentpunkte-Predator-Durchdringung, zielabhängiger Seelenentzug 90/100/120 %, reduzierte Wächter-zu-Wächter-Heilung 85/75 % sowie noch nicht beförderte KI-Modelle. Diese Forschungsvarianten werden nicht automatisch in den Solo-Spielcode übernommen.
-- **Abnahme:** [Solo-v17.2-Gegenschlag-QA](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40946070508). Die QA prüft überlebende und zerstörte Wächter/Seelenzehrer, Immunität, KI-Bedrohungsbewertung und vorhandene Combat-Regressionen.
+- **Abnahme:** [Solo-v17.2-Gegenschlag-QA](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40946513678) **bestanden**: vier neue Gegenschlag-Tests (Überleben, Zerstörung, Immunität, KI-Bewertung) plus 23 bestehende isolierte Solo-/Seelenbund-Regressionen. Hinweis: Der umfassende Full-UI-Headless-Harness hat separat noch einen `Unexpected token 'else'`-Fehler beim dynamischen Start, obwohl alle indexierten Skripte statisch syntaktisch gültig sind; er bleibt separat zu prüfen.
 
 ## B. Als künftige Spielbalance gewünscht, **derzeit NUR in der Forschung**
 
