@@ -227,8 +227,8 @@
 .evo-fusion-scene .evo-fusion-result img{width:100%;height:133px;object-fit:cover;border-radius:5px;display:block}
 .evo-fusion-scene .evo-fusion-result span{font-size:12px;font-weight:900;color:#ffe8b3;line-height:14px}
 .evo-fusion-scene .evo-fusion-flash{position:absolute;left:50%;top:50%;width:25px;height:25px;margin:-12.5px 0 0 -12.5px;border-radius:50%;background:radial-gradient(circle,#fff 0%,#ffe6a6 17%,#bb8aff 42%,transparent 70%);z-index:4;opacity:0;pointer-events:none}
-.evo-fusion-scene.evo-phase-orbit .evo-actual-material{animation:evo-cinema-orbit .85s ease-in-out both}
-.evo-fusion-scene.evo-phase-merge .evo-actual-material{animation:evo-cinema-merge .5s ease-in both}
+.evo-fusion-scene.evo-phase-orbit .evo-actual-material{animation:evo-cinema-orbit 3.9s ease-in-out both}
+.evo-fusion-scene.evo-phase-merge .evo-actual-material{animation:evo-cinema-merge 1.85s ease-in both}
 .evo-fusion-scene.evo-phase-merge .evo-fusion-flash{animation:evo-cinema-flash .55s ease-out both}
 .evo-fusion-scene.evo-phase-reveal .evo-actual-material{opacity:0;transform:translate(0,0) scale(.1)}
 .evo-fusion-scene.evo-phase-reveal .evo-fusion-result{animation:evo-cinema-reveal .42s cubic-bezier(.16,.9,.25,1.25) both;opacity:1;transform:scale(1)}
