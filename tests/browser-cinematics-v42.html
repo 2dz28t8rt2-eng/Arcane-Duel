@@ -14,7 +14,7 @@ document.getElementById('app').addEventListener('load',async()=>{
   check(menu.length===3&&menu.every(c=>[...c.querySelectorAll('.stat')].every(s=>w.getComputedStyle(s).display==='none')),'Nur die drei Menükarten verbergen ihre ATK/DEF-Boxen');
   w.eval(`profile=freshProfile();profile.guideSeen=true;profile.cleared=[1,2,3,4];hideModal();busy=false;aiRunning=false;animationSpeed='normal';document.body.classList.remove('instant','ad-motion-disabled');
    game=createGame({id:'cinematics-qa',mode:'pve',opponentId:3,context:'free',seed:42,starter:0});game.active=0;game.turn=4;game.players.forEach(p=>p.field.fill(null));
-   window.__make=(role,owner)=>{const t=CARDS.find(c=>c&&!c.retired&&!c.fusionOnly&&c.role===role&&c.level===4);const c=newInstance(game,t.id,owner);c.mode='def';c.summonedTurn=1;ArcaneEssenceCombat.statLayer(c);return c;};
+   window.__make=(role,owner)=>{const t=CARDS.find(c=>c&&!c.retired&&!c.fusionOnly&&!c.ace&&!c.fateOnly&&c.role===role&&c.level===4);const c=newInstance(game,t.id,owner);c.mode='def';c.summonedTurn=1;ArcaneEssenceCombat.statLayer(c);return c;};
    game.players[0].field=[__make('guardian',0),__make('soul',0),null,null,null];game.players[0].field[1].essenceCombat.soul=90;
    game.players[1].field=[__make('guardian',1),__make('predator',1),null,null,null];game.players[1].field[1].card.atk=10000;game.players[1].field[1].card.def=10000;game.selection={type:'field',idx:1};uiMode='duel';$('duelScreen').hidden=false;$('menuScreen').hidden=true;render();`);
   await pause(380);
