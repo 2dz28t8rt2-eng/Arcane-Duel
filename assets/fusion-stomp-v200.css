@@ -61,3 +61,12 @@
 @keyframes ad-stomp-shudder{0%,100%{transform:translate(0,0)}10%,40%{transform:translate(-6px,3px)}
   23%,65%{transform:translate(6px,-4px)}80%{transform:translate(-2px,1px)}}
 @media (prefers-reduced-motion:reduce){.ad-stomp-scene,.table-surface.ad-stomp-shake{animation:none!important}}
+
+/* A doomed secondary target visibly breaks at its own beam collision, never
+   together with every other card at the end of the entire Stomp sequence. */
+#duelScreen .board-creature.ad-stomp-visual-destroy{animation:ad-stomp-card-shatter .42s ease-out both!important;pointer-events:none}
+@keyframes ad-stomp-card-shatter{0%{opacity:1;transform:scale(1);filter:brightness(1)}
+ 28%{opacity:1;transform:scale(1.13);filter:brightness(4) saturate(.6)}
+ 70%{opacity:.45;transform:scale(.91) rotate(4deg);filter:brightness(2.2) blur(4px)}
+ 100%{opacity:0;transform:scale(.55) rotate(-8deg);filter:blur(12px)}}
+@media(prefers-reduced-motion:reduce){#duelScreen .board-creature.ad-stomp-visual-destroy{animation:none!important;opacity:0}}
