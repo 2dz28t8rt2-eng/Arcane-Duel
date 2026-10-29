@@ -24,8 +24,8 @@
 #duelScreen.ad203-hand-collapsed .cardtray #hand,
 #duelScreen.ad203-hand-collapsed .cardtray #touchFusionBtn{display:none!important}
 #duelScreen.ad203-hand-collapsed .cardtray{padding:7px 10px;min-height:0}
-#duelScreen .cardtray.ad203-soul-ability #hand{animation:ad203-soul-hand 1.5s ease-in-out both;pointer-events:none}
-#duelScreen .cardtray.ad203-soul-ability{animation:ad207-soul-tray 1.55s ease-in-out both;pointer-events:none}
+#duelScreen .cardtray.ad203-soul-ability #hand{animation:ad203-soul-hand 2.55s ease-in-out both;pointer-events:none}
+#duelScreen .cardtray.ad203-soul-ability{animation:ad207-soul-tray 2.55s ease-in-out both;pointer-events:none}
 @keyframes ad207-soul-tray{0%,100%{opacity:1;filter:none}20%,68%{opacity:0;filter:blur(3px)}85%{opacity:.6}}
 #largeCardPreview .essence-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;padding:11px;border:1px solid #8f6acc;border-radius:9px;background:linear-gradient(110deg,#7040a71d,#3a3d7819)}
 #largeCardPreview .essence-actions>strong,#largeCardPreview .essence-actions>small{flex-basis:100%}
@@ -34,3 +34,7 @@
 @keyframes ad203-soul-hand{0%{opacity:1;filter:blur(0)}22%,58%{opacity:0;filter:blur(3px)}100%{opacity:1;filter:blur(0)}}
 .ad203-drop-lock{color:#d4c5a7;background:#25283b;padding:8px 12px;border-radius:8px;border:1px solid #7c776f;font-size:12px}
 @media(prefers-reduced-motion:reduce){.ad203-pack-pulse,#duelScreen .cardtray.ad203-soul-ability #hand{animation:none!important}}
+
+/* Longer Seelenraub focus: hand stays concealed for an extra second. */
+@keyframes ad207-soul-tray{0%,100%{opacity:1;filter:none}18%,78%{opacity:0;filter:blur(3px)}93%{opacity:.6}}
+@keyframes ad203-soul-hand{0%{opacity:1;filter:none}18%,74%{opacity:0;filter:blur(3px)}100%{opacity:1;filter:none}}
