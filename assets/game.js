@@ -105,12 +105,31 @@ function prepareNormal(g,uid){if(g.winner!==null||g.summoned||g.pending)return f
 function corePrepareHandFusion(g,uids){if(g.winner!==null||g.summoned||g.pending||uids.length<2||uids.length>5||new Set(uids).size!==uids.length)return false;const p=g.players[g.active],m=uids.map(id=>p.hand.find(c=>c.uid===id));if(m.some(c=>!c||isFusionForbidden(c,g)))return false;const levels=m.map(c=>dataOf(c).level),result=fusedInstance(g,m,levels);if(!result)return false;p.hand=p.hand.filter(c=>!uids.includes(c.uid));p.graveyard.push(...m);g.pending={kind:'fusion',card:result,levels};g.materials=[];g.selection=null;g.totalFusions[g.active]++;logEvent(g,`${m.length} Fusionsmaterialien vollständig verbraucht → ${dataOf(result).name}, Lv ${dataOf(result).level}, Qualität ${result.qualityRolls} Würfe.`);return true;}
 function corePlacePending(g,idx){if(g.winner!==null||g.summoned||!g.pending||!Number.isInteger(idx)||idx<0||idx>4)return null;const p=g.players[g.active],pending=g.pending,old=p.field[idx],incoming=pending.card;if(old&&(isFusionForbidden(old)||isFusionForbidden(incoming)))return null;let result=old?fusedInstance(g,[incoming,old],[...pending.levels,dataOf(old).level]):incoming;if(!result)return null;if(pending.kind==='normal'){const ix=p.hand.findIndex(c=>c.uid===incoming.uid);if(ix<0)return null;p.hand.splice(ix,1);}if(old){p.graveyard.push(incoming,old);g.totalFusions[g.active]++;logEvent(g,`Feldfusion in Zone ${idx+1}: Lv ${dataOf(result).level}.${result.attacked?' Angriff bleibt verbraucht.':''}`);}result.mode='atk';result.switched=false;p.field[idx]=result;g.pending=null;g.summoned=true;g.selection={type:'field',idx};g.lastSummoned=result.uid;logEvent(g,`${dataOf(result).name} (${dataOf(result).atk}/${dataOf(result).def}) in Zone ${idx+1}.`);return {card:result,fused:!!old};}
 function canAttack(g,c){return !!c&&g.winner===null&&!g.pending&&c.mode==='atk'&&g.turn!==1&&(!g.strategicTraining||g.turn>g.strategicTraining.noAttackTurns)&&(!c.attacked||(g.essenceRules&&CARDS[c.id]?.essenceSchool==='predator'&&c.essenceCombat?.doubleChoice===2&&c.essenceCombat?.attacksThisTurn===1));}
+// The first non-fused creature of the starter can survive exactly one hostile
+// attack during the second global turn. This is a destruction guard, NOT LP armor.
+function openingGuardEligible(g,c){
+ return !!g&&g.turn===2&&g.active!==g.starter&&!!c?.openingGuard&&!c.fusion;
+}
+function takeOpeningGuard(g,c){
+ if(!openingGuardEligible(g,c))return false;
+ delete c.openingGuard;
+ g.openingGuardConsumed={turn:g.turn,uid:c.uid,owner:1-g.active};
+ logEvent(g,'✦ Eröffnungsschutz: '+dataOf(c).name+' widersteht seinem ersten Angriff.');
+ return true;
+}
+function savedByOpeningGuard(g,c){
+ g.openingGuardSaved={turn:g.turn,uid:c.uid,owner:1-g.active};
+ logEvent(g,'✦ Eröffnungsschutz bewahrt '+dataOf(c).name+' vor der Zerstörung.');
+}
+function predatorDevelopmentPct(c){
+ return 90+3*Math.max(0,Math.min(4,Number.isInteger(c?.predatorEvolutionAge)?c.predatorEvolutionAge:0));
+}
 function switchPosition(g,idx){const c=g.players[g.active].field[idx];if(g.winner!==null||g.pending||!c||c.switched||c.attacked)return false;c.mode=c.mode==='atk'?'def':'atk';c.switched=true;logEvent(g,`${dataOf(c).name}: ${c.mode==='atk'?'Angriffs':'Verteidigungs'}position.`);return true;}
 function damagePlayer(g,id,amount){const p=g.players[id],absorbed=Math.min(p.shield,amount);p.shield-=absorbed;const actual=amount-absorbed;p.lp=Math.max(0,p.lp-actual);if(absorbed)logEvent(g,`Schutzschild von Duellant ${id+1} absorbiert ${absorbed} Schaden.`);return actual;}
-function attack(g,ai,di){const p=g.players[g.active],e=g.players[1-g.active],a=p.field[ai],d=di===null?null:e.field[di];if(!canAttack(g,a)||di!==null&&!d||di===null&&e.field.some(Boolean))return null;const baseAtk=dataOf(a),dt=d?dataOf(d):null,at={...baseAtk,atk:effectiveAttack(g,a,d)};let damage=0,damaged=null,destroyed=[];
+function attack(g,ai,di){const p=g.players[g.active],e=g.players[1-g.active],a=p.field[ai],d=di===null?null:e.field[di];if(!canAttack(g,a)||di!==null&&!d||di===null&&e.field.some(Boolean))return null;const baseAtk=dataOf(a),dt=d?dataOf(d):null,at={...baseAtk,atk:effectiveAttack(g,a,d)};const openingProtected=d?takeOpeningGuard(g,d):false;let damage=0,damaged=null,destroyed=[];
  if(di===null){damage=damagePlayer(g,e.id,at.atk);damaged=e.id;g.damageDealt[p.id]+=damage;logEvent(g,`${at.name}: direkter Angriff, ${damage} Schaden.`);}else if(d.mode==='atk'){
-  if(at.atk>=dt.atk){e.graveyard.push(d);e.field[di]=null;destroyed.push(e.id+':'+di);}if(at.atk<=dt.atk){p.graveyard.push(a);p.field[ai]=null;destroyed.push(p.id+':'+ai);}if(at.atk!==dt.atk){damaged=at.atk>dt.atk?e.id:p.id;damage=damagePlayer(g,damaged,Math.floor(Math.abs(at.atk-dt.atk)));g.damageDealt[1-damaged]+=damage;}logEvent(g,`${at.name} gegen ${dt.name}: ${damage} LP Schaden.`);
- }else {if(at.atk>dt.def){e.graveyard.push(d);e.field[di]=null;destroyed.push(e.id+':'+di);logEvent(g,`${at.name} durchbricht ${dt.name}${damage?' · '+damage+' Durchbruchschaden':''}.`);}else if(at.atk<dt.def){damaged=p.id;damage=damagePlayer(g,p.id,dt.def-at.atk);logEvent(g,`${dt.name} hält stand: ${damage} Schaden beim Angreifer.`);}else logEvent(g,'Gleichstand gegen Verteidigung.');}
+  if(at.atk>=dt.atk){if(openingProtected)savedByOpeningGuard(g,d);else{e.graveyard.push(d);e.field[di]=null;destroyed.push(e.id+':'+di);}}if(at.atk<=dt.atk){p.graveyard.push(a);p.field[ai]=null;destroyed.push(p.id+':'+ai);}if(at.atk!==dt.atk){damaged=at.atk>dt.atk?e.id:p.id;damage=damagePlayer(g,damaged,Math.floor(Math.abs(at.atk-dt.atk)));g.damageDealt[1-damaged]+=damage;}logEvent(g,`${at.name} gegen ${dt.name}: ${damage} LP Schaden.`);
+ }else {if(at.atk>dt.def){if(openingProtected)savedByOpeningGuard(g,d);else{e.graveyard.push(d);e.field[di]=null;destroyed.push(e.id+':'+di);}logEvent(g,`${at.name} durchbricht ${dt.name}${damage?' · '+damage+' Durchbruchschaden':''}.`);}else if(at.atk<dt.def){damaged=p.id;damage=damagePlayer(g,p.id,dt.def-at.atk);logEvent(g,`${dt.name} hält stand: ${damage} Schaden beim Angreifer.`);}else logEvent(g,'Gleichstand gegen Verteidigung.');}
  if(p.field[ai]===a){a.attacked=true;if(g.mode==='pve'){const fatigue=g.active===0&&!g.strategicTraining?.symmetricSides?30-2*(profile?.upgrades?.combatDiscipline||0):30;a.card.atk=Math.max(0,dataOf(a).atk-fatigue);a.attackFatigue=(a.attackFatigue||0)+fatigue;logEvent(g,`${dataOf(a).name}: −${fatigue} ATK durch den Angriff.`);}}if(e.lp===0)conclude(g,p.id,'Lebenspunkte des Gegners auf 0.');else if(p.lp===0)conclude(g,e.id,'Lebenspunkte des Angreifers auf 0.');g.selection=null;return {damage,damaged,destroyed,ai,di};
 }
 function attackPlan(g){
@@ -585,6 +604,16 @@ function coreValidateDuelSnapshot(raw){
   out.predatorLeader={materials:a.materials,powers:[...a.powers],
    bornUid:a.bornUid,createdTurn:a.createdTurn,ownTurns:a.ownTurns};
   out.roleOverride='predator';
+ }
+ if(c.openingGuard!==undefined){
+  if(c.openingGuard!==true||c.fusion||raw.turn>2)fail();
+  out.openingGuard=true;
+ }
+ if(c.predatorEvolutionAge!==undefined){
+  if(c.fusion||c.predatorToken||
+   (c.roleOverride||CARDS[c.id]?.role)!=='predator'||
+   !validInt(c.predatorEvolutionAge,4))fail();
+  out.predatorEvolutionAge=c.predatorEvolutionAge;
  }
  for(const key of ['summonedTurn','decayTotal'])if(c[key]!==undefined){if(!validInt(c[key],key==='summonedTurn'?30:10000))fail();out[key]=c[key];}if(c.decayClass!==undefined){if(!['starter','normal','fusion'].includes(c.decayClass))fail();out.decayClass=c.decayClass;}if(c.materialBonus){if(!validInt(c.materialBonus.atk,240)||!validInt(c.materialBonus.def,240)||c.materialBonus.atk+c.materialBonus.def>240)fail();out.materialBonus={...c.materialBonus};}if(c.surgeTurn!==undefined){if(!validInt(c.surgeTurn,30))fail();out.surgeTurn=c.surgeTurn;}if(c.decayAge!==undefined){if(!validInt(c.decayAge,30))fail();out.decayAge=c.decayAge;}else if(c.decayClass&&c.decayTotal){const base=c.decayClass==='starter'?20:c.decayClass==='fusion'?50:30,min=c.decayClass==='starter'?10:20;let accumulated=0,age=0;while(accumulated<c.decayTotal&&age<30){accumulated+=Math.max(min,base-5*age);age++;}out.decayAge=age;}if(c.attackFatigue!==undefined){if(!validInt(c.attackFatigue,10000))fail();out.attackFatigue=c.attackFatigue;}if(c.fate){if(!FATE_CARD_IDS.includes(c.id))fail();out.fate=true;}if(c.fusion)out.fusion=true;if(c.qualityRolls){if(!validInt(c.qualityRolls,7))fail();out.qualityRolls=c.qualityRolls;}
  if(c.essenceCombat!==undefined){
