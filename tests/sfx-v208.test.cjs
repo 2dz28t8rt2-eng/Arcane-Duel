@@ -17,14 +17,14 @@ test('main title has a Credits entry with artist links and thanks',()=>{
  for(const artist of ['Little Robot Sound Factory','Berklee','Darsycho','IgnisForge','David KBD'])
   assert.ok(credits.includes(artist),artist);
 });
-test('solo fusion starts orbit sound and loops only during the calculation phase',()=>{
+test('solo fusion plays orbit sample but silences experimental calculation cue',()=>{
  const cinema=read('assets/fusion-cinema-ritual.js');
- assert.match(cinema,/ArcaneSfx208\.play\('orbit'\)/);
+ assert.match(cinema,/ArcaneSfx208\?\.play\?\.\('orbit'\)/);
  assert.match(cinema,/await wait\(3900\)/);
  assert.match(cinema,/await wait\(1850\)/);
- assert.match(cinema,/ArcaneSfx208\?\.startLoop\?\.\('calc'\)/);
+ assert.doesNotMatch(cinema,/ArcaneSfx208\?\.startLoop\?\.\('calc'\)/);
  assert.match(cinema,/stopCalcLoop\?\.\(\)/);
- assert.match(cinema,/finally\s*\{\s*stopCalcLoop\?\.\(\)/);
+ assert.match(cinema,/fusionAudio\?\.pause\?\.\(\)/);
 });
 test('duo shows rotating material cards and delays reveal until after fusion orbit',()=>{
  const cinema=read('assets/duo-cinema-v170.js');
@@ -32,15 +32,16 @@ test('duo shows rotating material cards and delays reveal until after fusion orb
  assert.match(cinema,/duo-cinema208-orbit/);
  assert.match(cinema,/schedule\(stages\[0\],5750,stamp\)/);
  assert.match(style,/@keyframes ad208-orbit-card/);
- assert.match(cinema,/stopCalcLoop=window\.ArcaneSfx208\?\.startLoop\?\.\('calc'\)/);
+ assert.doesNotMatch(cinema,/ArcaneSfx208\?\.startLoop\?\.\('calc'\)/);
  assert.match(cinema,/stopCalcLoop\?\.\(\);stopCalcLoop=null/);
 });
-test('result music uses temporary ducking and not muting',()=>{
+test('result SFX no longer ducks battle music; result plays on visible announcement',()=>{
  const music=read('assets/arcane-soundscape-v196.js');
  const solo=read('assets/duel-cinematics-v42.js');
  assert.match(music,/setDuck/);
- assert.match(solo,/ArcaneSfx208\?\.result/);
- assert.match(read('assets/arcane-sfx-v208.js'),/setDuck\?\.\(\.16,4300\)/);
+ assert.doesNotMatch(solo,/ArcaneSfx208\?\.result/);
+ assert.match(read('assets/duel-polish-v197.js'),/ArcaneSfx208\?\.result/);
+ assert.doesNotMatch(read('assets/arcane-sfx-v208.js'),/setDuck\?\.\(\.16,4300\)/);
 });
 test('new sampled pack is not required for combat determinism',()=>{
  const sfx=read('assets/arcane-sfx-v208.js');
