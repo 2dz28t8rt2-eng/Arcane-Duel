@@ -60,7 +60,7 @@ test('HTML and mechanics expose new staging and shorter counterattack',()=>{
  const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
  assert.match(read('assets/summon-stage-v56.js'),/data-ad207-clear/);
  assert.match(read('assets/soul-burst-v207.js'),/ad207-soul-beam/);
- assert.match(read('assets/duel-cinematics-v42.js'),/kind==='counter'\?490:860/);
+ assert.match(read('assets/duel-cinematics-v42.js'),/kind==='counter'\?350:860/);
  assert.match(read('assets/handbook-human-v180.js'),/27 · Beschwören/);
  assert.match(read('index.html'),/soul-burst-v207.js/);
  assert.equal(read('assets/duo-shared-rules-v160.js'),read('supabase/functions/arcane-duo-v2/duo-rules.js'));
