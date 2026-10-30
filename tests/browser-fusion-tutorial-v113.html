@@ -18,12 +18,13 @@ frame.addEventListener('load',async()=>{
   check(d.querySelector('#summonStage .ad113-prediction')?.textContent.includes('LV'),'Beschwörungszentrale zeigt die neue Berechnung nach Auswahl');
   d.querySelector('[data-ad113-explain]')?.click();
   const modal=d.getElementById('modal');
-  check(modal.textContent.includes('WARUM DIESE FUSIONSSTUFE')&&modal.textContent.includes('Was fehlt'),'Hilfeknopf erklärt aktuelle Fusion und nächste Stufe');
+  check(modal.textContent.includes('FUSION VERSTEHEN')&&modal.textContent.includes('Woher kommt dieses Level?')&&modal.textContent.includes('Welche Kampfwerte'),'Hilfeknopf erklärt Level, Qualität und Werte anhand der Auswahl');
   check(w.eval('game.players[0].hand.length')===2,'Die Erklärung verbraucht keine Karten');
-  d.getElementById('ad113ExplainClose')?.click();
+  d.getElementById('ad213Close')?.click();
   w.eval('showRules()');
-  const handbook=d.querySelector('.ad113-handbook');
-  check(!!handbook&&handbook.textContent.includes('Gigantische Straße')&&handbook.textContent.includes('35 %'),'Einsteiger-Lexikon erklärt Pokerstraßen und Vererbung');
+  const handbook=d.querySelector('#ad213-rule-fusion');
+  check(!!handbook&&handbook.querySelectorAll('.ad213-subchapter').length===8&&handbook.textContent.includes('Gigantische Straße')&&handbook.textContent.includes('35 %'),'Neues Fusionen-Kapitel mit acht Unterkapiteln erklärt Straßen und Vererbung');
+  check(!d.querySelector('.ad113-handbook'),'Altes Fusionshandbuch wurde durch die aktuelle Fassung ersetzt');
   check(d.querySelectorAll('.arcane-rule-chapter').length>=14,'Ursprüngliche 14 Hauptkapitel und Navigation bleiben erhalten');
  }catch(error){check(false,String(error.stack||error));}
  document.body.dataset.fusion113=passed?'pass':'fail';
