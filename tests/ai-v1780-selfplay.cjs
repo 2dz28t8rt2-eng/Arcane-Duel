@@ -69,11 +69,11 @@ assert.equal(source.split(candidateAnchor).length,2,'v17.4 candidate anchor chan
 source=source.replace(candidateAnchor,candidateAnchor+"\n' g.strategicTraining.researchHealCandidateSeat=learner;',\n' window.__guardianV178StartGame(g,learner);',");
 const caseAnchor="focusMode,focusGroup:stage===8||stage===9||stage===10?sameOpponentPair:null,";
 assert.equal(source.split(caseAnchor).length,2,'v17.4 full-match case anchor changed');
-source=source.replace(caseAnchor,caseAnchor+"\n      guardianHealMetrics:m.stats.guardianHealMetrics,\n      offenseBySeat:m.stats.offenseBySeat,\n      guardianV177Combat:m.stats.guardianV177Combat,\n      guardianV177Setup:m.stats.guardianV177Setup,");
+source=source.replace(caseAnchor,caseAnchor+"\n      guardianHealMetrics:m.stats.guardianHealMetrics,\n      offenseBySeat:m.stats.offenseBySeat,\n      guardianV178Combat:m.stats.guardianV178Combat,\n      guardianV178Setup:m.stats.guardianV178Setup,");
 const execAnchor="const inner='\\nnew Function";
 assert.equal(source.split(execAnchor).length,2,'v17.4 inner simulator anchor changed');
 source=source.replace(execAnchor,
- "patchLines.push('patch('+JSON.stringify('stats:counter};')+','+JSON.stringify('stats:{...counter,guardianHealMetrics:g.__researchGuardianHealMetrics||null,offenseBySeat:counter.offenseBySeat,guardianV177Combat:g.__guardianV178Combat||null,guardianV177Setup:g.__guardianV178Setup||null}};')+');');\n"+execAnchor);
+ "patchLines.push('patch('+JSON.stringify('stats:counter};')+','+JSON.stringify('stats:{...counter,guardianHealMetrics:g.__researchGuardianHealMetrics||null,offenseBySeat:counter.offenseBySeat,guardianV178Combat:g.__guardianV178Combat||null,guardianV178Setup:g.__guardianV178Setup||null}};')+');');\n"+execAnchor);
 
 // New deck seeds for stage-8/9 focused role evaluations. Matched across all cohorts.
 const seedA="const seedA=5351+sameOpponentPair*157+scenario*79+pairedStage*241;";
