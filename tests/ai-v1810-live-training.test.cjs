@@ -17,8 +17,14 @@ test('Two explicit current-live-rules AI cohorts, no stacked Guardian research s
  assert.match(src,/defenderTacticalOverride:true/);
  assert.match(src,/v1810TacticalOverrides/);
  assert.match(src,/v1810LegalTrials/);
+ assert.match(src,/v1810FinisherOverrides/);
+ assert.match(src,/v1810DecisionTraces/);
+ assert.match(src,/reason:bestReason/);
+ assert.match(src,/attackerUid:own\.field\[best\.ai\]/);
+ assert.match(src,/visible-direct-lethal/);
+ assert.match(src,/safe-high-threat-removal/);
  assert.match(src,/if\(!attack\(z,ai,di\)\)continue/);
- assert.match(src,/stage===8\?610:stage===9\?290:0/);
+ assert.match(src,/stage===8\?710:stage===9\?410:0/);
 });
 test('Production catalogue has 762 cards and 84 Guardian reweights at 95%-22/78',()=>{
  const b=boot({seed:18100042}).run(`({
