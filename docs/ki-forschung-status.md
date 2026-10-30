@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-30 · Branch `development` · KI-Forschung v17.9 abgeschlossen, keine Champion-Promotion
+**Aktualisiert:** 2026-10-30 · Branch `development` · v18.0 Aktionstrainingslauf gestartet, Preflight erfolgreich
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -354,6 +354,20 @@ Der vermutete Vorteil gemischter Wächter-/Seelenzehrer-Decks bleibt **nicht in 
 
 **Integrationsentscheidung für heute:** **Keine automatische Promotion, kein v17.9-KI-Patch im regulären Solo-/2v2-Spiel.** Der erfolgreich beendete CI-Lauf ist kein Beweis für eine stärker spielende KI. Zunächst durch Aktionsdifferenz-Tests im identischen sichtbaren Zustand belegen, dass eine Optimierung die **tatsächlich gewählte legale Aktion** verändert; konkret fehlerhafte H2H-Level-10-/Zerfallsentscheidungen und verpasste Finisher trainieren, anstatt wieder nur Skalar-Gewichte anzuheben. Für die spätere Abnahme: feste Champion-Gates, unabhängige HOLDOUT-Sets, Solo-/Duo-Regression, KI-Feature-Flag und Rollback. [Integrationscheckliste](ki-integration-v1790-checklist.md) bleibt gültig.
 
+
+### KI-Forschung v18.0 – echte Angriffsentscheidungen statt bloßer Gewichtsänderungen
+
+**Korrigierter Lauf gestartet:** [GitHub Actions #41048225085](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/41048225085), Branch `development`, **beide Vorprüfungen erfolgreich**, 22 parallele Stages mit insgesamt **46.080 geplanten Duellen** (23.040 `baseline` und 23.040 `optimized`). Ein erster technischer Vorlauf #41048129603 scheiterte an einem fehlenden Komma in der vom Forschungs-Skript dynamisch erzeugten Teststrategie; diese reine Forschungs-Syntax wurde vor dem erfolgreichen Preflight korrigiert, Spielcode unverändert.
+
+**Forschungsproblem aus v17.9:** bloße Anpassungen der Nachzug-, Seelenbund- und Risikogewichte führten in 2.304 gepaarten Duellen zu **0 anderen Gewinnern** und fast keinen veränderten realen Angriffen. Ein weiterer gewöhnlicher Gewichte-Nerf wäre daher nicht zielführend.
+
+**Neue experimentelle Entscheidungsmechanik:** In fokussierten Defender-/Level-10-Situationen untersucht die `optimized`-KI legal ausgeführte Angriffe auf **Kopien des sichtbaren aktuellen Spielzustands**. Ziel ist die gezielte Entfernung eines besonders gefährlichen gegnerischen Monsters (hoher Level / ATK), ohne ein eigenes Monster in diesem Zug zu opfern. Nur wenn ein tatsächlich legaler Zug einen klar höheren beobachteten Wert als die ursprüngliche gewählte Attacke besitzt, darf die KI den Angriff ersetzen. Die Baseline erhält **keinen** solchen Override. Die Bedingung nutzt keine verborgenen Handkarten, zukünftigen Kartenziehungen oder manipulierten Schadenswerte; reguläre Angriffsbeschränkungen werden über echte `attack(...)`-Ausführung in einem geklonten Zustand geprüft.
+
+**Neue Metriken:** `v1800TacticalChecks`, `v1800LegalTrials`, `v1800TacticalOverrides`, `v1800ThreatRemoved`; Kandidatenaktionen und echte Angriffshäufigkeit bleiben getrennt von kontrafaktischen Testangriffen. Im finalen Vergleich gibt es nebeneinander die Siegerwechsel in **2.304 gepaarten Stage-8-Profilduellen** (384 unterschiedliche Szenario-/Sitzkonfigurationen), Zahl tatsächlich ausgelöster Overrides, TRAIN/VALIDATION/HOLDOUT und alle unveränderten Champion-Gates.
+
+**Unveränderliche Forschungsbedingungen:** Produktive Wächterwerte **95-%-Pool / 22:78 ATK:DEF**, reguläre Solo-Kampfregeln und Seelenfähigkeiten. `ARCANE_RESEARCH_BALANCE_V169=control10` ist keine Kampfmodifikation, `ARCANE_RESEARCH_GUARDIAN_STATS_V178=control` ändert keine Wächterwerte; künstliche 15-%-Predator-/Seelenentzugsexperimente bleiben deaktiviert. Vorherige Outcome-Labels werden nach neuer Regelphase nicht als TRAIN importiert, neu gelernte Endgame-Werte entstehen aus TRAIN-only. Champion `l10-guarded-worst-reply` bleibt eingefroren und wird durch den Workflow **nicht automatisch befördert**.
+
+**Nächster Schritt:** Ergebnisse einschließlich realer Entscheidungsunterschiede, legaler Angriffszüge, direkten H2H-Level-10-Gates und independenten HOLDOUT prüfen. KI-Übernahme erst nach vollständiger Freigabe und Solo-/2v2-/Browser-Regression; andernfalls aktuelle Spiel-KI beibehalten.
 
 ## C. KI-Forschungsstatus
 
