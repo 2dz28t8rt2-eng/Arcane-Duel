@@ -4,6 +4,7 @@
 <meta name="referrer" content="no-referrer">
 <title>Arcane Duel · Das Bündnis der Vier</title>
 <link rel="stylesheet" href="assets/duo-campaign-demo.css?v=duo-v166">
+<link rel="stylesheet" href="assets/duelist-portraits-v215.css?v=215">
 <link rel="stylesheet" href="assets/duo-parity-v160.css?v=20261029-v2071">
 <link rel="stylesheet" href="assets/duo-cinematics-v167.css?v=duo-v167">
 <link rel="stylesheet" href="assets/duo-cinema-v170.css?v=duo-v170b">
@@ -53,6 +54,8 @@
   <p>Gib deinen Spielernamen ein. Diesen Namen sehen dein Partner und die Gegner im gemeinsamen Duell.</p>
   <label for="duoNameInput">Spielername</label>
   <input id="duoNameInput" maxlength="32" minlength="2" autocomplete="nickname" placeholder="Dein Duellantenname">
+  <p>Wähle dein Charakterportrait. Die vorgesehenen Artworks können später als WebP hochgeladen werden.</p>
+  <div id="duoAvatarPicker" class="ad215-portrait-grid" aria-label="Duo-Charakterauswahl"></div>
   <p id="duoNameHint" role="status" aria-live="polite">Ein eigenes 2v2-Profil wird beim ersten Start erstellt.</p>
   <div class="duo-onboard-actions"><a class="btn" href="index.html">Zurück</a><button id="duoNameConfirm" class="btn primary" type="button">Weiter zum 2v2</button></div>
  </div>
@@ -89,6 +92,7 @@
  </div>
  <div id="duoProfileActive" hidden>
   <p id="duoProfileStats" class="duo-profile-stats"></p>
+  <div class="ad215-duo-profile-avatar" id="duoAvatarSummary"><span id="duoAvatarView"></span><button type="button" id="duoAvatarEdit">🎭 Charakter bearbeiten</button></div>
   <p id="duoProfileCleared" class="micro"></p>
   <p id="duoProfileUnlockInfo" class="micro"></p>
    <section class="duo-balance-panel" aria-label="Fortschritt und Kapitelbelohnungen">
@@ -343,7 +347,8 @@
 </div></main>
 <div id="ad185-turn-cue" class="ad185-turn-cue" aria-hidden="true" hidden></div>
 <script src="assets/fate-illustrations.js?v=duo-v166"></script>
-<script src="assets/duo-shared-rules-v160.js?v=20261029-v2071-final"></script>
+<script src="assets/duelist-portraits-v215.js?v=215"></script>
+<script src="assets/duo-shared-rules-v160.js?v=20261030-portrait-215"></script>
 <script src="assets/duo-battle-ui-v158.js?v=20261029-v207"></script>
 <script src="assets/duo-cinematics-v167.js?v=duo-v167"></script>
 <script src="assets/duo-cinema-v170.js?v=20261030-duo-alpha-210"></script>
@@ -369,7 +374,8 @@
 <script src="assets/predator-showdown-v199.js?v=20261027-v199"></script>
 <script src="assets/pack-cinema-v195.js?v=20261026-v195"></script>
 <script src="assets/duo-fusion-guide-v214.js?v=20261030-duo-fusion-214"></script>
-<script src="assets/duo-parity-v160.js?v=20261030-duo-invites"></script>
+<script src="assets/duo-parity-v160.js?v=20261030-portrait-215"></script>
+<script src="assets/duelist-portraits-duo-v215.js?v=215"></script>
 <script src="assets/arcane-track-catalog-v014.js?v=20261027-v014"></script>
 <script src="assets/arcane-soundscape-v196.js?v=20261030-result-fade"></script>
 <script src="assets/arcane-sfx-v208.js?v=20261030-duo-result-210"></script>
