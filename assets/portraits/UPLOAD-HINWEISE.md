@@ -1,6 +1,6 @@
 # Arcane Duel – Portrait-Uploadplan v21.7
 
-Die vollständige Bildintegration ist vorbereitet. Für das Spiel werden **genau 28 Portrait-Artworks** benötigt, nicht 60 separate Bilder. `portrait-manifest-v215.json` listet sämtliche Dateinamen und Charakterzuordnungen.
+**Status: integriert am 30.10.2026 in `development`.** Alle 28 WebP-Dateien wurden hochgeladen und geprüft. Für das Spiel werden **genau 28 Portrait-Artworks** benötigt, nicht 60 separate Bilder. `portrait-manifest-v215.json` listet sämtliche Dateinamen und Charakterzuordnungen.
 
 ## Vorhandene Spiel-Logik
 
@@ -13,12 +13,9 @@ Die vollständige Bildintegration ist vorbereitet. Für das Spiel werden **genau
 - Für die Forscher wird in jeder neuen Queststufe das nächste Bild verwendet. **Nach einem bestandenen Abschnitt** wird im Duo auch die Kampfanzeige sofort auf die nächste Stufe aktualisiert. Fehlgeschlagene/unerfüllte Prüfungen verändern das Bild nicht.
 - Die Forscherduos und das Magierduo besitzen vierteilige, **abwechselnde Dialoge**. Eiman wird zuerst vorgestellt, Hans nach dem ersten „Weiter“. Alle fünf Forschungsstufen haben jeweils eigene Wortwechsel.
 
-## Upload
+## Artworks
 
-1. Bilder quadratisch exportieren, idealerweise **512 × 512 Pixel**, als **WebP** oder **PNG**.
-2. Dateien mit den festen IDs benennen, z. B. `hero-03.webp`, `story-eiman.png`, `story-fanatiker-a-01.webp`.
-3. Im **`development`-Branch** nach `assets/portraits/heroes/` oder `assets/portraits/story/` hochladen.
-4. Spielseite neu laden. **Keine Codeänderung erforderlich.** Fehlende Bilddateien werden durch einen neutralen Platzhalter ersetzt.
+Alle 28 Portraitdateien sind bereits in den vorgesehenen Verzeichnissen enthalten.
 
 ### Feste Story-Portraits: 12 Dateien
 
@@ -41,19 +38,12 @@ Die vollständige Bildintegration ist vorbereitet. Für das Spiel werden **genau
 
 Portraits sind rein visuell: Das Aktualisieren der Artworks verändert **keine** Kartendecks, Kampfwerte oder KI-Verhaltensweisen.
 
-## Benutzer-Archiv vom 30.10.2026
+## Integration vom 30.10.2026
 
-Das gelieferte Archiv enthält 16 benannte Spielerportraits, Eiman Huel, Hans Ess
-sowie je fünf Entwicklungsbilder für Forscher A (Professor mit Brille) und
-Forscher B (blonder Höhlenforscher): insgesamt **28 Bilddateien**.
+Alle 16 Spielerportraits und 12 Storyportraits wurden im GitHub-Branch `development` installiert. Pull Request #41 wurde erfolgreich gemergt (Commit `faa0100ff71809db01f09eadbcf5b72e20629087`).
 
-Die Bilder wurden als eigenständiges, uploadfertiges ZIP mit 28 korrekt
-benannten **512×512-WebP-Dateien** im exakten Repo-Pfad
-`assets/portraits/` vorbereitet. **Der GitHub-Connector kann lokale Binärdateien
-nicht direkt aus einem Chat-Upload übernehmen.** Für die Veröffentlichung
-müssen die WebP-Dateien aus diesem ZIP ausgepackt und in GitHub hochgeladen
-werden; nur das ZIP allein ins Repository zu kopieren reicht nicht.
+Die Supabase-Datenbankvalidierung ist auf `hero-01` bis `hero-16` erweitert. Der Duo-Server `arcane-duo-v2` wurde auf Version 27 ausgerollt. Die Portrait-/Story-Tests (12/12) und die Strategieprüfungen waren erfolgreich. Separate Smoke-Tests zum Karten-/Monsterkatalog schlagen weiterhin fehl und werden unabhängig überprüft. Eine manuelle Zwei-Spieler-Abnahme ist noch ausständig.
 
-Die Auswahl von `hero-13` bis `hero-16` setzt aktualisierte Solo-/Duo-
-Validierungsregeln und eine aktualisierte Datenbank-Constraint voraus.
-SQL-Migration und Edge-Deployment gemeinsam freigeben.
+## Weitere Artwork-Updates
+
+Dateien bei Bedarf unter derselben Portrait-ID im jeweiligen Verzeichnis ersetzen; die aktuelle Zuordnung steht im `assets/portrait-manifest-v215.json`. Das Spiel nutzt WebP und kann bei fehlenden Bildern Platzhalter anzeigen.
