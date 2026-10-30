@@ -957,18 +957,24 @@
    distance,penalty:street?0:Math.min(.22,distance*.055),
    resonatorAscent:lineage.granted,resonatorLineage:lineage};
  }
- function materialSelection(p,materials,catalog){
+ function materialSelection(g,seat,materials,catalog){
+  const p=g.players[seat],ally=g.players[seat===0?2:seat===2?0:-1];
   assert(Array.isArray(materials)&&materials.length>=2&&materials.length<=5,
-   'Fusion benötigt zwei bis fünf eigene Materialien.');
+   'Fusion benötigt zwei bis fünf eigene oder verbündete Materialien.');
   const keys=new Set(),cards=[];
   for(const m of materials){
-   assert(m&&['hand','field','ghost','charge'].includes(m.from)&&
+   assert(m&&['hand','field','allyField','ghost','charge'].includes(m.from)&&
     Number.isInteger(m.index)&&m.index>=0,
     'Ungültiges Fusionsmaterial.');
    const key=m.from+':'+m.index;assert(!keys.has(key),'Material doppelt ausgewählt.');keys.add(key);
    assert((m.from!=='ghost'&&m.from!=='charge')||lv1State(p).perk,
     'Geistermaterial benötigt die Verbotene Forschung.');
+   assert(m.from!=='allyField'||seat===0||seat===2,
+    'Nur menschliche Verbündete dürfen ihre Feldmonster gemeinsam fusionieren.');
+   assert(m.from!=='allyField'||ally?.team===p.team&&ally?.field,
+    'Verbündetes Feld nicht verfügbar.');
    const card=m.from==='hand'?p.hand[m.index]:m.from==='field'?p.field[m.index]:
+    m.from==='allyField'?ally.field[m.index]:
     m.from==='ghost'?ghostZone(p)[m.index]:m.index<lv1State(p).charges?
      {_charge:true,id:-1,level:2,role:'combatant',fusion:false}:null;
    assert(card!==null&&card!==undefined,'Fusionsmaterial ist nicht vorhanden.');
@@ -982,7 +988,7 @@
  }
  function fusionOptions(g,seat,materials,catalog,{coreIndex}={}){
   const p=g.players[seat];
-  const cards=materialSelection(p,materials,catalog).map(c=>c._charge?{
+  const cards=materialSelection(g,seat,materials,catalog).map(c=>c._charge?{
    id:-1,level:2,role:'combatant',fusion:false,resonance:0,
    element:'',ability:'',_charge:true}:c._hand?{
    id:c.id,level:definition(catalog,c.id).level,
@@ -1222,7 +1228,23 @@
   if(action.type==='nextChapter'){
    assert(seat===0&&g.status==='finished'&&g.winner===0&&
     (isQuest(g.chapter)?g.chapter<15&&g.questPassed===true:g.chapter<CHAPTERS.length),
-    'Nur der Gastgeber kann das nächste freigeschaltete Kapitel starten.');
+    'Nur der Gastgeber kann das nächste freigeschaltete Kapitel anfragen.');
+   g.status='inviting_next';g.chapterInvite={from:g.players[0].name,chapter:g.chapter+1};
+   g.log.push(g.players[0].name+' lädt '+g.players[2].name+' zu Kapitel '+(g.chapter+1)+' ein.');
+   g.revision++;return g;
+  }
+  if(action.type==='declineNextChapter'){
+   assert(seat===2&&g.status==='inviting_next'&&g.winner===0,
+    'Es liegt keine offene Einladung vor.');
+   g.status='finished';g.chapterInvite=null;
+   g.log.push(g.players[2].name+' hat die Einladung abgelehnt.');
+   g.revision++;return g;
+  }
+  if(action.type==='acceptNextChapter'){
+   assert(seat===2&&g.status==='inviting_next'&&g.winner===0&&
+    (isQuest(g.chapter)?g.chapter<15&&g.questPassed===true:g.chapter<CHAPTERS.length),
+    'Einladung kann nicht angenommen werden.');
+   g.chapterInvite=null;
    g.chapter++;g.status='active';g.winner=null;g.round=1;g.turn=0;g.activeSeat=0;
    g.lpParityVersion=2;
    g.questProgress={floating:0,swarm:0,special:0};g.questPassed=null;
@@ -1396,22 +1418,28 @@
    const template=definition(catalog,action.templateId);
    const analysis=specialFusionAnalysis(baseAnalysis,cards,template);
    const removingField=new Set(action.materials.filter(m=>m.from==='field').map(m=>m.index));
+   const ally=g.players[seat===0?2:seat===2?0:-1];
+   const removingAlly=new Set(action.materials.filter(m=>m.from==='allyField').map(m=>m.index));
    assert(!p.field[action.slot]||removingField.has(action.slot),'Fusions-Zielfeld ist nicht frei.');
    // Do not alter state until every constraint is verified.
-   const types=cards.map((c,i)=>({...c,from:action.materials[i].from}));
+   const types=cards.map((c,i)=>({...c,from:action.materials[i].from,
+    sourceSeat:action.materials[i].from==='allyField'?ally.seat:seat}));
    for(const index of action.materials.filter(m=>m.from==='hand').map(m=>m.index).sort((a,b)=>b-a))
     p.hand.splice(index,1);
    for(const index of removingField)p.field[index]=null;
+   for(const index of removingAlly)ally.field[index]=null;
    for(const index of action.materials.filter(m=>m.from==='ghost').map(m=>m.index))
     ghostZone(p)[index]=null;
    const charges=action.materials.filter(m=>m.from==='charge').length;
    lv1State(p).charges-=charges;
-   p.graveyard.push(...types.filter(c=>!c._charge).map(c=>({id:c.id,from:'fusion'})));
-   for(const c of types.filter(c=>(c.from==='field'||c.from==='ghost')&&!c._charge))
-    lv1Leave(g,p,c,catalog);
+   for(const c of types.filter(c=>!c._charge)){
+    const owner=c.sourceSeat===seat?p:ally;
+    owner.graveyard.push({id:c.id,from:'fusion'});
+    if(c.from==='field'||c.from==='allyField'||c.from==='ghost')lv1Leave(g,owner,c,catalog);
+   }
    p.remainingFusion.splice(p.remainingFusion.indexOf(action.templateId),1);
-   const guaranteedSoul=types.filter(c=>c.from==='field').length>=3&&
-    types.filter(c=>c.from==='field').every(c=>defensive(c));
+   const fieldTypes=types.filter(c=>c.from==='field'||c.from==='allyField');
+   const guaranteedSoul=fieldTypes.length>=3&&fieldTypes.every(c=>defensive(c));
    const awakened=analysis.role==='guardian'&&(guaranteedSoul||
     (analysis.soulOdds>0&&randomInt(g,10000)<Math.floor(analysis.soulOdds*10000)));
    const inherited=awakened?'soul':analysis.role,weights=roleWeights(inherited);
@@ -1469,7 +1497,7 @@
    const earnedPct=clamp((analysis.quality-1)*100-carriedPct,0,30);
    result.fusionHeritage={earnedPct:Math.round(earnedPct*100)/100,
     carriedPct:Math.round(carriedPct*100)/100};
-   const charged=types.filter(c=>c.from==='field').reduce((v,c)=>
+   const charged=types.filter(c=>c.from==='field'||c.from==='allyField').reduce((v,c)=>
     v+Math.max(0,Math.min(2000,c.soul||0)),0);
    if(charged){
     const defGain=Math.min(250,Math.floor(charged*.3/10)*10);
