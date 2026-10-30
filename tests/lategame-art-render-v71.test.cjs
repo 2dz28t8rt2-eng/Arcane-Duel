@@ -7,6 +7,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),vm=require('node:vm');
 const {boot,repo}=require('./helpers/game-runtime.cjs');
+const {roleFor,statsFor}=require('./helpers/live-role-expectations-v216.cjs');
 const rows=JSON.parse(fs.readFileSync(path.join(repo,'assets/lategame-cards-v71.json'),'utf8')).cards;
 test('all 16 ORIGINAL WebP assets are distinct, decodable headers and correctly mapped',()=>{
  assert.equal(rows.length,16);
@@ -52,13 +53,10 @@ test('real game catalogue resolves exactly each new card portrait and matching l
  assert.equal(state.total,732+state.newLate+state.newFusions+state.v130Fusions);
  for(let i=0;i<16;i++){
   const c=state.cards[i],expected=rows[i];
-  for(const k of ['id','name','level','role','source','art'])assert.equal(c[k],expected[k]);
-   const pool=expected.role==='guardian'?Math.round((expected.atk+expected.def)*.95/10)*10:
-    expected.atk+expected.def;
-   const floor=Math.min(80,expected.atk,Math.floor(pool/20)*10);
-   const atk=expected.role==='guardian'?Math.min(expected.atk,
-    Math.max(floor,Math.min(pool-floor,Math.round(pool*.22/10)*10))):expected.atk;
-   assert.equal(c.atk,atk);assert.equal(c.def,pool-atk);
+  for(const k of ['id','name','level','source','art'])assert.equal(c[k],expected[k]);
+  assert.equal(c.role,roleFor(expected));
+  const expectedStats=statsFor(expected);
+  assert.equal(c.atk,expectedStats.atk);assert.equal(c.def,expectedStats.def);
   assert.equal(c.customArt,c.art,'Original portrait must supersede procedural art');
   assert.ok(c.normal,'Normal monster must remain non-fusion');
   assert.ok(c.hasLiveArtwork&&c.hasName&&c.hasLevelClass&&c.hasTemplateClass,

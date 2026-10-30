@@ -4,7 +4,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),vm=require('node:vm');
 const {boot,repo}=require('./helpers/game-runtime.cjs');
 const rows=JSON.parse(fs.readFileSync(path.join(repo,'assets/lategame-v117-manifest.json'),'utf8')).cards;
-const budget={7:1270,8:1530,9:1830,10:2150};
+const {roleFor,statsFor}=require('./helpers/live-role-expectations-v216.cjs');
 const shares={predator:.76,guardian:.25,soul:.22,combatant:.50};
 const snap=()=>boot({seed:11707}).run(`(()=>({count:window.ArcaneLateGameV117?.count||0,newFusions:window.ArcaneFusionWaveV129?.installed||0,v130Fusions:window.ArcaneFusionWaveV130?.installed||0,total:CARDS.length,
  cards:CARDS.slice(732,742).map(c=>({id:c.id,name:c.name,level:c.level,
@@ -47,14 +47,9 @@ test('live normal monsters follow level budget, reach loot/decks and render with
  for(let i=0;i<10;i++){
   const a=x.cards[i],r=rows[i];
   assert.equal(a.id,r.id);assert.equal(a.name,r.name);assert.equal(a.level,r.level);
-  assert.equal(a.role,r.role);
-  const originalAtk=Math.round(budget[r.level]*shares[r.role]/10)*10;
-  const targetPool=r.role==='guardian'?Math.round(budget[r.level]*.95/10)*10:budget[r.level];
-  const floor=Math.min(80,originalAtk,Math.floor(targetPool/20)*10);
-  const atk=r.role==='guardian'?Math.min(originalAtk,Math.max(floor,
-   Math.min(targetPool-floor,Math.round(targetPool*.22/10)*10))):originalAtk;
-  assert.equal(a.atk,atk);
-  assert.equal(a.def,targetPool-atk);
+  assert.equal(a.role,roleFor(r));
+  const stats=statsFor(r);
+  assert.equal(a.atk,stats.atk);assert.equal(a.def,stats.def);
   assert.equal(a.art,r.art);assert.equal(a.customArt,r.art);assert.equal(a.source,r.source);
   assert.equal(a.ability,null);assert.equal(a.effectText,null===a.effectText?null:'');
   assert.equal(a.fusionOnly,false);assert.equal(a.ace,false);assert.equal(a.retired,false);

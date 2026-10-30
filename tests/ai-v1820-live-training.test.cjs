@@ -31,7 +31,7 @@ test('Two explicit current-live-rules AI cohorts, no stacked Guardian research s
  assert.match(src,/if\(!attack\(z,move\.ai,move\.di\)\)return null/);
  assert.match(src,/stage===8\?810:stage===9\?510:0/);
 });
-test('Production catalogue has 762 cards and 84 Guardian reweights at 95%-22/78',()=>{
+test('Production has 762 cards: 84 baseline plus 7 transferred Guardians at 95%-22/78',()=>{
  const b=boot({seed:18200042}).run(`({
   cards:CARDS.length,guardians:window.ArcaneGuardianBalanceV212,
   soloGuardian:CARDS.filter(c=>c.rpg&&c.role==='guardian'&&!c.fusionOnly&&!c.ace&&!c.essenceMonster&&!c.retired&&c.level>=1&&c.level<=10)
@@ -40,7 +40,7 @@ test('Production catalogue has 762 cards and 84 Guardian reweights at 95%-22/78'
  assert.equal(b.cards,762);
  assert.equal(b.guardians.changed,84);
  assert.equal(b.guardians.pool,.95);assert.equal(b.guardians.atkShare,.22);
- assert.equal(b.soloGuardian.length,84);
+ assert.equal(b.soloGuardian.length,91);
  assert.ok(b.soloGuardian.every(c=>c.atk>0&&c.def>0));
 });
 test('Control10 research helper is genuinely no-op and matches live unchanged essence rules',()=>{
