@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-30 · Branch `development` · finale Wächter-Balance-Diagnostik v17.8 erfolgreich abgeschlossen
+**Aktualisiert:** 2026-10-30 · Branch `development` · Wächter-Statistik v21.2 implementiert; integrierte Regression in Abnahme
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -327,6 +327,18 @@ Der vermutete Vorteil gemischter Wächter-/Seelenzehrer-Decks bleibt **nicht in 
 
 **Balance-Abnahme vor Rückkehr zur KI-Forschung:** **95-%-Pool bei 22/78 als bevorzugte Maßnahme für gewöhnliche Wächter** (zunächst `development`, ohne ACE-/Fusions-/Essenz-Ausnahmen zu verletzen), **20/80 verwerfen/auf Eis legen**, 35-%-Überlebens-Gegenschlag und **aktuelle volle Wächterheilung** unverändert lassen, keine zusätzliche globale Werteänderung. Vor Übernahme ins reguläre Solo/2v2: vollständigen Karten-Katalog, Levelup-/Fusionspfade, Speicherung und Regressionsduelle prüfen. Anschließend das separate KI-Training wieder priorisieren – defensive Angriffsgelegenheiten, Gegnerpostur, Level-10-Direktduelle, defensive Seelenfähigkeiten und gemischte Rollensynergie. **In v17.8 selbst wurden keine regulären Kartenwerte und kein Champion geändert.**
 
+
+### Wächter-Balancing v21.2 – Umsetzung auf development
+
+**Implementiert aus v17.6–v17.8:** Gewöhnliche Wächterkarten Level 1–10 werden nach Abschluss **aller** nachgeladenen Rollen-/Katalog-Erweiterungen **einmalig** auf einen mit Zehnerwerten gerundeten Gesamtwertepool von **95 %** und eine maximale ATK-Zielgewichtung von **22 %** umverteilt; der Rest bleibt DEF. Niedrigere historische ATK-Werte werden **nicht** erhöht. Die exakt getestete Forschungsformel einschließlich Mindestwerten ist in `balancedGuardianBaseValues` in `assets/game.js` und der einmaligen tatsächlichen Kataloganwendung `assets/guardian-balance-v212.js` hinterlegt; dieses Skript wird am Ende von `index.html` geladen. Die Werte werden **nicht** erneut bei jeder Beschwörung oder bei jedem Spielstand-Laden reduziert.
+
+**Duo-Synchronisation:** `scripts/build-duo-catalog-v160.cjs` hat aus dem fertigen Solo-Katalog die Browserdatei `assets/duo-card-catalog-v160.json` und die Serverdatei `supabase/functions/arcane-duo-v2/catalog.json` neu erzeugt. Beide enthalten exakt **762 Karten mit unveränderten IDs**, darunter **84 gewöhnliche Wächter**; der Server- und Browserkatalog stimmen bytegenau überein. Bestehende unabhängige Solo- und Duo-Spielstands-Namensräume, Inventare, Aufstiegspunkte und Decks werden **nicht migriert, gelöscht oder zusammengeführt**. Bereits existierende laufende Partien behalten ihre gespeicherten Kampfinstanzwerte, bis sie abgeschlossen werden; neu erzeugte Karteninstanzen basieren auf den neuen Vorlagen.
+
+**Unverändert:** Überlebens-Gegenschlag 35 % effektive ATK, volle Wächterheilung, Seelenzehrer/Predatoren/Fusionen/ACE/Essenzmonster und alle übrigen Rollen. Kein erneuter 20/80-Nerf, keine Champion-Beförderung. Die KI-Forschungsresultate von v17.6–v17.8 werden als **historische Referenz unter dem alten Basiskatalog** verstanden; nach diesem produktiven Balancingwechsel dürfen ihre alten Trainings-Endgame-Labels nicht unbesehen als neues Siegerwissen wiederverwendet werden.
+
+**Regression:** `tests/guardian-balance-v212.test.cjs` gleicht jede Karte gegen einen eingefrorenen echten Vorher-Katalog aus Commit `d964c354` ab, prüft die 84 gezielten Werteänderungen, neue Spieler-/NPC-Instanzen, valide Solo-Spielstand-Snapshots, vollständige Solo-/Duo-/Serverkatalog-Parität und den unveränderten Gegenschlag. Der Duo-Katalog-Synchronisierungsworkflow `guardian-balance-v212-apply.yml` ist erfolgreich abgeschlossen. Allgemeine Integrations- und Browser-Regressionen werden separat über `test.yml` abgenommen.
+
+**Nächste Phase:** Nach erfolgreicher technischer Abnahme Werte einfrieren und zur eigentlichen KI-Forschung zurückkehren (Einschätzung legaler Angriffsgelegenheiten, direkte Champion-H2H-Verbesserungen, flexible Gegnerbeurteilung, Verteidiger-/Seelenbund-Synergien); keine weiteren Wächter-Nerfs ohne neue Daten.
 
 ## C. KI-Forschungsstatus
 
