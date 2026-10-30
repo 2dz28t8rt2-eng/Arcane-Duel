@@ -1,0 +1,14 @@
+'use strict';
+if(process.env.ARCANE_RESEARCH_BALANCE_V169!=='control10')throw Error('v17.3 must retain 15/90/100/120');
+const assert=require('node:assert/strict');
+const {MODES,mode}=require('./helpers/research-ai-v189.cjs');
+const {boot}=require('./helpers/game-runtime.cjs');
+const m=mode(),t=boot({seed:18800042});
+assert.equal(MODES.length,2);
+const rules=t.run('({guardianBalance:window.ArcaneGuardianBalanceV212, n:CARDS.length,bond:typeof window.ArcaneEssenceCombat?.soulBonds,raid:typeof window.ArcaneEssenceCombat?.researchSoulAction,liveRpg:!!createGame({mode:"pve",opponentId:1}).essenceRules})');
+assert.ok(rules.n===762&&rules.liveRpg);assert.equal(rules.guardianBalance.changed,84);assert.equal(rules.guardianBalance.pool,.95);assert.equal(rules.guardianBalance.atkShare,.22);assert.equal(rules.bond,'function');
+assert.equal(rules.raid,'function');
+const rulebook=require('./helpers/ai-v1890-mechanics.cjs').verifySources();
+assert.equal(require('./helpers/ai-v1890-mechanics-control.cjs').verifySources().verified,rulebook.verified);
+console.log('ARCANE_V1890_RULEBOOK_VERIFIED '+JSON.stringify(rulebook));
+console.log('ARCANE_V1890_V207_RESEARCH_RUNTIME_OK '+JSON.stringify({balance:m,...rules}));
