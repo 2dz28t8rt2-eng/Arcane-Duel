@@ -15,6 +15,7 @@
  let game=null,seat=-1,roomId='',token='',invite='',busy=false,refreshing=false,
   syncError='',syncedAt=0,sessionReady=true,syncFailures=0,lastPollAt=0;
  let duoProfile=null,duoProfileToken='',duoLastRoom=null,profileSaving=false,duoEconomy=null;
+  let nameConfirmed=false,joinIntent=null,invitePreview=null,inviteRequested=false;
  const set=(id,text)=>$(id).textContent=String(text);
  const card=id=>catalog[id]||{name:'Karte '+id,level:'?',atk:'?',def:'?',role:'?'};
  const shownAtk=c=>rules.attackValue?rules.attackValue(c):c.atk;
@@ -254,6 +255,8 @@
  }
  function installProfile(data){
   duoProfile=data.profile;duoLastRoom=data.lastRoom??duoLastRoom;
+  if(!nameConfirmed){$('duoNameInput').value=duoProfile.nickname;$('duoNameHint').textContent='Dein bisheriger 2v2-Name. Du kannst ihn hier ändern.';}
+  $('duoHostName').value=duoProfile.nickname;
   duoEconomy=data.economy??duoEconomy;
   profileDeck=[...duoProfile.deck];profileFusions=[...duoProfile.fusions];
   profileUpgrades={...duoProfile.upgrades};
@@ -332,10 +335,10 @@
    set('duoProfileMessage','✓ Dein Spielstand ist auf dem neuesten Stand.');
   }catch(e){set('duoProfileMessage','Dein Spielstand konnte nicht geladen werden: '+e.message);}
  }
- async function createDuoProfile(){
+ async function createDuoProfile(nameOverride){
   if(profileSaving||duoProfile)return;profileSaving=true;
   try{
-   const data=await call({type:'profileCreate',name:$('duoHostName').value});
+   const data=await call({type:'profileCreate',name:nameOverride||$('duoHostName').value});
    duoProfileToken=data.profileToken;persistProfileToken(duoProfileToken);
    installProfile(data);
    set('duoProfileMessage','Dein Duellant ist bereit. Viel Spaß bei eurem ersten Abenteuer!');
@@ -430,7 +433,8 @@
  async function send(action){
   if(!game||busy)return;
   if(!(game.activeSeat===seat&&game.status==='active')&&
-    !(action.type==='nextChapter'&&seat===0&&game.winner===0))return;
+    !(action.type==='nextChapter'&&seat===0&&game.status==='finished'&&game.winner===0)&&
+    !(['acceptNextChapter','declineNextChapter'].includes(action.type)&&seat===2&&game.status==='inviting_next'))return;
   // Capture the visible, local handcard before render() rebuilds the hand.
   // This ticket is visual-only and is discarded if the server rejects the action.
   const summonTicket=window.ArcaneDuoSummonCinema190?.capture?.({action,game,seat,catalog});
@@ -674,6 +678,12 @@
   window.ArcaneDuoUX204?.decorate?.({game,seat,roomId,catalog,send});
   window.ArcaneDuoSoulBond206?.decorate?.({game,seat,roomId,catalog});
   if(game.status!=='active'){
+   if(game.status==='inviting_next'){
+    el('p',dock,seat===0?'Dein Partner hat eine Einladung erhalten. Warte auf Bestätigung.':
+     'Einladung zum nächsten Kapitel: Bitte beitreten oder ablehnen.');
+    if(seat===2&&nameConfirmed)showInvitation('next',game.chapterInvite?.from||game.players[0].name,game.chapter+1);
+    return;
+   }
    const canContinue=game.entry==='quest'?game.chapter<15&&game.questPassed===true:
     game.chapter<rules.CHAPTERS.length;
    if(game.status==='finished'&&game.winner===0&&canContinue){
@@ -1046,8 +1056,9 @@
   if(hash.startsWith('join=')){
    const raw=hash.slice(5),i=raw.lastIndexOf('.'),id=raw.slice(0,i),secret=raw.slice(i+1);
    if(i>0&&/^[a-f0-9-]{36}$/.test(id)&&/^[a-f0-9]{64}$/.test(secret)){
-    $('duoAccept').onclick=()=>joinRoom(id,secret);
-    set('duoStatus','Einladung erkannt. Namen eingeben und beitreten.');
+    joinIntent={id,secret};
+    $('duoAccept').onclick=()=>requestInvite();
+    set('duoStatus','Einladung erkannt. Namen eingeben und Einladung bestätigen.');
    }else set('duoStatus','Ungültige Einladung.');
   }else if(recovery.parse(hash)?.kind==='resume'){
    const ref=recovery.parse(hash);
