@@ -32,7 +32,41 @@
 <link rel="stylesheet" href="assets/predator-showdown-v199.css?v=20261027-v199">
 <link rel="stylesheet" href="assets/arcane-soundscape-v196.css?v=20261026-v196">
 <link rel="stylesheet" href="assets/arcane-track-catalog-v014.css?v=20261027-v014">
-</head><body><main class="duo-wrap">
+<style>
+.duo-onboard[hidden],.duo-invite-dialog[hidden]{display:none!important}
+.duo-onboard,.duo-invite-dialog{position:fixed;inset:0;z-index:12000;background:rgba(5,9,20,.93);
+ display:grid;place-items:center;padding:20px;overflow:auto}
+.duo-onboard-card,.duo-invite-card{width:min(100%,480px);padding:clamp(22px,4vw,34px);
+ border:1px solid #6476a7;border-radius:18px;background:#151e32;color:#f0f4ff;
+ box-shadow:0 18px 60px #000a;display:grid;gap:14px}
+.duo-onboard-card h2,.duo-invite-card h2{margin:0;font-size:clamp(21px,4vw,30px)}
+.duo-onboard-card input{width:100%;box-sizing:border-box;padding:12px;border-radius:9px}
+.duo-onboard-actions,.duo-invite-actions{display:flex;flex-wrap:wrap;gap:10px}
+.duo-onboard-actions button,.duo-invite-actions button{flex:1;min-width:120px}
+.duo-onboard-card .micro,.duo-invite-card .micro{opacity:.82}
+</style>
+</head><body>
+<section id="duoNameGate" class="duo-onboard" role="dialog" aria-modal="true" aria-labelledby="duoNameGateTitle">
+ <div class="duo-onboard-card">
+  <p class="kicker">✦ ARCANE DUEL · 2v2</p>
+  <h2 id="duoNameGateTitle">Dein Duellantenprofil</h2>
+  <p>Gib deinen Spielernamen ein. Diesen Namen sehen dein Partner und die Gegner im gemeinsamen Duell.</p>
+  <label for="duoNameInput">Spielername</label>
+  <input id="duoNameInput" maxlength="32" minlength="2" autocomplete="nickname" placeholder="Dein Duellantenname">
+  <p id="duoNameHint" role="status" aria-live="polite">Ein eigenes 2v2-Profil wird beim ersten Start erstellt.</p>
+  <div class="duo-onboard-actions"><a class="btn" href="index.html">Zurück</a><button id="duoNameConfirm" class="btn primary" type="button">Weiter zum 2v2</button></div>
+ </div>
+</section>
+<section id="duoInviteDialog" class="duo-invite-dialog" role="dialog" aria-modal="true" aria-labelledby="duoInviteTitle" hidden>
+ <div class="duo-invite-card">
+  <p class="kicker">⚔ ARCANE DUEL · EINLADUNG</p>
+  <h2 id="duoInviteTitle"></h2>
+  <p id="duoInviteInfo" class="micro">Gemeinsam gegen zwei KIs antreten.</p>
+  <p id="duoInviteError" role="status" aria-live="polite"></p>
+  <div class="duo-invite-actions"><button id="duoInviteDecline" type="button">Ablehnen</button><button id="duoInviteAccept" class="btn primary" type="button">Beitreten</button></div>
+ </div>
+</section>
+<main id="duoPage" class="duo-wrap" inert>
 <header class="duo-header">
  <div><p class="kicker">✧ ARCANE DUEL · GEMEINSAME KAMPAGNE</p>
  <h1>Das Bündnis der Vier</h1>
@@ -323,7 +357,7 @@
 <script src="assets/duo-experience-v185.js?v=20261026-v185"></script>
 <script src="assets/duo-combat-flow-v186.js?v=20261026-v186"></script>
 <script src="assets/duo-direct-cards-v187.js?v=20261026-v187"></script>
-<script src="assets/duo-fusion-cards-v188.js?v=20261029-v2071-final"></script>
+<script src="assets/duo-fusion-cards-v188.js?v=20261030-duo-allied-fusion"></script>
 <script src="assets/duo-summon-cards-v189.js?v=20261029-v2071-final"></script>
 <script src="assets/duo-summon-cinema-v190.js?v=20261026-v190"></script>
 <script src="assets/duo-stance-cinema-v191.js?v=20261030-soul-focus"></script>
@@ -335,7 +369,7 @@
 <script src="assets/predator-showdown-v199.js?v=20261027-v199"></script>
 <script src="assets/pack-cinema-v195.js?v=20261026-v195"></script>
 <script src="assets/duo-fusion-guide-v214.js?v=20261030-duo-fusion-214"></script>
-<script src="assets/duo-parity-v160.js?v=20261030-duo-fusion-214"></script>
+<script src="assets/duo-parity-v160.js?v=20261030-duo-invites"></script>
 <script src="assets/arcane-track-catalog-v014.js?v=20261027-v014"></script>
 <script src="assets/arcane-soundscape-v196.js?v=20261030-result-fade"></script>
 <script src="assets/arcane-sfx-v208.js?v=20261030-duo-result-210"></script>
