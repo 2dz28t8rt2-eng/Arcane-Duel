@@ -388,7 +388,9 @@ Deno.serve(async request=>{
    }: {})});
   next=game.aiTurn(next,{catalog});
   const {data:updated,error:writeError}=await db.from(TABLE).update({
-   state:next,status:next.status,revision:next.revision,
+   // Legacy SQL status CHECK allows waiting/active/finished only; invitation state
+   // is held authoritatively in the versioned game JSON until the guest responds.
+   state:next,status:next.status==='inviting_next'?'finished':next.status,revision:next.revision,
    updated_at:new Date().toISOString(),
    expires_at:new Date(Date.now()+90*86400000).toISOString()
   }).eq("id",roomId).eq("revision",room.revision).select("id").maybeSingle();
