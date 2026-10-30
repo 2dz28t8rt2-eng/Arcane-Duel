@@ -8,7 +8,7 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster
  const nodes=new Map(),storage=new Map(saved?Object.entries(saved):[]);
  function el(id=''){
   const attributes=new Map(),classes=new Set();
-  return {id,tagName:'DIV',innerHTML:'',textContent:'',value:'',hidden:false,disabled:false,dataset:{},children:[],style:{setProperty(){},removeProperty(){}},
+  return {id,tagName:'DIV',innerHTML:'',textContent:'',value:'',hidden:false,disabled:false,dataset:{},children:[],get lastChild(){return this.children[this.children.length-1]||null;},style:{setProperty(){},removeProperty(){}},
    classList:{add(...s){s.forEach(x=>classes.add(x));},remove(...s){s.forEach(x=>classes.delete(x));},toggle(s,on){if(on===undefined)on=!classes.has(s);on?classes.add(s):classes.delete(s);return on;},contains(s){return classes.has(s);}},
    append(...c){this.children.push(...c);},prepend(...c){this.children.unshift(...c);},appendChild(c){this.children.push(c);return c;},insertBefore(c){this.children.unshift(c);return c;},replaceChildren(...c){this.children=[...c];},replaceWith(){},remove(){},setAttribute(k,v){attributes.set(k,String(v));},getAttribute(k){return attributes.get(k)||null;},removeAttribute(k){attributes.delete(k);},addEventListener(){},removeEventListener(){},insertAdjacentHTML(){},querySelector(){return null;},querySelectorAll(){return [];},closest(){return null;},contains(){return false;},focus(){},click(){this.onclick?.();},getBoundingClientRect(){return {left:0,top:0,width:100,height:100,right:100,bottom:100};}};
  }
