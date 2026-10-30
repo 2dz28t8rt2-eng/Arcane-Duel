@@ -258,6 +258,7 @@
  }
  function installProfile(data){
   duoProfile=data.profile;duoLastRoom=data.lastRoom??duoLastRoom;
+  window.ArcaneDuoPortraits215?.updateProfile?.(duoProfile);
   if(!nameConfirmed){$('duoNameInput').value=duoProfile.nickname;$('duoNameHint').textContent='Dein bisheriger 2v2-Name. Du kannst ihn hier ändern.';
    chooseAvatar(duoProfile.avatarId);portraits?.chooser($('duoAvatarPicker'),{selected:chosenAvatar,onChange:chooseAvatar});}
   portraits?.replace($('duoAvatarView'),portraits.sanitizeHero(duoProfile.avatarId),duoProfile.nickname);
