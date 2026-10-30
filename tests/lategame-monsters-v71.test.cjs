@@ -4,6 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const {boot,repo}=require('./helpers/game-runtime.cjs');
+const {roleFor,statsFor}=require('./helpers/live-role-expectations-v216.cjs');
 const specs=JSON.parse(fs.readFileSync('assets/lategame-cards-v71.json','utf8')).cards;
 const query=x=>boot({seed:71017}).run(x,120000);
 test('exact approved 16 complete records with distinct stable IDs and correct tier budgets',()=>{
@@ -59,13 +60,10 @@ test('after artwork import all 16 cards are RPG normals, legally gated drops and
  assert.equal(rows.rows.length,16);
  for(const [i,c] of rows.rows.entries()){
   const original=specs[i];
-  for(const key of ['id','level','name','role','source'])assert.equal(c[key],original[key]);
-   const pool=original.role==='guardian'?Math.round((original.atk+original.def)*.95/10)*10:
-    original.atk+original.def;
-   const floor=Math.min(80,original.atk,Math.floor(pool/20)*10);
-   const atk=original.role==='guardian'?Math.min(original.atk,
-    Math.max(floor,Math.min(pool-floor,Math.round(pool*.22/10)*10))):original.atk;
-   assert.equal(c.atk,atk);assert.equal(c.def,pool-atk);
+  for(const key of ['id','level','name','source'])assert.equal(c[key],original[key]);
+  assert.equal(c.role,roleFor(original));
+  const expectedStats=statsFor(original);
+  assert.equal(c.atk,expectedStats.atk);assert.equal(c.def,expectedStats.def);
   assert.equal(c.art,original.art);
   assert.ok(fs.existsSync(path.join(repo,c.art)),'Missing original WebP '+c.art);
   assert.equal(c.retired,false);assert.equal(c.fusionOnly,false);
