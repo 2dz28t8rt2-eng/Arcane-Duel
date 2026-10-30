@@ -19,7 +19,7 @@
     for(const [i,k] of [[pair.guardianIndex,'guard'],[pair.soulIndex,'soul']]){
      bonded.add(i);const el=cell(p.seat,i);if(!el)continue;
      el.classList.add('ad206-linked','ad206-'+k);
-     const badge=add(el,'ad206-mark','🛡 35 %');badge.title='Aktiver Seelenbund: 35 % DEF-Rüstung';badge.setAttribute('aria-label',badge.title);
+     const badge=add(el,'ad206-mark','🛡 35 %');badge.title='Seelenbund aktiv: 35 % des eingehenden DEF-Schadens werden abgefangen';badge.setAttribute('aria-label',badge.title);
      for(let n=0;n<2;n++){const part=add(el,k==='soul'?'ad206-soul-particle':'ad206-guardian-particle',k==='soul'?'☠':'✦');part.style.setProperty('--ad206-i',String(n));part.setAttribute('aria-hidden','true');}
     }
     const left=cell(p.seat,Math.min(pair.guardianIndex,pair.soulIndex));
@@ -42,8 +42,8 @@
   if(link){
    const partner=player.field[link.guardianUid===card.uid?link.soulIndex:link.guardianIndex];
    const name=catalog?.[partner?.id]?.name||'Partnerkarte';
-   el.textContent='🛡 SEELENBUND · 35 % DEF-Rüstung (20 % Basis + 15 % Bindung) · Gebunden mit '+name+'. 25 % des zusätzlich abgewehrten Schadens werden zu Seelenessenz, maximal 50 pro Runde.';
-  }else el.textContent='🛡 DEF-Rüstung 20 %. Setze die jeweils andere Rolle direkt daneben: mit Seelenbund 35 %.';
+   el.textContent='✦ SEELENBUND AKTIV · Mit '+name+' direkt nebenan fängt dieses Monster 35 % des eingehenden Schadens an seiner Verteidigung ab (normal: 20 %). Ein Teil des zusätzlichen Schutzes wird als Seelenessenz gespeichert, höchstens 50 Punkte pro Runde.';
+  }else el.textContent='🛡 VERTEIDIGUNGSSCHUTZ · In DEF fängt dieses Monster 20 % des Schadens an seiner Verteidigung ab. Steht ein Wächter direkt neben einem Seelenzehrer, schützen sie sich gegenseitig mit 35 %: Das heißt Seelenbund.';
   panel.append(el);
  }
  function onState(before,after){

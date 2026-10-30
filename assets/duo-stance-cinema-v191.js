@@ -25,11 +25,20 @@
         const earlier=zone(before,area);
         zone(after,area).forEach((now,slot)=>{
           const old=earlier[slot];
+          // A newly summoned Soul Eater in DEF receives the same brief
+          // arrival feedback as the solo mode. No combat values are changed.
+          if(area==='field'&&now?.role==='soul'&&now.mode==='def'&&
+             (!old||old.uid!==now.uid)){
+           events.push({seat:after.seat,slot,area,cardId:now.id,uid:now.uid,
+             from:'atk',to:'def',soul:true,arrival:true,
+             name:String(catalog[now.id]?.name||'Seelenzehrer').slice(0,80)});
+           return;
+          }
           if(!old||!now||old.id!==now.id||old.uid==null||now.uid!==old.uid||
              !isMode(old.mode)||!isMode(now.mode)||old.mode===now.mode||
              now.switched!==true)return;
           events.push({seat:after.seat,slot,area,cardId:now.id,uid:now.uid,
-            from:old.mode,to:now.mode,
+            from:old.mode,to:now.mode,soul:now.role==='soul',
             name:String(catalog[now.id]?.name||'Monster').slice(0,80)});
         });
       }
@@ -69,7 +78,8 @@
     if(illustration){const img=make('img','',undefined,portrait);img.src=illustration;img.alt='';}
     else portrait.textContent=symbol||'✧';
     make('strong','ad191-face-name',event.name,node);
-    make('span','ad191-face-mode',icon+' '+(mode==='def'?'VERTEIDIGUNG':'ANGRIFF'),node);
+    make('span','ad191-face-mode',icon+' '+(mode==='def'?
+      (event.soul?'SEELENFOKUS':'SCHILDSTELLUNG'):'ANGRIFF'),node);
   }
   function play(event){
     if(!event||reduced()||document.hidden||document.visibilityState==='hidden')return false;
@@ -80,7 +90,7 @@
     clearActive();
     const illustration=cell.querySelector('.duo-field-art')?.getAttribute('src')||'';
     const symbol=cell.querySelector('.art')?.textContent||'✧';
-    const overlay=make('div','ad191-position-stage',undefined,document.body);
+    const overlay=make('div','ad191-position-stage'+(event.soul?' ad191-soul-focus':''),undefined,document.body);
     overlay.setAttribute('aria-hidden','true');
     const card=make('div','ad191-position-card',undefined,overlay);
     card.style.left=rect.left+'px';card.style.top=rect.top+'px';
@@ -127,7 +137,7 @@
     events.forEach((event,index)=>{
       queueTimers.push(setTimeout(()=>{
         if(stamp===sequence)play(event);
-      },index*STAGGER_MS));
+      },index*STAGGER_MS+(event.arrival?950:0)));
     });
     return events;
   }

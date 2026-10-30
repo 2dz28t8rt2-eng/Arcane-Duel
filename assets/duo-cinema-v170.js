@@ -181,7 +181,7 @@
      new:{...newKing,name:newTemplate.name||'Neuer Rudelführer',art:newTemplate.art}
     });
    },9850,stamp);
-  }else schedule(clear,alpha?10400:8850,stamp);
+  }else schedule(clear,alpha?11200:8850,stamp);
  }
  function drawSequence(event){
   const {inner,content,stamp}=base(event);

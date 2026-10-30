@@ -170,10 +170,8 @@
   if(events.some(x=>x.type==='fate'))play('powerup');
   if(events.some(x=>x.type==='attack')&&logs.some(x=>/direkter Angriff/i.test(x)))
    schedule(()=>play('damage'),280);
-  if(before.status!=='finished'&&after.status==='finished'){
-   const player=after.players?.find(x=>x.seat===seat);
-   if(player)result(player.team===after.winner?'win':'lose');
-  }
+  // The 2v2 outcome presenter now owns the result cue, timed 150ms before
+  // the visible title. Playing it here on arrival would be far too early.
  }
  function stopAll(){
   // Invalidate pending metadata/play callbacks as well as currently audible loops.

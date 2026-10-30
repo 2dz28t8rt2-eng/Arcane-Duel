@@ -27,3 +27,17 @@
 @keyframes ad191Emblem{0%{transform:scale(.35);opacity:0}28%{opacity:1}100%{transform:scale(1.75);opacity:0}}
 @keyframes ad191Sparks{0%{transform:rotate(var(--ad191-angle)) translateY(0) scale(.8);opacity:1}100%{transform:rotate(var(--ad191-angle)) translateY(-53px) scale(.15);opacity:0}}
 @media(prefers-reduced-motion:reduce){.ad191-flip-inner,.duo-battle .field-cell.ad191-position-arrived,.ad191-position-shine>*{animation:none!important}}
+
+/* Soul focus is visually distinct from the guardian's shield stance. */
+.ad191-soul-focus .ad191-face-def{
+ color:#f4d4ff;border-color:#c99cf2;
+ background:linear-gradient(135deg,#573076,#272347 64%,#552e69);
+ box-shadow:inset 0 0 18px #dba5ff62,0 0 15px #b17add7a;
+}
+.ad191-soul-focus .ad191-shine-def .ad191-shine-ring{
+ border-color:#e4afff;box-shadow:0 0 19px #b86bee;
+}
+.ad191-soul-focus .ad191-shine-def .ad191-shine-spark{
+ background:radial-gradient(circle,#fff,#ce8fff 65%,transparent);
+ box-shadow:0 0 8px #c087ff;
+}
