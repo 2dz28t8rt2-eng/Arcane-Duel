@@ -7,7 +7,7 @@ const MODES=['baseline','optimized'],root='artifacts/v1810';
 const data={schema:'arcane-v1810-live-rule-learning',liveCombat:true,guardianPool:.95,
  guardianAtkShare:.22,modeDefinitions:{
   baseline:'Latest frozen experimental defender research candidate on the live catalogue',
-  optimized:'Tactical legal attack simulation against high-threat visible monsters plus reply/bond weighting; frozen champion unchanged'
+  optimized:'Visible-board legal finishers and safe high-threat target selection with per-action trace; no hidden information or gameplay stat change'
  },modes:{},paired:{},championCandidate:null};
 let duels=0;
 for(const mode of MODES){
@@ -37,12 +37,27 @@ for(const mode of MODES){
    roleFocus[split+'/'+opponent+'/'+core]={wins:filtered.reduce((n,x)=>n+x.win,0),games:filtered.length};
   }
  const tactical=stage.allCases.reduce((z,x)=>{
-  for(const name of ['v1810TacticalChecks','v1810LegalTrials','v1810TacticalOverrides','v1810ThreatRemoved'])
+  for(const name of ['v1810TacticalChecks','v1810LegalTrials','v1810TacticalOverrides','v1810ThreatRemoved','v1810FinisherOverrides'])
    z[name]+=Number(x[name]||0);
   if(Number(x.v1810TacticalOverrides||0)>0)z.gamesWithOverrides++;
+  const traces=x.v1810DecisionTraces||[];
+  assert.ok(Array.isArray(traces)&&traces.length<=6);
+  for(const t of traces){
+   assert.ok(t.chosen?.type==='attack'&&Number.isInteger(t.chosen.ai));
+   assert.ok(['visible-direct-lethal','visible-target-lethal','safe-high-threat-removal'].includes(t.reason));
+   assert.ok(t.attackerUid!==null);
+   z.traceRecords++;
+   z.reasonCounts[t.reason]=(z.reasonCounts[t.reason]||0)+1;
+   const bySplit=z.tracesBySplit[x.split]||(z.tracesBySplit[x.split]={records:0,duels:0});
+   bySplit.records++;
+  }
+  if(traces.length)z.tracesBySplit[x.split].duels++;
+
   return z;
  },{v1810TacticalChecks:0,v1810LegalTrials:0,v1810TacticalOverrides:0,
- v1810ThreatRemoved:0,gamesWithOverrides:0});
+ v1810ThreatRemoved:0,v1810FinisherOverrides:0,gamesWithOverrides:0,traceRecords:0,reasonCounts:{},tracesBySplit:{}});
+ assert.ok(tactical.traceRecords<=tactical.v1810TacticalOverrides);
+ if(mode==='optimized')assert.equal(tactical.v1810TacticalOverrides>=tactical.traceRecords,true);
  if(mode==='baseline')assert.equal(tactical.v1810TacticalOverrides,0,
    'Frozen comparison must never use experimental attack overrides');
  data.modes[mode]={totalDuels:r.totalDuels,promoted:r.globalSelection.promoted,
@@ -71,6 +86,10 @@ data.paired={casesPerMode:2304,uniqueScenarioSeatKeys:new Set(all.baseline.map(x
  tacticalChecksOptimized:data.modes.optimized.tactical.v1810TacticalChecks,
  legalClonedAttacksOptimized:data.modes.optimized.tactical.v1810LegalTrials,
  realOverridesOptimized:data.modes.optimized.tactical.v1810TacticalOverrides,
+ finishersOptimized:data.modes.optimized.tactical.v1810FinisherOverrides,
+ reasonCountsOptimized:data.modes.optimized.tactical.reasonCounts,
+ traceRecordsOptimized:data.modes.optimized.tactical.traceRecords,
+ traceSplitsOptimized:data.modes.optimized.tactical.tracesBySplit,
  gamesWithOverridesOptimized:data.modes.optimized.tactical.gamesWithOverrides};
 assert.equal(duels,46080);
 data.championCandidate=data.modes.optimized.bestCandidate;
