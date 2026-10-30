@@ -54,7 +54,13 @@
    const img=document.createElement('img');
    img.alt='';img.loading='lazy';img.decoding='async';
    img.addEventListener('load',()=>{img.classList.add('ad215-loaded');});
-   img.addEventListener('error',()=>{img.remove();});
+   img.addEventListener('error',()=>{
+    // Existing character art batches often contain PNGs. No manifest edit needed:
+    // WebP takes priority, then PNG. Empty slots fall back to styled initials.
+    if(img.dataset.fallbackTried!=='png'){
+     img.dataset.fallbackTried='png';img.src=url.replace(/\.webp$/,'.png');
+    }else img.remove();
+   });
    img.src=url;box.append(img);
   }
   return box;
