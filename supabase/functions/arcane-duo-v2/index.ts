@@ -128,11 +128,17 @@ Deno.serve(async request=>{
    if(error)throw error;
    return json({profileToken,...await profileResult(p)},200,allow);
   }
-  if(["profile","upgrade","pack","deckReplace","research","bindEssence","enhance","recycle","chapterCard"].includes(kind)){
+  if(["profile","profileName","upgrade","pack","deckReplace","research","bindEssence","enhance","recycle","chapterCard"].includes(kind)){
    const p=await profileByToken(body.profileToken);
    if(kind==="profile")return json(await profileResult(p),200,allow);
    assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===p.revision,
     "2v2-Profil geändert. Bitte synchronisieren.");
+   if(kind==="profileName"){
+    assert(typeof body.name==="string"&&body.name.trim().length>=2&&body.name.trim().length<=32,
+     "Bitte einen Profilnamen mit 2–32 Zeichen eingeben.");
+    const next=await writeProfile(p,{nickname:safeName(body.name)});
+    return json(await profileResult(next),200,allow);
+   }
    if(kind==="upgrade"){
     assert(typeof body.key==="string","Ungültige Verbesserung.");
     const max=game.PERK_LIMITS[body.key]||0,rank=p.upgrades?.[body.key]||0;
@@ -268,6 +274,16 @@ Deno.serve(async request=>{
    const next=await writeProfile(p,{[fusion?"fusions":"deck"]:deck,enhancements});
    return json(await profileResult(next),200,allow);
   }
+  if(kind==="invitePreview"){
+   assert(typeof body.roomId==="string"&&/^[0-9a-f-]{36}$/.test(body.roomId)&&isToken(body.invite),
+    "Einladungslink ist ungültig.");
+   const {data:room,error}=await db.from(TABLE).select("state,invitation_hash,status,expires_at")
+    .eq("id",body.roomId).maybeSingle();
+   if(error)throw error;
+   assert(room&&room.status==="waiting"&&new Date(room.expires_at).getTime()>Date.now()&&
+    await hash(body.invite)===room.invitation_hash,"Diese Einladung ist nicht mehr gültig.");
+   return json({inviterName:safeName(room.state.players[0]?.name),chapter:room.state.chapter},200,allow);
+  }
   if(kind==="create"){
    const p=await profileByToken(body.profileToken);
    const entry=body.entry||"new",chapter=entry==="new"?1:body.chapter;
@@ -343,11 +359,11 @@ Deno.serve(async request=>{
   assert(kind==="action","Unbekannte Anfrage.");
   assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===room.revision,
    "Spielstand geändert. Bitte synchronisieren.");
-  assert(body.action&&["summon","attack","switch","fusion","end","nextChapter",
+  assert(body.action&&["summon","attack","switch","fusion","end","nextChapter","acceptNextChapter","declineNextChapter",
    "soulCondense","soulDischarge","soulRaid","soulFocus","essencePredatorMode",
    "lv1Station","lv1Return","lv1GhostSwitch","lv1UseOffer","lv1Floating"].includes(body.action.type),
    "Aktion nicht erlaubt.");
-  const advancing=body.action.type==="nextChapter",nextChapter=room.state.chapter+1;
+  const advancing=body.action.type==="acceptNextChapter",nextChapter=room.state.chapter+1;
   const humanBuilds:Record<number,unknown>={};
   if(advancing){
    const ids=[room.host_profile_id,room.guest_profile_id].filter(Boolean);
