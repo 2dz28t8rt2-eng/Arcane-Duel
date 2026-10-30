@@ -6,6 +6,8 @@ on:
       - '.github/workflows/ai-v1790-live-champion-training.yml'
       - 'tests/ai-v1790-live-training.test.cjs'
       - 'tests/ai-v1790-selfplay.cjs'
+      - 'tests/ai-v1790-endgame-cold.cjs'
+      - 'tests/ai-v1790-compare.cjs'
       - 'tests/helpers/research-ai-v179.cjs'
       - 'tests/helpers/game-runtime.cjs'
       - 'tests/ai-v1790-attack-aggregate.cjs'
