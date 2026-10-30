@@ -29,8 +29,8 @@ test('exactly 28 image assets: 16 selectable heroes and 12 unique, locked story 
  assert.equal(P.ids.length,28);
  assert.equal(P.heroIds.length,16);
  assert.equal(P.storyIds.length,12);
- assert.equal(new Set(manifest.items.map(x=>x.id)).size,24);
- assert.equal(new Set(manifest.items.map(x=>x.path)).size,24);
+ assert.equal(new Set(manifest.items.map(x=>x.id)).size,28);
+ assert.equal(new Set(manifest.items.map(x=>x.path)).size,28);
  assert.deepEqual([...P.ids].sort(),manifest.items.map(x=>x.id).sort());
  for(const item of manifest.items){
   assert.equal(P.path(item.id),item.path,item.id);
