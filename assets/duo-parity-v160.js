@@ -758,6 +758,7 @@
     const keepCore=reset?null:core.value;
     options.replaceChildren();target.replaceChildren();core.replaceChildren();
     preview.replaceChildren();maths.replaceChildren();explanation.textContent='';
+    window.ArcaneDuoFusionGuide214?.clear(details);
     const materials=selected();commit.disabled=true;
     if(materials.length<2||materials.length>5){
      hint.textContent='Erforderlich: 2 bis 5 eigene Materialien.';return;
@@ -841,6 +842,7 @@
       (rule.resonatorAscent?' · Resonator-Kette +1 (einmalig)':'')+
       ' · maximal Lv '+(result?.resultingLevel??rule.level)+
       '. Die Vorlagen-Auswahl beschränkt sich auf freigeschaltete Fusionen dieses Levels oder darunter.';
+     window.ArcaneDuoFusionGuide214?.render({details,availability,result,materials,catalog});
     }catch(e){hint.textContent=e.message;}
    };
    select.onchange=()=>update(true);
