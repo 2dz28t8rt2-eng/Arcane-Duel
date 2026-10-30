@@ -8,6 +8,7 @@ on:
       - 'assets/game.js'
       - 'index.html'
       - 'tests/guardian-balance-v212.test.cjs'
+      - 'tests/fixtures/guardian-balance-v212-baseline.json'
   workflow_dispatch:
 permissions:
   contents: write
