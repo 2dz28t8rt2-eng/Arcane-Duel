@@ -5,36 +5,25 @@
 'use strict';
 ((root)=>{
  const heroIds=Object.freeze(Array.from({length:12},(_,i)=>'hero-'+String(i+1).padStart(2,'0')));
- const soloIds=Object.freeze(Array.from({length:11},(_,i)=>'solo-opponent-'+String(i).padStart(2,'0')));
- const duoIds=Object.freeze(Array.from({length:15},(_,i)=>Object.freeze([
-   'duo-chapter-'+String(i+1).padStart(2,'0')+'-a',
-   'duo-chapter-'+String(i+1).padStart(2,'0')+'-b'])));
- const specials=Object.freeze(['solo-secret-eiman','solo-wanderer',
-  ...Array.from({length:5},(_,i)=>'solo-fanatiker-'+String(i+1).padStart(2,'0'))]);
- const ids=Object.freeze([...heroIds,...soloIds,...duoIds.flat(),...specials]);
- const allowed=new Set(ids);
- const base='assets/portraits/';
+ const storyIds=Object.freeze(['story-eiman','story-hans',
+  ...Array.from({length:5},(_,i)=>'story-fanatiker-a-'+String(i+1).padStart(2,'0')),
+  ...Array.from({length:5},(_,i)=>'story-fanatiker-b-'+String(i+1).padStart(2,'0'))]);
+ // Exactly 24 upload files, including ONE Eiman picture across solo/duo and
+ // ONE five-step appearance series for the main fanatic across solo/duo.
+ const ids=Object.freeze([...heroIds,...storyIds]);
+ const allowed=new Set(ids),base='assets/portraits/';
  function validHero(id){return heroIds.includes(id);}
  function sanitizeHero(id){return validHero(id)?id:heroIds[0];}
- function soloOpponent(id,secret=false,stage=0,encounter=false){
-  if(secret)return specials[0];
-  if(Number.isInteger(Number(stage))&&Number(stage)>=1&&Number(stage)<=5)
-   return 'solo-fanatiker-'+String(stage).padStart(2,'0');
-  if(encounter)return 'solo-wanderer';
-  const n=Number(id);
-  return Number.isInteger(n)&&n>=0&&n<soloIds.length?soloIds[n]:soloIds[0];
+ function storyFanatic(number,stage){
+  const n=Number(number),k=Number(stage);
+  if(![1,2].includes(n)||!Number.isInteger(k)||k<1||k>5)return null;
+  return 'story-fanatiker-'+(n===1?'a':'b')+'-'+String(k).padStart(2,'0');
  }
- function duoOpponent(chapter,seat){
-  const c=Number(chapter),s=Number(seat);
-  return Number.isInteger(c)&&c>=1&&c<=15&&[1,3].includes(s)?
-   duoIds[c-1][s===1?0:1]:duoIds[0][s===1?0:1];
- }
- // Visuals only: a seeded shuffle allocates unused player portraits to ordinary NPCs.
- // Fixed story identities never enter the shuffle. Neither NPC stats nor their IDs change.
+ // Ordinary NPCs draw only from unselected player images. A seeded shuffle
+ // stabilizes visuals across saves, page reloads and each player's view.
  function permutation(seed,excluded=[]){
   const taken=new Set((Array.isArray(excluded)?excluded:[]).filter(validHero));
   const pool=heroIds.filter(id=>!taken.has(id));
-  if(!pool.length)return [];
   let h=2166136261;
   for(const ch of String(seed)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}
   for(let i=pool.length-1;i>0;i--){
@@ -45,30 +34,39 @@
   return pool;
  }
  function normalSolo(id,selected='hero-01',seed='solo'){
-  if(!Number.isInteger(Number(id))||Number(id)<0||Number(id)>10)return null;
-  const list=permutation('solo:'+seed,[sanitizeHero(selected)]);
-  return list[Number(id)]||null;
+  const n=Number(id);if(!Number.isInteger(n)||n<0||n>10)return null;
+  return permutation('solo:'+seed,[sanitizeHero(selected)])[n]||null;
  }
  function normalDuo(chapter,seat,selected=[],seed='duo'){
   const c=Number(chapter),s=Number(seat);
   if(!Number.isInteger(c)||c<1||c>9||![1,3].includes(s))return null;
-  const list=permutation('duo:'+seed+':'+c,selected);
-  return list[s===1?0:1]||null;
+  const pool=permutation('duo:'+seed+':'+c,selected);
+  return pool[s===1?0:1]||null;
+ }
+ function soloOpponent(id,secret=false,stage=0,encounter=false){
+  if(secret)return 'story-eiman';
+  if(Number(stage)>=1&&Number(stage)<=5)return storyFanatic(1,stage);
+  return normalSolo(id,'hero-01',encounter?'wanderer':'solo');
+ }
+ function duoOpponent(chapter,seat){
+  const c=Number(chapter),s=Number(seat);
+  if(!Number.isInteger(c)||c<1||c>15||![1,3].includes(s))return null;
+  if(c===10)return s===1?'story-eiman':'story-hans';
+  if(c>=11)return storyFanatic(s===1?1:2,c-10);
+  return normalDuo(c,s);
  }
  function visualSolo({id=0,secret=false,stage=0,encounter=false,selected='hero-01',seed='solo'}={}){
-  if(secret||Number(stage)>=1&&Number(stage)<=5)return soloOpponent(id,secret,stage,false);
-  return normalSolo(id,selected,seed)||normalSolo(id,'hero-01',seed);
+  if(secret)return 'story-eiman';
+  if(Number(stage)>=1&&Number(stage)<=5)return storyFanatic(1,stage);
+  return normalSolo(id,selected,encounter?'wanderer':seed);
  }
  function visualDuo({chapter=1,seat=1,selected=[],seed='duo'}={}){
   const c=Number(chapter);
-  if(Number.isInteger(c)&&c>=10&&c<=15)return duoOpponent(c,seat);
-  return normalDuo(c,seat,selected,seed);
+  return c>=10?duoOpponent(c,seat):normalDuo(c,seat,selected,seed);
  }
  function path(id){
   if(!allowed.has(id))return null;
-  if(id.startsWith('hero-'))return base+'heroes/'+id+'.webp';
-  if(id.startsWith('solo-'))return base+'solo/'+id+'.webp';
-  return base+'duo/'+id+'.webp';
+  return base+(validHero(id)?'heroes/':'story/')+id+'.webp';
  }
  function initials(label){
   return String(label||'Duellant').trim().split(/\s+/).slice(0,2).map(s=>s.charAt(0)).join('').toUpperCase()||'✦';
@@ -128,6 +126,6 @@
    container.append(button);
   }
  }
- root.ArcanePortraits215=Object.freeze({version:'21.5',heroIds,soloIds,duoIds,specials,ids,
-  validHero,sanitizeHero,soloOpponent,duoOpponent,normalSolo,normalDuo,visualSolo,visualDuo,permutation,path,initials,node,replace,chooser});
+ root.ArcanePortraits215=Object.freeze({version:'21.6',heroIds,ids,
+  validHero,sanitizeHero,storyIds,storyFanatic,soloOpponent,duoOpponent,normalSolo,normalDuo,visualSolo,visualDuo,permutation,path,initials,node,replace,chooser});
 })(typeof window!=='undefined'?window:globalThis);
