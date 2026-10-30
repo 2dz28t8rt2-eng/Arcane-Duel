@@ -1,0 +1,31 @@
+name: Portrait & Story progression regression
+on:
+  pull_request:
+    branches: [development]
+    paths:
+      - 'assets/duelist-portraits-*.js'
+      - 'assets/duo-parity-v160.js'
+      - 'assets/duo-story-dialogues-v216.js'
+      - 'assets/portrait-manifest-v215.json'
+      - 'index.html'
+      - 'duo-campaign-v2.html'
+      - 'tests/duelist-portraits-v215.test.cjs'
+      - '.github/workflows/portrait-story-v217.yml'
+  workflow_dispatch:
+jobs:
+  portraits:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check portrait and story script syntax
+        run: |
+          node --check assets/duelist-portraits-v215.js
+          node --check assets/duelist-portraits-solo-v215.js
+          node --check assets/duelist-portraits-duo-v215.js
+          node --check assets/duo-story-dialogues-v216.js
+          node --check assets/duo-parity-v160.js
+      - name: Verify portraits, chapter progression, dialogue and dual Lv1 grants
+        run: node --test tests/duelist-portraits-v215.test.cjs
