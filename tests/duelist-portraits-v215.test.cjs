@@ -121,3 +121,33 @@ test('both games load portrait registry and duo story before game state handlers
  assert.match(read('assets/game.js'),/p\.avatarId='hero-01'/);
  assert.match(read('supabase/functions/arcane-duo-v2/index.ts'),/profileAvatar/);
 });
+
+
+test('2v2 uses every remaining portrait before reuse across ordinary chapters',()=>{
+ const chosen=['hero-02','hero-07'],available=P.heroIds.filter(id=>!chosen.includes(id));
+ const seen=[];
+ for(let chapter=1;chapter<=5;chapter++)
+  for(const seat of [1,3])
+   seen.push(P.visualDuo({chapter,seat,selected:chosen}));
+ assert.equal(new Set(seen).size,available.length);
+ assert.deepEqual([...seen].sort(),available.sort());
+ assert.equal(P.visualDuo({chapter:6,seat:1,selected:chosen}),seen[0]);
+ assert.equal(P.visualDuo({chapter:6,seat:3,selected:chosen}),seen[1]);
+});
+test('portrait galleries present one researcher per stage and update on progression',()=>{
+ const solo=read('assets/duelist-portraits-solo-v215.js');
+ const duo=read('assets/duelist-portraits-duo-v215.js');
+ assert.match(solo,/saga\.met\|\|saga\.offered\|\|cleared>0/);
+ assert.doesNotMatch(solo,/for\(let stage=1;stage<=5;stage\+\+\)/);
+ assert.match(duo,/function visibleChapters\(\)/);
+ assert.match(duo,/const current=R\.QUESTS\.find/);
+ assert.match(duo,/updateProfile\(profile\)/);
+ assert.match(read('assets/duo-parity-v160.js'),/updateProfile\?\.\(duoProfile\)/);
+});
+test('first completed Fanatiker quest grants Level-1 research to both teammates on the server',()=>{
+ const sql=read('supabase/migrations/202610270001_arcane_duo_v2_ten_chapters_fanatic_saga.sql');
+ assert.match(sql,/for v_profile in[\s\S]*?new\.host_profile_id,new\.guest_profile_id/);
+ assert.match(sql,/v_chapter >= 11 and \([\s\S]*?questPassed/);
+ assert.match(sql,/v_chapter=11 and v_first then[\s\S]*?lv1_research=/);
+ assert.match(sql,/p\.lv1_research\|\|'\{"perk":true\}'::jsonb/);
+});
