@@ -228,7 +228,7 @@
  }
  function create({roomId,hostName,hostDeck,hostFusions,enemyDeckA,enemyDeckB,
     enemyFusionsA,enemyFusionsB,chapter=1,entry='new',catalog,randomSeed,
-    hostUpgrades={},hostEnhancements={},hostEssence={},hostLv1={},
+    hostUpgrades={},hostEnhancements={},hostEssence={},hostLv1={},hostPortrait='hero-01',
     enemyPowerA=1,enemyPowerB=1,enemyNameA=null,enemyNameB=null}){
   assert(typeof roomId==='string'&&roomId.length>=6,'Raumkennung fehlt.');
   assert(!!encounter(chapter),'Ungültiges Kapitel.');
@@ -259,6 +259,7 @@
    questProgress:{floating:0,swarm:0,special:0},questPassed:null,
    log:['Raum erstellt. Der Partner wird erwartet.']};
   if(isQuest(chapter))g.log.push('Fanatiker-Saga · '+encounter(chapter).name+': '+encounter(chapter).dialogue);
+  g.players[0].portraitId=/^hero-(0[1-9]|1[0-2])$/.test(hostPortrait)?hostPortrait:'hero-01';
   g.players[1].opponentPower=npcPower(enemyPowerA);
   g.players[3].opponentPower=npcPower(enemyPowerB);
   // Tiebreak initiative is chosen once, never supplied by a browser client.
@@ -1212,6 +1213,7 @@
     action.deck,action.fusions,catalog,action.essence,action.lv1);
    const partner=player(2,safeName(action.name),
     chapterDeck(action.deck,catalog,g.chapter,g.entry),action.fusions,build);
+   partner.portraitId=/^hero-(0[1-9]|1[0-2])$/.test(action.portraitId||'')?action.portraitId:'hero-01';
    g.players[2]=partner;g.status='active';
    g.teams[0].shield=teamAegis(g);
    for(const pl of g.players)draw(pl);
@@ -1264,6 +1266,7 @@
      pl.baseDeck=[...updated.deck];pl.baseFusions=[...updated.fusions];
      pl.upgrades=build.upgrades;pl.enhancements=build.enhancements;
      pl.essence=build.essence;
+     pl.portraitId=/^hero-(0[1-9]|1[0-2])$/.test(updated.portraitId||'')?updated.portraitId:'hero-01';
      pl.lv1.perk=build.lv1.perk;pl.lv1.rank=build.lv1.rank;
     }
     if(pl.seat===1&&enemyDeckA&&enemyFusionsA){
