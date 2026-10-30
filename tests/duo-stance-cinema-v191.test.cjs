@@ -131,6 +131,24 @@ test('reduced motion, hidden tab and offscreen cards play no overlay',()=>{
  assert.equal(f.api.play(f.api.changes(s.before,s.after,s.catalog)[0]),false);
 });
 
+test('new DEF Soul Eater gets delayed violet Seelenfokus arrival after summon',()=>{
+ const f=fixture(),s=states();
+ const newSoul=unit(989,42,'def',false);newSoul.role='soul';
+ const after={...s.before,revision:12,
+  players:s.before.players.map((p,i)=>i===1?
+   {...p,field:[...p.field.slice(0,1),newSoul,null]}:p)};
+ const events=f.api.changes(s.before,after,{42:{name:'Wolkenzehrer'}});
+ assert.equal(events.length,1);
+ assert.equal(events[0].arrival,true);
+ assert.equal(events[0].soul,true);
+ f.api.onState(s.before,after,{42:{name:'Wolkenzehrer'}});
+ const pending=f.tasks.find(t=>t.ms===950);
+ assert.ok(pending,'place animation must not compete with the summon landing');
+ pending.fn();
+ assert.match(f.body.children[0].className,/ad191-soul-focus/);
+ const card=f.body.children[0].children[0];
+ assert.ok(card.children[0].children[1].children.some(x=>x.textContent.includes('SEELENFOKUS')));
+});
 test('new server revision invalidates an older pending visual; polling same revision does not',()=>{
  const f=fixture(),s=states();f.api.onState(s.before,s.after,s.catalog);
  assert.equal(f.tasks[0].cleared,false);
@@ -147,8 +165,8 @@ test('integration binds the visual observer to server load and never changes gam
  const parity=read('assets/duo-parity-v160.js'),html=read('duo-campaign-v2.html');
  assert.match(parity,/window\.ArcaneDuoStanceCinema191\?\.onState\(previous,game,catalog\)/);
  assert.ok(parity.indexOf('game=payload.state')<parity.indexOf('ArcaneDuoStanceCinema191?.onState'));
- assert.match(html,/duo-stance-cinema-v191\.css\?v=20261026-v191/);
- assert.match(html,/duo-stance-cinema-v191\.js\?v=20261026-v191/);
+ assert.match(html,/duo-stance-cinema-v191\.css\?v=20261030-soul-focus/);
+ assert.match(html,/duo-stance-cinema-v191\.js\?v=20261030-soul-focus/);
  assert.ok(html.indexOf('duo-stance-cinema-v191.js')<html.indexOf('duo-parity-v160.js'));
  const script=read('assets/duo-stance-cinema-v191.js');
  assert.doesNotMatch(script,/\b(fetch|localStorage|sessionStorage|WebSocket)\s*\(/);
