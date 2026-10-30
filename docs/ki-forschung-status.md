@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-30 · Branch `development` · KI-Forschung v18.0 erfolgreich abgeschlossen, kein KI-Champion-Wechsel
+**Aktualisiert:** 2026-10-30 · Branch `development` · KI-Training v18.1 auf aktuellem Spiel-Balancing gestartet
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -371,6 +371,18 @@ Der vermutete Vorteil gemischter Wächter-/Seelenzehrer-Decks bleibt **nicht in 
 
 **Abgeleitete Maßnahmen vor der geplanten Spielintegration:** Keine v18.0-Optimierung und keinen neuen Champion automatisch in Solo/2v2 übernehmen. Als nächstes **tatsächlich gewählte Angreifer- und Ziel-IDs vor/nach KI-Override**, sichtbaren Kampfzustand, verpasste Finisher, tatsächliche LP-/Monsterverlusteffekte und direkte Level-10-/Zerfallsfehler protokollieren. Anschließend zielgerichtet solche realen Fehlerzustände optimieren, nicht nur seltene Monster-Zerstörungen. Freigabe erst bei messbarem H2H-/Holdout-Vorteil unter unveränderten Kriterien und erfolgreicher Solo-/Duo-/Browser-Regression mit Feature-Flag und Rollback.
 
+
+### KI-Forschung v18.1 – legale Finisher, gezielte Angriffsziele und echte Entscheidungs-Traces
+
+**Gestartet auf `development`:** [GitHub Actions #41052413800](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/41052413800), **46.080 geplante Duelle** in zwei kontrollierten Kohorten à 23.040 und elf Stages; eingefrorener Champion `l10-guarded-worst-reply` bleibt unverändert.
+
+**Forschungsanlass v18.0:** 40 tatsächliche Angriffs-Overrides, jedoch nur 12 unterschiedliche Szenario-/Sitzkonfigurationen betroffen und 0 Gewinnerwechsel bei 2.304 gepaarten Stage-8-Profilduellen. Die Spielstärke und insbesondere direkte Champion-H2H-Gates wurden nicht verbessert.
+
+**Neu:** Der `optimized`-Arm sucht in ausgewählten sichtbaren, legalen Angriffssituationen nach **sofortigen direkten oder gezielten LP-Finishern** sowie nach einer sicheren Entfernung gefährlicher gegnerischer Karten (hohe ATK, Level oder Seelenzehrer). Die KI untersucht ausschließlich gültige Angriffe auf geklonten gegenwärtigen Spielzuständen; andere Monsterrollen, Live-Kampfregeln, versteckte Karten und Gegnerhände werden nicht manipuliert. Die `baseline`-Kohorte behält die bisherige Aktionswahl unverändert. Ältere pauschale Bewertungsänderungen bleiben einheitlich für diesen kontrollierten Vergleich.
+
+**Neue Diagnostik:** `v1810TacticalChecks`, `v1810LegalTrials`, `v1810TacticalOverrides`, `v1810ThreatRemoved`, `v1810FinisherOverrides` sowie maximal sechs `v1810DecisionTraces` je Duell mit Ausgangs-/Alternativ-Aktion, tatsächlichen Angreifer-/Ziel-UIDs, Entscheidungstyp, Zug, LP-Situation und Vergleichswerten. Der Vergleich zählt gepaarte Siegerwechsel, unabhängige Startkonfigurationen und TRAIN-/VALIDATION-/HOLDOUT-Verteilung der dokumentierten Aktionen. Weder simulierte Angriffe noch passive Konter dürfen als echte Aktion ausgegeben werden.
+
+**Konstant:** Bereits übernommener Wächter-Wertepool 95 % und ATK/DEF 22:78; Forschungs-Overlays `ARCANE_RESEARCH_BALANCE_V169=control10` und `ARCANE_RESEARCH_GUARDIAN_STATS_V178=control` dürfen weder Seelenfähigkeiten noch Werte erneut verändern. Trainingsdaten bleiben von VALIDATION und HOLDOUT getrennt; unveränderte Champion-Gates, kein automatischer KI-Patch in Solo oder 2v2. Freigabe erst nach konkretem direktem H2H- und HOLDOUT-Vorteil sowie vollständigen Spielregressionen.
 
 ## C. KI-Forschungsstatus
 
