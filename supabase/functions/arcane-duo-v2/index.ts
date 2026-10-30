@@ -363,7 +363,9 @@ Deno.serve(async request=>{
    "soulCondense","soulDischarge","soulRaid","soulFocus","essencePredatorMode",
    "lv1Station","lv1Return","lv1GhostSwitch","lv1UseOffer","lv1Floating"].includes(body.action.type),
    "Aktion nicht erlaubt.");
-  const advancing=body.action.type==="acceptNextChapter",nextChapter=room.state.chapter+1;
+  const legacyStart=body.action.type==="nextChapter"&&body.action.confirmRequired!==true;
+  const advancing=body.action.type==="acceptNextChapter"||legacyStart,
+   nextChapter=room.state.chapter+1;
   const humanBuilds:Record<number,unknown>={};
   if(advancing){
    const ids=[room.host_profile_id,room.guest_profile_id].filter(Boolean);
@@ -378,14 +380,18 @@ Deno.serve(async request=>{
    }
    assert(humanBuilds[0]&&humanBuilds[2],"Partnerprofile konnten nicht synchronisiert werden.");
   }
-  let next=game.apply(room.state,seat,body.action,{catalog,
-   ...(advancing?{
-    enemyDeckA:enemyDeck(nextChapter,1),enemyDeckB:enemyDeck(nextChapter,3),
-    enemyFusionsA:enemyFusions(nextChapter),enemyFusionsB:enemyFusions(nextChapter),
-    enemyPowerA:enemyPower(nextChapter),enemyPowerB:enemyPower(nextChapter),
-    enemyNameA:enemyNames(nextChapter)[0],enemyNameB:enemyNames(nextChapter)[1],
-    humanBuilds
-   }: {})});
+  const chapterBuild=advancing?{
+   enemyDeckA:enemyDeck(nextChapter,1),enemyDeckB:enemyDeck(nextChapter,3),
+   enemyFusionsA:enemyFusions(nextChapter),enemyFusionsB:enemyFusions(nextChapter),
+   enemyPowerA:enemyPower(nextChapter),enemyPowerB:enemyPower(nextChapter),
+   enemyNameA:enemyNames(nextChapter)[0],enemyNameB:enemyNames(nextChapter)[1],
+   humanBuilds
+  }:{};
+  let next=game.apply(room.state,seat,body.action,{catalog,...chapterBuild});
+  // Existing main-branch 2v2 clients know only the historical one-click
+  // chapter action. Preserve it atomically; new dev clients opt into consent.
+  if(legacyStart)next=game.apply(next,seat===0?2:0,
+   {type:'acceptNextChapter'},{catalog,...chapterBuild});
   next=game.aiTurn(next,{catalog});
   const {data:updated,error:writeError}=await db.from(TABLE).update({
    // Legacy SQL status CHECK allows waiting/active/finished only; invitation state
