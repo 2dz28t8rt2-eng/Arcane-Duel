@@ -1070,10 +1070,9 @@ function balancedGuardianBaseValues(c){
   throw Error('Ungültiges Wächter-Balancing für Karte '+c.id);
  return {atk,def:pool-atk};
 }
-for(const c of CARDS){
- const values=balancedGuardianBaseValues(c);
- if(values){c.atk=values.atk;c.def=values.def;}
-}
+// The actual one-time application happens in guardian-balance-v212.js,
+// AFTER all subsequent role and card overlays have been loaded. This avoids
+// rebalance-once-then-role-assignment and double deductions on old cards.
 // Normalize legacy per-card combat perks after ALL RPG templates and workshop stages
 // have been registered. General role abilities are deliberately unaffected.
 const RETIRED_SINGLE_CARD_ABILITIES=new Set(['aegis','pierce','hunt','guide','rush','guard']);
