@@ -52,7 +52,13 @@ test('real game catalogue resolves exactly each new card portrait and matching l
  assert.equal(state.total,732+state.newLate+state.newFusions+state.v130Fusions);
  for(let i=0;i<16;i++){
   const c=state.cards[i],expected=rows[i];
-  for(const k of ['id','name','level','role','atk','def','source','art'])assert.equal(c[k],expected[k]);
+  for(const k of ['id','name','level','role','source','art'])assert.equal(c[k],expected[k]);
+   const pool=expected.role==='guardian'?Math.round((expected.atk+expected.def)*.95/10)*10:
+    expected.atk+expected.def;
+   const floor=Math.min(80,expected.atk,Math.floor(pool/20)*10);
+   const atk=expected.role==='guardian'?Math.min(expected.atk,
+    Math.max(floor,Math.min(pool-floor,Math.round(pool*.22/10)*10))):expected.atk;
+   assert.equal(c.atk,atk);assert.equal(c.def,pool-atk);
   assert.equal(c.customArt,c.art,'Original portrait must supersede procedural art');
   assert.ok(c.normal,'Normal monster must remain non-fusion');
   assert.ok(c.hasLiveArtwork&&c.hasName&&c.hasLevelClass&&c.hasTemplateClass,
