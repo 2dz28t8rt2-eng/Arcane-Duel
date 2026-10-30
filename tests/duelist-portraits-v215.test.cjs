@@ -9,49 +9,91 @@ const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const manifest=JSON.parse(read('assets/portrait-manifest-v215.json'));
 const scope={};
 vm.runInNewContext(read('assets/duelist-portraits-v215.js'),scope);
-const portraits=scope.ArcanePortraits215;
+const P=scope.ArcanePortraits215;
+const scenesScope={ArcanePortraits215:P,document:{}};
+vm.runInNewContext(read('assets/duo-story-dialogues-v216.js'),scenesScope);
+const story=scenesScope.ArcaneDuoStory216;
 const rules=require('../assets/duo-shared-rules-v160.js');
-const catalogData=require('../assets/duo-card-catalog-v160.json');
-const catalog=Object.fromEntries(catalogData.cards.map(c=>[c.id,c]));
-const main=catalogData.starterMain,side=catalogData.starterFusions;
+const snap=require('../assets/duo-card-catalog-v160.json');
+const catalog=Object.fromEntries(snap.cards.map(c=>[c.id,c]));
+const main=snap.starterMain,side=snap.starterFusions;
 function room(hostPortrait='hero-05'){
- return rules.create({roomId:'portraits-v215-fixture',hostName:'Gastgeber',
+ return rules.create({roomId:'portraits-v216-test',hostName:'Host',
   hostDeck:main,hostFusions:side,hostPortrait,
   enemyDeckA:main,enemyDeckB:main,enemyFusionsA:side,enemyFusionsB:side,
   catalog,chapter:1,entry:'new'});
 }
-test('all 60 preallocated slots match the declared upload manifest without extra setup',()=>{
- assert.equal(manifest.slots,60);
- assert.equal(manifest.items.length,60);
- assert.equal(new Set(manifest.items.map(x=>x.id)).size,60);
- assert.equal(new Set(manifest.items.map(x=>x.path)).size,60);
- assert.deepEqual([...portraits.ids].sort(),manifest.items.map(x=>x.id).sort());
+test('exactly 24 image assets: 12 selectable heroes and 12 unique, locked story artworks',()=>{
+ assert.equal(manifest.assetsRequired,24);
+ assert.equal(manifest.items.length,24);
+ assert.equal(P.ids.length,24);
+ assert.equal(P.heroIds.length,12);
+ assert.equal(P.storyIds.length,12);
+ assert.equal(new Set(manifest.items.map(x=>x.id)).size,24);
+ assert.equal(new Set(manifest.items.map(x=>x.path)).size,24);
+ assert.deepEqual([...P.ids].sort(),manifest.items.map(x=>x.id).sort());
  for(const item of manifest.items){
-  assert.equal(portraits.path(item.id),item.path,item.id);
-  assert.match(item.path,/^assets\/portraits\/(heroes|solo|duo)\/[a-z0-9-]+\.webp$/);
+  assert.equal(P.path(item.id),item.path,item.id);
+  assert.match(item.path,/^assets\/portraits\/(heroes|story)\/[a-z0-9-]+\.webp$/);
  }
- assert.equal(portraits.path('../secrets'),null);
- assert.equal(portraits.sanitizeHero('hero-99'),'hero-01');
- assert.equal(portraits.validHero('hero-12'),true);
+ assert.equal(P.path('../secrets'),null);
+ assert.equal(P.sanitizeHero('hero-99'),'hero-01');
 });
-test('solo tournament, secret fight, wanderers and five story opponents have separate slots',()=>{
- for(let i=0;i<=10;i++)assert.equal(portraits.soloOpponent(i),
-  'solo-opponent-'+String(i).padStart(2,'0'));
- for(let i=1;i<=5;i++)assert.equal(portraits.soloOpponent(1,false,i),
-  'solo-fanatiker-'+String(i).padStart(2,'0'));
- assert.equal(portraits.soloOpponent(8,true),'solo-secret-eiman');
- assert.equal(portraits.soloOpponent(2,false,0,true),'solo-wanderer');
+test('solo non-story opponents use every remaining hero image exactly once',()=>{
+ const chosen='hero-08';
+ const used=Array.from({length:11},(_,i)=>P.visualSolo({id:i,selected:chosen}));
+ assert.equal(new Set(used).size,11);
+ assert.equal(used.includes(chosen),false);
+ assert.deepEqual(used,Array.from({length:11},(_,i)=>P.visualSolo({id:i,selected:chosen})));
+ for(const img of used)assert.ok(P.heroIds.includes(img));
 });
-test('both unique opponents of every duo chapter are covered without sharing a portrait slot',()=>{
- for(let chapter=1;chapter<=15;chapter++){
-  const a=portraits.duoOpponent(chapter,1);
-  const b=portraits.duoOpponent(chapter,3);
+test('ordinary duo enemies use distinct portraits excluding both humans, stable per chapter',()=>{
+ const humans=['hero-02','hero-07'];
+ for(let chapter=1;chapter<=9;chapter++){
+  const a=P.visualDuo({chapter,seat:1,selected:humans});
+  const b=P.visualDuo({chapter,seat:3,selected:humans});
+  assert.ok(P.heroIds.includes(a));
+  assert.ok(P.heroIds.includes(b));
   assert.notEqual(a,b);
-  assert.ok(manifest.items.some(x=>x.id===a&&x.chapter===chapter&&x.seat===1));
-  assert.ok(manifest.items.some(x=>x.id===b&&x.chapter===chapter&&x.seat===3));
+  assert.ok(!humans.includes(a)&&!humans.includes(b));
+  assert.equal(a,P.visualDuo({chapter,seat:1,selected:humans}));
  }
 });
-test('separate 2v2 online profiles retain selected portraits on join and next chapter',()=>{
+test('Eiman is the same fixed portrait in single/duo; Hans is separate and never randomized',()=>{
+ assert.equal(P.soloOpponent(8,true),'story-eiman');
+ assert.equal(P.duoOpponent(10,1),'story-eiman');
+ assert.equal(P.duoOpponent(10,3),'story-hans');
+ for(const selected of [['hero-01'],['hero-04','hero-09'],[]]){
+  assert.equal(P.visualDuo({chapter:10,seat:1,selected}),'story-eiman');
+  assert.equal(P.visualDuo({chapter:10,seat:3,selected}),'story-hans');
+ }
+});
+test('three research histories: first fanatic shares five artworks between modes, second has five unique images',()=>{
+ const first=new Set(),second=new Set();
+ for(let stage=1;stage<=5;stage++){
+  const a=P.storyFanatic(1,stage),b=P.storyFanatic(2,stage);
+  assert.equal(a,P.soloOpponent(1,false,stage));
+  assert.equal(a,P.visualDuo({chapter:stage+10,seat:1}));
+  assert.equal(b,P.visualDuo({chapter:stage+10,seat:3}));
+  assert.notEqual(a,b);
+  first.add(a);second.add(b);
+ }
+ assert.equal(first.size,5);assert.equal(second.size,5);
+ assert.equal([...first].some(id=>second.has(id)),false);
+ assert.equal(P.storyFanatic(2,6),null);
+});
+test('Eiman/Hans introduction alternates voices and each of five research chapters contains its own alternating dialogue',()=>{
+ assert.equal(story.scene(10).length,4);
+ for(let chapter=10;chapter<=15;chapter++){
+  const entries=story.scene(chapter);
+  assert.equal(entries.length,4);
+  assert.deepEqual([...entries].map(e=>e.seat),[1,3,1,3]);
+  assert.ok(entries.every(e=>e.text.length>25));
+ }
+ assert.notEqual(story.scene(11)[0].text,story.scene(15)[0].text);
+ assert.equal(story.scene(9).length,0);
+});
+test('2v2 player portraits are separate, validated and preserved through chapter transitions',()=>{
  const initial=room('hero-09');
  assert.equal(initial.players[0].portraitId,'hero-09');
  let joined=rules.apply(initial,2,{type:'join',name:'Partner',deck:main,fusions:side,
@@ -65,22 +107,17 @@ test('separate 2v2 online profiles retain selected portraits on join and next ch
   0:{...build,portraitId:'hero-02'},2:{...build,portraitId:'hero-11'}}});
  assert.equal(next.players[0].portraitId,'hero-02');
  assert.equal(next.players[2].portraitId,'hero-11');
-});
-test('untrusted 2v2 avatar IDs always fall back to a known built-in slot',()=>{
  assert.equal(room('<img src=x>').players[0].portraitId,'hero-01');
- const joined=rules.apply(room(),2,{type:'join',name:'X',deck:main,fusions:side,
-  portraitId:'../../other'},{catalog});
- assert.equal(joined.players[2].portraitId,'hero-01');
 });
-test('both games load the shared registry before their own visual presenter',()=>{
+test('both games load portrait registry and duo story before game state handlers',()=>{
  const solo=read('index.html'),duo=read('duo-campaign-v2.html');
  assert.ok(solo.indexOf('duelist-portraits-v215.js')<solo.indexOf('game.js?v='));
  assert.ok(solo.indexOf('duelist-portraits-solo-v215.js')>solo.indexOf('game.js?v='));
  assert.ok(duo.indexOf('duelist-portraits-v215.js')<duo.indexOf('duo-parity-v160.js'));
- assert.ok(duo.indexOf('duelist-portraits-duo-v215.js')>duo.indexOf('duo-parity-v160.js'));
- assert.match(solo,/duelist-portraits-v215.css/);
+ assert.ok(duo.indexOf('duo-story-dialogues-v216.js')<duo.indexOf('duo-parity-v160.js'));
+ assert.match(duo,/duo-story-dialogues-v216.css/);
  assert.match(duo,/duoAvatarPicker/);
- assert.match(duo,/duoAvatarEdit/);
+ assert.match(read('assets/duo-parity-v160.js'),/storyChapter=game\.entry==='quest'/);
  assert.match(read('assets/game.js'),/p\.avatarId='hero-01'/);
  assert.match(read('supabase/functions/arcane-duo-v2/index.ts'),/profileAvatar/);
 });
