@@ -434,8 +434,9 @@
  async function send(action){
   if(!game||busy)return;
   if(!(game.activeSeat===seat&&game.status==='active')&&
-    !(action.type==='nextChapter'&&seat===0&&game.status==='finished'&&game.winner===0)&&
-    !(['acceptNextChapter','declineNextChapter'].includes(action.type)&&seat===2&&game.status==='inviting_next'))return;
+    !(action.type==='nextChapter'&&[0,2].includes(seat)&&game.status==='finished'&&game.winner===0)&&
+    !(['acceptNextChapter','declineNextChapter'].includes(action.type)&&
+      seat===game.chapterInvite?.toSeat&&game.status==='inviting_next'))return;
   // Capture the visible, local handcard before render() rebuilds the hand.
   // This ticket is visual-only and is discarded if the server rejects the action.
   const summonTicket=window.ArcaneDuoSummonCinema190?.capture?.({action,game,seat,catalog});
@@ -681,17 +682,17 @@
   window.ArcaneDuoSoulBond206?.decorate?.({game,seat,roomId,catalog});
   if(game.status!=='active'){
    if(game.status==='inviting_next'){
-    el('p',dock,seat===0?'Dein Partner hat eine Einladung erhalten. Warte auf Bestätigung.':
+    el('p',dock,seat===game.chapterInvite?.fromSeat?'Dein Partner hat eine Einladung erhalten. Warte auf Bestätigung.':
      'Einladung zum nächsten Kapitel: Bitte beitreten oder ablehnen.');
-    if(seat===2&&nameConfirmed)showInvitation('next',game.chapterInvite?.from||game.players[0].name,game.chapter+1);
+    if(seat===game.chapterInvite?.toSeat&&nameConfirmed)
+     showInvitation('next',game.chapterInvite?.from||'Dein Partner',game.chapter+1);
     return;
    }
    const canContinue=game.entry==='quest'?game.chapter<15&&game.questPassed===true:
     game.chapter<rules.CHAPTERS.length;
    if(game.status==='finished'&&game.winner===0&&canContinue){
-    if(seat===0)button('✦ Kapitel '+(game.chapter+1)+' starten',
+    if([0,2].includes(seat))button('✦ Kapitel '+(game.chapter+1)+' anfragen',
      dock,()=>send({type:'nextChapter'}));
-    else el('p',dock,'Kapitel gewonnen. Der Gastgeber startet das nächste.');
    }else el('p',dock,game.status==='waiting'?'Sobald dein Partner da ist, geht es los.':
     game.entry==='quest'&&game.winner===0&&game.questPassed!==true?
      'Ihr habt gewonnen, aber das Questziel fehlt. Wiederholt diese Prüfung.':
