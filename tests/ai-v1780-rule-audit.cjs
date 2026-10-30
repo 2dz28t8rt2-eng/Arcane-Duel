@@ -1,0 +1,11 @@
+'use strict';
+if(process.env.ARCANE_RESEARCH_BALANCE_V169!=='predator15Triad90')throw Error('v17.3 must retain 15/90/100/120');
+const assert=require('node:assert/strict');
+const {MODES,mode}=require('./helpers/research-guardian-counter-v178.cjs');
+const {boot}=require('./helpers/game-runtime.cjs');
+const m=mode(),t=boot({seed:17800042});
+assert.equal(MODES.length,4);
+const rules=t.run('({n:CARDS.length,bond:typeof window.ArcaneEssenceCombat?.soulBonds,raid:typeof window.ArcaneEssenceCombat?.researchSoulAction,liveRpg:!!createGame({mode:"pve",opponentId:1}).essenceRules})');
+assert.ok(rules.n>50&&rules.liveRpg);assert.equal(rules.bond,'function');
+assert.equal(rules.raid,'function');
+console.log('ARCANE_V1780_V207_RESEARCH_RUNTIME_OK '+JSON.stringify({balance:m,...rules}));
