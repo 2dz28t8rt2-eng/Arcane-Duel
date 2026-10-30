@@ -10,7 +10,8 @@ test('Normal PvE templates across every level use role-split common/rare values,
  const rows=boot().run("(()=>{const rows=[];for(let level=1;level<=10;level++){const c=CARDS.find(c=>c.rpg&&!c.retired&&!c.fusionOnly&&!c.essenceMonster&&c.id>=20&&c.level===level&&c.rarity==='common');if(!c)throw Error('Missing common Lv '+level);rows.push({level,atk:c.atk,def:c.def,share:c.atk/(c.atk+c.def),budget:workshopBudget(level),role:c.role});}return rows;})()");
  for(const row of rows){
   assert.ok(row.atk>0&&row.def>0);
-  assert.ok(Math.abs(row.atk+row.def-row.budget)<=10,JSON.stringify(row));
+  const target=row.role==='guardian'?Math.round(row.budget*.95/10)*10:row.budget;
+   assert.ok(Math.abs(row.atk+row.def-target)<=10,JSON.stringify(row));
  }
  assert.ok(rows[9].atk+rows[9].def<=2160);
 });
