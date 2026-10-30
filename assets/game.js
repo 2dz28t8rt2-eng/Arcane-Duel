@@ -1499,7 +1499,7 @@ if(g.context==='tournament'){profile.encounters=[-1,0,1].map(d=>makeEncounter(g.
 function validateProfile(raw){const modern=raw?.progressionVersion===3;const projected={...raw,progressionVersion:raw?.progressionVersion===3?2:raw?.progressionVersion,activeDuel:modern?raw.activeDuel:null};const p=validateProfile16(projected);
  p.duelistName=typeof raw?.duelistName==='string'&&raw.duelistName.trim().length>=2&&raw.duelistName.trim().length<=32?
   raw.duelistName.replace(/[<>\\x00-\\x1f]/g,'').trim().slice(0,32):'Duellant';
- p.avatarId=typeof raw?.avatarId==='string'&&/^hero-(0[1-9]|1[0-2])$/.test(raw.avatarId)?raw.avatarId:'hero-01';
+ p.avatarId=typeof raw?.avatarId==='string'&&/^hero-(0[1-9]|1[0-6])$/.test(raw.avatarId)?raw.avatarId:'hero-01';
  p.progressionVersion=3;p.startLv3Granted=raw?.startLv3Granted===true;p.dropChargeIntroPending=raw?.dropChargeIntroPending===true;
  // Retain optional extension data before the initial bootstrap save. The role
  // reward module resolves the IDs against the complete late-loaded catalogue.

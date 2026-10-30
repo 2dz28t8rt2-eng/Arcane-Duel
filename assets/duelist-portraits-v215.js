@@ -4,11 +4,15 @@
  */
 'use strict';
 ((root)=>{
- const heroIds=Object.freeze(Array.from({length:12},(_,i)=>'hero-'+String(i+1).padStart(2,'0')));
+ const heroIds=Object.freeze(Array.from({length:16},(_,i)=>'hero-'+String(i+1).padStart(2,'0')));
+ const heroNames=Object.freeze(['Runenritter','Sturmschatten-Jägerin','Goldrunen-Erzmagierin',
+  'Violettmagier','Löwenwächter','Himmlische Heilerin','Sonnenpaladin','Waldläufer',
+  'Runenweise','Wüstenläufer','Frostkönigin','Dämonenfeldherr','Arkanmechanikerin',
+  'Piratenkapitän','Tempelkriegerin','Nebelkönigin']);
  const storyIds=Object.freeze(['story-eiman','story-hans',
   ...Array.from({length:5},(_,i)=>'story-fanatiker-a-'+String(i+1).padStart(2,'0')),
   ...Array.from({length:5},(_,i)=>'story-fanatiker-b-'+String(i+1).padStart(2,'0'))]);
- // Exactly 24 upload files, including ONE Eiman picture across solo/duo and
+ // Exactly 28 upload files, including ONE Eiman picture across solo/duo and
  // ONE five-step appearance series for the main fanatic across solo/duo.
  const ids=Object.freeze([...heroIds,...storyIds]);
  const allowed=new Set(ids),base='assets/portraits/';
@@ -40,8 +44,11 @@
  function normalDuo(chapter,seat,selected=[],seed='duo'){
   const c=Number(chapter),s=Number(seat);
   if(!Number.isInteger(c)||c<1||c>9||![1,3].includes(s))return null;
-  const pool=permutation('duo:'+seed+':'+c,selected);
-  return pool[s===1?0:1]||null;
+  // Assign the shuffled pool across the entire duo campaign, not anew on
+  // every chapter. Every available image is used before any repeat is needed.
+  // Eighteen ordinary opponent seats can outnumber the ten unchosen pictures.
+  const pool=permutation('duo:'+seed,selected);
+  return pool.length?pool[((c-1)*2+(s===1?0:1))%pool.length]:null;
  }
  function soloOpponent(id,secret=false,stage=0,encounter=false){
   if(secret)return 'story-eiman';
@@ -112,9 +119,9 @@
    button.className='ad215-option'+(id===chosen?' selected':'');
    button.dataset.avatarId=id;
    button.setAttribute('aria-pressed',String(id===chosen));
-   button.setAttribute('aria-label','Charakterportrait '+(i+1)+' auswählen');
-   button.append(node(id,'Duellant '+(i+1)));
-   const txt=document.createElement('span');txt.textContent='Charakter '+String(i+1).padStart(2,'0');
+   button.setAttribute('aria-label',heroNames[i]+' als Charakterportrait auswählen');
+   button.append(node(id,heroNames[i]));
+   const txt=document.createElement('span');txt.textContent=heroNames[i];
    button.append(txt);
    button.onclick=()=>{
     container.querySelectorAll('.ad215-option').forEach(b=>{
@@ -126,6 +133,6 @@
    container.append(button);
   }
  }
- root.ArcanePortraits215=Object.freeze({version:'21.6',heroIds,ids,
+ root.ArcanePortraits215=Object.freeze({version:'21.7',heroIds,heroNames,ids,
   validHero,sanitizeHero,storyIds,storyFanatic,soloOpponent,duoOpponent,normalSolo,normalDuo,visualSolo,visualDuo,permutation,path,initials,node,replace,chooser});
 })(typeof window!=='undefined'?window:globalThis);

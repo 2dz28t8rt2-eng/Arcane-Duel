@@ -1,88 +1,112 @@
 {
-  "schema": 2,
-  "version": "21.6",
-  "assetsRequired": 24,
+  "schema": 3,
+  "version": "21.7",
+  "assetsRequired": 28,
   "baseFormat": "webp",
   "alternateFormat": "png",
   "recommendedSize": "512x512",
-  "notes": "Normal opponents reuse only unchosen hero portraits. Fixed story images never enter the random pool. Solo and Duo share Eiman and first Fanatiker series.",
+  "notes": "16 player portraits from two artwork waves, plus 12 fixed story portraits. Ordinary NPCs receive unchosen player art. Eiman/Hans and both five-phase researchers are never randomly reassigned. Images pending GitHub upload from the matching prepared 28-file artwork package.",
   "items": [
     {
       "id": "hero-01",
       "type": "player-choice",
-      "label": "Spielerportrait 01",
+      "label": "Runenritter",
       "path": "assets/portraits/heroes/hero-01.webp"
     },
     {
       "id": "hero-02",
       "type": "player-choice",
-      "label": "Spielerportrait 02",
+      "label": "Sturmschatten-Jägerin",
       "path": "assets/portraits/heroes/hero-02.webp"
     },
     {
       "id": "hero-03",
       "type": "player-choice",
-      "label": "Spielerportrait 03",
+      "label": "Goldrunen-Erzmagierin",
       "path": "assets/portraits/heroes/hero-03.webp"
     },
     {
       "id": "hero-04",
       "type": "player-choice",
-      "label": "Spielerportrait 04",
+      "label": "Violettmagier",
       "path": "assets/portraits/heroes/hero-04.webp"
     },
     {
       "id": "hero-05",
       "type": "player-choice",
-      "label": "Spielerportrait 05",
+      "label": "Löwenwächter",
       "path": "assets/portraits/heroes/hero-05.webp"
     },
     {
       "id": "hero-06",
       "type": "player-choice",
-      "label": "Spielerportrait 06",
+      "label": "Himmlische Heilerin",
       "path": "assets/portraits/heroes/hero-06.webp"
     },
     {
       "id": "hero-07",
       "type": "player-choice",
-      "label": "Spielerportrait 07",
+      "label": "Sonnenpaladin",
       "path": "assets/portraits/heroes/hero-07.webp"
     },
     {
       "id": "hero-08",
       "type": "player-choice",
-      "label": "Spielerportrait 08",
+      "label": "Waldläufer",
       "path": "assets/portraits/heroes/hero-08.webp"
     },
     {
       "id": "hero-09",
       "type": "player-choice",
-      "label": "Spielerportrait 09",
+      "label": "Runenweise",
       "path": "assets/portraits/heroes/hero-09.webp"
     },
     {
       "id": "hero-10",
       "type": "player-choice",
-      "label": "Spielerportrait 10",
+      "label": "Wüstenläufer",
       "path": "assets/portraits/heroes/hero-10.webp"
     },
     {
       "id": "hero-11",
       "type": "player-choice",
-      "label": "Spielerportrait 11",
+      "label": "Frostkönigin",
       "path": "assets/portraits/heroes/hero-11.webp"
     },
     {
       "id": "hero-12",
       "type": "player-choice",
-      "label": "Spielerportrait 12",
+      "label": "Dämonenfeldherr",
       "path": "assets/portraits/heroes/hero-12.webp"
+    },
+    {
+      "id": "hero-13",
+      "type": "player-choice",
+      "label": "Arkanmechanikerin",
+      "path": "assets/portraits/heroes/hero-13.webp"
+    },
+    {
+      "id": "hero-14",
+      "type": "player-choice",
+      "label": "Piratenkapitän",
+      "path": "assets/portraits/heroes/hero-14.webp"
+    },
+    {
+      "id": "hero-15",
+      "type": "player-choice",
+      "label": "Tempelkriegerin",
+      "path": "assets/portraits/heroes/hero-15.webp"
+    },
+    {
+      "id": "hero-16",
+      "type": "player-choice",
+      "label": "Nebelkönigin",
+      "path": "assets/portraits/heroes/hero-16.webp"
     },
     {
       "id": "story-eiman",
       "type": "fixed-boss",
-      "label": "Eiman Huel Stalker",
+      "label": "Eiman Huel – fester violetter Magier",
       "appears": [
         "Solo-Geheimduell",
         "Duo-Kapitel X"
@@ -92,7 +116,7 @@
     {
       "id": "story-hans",
       "type": "fixed-boss",
-      "label": "Hans Ess Kirk – blonder Magier in Rot",
+      "label": "Hans Ess – fester roter Magier",
       "appears": [
         "Duo-Kapitel X"
       ],
@@ -101,7 +125,7 @@
     {
       "id": "story-fanatiker-a-01",
       "type": "fixed-researcher",
-      "label": "Level-1-Fanatiker – Stufe 1",
+      "label": "Forscher A – Professor mit Brille · Phase 1",
       "stage": 1,
       "appears": [
         "Solo-Forschung 1",
@@ -112,7 +136,7 @@
     {
       "id": "story-fanatiker-b-01",
       "type": "fixed-researcher",
-      "label": "Zweiter Forscher – Stufe 1",
+      "label": "Forscher B – blonder Höhlenforscher · Phase 1",
       "stage": 1,
       "appears": [
         "Duo-Kapitel 11 (Gegner 2)"
@@ -122,7 +146,7 @@
     {
       "id": "story-fanatiker-a-02",
       "type": "fixed-researcher",
-      "label": "Level-1-Fanatiker – Stufe 2",
+      "label": "Forscher A – Professor mit Brille · Phase 2",
       "stage": 2,
       "appears": [
         "Solo-Forschung 2",
@@ -133,7 +157,7 @@
     {
       "id": "story-fanatiker-b-02",
       "type": "fixed-researcher",
-      "label": "Zweiter Forscher – Stufe 2",
+      "label": "Forscher B – blonder Höhlenforscher · Phase 2",
       "stage": 2,
       "appears": [
         "Duo-Kapitel 12 (Gegner 2)"
@@ -143,7 +167,7 @@
     {
       "id": "story-fanatiker-a-03",
       "type": "fixed-researcher",
-      "label": "Level-1-Fanatiker – Stufe 3",
+      "label": "Forscher A – Professor mit Brille · Phase 3",
       "stage": 3,
       "appears": [
         "Solo-Forschung 3",
@@ -154,7 +178,7 @@
     {
       "id": "story-fanatiker-b-03",
       "type": "fixed-researcher",
-      "label": "Zweiter Forscher – Stufe 3",
+      "label": "Forscher B – blonder Höhlenforscher · Phase 3",
       "stage": 3,
       "appears": [
         "Duo-Kapitel 13 (Gegner 2)"
@@ -164,7 +188,7 @@
     {
       "id": "story-fanatiker-a-04",
       "type": "fixed-researcher",
-      "label": "Level-1-Fanatiker – Stufe 4",
+      "label": "Forscher A – Professor mit Brille · Phase 4",
       "stage": 4,
       "appears": [
         "Solo-Forschung 4",
@@ -175,7 +199,7 @@
     {
       "id": "story-fanatiker-b-04",
       "type": "fixed-researcher",
-      "label": "Zweiter Forscher – Stufe 4",
+      "label": "Forscher B – blonder Höhlenforscher · Phase 4",
       "stage": 4,
       "appears": [
         "Duo-Kapitel 14 (Gegner 2)"
@@ -185,7 +209,7 @@
     {
       "id": "story-fanatiker-a-05",
       "type": "fixed-researcher",
-      "label": "Level-1-Fanatiker – Stufe 5",
+      "label": "Forscher A – Professor mit Brille · Phase 5",
       "stage": 5,
       "appears": [
         "Solo-Forschung 5",
@@ -196,7 +220,7 @@
     {
       "id": "story-fanatiker-b-05",
       "type": "fixed-researcher",
-      "label": "Zweiter Forscher – Stufe 5",
+      "label": "Forscher B – blonder Höhlenforscher · Phase 5",
       "stage": 5,
       "appears": [
         "Duo-Kapitel 15 (Gegner 2)"
