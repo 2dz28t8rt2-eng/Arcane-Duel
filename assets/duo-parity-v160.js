@@ -604,8 +604,13 @@
    panel.dataset.seat=String(p.seat);
    const heading=el('div',panel,undefined,'ad215-duo-seat-head');
    const chosen=[game.players[0]?.portraitId,game.players[2]?.portraitId];
+   // On a cleared research stage, the researchers advance visually to their
+   // next form. The next quest already uses exactly that appearance.
+   const storyChapter=game.entry==='quest'&&game.chapter>=11&&game.chapter<15&&
+    game.status==='finished'&&game.winner===0&&game.questPassed===true?
+     game.chapter+1:game.chapter;
    const avatar=p.kind==='human'?portraits?.sanitizeHero(p.portraitId):
-     portraits?.visualDuo({chapter:game.chapter,seat:p.seat,selected:chosen});
+     portraits?.visualDuo({chapter:storyChapter,seat:p.seat,selected:chosen});
    if(portraits)heading.append(portraits.node(avatar,p.name));
    el('h3',heading,p.name);
    el('small',panel,p.kind==='human'?(p.seat===0?'DEIN TEAM · GASTGEBER':'DEIN TEAM · PARTNER'):
