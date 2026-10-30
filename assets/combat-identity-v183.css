@@ -98,3 +98,38 @@
 }
 body.instant #duelScreen .monster-slot.ad183-role-pulse,
 body.instant #duelScreen .monster-slot.ad183-charged .ad183-role-crest{animation:none!important}
+
+/* v21.6 – Guardian and Soul are distinguished by WORDS, shape and color. */
+#duelScreen .monster-slot .ad183-role-name,
+.duo-battle .field-cell .ad183-role-name{
+ position:absolute;z-index:20;top:3px;left:3px;max-width:calc(100% - 9px);
+ padding:2px 5px;border-radius:4px;box-sizing:border-box;
+ font:800 9px/1.15 system-ui,sans-serif;letter-spacing:.025em;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ pointer-events:none;text-shadow:0 1px 2px #09101c;
+}
+#duelScreen .monster-slot .ad183-role-name-guardian,
+.duo-battle .field-cell .ad183-role-name-guardian{
+ color:#e0f9ff;background:#153d50e8;border:1px solid #8fdef1;
+ box-shadow:0 0 8px #80ddef63;
+}
+#duelScreen .monster-slot .ad183-role-name-soul,
+.duo-battle .field-cell .ad183-role-name-soul{
+ color:#f5e3ff;background:#422251e8;border:1px solid #d6a4ff;
+ box-shadow:0 0 8px #d9a8ff63;
+}
+#duelScreen .monster-slot.ad183-role-guardian.ad183-defending,
+.duo-battle .field-cell.ad183-role-guardian.ad183-defending{
+ outline:1px solid #8cdae6;outline-offset:-2px;
+}
+#duelScreen .monster-slot.ad183-role-soul.ad183-defending,
+.duo-battle .field-cell.ad183-role-soul.ad183-defending{
+ outline:1px dashed #d5a0f1;outline-offset:-2px;
+}
+@media(max-width:830px){
+ #duelScreen .monster-slot .ad183-role-name,
+ .duo-battle .field-cell .ad183-role-name{
+  max-width:calc(100% - 5px);left:2px;top:2px;
+  font-size:7.5px;padding:1px 3px;letter-spacing:0;
+ }
+}

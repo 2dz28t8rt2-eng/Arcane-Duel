@@ -28,6 +28,7 @@
     if(!previous){
       if(role==='predator')return {kind:'predator',label:duo?'Predator · Schwarm +'+c.swarm*2+' %':''};
       if(role==='guardian'&&c.mode==='def')return {kind:'guardian',label:'Wächter · Schutz bereit'};
+      if(role==='soul'&&c.mode==='def')return {kind:'soul',label:'Seelenzehrer · Essenz bereit'};
       if(role==='resonator')return {kind:'resonator',label:'Resonator · Fusionsresonanz'};
       return null;
     }
@@ -61,6 +62,16 @@
     crest.className='ad183-role-crest';crest.textContent=config.symbol;
     crest.title=config.name;crest.setAttribute('aria-hidden','true');
     slot.appendChild(crest);
+    // Keep both classes readable in Solo and Duo, independent of aura colors.
+    if(role==='guardian'||role==='soul'){
+      const tag=document.createElement('span');
+      tag.className='ad183-role-name ad183-role-name-'+role;
+      tag.textContent=role==='guardian'?'WÄCHTER':'SEELENZEHRER';
+      tag.title=role==='guardian'?'Wächter · Schild, Heilung und Gegenschlag':
+        'Seelenzehrer · Essenz, Seelenstoß und Seelenbund';
+      tag.setAttribute('aria-label',tag.title);
+      slot.appendChild(tag);
+    }
     if(role==='soul'&&c.condensed>0){
       const badge=document.createElement('span');badge.className='ad183-condense-badge';
       badge.textContent='+'+Math.floor(c.condensed*.5)+' ⚔';

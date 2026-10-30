@@ -6,6 +6,8 @@ const browser=require('../assets/duo-card-catalog-v160.json');
 const server=require('../supabase/functions/arcane-duo-v2/catalog.json');
 const round10=n=>Math.round(n/10)*10;
 const ids=new Set(baseline.guardianIds);
+const transfers=require('../assets/role-transfer-v216-manifest.json');
+const shifted=new Set([...transfers.guardian,...transfers.soul,...transfers.combatant]);
 function snapshot(seed=21200042){return boot({seed}).run(`({cards:CARDS.map(c=>({
  id:c.id,role:c.role,level:c.level,rpg:c.rpg,retired:c.retired,
  fusionOnly:c.fusionOnly,ace:c.ace,essenceMonster:c.essenceMonster,
@@ -13,7 +15,7 @@ function snapshot(seed=21200042){return boot({seed}).run(`({cards:CARDS.map(c=>(
  version:GUARDIAN_BASE_BALANCE.version,
  loadedDecks:profile?.activeDeck?.length,
  savedProfileVersion:profile?.version})`);}
-test('Exactly 84 eligible Guardian cards receive v17.8 95% 22/78 rebalance; no other monster changed',()=>{
+test('Original 84 Guardians keep v21.2 stats; only 21 explicitly transferred roles change further',()=>{
  const current=snapshot(),cards=current.cards;
  assert.equal(current.version,'21.2');
  assert.equal(cards.length,baseline.cards.length);
@@ -22,7 +24,7 @@ test('Exactly 84 eligible Guardian cards receive v17.8 95% 22/78 rebalance; no o
  for(let i=0;i<cards.length;i++){
   const c=cards[i],old=baseline.cards[i],isGuardian=
    c.role==='guardian'&&c.rpg===true&&!c.retired&&!c.fusionOnly&&!c.ace&&!c.essenceMonster&&
-   Number.isInteger(c.level)&&c.level>=1&&c.level<=10;
+   Number.isInteger(c.level)&&c.level>=1&&c.level<=10&&!shifted.has(i);
   assert.equal(c.id,i,'Card IDs are unchanged');
   assert.equal(ids.has(i),isGuardian,'Eligibility must match the fixed pre-balance roster');
   const expected=old.slice();
@@ -36,7 +38,7 @@ test('Exactly 84 eligible Guardian cards receive v17.8 95% 22/78 rebalance; no o
    assert.ok(expected[0]>=floor&&expected[1]>=floor,'Guardian template floors are safe');
    affected.push({id:i,level:c.level,oldAtk:old[0],atk:c.atk});
   }
-  assert.deepEqual([c.atk,c.def],expected,'Unintended base stat change for ID '+i);
+  if(!shifted.has(i))assert.deepEqual([c.atk,c.def],expected,'Unintended base stat change for ID '+i);
  }
  assert.equal(affected.length,84);
  assert.ok(affected.some(c=>c.level===1)&&affected.some(c=>c.level===5)&&
