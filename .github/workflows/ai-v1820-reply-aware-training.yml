@@ -1,0 +1,248 @@
+name: Arcane Duel - v18.2 Reply-Aware Tactical Champion Training
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-v1820-reply-aware-training.yml'
+      - 'tests/ai-v1820-live-training.test.cjs'
+      - 'tests/ai-v1820-selfplay.cjs'
+      - 'tests/ai-v1820-endgame-cold.cjs'
+      - 'tests/ai-v1820-compare.cjs'
+      - 'tests/helpers/research-ai-v182.cjs'
+      - 'tests/helpers/game-runtime.cjs'
+      - 'tests/ai-v1820-attack-aggregate.cjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preflight:
+    name: Verify live AI ${{ matrix.cohort }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        cohort: [baseline, optimized]
+    env:
+      ARCANE_RESEARCH_BALANCE_V169: control10
+      ARCANE_RESEARCH_GUARDIAN_STATS_V178: control
+      ARCANE_V1820_COHORT: ${{ matrix.cohort }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify no double-stat rebalance, actual live rules and legal KI actions
+        run: |
+          set -euo pipefail
+          for f in tests/helpers/{game-runtime,research-guardian-counter-v177}.cjs tests/ai-v1820-{selfplay,aggregate,Q,endgame-cold,endgame-posttrain,rule-audit,compare,attack-aggregate,live-training.test}.cjs; do node --check "$f"; done
+          node --test tests/ai-v1820-live-training.test.cjs
+          env -u ARCANE_RESEARCH_GUARDIAN_STATS_V178 -u ARCANE_RESEARCH_GUARDIAN_CAUSAL_V174 node --test tests/soul-bond-v206.test.cjs tests/opening-predator-v205.test.cjs
+          env -u ARCANE_RESEARCH_GUARDIAN_STATS_V178 -u ARCANE_RESEARCH_GUARDIAN_CAUSAL_V174 ARCANE_RESEARCH_BALANCE_V169=predator15Triad90 node tests/ai-v1690-mechanics.test.cjs
+          node tests/ai-v1820-rule-audit.cjs
+          node - <<'JS'
+          const assert=require('node:assert/strict');
+          const v=require('./tests/helpers/research-ai-v182.cjs');
+          assert.equal(process.env.ARCANE_RESEARCH_BALANCE_V169,'control10');
+          assert.ok(v.MODES.includes(v.mode()));
+          console.log('ARCANE_V1820_LIVE_RULES_SEALED '+JSON.stringify({rule:'actualSoloCombat',policyCohort:v.mode(),extraStatNerf:false,counter35SurvivorOnly:true,guardianHealFull:true}));
+          JS
+      - name: Preserve frozen Champion and reset learning from old balance
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARCANE_PREVIOUS_ARTIFACT_DIR: /tmp/arcane-v1700-frozen
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40927268085" --jq '.conclusion')" = success
+          root="artifacts/v1820/$ARCANE_V1820_COHORT"
+          mkdir -p "$ARCANE_PREVIOUS_ARTIFACT_DIR" "$root"
+          gh run download 40927268085 --repo "$GITHUB_REPOSITORY" --name arcane-v1700-input-cold --dir "$ARCANE_PREVIOUS_ARTIFACT_DIR"
+          for f in historical-train.json frozen-v1555-champion.json incumbent-policy.json older-q-checkpoint.json previous-training-q.json prior-selfplay-checkpoint.json provenance.json research-balanced-policy.json v1499-prior-q.json; do
+            test -s "$ARCANE_PREVIOUS_ARTIFACT_DIR/$f"
+            cp "$ARCANE_PREVIOUS_ARTIFACT_DIR/$f" "$root/$f"
+          done
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict'),path=require('node:path');
+          const base=process.env.ARCANE_PREVIOUS_ARTIFACT_DIR,cohort=process.env.ARCANE_V1820_COHORT;
+          const prior=JSON.parse(fs.readFileSync(path.join(base,'training-q-and-examples.json'),'utf8'));
+          assert.equal(prior.length,3);
+          const accepted=prior.map(x=>({label:x.label,swarm:x.swarm,pierce:x.pierce,learnedQ:x.learnedQ}));
+          assert.ok(accepted.every(x=>x.learnedQ&&Object.keys(x.learnedQ).length));
+          fs.writeFileSync('artifacts/v1820/'+cohort+'/previous-training-q.json',JSON.stringify(accepted,null,2)+'\n');
+          console.log('ARCANE_V1820_PRIORS_TRAIN_ONLY '+cohort);
+          JS
+          node tests/ai-v1820-endgame-cold.cjs
+          node --expose-gc --max-old-space-size=3200 tests/ai-v1820-Q.cjs
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const root='artifacts/v1820/'+process.env.ARCANE_V1820_COHORT+'/';
+          const x=JSON.parse(fs.readFileSync(root+'endgame-learner.json'));
+          a.equal(x.sourceRun,0);a.equal(x.ruleChangeReset,true);a.equal(x.nonzero,0);
+          a.equal(x.holdoutUsed,false);a.equal(x.validationUsed,false);
+          a.equal(JSON.parse(fs.readFileSync(root+'training-q-and-examples.json')).length,3);
+          JS
+      - name: Run seed-and-seat matched smoke duels
+        run: |
+          set -euo pipefail
+          root="artifacts/v1820/$ARCANE_V1820_COHORT"
+          node --expose-gc --max-old-space-size=2400 tests/ai-v1820-selfplay.cjs 0 0
+          node --expose-gc --max-old-space-size=2400 tests/ai-v1820-selfplay.cjs 8 0 0
+          node - <<'JS'
+          const fs=require('node:fs'),a=require('node:assert/strict');
+          const root='artifacts/v1820/'+process.env.ARCANE_V1820_COHORT+'/';
+          const basic=JSON.parse(fs.readFileSync(root+'stage-0-pair-0.json'));
+          const focus=JSON.parse(fs.readFileSync(root+'stage-8-pair-0-chunk-0.json'));
+          a.ok(basic.cases.length>0&&basic.cases.every(x=>x.illegalSwitchesBySeat.every(n=>n===0)));
+          a.equal(focus.cases.length,144);
+          a.ok(focus.cases.some(x=>x.arm.startsWith('defender-v1820-')));
+          a.ok(focus.cases.every(x=>x.offenseBySeat&&x.offenseBySeat.length===2),'real attack telemetry per seat missing');
+          a.ok(focus.cases.every(x=>x.guardianV178Setup&&x.guardianV178Setup.adjusted.length===2),'v17.8 per-side treatment missing');
+          a.ok(focus.cases.every(x=>x.guardianV178Combat===null||x.guardianV178Combat.hits.length===2),'v17.8 counterstrike metrics malformed');
+          a.ok(focus.cases.every(x=>!x.guardianV178Combat||!x.guardianV178Combat.counterRaw||x.guardianV178Combat.counterRaw.guardian.every((v,i)=>v>=x.guardianV178Combat.counter.guardian[i])));
+          JS
+          rm -f "$root"/stage-*.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1820-input-${{ matrix.cohort }}
+          path: artifacts/v1820/${{ matrix.cohort }}/
+          retention-days: 90
+          if-no-files-found: error
+
+  research:
+    name: AITraining ${{ matrix.cohort }} - stage ${{ matrix.stage }}
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        cohort: [baseline, optimized]
+        stage: [0,1,2,3,4,5,6,7,8,9,10]
+    env:
+      ARCANE_RESEARCH_BALANCE_V169: control10
+      ARCANE_RESEARCH_GUARDIAN_STATS_V178: control
+      ARCANE_V1820_COHORT: ${{ matrix.cohort }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1820-input-${{ matrix.cohort }}
+          path: artifacts/v1820/${{ matrix.cohort }}
+      - name: Replay matched live-rule AI duels with legal attack override telemetry
+        env:
+          ARCANE_STAGE: ${{ matrix.stage }}
+        run: |
+          set -euo pipefail
+          stage="$ARCANE_STAGE"
+          chunks=1
+          if [ "$stage" = 4 ] || [ "$stage" = 7 ]; then chunks=4; fi
+          if [ "$stage" -ge 8 ]; then chunks=2; fi
+          for pair in 0 1 2 3 4 5 6 7; do
+            if [ "$chunks" -eq 1 ]; then
+              node --expose-gc --max-old-space-size=2400 tests/ai-v1820-selfplay.cjs "$stage" "$pair"
+            else
+              for ((chunk=0;chunk<chunks;chunk++)); do
+                node --expose-gc --max-old-space-size=2400 tests/ai-v1820-selfplay.cjs "$stage" "$pair" "$chunk"
+              done
+            fi
+          done
+          node --max-old-space-size=3200 tests/ai-v1820-selfplay.cjs "$stage" finalize
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-v1820-${{ matrix.cohort }}-stage-${{ matrix.stage }}
+          path: artifacts/v1820/${{ matrix.cohort }}/stage-${{ matrix.stage }}*.json
+          retention-days: 90
+          if-no-files-found: warn
+
+  aggregate:
+    name: AITraining ${{ matrix.cohort }} - champion gates and TRAIN learner
+    needs: [preflight, research]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        cohort: [baseline, optimized]
+    env:
+      ARCANE_RESEARCH_BALANCE_V169: control10
+      ARCANE_RESEARCH_GUARDIAN_STATS_V178: control
+      ARCANE_V1820_COHORT: ${{ matrix.cohort }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1820-input-${{ matrix.cohort }}
+          path: artifacts/v1820/${{ matrix.cohort }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: arcane-v1820-${{ matrix.cohort }}-stage-*
+          merge-multiple: true
+          path: artifacts/v1820/${{ matrix.cohort }}
+      - name: Validate 23040 duels, strict promotion gates and TRAIN-only model
+        run: |
+          set -euo pipefail
+          node --max-old-space-size=3200 tests/ai-v1820-aggregate.cjs
+          node --max-old-space-size=3200 tests/ai-v1820-attack-aggregate.cjs
+          ARCANE_PREVIOUS_ARTIFACT_DIR="artifacts/v1820/$ARCANE_V1820_COHORT" node tests/ai-v1820-endgame-posttrain.cjs
+          node - <<'JS'
+          const a=require('node:assert/strict'),fs=require('node:fs');
+          const root='artifacts/v1820/'+process.env.ARCANE_V1820_COHORT+'/';
+          const r=JSON.parse(fs.readFileSync(root+'report.json')),n=JSON.parse(fs.readFileSync(root+'next-run-endgame-learner.json'));
+          a.equal(r.status,'completed');a.equal(r.totalDuels,23040);
+          const aStats=JSON.parse(fs.readFileSync(root+'attack-telemetry.json'));
+          a.equal(aStats.totalGames,23040);a.ok(aStats.sample.allAttacks>0);a.equal(r.stages.length,11);a.equal(r.arms.length,6);
+          a.equal(r.globalSelection.holdoutSeenBySelector,false);a.ok(r.controls.holdoutNeverUsedForSelection&&r.controls.noProductionChanges);
+          a.equal(n.split,'train');a.equal(n.validationUsed,false);a.equal(n.holdoutUsed,false);
+          console.log('ARCANE_V1820_CAUSAL_HEALING_REPORT '+JSON.stringify({cohort:process.env.ARCANE_V1820_COHORT,games:r.totalDuels,promotion:r.globalSelection.promoted,contexts:n.nonzero}));
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-v1820-report-${{ matrix.cohort }}
+          path: |
+            artifacts/v1820/${{ matrix.cohort }}/report.json
+            artifacts/v1820/${{ matrix.cohort }}/stage-8.json
+            artifacts/v1820/${{ matrix.cohort }}/attack-telemetry.json
+            artifacts/v1820/${{ matrix.cohort }}/next-run-endgame-learner.json
+            artifacts/v1820/${{ matrix.cohort }}/endgame-learner.json
+          retention-days: 90
+          if-no-files-found: warn
+
+  compare:
+    name: Compare reply-aware legal actions, frozen Champion and HOLDOUT
+    needs: aggregate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1820-report-baseline
+          path: artifacts/v1820/baseline
+      - uses: actions/download-artifact@v4
+        with:
+          name: arcane-v1820-report-optimized
+          path: artifacts/v1820/optimized
+      - name: Verify 46080 duels, reply-aware tactical action traces and Champion/HOLDOUT gates
+        run: |
+          set -euo pipefail
+          node tests/ai-v1820-compare.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arcane-v1820-live-ai-baseline-optimized-comparison
+          path: artifacts/v1820/ai-comparison.json
+          retention-days: 90
+          if-no-files-found: error
