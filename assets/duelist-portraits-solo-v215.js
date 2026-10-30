@@ -72,6 +72,23 @@
    if(foe.profileLine)body.append(el('small',null,foe.profileLine));
    card.append(body);roster.append(card);
   }
+  for(let stage=1;stage<=5;stage++){
+   const card=el('article','ad215-npc-card');
+   card.append(portraits.node(portraits.soloOpponent(1,false,stage),'Level-1-Fanatiker'));
+   const body=el('div');
+   body.append(el('strong',null,'Der Level-1-Fanatiker'));
+   body.append(el('small',null,'Fanatiker-Saga · Prüfung '+stage+' von 5'));
+   card.append(body);roster.append(card);
+  }
+  for(const [id,name,desc] of [
+   ['solo-secret-eiman','Eiman Huel Stalker','Geheimduellant'],
+   ['solo-wanderer','Wandernder Duellant','Zufällige Begegnungen']]){
+    const card=el('article','ad215-npc-card');
+    card.append(portraits.node(id,name));
+    const body=el('div');
+    body.append(el('strong',null,name));body.append(el('small',null,desc));
+    card.append(body);roster.append(card);
+  }
   section.append(roster);host.append(section);
  }
  function decorateDuel(){
@@ -80,7 +97,7 @@
   if(game.mode==='pve'){
    portraits.replace(own,portraits.sanitizeHero(profile.avatarId),profile.duelistName,'ad215-duel-pic');
    const opponent=OPPONENTS[game.opponentId];
-   portraits.replace(enemy,portraits.soloOpponent(game.opponentId,!!game.showcase),
+   portraits.replace(enemy,portraits.soloOpponent(game.opponentId,!!game.showcase,game.lv1Saga?.stage||0,game.context==='encounter'),
     game.showcase?'Geheimduellant':opponent?.name,'ad215-duel-pic');
    const ownName=document.getElementById('myName');
    if(ownName)ownName.textContent=profile.duelistName||'Duellant';
