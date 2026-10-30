@@ -1,0 +1,29 @@
+name: Arcane Duel - v18.6 Live Solo AI Bridge Verification
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ai-solo-v186-integration-check.yml'
+      - 'assets/ai-production-bridge-v186.js'
+      - 'tests/ai-live-integration-v186.test.cjs'
+      - 'assets/ai-branch-trainer-v59.js'
+      - 'assets/game.js'
+      - 'assets/essence-combat.js'
+      - 'index.html'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    name: Test real solo rules, live AI and private-information safety
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assert Node runtime and run true-game VM tests
+        run: |
+          set -euo pipefail
+          node --version
+          node --check assets/ai-production-bridge-v186.js
+          node --test tests/ai-live-integration-v186.test.cjs
+          node --test tests/opening-predator-v205.test.cjs tests/soul-bond-v206.test.cjs
