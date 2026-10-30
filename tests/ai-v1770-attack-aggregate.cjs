@@ -24,7 +24,7 @@ for(let stage=0;stage<11;stage++){
   if(!m||m.length!==2||!m.every(q=>q&&typeof q==='object'))report.attackMetricsMissing++;
   assert.ok(m&&m.length===2,'All v17.5 matches require real attack telemetry');
   assert.ok(x.seat===0||x.seat===1,'Candidate seat must be 0 or 1');
-  assert.ok(Array.isArray(x.guardianHealMetrics?.turnsByOwner));
+  assert.ok(x.guardianV177Setup&&x.guardianV177Setup.adjusted.length===2,'v17.7 side-selective stat treatment missing');
   report.totalGames++;row.games++;row.candidateWins+=x.win;
   report.turnsSum+=Number(x.turn||0);
   if(x.illegalSwitchesBySeat?.some(v=>v!==0))report.invalid++;
