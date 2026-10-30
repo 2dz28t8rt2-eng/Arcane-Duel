@@ -148,6 +148,6 @@ test('first completed Fanatiker quest grants Level-1 research to both teammates 
  const sql=read('supabase/migrations/202610270001_arcane_duo_v2_ten_chapters_fanatic_saga.sql');
  assert.match(sql,/for v_profile in[\s\S]*?new\.host_profile_id,new\.guest_profile_id/);
  assert.match(sql,/v_chapter >= 11 and \([\s\S]*?questPassed/);
- assert.match(sql,/v_chapter=11 and v_first then[\s\S]*?lv1_research=/);
+ assert.match(sql,/lv1_research=case when v_chapter=11 and v_first then/);
  assert.match(sql,/p\.lv1_research\|\|'\{"perk":true\}'::jsonb/);
 });
