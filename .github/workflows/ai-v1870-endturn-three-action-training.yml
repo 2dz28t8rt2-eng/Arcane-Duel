@@ -43,6 +43,9 @@ jobs:
       - name: Verify no double-stat rebalance, actual live rules and legal KI actions
         run: |
           set -euo pipefail
+          # Research runs remain guarded by the current Solo/Duo parity.
+          # Fail early if another development commit is only half-synchronized.
+          cmp assets/duo-shared-rules-v160.js supabase/functions/arcane-duo-v2/duo-rules.js
           for f in tests/helpers/{game-runtime,research-guardian-counter-v177}.cjs tests/ai-v1870-{selfplay,aggregate,Q,endgame-cold,endgame-posttrain,rule-audit,compare,attack-aggregate,live-training.test}.cjs; do node --check "$f"; done
           node --test tests/ai-v1870-live-training.test.cjs tests/ai-v1870-mechanics-knowledge.test.cjs tests/ai-v1870-seed-contract.test.cjs
           env -u ARCANE_RESEARCH_GUARDIAN_STATS_V178 -u ARCANE_RESEARCH_GUARDIAN_CAUSAL_V174 node --test tests/soul-bond-v206.test.cjs tests/opening-predator-v205.test.cjs
