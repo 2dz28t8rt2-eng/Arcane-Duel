@@ -291,7 +291,7 @@ once('       tacticalCorrection+=correction*.75;','       tacticalCorrection+=co
   '   }'
  ];
  const tacticalAnchor='"   const defenseCfg=scene.rolePolicy;",';
- once(tacticalAnchor,tacticalLines.map(x=>JSON.stringify(x)).join(',\n'));
+ once(tacticalAnchor,tacticalLines.map(x=>JSON.stringify(x)).join(',\n')+',');
  // Preserve per-duel action-difference telemetry alongside recorded REAL
  // attacks; these numbers cannot be created by hypothetical attack clones.
  once('      candidateActionMix:m.stats.selfPlayActionTypesBySeat[seat],',
