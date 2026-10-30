@@ -97,6 +97,15 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster
    const needle='const mitigation=isDefender(d)?.35:0;';if(!code.includes(needle))throw Error('Armor control hook changed');
    code=code.replace(needle,'const mitigation=isDefender(d)?(q.id===0?0:.35):0;');
   }
+  // v17.7 offline-only observed counterstrike and survival instrumentation.
+  if(file==='assets/essence-combat.js'&&process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V177){
+   if(process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V176||
+      process.env.ARCANE_RESEARCH_GUARDIAN_CAUSAL_V174||
+      process.env.ARCANE_RESEARCH_GUARDIAN_HEAL||
+      process.env.ARCANE_RESEARCH_GUARDIAN_SCALE_V173)
+    throw Error('v17.7 must not stack historical stat/healing overlays');
+   code=require('./research-guardian-counter-v177.cjs').transformCombat(code);
+  }
   vm.runInContext(code,ctx,{filename:file,timeout:30000});
  }
  // All late card/role synchronization scripts must finish BEFORE research
@@ -106,6 +115,10 @@ function boot({seed=1,withoutArmor=false,withoutFusionRework=false,withoutRoster
   if(typeof ctx.__arcaneResearchGuardianStatsApply!=='function')
    throw Error('Guardian stat research apply function missing after asset load');
   ctx.__arcaneResearchGuardianStatsApply();
+ }
+ if(process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V177){
+  const research=require('./research-guardian-counter-v177.cjs');
+  vm.runInContext(research.installScript(research.mode()),ctx,{filename:'v17.7-guardian-stats-runtime.cjs',timeout:30000});
  }
  return {ctx,storage,scripts,run(code,timeout=120000){return JSON.parse(vm.runInContext('JSON.stringify(('+code+'))',ctx,{timeout}));},exec(code,timeout=120000){return vm.runInContext(code,ctx,{timeout});},advanceClock(ms=1000){clock+=ms;}};
 }
