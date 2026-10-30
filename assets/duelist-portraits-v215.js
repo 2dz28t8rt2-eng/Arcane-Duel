@@ -40,8 +40,11 @@
  function normalDuo(chapter,seat,selected=[],seed='duo'){
   const c=Number(chapter),s=Number(seat);
   if(!Number.isInteger(c)||c<1||c>9||![1,3].includes(s))return null;
-  const pool=permutation('duo:'+seed+':'+c,selected);
-  return pool[s===1?0:1]||null;
+  // Assign the shuffled pool across the entire duo campaign, not anew on
+  // every chapter. Every available image is used before any repeat is needed.
+  // Eighteen ordinary opponent seats can outnumber the ten unchosen pictures.
+  const pool=permutation('duo:'+seed,selected);
+  return pool.length?pool[((c-1)*2+(s===1?0:1))%pool.length]:null;
  }
  function soloOpponent(id,secret=false,stage=0,encounter=false){
   if(secret)return 'story-eiman';
