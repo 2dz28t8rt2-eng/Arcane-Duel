@@ -90,3 +90,50 @@
 .ad207-soul-abilities .ad207-soul-action{padding:9px 10px;color:#f7edff;background:#493064;border:1px solid #9871c5;border-radius:9px;cursor:pointer}
 .ad207-soul-abilities .ad207-soul-action:disabled{opacity:.42;cursor:not-allowed}
 .ad207-soul-abilities .ad207-soul-target{max-width:100%;padding:9px;background:#28213b;color:#f5eaff;border:1px solid #8466ae;border-radius:8px}
+
+/* Solo/Duo 20.10 parity: cooperative board zoom, visible shared LP, and
+   one-time friendly Rudelführer introduction. Server state is unaffected. */
+#duoBattleArena .stats{
+ position:sticky;top:6px;z-index:55;
+ padding:7px;border:1px solid #ceb37a82;border-radius:12px;
+ background:#111c31f2;box-shadow:0 8px 24px #070a18a6;
+ backdrop-filter:blur(12px);
+}
+.ad204-zoom-controls{
+ display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;
+ gap:10px;margin:12px 0 9px;padding:9px 13px;
+ border:1px solid #b69f715b;border-radius:9px;
+ background:linear-gradient(105deg,#233349,#171e31);
+ color:#ecdfbe;font:700 12px/1.4 system-ui;
+}
+.ad204-zoom-controls label{margin-right:auto}
+.ad204-zoom-controls input{width:min(190px,38vw);accent-color:#e9c783;cursor:pointer}
+.ad204-zoom-controls output{min-width:48px;text-align:right;font-variant-numeric:tabular-nums}
+#duoSeats{transform-origin:top center}
+.ad204-leader-guide-backdrop{
+ position:fixed;inset:0;z-index:1200;display:grid;place-items:center;
+ padding:20px;background:#050916d9;backdrop-filter:blur(6px);
+}
+.ad204-leader-guide{
+ box-sizing:border-box;width:min(530px,100%);max-height:90dvh;overflow-y:auto;
+ border:2px solid #f1c779;border-radius:17px;padding:25px 27px;
+ background:radial-gradient(ellipse at top,#41344b,#18263b 75%);
+ box-shadow:0 25px 75px #000d,0 0 35px #e3b96955;
+ color:#f8eacc;font:400 14px/1.6 system-ui;
+}
+.ad204-leader-guide small{letter-spacing:.12em;color:#ffd58f;font-weight:900}
+.ad204-leader-guide h2{font:700 clamp(22px,3.5vw,29px)/1.2 Georgia,serif;color:#ffe0a1}
+.ad204-leader-guide p{margin:12px 0}
+.ad204-leader-guide button{
+ margin-top:13px;padding:11px 17px;background:linear-gradient(135deg,#d4ab63,#805b35);
+ color:#172033;border:1px solid #ffe1a4;border-radius:9px;font-weight:850;cursor:pointer
+}
+@media(max-width:600px){
+ #duoBattleArena .stats{top:0;padding:4px;gap:5px}
+ .ad204-zoom-controls{justify-content:center}
+ .ad204-zoom-controls label{flex-basis:100%;text-align:center}
+ .ad204-leader-guide{padding:18px}
+}
+@media(prefers-reduced-motion:reduce){
+ .ad204-leader-guide-backdrop{backdrop-filter:none}
+}
