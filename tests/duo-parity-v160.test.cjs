@@ -721,6 +721,8 @@ test('Defense essence saves one allied defender as a chapter-limited Last Bastio
   'Second allied defender cannot claim an already-used chapter safeguard');
  state.status='finished';state.winner=0;state.activeSeat=0;
  state=move(state,0,{type:'nextChapter'});
+ assert.equal(state.status,'inviting_next');
+ state=move(state,2,{type:'acceptNextChapter'});
  assert.equal(state.teams[0].essenceBastionUsed,false);
  assert.equal(state.teams[0].essenceTauntTurn,-1);
 });
@@ -918,6 +920,8 @@ test('ghosts and queued Lv1 effects reset between campaign chapters',()=>{
   ghostSlots:[live(4)],charges:3,choices:[4],offers:[4],floatUsed:3,swarmUsed:5};
  state.status='finished';state.winner=0;
  state=move(state,0,{type:'nextChapter'});
+ assert.equal(state.status,'inviting_next');
+ state=move(state,2,{type:'acceptNextChapter'});
  assert.equal(state.players[0].lv1.perk,true);
  assert.deepEqual(state.players[0].lv1.ghostSlots,[]);
  assert.deepEqual(state.players[0].lv1.choices,[]);
