@@ -34,7 +34,7 @@ jobs:
       - name: Verify side-specific 22/78 Guardian instances, real counterstrike LP and survivor events
         run: |
           set -euo pipefail
-          for f in tests/helpers/{game-runtime,research-guardian-stats-v176}.cjs tests/ai-v1770-{selfplay,aggregate,Q,endgame-cold,endgame-posttrain,rule-audit,guardian-stat-compare,attack-aggregate,guardian-stats.test}.cjs; do node --check "$f"; done
+          for f in tests/helpers/{game-runtime,research-guardian-counter-v177}.cjs tests/ai-v1770-{selfplay,aggregate,Q,endgame-cold,endgame-posttrain,rule-audit,guardian-counter-compare,attack-aggregate,guardian-counter.test}.cjs; do node --check "$f"; done
           node --test tests/ai-v1770-guardian-counter.test.cjs
           env -u ARCANE_RESEARCH_GUARDIAN_STATS_V177 -u ARCANE_RESEARCH_GUARDIAN_CAUSAL_V174 node --test tests/soul-bond-v206.test.cjs tests/opening-predator-v205.test.cjs
           env -u ARCANE_RESEARCH_GUARDIAN_STATS_V177 -u ARCANE_RESEARCH_GUARDIAN_CAUSAL_V174 node tests/ai-v1690-mechanics.test.cjs
