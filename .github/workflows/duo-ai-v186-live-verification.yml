@@ -1,0 +1,26 @@
+name: Arcane Duel - v18.6 2v2 Live NPC Integration QA
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/duo-ai-v186-live-verification.yml'
+      - 'assets/duo-shared-rules-v160.js'
+      - 'supabase/functions/arcane-duo-v2/duo-rules.js'
+      - 'tests/duo-ai-v186-integration.test.cjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    name: Both NPC seats, fusions, soul skills, story integrity and reducer parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Execute authoritative 2v2 research-to-live tests
+        run: |
+          set -euo pipefail
+          node --version
+          node --check assets/duo-shared-rules-v160.js
+          cmp assets/duo-shared-rules-v160.js supabase/functions/arcane-duo-v2/duo-rules.js
+          node --test tests/duo-ai-v186-integration.test.cjs tests/duo-single-parity-v201.test.cjs tests/duo-parity-v160.test.cjs
