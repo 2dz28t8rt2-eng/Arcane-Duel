@@ -130,7 +130,7 @@ test('2v2 uses every remaining portrait before reuse across ordinary chapters',(
   for(const seat of [1,3])
    seen.push(P.visualDuo({chapter,seat,selected:chosen}));
  assert.equal(new Set(seen).size,available.length);
- assert.deepEqual([...seen].sort(),available.sort());
+ assert.deepEqual([...seen].sort(),[...available].sort());
  assert.equal(P.visualDuo({chapter:6,seat:1,selected:chosen}),seen[0]);
  assert.equal(P.visualDuo({chapter:6,seat:3,selected:chosen}),seen[1]);
 });
