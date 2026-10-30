@@ -118,6 +118,8 @@
  function actualInfo(set){
   const {g,levels,materials,pending}=set;
   if(pending)return {pending:true,level:dataOf(set.card).level,levels};
+  const specialLv1=levels.length>=3&&levels.every(level=>level===1)&&
+   g.mode==='pve'&&g.active===0&&window.ArcaneLv1Swarm?.enabled?.(g)===true;
   const q=window.ArcaneFusionRework113.calculate(levels,g,materials);
   const pattern=window.ArcaneFusionMath.pattern(levels,materials.map(c=>dataOf(c).element));
   const quality=window.ArcaneFusionMath.tuned(g,levels,materials.map(c=>dataOf(c).element),materials);
@@ -125,15 +127,21 @@
   // Actual quality uses the highest-level material, independently of a manual core.
   const qualityPenalty=quality.streetProtection?0:
    Number.isFinite(quality.materialDistance)?Math.min(.22,quality.materialDistance*.055):q.penalty;
-  const options=fusionOptions(g,levels,materials).filter(c=>c.level>=2).sort((a,b)=>b.level-a.level||b.atk-a.atk);
+  // Quest Lv1 fusion templates are legal for 3–5 genuine Lv1 materials.
+  // Never hide them behind the ordinary Lv2 minimum or a full-field dead end.
+  const options=fusionOptions(g,levels,materials)
+   .filter(c=>specialLv1||c.level>=2)
+   .filter(c=>canCompleteHandFusion(g,levels,c.id))
+   .sort((a,b)=>b.level-a.level||b.atk-a.atk);
+  const specialTemplates=options.filter(c=>c.lv1Exclusive);
   const best=options[0]||null;
   const forecast=best&&typeof fusionPreview==='function'?fusionPreview(g,best,materials,levels):null;
   const role=window.ArcaneRoleFusion?.inheritance?.(materials)||'resonator';
-  return {q,pattern,quality,qualityPenalty,budget,best,forecast,role,levels,materials,pending:false};
+  return {q,pattern,quality,qualityPenalty,budget,best,forecast,role,levels,materials,specialLv1,specialTemplates,pending:false};
  }
  function explanationText(info){
   if(info.pending)return '<p>Die Handfusion ist schon vorbereitet: <b>Level '+info.level+'</b>. Die Vorlage wurde dabei verbraucht. Die endgültigen Kampfwerte werden erst bei der Enthüllung beziehungsweise Platzierung angezeigt. Für eine neue Materialanalyse kannst du die vorbereitete Fusion gegebenenfalls zurücknehmen.</p>';
-  const {q,pattern,quality,qualityPenalty,budget,best,forecast,role,levels,materials}=info;
+  const {q,pattern,quality,qualityPenalty,budget,best,forecast,role,levels,materials,specialLv1,specialTemplates}=info;
   const core=materials[q.coreIndex];
   const sum=levels.reduce((a,b)=>a+b,0);
   const main='<div class="ad213-status">'+
@@ -144,7 +152,8 @@
     '<span class="ad213-material '+(i===q.coreIndex?'is-core':'')+'">'+
     '<small>'+(i===q.coreIndex?'✦ Kernkarte':'Material '+(i+1))+'</small>'+
     '<b>LV '+levels[i]+'</b><small>'+esc(dataOf(c).name)+'</small></span>').join('')+'</div>';
-  const coreStep=levels.every(x=>x===1)?'Sonderstart: reine Lv-1-Materialien ermöglichen normalerweise Lv 2.':
+  const coreStep=specialLv1?'Quest-Sonderregel „Verbotene Forschung“: Drei bis fünf echte Lv-1-Karten erlauben exklusive Lv-1-Fusionsvorlagen. Die normale Levelrechnung ist hier nicht maßgeblich.':
+   levels.every(x=>x===1)?'Sonderstart: reine Lv-1-Materialien ermöglichen normalerweise Lv 2.':
    'Kernlevel '+q.core+' → geschützte Ausgangsstufe Lv '+q.floor+
    '. Passendstes Material: Lv '+q.first+'; Rangbeitrag '+(q.gain>=0?'+':'')+q.gain+
    (q.coreIsFusion?' (Kettenfusion steigt langsamer)':'')+'.';
@@ -153,6 +162,7 @@
    '<p><b>Zusätzliche Karten:</b> '+(q.bonus?'+1 Level durch passende Zusatzmaterialien beziehungsweise vollständige Fünferstraße.':'Kein weiterer Levelbonus.')+
    (q.resonatorBonus?' <b>+1 einmaliger Resonator-Kettenbonus.</b>':'')+'</p>'+
    '<p><b>Grenzen:</b> Materialsumme '+sum+'; allgemeine Grenze Lv 10. Damit ist maximal Lv '+budget+' erreichbar.'+
+   (specialLv1?' <b>Level-1-Forschung aktiv:</b> '+specialTemplates.length+' exklusive Lv-1-Vorlage(n) stehen für dieses Rezept rechtmäßig zur Auswahl.':'')+
    (best?' Die höchste noch freie Vorlage ist '+esc(best.name)+' auf Lv '+best.level+'.':' Es ist keine passende freie Vorlage vorhanden.')+'</p></div>';
   const weights=q.others?.length?'<p>Abstand der anderen Materiallevel zum gewählten Kern: '+
    q.others.map((lv,i)=>'Lv '+lv+' ('+Math.round((q.weights[i]||0)*100)+' % Gewicht)').join(' · ')+
@@ -187,7 +197,8 @@
   }
   const values='<div class="ad213-reason"><h3>3 · Welche Kampfwerte kann die Fusion bekommen?</h3>'+stats+'</div>';
   const advice='<div class="ad213-next"><strong>Was wäre jetzt sinnvoll?</strong><p>'+
-   (!best?'Du brauchst eine noch verfügbare, ausgerüstete Fusionsvorlage für ein erlaubtes Level.':
+   (specialLv1&&specialTemplates.length?'Für die verbotene Forschung kannst du eine der verfügbaren exklusiven Level-1-Fusionen auswählen. Die normale Levelgrenze erklärt dieses Quest-Rezept nicht.':
+   !best?'Du brauchst eine noch verfügbare, ausgerüstete Fusionsvorlage für ein erlaubtes Level.':
    best.level<budget?'Dein Materialbudget kann bereits mehr: Eine passende Fusionsvorlage auf einer höheren erlaubten Stufe würde das zusätzliche Level nutzbar machen.':
    qualityPenalty>.04?'Versuche Materiallevel näher an das höchste Materiallevel zu bringen oder eine vollständige Straße zu bilden, um den Qualitätsabzug zu senken.':
    budget<10?'Mit einem höheren Kern oder weiteren gut passenden Materialien kann das erlaubte Level steigen. Prüfe aber auch die Qualitäts- und Würfelboni.':
