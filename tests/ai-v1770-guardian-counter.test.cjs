@@ -17,8 +17,13 @@ function snapshot(cohort){
    const before=g.players.map(p=>({atk:p.hand[0].card.atk,def:p.hand[0].card.def}));
    const init=window.__guardianV177StartGame(g,0);
    const after=g.players.map(p=>({atk:p.hand[0].card.atk,def:p.hand[0].card.def}));
+   // Snapshot counts BEFORE new instances: the shared init object is mutated
+   // by the wrapped newInstance for every later summoned eligible card.
+   const initialAdjusted=init.adjusted.slice();
    const next=g.players.map((p,owner)=>newInstance(g,id,owner).card);
-   return {before,after,next,init,id,model:{atk:CARDS[id].atk,def:CARDS[id].def}};
+   const afterSpawnAdjusted=init.adjusted.slice();
+   return {before,after,next,initialAdjusted,afterSpawnAdjusted,
+     id,model:{atk:CARDS[id].atk,def:CARDS[id].def}};
   }.toString()+')()');
  }finally{if(prior===undefined)delete process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V177;
  else process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V177=prior;}
@@ -47,8 +52,14 @@ test('Actual initial hand and future newly summoned instances are side-isolated'
  assert.ok(own.after[0].atk+own.after[0].def<own.before[0].atk+own.before[0].def);
  assert.equal(own.next[0].atk,own.after[0].atk);
  assert.equal(enemy.next[1].atk,enemy.after[1].atk);
- assert.deepEqual(own.init.adjusted,[1,0]);
- assert.deepEqual(enemy.init.adjusted,[0,1]);
+ assert.deepEqual(none.initialAdjusted,[0,0]);
+ assert.deepEqual(none.afterSpawnAdjusted,[0,0]);
+ assert.deepEqual(own.initialAdjusted,[1,0]);
+ assert.deepEqual(own.afterSpawnAdjusted,[2,0],'New candidate instance counted once');
+ assert.deepEqual(enemy.initialAdjusted,[0,1]);
+ assert.deepEqual(enemy.afterSpawnAdjusted,[0,2],'New opponent instance counted once');
+ assert.deepEqual(both.initialAdjusted,[1,1]);
+ assert.deepEqual(both.afterSpawnAdjusted,[2,2]);
 });
 test('Counter and survival instrumentation is injected exclusively offline',()=>{
  const src=fs.readFileSync('assets/essence-combat.js','utf8');
