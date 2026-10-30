@@ -30,13 +30,15 @@ jobs:
           set -euo pipefail
           node scripts/build-duo-catalog-v160.cjs
           node scripts/build-duo-catalog-v160.cjs --check
-          node --test tests/guardian-balance-v212.test.cjs tests/duo-parity-v160.test.cjs
+          node scripts/build-duo-opponents-v201.cjs
+          node scripts/build-duo-opponents-v201.cjs --check
+          node --test tests/guardian-balance-v212.test.cjs tests/duo-parity-v160.test.cjs tests/duo-single-parity-v201.test.cjs
       - name: Commit canonical 2v2 catalogs with unchanged IDs
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/duo-card-catalog-v160.json supabase/functions/arcane-duo-v2/catalog.json
+          git add assets/duo-card-catalog-v160.json supabase/functions/arcane-duo-v2/catalog.json assets/duo-opponent-catalog-v201.json supabase/functions/arcane-duo-v2/opponents.json
           if ! git diff --cached --quiet; then
             git commit -m "chore(duo): synchronize 22/78 Guardian stats with Solo catalog [skip ci]"
             git push origin HEAD:development
