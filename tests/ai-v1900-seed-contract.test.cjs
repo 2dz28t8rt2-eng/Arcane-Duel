@@ -40,6 +40,6 @@ test('Stage 8 and 9 use fresh, paired, non-wrapped deck seeds',()=>{
   const maximum=Math.max(...cells.flatMap(c=>[c.seedA,c.seedB]));
   assert.ok(maximum<=9999,'Stage '+stage+' max '+maximum);
  }
- assert.match(seedAExpr,/stage===8\?760:stage===9\?320:0/);
- assert.match(seedBExpr,/stage===8\?760:stage===9\?320:0/);
+ assert.match(seedAExpr,/stage===8\?840:stage===9\?400:0/);
+ assert.match(seedBExpr,/stage===8\?840:stage===9\?400:0/);
 });
