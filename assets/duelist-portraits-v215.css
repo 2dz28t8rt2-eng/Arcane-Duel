@@ -1,0 +1,58 @@
+/* Portrait slots work before art uploads, on desktop and touch devices. */
+.ad215-portrait{position:relative;display:inline-flex;align-items:center;justify-content:center;
+ width:100%;height:100%;aspect-ratio:1/1;min-width:0;min-height:0;overflow:hidden;
+ border-radius:15px;background:linear-gradient(135deg,#293956 0%,#151a2e 55%,#5a3550 100%);
+ border:1px solid #9da9bf77;color:#e7eafa;vertical-align:middle;flex-shrink:0;
+ box-shadow:inset 0 0 30px #05091560;}
+.ad215-portrait[data-portrait$="-02"],.ad215-portrait[data-portrait$="-b"]{background:linear-gradient(140deg,#45304e,#172a37 85%);}
+.ad215-portrait[data-portrait$="-03"],.ad215-portrait[data-portrait$="-06"]{background:linear-gradient(140deg,#385047,#162336 85%);}
+.ad215-portrait[data-portrait$="-04"],.ad215-portrait[data-portrait$="-08"]{background:linear-gradient(140deg,#5b3c2b,#1d2639 85%);}
+.ad215-fallback{font-size:clamp(16px,2.7vw,30px);font-weight:800;letter-spacing:.08em;opacity:.8;
+ text-shadow:0 2px 14px #000b;}
+.ad215-portrait img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;
+ opacity:0;transition:opacity .2s ease;}
+.ad215-portrait img.ad215-loaded{opacity:1;}
+.ad215-portrait-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));
+ gap:12px;max-height:min(48vh,470px);overflow-y:auto;padding:4px;}
+.ad215-option{display:grid;gap:7px;justify-items:center;text-align:center;min-width:0;padding:9px;
+ border-radius:13px;border:1px solid #8293b24e;background:#171f32;color:#e4e8f7;
+ cursor:pointer;font:inherit;font-size:12px;}
+.ad215-option .ad215-portrait{width:100%;max-width:140px;}
+.ad215-option:hover,.ad215-option:focus-visible{border-color:#dab776;outline-offset:2px;}
+.ad215-option.selected{outline:2px solid #f3d18b;background:#2a3044;}
+.ad215-screen{position:fixed;z-index:18000;inset:0;display:grid;place-items:center;overflow:auto;
+ padding:18px;background:#060b18f0;}
+.ad215-screen[hidden]{display:none!important;}
+.ad215-panel{width:min(760px,100%);max-height:95vh;overflow:auto;background:#111a2b;
+ border:1px solid #657799;border-radius:19px;padding:clamp(16px,3vw,29px);color:#edf0fc;
+ box-shadow:0 14px 65px #0009;}
+.ad215-panel h2{margin:0 0 12px;}
+.ad215-panel p{line-height:1.5;}
+.ad215-panel input{display:block;width:100%;max-width:420px;box-sizing:border-box;
+ margin:8px 0 15px;padding:11px;border:1px solid #677d9e;border-radius:8px;}
+.ad215-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px;}
+.ad215-actions button{cursor:pointer;padding:10px 16px;border:1px solid #8d9bb3;border-radius:10px;
+ color:#f4f1df;background:#273854;}
+.ad215-actions .ad215-primary{background:#b49658;color:#151a2a;font-weight:700;}
+.ad215-mini{display:inline-flex;align-items:center;gap:10px;padding:7px 10px;border:1px solid #71829d88;
+ border-radius:13px;color:inherit;background:#182237;cursor:pointer;min-width:0;}
+.ad215-mini .ad215-portrait{width:50px;height:50px;}
+.ad215-mini span:last-child{min-width:0;overflow-wrap:anywhere;}
+.ad215-solo-header{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:10px 0;}
+.ad215-roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:15px;}
+.ad215-npc-card{display:flex;align-items:center;gap:11px;padding:10px;border:1px solid #69799255;
+ border-radius:12px;background:#151e30;}
+.ad215-npc-card>.ad215-portrait{width:68px;height:68px;}
+.ad215-npc-card strong{display:block;overflow-wrap:anywhere;}
+.ad215-npc-card small{display:block;opacity:.75;}
+.ad215-duel-pic{width:100%;height:100%;border-radius:inherit;}
+#myPortrait:has(.ad215-portrait),#enemyPortrait:has(.ad215-portrait){padding:0;overflow:hidden;}
+.ad215-duo-seat-head{display:flex;align-items:center;gap:12px;}
+.ad215-duo-seat-head>.ad215-portrait{width:68px;height:68px;}
+.ad215-duo-seat-head h3{margin:0;}
+.ad215-duo-profile-avatar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:10px 0;}
+.ad215-duo-profile-avatar>.ad215-portrait{width:68px;height:68px;}
+@media(max-width:540px){.ad215-portrait-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}
+ .ad215-duo-seat-head>.ad215-portrait{width:50px;height:50px;}
+ .ad215-npc-card>.ad215-portrait{width:55px;height:55px;}}
+@media(prefers-reduced-motion:reduce){.ad215-portrait img{transition:none;}}
