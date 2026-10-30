@@ -6,6 +6,7 @@ on:
       - 'assets/role-transfer-v216.js'
       - '.github/workflows/sync-role-transfer-v216.yml'
       - 'tests/helpers/game-runtime.cjs'
+      - 'tests/role-transfer-v216.test.cjs'
   workflow_dispatch:
 permissions:
   contents: write
