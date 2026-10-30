@@ -974,3 +974,18 @@ test('next chapter invitation may be rejected and reissued without changing deck
  assert.equal(state.status,'active');
  assert.equal(state.chapter,2);
 });
+
+test('partner may invite host to the next chapter and host can accept or decline',()=>{
+ let state=setup();state.status='finished';state.winner=0;
+ state=move(state,2,{type:'nextChapter'});
+ assert.equal(state.chapterInvite.from,'Partner');
+ assert.equal(state.chapterInvite.fromSeat,2);
+ assert.equal(state.chapterInvite.toSeat,0);
+ assert.throws(()=>move(state,2,{type:'acceptNextChapter'}),/Einladung/);
+ state=move(state,0,{type:'declineNextChapter'});
+ assert.equal(state.status,'finished');
+ state=move(state,2,{type:'nextChapter'});
+ state=move(state,0,{type:'acceptNextChapter'});
+ assert.equal(state.chapter,2);
+ assert.equal(state.status,'active');
+});
