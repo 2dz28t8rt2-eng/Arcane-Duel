@@ -8,12 +8,17 @@ test('Two explicit current-live-rules AI cohorts, no stacked Guardian research s
  assert.equal(process.env.ARCANE_RESEARCH_BALANCE_V169,'control10');
  assert.ok(v.MODES.includes(v.mode()));
  const src=fs.readFileSync('tests/ai-v1800-selfplay.cjs','utf8');
- assert.match(src,/const balance=require\('\.\/helpers\/research-ai-v179\.cjs'\)\.mode\(\);/);
+ assert.match(src,/const balance=require\('\.\/helpers\/research-ai-v180\.cjs'\)\.mode\(\);/);
  assert.match(src,/if\(balance==='optimized'\)/);
  assert.match(src,/defenderCriticalReplyPlanner:\.82/);
  assert.match(src,/defenderBondPlanner:\.96/);
  assert.match(src,/tacticalCorrection\+=correction\*\.87/);
  assert.match(src,/guardianV178Setup/);
+ assert.match(src,/defenderTacticalOverride:true/);
+ assert.match(src,/v1800TacticalOverrides/);
+ assert.match(src,/v1800LegalTrials/);
+ assert.match(src,/if\(!attack\(z,ai,di\)\)continue/);
+ assert.match(src,/stage===8\?610:stage===9\?290:0/);
 });
 test('Production catalogue has 762 cards and 84 Guardian reweights at 95%-22/78',()=>{
  const b=boot({seed:18000042}).run(`({
