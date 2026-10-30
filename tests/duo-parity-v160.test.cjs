@@ -144,7 +144,10 @@ test('Fate cards are one-time per duellant and all temporary cards disappear bet
  assert.deepEqual(noSecond.fateEvent,previous);
  assert.equal(noSecond.players[0].fateUsed,true);
  noSecond.status='finished';noSecond.winner=0;
- const chapter=move(noSecond,0,{type:'nextChapter'});
+ const offer=move(noSecond,0,{type:'nextChapter'});
+ assert.equal(offer.status,'inviting_next');
+ assert.equal(offer.chapter,1);
+ const chapter=move(offer,2,{type:'acceptNextChapter'});
  assert.equal(chapter.chapter,2);
  assert.equal(chapter.fateEvent,null);
  assert.ok(chapter.players.every(p=>p.fateUsed===false));
@@ -235,7 +238,7 @@ test('turn ownership, summon limits, position restrictions, draw to five and cor
  assert.equal(state.players[0].hand.length,5);
  assert.equal(state.players[0].field[0].switched,false);
 });
-test('fusion uses only own cards, consumes template and materials, and never consumes ally field',()=>{
+test('ordinary fusion uses owned materials, consumes template and does not touch unselected ally field',()=>{
  let state=setup();
  // The inventory includes at least one Lv2/3 early fusion.
  const levelOneHand=state.players[0].hand
@@ -276,6 +279,10 @@ test('chapter progression only after victory and deck exhaustion is a team loss'
  assert.equal(state.status,'finished');
  assert.equal(state.winner,0);
  state=move(state,0,{type:'nextChapter'});
+ assert.equal(state.chapter,1);
+ assert.equal(state.status,'inviting_next');
+ assert.throws(()=>move(state,0,{type:'acceptNextChapter'}),/Einladung|Sitzplatz|Annahme/);
+ state=move(state,2,{type:'acceptNextChapter'});
  assert.equal(state.chapter,2);
  assert.equal(state.status,'active');
  assert.equal(state.activeSeat,0);
@@ -595,6 +602,8 @@ test('pre-v16.3 rooms without perk fields still accept actions and chapter trans
  state=move(state,0,{type:'end'});
  assert.equal(state.status,'finished');
  state=move(state,0,{type:'nextChapter'});
+ assert.equal(state.status,'inviting_next');
+ state=move(state,2,{type:'acceptNextChapter'});
  assert.equal(state.status,'active');
  assert.equal(state.teams[0].shield,0);
 });
@@ -913,4 +922,51 @@ test('ghosts and queued Lv1 effects reset between campaign chapters',()=>{
  assert.deepEqual(state.players[0].lv1.ghostSlots,[]);
  assert.deepEqual(state.players[0].lv1.choices,[]);
  assert.equal(state.players[0].lv1.charges,0);
+});
+
+test('both human players can fuse allied field monsters without consuming the wrong inventory',()=>{
+ for(const seat of [0,2]){
+  let state=setup(),allySeat=seat===0?2:0;
+  const id=deck.find(id=>catalog[id].level===1);
+  const allyCard=live(id,{uid:934+seat,level:1});
+  state.players[allySeat].field[1]=allyCard;
+  const handIndex=state.players[seat].hand.findIndex(id=>catalog[id].level===1);
+  assert.ok(handIndex>=0,'Level-1 hand material required');
+  state.activeSeat=seat;state.players[seat].summoned=false;
+  const materials=[{from:'hand',index:handIndex},{from:'allyField',index:1}];
+  const available=rules.fusionOptions(state,seat,materials,catalog);
+  assert.ok(available.templates.length,JSON.stringify({seat,available}));
+  const templateId=available.templates[0];
+  const previousOwnGrave=state.players[seat].graveyard.length;
+  const previousAllyGrave=state.players[allySeat].graveyard.length;
+  state=move(state,seat,{type:'fusion',materials,slot:0,templateId});
+  assert.equal(state.players[seat].field[0].id,templateId);
+  assert.equal(state.players[seat].graveyard.length,previousOwnGrave+1);
+  assert.equal(state.players[allySeat].field[1],null);
+  assert.equal(state.players[allySeat].graveyard.length,previousAllyGrave+1);
+  assert.equal(state.players[seat].remainingFusion.includes(templateId),
+   fusions.filter(id=>id===templateId).length>1);
+ }
+});
+test('enemy seats cannot abuse allied human field fusion source and illegitimate materials never spend inventory',()=>{
+ const state=setup();
+ const original=JSON.stringify(state);
+ assert.throws(()=>rules.fusionOptions(state,1,[{from:'hand',index:0},{from:'allyField',index:0}],catalog),
+  /Nur menschliche Verbündete/);
+ assert.equal(JSON.stringify(state),original);
+});
+test('next chapter invitation may be rejected and reissued without changing decks',()=>{
+ let state=setup();state.status='finished';state.winner=0;
+ state=move(state,0,{type:'nextChapter'});
+ assert.equal(state.status,'inviting_next');
+ assert.equal(state.chapterInvite.from,'Hannes');
+ assert.throws(()=>move(state,0,{type:'declineNextChapter'}),/Einladung/);
+ state=move(state,2,{type:'declineNextChapter'});
+ assert.equal(state.status,'finished');
+ assert.equal(state.chapter,1);
+ state=move(state,0,{type:'nextChapter'});
+ assert.equal(state.status,'inviting_next');
+ state=move(state,2,{type:'acceptNextChapter'});
+ assert.equal(state.status,'active');
+ assert.equal(state.chapter,2);
 });
