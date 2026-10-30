@@ -108,7 +108,7 @@
   leaderGuideTimer=root.setTimeout(()=>{
    leaderGuideTimer=null;
    if(context?.game?.roomId===after.roomId&&!outcome)showLeaderGuide();
-  },11300);
+  },11650);
  }
  function flash(target,text,positive=true){
   const rect=target?.getBoundingClientRect?.();
@@ -371,7 +371,7 @@
   soulTimer=root.setTimeout(()=>{
    battle.classList.remove('ad204-soul-hide');battle.classList.add('ad204-soul-reveal');
    root.setTimeout(()=>battle.classList.remove('ad204-soul-reveal'),600);
-  },reduced()?0:1750);
+  },reduced()?0:action.type==='soulRaid'?2750:1750);
  }
  function onActionError(){
   root.clearTimeout(soulTimer);
