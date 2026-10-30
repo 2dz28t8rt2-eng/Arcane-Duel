@@ -404,6 +404,7 @@
   game=payload.state;seat=payload.seat;syncedAt=Date.now();syncError='';syncFailures=0;
   if(game.status!=='waiting')invite='';
   save();render();
+  if(game.status!=='inviting_next'&&$('duoInviteDialog').dataset.mode==='next')dismissInvitation();
   window.ArcaneDuoCinematics167?.onState(previous,game);
   window.ArcaneDuoCinema170?.onState(previous,game,catalog,seat);
   window.ArcaneDuoStanceCinema191?.onState(previous,game,catalog);
@@ -485,8 +486,9 @@
    roomId=id;token=r.token;seat=2;invite='';save();load(r);
    location.hash='room='+roomId;
    set('duoStatus','Du bist dabei! Jetzt kämpft ihr gemeinsam.');
-  }catch(e){set('duoStatus',e.message);}
+  }catch(e){set('duoStatus',e.message);return false;}
   finally{busy=false;render();}
+  return true;
  }
  async function copyRecovery(){
   if(!roomId||!token||![0,2].includes(seat))return;
@@ -970,6 +972,82 @@
   window.ArcaneDuoSummon189?.enhance?.({game,seat,legal,dock,catalog,busy,syncError});
   window.ArcaneDuoUX204?.decorate?.({game,seat,roomId,catalog,send});
  }
+ function dismissInvitation(){
+  const dialog=$('duoInviteDialog');
+  dialog.hidden=true;dialog.dataset.mode='';
+ }
+ function showInvitation(mode,inviterName,chapter){
+  if(!nameConfirmed)return;
+  const dialog=$('duoInviteDialog'),identity=mode+':'+chapter+':'+inviterName;
+  if(!dialog.hidden&&dialog.dataset.identity===identity)return;
+  dialog.dataset.mode=mode;dialog.dataset.identity=identity;dialog.hidden=false;
+  $('duoInviteTitle').textContent=inviterName+' lädt dich zu einem Duell ein';
+  $('duoInviteInfo').textContent='Kapitel '+chapter+' · Du und dein Partner gegen zwei KIs.';
+  $('duoInviteError').textContent='';
+  $('duoInviteAccept').disabled=false;$('duoInviteDecline').disabled=false;
+  $('duoInviteAccept').textContent='Beitreten';
+  $('duoInviteAccept').onclick=async()=>{
+   $('duoInviteAccept').disabled=true;
+   if(mode==='join'){
+    if(await joinRoom(joinIntent.id,joinIntent.secret)){
+     joinIntent=null;invitePreview=null;dismissInvitation();
+    }else{
+     $('duoInviteError').textContent=$('duoStatus').textContent;
+     $('duoInviteAccept').disabled=false;
+    }
+   }else{
+    await send({type:'acceptNextChapter'});
+    if(game?.status==='active')dismissInvitation();
+    else{$('duoInviteError').textContent=$('duoStatus').textContent;
+     $('duoInviteAccept').disabled=false;}
+   }
+  };
+  $('duoInviteDecline').onclick=async()=>{
+   $('duoInviteDecline').disabled=true;
+   if(mode==='join'){
+    joinIntent=null;invitePreview=null;dismissInvitation();
+    history.replaceState(null,'',ownOrigin());
+    set('duoStatus','Einladung abgelehnt. Du kannst weiterhin dein Profil verwalten.');
+    render();
+   }else{
+    await send({type:'declineNextChapter'});
+    if(game?.status==='finished')dismissInvitation();
+    else{$('duoInviteError').textContent=$('duoStatus').textContent;
+     $('duoInviteDecline').disabled=false;}
+   }
+  };
+ }
+ async function requestInvite(){
+  if(!joinIntent||!nameConfirmed)return;
+  if(!invitePreview){
+   try{invitePreview=await call({type:'invitePreview',roomId:joinIntent.id,invite:joinIntent.secret});}
+   catch(e){set('duoStatus','Einladung kann nicht geöffnet werden: '+e.message);
+    joinIntent=null;history.replaceState(null,'',ownOrigin());return;}
+  }
+  showInvitation('join',invitePreview.inviterName,invitePreview.chapter);
+ }
+ async function confirmDuoName(){
+  if(inviteRequested)return;
+  const nickname=$('duoNameInput').value.trim();
+  if(nickname.length<2||nickname.length>32){
+   $('duoNameHint').textContent='Bitte 2–32 Zeichen für deinen Spielernamen eingeben.';return;
+  }
+  inviteRequested=true;$('duoNameConfirm').disabled=true;
+  try{
+   if(!duoProfile)await createDuoProfile(nickname);
+   else if(duoProfile.nickname!==nickname)
+    await profileOperation('profileName',{name:nickname});
+   if(!duoProfile||duoProfile.nickname!==nickname){
+    $('duoNameHint').textContent='Profilname konnte nicht gespeichert werden. Bitte erneut versuchen.';
+    return;
+   }
+   nameConfirmed=true;$('duoNameGate').hidden=true;$('duoPage').inert=false;
+   $('duoHostName').value=duoProfile.nickname;
+   $('duoHostName').readOnly=true;
+   render();
+   if(joinIntent)await requestInvite();
+  }finally{inviteRequested=false;$('duoNameConfirm').disabled=false;}
+ }
  async function init(){
   try{
    const response=await fetch('assets/duo-card-catalog-v160.json?v=20261029-v2071-final');
@@ -992,6 +1070,9 @@
    updateChapter();
   };
   updateChapter();
+  $('duoNameConfirm').onclick=confirmDuoName;
+  $('duoNameInput').addEventListener('keydown',e=>{if(e.key==='Enter')void confirmDuoName();});
+  $('duoNameConfirm').disabled=true;
   $('duoCreate').onclick=createRoom;
   $('duoRefresh').onclick=refresh;
    $('duoRecoveryCopy').onclick=copyRecovery;
@@ -1083,6 +1164,8 @@
   }else if(!hash&&duoLastRoom?.roomId&&duoProfileToken){
    await continueLastRoom(duoLastRoom.roomId);
   }
+  $('duoNameConfirm').disabled=false;
+  $('duoNameInput').focus();
   render();
  }
  init();
