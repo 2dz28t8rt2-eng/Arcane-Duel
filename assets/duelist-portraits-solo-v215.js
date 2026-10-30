@@ -72,17 +72,24 @@
    if(foe.profileLine)body.append(el('small',null,foe.profileLine));
    card.append(body);roster.append(card);
   }
-  for(let stage=1;stage<=5;stage++){
+  // Five artworks represent ONE researcher evolving, never five people.
+  // A completed quest reveals the next stage; stage five remains the finale.
+  const saga=profile.lv1Saga||{},cleared=Math.max(0,Math.min(5,Number(saga.stage)||0));
+  if(saga.met||saga.offered||cleared>0){
+   const stage=Math.min(5,Math.max(1,Number(profile.activeDuel?.lv1Saga?.stage)||cleared+1));
    const card=el('article','ad215-npc-card');
-   card.append(portraits.node(portraits.soloOpponent(1,false,stage),'Level-1-Fanatiker'));
+   card.append(portraits.node(portraits.storyFanatic(1,stage),'Level-1-Fanatiker'));
    const body=el('div');
    body.append(el('strong',null,'Der Level-1-Fanatiker'));
-   body.append(el('small',null,'Fanatiker-Saga · Prüfung '+stage+' von 5'));
+   body.append(el('small',null,'Fanatiker-Saga · Aktuelle Erscheinung '+stage+' von 5'));
    card.append(body);roster.append(card);
   }
-  for(const [id,name,desc] of [
-   ['story-eiman','Eiman Huel Stalker','Geheimduellant'],
-   [portraits.normalSolo(0,profile.avatarId,'wanderer'),'Wandernder Duellant','Zufällige Begegnungen']]){
+  const discovered=[];
+  if(profile.showcase?.seen||profile.showcase?.pending||profile.showcase?.offered)
+   discovered.push(['story-eiman','Eiman Huel Stalker','Geheimduellant']);
+  if(profile.wanderer)
+   discovered.push([portraits.normalSolo(0,profile.avatarId,'wanderer'),'Wandernder Duellant','Zufällige Begegnungen']);
+  for(const [id,name,desc] of discovered){
     const card=el('article','ad215-npc-card');
     card.append(portraits.node(id,name));
     const body=el('div');
