@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-29 · Branch `development` · Wächter-Wertepool KI-Forschung v17.6 abgeschlossen
+**Aktualisiert:** 2026-10-30 · Branch `development` · Forschungsphase v17.7 Seitenvergleich gestartet
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -243,6 +243,27 @@ Nur tatsächlich ausgeführte aktive Angriffe auf dem echten Spielfeld gezählt,
 
 **Vorläufige Empfehlung:** **22/78 bei 95 % Gesamtpool als bevorzugte Forschungsvariante weiterverfolgen, 20/80 nicht sofort übernehmen.** Die aktive Wächteroffensive fällt deutlich; gemischte Decks wirken in der Validierung reizvoller, aber der Holdout bestätigt kein robustes allgemeines Meta. Vor Produktivübernahme getrennte reelle Gegenschlags-LP-Verluste, tatsächliche Wächter-DEF-Überlebensdauer, gegnerseitige/spielerseitige Stat-Eingriffe und umfangreichere unabhängige Turnier-/Deckversuche messen. **Keine weitere Kombination mit der Heilungsstaffel ohne eigenes 2×2-Testdesign**. Keine Änderung der regulären Solo-/2v2-Karten und kein Champion-Wechsel.
 
+
+### v17.7 – Kausaler Wächter-Statvergleich und gemessene Gegenschläge (gestartet)
+
+**Aktueller Forschungsworkflow:** [GitHub Actions #40978180027](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40978180027) auf `development`. Vier Forschungsvarianten mit **92.160 geplanten gepaarten Voll-Duellen** (4 × 23.040; 11 Stages je Variante). Die GitHub-Ausführung ist gestartet, die automatischen Vorprüfungen müssen noch erfolgreich abschließen.
+
+**Wertefrage nach v17.6:** Die `95 %`-Pool-/`22 % ATK`-/`78 % DEF`-Verschiebung ist der bevorzugte Versuch, aber der globale Vergleich von v17.6 wirkte auf **beide** Parteien und war im Holdout nicht robust. Der neue Versuch isoliert den Effekt nach tatsächlicher Sitzposition:
+
+| Arm | Eigene gewöhnliche Wächter | Gegners gewöhnliche Wächter |
+|---|---|---|
+| `control` | ursprüngliche Werte | ursprüngliche Werte |
+| `both22` | 95 % Pool · 22/78 | 95 % Pool · 22/78 |
+| `candidate22` | 95 % Pool · 22/78 | ursprüngliche Werte |
+| `opponent22` | ursprüngliche Werte | 95 % Pool · 22/78 |
+
+Der Forschungsmotor verändert **nur Instanzwerte gewöhnlicher Wächter** (Level 1–10), nach initialem identischem Karten-/Seed-/Sitz-Match und bei jeder späteren Beschwörung. Bestehende sehr niedrige ATK wird nicht künstlich angehoben. Fusionskarten, ACE, Essenzmonster, Seelenzehrer und andere Rollen bleiben unangetastet. Keine Modifikation des eigentlichen `assets/game.js`-Katalogs, Solo- oder 2v2-Speicherstands, keine Produktionsübernahme.
+
+**Neu als echte Duelltelemetrie:** Tatsächlich durch 35-%-Überlebens-Gegenschläge abgezogene LP (getrennt nach Wächter und Seelenzehrer, Spieler und Gegner), die Zahl überlebter/zerstörter Verteidiger beim Treffer, verbleibende DEF nach Angriffen, pro Sitz tatsächlich angewandte Werteverschiebungen sowie die v17.5-Messung real ausgeführter aktiver Angriffe und ATK-/DEF-Wechsel. Die Stat-Behandlung wird auf echte `newInstance`-Beschwörungen und vorliegende Starthände angewandt; KI-Planer-Klone dürfen keine echten Angriffe zum Aktionszähler beitragen.
+
+**Konstant:** 35-%-Gegenschlag nur bei überlebenden Verteidigern; 100-%-Wächterheilung (keine Kombination mit der experimentellen Heilungsstaffel oder der alten 85-%-Regel); 15 Prozentpunkte Predator-Durchdringung und 90/100/120-%-Seelenentzug in der Forschungsbaseline. TRAIN-only-Modelle, strenge Validation-/Holdout-Freigaben, eingefrorener `l10-guarded-worst-reply`-Champion. Neue Modelle werden erst nach bestandenen H2H-Gates vorgeschlagen, nicht automatisch befördert.
+
+**Nächste Entscheidung nach dem Abschluss:** 22/78 gegen reine Wächter-/Predator-/Fusionsdecks und 50/50-Mischungen getrennt nach Kandidat/Gegner bewerten; LP-Gegenschlagschaden, echte Treffer-Überlebensrate sowie Rückgang der eigenen aktiven Wächterangriffe heranziehen. Kleine 16-Partien-Fokusgruppen nicht als Beweis für das gesamte Meta missverstehen. 20/80 bleibt bis zu diesen Daten zurückgestellt.
 
 ## C. KI-Forschungsstatus
 
