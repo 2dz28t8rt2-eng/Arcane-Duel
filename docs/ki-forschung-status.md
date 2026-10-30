@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-30 · Branch `development` · v17.8 finale Wächter-Balance-Diagnostik gestartet
+**Aktualisiert:** 2026-10-30 · Branch `development` · finale Wächter-Balance-Diagnostik v17.8 erfolgreich abgeschlossen
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -293,17 +293,40 @@ Nur tatsächlich ausgeführte aktive Angriffe auf dem echten Spielfeld gezählt,
 **Empfehlung:** **95 % Wertepool / 22:78 weiterhin als beste Forschungsoption, noch nicht produktiv übernehmen.** Für v17.8 echte **gegner-LP-gepaarte Einzelgegenspielzüge** bei identischen HP/DEF/ATK-Zuständen sowie zusätzlichen Fusion-/Predator-/Level-10-HOLDOUT mit **mehr unabhängigen Seeds und Decks** verwenden. Vor Kombination mit der dynamischen Wächterheilung zunächst ungewöhnlich geringe Counter-LP-Reduktion in `candidate22` und den `opponent22`-Effekt aufklären. Keine weiteren pauschalen Wertenerfs.
 
 
-### v17.8 – Abschlussdiagnostik vor den Balance-Maßnahmen
+### v17.8 – Abschlussdiagnostik vor den Balance-Maßnahmen (vollständig abgeschlossen)
 
-**Korrigierter Forschungsdurchgang läuft:** [GitHub Actions #41030511261](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/41030511261), **4/4 Vorprüfungen erfolgreich und Selbstspielphasen gestartet**. Die gescheiterten Vorläufe [#41024891397](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/41024891397) und [#41030266204](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/41030266204) waren ausschließlich durch Forschungs-Integrationsfehler bedingt: v17.7-Umgebungsvariable versehentlich im v17.8-Test verwendet und anschließend alte v17.7-Feldnamen für die realen Kampfmetriken im Selbstspiel-/Aggregationsprotokoll. Korrigiert unter Commit `7ad1871a6c9604a7f5c7523aef8dc27dd6b85193`, keine Änderung an regulären Kampfwerten. Branch `development`, **92.160 geplante Duelle in vier kausalen Armen** (Kontrolle; 95-%-Pool mit 22/78 auf beiden Seiten; nur Kandidat; nur Gegner). Alle Champion-Hürden und die TRAIN/VALIDATION/HOLDOUT-Trennung bleiben unverändert.
+**Korrigierter Forschungslauf:** [GitHub Actions #41030511261](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/41030511261) · `development` · Commit `7ad1871a6c9604a7f5c7523aef8dc27dd6b85193` · **53/53 Jobs erfolgreich, 92.160/92.160 Duelle, vier Arme à 23.040** und jeweils elf Forschungsstufen. Vorprüfungen für alle vier Varianten, 44 Forschungsjobs, Champion-Gates und finaler Vergleich bestanden. Vorläufe scheiterten an v17.7-Umgebungsvariable sowie alten Telemetrie-Feldnamen, **beide Forschungs-Integrationsfehler korrigiert**.
 
-**Gezielte Zusatzdiagnostik:** Forschungsmodul `tests/helpers/research-guardian-counter-v178.cjs` misst bei jedem echten überlebenden Gegenschlag zusätzlich zum real abgezogenen LP-Wert den **Rohwert floor(effektive ATK × 0,35)**, dessen Differenz zum tatsächlichen LP-Verlust, Null-LP-Gegenschläge, die vor dem Gegenschlag verbliebenen Gegner-LP sowie die effektive Wächter-ATK. Vergleich `tests/ai-v1780-guardian-counter-compare.cjs` liefert die Werte nach Kandidat/Gegner und TRAIN/VALIDATION/HOLDOUT. Damit kann die fast unveränderte Gegenschlags-LP-Summe der Kandidat-only-Variante aus v17.7 systematischer untersucht werden: weniger Schaden pro Ereignis vs. mehr Ereignisse bzw. Verbrauch von Schild/LP-Caps und andere Duellverläufe.
+**Arme:** `control` (alte Wächterwerte auf beiden Seiten), `both22` (95 % Gesamtpool und 22 % ATK / 78 % DEF auf beiden Seiten), `candidate22` (nur eigene gewöhnliche Wächter Level 1–10), `opponent22` (nur gegnerische Wächter). Identische Start-Seeds und identische Szenario-/Sitzkonfigurationen **zwischen den vier Armen**; neue fokussierte Seedfamilien gegenüber v17.7 für Stages 8/9. Bei `candidate22` in Stage 8 **5.413 tatsächlich angepasste eigene Karteninstanzen, 0 gegnerische** (ATK-Delta −479.720, DEF-Delta +19.060 in 2.304 Profilduellen); `opponent22` exakt umgekehrt **0 eigene, 5.699 gegnerische**. Damit sind die Seiten tatsächlich isoliert; die Daten sind nicht einfach ein beidseitiger Nerf.
 
-**Neue, zwischen allen vier Armen identische Fokus-Stichproben:** Stage 8 (Wächter-/Seelenzehrer-Rollen) und Stage 9 (Fusionen) benutzen neue Seedfamilien gegenüber v17.7, ohne HOLDOUT zum Trainieren zu verwenden. Der erneute 92.160er-Durchlauf ist damit eine gezielte Replikation unter frischen Startbedingungen statt bloßer Wiederholung derselben Stage-8-Decks.
+**Fokussierte Stage-8-Messungen, Wächter der Kandidaten-KI, 384 Spiele je Arm (die übrigen fünf KI-Profile sind nicht in dieser Counter-Summe enthalten):**
 
-**Unverändert:** 35-%-Gegenschlag nur nach überlebtem Treffer, volle Wächterheilung, Forschungsbaseline Predator-Pierce 15 Prozentpunkte und Seelenentzug 90/100/120 Prozent. Kein produktiver Wertepatch, keine Änderung der Solo-/2v2-Regeln, kein automatischer Champion-Wechsel.
+| Arm | Angriffe auf Wächter | Überlebt | Zerstört | Überlebensquote | Tatsächliche Wächter-Gegenschläge | Tatsächlicher Gegen-LP-Schaden | Theoretischer Counter-Rohwert |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `control` | 450 | 294 | 156 | 65,3 % | 219 | **32.397** | **32.397** |
+| `both22` | 486 | 308 | 178 | 63,4 % | 189 | **28.534** (−11,9 %) | **28.534** |
+| `candidate22` | 460 | 291 | 169 | 63,3 % | 190 | **28.618** (−11,7 %) | **28.618** |
+| `opponent22` | 460 | 286 | 174 | 62,2 % | 206 | **31.642** (−2,3 %) | **31.642** |
 
-**Abnahme nach v17.8:** Auf Basis beider Untersuchungen v17.7/v17.8 entscheiden wir konkrete Maßnahmen (bevorzugt 22/78, 20/80 weiterhin zurückgestellt). Anschließend wird die **separate KI-Forschung** wieder priorisiert: echte Angriffsgelegenheiten, effektive Defender-Kontermöglichkeiten, Direkt-H2H-Gates und Lernwert-Einsatz. Keine weiteren pauschalen Wächterwerte-Experimente ohne konkrete neue Anhaltspunkte.
+**Neu geklärt:** In diesen tatsächlich ausgelösten Gegenschlägen stimmten **theoretische 35-%-ATK-Rohwerte und tatsächlich registrierte abgezogene LP ausnahmslos überein**: überall `counterWaste=0`, `counterZeroLP=0`. Keine LP-Begrenzung/sonstige Abzüge waren in diesen Fällen für die Gesamtsummen verantwortlich. `candidate22` liefert gegenüber der alten Kontrolle 29 weniger Wächter-Gegenschlagsereignisse (219 → 190), dadurch entsteht die ca. **11,7-%-Reduktion der gesamten LP-Schäden** bei geänderten Kampfverläufen. **Nicht** daraus folgern, dass jeder einzelne Gegenschlag exakt um 11,7 % schwächer sei: der durchschnittliche Schaden pro registriertem Ereignis ist in diesen nicht identischen realen Gefechten durch veränderte Selektion sogar geringfügig höher (Kontrolle ~147,9; eigene 22/78 ~150,6). Die beinahe unveränderte Counter-Summe im v17.7-Szenariensatz war daher **nicht reproduzierbar**. Die neu geladene Stage-8-Fokusgruppe belegt die Verringerung, **nicht** den kausalen Mechanismus pro identischer Karte.
+
+**Echte eigene Wächterangriffe über alle 23.040 Duelle pro Arm:** `control` 10.152; `both22` 8.422 (**−17,0 %**); `candidate22` 8.060 (**−20,6 %**); `opponent22` 9.564. Aktiver Wächter-LP-Schaden `control` 900.901; `both22` 690.957; `candidate22` 692.033; `opponent22` 876.648. Passive Gegenschläge ausdrücklich nicht in dieser Angriffssumme.
+
+**Allgemeiner Defender-Survival-HOLDOUT, Siege von 512:** `control` **263**, `both22` **257**, `candidate22` **263**, `opponent22` **249**. Änderung der eigenen Werte allein kostete in dieser generalisierten Holdout-Probe keine Siege. Die reine gegnerische Abschwächung liefert weiterhin paradoxerweise weniger Kandidatensiege; die zugrundeliegenden KI-Strategie-/Deck-/Kampfabläufe sind **nicht endgültig erklärt**.
+
+**Fokus-Decktyp-Siege, jeweils 16 Duelle, Reihenfolge `control/both22/candidate22/opponent22`:**
+- Predator VALIDATION: Wächter **6/7/7/7**; gemischt 50/50 **11/9/11/9**; Seelenzehrer **10/10/10/10**.
+- Fusion VALIDATION: Wächter **9/8/6/7**; gemischt **7/7/6/7**; Seelenzehrer **8/7/6/8**.
+- Predator HOLDOUT: Wächter **11/7/10/7**; gemischt **10/11/11/10**; Seelenzehrer **8/8/8/8**.
+- Fusion HOLDOUT: Wächter **9/9/9/9**; gemischt **10/8/9/8**; Seelenzehrer **8/7/7/7**.
+Der vermutete Vorteil gemischter Wächter-/Seelenzehrer-Decks bleibt **nicht in allen Gruppen nachweisbar**, besonders gegen Fusionen. Zu kleine Zellen (16) für definitive Meta-Freigabe.
+
+**Gepaarte Stage-8-Profilduelle:** 2.304 pro Arm, **384 unterschiedliche Szenario-/Sitz-Konfigurationen** über sechs KI-Profile. Gegen Kontrolle: `both22` **297 Gewinnerwechsel (91 Kandidat gewinnt statt verliert / 206 verliert statt gewinnt)**; `candidate22` **174 (74 / 100)**; `opponent22` **228 (75 / 153)**. Keine 2.304 voneinander unabhängigen Szenarien. Experimenteller Gegner-Nerf kann strategisch ungünstige Spielzüge auslösen; negative Kandidateneffekte nicht als mechanischen Gegner-Buff interpretieren.
+
+**Champion-Gates:** Alle vier Arme `globalSelection.promoted=false`; `l10-guarded-worst-reply` bleibt eingefroren. Stärkster Kandidat in `both22`: allgemeine VALIDATION +6, harte Level-10-VALIDATION +3, direkte H2H-TRAIN +2 und H2H-VALIDATION +4; erforderlich H2H +4/+8, zudem gemischte Rollensynergie nicht ausreichend. `candidate22` H2H +2/+3. Nachfolgende **TRAIN-only**-Modelle mit 22/21/23/22 nichtnull Kontexten (`control/both22/candidate22/opponent22`) aus je 1.280 TRAIN-Duellen; nicht unabhängig befördert.
+
+**Balance-Abnahme vor Rückkehr zur KI-Forschung:** **95-%-Pool bei 22/78 als bevorzugte Maßnahme für gewöhnliche Wächter** (zunächst `development`, ohne ACE-/Fusions-/Essenz-Ausnahmen zu verletzen), **20/80 verwerfen/auf Eis legen**, 35-%-Überlebens-Gegenschlag und **aktuelle volle Wächterheilung** unverändert lassen, keine zusätzliche globale Werteänderung. Vor Übernahme ins reguläre Solo/2v2: vollständigen Karten-Katalog, Levelup-/Fusionspfade, Speicherung und Regressionsduelle prüfen. Anschließend das separate KI-Training wieder priorisieren – defensive Angriffsgelegenheiten, Gegnerpostur, Level-10-Direktduelle, defensive Seelenfähigkeiten und gemischte Rollensynergie. **In v17.8 selbst wurden keine regulären Kartenwerte und kein Champion geändert.**
+
 
 ## C. KI-Forschungsstatus
 
