@@ -20,10 +20,15 @@ test('Two explicit current-live-rules AI cohorts, no stacked Guardian research s
  assert.match(src,/v1820FinisherOverrides/);
  assert.match(src,/v1820DecisionTraces/);
  assert.match(src,/reason:bestReason/);
+ assert.match(src,/v1820ReplyAwareOverrides/);
+ assert.match(src,/v1820ReplyTrials/);
+ assert.match(src,/expectedVisibleReply/);
+ assert.match(src,/response\.active=op/);
+ assert.match(src,/z\.winner===me/);
  assert.match(src,/attackerUid:own\.field\[best\.ai\]/);
- assert.match(src,/visible-direct-lethal/);
- assert.match(src,/safe-high-threat-removal/);
- assert.match(src,/if\(!attack\(z,ai,di\)\)continue/);
+ assert.match(src,/visible-finisher/);
+ assert.match(src,/safe-threat-removal/);
+ assert.match(src,/if\(!attack\(z,move\.ai,move\.di\)\)return null/);
  assert.match(src,/stage===8\?810:stage===9\?510:0/);
 });
 test('Production catalogue has 762 cards and 84 Guardian reweights at 95%-22/78',()=>{
