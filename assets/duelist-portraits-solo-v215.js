@@ -65,7 +65,7 @@
   const roster=el('div','ad215-roster');
   for(const foe of OPPONENTS){
    const card=el('article','ad215-npc-card');
-   card.append(portraits.node(portraits.soloOpponent(foe.id),foe.name));
+   card.append(portraits.node(portraits.visualSolo({id:foe.id,selected:profile.avatarId}),foe.name));
    const body=el('div');
    body.append(el('strong',null,foe.name));
    body.append(el('small',null,foe.title||'Gegner '+foe.id));
@@ -82,7 +82,7 @@
   }
   for(const [id,name,desc] of [
    ['solo-secret-eiman','Eiman Huel Stalker','Geheimduellant'],
-   ['solo-wanderer','Wandernder Duellant','Zufällige Begegnungen']]){
+   [portraits.normalSolo(0,profile.avatarId,'wanderer'),'Wandernder Duellant','Zufällige Begegnungen']]){
     const card=el('article','ad215-npc-card');
     card.append(portraits.node(id,name));
     const body=el('div');
@@ -97,13 +97,14 @@
   if(game.mode==='pve'){
    portraits.replace(own,portraits.sanitizeHero(profile.avatarId),profile.duelistName,'ad215-duel-pic');
    const opponent=OPPONENTS[game.opponentId];
-   portraits.replace(enemy,portraits.soloOpponent(game.opponentId,!!game.showcase,game.lv1Saga?.stage||0,game.context==='encounter'),
+   portraits.replace(enemy,portraits.visualSolo({id:game.opponentId,secret:!!game.showcase,stage:game.lv1Saga?.stage||0,
+     encounter:game.context==='encounter',selected:profile.avatarId,seed:game.context==='encounter'?'wanderer':'solo'}),
     game.showcase?'Geheimduellant':opponent?.name,'ad215-duel-pic');
    const ownName=document.getElementById('myName');
    if(ownName)ownName.textContent=profile.duelistName||'Duellant';
   }else{
-   portraits.replace(own,'hero-01','Duellant 1','ad215-duel-pic');
-   portraits.replace(enemy,'hero-02','Duellant 2','ad215-duel-pic');
+   portraits.replace(own,portraits.sanitizeHero(profile.avatarId),'Duellant 1','ad215-duel-pic');
+   portraits.replace(enemy,portraits.permutation('solo:local-pvp',[portraits.sanitizeHero(profile.avatarId)])[0]||'hero-02','Duellant 2','ad215-duel-pic');
   }
  }
  const previousMenu=renderMenu;
