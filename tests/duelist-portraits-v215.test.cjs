@@ -23,11 +23,11 @@ function room(hostPortrait='hero-05'){
   enemyDeckA:main,enemyDeckB:main,enemyFusionsA:side,enemyFusionsB:side,
   catalog,chapter:1,entry:'new'});
 }
-test('exactly 24 image assets: 12 selectable heroes and 12 unique, locked story artworks',()=>{
- assert.equal(manifest.assetsRequired,24);
- assert.equal(manifest.items.length,24);
- assert.equal(P.ids.length,24);
- assert.equal(P.heroIds.length,12);
+test('exactly 28 image assets: 16 selectable heroes and 12 unique, locked story artworks',()=>{
+ assert.equal(manifest.assetsRequired,28);
+ assert.equal(manifest.items.length,28);
+ assert.equal(P.ids.length,28);
+ assert.equal(P.heroIds.length,16);
  assert.equal(P.storyIds.length,12);
  assert.equal(new Set(manifest.items.map(x=>x.id)).size,24);
  assert.equal(new Set(manifest.items.map(x=>x.path)).size,24);
@@ -126,13 +126,13 @@ test('both games load portrait registry and duo story before game state handlers
 test('2v2 uses every remaining portrait before reuse across ordinary chapters',()=>{
  const chosen=['hero-02','hero-07'],available=P.heroIds.filter(id=>!chosen.includes(id));
  const seen=[];
- for(let chapter=1;chapter<=5;chapter++)
+ for(let chapter=1;chapter<=7;chapter++)
   for(const seat of [1,3])
    seen.push(P.visualDuo({chapter,seat,selected:chosen}));
  assert.equal(new Set(seen).size,available.length);
  assert.deepEqual([...seen].sort(),[...available].sort());
- assert.equal(P.visualDuo({chapter:6,seat:1,selected:chosen}),seen[0]);
- assert.equal(P.visualDuo({chapter:6,seat:3,selected:chosen}),seen[1]);
+ assert.equal(P.visualDuo({chapter:8,seat:1,selected:chosen}),seen[0]);
+ assert.equal(P.visualDuo({chapter:8,seat:3,selected:chosen}),seen[1]);
 });
 test('portrait galleries present one researcher per stage and update on progression',()=>{
  const solo=read('assets/duelist-portraits-solo-v215.js');
@@ -150,4 +150,23 @@ test('first completed Fanatiker quest grants Level-1 research to both teammates 
  assert.match(sql,/v_chapter >= 11 and \([\s\S]*?questPassed/);
  assert.match(sql,/lv1_research=case when v_chapter=11 and v_first then/);
  assert.match(sql,/p\.lv1_research\|\|'\{"perk":true\}'::jsonb/);
+});
+
+test('hero portraits 13–16 validate consistently in solo, duo and Edge',()=>{
+ for(let i=13;i<=16;i++){
+  const id='hero-'+i;
+  assert.equal(P.sanitizeHero(id),id);
+  assert.equal(P.path(id),'assets/portraits/heroes/'+id+'.webp');
+  assert.equal(manifest.items.find(x=>x.id===id)?.type,'player-choice');
+ }
+ assert.equal(P.heroNames[12],'Arkanmechanikerin');
+ const initial=room('hero-16');
+ assert.equal(initial.players[0].portraitId,'hero-16');
+ const joined=rules.apply(initial,2,{type:'join',name:'Partner',deck:main,fusions:side,
+  portraitId:'hero-15'},{catalog});
+ assert.equal(joined.players[2].portraitId,'hero-15');
+ for(const path of ['assets/game.js','supabase/functions/arcane-duo-v2/index.ts',
+  'supabase/functions/arcane-duo-v2/duo-rules.js']){
+  assert.ok(read(path).includes('1[0-6]'),path);
+ }
 });
