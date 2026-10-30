@@ -69,7 +69,7 @@ test('Duo browser/server catalog mirrors all 21 roles, stats, PvE bonuses',()=>{
 test('Field markers tell Wächter from Seelenzehrer by shape and text in both modes',()=>{
  const js=fs.readFileSync('assets/combat-identity-v183.js','utf8'),
  css=fs.readFileSync('assets/combat-identity-v183.css','utf8');
- assert.match(js,/ad183-role-name-guardian/);
+ assert.match(js,/ad183-role-name-'\+role/);
  assert.match(js,/WÄCHTER/);assert.match(js,/SEELENZEHRER/);
  assert.match(js,/Seelenzehrer · Essenz bereit/);
  assert.match(css,/\.ad183-role-name-soul/);
