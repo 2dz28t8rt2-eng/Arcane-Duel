@@ -78,7 +78,9 @@ test('quest advances only after completed objective; server-updated perks and en
   2:{deck:main(),fusions:[...side(),711,712,713],upgrades:{},enhancements:{},
    essence:{},lv1:{perk:true,rank:1}}
  }};
- const next=rules.apply(g,0,{type:'nextChapter'},context);
+ const invitation=rules.apply(g,0,{type:'nextChapter'},context);
+ assert.equal(invitation.status,'inviting_next');
+ const next=rules.apply(invitation,2,{type:'acceptNextChapter'},context);
  assert.equal(next.chapter,12);
  assert.equal(next.players[0].lv1.perk,true);
  assert.equal(next.players[2].lv1.perk,true);
