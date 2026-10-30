@@ -34,6 +34,7 @@ function harness(){
   dataOf(c){return c.card||c;},
   fusionBudget(){return 8;},
   fusionOptions(){return catalog;},
+  canCompleteHandFusion(){return true;},
   fusionPreview(){return {atk:[1000,1500],def:[600,950],rolls:3,bonus:20};},
   toast(msg){toasts.push(msg);},openModal(msg){modals.push(msg);},
   modalHtml(...args){return args.join('|');},
@@ -108,4 +109,35 @@ test('click intercept is a read-only capture-phase user action',()=>{
  assert.equal(modals.length,1);
  assert.match(modals[0],/Fusion verstehen|FUSION VERSTEHEN/);
  assert.equal(JSON.stringify(context.game),previous);
+});
+
+test('Lv1 research help keeps special templates and explains the exception without spending them',()=>{
+ const {window,context}=harness();
+ window.ArcaneLv1Swarm={enabled:()=>true};
+ const special={id:91,level:1,name:'Spezialfusion: Wächter',lv1Exclusive:true,atk:150,def:200};
+ context.fusionOptions=()=>[special];
+ context.fusionBudget=()=>1;
+ const materials=[1,2,3].map(uid=>({uid,card:{name:'Level-1-Material '+uid,level:1}}));
+ const g={mode:'pve',active:0,materials:[1,2,3],players:[{hand:materials,remainingFusion:[91]}]};
+ const before=JSON.stringify(g);
+ const info=window.ArcaneFusionGuide213.actualInfo({g,levels:[1,1,1],materials,pending:false});
+ const html=window.ArcaneFusionGuide213.explanationText(info);
+ assert.equal(info.specialLv1,true);
+ assert.equal(info.best.id,91);
+ assert.equal(info.specialTemplates.length,1);
+ assert.match(html,/Verbotene Forschung/);
+ assert.match(html,/exklusive Lv-1-Vorlage/);
+ assert.match(html,/Spezialfusion: Wächter/);
+ assert.equal(JSON.stringify(g),before);
+});
+
+test('normal fusion help does not accidentally offer locked Lv1 quest templates',()=>{
+ const {window,context}=harness();
+ const special={id:91,level:1,name:'Spezialfusion',lv1Exclusive:true};
+ context.fusionOptions=()=>[special,{id:7,level:8,name:'Testfusion'}];
+ const materials=[{uid:1,card:{name:'Kern',level:6}},{uid:2,card:{name:'Partner',level:5}}];
+ const g={mode:'pve',active:0,players:[{hand:materials,remainingFusion:[91,7]}]};
+ const info=window.ArcaneFusionGuide213.actualInfo({g,levels:[6,5],materials,pending:false});
+ assert.equal(info.best.id,7);
+ assert.equal(info.specialTemplates.length,0);
 });
