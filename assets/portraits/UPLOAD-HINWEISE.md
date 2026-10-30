@@ -1,11 +1,11 @@
-# Arcane Duel – Portrait-Uploadplan v21.6
+# Arcane Duel – Portrait-Uploadplan v21.7
 
-Die vollständige Bildintegration ist vorbereitet. Für das Spiel werden **genau 24 Portrait-Artworks** benötigt, nicht 60 separate Bilder. `portrait-manifest-v215.json` listet sämtliche Dateinamen und Charakterzuordnungen.
+Die vollständige Bildintegration ist vorbereitet. Für das Spiel werden **genau 28 Portrait-Artworks** benötigt, nicht 60 separate Bilder. `portrait-manifest-v215.json` listet sämtliche Dateinamen und Charakterzuordnungen.
 
 ## Vorhandene Spiel-Logik
 
-- **12 wählbare Portraits**: Beide Spieler wählen ihr Charakterbild aus `hero-01` bis `hero-12`.
-- **Reguläre Solo-Gegner** (Milo bis Aster) erhalten jedes ein anderes, per stabilem Zufall zugeteiltes Portrait aus den übrigen 11 Bildern.
+- **16 wählbare Portraits**: Beide Spieler wählen ihr Charakterbild aus `hero-01` bis `hero-16`.
+- **Reguläre Solo-Gegner** (Milo bis Aster) erhalten jedes ein anderes, per stabilem Zufall zugeteiltes Portrait aus den übrigen 15 Bildern.
 - **Reguläre Duo-Gegner** bekommen zwei verschiedene Bilder aus dem Pool, nachdem **beide** gewählten Spielerbilder ausgeschlossen wurden. Nicht benötigte Bilder bleiben unsichtbar.
 - **Eiman Huel Stalker** nutzt immer `story-eiman` – im Solo-Geheimduell und in Duo-Kapitel X. **Hans Ess Kirk** erhält immer `story-hans`.
 - **Level-1-Fanatiker A** erhält fünf eigene Artworks `story-fanatiker-a-01` bis `-05`, **identisch im Solo- und Duo-Modus**.
@@ -20,7 +20,7 @@ Die vollständige Bildintegration ist vorbereitet. Für das Spiel werden **genau
 3. Im **`development`-Branch** nach `assets/portraits/heroes/` oder `assets/portraits/story/` hochladen.
 4. Spielseite neu laden. **Keine Codeänderung erforderlich.** Fehlende Bilddateien werden durch einen neutralen Platzhalter ersetzt.
 
-### Für die Story fehlen diese 12 Bilder
+### Feste Story-Portraits: 12 Dateien
 
 | Bild | Zuordnung |
 |---|---|
@@ -40,3 +40,20 @@ Die vollständige Bildintegration ist vorbereitet. Für das Spiel werden **genau
 **Bilddateien niemals untereinander tauschen.** Charakteridentität und Stufenwechsel erfolgen ausschließlich über die festen IDs. Beide Spieler erhalten durch eine bestandene Forschungskampagne jeweils dauerhaft den Forschungsrang der entsprechenden Stufe.
 
 Portraits sind rein visuell: Das Aktualisieren der Artworks verändert **keine** Kartendecks, Kampfwerte oder KI-Verhaltensweisen.
+
+## Benutzer-Archiv vom 30.10.2026
+
+Das gelieferte Archiv enthält 16 benannte Spielerportraits, Eiman Huel, Hans Ess
+sowie je fünf Entwicklungsbilder für Forscher A (Professor mit Brille) und
+Forscher B (blonder Höhlenforscher): insgesamt **28 Bilddateien**.
+
+Die Bilder wurden als eigenständiges, uploadfertiges ZIP mit 28 korrekt
+benannten **512×512-WebP-Dateien** im exakten Repo-Pfad
+`assets/portraits/` vorbereitet. **Der GitHub-Connector kann lokale Binärdateien
+nicht direkt aus einem Chat-Upload übernehmen.** Für die Veröffentlichung
+müssen die WebP-Dateien aus diesem ZIP ausgepackt und in GitHub hochgeladen
+werden; nur das ZIP allein ins Repository zu kopieren reicht nicht.
+
+Die Auswahl von `hero-13` bis `hero-16` setzt aktualisierte Solo-/Duo-
+Validierungsregeln und eine aktualisierte Datenbank-Constraint voraus.
+SQL-Migration und Edge-Deployment gemeinsam freigeben.
