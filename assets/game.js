@@ -1045,6 +1045,35 @@ for(const id of NORMAL_LINE_VARIANT_IDS){
  stage.atk=Math.max(minimumAtk,Math.min(total-minimumDef,round10(total*parentShare)));
  stage.def=total-stage.atk;
 }
+/* Wächter-Balancing v21.2 – aus den v17.6–17.8-KI-Versuchen übernommen.
+ * Nur gewöhnliche RPG-Wächter Lv1–10. Die ursprünglichen Karteneinträge
+ * werden genau EINMAL beim Katalogaufbau auf 95 % Budget und höchstens
+ * 22 % ATK umgestellt; bereits defensivere Legacy-Karten bekommen keinen
+ * künstlichen Angriffsbuff. Neue Monsterwerkstatt-Stufen folgen derselben
+ * Katalogregel. IDs, Aufstiegsränge und gespeicherte Decks bleiben erhalten.
+ * Hier und nicht in newInstance/baseStat ändern: keine wiederholten Nerfs
+ * beim Laden oder Beschwören, NPC und Spieler benutzen denselben Katalog.
+ */
+const GUARDIAN_BASE_BALANCE=Object.freeze({version:'21.2',pool:.95,atkShare:.22});
+function eligibleGuardianBaseCard(c){
+ return !!c&&c.rpg===true&&c.role==='guardian'&&!c.retired&&
+  !c.fusionOnly&&!c.ace&&!c.essenceMonster&&
+  Number.isInteger(c.level)&&c.level>=1&&c.level<=TOURNAMENT_LEVEL_CAP;
+}
+function balancedGuardianBaseValues(c){
+ if(!eligibleGuardianBaseCard(c))return null;
+ const pool=round10((c.atk+c.def)*GUARDIAN_BASE_BALANCE.pool);
+ const floor=Math.min(80,c.atk,Math.floor(pool/20)*10);
+ const target=Math.max(floor,Math.min(pool-floor,round10(pool*GUARDIAN_BASE_BALANCE.atkShare)));
+ const atk=Math.min(c.atk,target);
+ if(atk<floor||pool-atk<floor||atk>c.atk)
+  throw Error('Ungültiges Wächter-Balancing für Karte '+c.id);
+ return {atk,def:pool-atk};
+}
+for(const c of CARDS){
+ const values=balancedGuardianBaseValues(c);
+ if(values){c.atk=values.atk;c.def=values.def;}
+}
 // Normalize legacy per-card combat perks after ALL RPG templates and workshop stages
 // have been registered. General role abilities are deliberately unaffected.
 const RETIRED_SINGLE_CARD_ABILITIES=new Set(['aegis','pierce','hunt','guide','rush','guard']);
