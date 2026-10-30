@@ -1226,22 +1226,23 @@
    g.revision++;return g;
   }
   if(action.type==='nextChapter'){
-   assert(seat===0&&g.status==='finished'&&g.winner===0&&
+   assert([0,2].includes(seat)&&g.status==='finished'&&g.winner===0&&
     (isQuest(g.chapter)?g.chapter<15&&g.questPassed===true:g.chapter<CHAPTERS.length),
-    'Nur der Gastgeber kann das nächste freigeschaltete Kapitel anfragen.');
-   g.status='inviting_next';g.chapterInvite={from:g.players[0].name,chapter:g.chapter+1};
-   g.log.push(g.players[0].name+' lädt '+g.players[2].name+' zu Kapitel '+(g.chapter+1)+' ein.');
+    'Nur ein menschlicher Teamspieler kann das nächste freigeschaltete Kapitel anfragen.');
+   const partnerSeat=seat===0?2:0;
+   g.status='inviting_next';g.chapterInvite={from:g.players[seat].name,fromSeat:seat,toSeat:partnerSeat,chapter:g.chapter+1};
+   g.log.push(g.players[seat].name+' lädt '+g.players[partnerSeat].name+' zu Kapitel '+(g.chapter+1)+' ein.');
    g.revision++;return g;
   }
   if(action.type==='declineNextChapter'){
-   assert(seat===2&&g.status==='inviting_next'&&g.winner===0,
+   assert([0,2].includes(seat)&&seat===g.chapterInvite?.toSeat&&g.status==='inviting_next'&&g.winner===0,
     'Es liegt keine offene Einladung vor.');
    g.status='finished';g.chapterInvite=null;
    g.log.push(g.players[2].name+' hat die Einladung abgelehnt.');
    g.revision++;return g;
   }
   if(action.type==='acceptNextChapter'){
-   assert(seat===2&&g.status==='inviting_next'&&g.winner===0&&
+   assert([0,2].includes(seat)&&seat===g.chapterInvite?.toSeat&&g.status==='inviting_next'&&g.winner===0&&
     (isQuest(g.chapter)?g.chapter<15&&g.questPassed===true:g.chapter<CHAPTERS.length),
     'Einladung kann nicht angenommen werden.');
    g.chapterInvite=null;
