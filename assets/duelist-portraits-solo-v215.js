@@ -61,7 +61,7 @@
   if(!host||host.querySelector('#ad215SoloRoster'))return;
   const section=el('section','menu-panel');section.id='ad215SoloRoster';
   section.append(el('h2',null,'✦ Duellantenprofile · Portraitgalerie'));
-  section.append(el('p',null,'Jeder Turnier- und Trainingsgegner besitzt einen eigenen Portraitplatz. Die Bilder erscheinen nach dem Hochladen automatisch.'));
+  section.append(el('p',null,'Gewöhnliche Gegner erhalten zufällig eines der nicht gewählten Spielerportraits. Eiman Huel und die fünf Forschungsstufen besitzen feste Story-Artworks.'));
   const roster=el('div','ad215-roster');
   for(const foe of OPPONENTS){
    const card=el('article','ad215-npc-card');
@@ -81,7 +81,7 @@
    card.append(body);roster.append(card);
   }
   for(const [id,name,desc] of [
-   ['solo-secret-eiman','Eiman Huel Stalker','Geheimduellant'],
+   ['story-eiman','Eiman Huel Stalker','Geheimduellant'],
    [portraits.normalSolo(0,profile.avatarId,'wanderer'),'Wandernder Duellant','Zufällige Begegnungen']]){
     const card=el('article','ad215-npc-card');
     card.append(portraits.node(id,name));
@@ -112,5 +112,5 @@
  const previousDuel=render;
  render=function(...args){const result=previousDuel(...args);decorateDuel();return result;};
  decorateMenu();decorateDuel();
- window.ArcaneSoloPortraits215=Object.freeze({version:'21.5',open,decorateMenu,decorateDuel});
+ window.ArcaneSoloPortraits215=Object.freeze({version:'21.6',open,decorateMenu,decorateDuel});
 })();
