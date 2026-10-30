@@ -1,0 +1,430 @@
+{
+  "schema": 1,
+  "version": "21.5",
+  "format": "webp (preferred) or png",
+  "aspectRatio": "1:1",
+  "recommendedPixels": "512×512",
+  "slots": 60,
+  "items": [
+    {
+      "id": "hero-01",
+      "kind": "player",
+      "label": "Charakter 1",
+      "path": "assets/portraits/heroes/hero-01.webp"
+    },
+    {
+      "id": "hero-02",
+      "kind": "player",
+      "label": "Charakter 2",
+      "path": "assets/portraits/heroes/hero-02.webp"
+    },
+    {
+      "id": "hero-03",
+      "kind": "player",
+      "label": "Charakter 3",
+      "path": "assets/portraits/heroes/hero-03.webp"
+    },
+    {
+      "id": "hero-04",
+      "kind": "player",
+      "label": "Charakter 4",
+      "path": "assets/portraits/heroes/hero-04.webp"
+    },
+    {
+      "id": "hero-05",
+      "kind": "player",
+      "label": "Charakter 5",
+      "path": "assets/portraits/heroes/hero-05.webp"
+    },
+    {
+      "id": "hero-06",
+      "kind": "player",
+      "label": "Charakter 6",
+      "path": "assets/portraits/heroes/hero-06.webp"
+    },
+    {
+      "id": "hero-07",
+      "kind": "player",
+      "label": "Charakter 7",
+      "path": "assets/portraits/heroes/hero-07.webp"
+    },
+    {
+      "id": "hero-08",
+      "kind": "player",
+      "label": "Charakter 8",
+      "path": "assets/portraits/heroes/hero-08.webp"
+    },
+    {
+      "id": "hero-09",
+      "kind": "player",
+      "label": "Charakter 9",
+      "path": "assets/portraits/heroes/hero-09.webp"
+    },
+    {
+      "id": "hero-10",
+      "kind": "player",
+      "label": "Charakter 10",
+      "path": "assets/portraits/heroes/hero-10.webp"
+    },
+    {
+      "id": "hero-11",
+      "kind": "player",
+      "label": "Charakter 11",
+      "path": "assets/portraits/heroes/hero-11.webp"
+    },
+    {
+      "id": "hero-12",
+      "kind": "player",
+      "label": "Charakter 12",
+      "path": "assets/portraits/heroes/hero-12.webp"
+    },
+    {
+      "id": "solo-opponent-00",
+      "kind": "solo",
+      "label": "Milo Fenn",
+      "path": "assets/portraits/solo/solo-opponent-00.webp"
+    },
+    {
+      "id": "solo-opponent-01",
+      "kind": "solo",
+      "label": "Kael Ardent",
+      "path": "assets/portraits/solo/solo-opponent-01.webp"
+    },
+    {
+      "id": "solo-opponent-02",
+      "kind": "solo",
+      "label": "Akari Hoshino",
+      "path": "assets/portraits/solo/solo-opponent-02.webp"
+    },
+    {
+      "id": "solo-opponent-03",
+      "kind": "solo",
+      "label": "Rin Wilder",
+      "path": "assets/portraits/solo/solo-opponent-03.webp"
+    },
+    {
+      "id": "solo-opponent-04",
+      "kind": "solo",
+      "label": "Kai Mizuno",
+      "path": "assets/portraits/solo/solo-opponent-04.webp"
+    },
+    {
+      "id": "solo-opponent-05",
+      "kind": "solo",
+      "label": "Ryuji Kagetsu",
+      "path": "assets/portraits/solo/solo-opponent-05.webp"
+    },
+    {
+      "id": "solo-opponent-06",
+      "kind": "solo",
+      "label": "Noa Kuronagi",
+      "path": "assets/portraits/solo/solo-opponent-06.webp"
+    },
+    {
+      "id": "solo-opponent-07",
+      "kind": "solo",
+      "label": "Sora Amaya",
+      "path": "assets/portraits/solo/solo-opponent-07.webp"
+    },
+    {
+      "id": "solo-opponent-08",
+      "kind": "solo",
+      "label": "Yuna Tsukishiro",
+      "path": "assets/portraits/solo/solo-opponent-08.webp"
+    },
+    {
+      "id": "solo-opponent-09",
+      "kind": "solo",
+      "label": "Liora Noctis",
+      "path": "assets/portraits/solo/solo-opponent-09.webp"
+    },
+    {
+      "id": "solo-opponent-10",
+      "kind": "solo",
+      "label": "Aster Valerian",
+      "path": "assets/portraits/solo/solo-opponent-10.webp"
+    },
+    {
+      "id": "solo-secret-eiman",
+      "label": "Eiman Huel Stalker · Geheimduell",
+      "kind": "solo-extra",
+      "path": "assets/portraits/solo/solo-secret-eiman.webp"
+    },
+    {
+      "id": "solo-wanderer",
+      "label": "Zufällige Begegnungen",
+      "kind": "solo-extra",
+      "path": "assets/portraits/solo/solo-wanderer.webp"
+    },
+    {
+      "id": "solo-fanatiker-01",
+      "label": "Level-1-Fanatiker · Prüfung 1",
+      "kind": "solo-extra",
+      "path": "assets/portraits/solo/solo-fanatiker-01.webp"
+    },
+    {
+      "id": "solo-fanatiker-02",
+      "label": "Level-1-Fanatiker · Prüfung 2",
+      "kind": "solo-extra",
+      "path": "assets/portraits/solo/solo-fanatiker-02.webp"
+    },
+    {
+      "id": "solo-fanatiker-03",
+      "label": "Level-1-Fanatiker · Prüfung 3",
+      "kind": "solo-extra",
+      "path": "assets/portraits/solo/solo-fanatiker-03.webp"
+    },
+    {
+      "id": "solo-fanatiker-04",
+      "label": "Level-1-Fanatiker · Prüfung 4",
+      "kind": "solo-extra",
+      "path": "assets/portraits/solo/solo-fanatiker-04.webp"
+    },
+    {
+      "id": "solo-fanatiker-05",
+      "label": "Level-1-Fanatiker · Prüfung 5",
+      "kind": "solo-extra",
+      "path": "assets/portraits/solo/solo-fanatiker-05.webp"
+    },
+    {
+      "id": "duo-chapter-01-a",
+      "kind": "duo-opponent",
+      "label": "Kael Ardent",
+      "chapter": 1,
+      "seat": 1,
+      "path": "assets/portraits/duo/duo-chapter-01-a.webp"
+    },
+    {
+      "id": "duo-chapter-01-b",
+      "kind": "duo-opponent",
+      "label": "Verbündeter von Kael Ardent",
+      "chapter": 1,
+      "seat": 3,
+      "path": "assets/portraits/duo/duo-chapter-01-b.webp"
+    },
+    {
+      "id": "duo-chapter-02-a",
+      "kind": "duo-opponent",
+      "label": "Akari Hoshino",
+      "chapter": 2,
+      "seat": 1,
+      "path": "assets/portraits/duo/duo-chapter-02-a.webp"
+    },
+    {
+      "id": "duo-chapter-02-b",
+      "kind": "duo-opponent",
+      "label": "Verbündeter von Akari Hoshino",
+      "chapter": 2,
+      "seat": 3,
+      "path": "assets/portraits/duo/duo-chapter-02-b.webp"
+    },
+    {
+      "id": "duo-chapter-03-a",
+      "kind": "duo-opponent",
+      "label": "Rin Wilder",
+      "chapter": 3,
+      "seat": 1,
+      "path": "assets/portraits/duo/duo-chapter-03-a.webp"
+    },
+    {
+      "id": "duo-chapter-03-b",
+      "kind": "duo-opponent",
+      "label": "Verbündeter von Rin Wilder",
+      "chapter": 3,
+      "seat": 3,
+      "path": "assets/portraits/duo/duo-chapter-03-b.webp"
+    },
+    {
+      "id": "duo-chapter-04-a",
+      "kind": "duo-opponent",
+      "label": "Kai Mizuno",
+      "chapter": 4,
+      "seat": 1,
+      "path": "assets/portraits/duo/duo-chapter-04-a.webp"
+    },
+    {
+      "id": "duo-chapter-04-b",
+      "kind": "duo-opponent",
+      "label": "Verbündeter von Kai Mizuno",
+      "chapter": 4,
+      "seat": 3,
+      "path": "assets/portraits/duo/duo-chapter-04-b.webp"
+    },
+    {
+      "id": "duo-chapter-05-a",
+      "kind": "duo-opponent",
+      "label": "Ryuji Kagetsu",
+      "chapter": 5,
+      "seat": 1,
+      "path": "assets/portraits/duo/duo-chapter-05-a.webp"
+    },
+    {
+      "id": "duo-chapter-05-b",
+      "kind": "duo-opponent",
+      "label": "Verbündeter von Ryuji Kagetsu",
+      "chapter": 5,
+      "seat": 3,
+      "path": "assets/portraits/duo/duo-chapter-05-b.webp"
+    },
+    {
+      "id": "duo-chapter-06-a",
+      "kind": "duo-opponent",
+      "label": "Noa Kuronagi",
+      "chapter": 6,
+      "seat": 1,
+      "path": "assets/portraits/duo/duo-chapter-06-a.webp"
+    },
+    {
+      "id": "duo-chapter-06-b",
+      "kind": "duo-opponent",
+      "label": "Verbündeter von Noa Kuronagi",
+      "chapter": 6,
+      "seat": 3,
+      "path": "assets/portraits/duo/duo-chapter-06-b.webp"
+    },
+    {
+      "id": "duo-chapter-07-a",
+      "kind": "duo-opponent",
+      "label": "Sora Amaya",
+      "chapter": 7,
+      "seat": 1,
+      "path": "assets/portraits/duo/duo-chapter-07-a.webp"
+    },
+    {
+      "id": "duo-chapter-07-b",
+      "kind": "duo-opponent",
+      "label": "Verbündeter von Sora Amaya",
+      "chapter": 7,
+      "seat": 3,
+      "path": "assets/portraits/duo/duo-chapter-07-b.webp"
+    },
+    {
+      "id": "duo-chapter-08-a",
+      "kind": "duo-opponent",
+      "label": "Yuna Tsukishiro",
+      "chapter": 8,
+      "seat": 1,
+      "path": "assets/portraits/duo/duo-chapter-08-a.webp"
+    },
+    {
+      "id": "duo-chapter-08-b",
+      "kind": "duo-opponent",
+      "label": "Verbündeter von Yuna Tsukishiro",
+      "chapter": 8,
+      "seat": 3,
+      "path": "assets/portraits/duo/duo-chapter-08-b.webp"
+    },
+    {
+      "id": "duo-chapter-09-a",
+      "kind": "duo-opponent",
+      "label": "Liora Noctis",
+      "chapter": 9,
+      "seat": 1,
+      "path": "assets/portraits/duo/duo-chapter-09-a.webp"
+    },
+    {
+      "id": "duo-chapter-09-b",
+      "kind": "duo-opponent",
+      "label": "Verbündeter von Liora Noctis",
+      "chapter": 9,
+      "seat": 3,
+      "path": "assets/portraits/duo/duo-chapter-09-b.webp"
+    },
+    {
+      "id": "duo-chapter-10-a",
+      "kind": "duo-opponent",
+      "label": "Eiman Huel Stalker",
+      "chapter": 10,
+      "seat": 1,
+      "path": "assets/portraits/duo/duo-chapter-10-a.webp"
+    },
+    {
+      "id": "duo-chapter-10-b",
+      "kind": "duo-opponent",
+      "label": "Hans Ess Kirk",
+      "chapter": 10,
+      "seat": 3,
+      "path": "assets/portraits/duo/duo-chapter-10-b.webp"
+    },
+    {
+      "id": "duo-chapter-11-a",
+      "kind": "duo-opponent",
+      "label": "Der Level-1-Fanatiker",
+      "chapter": 11,
+      "seat": 1,
+      "path": "assets/portraits/duo/duo-chapter-11-a.webp"
+    },
+    {
+      "id": "duo-chapter-11-b",
+      "kind": "duo-opponent",
+      "label": "Fanatikers Adept",
+      "chapter": 11,
+      "seat": 3,
+      "path": "assets/portraits/duo/duo-chapter-11-b.webp"
+    },
+    {
+      "id": "duo-chapter-12-a",
+      "kind": "duo-opponent",
+      "label": "Der Level-1-Fanatiker",
+      "chapter": 12,
+      "seat": 1,
+      "path": "assets/portraits/duo/duo-chapter-12-a.webp"
+    },
+    {
+      "id": "duo-chapter-12-b",
+      "kind": "duo-opponent",
+      "label": "Fanatikers Adept",
+      "chapter": 12,
+      "seat": 3,
+      "path": "assets/portraits/duo/duo-chapter-12-b.webp"
+    },
+    {
+      "id": "duo-chapter-13-a",
+      "kind": "duo-opponent",
+      "label": "Der Level-1-Fanatiker",
+      "chapter": 13,
+      "seat": 1,
+      "path": "assets/portraits/duo/duo-chapter-13-a.webp"
+    },
+    {
+      "id": "duo-chapter-13-b",
+      "kind": "duo-opponent",
+      "label": "Fanatikers Adept",
+      "chapter": 13,
+      "seat": 3,
+      "path": "assets/portraits/duo/duo-chapter-13-b.webp"
+    },
+    {
+      "id": "duo-chapter-14-a",
+      "kind": "duo-opponent",
+      "label": "Der Level-1-Fanatiker",
+      "chapter": 14,
+      "seat": 1,
+      "path": "assets/portraits/duo/duo-chapter-14-a.webp"
+    },
+    {
+      "id": "duo-chapter-14-b",
+      "kind": "duo-opponent",
+      "label": "Fanatikers Adept",
+      "chapter": 14,
+      "seat": 3,
+      "path": "assets/portraits/duo/duo-chapter-14-b.webp"
+    },
+    {
+      "id": "duo-chapter-15-a",
+      "kind": "duo-opponent",
+      "label": "Der Level-1-Fanatiker",
+      "chapter": 15,
+      "seat": 1,
+      "path": "assets/portraits/duo/duo-chapter-15-a.webp"
+    },
+    {
+      "id": "duo-chapter-15-b",
+      "kind": "duo-opponent",
+      "label": "Fanatikers Adept",
+      "chapter": 15,
+      "seat": 3,
+      "path": "assets/portraits/duo/duo-chapter-15-b.webp"
+    }
+  ]
+}
