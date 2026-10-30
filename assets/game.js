@@ -492,6 +492,8 @@ function showShowcaseIntro(){
   '„Drei Trainingssiege? Wie entzückend. Du hältst dich wohl schon für einen Duellanten.“',
   '<p>„Sieh genau hin, Neuling. So sehen Karten aus, die du noch nicht einmal begreifen kannst.“</p><p><b>Ein Pflichtduell beginnt.</b> Diese Begegnung zeigt dir, welche Mächte jenseits deiner bisherigen Kämpfe warten.</p><p>Deck: ??? · Stufen: ??? · Fusionen: ??? · Belohnungen: ???</p>',
   '<button class="btn primary" id="showcaseBegin">HERAUSFORDERUNG ANNEHMEN</button>'));
+ const eimanPortrait=window.ArcanePortraits215?.node?.('story-eiman',SHOWCASE_NAME);
+ if(eimanPortrait){eimanPortrait.classList.add('ad216-solo-story-portrait');$('modal')?.prepend(eimanPortrait);}
  $('showcaseBegin').onclick=()=>{profile.showcase.pending=false;profile.showcase.seen=true;saveProfile();hideModal();startShowcaseDuel(true);};
  return true;
 }
@@ -515,6 +517,8 @@ function startShowcaseDuel(forced=false){
   '„Du darfst anfangen. Viel wird es dir nicht nützen.“',
   '<p>„Drei Trainingssiege machen dich noch lange nicht zu einem würdigen Gegner.“</p>',
   '<button class="btn primary" id="showcaseGo">DUELL STARTEN</button>'));
+ const challengerPortrait=window.ArcanePortraits215?.node?.('story-eiman',SHOWCASE_NAME);
+ if(challengerPortrait){challengerPortrait.classList.add('ad216-solo-story-portrait');$('modal')?.prepend(challengerPortrait);}
  $('showcaseGo').onclick=()=>{hideModal();if(game?.active===1)runAi();};
 }
 function showcasePanel(){
