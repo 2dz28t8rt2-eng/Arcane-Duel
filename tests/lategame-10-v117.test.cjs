@@ -47,8 +47,14 @@ test('live normal monsters follow level budget, reach loot/decks and render with
  for(let i=0;i<10;i++){
   const a=x.cards[i],r=rows[i];
   assert.equal(a.id,r.id);assert.equal(a.name,r.name);assert.equal(a.level,r.level);
-  assert.equal(a.role,r.role);assert.equal(a.atk,Math.round(budget[r.level]*shares[r.role]/10)*10);
-  assert.equal(a.def,budget[r.level]-a.atk);
+  assert.equal(a.role,r.role);
+  const originalAtk=Math.round(budget[r.level]*shares[r.role]/10)*10;
+  const targetPool=r.role==='guardian'?Math.round(budget[r.level]*.95/10)*10:budget[r.level];
+  const floor=Math.min(80,originalAtk,Math.floor(targetPool/20)*10);
+  const atk=r.role==='guardian'?Math.min(originalAtk,Math.max(floor,
+   Math.min(targetPool-floor,Math.round(targetPool*.22/10)*10))):originalAtk;
+  assert.equal(a.atk,atk);
+  assert.equal(a.def,targetPool-atk);
   assert.equal(a.art,r.art);assert.equal(a.customArt,r.art);assert.equal(a.source,r.source);
   assert.equal(a.ability,null);assert.equal(a.effectText,null===a.effectText?null:'');
   assert.equal(a.fusionOnly,false);assert.equal(a.ace,false);assert.equal(a.retired,false);
