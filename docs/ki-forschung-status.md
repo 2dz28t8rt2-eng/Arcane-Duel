@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-30 · Branch `development` · Forschungsphase v17.7 erfolgreich abgeschlossen
+**Aktualisiert:** 2026-10-30 · Branch `development` · v17.8 finale Wächter-Balance-Diagnostik gestartet
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -292,6 +292,18 @@ Nur tatsächlich ausgeführte aktive Angriffe auf dem echten Spielfeld gezählt,
 
 **Empfehlung:** **95 % Wertepool / 22:78 weiterhin als beste Forschungsoption, noch nicht produktiv übernehmen.** Für v17.8 echte **gegner-LP-gepaarte Einzelgegenspielzüge** bei identischen HP/DEF/ATK-Zuständen sowie zusätzlichen Fusion-/Predator-/Level-10-HOLDOUT mit **mehr unabhängigen Seeds und Decks** verwenden. Vor Kombination mit der dynamischen Wächterheilung zunächst ungewöhnlich geringe Counter-LP-Reduktion in `candidate22` und den `opponent22`-Effekt aufklären. Keine weiteren pauschalen Wertenerfs.
 
+
+### v17.8 – Abschlussdiagnostik vor den Balance-Maßnahmen
+
+**Ausgelöst:** [GitHub Actions #41024891397](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/41024891397), Branch `development`, **92.160 geplante Duelle in vier kausalen Armen** (Kontrolle; 95-%-Pool mit 22/78 auf beiden Seiten; nur Kandidat; nur Gegner). Alle Champion-Hürden und die TRAIN/VALIDATION/HOLDOUT-Trennung bleiben unverändert.
+
+**Gezielte Zusatzdiagnostik:** Forschungsmodul `tests/helpers/research-guardian-counter-v178.cjs` misst bei jedem echten überlebenden Gegenschlag zusätzlich zum real abgezogenen LP-Wert den **Rohwert floor(effektive ATK × 0,35)**, dessen Differenz zum tatsächlichen LP-Verlust, Null-LP-Gegenschläge, die vor dem Gegenschlag verbliebenen Gegner-LP sowie die effektive Wächter-ATK. Vergleich `tests/ai-v1780-guardian-counter-compare.cjs` liefert die Werte nach Kandidat/Gegner und TRAIN/VALIDATION/HOLDOUT. Damit kann die fast unveränderte Gegenschlags-LP-Summe der Kandidat-only-Variante aus v17.7 systematischer untersucht werden: weniger Schaden pro Ereignis vs. mehr Ereignisse bzw. Verbrauch von Schild/LP-Caps und andere Duellverläufe.
+
+**Neue, zwischen allen vier Armen identische Fokus-Stichproben:** Stage 8 (Wächter-/Seelenzehrer-Rollen) und Stage 9 (Fusionen) benutzen neue Seedfamilien gegenüber v17.7, ohne HOLDOUT zum Trainieren zu verwenden. Der erneute 92.160er-Durchlauf ist damit eine gezielte Replikation unter frischen Startbedingungen statt bloßer Wiederholung derselben Stage-8-Decks.
+
+**Unverändert:** 35-%-Gegenschlag nur nach überlebtem Treffer, volle Wächterheilung, Forschungsbaseline Predator-Pierce 15 Prozentpunkte und Seelenentzug 90/100/120 Prozent. Kein produktiver Wertepatch, keine Änderung der Solo-/2v2-Regeln, kein automatischer Champion-Wechsel.
+
+**Abnahme nach v17.8:** Auf Basis beider Untersuchungen v17.7/v17.8 entscheiden wir konkrete Maßnahmen (bevorzugt 22/78, 20/80 weiterhin zurückgestellt). Anschließend wird die **separate KI-Forschung** wieder priorisiert: echte Angriffsgelegenheiten, effektive Defender-Kontermöglichkeiten, Direkt-H2H-Gates und Lernwert-Einsatz. Keine weiteren pauschalen Wächterwerte-Experimente ohne konkrete neue Anhaltspunkte.
 
 ## C. KI-Forschungsstatus
 
