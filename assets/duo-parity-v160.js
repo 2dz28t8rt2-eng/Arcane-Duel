@@ -410,6 +410,9 @@
   game=payload.state;seat=payload.seat;syncedAt=Date.now();syncError='';syncFailures=0;
   if(game.status!=='waiting')invite='';
   save();render();
+  // Visual presentation is derived from public room state, never opponent private hands.
+  window.ArcaneDuoPortraits215?.update?.(game);
+  window.ArcaneDuoStory216?.onState?.(previous,game,seat,roomId);
   if(game.status!=='inviting_next'&&$('duoInviteDialog').dataset.mode==='next')dismissInvitation();
   window.ArcaneDuoCinematics167?.onState(previous,game);
   window.ArcaneDuoCinema170?.onState(previous,game,catalog,seat);
@@ -600,8 +603,9 @@
    const panel=el('article',seats,undefined,'seat '+(game.activeSeat===p.seat?'active':''));
    panel.dataset.seat=String(p.seat);
    const heading=el('div',panel,undefined,'ad215-duo-seat-head');
+   const chosen=[game.players[0]?.portraitId,game.players[2]?.portraitId];
    const avatar=p.kind==='human'?portraits?.sanitizeHero(p.portraitId):
-     portraits?.duoOpponent(game.chapter,p.seat);
+     portraits?.visualDuo({chapter:game.chapter,seat:p.seat,selected:chosen});
    if(portraits)heading.append(portraits.node(avatar,p.name));
    el('h3',heading,p.name);
    el('small',panel,p.kind==='human'?(p.seat===0?'DEIN TEAM · GASTGEBER':'DEIN TEAM · PARTNER'):
