@@ -1,46 +1,56 @@
-/* All Duo opponents have a dedicated art slot, even before art exists.
- * This gallery lives in the independent 2v2 campaign menu and does not touch rules.
+/* Arcane Duel v21.6 – Duo portrait gallery with non-interchangeable story cast.
+ * Normal NPCs take only portraits not selected by either human. No unused
+ * portrait is rendered as a fake playable character.
  */
 'use strict';
 (()=>{
  const P=window.ArcanePortraits215,R=window.ArcaneDuoRules;
  const panel=document.getElementById('duoProfilePanel');
  if(!P||!R||!panel)return;
- const el=(tag,cls,text)=>{const d=document.createElement(tag);
-  if(cls)d.className=cls;if(text!==undefined)d.textContent=text;return d;};
+ const el=(tag,cls,label)=>{const d=document.createElement(tag);
+  if(cls)d.className=cls;if(label!==undefined)d.textContent=label;return d;};
  const section=el('details','duo-panel ad215-duo-opponents');
  section.id='ad215DuoOpponents';
- section.append(el('summary',null,'✧ Gegnerprofile und Artworks · alle 15 Kapitel'));
- section.append(el('p',null,'Jeder der beiden Gegner pro Kapitel hat einen eigenen Portraitplatz. Artworks werden beim Hochladen automatisch angezeigt.'));
+ section.append(el('summary',null,'✧ Gegnerprofile · Kapitel I–XV'));
+ section.append(el('p',null,'Gewöhnliche Duellanten erhalten zufällig eines der nicht gewählten Spielerportraits. Eiman Huel, Hans Ess und die beiden Fanatiker haben unveränderliche Story-Artworks.'));
  const grid=el('div','ad215-roster');section.append(grid);
  panel.insertAdjacentElement('afterend',section);
- function getNames(data,chapter){
+ let latest=null,roster=null;
+ function names(chapter){
   if(chapter===10)return ['Eiman Huel Stalker','Hans Ess Kirk'];
   if(chapter>=11)return ['Der Level-1-Fanatiker','Fanatikers Adept'];
-  const base=data?.roster?.[chapter-1]?.name||'Gegner des Kapitels '+chapter;
+  const base=roster?.roster?.[chapter-1]?.name||'Gegner von Kapitel '+chapter;
   return [base,'Verbündeter von '+base];
  }
- function fill(data){
+ function fill(){
   grid.replaceChildren();
-  for(const entry of R.ENCOUNTERS){
-   const names=getNames(data,entry.id);
-   for(const [index,name] of names.entries()){
-    const seat=index===0?1:3,card=el('article','ad215-npc-card');
-    card.append(P.node(P.duoOpponent(entry.id,seat),name));
-    const body=el('div');
-    body.append(el('strong',null,name));
-    body.append(el('small',null,(entry.id>10?'Fanatiker-Saga '+(entry.id-10):
-     'Kapitel '+entry.id)+' · '+(index?'Gegner B':'Gegner A')));
-    body.append(el('small',null,entry.name||''));
+  const selected=latest?.players?[latest.players[0]?.portraitId,latest.players[2]?.portraitId]:
+    [document.querySelector('#duoAvatarView [data-portrait]')?.dataset?.portrait||'hero-01'];
+  for(const chapter of R.ENCOUNTERS){
+   const label=names(chapter.id);
+   for(const [index,baseName]of label.entries()){
+    const seat=index?3:1;
+    const name=latest?.chapter===chapter.id?
+     (latest.players[seat]?.name||baseName):baseName;
+    const avatar=P.visualDuo({chapter:chapter.id,seat,selected});
+    const card=el('article','ad215-npc-card');
+    if(avatar)card.append(P.node(avatar,name));
+    const body=el('div');body.append(el('strong',null,name));
+    body.append(el('small',null,(chapter.id>10?'Forschung '+(chapter.id-10)+'/5':
+     'Kapitel '+chapter.id)+' · '+(index?'Gegner B':'Gegner A')));
+    body.append(el('small',null,chapter.name||''));
+    if(chapter.id===10)body.append(el('small',null,index?'Der blonde Magier in Rot · Eimans treuer Tag-Team-Partner':
+     'Der finstere Magier · Herr über seine versklavten Kreaturen'));
+    if(chapter.id>=11)body.append(el('small',null,index?
+      'Besessener Forschungsgehilfe · kein eigenes ACE-Monster':
+      'Der Level-1-Forscher · Lumiras ungeduldiger Beschwörer'));
     card.append(body);grid.append(card);
    }
   }
  }
- fill(null);
- fetch('assets/duo-opponent-catalog-v201.json?v=201').then(r=>{
-  if(!r.ok)throw Error('Gegnerliste offline');
-  return r.json();
- }).then(data=>{if(data?.schema===1&&Array.isArray(data.roster))fill(data);})
-  .catch(()=>{}); // NPC names can be loaded from the existing battle even offline.
- window.ArcaneDuoPortraits215=Object.freeze({version:'21.5',section,fill});
+ fill();
+ fetch('assets/duo-opponent-catalog-v201.json?v=201').then(r=>r.ok?r.json():null)
+  .then(data=>{if(data?.schema===1){roster=data;fill();}}).catch(()=>{});
+ window.ArcaneDuoPortraits215=Object.freeze({version:'21.6',section,fill,
+  update(game){latest=game;fill();}});
 })();
