@@ -12,8 +12,8 @@
  overlay.hidden=true;overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
  overlay.setAttribute('aria-labelledby','ad215SoloCreatorTitle');
  const panel=el('div','ad215-panel');overlay.append(panel);
- panel.append(el('h2',null,'✦ Charakter erstellen'));
- panel.lastChild.id='ad215SoloCreatorTitle';
+ const title=el('h2',null,'✦ Charakter erstellen');
+ title.id='ad215SoloCreatorTitle';panel.append(title);
  panel.append(el('p',null,'Wähle ein Portrait und einen Duellantennamen. Artworks erscheinen automatisch, sobald die passenden Dateien hochgeladen wurden.'));
  const nameLabel=el('label',null,'Dein Spielername');nameLabel.htmlFor='ad215SoloName';
  const input=el('input');input.id='ad215SoloName';input.maxLength=32;input.minLength=2;
