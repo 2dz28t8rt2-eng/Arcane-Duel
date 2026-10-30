@@ -1802,6 +1802,13 @@
  }
  function npcSummonChoice(g,seat,catalog){
   const p=g.players[seat];if(p.summoned)return null;
+  // The Fanatiker's sealed Lumira is a story-required opening action.
+  // Its identity is fixed by fanaticOpening(), not a strength heuristic.
+  if(isQuest(g.chapter)&&g.chapter<=14&&seat===1){
+   const sealed=p.hand.findIndex(item=>(Number.isInteger(item)?item:item?.id)===714);
+   const free=p.field.findIndex(c=>!c);
+   if(sealed>=0&&free>=0)return {type:'summon',handIndex:sealed,slot:free};
+  }
   const hand=p.hand.map((item,i)=>({item,i,id:Number.isInteger(item)?item:item?.id}))
    .filter(x=>definition(catalog,x.id)&&!definition(catalog,x.id).fusionOnly);
   const normal=hand.filter(x=>allowed(catalog,x.id)||x.item?.fate);

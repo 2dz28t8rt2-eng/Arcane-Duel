@@ -58,6 +58,21 @@ test('AI attack selects across two human fields, including finishing a direct at
  assert.equal(next.status,'finished');
  assert.ok(next.log.some(s=>s.includes('direkter Angriff')));
 });
+test('sealed Lumira opens every Fanatiker chapter 11 through 14',()=>{
+ for(let chapter=11;chapter<=14;chapter++){
+  const options={roomId:'duo-ki-lumira-'+chapter,hostName:'A',chapter,
+   entry:'quest',catalog,hostDeck:starter,hostFusions:fusion,
+   enemyDeckA:starter,enemyDeckB:starter,
+   enemyFusionsA:fusion,enemyFusionsB:fusion,randomSeed:186111+chapter};
+  const before=rules.apply(rules.create(options),2,{type:'join',
+   name:'B',deck:starter,fusions:fusion},{catalog});
+  assert.equal(before.players[1].hand[0],714);
+  const turn=active(before,1);
+  const next=rules.aiTurn(turn,{catalog});
+  assert.ok(next.players[1].field.some(c=>c?.id===714),
+   'Story Lumira is not optional in chapter '+chapter);
+ }
+});
 test('fusions are allowed from real hand materials, never spawned free of costs',()=>{
  const g=active(create(8),1),npc=g.players[1];
  npc.field.fill(null);npc.summoned=false;
