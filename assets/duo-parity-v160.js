@@ -714,8 +714,9 @@
    summonCommit.dataset.ad189Commit='true';
   }
   if(!p.summoned&&p.remainingFusion.length>=1){
-   const part=section(dock,'✦ Fusion','Wähle zwei bis fünf eigene Monster. '+
-    'Klicke sie in der Hand oder auf deinem Spielfeld an. Die Materialliste bleibt als Alternative verfügbar.');
+   const part=section(dock,'✦ Fusion','Wähle zwei bis fünf Monster aus deiner Hand, deinem Feld oder dem Feld deines menschlichen Partners. '+
+    'Verwendete verbündete Feldmonster werden beim Fusionieren ebenfalls verbraucht.');
+   const allySeat=seat===0?2:0,ally=game.players[allySeat];
    const select=el('select',part,undefined,'duo-fusion-list');
    select.multiple=true;select.size=7;select.setAttribute('aria-label','Fusionsmaterialien');
    p.hand.forEach((item,i)=>{if(item?.fate||card(typeof item==='number'?item:item.id).ace)return;
@@ -724,6 +725,11 @@
      name(id)+' · Lv '+card(id).level);opt.value='hand:'+i;});
    p.field.forEach((c,i)=>{if(!c||c.fate||c.predatorToken||card(c.id).ace)return;const opt=el('option',select,
     'Feld '+(i+1)+' · '+displayName(c)+' · Lv '+c.level);opt.value='field:'+i;});
+   if(ally?.team===p.team){
+    ally.field.forEach((c,i)=>{if(!c||c.fate||c.predatorToken||card(c.id).ace)return;
+     const opt=el('option',select,'Partner '+ally.name+' · Feld '+(i+1)+' · '+displayName(c)+' · Lv '+c.level);
+     opt.value='allyField:'+i;});
+   }
    if(p.lv1?.perk){
     (p.lv1.ghostSlots||[]).forEach((c,i)=>{if(!c||c.predatorToken||card(c.id).ace)return;
      const opt=el('option',select,'Geisterslot '+(i+1)+' · '+name(c.id)+
@@ -761,16 +767,17 @@
     window.ArcaneDuoFusionGuide214?.clear(details);
     const materials=selected();commit.disabled=true;
     if(materials.length<2||materials.length>5){
-     hint.textContent='Erforderlich: 2 bis 5 eigene Materialien.';return;
+     hint.textContent='Erforderlich: 2 bis 5 eigene oder verbündete Materialien.';return;
     }
     try{
      const sources=materials.map(m=>m.from==='charge'?
       {id:-1,level:2,role:'combatant',fusion:false}:m.from==='hand'?
       {id:p.hand[m.index],level:card(p.hand[m.index]).level}:
-      m.from==='ghost'?p.lv1.ghostSlots[m.index]:p.field[m.index]);
+      m.from==='ghost'?p.lv1.ghostSlots[m.index]:
+      m.from==='allyField'?ally?.field[m.index]:p.field[m.index]);
      const initial=rules.fusionLevel(sources);
      materials.forEach((m,i)=>{
-      const label=(m.from==='hand'?'Hand ':'Feld ')+(m.index+1)+
+      const label=(m.from==='hand'?'Hand ':m.from==='allyField'?'Partnerfeld ':m.from==='ghost'?'Geisterzone ':'Feld ')+(m.index+1)+
       ' · '+(m.from==='charge'?'Geisterfunke':name(sources[i].id))+
       ' (Lv '+sources[i].level+')';
       const op=el('option',core,label);op.value=i;
