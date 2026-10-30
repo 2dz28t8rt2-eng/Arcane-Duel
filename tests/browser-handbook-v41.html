@@ -41,7 +41,11 @@ frame.addEventListener('load',async()=>{
    !!book.querySelector('#ad201-fusion-stomp')&&
    !!book.querySelector('#ad180-rule-opening-development'),
    'At least fourteen base chapters, ten extended chapters and Fusion-Stomp are present');
-  expect(chapters.every((c,i)=>parseInt(c.querySelector('summary').textContent,10)===i+1),'Chapter order stays complete for a new player');
+  const fusionChapter=book.querySelector('#ad213-rule-fusion');
+  expect(!!fusionChapter&&chapters.indexOf(fusionChapter)===3&&fusionChapter.querySelectorAll('.ad213-subchapter').length===8,
+   'The beginner Fusionen chapter follows chapter 3 and offers eight subchapters');
+  expect(chapters.filter(c=>c!==fusionChapter).every((c,i)=>parseInt(c.querySelector('summary').textContent,10)===i+1),
+   'Previously numbered chapters remain in order with the new Fusionen chapter inserted');
   expect(links.length===chapters.length,'Directory includes chapters appended by later modules');
   expect(new Set(chapters.map(c=>c.id)).size===chapters.length,'All chapter anchors are unique');
   const essence=d.getElementById('essenceCombatRules');
@@ -58,7 +62,9 @@ frame.addEventListener('load',async()=>{
   expect(!text.includes('110 % Stärke')&&!text.includes('maximal 135 %')&&!text.includes('45 + 42'),'Outdated Soul values are absent');
   expect(!text.includes('endgültigen ATK/DEF zu verraten'),'Old hidden-final-values promise is absent');
   expect(text.includes('Normale Wächter')&&text.includes('Monsterwerkstatt'),'Normal role synergy and permanent workshop are explained');
-  expect(book.querySelector('.arcane-rule-table tbody tr').children.length===5,'Pattern table distinguishes recipe, quality, rolls and level budget');
+  const pokerTable=chapters.find(c=>c.querySelector('summary')?.textContent.startsWith('4 ·'))?.querySelector('.arcane-rule-table');
+  expect(pokerTable?.querySelector('tbody tr')?.children.length===4&&!pokerTable.textContent.includes('Budgetbonus'),
+   'Poker table shows real quality and rolls without the obsolete legacy budget column');
   expect(text.includes('Gigantische Straße')&&text.includes('Aufstiegsschmiede')&&text.includes('170'),'Current rulebook explains five-card street, ascension and decay');
   expect(!/Himmelswächter VII|Er besitzt jetzt drei Level-10|drei Lv10-Fusionsvorlagen|seine einzige Level-10-Vorlage/i.test(text),'Opponent VII deck makeup is not spoiled in the player handbook');
   expect(d.getElementById('modal').scrollWidth<=d.getElementById('modal').clientWidth+2,'Full rulebook fits the viewport horizontally');
