@@ -1,0 +1,37 @@
+/* Arcane Duel Duo: responsive fusion handbook and contextual explanation. */
+.ad214-main{margin:15px 0;padding:0;border:1px solid #ad91d8;border-radius:11px;background:linear-gradient(135deg,#2d2846e0,#3b3049d9);overflow:hidden}
+.ad214-main>summary{padding:14px 15px;cursor:pointer;font-weight:800;color:#ffe5b2}
+.ad214-chapter-body{padding:10px 14px 15px}
+.ad214-lead{padding:12px 14px;margin-bottom:12px;border:1px solid #a28cc17f;border-radius:8px}
+.ad214-lead strong{font-size:1.04em;color:#f9dca6}
+.ad214-sub{margin:9px 0;border:1px solid #8372a888;border-radius:10px;background:#2d2a49b8;overflow:hidden}
+.ad214-sub>summary{padding:12px;cursor:pointer;font-weight:700;color:#ffe1af;line-height:1.5}
+.ad214-sub[open]>summary{background:#5143719c;border-bottom:1px solid #9d89b66e}
+.ad214-body{padding:10px 14px 14px;line-height:1.6}
+.ad214-body p{margin:7px 0 12px}
+.ad214-scroll{overflow-x:auto;max-width:100%;margin:10px 0}
+.ad214-scroll table{border-collapse:collapse;min-width:340px;width:100%;font-size:12px}
+.ad214-scroll td,.ad214-scroll th{border:1px solid #8173a075;text-align:left;padding:8px;line-height:1.4}
+.ad214-scroll th{background:#4a3a68;color:#ffdda0}
+.ad214-scroll tr:nth-child(2n){background:#46395348}
+.ad214-diagram{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:9px;padding:13px 10px;margin:12px 0;border:1px solid #a38ad17d;border-radius:11px;background:linear-gradient(145deg,#2b294a,#372c48)}
+.ad214-diagram strong{font-size:15px;color:#ffe4ad}
+.ad214-diagram>span:not(.ad214-chain){font-size:12px;color:#dcd1f0}
+.ad214-chain{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center}
+.ad214-chain b{color:#c8addc}
+.ad214-card{border:1px solid #bca5ed;background:linear-gradient(130deg,#544074,#31234c);color:#fff1c9;border-radius:7px;padding:13px 9px;min-width:50px;font-weight:800}
+.ad214-live{display:flex;flex-direction:column;gap:10px;margin-top:12px;padding:5px 0}
+.ad214-live-part{padding:12px 13px;border:1px solid #8373ac7b;border-radius:10px;background:#2e2b49a6;line-height:1.6}
+.ad214-live-part>strong{color:#ffe0a4}
+.ad214-live-part p{margin:6px 0 10px}
+.ad214-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.ad214-facts>span{padding:10px;display:flex;flex-direction:column;gap:4px;border:1px solid #9784c4a6;border-radius:9px;background:#362c52;min-width:0}
+.ad214-facts small{font-size:11px;color:#d9cde9}
+.ad214-facts strong{font-size:15px;color:#ffdf9e;overflow-wrap:anywhere}
+.ad214-note{font-size:12px;color:#d5cbe5;margin:0}
+.ad214-open-book{cursor:pointer;color:#ffebb8;background:#533d71;border:1px solid #ddba75;border-radius:8px;padding:10px 12px;font-weight:700;text-align:center}
+.ad214-open-book:hover,.ad214-open-book:focus-visible{outline:2px solid #f4d79d}
+.duo-fusion-details>summary{cursor:pointer;font-weight:700}
+@media(max-width:680px){.ad214-facts{grid-template-columns:1fr}.ad214-facts>span{flex-direction:row;justify-content:space-between;align-items:center}.ad214-chapter-body{padding:9px 10px 12px}.ad214-body{padding:8px 10px 12px}.ad214-sub>summary{padding:11px 9px}.ad214-card{min-width:43px;padding:10px 7px}}
+@media(max-width:380px){.ad214-facts.ad214-stat>span{flex-direction:column;align-items:flex-start}}
+@media(prefers-reduced-motion:reduce){.ad214-card,.ad214-main,.ad214-open-book{animation:none!important;transition:none!important}}
