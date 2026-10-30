@@ -5,6 +5,7 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
 const {boot,repo}=require('./helpers/game-runtime.cjs');
 const rows=JSON.parse(fs.readFileSync(path.join(repo,'assets/lategame-v117-manifest.json'),'utf8')).cards;
 const {roleFor,statsFor}=require('./helpers/live-role-expectations-v216.cjs');
+const shares={predator:.76,guardian:.25,soul:.22,combatant:.50};
 const snap=()=>boot({seed:11707}).run(`(()=>({count:window.ArcaneLateGameV117?.count||0,newFusions:window.ArcaneFusionWaveV129?.installed||0,v130Fusions:window.ArcaneFusionWaveV130?.installed||0,total:CARDS.length,
  cards:CARDS.slice(732,742).map(c=>({id:c.id,name:c.name,level:c.level,
  role:c.role,atk:c.atk,def:c.def,art:c.art,customArt:c.customArt,
