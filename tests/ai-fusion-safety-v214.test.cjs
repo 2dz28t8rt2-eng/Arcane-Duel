@@ -30,10 +30,10 @@ test('AI safely ignores repeatedly proposed illegal fusion rather than throwing 
 });
 
 test('real Lv1 research help can list the exclusive quest template without spending it',()=>{
- const x=boot({seed:21432}).run("(()=>{profile=freshProfile();profile.lv1Saga.perk=true;game=createGame({mode:'pve',opponentId:1,context:'free',seed:21432});game.active=0;game.turn=5;const p=game.players[0],id=RPG_BASE_CARDS.find(c=>c.level===1&&!c.fusionOnly&&!c.ace).id;const m=Array.from({length:3},()=>newInstance(game,id,0));p.hand=m;p.field.fill(null);const template=ArcaneLv1Swarm.ids.hive;p.remainingFusion=[template];p.fusionDeck=[template];const stockBefore=p.remainingFusion.length;const info=window.ArcaneFusionGuide213.actualInfo({g:game,levels:[1,1,1],materials:m,pending:false});const html=window.ArcaneFusionGuide213.explanationText(info);return {special:info.specialLv1,eligible:info.specialTemplates.some(c=>c.id===template),bestId:info.best?.id,level:info.best?.level,help:html.includes('Verbotene Forschung'),stockBefore,stockAfter:p.remainingFusion.length};})()");
+ const x=boot({seed:21432}).run("(()=>{profile=freshProfile();profile.lv1Saga.perk=true;game=createGame({mode:'pve',opponentId:1,context:'free',seed:21432});game.active=0;game.turn=5;const p=game.players[0],id=RPG_BASE_CARDS.find(c=>c.level===1&&!c.fusionOnly&&!c.ace).id;const m=Array.from({length:3},()=>newInstance(game,id,0));p.hand=m;p.field.fill(null);const template=ArcaneLv1Swarm.ids.hive;p.remainingFusion=[template];p.fusionDeck=[template];const stockBefore=p.remainingFusion.length;const info=window.ArcaneFusionGuide213.actualInfo({g:game,levels:[1,1,1],materials:m,pending:false});const html=window.ArcaneFusionGuide213.explanationText(info);return {target:template,special:info.specialLv1,eligible:info.specialTemplates.some(c=>c.id===template),bestId:info.best?.id,level:info.best?.level,help:html.includes('Verbotene Forschung'),stockBefore,stockAfter:p.remainingFusion.length};})()");
  assert.equal(x.special,true,JSON.stringify(x));
  assert.equal(x.eligible,true,JSON.stringify(x));
- assert.equal(x.bestId,x.bestId&&x.bestId);
+ assert.equal(x.bestId,x.target,JSON.stringify(x));
  assert.equal(x.level,1,JSON.stringify(x));
  assert.equal(x.help,true);
  assert.equal(x.stockAfter,x.stockBefore);
