@@ -1,0 +1,19 @@
+/* Arcane Duel story pairs, two separate appearances shown sequentially. */
+.ad216-dialog-overlay{position:fixed;inset:0;z-index:20000;padding:16px;overflow:auto;
+ display:grid;place-items:center;background:rgba(2,4,15,.94);}
+.ad216-dialog-card{width:min(520px,100%);max-height:94vh;overflow:auto;padding:clamp(18px,3vw,30px);
+ border:1px solid #c8a677;border-radius:19px;color:#f8f1e9;background:
+ radial-gradient(circle at 50% 0%,#352b45,#101725 76%);box-shadow:0 20px 80px #000b;}
+.ad216-kicker{font-size:11px;font-weight:800;letter-spacing:.18em;color:#e6c38a;}
+.ad216-picture{width:clamp(156px,40vw,230px);margin:6px auto 18px;}
+.ad216-picture>.ad215-portrait{aspect-ratio:1/1;border:2px solid #ba9676;
+ box-shadow:0 0 32px #a3676636;}
+.ad216-dialog-card h2{text-align:center;font-size:clamp(22px,4vw,32px);margin:0 0 13px;}
+.ad216-speech{font-size:clamp(16px,3vw,20px);line-height:1.6;font-style:italic;min-height:6rem;}
+.ad216-footer{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap;
+ border-top:1px solid #ba9e7460;padding-top:16px;}
+.ad216-buttons{display:flex;flex-wrap:wrap;gap:9px;}
+.ad216-buttons button{border-radius:8px;border:1px solid #9e8873;padding:9px 13px;
+ cursor:pointer;color:#f2ebdd;background:#253149;font:inherit;}
+.ad216-buttons button.ad216-primary{background:#d4b474;color:#181c27;font-weight:800;}
+@media(max-width:500px){.ad216-dialog-overlay{padding:9px}.ad216-footer{justify-content:center;}}
