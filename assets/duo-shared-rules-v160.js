@@ -1668,33 +1668,237 @@
   removePredatorTokenGraves(g);
   g.revision++;return g;
  }
+ // v18.6 research-inspired, actual-rule-checked SOLO-STYLE AI for BOTH 2v2 NPCs.
+ // Decision features look at PUBLIC opponent fields and the current NPC's
+ // own hand, field and fusion stock. All final actions run through apply().
+ const AI186=Object.freeze({version:'18.6-duo-live.1',firstActions:24,replyActions:6});
+ function npcCardPower(c){return Math.max(0,c?.atk||0)*.7+Math.max(0,c?.def||0)*.45;}
+ function npcRole(card,catalog){
+  return card?.role||definition(catalog,Number.isInteger(card)?card:card?.id)?.role||'combatant';
+ }
+ function npcPublicCopy(g,seat){
+  const s=copy(g);
+  // Never read the human opponents' private cards, future draws or build.
+  for(const p of s.players)if(p.team!==s.players[seat].team){
+   p.hand=[];p.deck=[];p.originalDeck=[];p.baseDeck=[];
+   p.fusionDeck=[];p.remainingFusion=[];p.baseFusions=[];
+   p.enhancements={};
+  }
+  // No future-dice oracle: hypothetical RNG is independent of live rngSeed.
+  s.rngSeed=0x1860a11;
+  return s;
+ }
+ function npcVisible(g,seat){
+  const p=g.players[seat],ours=g.players.filter(x=>x.team===p.team),
+   foes=g.players.filter(x=>x.team!==p.team);
+  const cards=group=>group.flatMap(x=>x.field.filter(Boolean));
+  const ownCards=cards(ours),enemyCards=cards(foes);
+  return {ownLP:g.teams[p.team].lp,enemyLP:g.teams[1-p.team].lp,
+   ownShield:g.teams[p.team].shield||0,enemyShield:g.teams[1-p.team].shield||0,
+   ownCount:ownCards.length,enemyCount:enemyCards.length,
+   ownPower:ownCards.reduce((v,c)=>v+npcCardPower(c),0),
+   enemyPower:enemyCards.reduce((v,c)=>v+npcCardPower(c),0),
+   soul:ownCards.reduce((v,c)=>v+(c.soul||0)+(c.condensed||0)*.5,0),
+   bond:ours.reduce((v,owner)=>v+soulBonds(owner).length,0),
+   status:g.status,winner:g.winner};
+ }
+ function npcDelta(a,b,seat){
+  if(b.status==='finished')return b.winner===1?1000000:-1000000;
+  return (a.enemyLP-b.enemyLP)*.45-(a.ownLP-b.ownLP)*.9+
+   (a.enemyShield-b.enemyShield)*.25-(a.ownShield-b.ownShield)*.3+
+   (a.enemyCount-b.enemyCount)*210-(a.ownCount-b.ownCount)*610+
+   (a.enemyPower-b.enemyPower)*.3+(b.ownPower-a.ownPower)*.16+
+   (b.soul-a.soul)*.16+(b.bond-a.bond)*145;
+ }
+ function npcTrial(state,seat,action,catalog,before){
+  try{
+   const next=apply(npcPublicCopy(state,seat),seat,action,{catalog});
+   return {action,next,score:npcDelta(before,npcVisible(next,seat),seat)};
+  }catch(_){return null;} // a failed legality check is not an AI action
+ }
+ function npcTargetList(g,seat){
+  const p=g.players[seat],foes=g.players.filter(x=>x.team!==p.team),targets=[];
+  for(const enemy of foes){
+   for(let i=0;i<enemy.field.length;i++)if(enemy.field[i])
+    targets.push({targetSeat:enemy.seat,targetSlot:i,targetArea:'field',
+     strength:npcCardPower(enemy.field[i])});
+   for(let i=0;i<ghostZone(enemy).length;i++)if(ghostZone(enemy)[i])
+    targets.push({targetSeat:enemy.seat,targetSlot:i,targetArea:'ghost',
+     strength:npcCardPower(ghostZone(enemy)[i])});
+  }
+  return targets.sort((a,b)=>b.strength-a.strength||a.targetSeat-b.targetSeat||a.targetSlot-b.targetSlot);
+ }
+ function npcAttackOptions(g,seat){
+  const p=g.players[seat],targets=npcTargetList(g,seat),out=[];
+  for(let slot=0;slot<p.field.length;slot++){
+   const c=p.field[slot];
+   if(!c||c.mode!=='atk'||c.used||c.placedRound>=g.round||
+      (c.lv1LockedUntil>p.ownTurns))continue;
+   if(!targets.length)out.push({type:'attack',slot,targetSeat:null,targetSlot:null});
+   else{
+    // Include both the strongest threat and the weakest breakable target.
+    const ordered=[...targets.slice(0,3),...targets.slice(-3)];
+    const visited=new Set();
+    for(const t of ordered){
+     const key=t.targetSeat+':'+t.targetSlot+':'+t.targetArea;
+     if(visited.has(key))continue;visited.add(key);
+     out.push({type:'attack',slot,targetSeat:t.targetSeat,
+      targetSlot:t.targetSlot,targetArea:t.targetArea});
+    }
+   }
+  }
+  return out;
+ }
+ function npcSoulOptions(g,seat){
+  const p=g.players[seat],targets=npcTargetList(g,seat),out=[];
+  for(let slot=0;slot<p.field.length;slot++){
+   const c=p.field[slot];
+   if(!c||c.role!=='soul'||c.mode!=='def'||c.lastSoulAction===p.ownTurns)continue;
+   if(c.soul>=40){
+    out.push({type:'soulDischarge',slot});
+    if(c.soulCooldown===0)out.push({type:'soulCondense',slot});
+   }
+   if(c.raidCooldown===0)for(const t of targets.filter(x=>x.targetArea==='field').slice(0,3))
+    out.push({type:'soulRaid',slot,targetSeat:t.targetSeat,targetSlot:t.targetSlot});
+  }
+  return out;
+ }
+ function npcTacticalChoice(g,seat,catalog){
+  const before=npcVisible(g,seat),moves=[...npcSoulOptions(g,seat),...npcAttackOptions(g,seat)];
+  let trials=[],count=0;
+  for(const action of moves){
+   if(count++>=AI186.firstActions)break;
+   const result=npcTrial(g,seat,action,catalog,before);
+   if(result)trials.push(result);
+  }
+  trials.sort((a,b)=>b.score-a.score);
+  // Same-turn 2-ply preview, only when visibly near a game-ending attack.
+  if(g.teams[0].lp<=2500&&trials.length>1){
+   for(const x of trials.slice(0,3)){
+    if(x.score>=1000000||x.next.status!=='active')continue;
+    let best=0,checked=0;
+    for(const second of npcAttackOptions(x.next,seat)){
+     if(checked++>=AI186.replyActions)break;
+     const y=npcTrial(x.next,seat,second,catalog,before);
+     if(y)best=Math.max(best,y.score);
+    }
+    x.score+=best*.33;
+   }
+   trials.sort((a,b)=>b.score-a.score);
+  }
+  const first=trials[0];
+  if(!first)return null;
+  // A legal meaningful action; do not sacrifice a defender for negligible gain.
+  if(first.score<-80&&first.action.type==='attack')return null;
+  return first.action;
+ }
+ function npcPlacementSlot(p,role){
+  const free=p.field.flatMap((c,i)=>c?[]:[i]);
+  if(!free.length)return -1;
+  const opposite=role==='guardian'?'soul':role==='soul'?'guardian':null;
+  const linked=opposite===null?[]:free.filter(i=>
+   [p.field[i-1],p.field[i+1]].some(x=>x?.role===opposite));
+  return (linked.length?linked:free).sort((a,b)=>Math.abs(a-3)-Math.abs(b-3)||a-b)[0];
+ }
+ function npcSummonChoice(g,seat,catalog){
+  const p=g.players[seat];if(p.summoned)return null;
+  const hand=p.hand.map((item,i)=>({item,i,id:Number.isInteger(item)?item:item?.id}))
+   .filter(x=>definition(catalog,x.id)&&!definition(catalog,x.id).fusionOnly);
+  const normal=hand.filter(x=>allowed(catalog,x.id)||x.item?.fate);
+  const options=[];
+  for(const h of normal){
+   const card=definition(catalog,h.id),role=npcRole(h.item,catalog);
+   const free=npcPlacementSlot(p,role);
+   const weight=npcCardPower(card)*(p.opponentPower||1);
+   if(free>=0){
+    const mate=role==='guardian'?'soul':role==='soul'?'guardian':null;
+    const adjacent=mate&&[p.field[free-1],p.field[free+1]].some(c=>c?.role===mate);
+    options.push({action:{type:'summon',handIndex:h.i,slot:free},
+     score:weight+(adjacent?400:0)+(h.item?.fate?250:0)});
+   }else{
+    const weakest=p.field.map((c,i)=>({c,i})).filter(x=>x.c&&!x.c.fate&&!x.c.predatorToken)
+     .sort((a,b)=>npcCardPower(a.c)-npcCardPower(b.c))[0];
+    if(weakest&&weight>npcCardPower(weakest.c)*1.35)
+     options.push({action:{type:'replace',handIndex:h.i,slot:weakest.i},
+      score:weight-npcCardPower(weakest.c)*1.18});
+   }
+  }
+  // Predict fusions with the canonical live-rule preview, never with future RNG.
+  // Prioritize same-hand pairs and a hand/field follow-up for full boards.
+  const ordered=hand.filter(h=>!h.item?.fate&&
+   !definition(catalog,h.id)?.ace)
+   .sort((a,b)=>definition(catalog,b.id).level-definition(catalog,a.id).level);
+  const groups=[];
+  for(let i=0;i<Math.min(4,ordered.length);i++)
+   for(let j=i+1;j<Math.min(5,ordered.length);j++)
+    groups.push([{from:'hand',index:ordered[i].i},{from:'hand',index:ordered[j].i}]);
+  for(const h of ordered.slice(0,3))for(let i=0;i<p.field.length;i++)
+   if(p.field[i]&&!p.field[i].fate&&!p.field[i].predatorToken)
+    groups.push([{from:'hand',index:h.i},{from:'field',index:i}]);
+  for(const material of groups.slice(0,24)){
+   let data;
+   try{data=fusionOptions(g,seat,material,catalog);}catch(_){continue;}
+   if(!data.templates.length)continue;
+   const removing=material.filter(m=>m.from==='field').map(m=>m.index);
+   const free=p.field.findIndex((c,i)=>!c||removing.includes(i));
+   if(free<0)continue;
+   for(const templateId of data.templates.slice(0,8)){
+    let preview;try{preview=fusionPreview(g,seat,material,catalog,{templateId});}catch(_){continue;}
+    const avg={atk:(preview.atk[0]+preview.atk[1])/2,def:(preview.def[0]+preview.def[1])/2};
+    const spent=material.reduce((v,m)=>{
+     const source=m.from==='hand'?definition(catalog,Number.isInteger(p.hand[m.index])?
+      p.hand[m.index]:p.hand[m.index]?.id):p.field[m.index];
+     return v+npcCardPower(source)*(m.from==='field'?.85:.27);
+    },0);
+    // Fusions should beat a routine summon by genuine expected value,
+    // never by granting unearned cards/stats.
+    const score=npcCardPower(avg)*1.07-spent+
+     (preview.analysis?.pattern!=='Freie Fusion'?120:0);
+    options.push({action:{type:'fusion',materials:material,slot:free,templateId},
+     score});
+   }
+  }
+  options.sort((a,b)=>b.score-a.score);
+  return options[0]?.action||null;
+ }
+ function npcDefenseSwitch(g,seat){
+  const p=g.players[seat];
+  for(let i=0;i<p.field.length;i++){
+   const c=p.field[i];
+   if(!c||c.mode!=='atk'||c.used||c.switched||c.essenceAttacks>0)continue;
+   if((c.role==='guardian'||c.role==='soul')&&
+    (c.def>c.atk*.9||c.role==='soul')){
+    return {type:'switch',slot:i};
+   }
+  }
+  return null;
+ }
  function aiTurn(old,{catalog}){
-  let g=old,n=0;
-  while(g.status==='active'&&[1,3].includes(g.activeSeat)&&n++<2){
-   const seat=g.activeSeat,p=g.players[seat],free=p.field.findIndex(x=>!x);
-   if(!p.summoned&&free>=0&&p.hand.length){
-    const ix=p.hand.findIndex(item=>allowed(catalog,Number.isInteger(item)?item:item?.id)||
-     item?.fate===true&&definition(catalog,item.id)?.fateTemplate);
-    if(ix>=0)g=apply(g,seat,{type:'summon',handIndex:ix,slot:free},{catalog});
+  let g=old,actors=0;
+  while(g.status==='active'&&[1,3].includes(g.activeSeat)&&actors++<2){
+   const seat=g.activeSeat,p=g.players[seat];
+   const summon=npcSummonChoice(g,seat,catalog);
+   if(summon)g=apply(g,seat,summon,{catalog});
+   // Live Solo-style positioning first, then tactically chosen attacks and
+   // supported Soul skills; every action is run through the same reducer.
+   const switches=new Set();
+   for(let i=0;i<7;i++){
+    const action=npcDefenseSwitch(g,seat);
+    if(!action||switches.has(action.slot))break;
+    g=apply(g,seat,action,{catalog});switches.add(action.slot);
    }
-   const active=g.players[seat],foes=g.players.filter(x=>x.team!==active.team);
-   const attackers=active.field.map((c,i)=>({c,i})).filter(x=>x.c&&x.c.mode==='atk'&&!x.c.used&&x.c.placedRound<g.round);
-   for(const attacker of attackers){
-    const goal=g.players.filter(x=>x.team!==active.team)
-     .flatMap(x=>[{cards:x.field,area:'field'},
-      {cards:ghostZone(x),area:'ghost'}].flatMap(zone=>
-      zone.cards.map((c,i)=>c?{seat:x.seat,slot:i,area:zone.area,card:c}:null)
-       .filter(Boolean)))
-     .sort((a,b)=>Math.max(attackValue(a.card),a.card.def)-
-      Math.max(attackValue(b.card),b.card.def))[0];
-    g=apply(g,seat,{type:'attack',slot:attacker.i,targetSeat:goal?.seat??null,
-     targetSlot:goal?.slot??null,targetArea:goal?.area??null},{catalog});
-    if(g.status!=='active')break;
+   let steps=0;
+   while(g.status==='active'&&g.activeSeat===seat&&steps++<18){
+    const action=npcTacticalChoice(g,seat,catalog);
+    if(!action)break;
+    g=apply(g,seat,action,{catalog});
    }
-   if(g.status==='active')g=apply(g,seat,{type:'end'},{catalog});
+   if(g.status==='active'&&g.activeSeat===seat)
+    g=apply(g,seat,{type:'end'},{catalog});
   }
   return g;
  }
+
  function view(g,seat){
   const v=copy(g);
   delete v.uid;delete v.rngSeed; // Never disclose upcoming server-side dice.
@@ -1707,7 +1911,7 @@
   }
   return v;
  }
- return Object.freeze({version:'20.2-beta',CHAPTERS,QUESTS,ENCOUNTERS,seats,allowed,validDeck,
+ return Object.freeze({version:'20.2-beta',aiPolicy:AI186.version,CHAPTERS,QUESTS,ENCOUNTERS,seats,allowed,validDeck,
   validNpcFusionDeck,soloStartingLp,duoStartingLp,packIds,
   chapterDeck,create,apply,aiTurn,view,attackValue,fusionLevel,fusionPattern,fusionOptions,
   fusionAnalysis,fusionPreview,fusionRole,arenaDamage,fatePressure,PERK_LIMITS,normalizedBuild,
