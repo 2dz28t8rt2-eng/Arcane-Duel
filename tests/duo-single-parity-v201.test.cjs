@@ -95,7 +95,9 @@ test('chapter transitions reset LP to the NEW tier and cannot secretly modify en
  g.status='finished';g.winner=0;
  const fourth=4,foe=adversaries.enemyDeck(fourth,1,snapshot.cards,snapshot.starterMain,solo);
  const ally=adversaries.enemyDeck(fourth,3,snapshot.cards,snapshot.starterMain,solo);
- g=rules.apply(g,0,{type:'nextChapter'},{catalog,
+ g=rules.apply(g,0,{type:'nextChapter'},{catalog});
+ assert.equal(g.status,'inviting_next');
+ g=rules.apply(g,2,{type:'acceptNextChapter'},{catalog,
   enemyDeckA:foe,enemyDeckB:ally,
   enemyFusionsA:adversaries.enemyFusions(fourth,snapshot.cards,solo),
   enemyFusionsB:adversaries.enemyFusions(fourth,snapshot.cards,solo),
