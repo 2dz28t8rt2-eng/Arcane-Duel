@@ -8,6 +8,7 @@ on:
       - 'tests/helpers/ai-v1860-mechanics-control.cjs'
       - 'tests/ai-v1860-mechanics-knowledge.test.cjs'
       - 'tests/ai-v1860-live-training.test.cjs'
+      - 'tests/ai-v1860-seed-contract.test.cjs'
       - 'tests/ai-v1860-selfplay.cjs'
       - 'tests/ai-v1860-endgame-cold.cjs'
       - 'tests/ai-v1860-compare.cjs'
@@ -42,7 +43,7 @@ jobs:
         run: |
           set -euo pipefail
           for f in tests/helpers/{game-runtime,research-guardian-counter-v177}.cjs tests/ai-v1860-{selfplay,aggregate,Q,endgame-cold,endgame-posttrain,rule-audit,compare,attack-aggregate,live-training.test}.cjs; do node --check "$f"; done
-          node --test tests/ai-v1860-live-training.test.cjs tests/ai-v1860-mechanics-knowledge.test.cjs
+          node --test tests/ai-v1860-live-training.test.cjs tests/ai-v1860-mechanics-knowledge.test.cjs tests/ai-v1860-seed-contract.test.cjs
           env -u ARCANE_RESEARCH_GUARDIAN_STATS_V178 -u ARCANE_RESEARCH_GUARDIAN_CAUSAL_V174 node --test tests/soul-bond-v206.test.cjs tests/opening-predator-v205.test.cjs
           env -u ARCANE_RESEARCH_GUARDIAN_STATS_V178 -u ARCANE_RESEARCH_GUARDIAN_CAUSAL_V174 ARCANE_RESEARCH_BALANCE_V169=predator15Triad90 node tests/ai-v1690-mechanics.test.cjs
           node tests/ai-v1860-rule-audit.cjs

@@ -44,7 +44,7 @@ test('Two explicit current-live-rules AI cohorts, no stacked Guardian research s
  assert.match(src,/visible-finisher/);
  assert.match(src,/safe-threat-removal/);
  assert.match(src,/if\(!attack\(z,move\.ai,move\.di\)\)return null/);
- assert.match(src,/stage===8\?1860:stage===9\?860:0/);
+ assert.match(src,/stage===8\?1110:stage===9\?860:0/);
  assert.match(src,/ai-v1860-mechanics-control/);
  assert.match(src,/ai-v1860-mechanics\.cjs/);
 });

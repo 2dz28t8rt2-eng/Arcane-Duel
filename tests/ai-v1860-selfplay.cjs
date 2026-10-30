@@ -81,8 +81,8 @@ const seedA="const seedA=5351+sameOpponentPair*157+scenario*79+pairedStage*241;"
 const seedB="const seedB=5609+sameOpponentPair*151+scenario*91+pairedStage*(stage===7?170:231);";
 assert.equal(source.split(seedA).length,2,'v17.8 seed A source changed');
 assert.equal(source.split(seedB).length,2,'v17.8 seed B source changed');
-source=source.replace(seedA,"const seedA=5351+sameOpponentPair*157+scenario*79+pairedStage*241+(stage===8?1860:stage===9?860:0);");
-source=source.replace(seedB,"const seedB=5609+sameOpponentPair*151+scenario*91+pairedStage*(stage===7?170:231)+(stage===8?1860:stage===9?860:0);");
+source=source.replace(seedA,"const seedA=5351+sameOpponentPair*157+scenario*79+pairedStage*241+(stage===8?1110:stage===9?860:0);");
+source=source.replace(seedB,"const seedB=5609+sameOpponentPair*151+scenario*91+pairedStage*(stage===7?170:231)+(stage===8?1110:stage===9?860:0);");
 
 all('artifacts/v1571','artifacts/v1860/'+balance);
 all('arcane-v1571-','arcane-v1860-');
