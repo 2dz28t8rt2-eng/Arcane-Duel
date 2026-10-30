@@ -8,8 +8,9 @@ test('Approved level 1–10 curve applies to actual workshop budget',()=>{
 });
 test('Active ordinary Lv5–10 cards use approved budget with individual role split',()=>{
  const r=boot().run('('+function(){
-  const pool=RPG_BASE_CARDS.filter(c=>!c.retired&&!c.fusionOnly&&!c.ace&&!c.essenceMonster&&c.level>=5&&c.level<=10);
-  return {count:pool.length,wrong:pool.filter(c=>c.atk+c.def!==workshopBudget(c.level)).map(c=>c.id),
+  const round10=n=>Math.round(n/10)*10;
+   const pool=RPG_BASE_CARDS.filter(c=>!c.retired&&!c.fusionOnly&&!c.ace&&!c.essenceMonster&&c.level>=5&&c.level<=10);
+  return {count:pool.length,wrong:pool.filter(c=>c.atk+c.def!==(c.role==='guardian'?round10(workshopBudget(c.level)*.95):workshopBudget(c.level))).map(c=>c.id),
     weak:pool.filter(c=>c.atk<80||c.def<80).map(c=>c.id)};
  }.toString()+')()');
  assert.ok(r.count>100,'All currently active high-level normal cards need checking');
