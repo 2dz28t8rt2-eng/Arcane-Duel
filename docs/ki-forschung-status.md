@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-30 · Branch `development` · Wächter-Statistik v21.2 implementiert; integrierte Regression in Abnahme
+**Aktualisiert:** 2026-10-30 · Branch `development` · Wächter-Statistik v21.2 implementiert und vollständig getestet
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -336,7 +336,7 @@ Der vermutete Vorteil gemischter Wächter-/Seelenzehrer-Decks bleibt **nicht in 
 
 **Unverändert:** Überlebens-Gegenschlag 35 % effektive ATK, volle Wächterheilung, Seelenzehrer/Predatoren/Fusionen/ACE/Essenzmonster und alle übrigen Rollen. Kein erneuter 20/80-Nerf, keine Champion-Beförderung. Die KI-Forschungsresultate von v17.6–v17.8 werden als **historische Referenz unter dem alten Basiskatalog** verstanden; nach diesem produktiven Balancingwechsel dürfen ihre alten Trainings-Endgame-Labels nicht unbesehen als neues Siegerwissen wiederverwendet werden.
 
-**Regression:** `tests/guardian-balance-v212.test.cjs` gleicht jede Karte gegen einen eingefrorenen echten Vorher-Katalog aus Commit `d964c354` ab, prüft die 84 gezielten Werteänderungen, neue Spieler-/NPC-Instanzen, valide Solo-Spielstand-Snapshots, vollständige Solo-/Duo-/Serverkatalog-Parität und den unveränderten Gegenschlag. Der Duo-Katalog- und Gegner-Synchronisierungsworkflow `guardian-balance-v212-apply.yml` ist vollständig erfolgreich; zusätzlich sind die bisherigen historisch auf 100-%-Wächterbudget ausgerichteten Manifesttests auf den ausdrücklich vereinbarten 95-%-Wächterwert angepasst. Die übrigen Rollen- und Original-Artwork-Prüfungen bleiben aktiv. Allgemeine Integrations- und Browser-Regressionen werden separat über `test.yml` abgenommen.
+**Regression:** `tests/guardian-balance-v212.test.cjs` gleicht jede Karte gegen einen eingefrorenen echten Vorher-Katalog aus Commit `d964c354` ab, prüft die 84 gezielten Werteänderungen, neue Spieler-/NPC-Instanzen, valide Solo-Spielstand-Snapshots, vollständige Solo-/Duo-/Serverkatalog-Parität und den unveränderten Gegenschlag. Der Duo-Katalog- und Gegner-Synchronisierungsworkflow `guardian-balance-v212-apply.yml` ist vollständig erfolgreich; zusätzlich sind die bisherigen historisch auf 100-%-Wächterbudget ausgerichteten Manifesttests auf den ausdrücklich vereinbarten 95-%-Wächterwert angepasst. Die übrigen Rollen- und Original-Artwork-Prüfungen bleiben aktiv. **Vollständig erfolgreich abgenommen:** [GitHub Actions #41042046757](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/41042046757) · gesamtes `npm test`, alle 2v2-Kapitelvergleiche mit unveränderter KI und vollständige Browser-/Darstellungs-/Interaktionstests in Headless Chrome erfolgreich, Quellcommit `fc1941ed02a526dc43116aaa9a3b94cceb6b4c67`. Das Spiel bleibt im Branch `development`; kein produktiver Release, keine automatische KI-Champion-Beförderung.
 
 **Nächste Phase:** Nach erfolgreicher technischer Abnahme Werte einfrieren und zur eigentlichen KI-Forschung zurückkehren (Einschätzung legaler Angriffsgelegenheiten, direkte Champion-H2H-Verbesserungen, flexible Gegnerbeurteilung, Verteidiger-/Seelenbund-Synergien); keine weiteren Wächter-Nerfs ohne neue Daten.
 
