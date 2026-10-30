@@ -3,8 +3,7 @@
  * Keep all stages, roles, winners and opponent-side attacks separate.
  */
 const fs=require('node:fs'),assert=require('node:assert/strict');
-const mode=process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V178;
-assert.ok(['control','both22','candidate22','opponent22'].includes(mode),'v17.7 only side-isolated 22/78 cohorts');
+const mode=require('./helpers/research-ai-v179.cjs').mode();
 const root='artifacts/v1790/'+mode;
 const keys=['attempted','successful','direct','targeted','destroyed','lpDamage','shieldDamage','switchToAtk','switchToDef'];
 function blank(){return Object.fromEntries(keys.map(k=>[k,0]));}
@@ -24,7 +23,8 @@ for(let stage=0;stage<11;stage++){
   if(!m||m.length!==2||!m.every(q=>q&&typeof q==='object'))report.attackMetricsMissing++;
   assert.ok(m&&m.length===2,'All v17.5 matches require real attack telemetry');
   assert.ok(x.seat===0||x.seat===1,'Candidate seat must be 0 or 1');
-  assert.ok(x.guardianV178Setup&&x.guardianV178Setup.adjusted.length===2,'v17.7 side-selective stat treatment missing');
+  assert.ok(x.guardianV178Setup&&x.guardianV178Setup.adjusted.length===2,'v17.9 live stat telemetry missing');
+  assert.ok(x.guardianV178Setup.adjusted.every(n=>n===0),'v17.9 stat overlay cannot re-nerf the live 22/78 cards');
   report.totalGames++;row.games++;row.candidateWins+=x.win;
   report.turnsSum+=Number(x.turn||0);
   if(x.illegalSwitchesBySeat?.some(v=>v!==0))report.invalid++;
