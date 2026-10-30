@@ -32,6 +32,7 @@ const secret=()=>Array.from(crypto.getRandomValues(new Uint8Array(32)),
 const hash=async(value)=>Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",
  new TextEncoder().encode(value))),v=>v.toString(16).padStart(2,"0")).join("");
 const safeName=v=>String(v||"Duellant").replace(/[<>\x00-\x1f]/g,"").trim().slice(0,32)||"Duellant";
+const portraitId=v=>typeof v==="string"&&/^hero-(0[1-9]|1[0-2])$/.test(v)?v:"hero-01";
 const enemyDeck=(chapter,seat)=>adversaries.enemyDeck(chapter,seat,snapshot.cards,starter,soloOpponents);
 const enemyFusions=chapter=>adversaries.enemyFusions(chapter,snapshot.cards,soloOpponents);
 const enemyPower=chapter=>adversaries.enemyPower(chapter,soloOpponents);
@@ -49,7 +50,7 @@ const inventoryAllows=(deck,collection)=>{
  const owned=counts(collection);return [...counts(deck)].every(([id,n])=>n<=(owned.get(id)||0));
 };
 const profileView=p=>({
- id:p.id,nickname:p.nickname,revision:p.revision,xp:p.xp,
+ id:p.id,nickname:p.nickname,avatarId:portraitId(p.avatar_id),revision:p.revision,xp:p.xp,
  level:1+Math.floor(p.xp/150),essence:p.essence,shards:p.shards,wins:p.wins,
  clearedChapters:p.cleared_chapters||[],
  ownedMain:p.owned_main,ownedFusions:p.owned_fusions,
@@ -121,18 +122,24 @@ Deno.serve(async request=>{
    const id=uuid(),profileToken=secret();
    const {data:p,error}=await db.from(PROFILE_TABLE).insert({
     id,token_hash:await hash(profileToken),
-    nickname:safeName(body.name),creator_fingerprint:fp,
+    nickname:safeName(body.name),avatar_id:portraitId(body.avatarId),creator_fingerprint:fp,
     owned_main:[...starter],owned_fusions:[...snapshot.starterFusions],
     deck:[...starter],fusions:[...snapshot.starterFusions]
    }).select("*").single();
    if(error)throw error;
    return json({profileToken,...await profileResult(p)},200,allow);
   }
-  if(["profile","profileName","upgrade","pack","deckReplace","research","bindEssence","enhance","recycle","chapterCard"].includes(kind)){
+  if(["profile","profileName","profileAvatar","upgrade","pack","deckReplace","research","bindEssence","enhance","recycle","chapterCard"].includes(kind)){
    const p=await profileByToken(body.profileToken);
    if(kind==="profile")return json(await profileResult(p),200,allow);
    assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===p.revision,
     "2v2-Profil geändert. Bitte synchronisieren.");
+   if(kind==="profileAvatar"){
+    assert(typeof body.avatarId==="string"&&/^hero-(0[1-9]|1[0-2])$/.test(body.avatarId),
+     "Unbekanntes Charakterportrait.");
+    const next=await writeProfile(p,{avatar_id:body.avatarId});
+    return json(await profileResult(next),200,allow);
+   }
    if(kind==="profileName"){
     assert(typeof body.name==="string"&&body.name.trim().length>=2&&body.name.trim().length<=32,
      "Bitte einen Profilnamen mit 2–32 Zeichen eingeben.");
@@ -302,6 +309,7 @@ Deno.serve(async request=>{
    const id=uuid(),host=secret(),invite=secret();
    const state=game.create({roomId:id,hostName:p.nickname,
     hostDeck:p.deck,hostFusions:p.fusions,
+    hostPortrait:portraitId(p.avatar_id),
     hostUpgrades:p.upgrades,hostEnhancements:p.enhancements,
     hostEssence:p.essence_binding,hostLv1:p.lv1_research,
     enemyDeckA:enemyDeck(chapter,1),enemyDeckB:enemyDeck(chapter,3),
@@ -333,6 +341,7 @@ Deno.serve(async request=>{
     "Partner hat dieses Kapitel noch nicht freigeschaltet.");
    const guest=secret(),next=game.apply(room.state,2,{
     type:"join",name:p.nickname,deck:p.deck,fusions:p.fusions,
+    portraitId:portraitId(p.avatar_id),
     upgrades:p.upgrades,enhancements:p.enhancements,
     essence:p.essence_binding,lv1:p.lv1_research},{catalog});
    const {data:updated,error:writeError}=await db.from(TABLE).update({
@@ -376,7 +385,8 @@ Deno.serve(async request=>{
     const seatNumber=profile.id===room.host_profile_id?0:2;
     humanBuilds[seatNumber]={deck:profile.deck,fusions:profile.fusions,
      upgrades:profile.upgrades,enhancements:profile.enhancements,
-     essence:profile.essence_binding,lv1:profile.lv1_research};
+     essence:profile.essence_binding,lv1:profile.lv1_research,
+     portraitId:portraitId(profile.avatar_id)};
    }
    assert(humanBuilds[0]&&humanBuilds[2],"Partnerprofile konnten nicht synchronisiert werden.");
   }
