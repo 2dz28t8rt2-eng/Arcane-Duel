@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-30 · Branch `development` · KI-Forschung v18.1 vollständig geprüft; keine Champion-Promotion
+**Aktualisiert:** 2026-10-30 · Branch `development` · KI-v18.2-Lauf gestartet, Antwortzug-Diagnostik aktiviert
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -388,6 +388,16 @@ Der vermutete Vorteil gemischter Wächter-/Seelenzehrer-Decks bleibt **nicht in 
 
 **Maßnahmen und Integrationsentscheidung:** Kein automatisches Champion-Upgrade und **keine Übernahme der v18.1-Forschungs-KI** in produktives Solo/2v2. Der Algorithmus findet erstmals einen echten Gewinnzug, allerdings nur in einer mehrfach gezählten TRAIN-Situation ohne gewonnenen Zusatzkampf. Priorität: Differenztests mit **identischem sichtbarem Board vor/nach Aktion und konkreter Gegnerantwort**, fehlerhafte unmittelbare Finisher und defensive Rettungszüge bei Level 10/aktivem Zerfall (die echten H2H-Schwächen) gezielt sampeln und trainieren; Optimierung in ausreichend unabhängigen VALIDATION- und HOLDOUT-Starts belegen. Gemischte Wächter-/Seelenzehrer-Matchups gegen Fusionen gesondert untersuchen. Champion-Gates (+4 TRAIN / +8 VAL direktes H2H, Level-10, Zerfall, Synergie), Produktivtests, Feature-Flag und Rollback **nicht abschwächen**. Kampfwerte unverändert: 95 % Wächter-Pool/22:78 und echte Solo-Regeln.
 
+
+### KI-Forschung v18.2 – legale Antwortzüge und Endspielentscheidungen
+
+**Neuer Lauf:** [GitHub Actions #41057782077](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/41057782077), Branch `development`, **46.080 geplante Duelle**, aufgeteilt in `baseline` und `optimized` à 23.040 mit elf Stages. Zwei Vorprüfungen und echte Staging-Selbstspiele werden vor den Forschungsphasen ausgeführt. Frühere v18.1-Ergebnisse: 40 Overrides, davon drei Finisher bei nur einer dreifach wiederholten TRAIN-Situation, **0 Siegerwechsel** in 2.304 gepaarten Stage-8-Profilduellen, kein Champion-Upgrade.
+
+**Neu:** Die `optimized`-KI prüft legale Angriffe auf dem *sichtbaren, geklonten* Spielstand. Dabei berücksichtigt sie unmittelbare Siege, tatsächlichen LP-Schaden, sichere oder verlustreiche Entfernung gegnerischer Monster sowie **maximal eine gesetzeskonform ausführbare sichtbare gegnerische Angriffserwiderung** (kein vollständiger zukünftiger Zug, keine verdeckte Karte). Sie wählt nur einen deutlich besser bewerteten legalen Zug und lässt ansonsten die bisherige Strategie entscheiden. Die `baseline`-Kohorte bekommt **keinen** taktischen Override. Studienphasen 4/7/8/9, unverändert Rollenfokus Wächter/Seelenzehrer.
+
+**Neue und erhaltene Messwerte:** `v1820TacticalChecks`, `v1820LegalTrials`, `v1820TacticalOverrides`, `v1820ThreatRemoved`, `v1820FinisherOverrides`, dazu `v1820ReplyTrials`, `v1820ReplyAwareOverrides` und begrenzte `v1820DecisionTraces` (Angreifer- und Ziel-UID, vorheriger Zug, tatsächlicher gewählter Zug, Scores, prognostizierter Schaden, eigene Verluste und sichtbar möglicher Gegenangriff). In **gepaarten** Stage-8-Duellen wird die Zahl tatsächlich geänderter Gewinner neben der tatsächlichen Aktionshäufigkeit berichtet. Neue, zwischen Kohorten gepaarte Stage-8/9-Seeds `+810/+510`; vorherige Ergebnisse dürfen deshalb nicht als direkt gepaarte Vergleichsgruppe gelten.
+
+**Strikte Isolation:** Aktuell regulär implementierte Wächterwerte **95-%-Pool / 22:78 ATK:DEF**, unveränderte native Solo-Kampfregeln (`ARCANE_RESEARCH_BALANCE_V169=control10`), Beobachtungs-Telemetrie ohne zweiten Wächter-Nerf (`ARCANE_RESEARCH_GUARDIAN_STATS_V178=control`). Vorherige outcome-basierte Lernlabels werden nicht in die neue Regelfassung importiert; Folge-Lernwerte nur TRAIN, keine VALIDATION/HOLDOUT-Lernlecks. Der eingefrorene Champion `l10-guarded-worst-reply` wird **nicht automatisch befördert**, und der Workflow nimmt keinerlei KI-Änderung im Solo- oder 2v2-Produktivcode vor. Freigabe setzt nachweislichen H2H-/Holdout-Gewinn und separate Integrations-/Browsertests voraus.
 
 ## C. KI-Forschungsstatus
 
