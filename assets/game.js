@@ -215,18 +215,19 @@ function applyAiAction(g,a){if(g.winner!==null)return null;switch(a.type){case '
  if(g.mode==='pve'&&old&&g.pending)return placePending(g,a.idx,'replace');
  return null;
  }case 'switch':return switchPosition(g,a.idx);case 'attack':return attack(g,a.ai,a.di);case 'end':return advanceTurn(g);default:throw Error('Unbekannte KI-Aktion.');}}
-function aiTurn(g,policy='balanced'){const turn=g.turn;for(let i=0;i<40&&g.winner===null&&g.turn===turn;i++){const a=chooseAiAction(g,policy);if(a?.type==='fusion'){
-  const p=g.players[g.active],uids=a.uids||[],materials=uids.map(uid=>p.hand.find(c=>c.uid===uid));
+function aiTurn(g,policy='balanced'){const turn=g.turn;let rejectedFusions=0;for(let i=0;i<40&&g.winner===null&&g.turn===turn;i++){const a=chooseAiAction(g,policy);if(a?.type==='fusion'){
+  const p=g.players[g.active],uids=Array.isArray(a.uids)?a.uids:[],materials=uids.map(uid=>p.hand.find(c=>c.uid===uid));
   const valid=Array.isArray(uids)&&uids.length>=2&&uids.length<=5&&new Set(uids).size===uids.length&&
    !g.summoned&&!g.pending&&materials.every(c=>c&&!isFusionForbidden(c,g));
   const levels=valid?materials.map(c=>dataOf(c).level):[];
   const legal=valid&&fusionOptions(g,levels,materials).some(c=>(a.choice===undefined||a.choice===c.id)&&canCompleteHandFusion(g,levels,c.id));
-  if(!legal){g.aiPhase='positions';continue;}
+  if(!legal){g.aiPhase='positions';if(++rejectedFusions>=2&&!g.pending){if(!applyAiAction(g,{type:'end'}))throw Error('KI konnte ungültige Fusion nicht sicher überspringen.');}continue;}
  }
  if(!applyAiAction(g,a)){
-  if(a?.type==='fusion'){g.aiPhase='positions';continue;}
+  if(a?.type==='fusion'){g.aiPhase='positions';if(++rejectedFusions>=2&&!g.pending){if(!applyAiAction(g,{type:'end'}))throw Error('KI konnte Fusion nicht sicher überspringen.');}continue;}
   throw Error('KI konnte ihre Aktion nicht ausführen: '+a.type);
- }}if(g.winner===null&&g.turn===turn)throw Error('KI-Zug konnte nicht beendet werden.');}
+ }else rejectedFusions=0;
+ }if(g.winner===null&&g.turn===turn)throw Error('KI-Zug konnte nicht beendet werden.');}
 function simulateGame(g,playerPolicy='balanced',enemyPolicy='balanced'){for(let i=0;i<32&&g.winner===null;i++)aiTurn(g,g.active===0?playerPolicy:enemyPolicy);if(g.winner===null)throw Error('Duell konnte nicht abgeschlossen werden.');return g;}
 
 function coreCreateGame(options={}){const g=createClassicGame(options);g.maxLP=START_LP;g.context=options.context||'free';if(g.mode==='pve'){const baseEnemy=options.enemy||rpgEnemyLoadout(g.opponentId,options.difficulty,options.trainingStage),enemy={...baseEnemy,power:baseEnemy.power*(g.opponentId>0&&g.context!=='tournament'&&g.context!=='challenge'&&options.difficulty!=='hard'?.9:1)},loadouts=[{deck:options.deck||RPG_DEFAULT_DECK,fusionDeck:options.fusionDeck||RPG_START_FUSIONS,enhancements:options.enhancements||{},power:1,flatBonus:options.challenge==='untrained'?0:(options.flatBonus||0)},enemy];g.players=loadouts.map((l,id)=>{const allowed=id===1&&options.showcase?CARDS.filter(c=>c.rpg&&!c.fusionOnly&&!c.ace&&c.level>=8&&c.level<=10).map(c=>c.id):RPG_BASE_CARDS.map(c=>c.id);if(mainDeckError(l.deck,allowed))throw Error(mainDeckError(l.deck,allowed));if(fusionDeckError(l.fusionDeck))throw Error(fusionDeckError(l.fusionDeck));const deck=buildDeck(g,l.deck);return {id,researchSymmetric:options.strategicTraining?.enabled===true&&options.strategicTraining?.symmetricSides===true,lp:START_LP,shield:0,deck,originalDeck:[...deck],fusionDeck:[...l.fusionDeck],enhancements:{...l.enhancements},power:l.power||1,flatBonus:l.flatBonus||0,hand:[],field:Array(5).fill(null),graveyard:[]};});g.players.forEach(p=>drawToFive(g,p));}return g;}
