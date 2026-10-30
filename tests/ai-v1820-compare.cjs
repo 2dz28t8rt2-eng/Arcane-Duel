@@ -7,7 +7,7 @@ const MODES=['baseline','optimized'],root='artifacts/v1820';
 const data={schema:'arcane-v1820-live-rule-learning',liveCombat:true,guardianPool:.95,
  guardianAtkShare:.22,modeDefinitions:{
   baseline:'Latest frozen experimental defender research candidate on the live catalogue',
-  optimized:'Visible-board legal finishers and safe high-threat target selection with per-action trace; no hidden information or gameplay stat change'
+  optimized:'Live legal attacks scored for direct finishes, LP and monster trades, plus one bounded visible opponent reply; no hidden information'
  },modes:{},paired:{},championCandidate:null};
 let duels=0;
 for(const mode of MODES){
@@ -37,15 +37,20 @@ for(const mode of MODES){
    roleFocus[split+'/'+opponent+'/'+core]={wins:filtered.reduce((n,x)=>n+x.win,0),games:filtered.length};
   }
  const tactical=stage.allCases.reduce((z,x)=>{
-  for(const name of ['v1820TacticalChecks','v1820LegalTrials','v1820TacticalOverrides','v1820ThreatRemoved','v1820FinisherOverrides'])
+  for(const name of ['v1820TacticalChecks','v1820LegalTrials','v1820TacticalOverrides','v1820ThreatRemoved','v1820FinisherOverrides','v1820ReplyTrials','v1820ReplyAwareOverrides'])
    z[name]+=Number(x[name]||0);
   if(Number(x.v1820TacticalOverrides||0)>0)z.gamesWithOverrides++;
   const traces=x.v1820DecisionTraces||[];
   assert.ok(Array.isArray(traces)&&traces.length<=6);
   for(const t of traces){
    assert.ok(t.chosen?.type==='attack'&&Number.isInteger(t.chosen.ai));
-   assert.ok(['visible-direct-lethal','visible-target-lethal','safe-high-threat-removal'].includes(t.reason));
+   assert.ok(['visible-finisher','safe-threat-removal','lp-pressure','position'].includes(t.reason));
    assert.ok(t.attackerUid!==null);
+   assert.ok(typeof t.expectedImmediateWin==='boolean');
+   assert.ok(typeof t.expectedVisibleReply==='boolean');
+   assert.ok(Number.isFinite(t.expectedDamage)&&t.expectedDamage>=0);
+   assert.ok(Number.isFinite(t.expectedReplyLP)&&t.expectedReplyLP>=0);
+   assert.ok(Number.isFinite(t.expectedReplyLoss)&&t.expectedReplyLoss>=0);
    z.traceRecords++;
    z.reasonCounts[t.reason]=(z.reasonCounts[t.reason]||0)+1;
    const bySplit=z.tracesBySplit[x.split]||(z.tracesBySplit[x.split]={records:0,duels:0});
@@ -55,7 +60,7 @@ for(const mode of MODES){
 
   return z;
  },{v1820TacticalChecks:0,v1820LegalTrials:0,v1820TacticalOverrides:0,
- v1820ThreatRemoved:0,v1820FinisherOverrides:0,gamesWithOverrides:0,traceRecords:0,reasonCounts:{},tracesBySplit:{}});
+ v1820ThreatRemoved:0,v1820FinisherOverrides:0,v1820ReplyTrials:0,v1820ReplyAwareOverrides:0,gamesWithOverrides:0,traceRecords:0,reasonCounts:{},tracesBySplit:{}});
  assert.ok(tactical.traceRecords<=tactical.v1820TacticalOverrides);
  if(mode==='optimized')assert.equal(tactical.v1820TacticalOverrides>=tactical.traceRecords,true);
  if(mode==='baseline')assert.equal(tactical.v1820TacticalOverrides,0,
@@ -87,6 +92,8 @@ data.paired={casesPerMode:2304,uniqueScenarioSeatKeys:new Set(all.baseline.map(x
  legalClonedAttacksOptimized:data.modes.optimized.tactical.v1820LegalTrials,
  realOverridesOptimized:data.modes.optimized.tactical.v1820TacticalOverrides,
  finishersOptimized:data.modes.optimized.tactical.v1820FinisherOverrides,
+ replyTrialsOptimized:data.modes.optimized.tactical.v1820ReplyTrials,
+ replyAwareOverridesOptimized:data.modes.optimized.tactical.v1820ReplyAwareOverrides,
  reasonCountsOptimized:data.modes.optimized.tactical.reasonCounts,
  traceRecordsOptimized:data.modes.optimized.tactical.traceRecords,
  traceSplitsOptimized:data.modes.optimized.tactical.tracesBySplit,
