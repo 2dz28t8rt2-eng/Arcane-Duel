@@ -1054,7 +1054,7 @@
     $('duoNameHint').textContent='Profilname konnte nicht gespeichert werden. Bitte erneut versuchen.';
     return;
    }
-   nameConfirmed=true;$('duoNameGate').hidden=true;$('duoPage').inert=false;
+   nameConfirmed=true;$('duoNameGate').hidden=true;$('duoNameCancel').hidden=true;$('duoPage').inert=false;
    $('duoHostName').value=duoProfile.nickname;
    $('duoHostName').readOnly=true;
    render();
@@ -1085,6 +1085,9 @@
   };
   updateChapter();
   $('duoNameConfirm').onclick=confirmDuoName;
+  $('duoNameCancel').onclick=()=>{if(!nameConfirmed)return;
+   $('duoNameGate').hidden=true;$('duoNameCancel').hidden=true;$('duoPage').inert=false;
+  };
   $('duoNameInput').addEventListener('keydown',e=>{if(e.key==='Enter')void confirmDuoName();});
   $('duoNameConfirm').disabled=true;
   $('duoCreate').onclick=createRoom;
@@ -1098,6 +1101,7 @@
     $('duoNameInput').value=duoProfile.nickname;
     portraits.chooser($('duoAvatarPicker'),{selected:chosenAvatar,onChange:chooseAvatar});
     $('duoNameHint').textContent='Hier kannst du deinen Namen und dein Portrait ändern.';
+    $('duoNameCancel').hidden=false;
     $('duoNameGate').hidden=false;$('duoPage').inert=true;
     $('duoNameInput').focus();
    };
