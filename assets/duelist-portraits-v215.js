@@ -9,14 +9,18 @@
  const duoIds=Object.freeze(Array.from({length:15},(_,i)=>Object.freeze([
    'duo-chapter-'+String(i+1).padStart(2,'0')+'-a',
    'duo-chapter-'+String(i+1).padStart(2,'0')+'-b'])));
- const specials=Object.freeze(['solo-secret-eiman']);
+ const specials=Object.freeze(['solo-secret-eiman','solo-wanderer',
+  ...Array.from({length:5},(_,i)=>'solo-fanatiker-'+String(i+1).padStart(2,'0'))]);
  const ids=Object.freeze([...heroIds,...soloIds,...duoIds.flat(),...specials]);
  const allowed=new Set(ids);
  const base='assets/portraits/';
  function validHero(id){return heroIds.includes(id);}
  function sanitizeHero(id){return validHero(id)?id:heroIds[0];}
- function soloOpponent(id,secret=false){
+ function soloOpponent(id,secret=false,stage=0,encounter=false){
   if(secret)return specials[0];
+  if(Number.isInteger(Number(stage))&&Number(stage)>=1&&Number(stage)<=5)
+   return 'solo-fanatiker-'+String(stage).padStart(2,'0');
+  if(encounter)return 'solo-wanderer';
   const n=Number(id);
   return Number.isInteger(n)&&n>=0&&n<soloIds.length?soloIds[n]:soloIds[0];
  }
