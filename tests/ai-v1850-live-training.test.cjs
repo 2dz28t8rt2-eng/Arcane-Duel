@@ -25,6 +25,7 @@ test('Two explicit current-live-rules AI cohorts, no stacked Guardian research s
  const k=require('./helpers/ai-v1850-mechanics.cjs');
  assert.ok(k.verifySources().verified>=35);
  assert.match(k.plannerSource,/baseApply\(z,move\)/);
+ assert.match(k.plannerSource,/\["guardian","soul"\]\.includes\(scene\.candidateRole\)/);
  assert.match(k.plannerSource,/research.*action executor/);
  assert.doesNotMatch(k.plannerSource,/follow\.active=opp/);
 

@@ -22,3 +22,29 @@ test('real live engine provides attack, fusion and soul research APIs',()=>{
  assert.equal(b.cards,762);assert.equal(b.functions,true);assert.equal(b.soul,'function');assert.equal(b.soulAction,'function');
  assert.equal(b.guardian.changed,84);assert.equal(b.guardian.pool,.95);assert.equal(b.guardian.atkShare,.22);assert.equal(b.live,true);
 });
+
+test('v18.5 planner must not touch non-defender strategy, reward or actions',()=>{
+ const fn=new Function('game','g','learner','scene','counter','baseChoose','baseApply',
+   'policy','canAttack','window','dataOf','role',plannerSource);
+ const sample=role=>{
+  const g={active:0,winner:null,pending:null,aiPhase:'attacks',
+   players:[{field:[]},{field:[]}]};
+  const counter={};let calls=0,actions=0;
+  fn(g,g,0,{studyStage:8,candidateRole:role,rolePolicy:{defenderTacticalOverride:true}},
+   counter,()=>{calls++;return null;},()=>{actions++;return null;},
+   'balanced',()=>false,{},()=>({}),()=>role);
+  return {calls,actions,counter};
+ };
+ for(const role of ['predator','fusion','allrounder','resonator','combatant']){
+  const {calls,actions,counter}=sample(role);
+  assert.equal(calls,0,role+' must not run planner');
+  assert.equal(actions,0,role+' must not preview any action');
+  assert.equal(counter.v1850TacticalChecks,undefined,role+' must not change stats');
+ }
+ for(const role of ['guardian','soul']){
+  const {calls,actions,counter}=sample(role);
+  assert.equal(calls,1,role+' should still enter');
+  assert.equal(actions,0);
+  assert.equal(counter.v1850TacticalChecks,1);
+ }
+});

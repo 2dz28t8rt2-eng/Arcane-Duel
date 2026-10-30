@@ -59,3 +59,9 @@ Dieser atlas deckt **den Solo-PvE-Selbstspiel-/KI-Entscheidungspfad** ab. Er ist
 ## Training/Prüfung
 
 Baseline = vollständige optimierte v18.4-Entscheidungslogik, Optimized = v18.5-Wissensadapter. Matching identischer Seeds/Sitze, 23.040 Duelle pro Arm, TRAIN-only-Lernen, HOLDOUT verschlossen, Champion-Evidenzregeln unverändert. Kein Produktiv-Import.
+
+## v18.5.1 – Korrektur des Rollen-Schutzbereichs
+
+Beim ersten vollständigen v18.5-Lauf (#41092294271) waren alle 22 Trainings-Stage-Jobs erfolgreich. Die unveränderte v16-Gate-Prüfung stoppte die optimierte Aggregation aufgrund der **Role-safe reward changed**-Abweichung im Fusionsrollen-Test (`105.861111... != 104.461111...`). Die neue Planner-Eintrittsbedingung hatte irrtümlich alle `scene.candidateRole`-Werte zugelassen.
+
+Korrigiert: Der neue `plannerSource` darf ausschließlich bei `scene.candidateRole === 'guardian'` oder `'soul'` starten; für Fusion, Predator, Allrounder, Resonator und Kampfrolle ist er vollständig No-op. Ein ausführbarer Regressionstest prüft den Schutz und die weiterhin aktive Defender-Pipeline. **Die unveränderte Non-Defender-Parity-Prüfung bleibt aktiviert**; Sieger, Belohnung und Aktionsverteilung werden weiterhin mit den eingefrorenen Kontrollfällen exakt abgeglichen. Keine Spielregel, Stat-Formel, Champion-Gate oder Trainings-/Holdout-Grenze verändert.
