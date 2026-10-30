@@ -230,6 +230,77 @@ once('       tacticalCorrection+=correction*.75;','       tacticalCorrection+=co
  once("const change=Math.max(-340,Math.min(230,realOutcome))*.72;",
       "const validLinks=window.ArcaneEssenceCombat.soulBonds(z,me);\n    const oldLinks=window.ArcaneEssenceCombat.soulBonds(x,me);\n    const newEnergy=validLinks.reduce((n,b)=>n+(b.soul.essenceCombat?.soul||0),0);\n    const oldEnergy=oldLinks.reduce((n,b)=>n+(b.soul.essenceCombat?.soul||0),0);\n    const protectedLinks=validLinks.filter(b=>b.guardian.mode==='def'&&b.soul.mode==='def').length;\n    const bondScore=w.defenderBondPlanner?Math.max(-160,Math.min(110,(newEnergy-oldEnergy)*.85+protectedLinks*25-Math.max(0,oldLinks.length-validLinks.length)*120))*w.defenderBondPlanner:0;\n    value+=bondScore;\n    counter.defenderBondReplyChecks=(counter.defenderBondReplyChecks||0)+Number(!!w.defenderBondPlanner);\n    const change=Math.max(-340,Math.min(230,realOutcome))*.72;");
 
+ // v18.0: choose a truly different LEGAL action when a targeted attack
+ // destroys a visible high-threat enemy without exposing our own formation.
+ // Unlike v17.9 scalar nudges, this can change the executed move.
+ // Never evaluate hidden hands, draws or a simulated unknown full enemy turn.
+ if(balance==='optimized'){
+  once(' const learnedEndgame={...targetedL10,defenderBondPlanner:.60,',
+       ' const learnedEndgame={...targetedL10,defenderTacticalOverride:true,defenderBondPlanner:.60,');
+ }
+ const tacticalLines=[
+  '   const defenseCfg=scene.rolePolicy;',
+  '   if(game===g&&game.active===learner&&defenseCfg?.defenderTacticalOverride&&',
+  '      [4,7,8].includes(scene.studyStage)&&',
+  '      ["guardian","soul"].includes(scene.candidateRole)&&',
+  '      game.aiPhase==="attacks"&&game.winner===null&&!game.pending){',
+  '     counter.v1800TacticalChecks=(counter.v1800TacticalChecks||0)+1;',
+  '     const myId=game.active,foeId=1-myId,own=game.players[myId],foe=game.players[foeId];',
+  '     const danger=foe.field.some(c=>c&&(dataOf(c).level>=7||dataOf(c).atk>=420));',
+  '     if(danger&&foe.field.some(Boolean)){',
+  '       let best=null,bestScore=-Infinity;',
+  '       const rate=(ai,di,trial)=>{',
+  '         const first=foe.field[di],end=trial.players[foeId].field[di];',
+  '         const killed=!!first&&!end;',
+  '         const selfLoss=own.field.filter(Boolean).length-trial.players[myId].field.filter(Boolean).length;',
+  '         if(!killed||selfLoss>0)return -Infinity;',
+  '         const attacked=dataOf(first);',
+  '         const targetValue=attacked.atk*.52+attacked.def*.16+(attacked.level||0)*38;',
+  '         const lpGain=Math.max(0,foe.lp-trial.players[foeId].lp);',
+  '         const ownLpLoss=Math.max(0,own.lp-trial.players[myId].lp);',
+  '         return targetValue+Math.min(320,lpGain*.12)-ownLpLoss*.3;',
+  '       };',
+  '       for(let ai=0;ai<own.field.length;ai++){',
+  '         const c=own.field[ai];if(!c||!canAttack(game,c))continue;',
+  '         for(let di=0;di<foe.field.length;di++){',
+  '           const target=foe.field[di];if(!target)continue;',
+  '           if(dataOf(target).level<7&&dataOf(target).atk<420)continue;',
+  '           const z=JSON.parse(JSON.stringify(game));',
+  '           if(!attack(z,ai,di))continue;',
+  '           counter.v1800LegalTrials=(counter.v1800LegalTrials||0)+1;',
+  '           const score=rate(ai,di,z);',
+  '           if(score>bestScore){bestScore=score;best={type:"attack",ai,di};}',
+  '         }',
+  '       }',
+  '       if(best&&Number.isFinite(bestScore)&&bestScore>=420){',
+  '         const base=baseChoose(game,policy);',
+  '         if(!base||["attack","end"].includes(base.type)){',
+  '           let baseScore=-Infinity;',
+  '           if(base?.type==="attack"&&Number.isInteger(base.ai)&&Number.isInteger(base.di)&&foe.field[base.di]){',
+  '             const z=JSON.parse(JSON.stringify(game));',
+  '             if(attack(z,base.ai,base.di))baseScore=rate(base.ai,base.di,z);',
+  '           }',
+  '           if(bestScore>baseScore+80){',
+  '             counter.v1800TacticalOverrides=(counter.v1800TacticalOverrides||0)+1;',
+  '             counter.v1800ThreatRemoved=(counter.v1800ThreatRemoved||0)+1;',
+  '             return best;',
+  '           }',
+  '         }',
+  '       }',
+  '     }',
+  '   }'
+ ];
+ const tacticalAnchor='"   const defenseCfg=scene.rolePolicy;",';
+ once(tacticalAnchor,tacticalLines.map(x=>JSON.stringify(x)).join(',\n'));
+ // Preserve per-duel action-difference telemetry alongside recorded REAL
+ // attacks; these numbers cannot be created by hypothetical attack clones.
+ once('      candidateActionMix:m.stats.selfPlayActionTypesBySeat[seat],',
+      '      candidateActionMix:m.stats.selfPlayActionTypesBySeat[seat],\n'+
+      '      v1800TacticalChecks:m.stats.v1800TacticalChecks||0,\n'+
+      '      v1800LegalTrials:m.stats.v1800LegalTrials||0,\n'+
+      '      v1800TacticalOverrides:m.stats.v1800TacticalOverrides||0,\n'+
+      '      v1800ThreatRemoved:m.stats.v1800ThreatRemoved||0,');
+
  // Experimental cohort: change ONLY defender decision heuristics on the
  // already-live 95%/22:78 Guardian catalog. Frozen champion remains fixed.
  if(balance==='optimized'){
