@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-30 · Branch `development` · Wächter-Statistik v21.2 implementiert und vollständig getestet
+**Aktualisiert:** 2026-10-30 · Branch `development` · KI v17.9 unter Live-Balance gestartet
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -339,6 +339,16 @@ Der vermutete Vorteil gemischter Wächter-/Seelenzehrer-Decks bleibt **nicht in 
 **Regression:** `tests/guardian-balance-v212.test.cjs` gleicht jede Karte gegen einen eingefrorenen echten Vorher-Katalog aus Commit `d964c354` ab, prüft die 84 gezielten Werteänderungen, neue Spieler-/NPC-Instanzen, valide Solo-Spielstand-Snapshots, vollständige Solo-/Duo-/Serverkatalog-Parität und den unveränderten Gegenschlag. Der Duo-Katalog- und Gegner-Synchronisierungsworkflow `guardian-balance-v212-apply.yml` ist vollständig erfolgreich; zusätzlich sind die bisherigen historisch auf 100-%-Wächterbudget ausgerichteten Manifesttests auf den ausdrücklich vereinbarten 95-%-Wächterwert angepasst. Die übrigen Rollen- und Original-Artwork-Prüfungen bleiben aktiv. **Vollständig erfolgreich abgenommen:** [GitHub Actions #41042046757](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/41042046757) · gesamtes `npm test`, alle 2v2-Kapitelvergleiche mit unveränderter KI und vollständige Browser-/Darstellungs-/Interaktionstests in Headless Chrome erfolgreich, Quellcommit `fc1941ed02a526dc43116aaa9a3b94cceb6b4c67`. Das Spiel bleibt im Branch `development`; kein produktiver Release, keine automatische KI-Champion-Beförderung.
 
 **Nächste Phase:** Nach erfolgreicher technischer Abnahme Werte einfrieren und zur eigentlichen KI-Forschung zurückkehren (Einschätzung legaler Angriffsgelegenheiten, direkte Champion-H2H-Verbesserungen, flexible Gegnerbeurteilung, Verteidiger-/Seelenbund-Synergien); keine weiteren Wächter-Nerfs ohne neue Daten.
+
+### KI-Forschung v17.9 – zurück zur strategischen KI, Training gestartet
+
+**Lauf:** [GitHub Actions #41044207178](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/41044207178), Code-SHA `eff70325d4151a521de415306183a2b08b8004e9`, `development`. **Beide Vorprüfungen (baseline/optimized) bestanden**, 22 Selbstspiel-Stages (zwölf laufen, zehn warten bei letzter Prüfung), insgesamt **46.080 geplante Duelle**. Je Kohorte 23.040 mit elf Stages. Die validierte v21.2-Wächter-Balance ist die feste gemeinsame Kartengrundlage.
+
+**Kampfregeln:** Dieses Mal tatsächlich im Solo-Spiel vorhandene Regeln ohne künstliche v16.9-Forschungsmodifikatoren: `ARCANE_RESEARCH_BALANCE_V169=control10` bewirkt keine Änderung an `assets/essence-combat.js`. `ARCANE_RESEARCH_GUARDIAN_STATS_V178=control` liefert nur Diagnosewerte und **keine nochmalige** Änderung des bereits produktiv auf 95 %/22:78 eingestellten Wächter-Wertepools. Auf doppelte Statveränderung wird aktiv geprüft.
+
+**Kontrollierter Vergleich:** `baseline` gegen `optimized` mit gepaarten Startbedingungen, gegnerischem Antwortspiel, tatsächlichen Angriffen, Seelenbundschutz und riskanten Folgeentscheidungen. Die optimierte Variante verändert nur vorab deklarierte Entscheidungseinstellungen in der **Forschung**, nicht Monsterwerte oder Spielgesetze. Zuvor unter anderen Regeln gelernte Endgame-Ergebnislabels werden zurückgesetzt; im Anschluss wird aus **TRAIN-only** je eine neue Endgame-Lernmatrix erzeugt. Bestehender KI-Champion bleibt eingefroren.
+
+**Integration noch nicht erfolgt:** Für heute Abend wurde eine konkrete [KI-Freigabecheckliste](ki-integration-v1790-checklist.md) erstellt. Nur ein Kandidat, der die unveränderten direkten H2H-/Level-10-/Mischrollen-Gates gegen den Champion und unabhängige HOLDOUT-Prüfungen besteht, darf nach separaten Solo-/Duo-/Browser-Regressionen zur Produktions-KI werden; andernfalls bleibt der bisherige Champion aktiv. Kein automatischer Import allein aufgrund eines erfolgreich abgeschlossenen CI-Laufs.
 
 ## C. KI-Forschungsstatus
 
