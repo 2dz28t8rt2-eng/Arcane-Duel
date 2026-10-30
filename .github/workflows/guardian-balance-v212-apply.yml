@@ -4,6 +4,10 @@ on:
     branches: [development]
     paths:
       - '.github/workflows/guardian-balance-v212-apply.yml'
+      - 'assets/guardian-balance-v212.js'
+      - 'assets/game.js'
+      - 'index.html'
+      - 'tests/guardian-balance-v212.test.cjs'
   workflow_dispatch:
 permissions:
   contents: write
