@@ -75,7 +75,7 @@ test('read-only explanation uses engine level, quality and preview; never spends
  const screen=window.ArcaneFusionGuide213.explanationText(actual);
  assert.match(screen,/LV 8/);
  assert.match(screen,/106 %/);
- assert.match(screen,/1\.000–1\.500/);
+ assert.match(screen,/1[.\u00a0\u202f ]000–1[.\u00a0\u202f ]500/);
  assert.match(screen,/Predator/);
  assert.equal(JSON.stringify(g),before);
 });
