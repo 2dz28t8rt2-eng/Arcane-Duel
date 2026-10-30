@@ -407,6 +407,12 @@
      (stage===1?'':'<p class="lv1-objective"><b>Für das nächste Kapitel:</b> '+escapeHtml(OBJECTIVES[stage-1].description)+'</p>'),
      '<button class="btn primary" id="modalGo">DUELL STARTEN</button>'));
     $('modalGo').onclick=oldGo;
+    const researcherArt=window.ArcanePortraits215?.node?.(
+     window.ArcanePortraits215.storyFanatic(1,stage),'Level-1-Fanatiker');
+    if(researcherArt){
+     researcherArt.classList.add('ad216-solo-story-portrait');
+     $('modal')?.prepend(researcherArt);
+    }
    }
    return value;
   }finally{stageWanted=0;prologueWanted=false;}
