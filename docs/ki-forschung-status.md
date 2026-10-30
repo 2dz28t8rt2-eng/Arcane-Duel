@@ -1,6 +1,6 @@
 # Arcane Duel – Stand der Kampfregeln und KI-Forschung
 
-**Aktualisiert:** 2026-10-30 · Branch `development` · Forschungsphase v17.7 Seitenvergleich gestartet
+**Aktualisiert:** 2026-10-30 · Branch `development` · Forschungsphase v17.7 erfolgreich abgeschlossen
 
 Dieses Dokument trennt **bestätigt im Spiel implementierte Regeln** von **nur simulierten Forschungsregeln**. `development` ist nicht automatisch `main`; eine Übernahme in die veröffentlichte Version muss gesondert geprüft werden.
 
@@ -244,26 +244,54 @@ Nur tatsächlich ausgeführte aktive Angriffe auf dem echten Spielfeld gezählt,
 **Vorläufige Empfehlung:** **22/78 bei 95 % Gesamtpool als bevorzugte Forschungsvariante weiterverfolgen, 20/80 nicht sofort übernehmen.** Die aktive Wächteroffensive fällt deutlich; gemischte Decks wirken in der Validierung reizvoller, aber der Holdout bestätigt kein robustes allgemeines Meta. Vor Produktivübernahme getrennte reelle Gegenschlags-LP-Verluste, tatsächliche Wächter-DEF-Überlebensdauer, gegnerseitige/spielerseitige Stat-Eingriffe und umfangreichere unabhängige Turnier-/Deckversuche messen. **Keine weitere Kombination mit der Heilungsstaffel ohne eigenes 2×2-Testdesign**. Keine Änderung der regulären Solo-/2v2-Karten und kein Champion-Wechsel.
 
 
-### v17.7 – Kausaler Wächter-Statvergleich und gemessene Gegenschläge (gestartet)
+### v17.7 – Kausaler Wächter-Statvergleich und gemessene Gegenschläge (abgeschlossen)
 
-**Aktueller Forschungsworkflow:** [GitHub Actions #40978180027](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40978180027) auf `development`. Vier Forschungsvarianten mit **92.160 geplanten gepaarten Voll-Duellen** (4 × 23.040; 11 Stages je Variante). Die GitHub-Ausführung ist gestartet, die automatischen Vorprüfungen müssen noch erfolgreich abschließen.
+**Erfolgreicher korrigierter Lauf:** [GitHub Actions #40979349844](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40979349844), **53/53 Jobs erfolgreich, 92.160/92.160 Duelle**, vier gepaarte Forschungsarme à 23.040 Duelle, je elf Stages. Quellcommit `95730af3b33878adf5031f41911d949b913272fb`. Vorlauf [#40978180027](https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/40978180027) war durch **veränderlichen statt unmittelbar kopierten Instanzzähler im v17.7-Test** fehlgeschlagen (`[2,0]` statt `[1,0]` bei weiter erzeugten Karten); vor neuem Start korrigiert. Alle vier Vorprüfungen und die gesamten Duelle bestanden.
 
-**Wertefrage nach v17.6:** Die `95 %`-Pool-/`22 % ATK`-/`78 % DEF`-Verschiebung ist der bevorzugte Versuch, aber der globale Vergleich von v17.6 wirkte auf **beide** Parteien und war im Holdout nicht robust. Der neue Versuch isoliert den Effekt nach tatsächlicher Sitzposition:
+**Vier kausale Arme – 95 % Wertepool und 22/78 nur auf gewöhnliche Wächterkarten (Level 1–10):**
+- `control`: bisherige Werte auf beiden Seiten.
+- `both22`: neue Werte bei Kandidat und Gegner.
+- `candidate22`: nur Kandidat, Gegner unverändert.
+- `opponent22`: nur Gegner, Kandidat unverändert.
 
-| Arm | Eigene gewöhnliche Wächter | Gegners gewöhnliche Wächter |
-|---|---|---|
-| `control` | ursprüngliche Werte | ursprüngliche Werte |
-| `both22` | 95 % Pool · 22/78 | 95 % Pool · 22/78 |
-| `candidate22` | 95 % Pool · 22/78 | ursprüngliche Werte |
-| `opponent22` | ursprüngliche Werte | 95 % Pool · 22/78 |
+**Konstant:** 35-%-Überlebens-Gegenschlag, unveränderte 100-%-Wächterheilung (keine 85-%-Pauschale oder 100/55/40/33/28-Staffel), 15 Prozentpunkte Predator-Pierce, 90/100/120-%-Seelenentzug als Forschungsbaseline. Ausschließlich Offline-Instanzdaten, **keine** reguläre Solo-/2v2-Werteänderung.
 
-Der Forschungsmotor verändert **nur Instanzwerte gewöhnlicher Wächter** (Level 1–10), nach initialem identischem Karten-/Seed-/Sitz-Match und bei jeder späteren Beschwörung. Bestehende sehr niedrige ATK wird nicht künstlich angehoben. Fusionskarten, ACE, Essenzmonster, Seelenzehrer und andere Rollen bleiben unangetastet. Keine Modifikation des eigentlichen `assets/game.js`-Katalogs, Solo- oder 2v2-Speicherstands, keine Produktionsübernahme.
+**Allgemeine Defender-Survival-KI; Siege aus je 512 TRAIN / VALIDATION / HOLDOUT:**
 
-**Neu als echte Duelltelemetrie:** Tatsächlich durch 35-%-Überlebens-Gegenschläge abgezogene LP (getrennt nach Wächter und Seelenzehrer, Spieler und Gegner), die Zahl überlebter/zerstörter Verteidiger beim Treffer, verbleibende DEF nach Angriffen, pro Sitz tatsächlich angewandte Werteverschiebungen sowie die v17.5-Messung real ausgeführter aktiver Angriffe und ATK-/DEF-Wechsel. Die Stat-Behandlung wird auf echte `newInstance`-Beschwörungen und vorliegende Starthände angewandt; KI-Planer-Klone dürfen keine echten Angriffe zum Aktionszähler beitragen.
+| Arm | TRAIN | VALIDATION | HOLDOUT |
+|---|---:|---:|---:|
+| `control` | 278 | 260 | **277** |
+| `both22` | 271 | 262 | **282** |
+| `candidate22` | 274 | 263 | **279** |
+| `opponent22` | 268 | 258 | **277** |
 
-**Konstant:** 35-%-Gegenschlag nur bei überlebenden Verteidigern; 100-%-Wächterheilung (keine Kombination mit der experimentellen Heilungsstaffel oder der alten 85-%-Regel); 15 Prozentpunkte Predator-Durchdringung und 90/100/120-%-Seelenentzug in der Forschungsbaseline. TRAIN-only-Modelle, strenge Validation-/Holdout-Freigaben, eingefrorener `l10-guarded-worst-reply`-Champion. Neue Modelle werden erst nach bestandenen H2H-Gates vorgeschlagen, nicht automatisch befördert.
+**Reale Wächter-Gegenschläge und Überleben, fokussierte Stage 8 mit 384 Duellen je Arm; Werte der Kandidaten-Seite:**
 
-**Nächste Entscheidung nach dem Abschluss:** 22/78 gegen reine Wächter-/Predator-/Fusionsdecks und 50/50-Mischungen getrennt nach Kandidat/Gegner bewerten; LP-Gegenschlagschaden, echte Treffer-Überlebensrate sowie Rückgang der eigenen aktiven Wächterangriffe heranziehen. Kleine 16-Partien-Fokusgruppen nicht als Beweis für das gesamte Meta missverstehen. 20/80 bleibt bis zu diesen Daten zurückgestellt.
+| Arm | Wächter-Treffer | Überlebt / Zerstört | Gegenschlagsereignisse | Tatsächlich abgezogene gegnerische LP durch Wächter-Gegenschlag |
+|---|---:|---:|---:|---:|
+| `control` | 481 | 295 / 186 | 215 | **34.754** |
+| `both22` | 510 | 323 / 187 | 189 | **27.272** |
+| `candidate22` | 510 | 323 / 187 | 215 | **34.674** |
+| `opponent22` | 453 | 289 / 164 | 205 | **33.360** |
+
+`both22` reduziert den **summierten** Gegenschlags-LP-Verlust um **21,5 %** gegenüber Kontrolle; die Wächter-Treffer-Überlebensquote beträgt 61,3 % Kontrolle vs 63,3 % beidseitig 22/78. Allerdings bleiben bei `candidate22` **34.674 von 34.754 LP** fast unverändert, obwohl 843 Kandidaten-Wächterinstanzen nachweisbar angepasst wurden (zusammen −73.970 ATK). Die Ursache liegt in verschiedenen Duellverläufen und Verteilungen und ist **noch nicht ausreichend geklärt**. Nicht als mechanischer Schadens-Buff interpretieren. **Side-Isolation überprüft:** `candidate22` 843 eigene / 0 Gegnerinstanzen; `opponent22` 0 eigene / 913 gegnerische; `both22` 859 eigene / 927 Gegnerinstanzen; `control` 0/0. Achtung: Im standardmäßigen Vergleichs-JSON beziehen sich `affected`, `atkDelta`, `defDelta` auf **physische Sitzplätze 0/1**, nicht auf Kandidat/Gegner. Für kausal korrekte Rollensummen wurden die Stage-8-Rohdaten anhand `x.seat` neu gruppiert.
+
+**Aktive eigene Wächterangriffe je 23.040 Duelle:** `control` **9.611**, `both22` **7.925** (−17,5 %), `candidate22` **7.813** (−18,7 %), `opponent22` **9.772**. Wächter-Aktivangriff-LP-Schaden: 851.798 / 720.886 / 686.723 / 920.226 in gleicher Reihenfolge. Passive Gegenschläge nicht in diesen Angriffswerten enthalten.
+
+**Rollen-Fokus `defender-v1770-survival-control`, 16 Duelle je Zelle; Reihenfolge `control/both22/candidate22/opponent22`:**
+- Predator VALIDATION: reine Wächter **8/9/8/9**, gemischt 50/50 **8/11/10/9**, reine Seelenzehrer **9/9/9/9**.
+- Fusion VALIDATION: reine Wächter **7/6/8/6**, gemischt **7/7/9/6**, reine Seelenzehrer **8/7/8/7**.
+- Predator HOLDOUT: reine Wächter **7/6/8/8**, gemischt **9/8/9/9**, reine Seelenzehrer **8/8/8/8**.
+- Fusion HOLDOUT: reine Wächter **8/3/7/5**, gemischt **7/6/8/5**, reine Seelenzehrer **8/6/8/6**.
+
+`candidate22` hat in **allen vier** Fokusgruppen mehr Siege mit gemischten als mit reinen Wächterdecks; `both22` besonders gegen Fusion-HOLDOUT **6 vs 3**. Das unterstützt die angestrebte Rollenspezialisierung, ist jedoch wegen **16 Duellen pro Zelle** nicht statistisch robust.
+
+**Gepaarte Stage-8-Vergleiche:** 2.304 Duelle je Arm, nur **384** verschiedene Szenario-/Sitz-Konfigurationen, mehrfach mit sechs KI-Profilen. Gegen Kontrolle: `both22` **267** Siegerwechsel (80 zugunsten Kandidat / 187 zulasten), `candidate22` **137** (69 / 68), `opponent22` **234** (81 / 153). Insbesondere der Kandidatennachteil bei ausschließlich gegnerischer Abschwächung muss in weiteren, unabhängigen Konfigurationen erklärt werden.
+
+**Champion-Gates:** **Kein neuer Champion**. `l10-guarded-worst-reply` eingefroren. `both22` maximal +8 allgemeine Validierung und +6 harte Level-10-Validierung gegen Frozen, aber direkte H2H nur **+1 TRAIN / +2 VALIDATION** statt **+4 / +8**. `candidate22` H2H höchstens **+2 / +3**. Die TRAIN-only-Folgemodelle haben **19/21/20/22** nichtnull Kontextwerte (control / both22 / candidate22 / opponent22) aus jeweils 1.280 Trainingsduellen, **ohne** Beförderung.
+
+**Empfehlung:** **95 % Wertepool / 22:78 weiterhin als beste Forschungsoption, noch nicht produktiv übernehmen.** Für v17.8 echte **gegner-LP-gepaarte Einzelgegenspielzüge** bei identischen HP/DEF/ATK-Zuständen sowie zusätzlichen Fusion-/Predator-/Level-10-HOLDOUT mit **mehr unabhängigen Seeds und Decks** verwenden. Vor Kombination mit der dynamischen Wächterheilung zunächst ungewöhnlich geringe Counter-LP-Reduktion in `candidate22` und den `opponent22`-Effekt aufklären. Keine weiteren pauschalen Wertenerfs.
+
 
 ## C. KI-Forschungsstatus
 
