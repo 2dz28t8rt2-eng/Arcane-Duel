@@ -692,7 +692,7 @@
     game.chapter<rules.CHAPTERS.length;
    if(game.status==='finished'&&game.winner===0&&canContinue){
     if([0,2].includes(seat))button('✦ Kapitel '+(game.chapter+1)+' anfragen',
-     dock,()=>send({type:'nextChapter'}));
+     dock,()=>send({type:'nextChapter',confirmRequired:true}));
    }else el('p',dock,game.status==='waiting'?'Sobald dein Partner da ist, geht es los.':
     game.entry==='quest'&&game.winner===0&&game.questPassed!==true?
      'Ihr habt gewonnen, aber das Questziel fehlt. Wiederholt diese Prüfung.':
