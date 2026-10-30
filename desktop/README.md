@@ -8,6 +8,7 @@ abgeschottet.
 ## Was bereits funktioniert
 
 - Einzelspieler, Sammlung und 2v2 verwenden die vorhandene Online-Version.
+- Ab Version **0.1.5** lädt das Desktop-Fenster auch das aktualisierte Duo-Fusionshandbuch und die Live-Fusionsanalyse aus dem neuesten `development`-Stand, ohne dafür einen neuen EXE-Build zu benötigen.
 - Ab Version **0.1.2** fragt die EXE bei jedem Start GitHub nach dem neuesten
   Commit im `development`-Branch und lädt dessen vollständige Spieldateien.
   So verhindert ein veralteter CDN-Cache, dass Titelbildschirm, Musik oder
@@ -22,7 +23,7 @@ abgeschottet.
 - F11 schaltet zwischen Fenster und Vollbild um.
 - Bei Verbindungsproblemen erscheint eine deutschsprachige Fehlerseite mit
   einer Schaltfläche zum erneuten Laden.
-- Die Windows-Version wird als portable **`ArcaneDuel-0.1.4-portable.exe`**
+- Die Windows-Version wird als portable **`ArcaneDuel-0.1.5-portable.exe`**
   erstellt. Es ist keine Installation erforderlich.
 - Ein eigenes arkanes Wappen ist als Programmsymbol in der EXE eingebettet
   und erscheint auch am Desktop und in der Taskleiste.
