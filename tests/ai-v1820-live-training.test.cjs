@@ -2,7 +2,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const {boot}=require('./helpers/game-runtime.cjs');
 const v=require('./helpers/research-ai-v182.cjs');
-test('Two explicit current-live-rules AI cohorts, no stacked Guardian research stat changes',()=>{
+test('Two explicit current-live-rules AI cohorts, no stacked Guardian research stat changes',{skip:!process.env.ARCANE_V1820_COHORT},()=>{
  assert.deepEqual(v.MODES,['baseline','optimized']);
  assert.equal(process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V178,'control');
  assert.equal(process.env.ARCANE_RESEARCH_BALANCE_V169,'control10');
