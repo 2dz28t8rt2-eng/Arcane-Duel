@@ -16,6 +16,9 @@
   syncError='',syncedAt=0,sessionReady=true,syncFailures=0,lastPollAt=0;
  let duoProfile=null,duoProfileToken='',duoLastRoom=null,profileSaving=false,duoEconomy=null;
   let nameConfirmed=false,joinIntent=null,invitePreview=null,inviteRequested=false;
+  const portraits=window.ArcanePortraits215;
+  let chosenAvatar='hero-01';
+  const chooseAvatar=id=>{chosenAvatar=portraits?.sanitizeHero(id)||'hero-01';};
  const set=(id,text)=>$(id).textContent=String(text);
  const card=id=>catalog[id]||{name:'Karte '+id,level:'?',atk:'?',def:'?',role:'?'};
  const shownAtk=c=>rules.attackValue?rules.attackValue(c):c.atk;
@@ -255,7 +258,9 @@
  }
  function installProfile(data){
   duoProfile=data.profile;duoLastRoom=data.lastRoom??duoLastRoom;
-  if(!nameConfirmed){$('duoNameInput').value=duoProfile.nickname;$('duoNameHint').textContent='Dein bisheriger 2v2-Name. Du kannst ihn hier ändern.';}
+  if(!nameConfirmed){$('duoNameInput').value=duoProfile.nickname;$('duoNameHint').textContent='Dein bisheriger 2v2-Name. Du kannst ihn hier ändern.';
+   chooseAvatar(duoProfile.avatarId);portraits?.chooser($('duoAvatarPicker'),{selected:chosenAvatar,onChange:chooseAvatar});}
+  portraits?.replace($('duoAvatarView'),portraits.sanitizeHero(duoProfile.avatarId),duoProfile.nickname);
   $('duoHostName').value=duoProfile.nickname;
   duoEconomy=data.economy??duoEconomy;
   profileDeck=[...duoProfile.deck];profileFusions=[...duoProfile.fusions];
@@ -335,10 +340,11 @@
    set('duoProfileMessage','✓ Dein Spielstand ist auf dem neuesten Stand.');
   }catch(e){set('duoProfileMessage','Dein Spielstand konnte nicht geladen werden: '+e.message);}
  }
- async function createDuoProfile(nameOverride){
+ async function createDuoProfile(nameOverride,avatarOverride){
   if(profileSaving||duoProfile)return;profileSaving=true;
   try{
-   const data=await call({type:'profileCreate',name:nameOverride||$('duoHostName').value});
+   const data=await call({type:'profileCreate',name:nameOverride||$('duoHostName').value,
+    avatarId:portraits?.sanitizeHero(avatarOverride)||'hero-01'});
    duoProfileToken=data.profileToken;persistProfileToken(duoProfileToken);
    installProfile(data);
    set('duoProfileMessage','Dein Duellant ist bereit. Viel Spaß bei eurem ersten Abenteuer!');
@@ -593,7 +599,11 @@
     (game.status==='active'&&game.activeSeat===p.seat?'current':''));
    const panel=el('article',seats,undefined,'seat '+(game.activeSeat===p.seat?'active':''));
    panel.dataset.seat=String(p.seat);
-   el('h3',panel,p.name);
+   const heading=el('div',panel,undefined,'ad215-duo-seat-head');
+   const avatar=p.kind==='human'?portraits?.sanitizeHero(p.portraitId):
+     portraits?.duoOpponent(game.chapter,p.seat);
+   if(portraits)heading.append(portraits.node(avatar,p.name));
+   el('h3',heading,p.name);
    el('small',panel,p.kind==='human'?(p.seat===0?'DEIN TEAM · GASTGEBER':'DEIN TEAM · PARTNER'):
     'GEGNER','duo-seat-kind');
    el('small',panel,p.hand.length+' Handkarten · '+p.deck.length+' im Hauptdeck · '+
@@ -1035,10 +1045,12 @@
   }
   inviteRequested=true;$('duoNameConfirm').disabled=true;
   try{
-   if(!duoProfile)await createDuoProfile(nickname);
+   if(!duoProfile)await createDuoProfile(nickname,chosenAvatar);
    else if(duoProfile.nickname!==nickname)
     await profileOperation('profileName',{name:nickname});
-   if(!duoProfile||duoProfile.nickname!==nickname){
+   if(duoProfile&&duoProfile.avatarId!==chosenAvatar)
+    await profileOperation('profileAvatar',{avatarId:chosenAvatar});
+   if(!duoProfile||duoProfile.nickname!==nickname||duoProfile.avatarId!==chosenAvatar){
     $('duoNameHint').textContent='Profilname konnte nicht gespeichert werden. Bitte erneut versuchen.';
     return;
    }
@@ -1050,6 +1062,7 @@
   }finally{inviteRequested=false;$('duoNameConfirm').disabled=false;}
  }
  async function init(){
+  portraits?.chooser($('duoAvatarPicker'),{selected:chosenAvatar,onChange:chooseAvatar});
   try{
    const response=await fetch('assets/duo-card-catalog-v160.json?v=20261029-v2071-final');
    if(!response.ok)throw Error('Kartenkatalog fehlt.');
@@ -1079,6 +1092,15 @@
    $('duoRecoveryCopy').onclick=copyRecovery;
    $('duoProfileCreate').onclick=createDuoProfile;
    $('duoProfileBackup').onclick=backupProfile;
+   $('duoAvatarEdit').onclick=()=>{
+    if(!duoProfile||!portraits)return;
+    chooseAvatar(duoProfile.avatarId);
+    $('duoNameInput').value=duoProfile.nickname;
+    portraits.chooser($('duoAvatarPicker'),{selected:chosenAvatar,onChange:chooseAvatar});
+    $('duoNameHint').textContent='Hier kannst du deinen Namen und dein Portrait ändern.';
+    $('duoNameGate').hidden=false;$('duoPage').inert=true;
+    $('duoNameInput').focus();
+   };
    $('duoProfileReload').onclick=fetchProfile;
    $('duoProfileContinue').onclick=()=>continueLastRoom();
    $('duoProfileUpgrade').onclick=()=>profileOperation('upgrade',
