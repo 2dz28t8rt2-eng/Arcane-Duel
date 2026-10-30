@@ -3,9 +3,9 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const {boot}=require('./helpers/game-runtime.cjs');
 const v=require('./helpers/research-guardian-counter-v178.cjs');
 function snapshot(cohort){
- const prior=process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V177;
+ const prior=process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V178;
  try{
-  process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V177=cohort;
+  process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V178=cohort;
   return boot({seed:17700042}).run('('+function(){
    const id=CARDS.findIndex(c=>c.role==='guardian'&&c.rpg&&!c.essenceMonster&&!c.fusionOnly&&!c.retired&&c.level===5);
    if(id<0)throw Error('Missing real Level-5 Guardian');
@@ -25,9 +25,16 @@ function snapshot(cohort){
    return {before,after,next,initialAdjusted,afterSpawnAdjusted,
      id,model:{atk:CARDS[id].atk,def:CARDS[id].def}};
   }.toString()+')()');
- }finally{if(prior===undefined)delete process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V177;
- else process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V177=prior;}
+ }finally{if(prior===undefined)delete process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V178;
+ else process.env.ARCANE_RESEARCH_GUARDIAN_STATS_V178=prior;}
 }
+test('v17.8 snapshot uses only its own stat overlay and cannot activate the previous version',()=>{
+ const runner=fs.readFileSync('tests/ai-v1780-selfplay.cjs','utf8');
+ assert.ok(runner.includes('research-guardian-counter-v178.cjs'));
+ assert.ok(!runner.includes('research-guardian-counter-v177.cjs'));
+ assert.ok(snapshot.toString().includes('ARCANE_RESEARCH_GUARDIAN_STATS_V178'));
+ assert.ok(!snapshot.toString().includes('ARCANE_RESEARCH_GUARDIAN_STATS_V177'));
+});
 test('Explicit causal 22/78 cohorts route by candidate seat',()=>{
  assert.deepEqual(v.MODES,['control','both22','candidate22','opponent22']);
  for(const owner of [0,1])for(const candidate of [0,1]){
