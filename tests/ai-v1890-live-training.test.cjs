@@ -8,7 +8,7 @@ test('Two explicit current-live-rules AI cohorts, no stacked Guardian research s
  assert.equal(process.env.ARCANE_RESEARCH_BALANCE_V169,'control10');
  assert.ok(v.MODES.includes(v.mode()));
  const src=fs.readFileSync('tests/ai-v1890-selfplay.cjs','utf8');
- assert.match(src,/const balance=require\('\.\/helpers\/research-ai-v188\.cjs'\)\.mode\(\);/);
+ assert.match(src,/const balance=require\('\.\/helpers\/research-ai-v189\.cjs'\)\.mode\(\);/);
  assert.match(src,/balance==='optimized'\?require/);
  assert.match(src,/defenderCriticalReplyPlanner:\.82/);
  assert.match(src,/defenderBondPlanner:\.96/);
