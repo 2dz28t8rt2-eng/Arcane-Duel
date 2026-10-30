@@ -1,0 +1,38 @@
+name: Arcane Duel Guardian Balance v21.2 - regenerate 2v2 catalogs
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/guardian-balance-v212-apply.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sync:
+    name: Build canonical Solo and 2v2 catalogs
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: development
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Regenerate Duo browser and server from updated Solo game
+        run: |
+          set -euo pipefail
+          node scripts/build-duo-catalog-v160.cjs
+          node scripts/build-duo-catalog-v160.cjs --check
+          node --test tests/guardian-balance-v212.test.cjs tests/duo-parity-v160.test.cjs
+      - name: Commit canonical 2v2 catalogs with unchanged IDs
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/duo-card-catalog-v160.json supabase/functions/arcane-duo-v2/catalog.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(duo): synchronize 22/78 Guardian stats with Solo catalog [skip ci]"
+            git push origin HEAD:development
+          fi
