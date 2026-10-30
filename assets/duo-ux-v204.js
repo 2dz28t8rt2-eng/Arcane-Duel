@@ -40,7 +40,76 @@
  }
  const powers={swarm:'Rudelinstinkt',mark:'Blutspur',token:'Rudelruf'};
  let context=null,details=null,outcome=null,outcomeTimers=[],soulTimer=null;
+ let leaderGuide=null,leaderGuideTimer=null,leaderGuideSeen=false;
  const notices=new Set();
+ const ZOOM_KEY='arcane-duo-battle-zoom-v1';
+ const zoomClamp=value=>Math.max(70,Math.min(115,Math.round((Number(value)||100)/5)*5));
+ function initialZoom(){try{return zoomClamp(root.localStorage?.getItem(ZOOM_KEY)||100);}catch{return 100;}}
+ let battleZoom=initialZoom();
+ function setBattleZoom(value){
+  battleZoom=zoomClamp(value);
+  const seats=doc.getElementById?.('duoSeats');
+  if(seats)seats.style.zoom=battleZoom+'%';
+  const out=doc.getElementById?.('ad204-zoom-value');
+  if(out)out.textContent=battleZoom+' %';
+  const slider=doc.getElementById?.('ad204-zoom-slider');
+  if(slider)slider.value=String(battleZoom);
+  try{root.localStorage?.setItem(ZOOM_KEY,String(battleZoom));}catch{}
+  return battleZoom;
+ }
+ function ensureZoomControls(){
+  const seats=doc.getElementById?.('duoSeats');
+  if(!seats?.parentNode)return;
+  if(!doc.getElementById('ad204-zoom-controls')){
+   const controls=el('div','ad204-zoom-controls');
+   controls.id='ad204-zoom-controls';
+   const label=el('label','','Duellfeld vergrößern / verkleinern',controls);
+   label.htmlFor='ad204-zoom-slider';
+   const slider=el('input','',undefined,controls);
+   slider.type='range';slider.id='ad204-zoom-slider';slider.min='70';slider.max='115';
+   slider.step='5';slider.value=String(battleZoom);
+   slider.setAttribute('aria-label','Duellfeld-Zoom');
+   slider.addEventListener('input',()=>setBattleZoom(slider.value));
+   const output=el('output','','',controls);output.id='ad204-zoom-value';
+   output.htmlFor=slider.id;
+   seats.parentNode.insertBefore(controls,seats);
+  }
+  setBattleZoom(battleZoom);
+ }
+ function dismissLeaderGuide(){
+  leaderGuideTimer&&root.clearTimeout(leaderGuideTimer);leaderGuideTimer=null;
+  leaderGuide?.remove();leaderGuide=null;
+ }
+ function showLeaderGuide(){
+  if(leaderGuide||leaderGuideSeen)return;
+  leaderGuideSeen=true;
+  try{root.localStorage?.setItem('arcane-duo-leader-guide-v1','true');}catch{}
+  const backdrop=el('div','ad204-leader-guide-backdrop',undefined,doc.body);
+  leaderGuide=backdrop;
+  const panel=el('section','ad204-leader-guide',undefined,backdrop);
+  panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');
+  panel.setAttribute('aria-label','So funktionieren Rudelführer');
+  el('small','','🐾 DEIN ERSTER RUDELFÜHRER',panel);
+  el('h2','','Deine Predatoren kämpfen jetzt als Rudel!',panel);
+  el('p','','Ein Rudelführer entsteht durch eine Predator-Fusion. Solange er auf deinem Feld liegt, verstärkt er deine anderen Predatoren. Das ist ein Angriffsbonus – keine dauerhaft erhöhte ATK auf der Karte.',panel);
+  el('p','','Bei einer Fusion mit 3 Materialien erhält er 1 zusätzliche Fähigkeit, bei 4 Materialien 2 und bei 5 Materialien alle 3. Das können Rudelinstinkt (stärkeres Rudel), Blutspur (ein Ziel markieren) und Rudelruf (einen Rudelgeist beschwören) sein.',panel);
+  el('p','','Tipp: Stelle weitere Predatoren auf dein eigenes Feld. Dein Partner hat einen eigenen Bereich und ein eigenes Rudel.',panel);
+  const close=el('button','','Verstanden · weiterkämpfen',panel);
+  close.type='button';close.addEventListener('click',dismissLeaderGuide);close.focus?.();
+ }
+ function maybeExplainLeader(before,after,viewerSeat){
+  if(leaderGuideSeen||!sameRoom(before,after)||![0,2].includes(viewerSeat)||
+     after?.status!=='active')return;
+  try{if(root.localStorage?.getItem('arcane-duo-leader-guide-v1')==='true'){leaderGuideSeen=true;return;}}catch{}
+  const prior=new Set((before.players?.[viewerSeat]?.field||[]).filter(c=>c?.predatorLeader).map(c=>c.uid));
+  const newcomer=(after.players?.[viewerSeat]?.field||[]).find(c=>c?.predatorLeader&&!prior.has(c.uid));
+  if(!newcomer||leaderGuideTimer)return;
+  // Wait for the actual 2v2 fusion and leader-reveal scene to finish.
+  leaderGuideTimer=root.setTimeout(()=>{
+   leaderGuideTimer=null;
+   if(context?.game?.roomId===after.roomId&&!outcome)showLeaderGuide();
+  },11300);
+ }
  function flash(target,text,positive=true){
   const rect=target?.getBoundingClientRect?.();
   if(!rect||rect.width<2||reduced())return;
@@ -159,6 +228,7 @@
  function decorate({game,seat,catalog,roomId,send}={}){
   if(!game||![0,2].includes(seat))return;
   context={game,seat,catalog,roomId,send};
+  ensureZoomControls();
   for(const player of game.players||[]){
    const pct=packState(player).percentage;
    (player.field||[]).forEach((card,slot)=>{
@@ -198,7 +268,8 @@
   outcomeTimers.forEach(root.clearTimeout);outcomeTimers=[];outcome?.remove();outcome=null;
  }
  function showOutcome(game){
-  clearOutcome();dismissInspector();
+  clearOutcome();dismissInspector();dismissLeaderGuide();
+  root.ArcaneSoundscape?.fadeOutForResult?.(5300);
   const won=game.winner===0,stage=el('div','ad204-result-stage',undefined,doc.body);
   stage.setAttribute('aria-live','polite');stage.setAttribute('role','status');
   outcome=stage;
@@ -211,6 +282,11 @@
   const close=el('button','ad204-result-close','Zum Spielfeld',panel);
   close.type='button';close.addEventListener('click',clearOutcome);
   const duration=reduced()?0:1500;
+  // Match solo: a strong victory/defeat cue immediately PRECEDES its title,
+  // while combat music begins a gentle fade at the confirmed result.
+  outcomeTimers.push(root.setTimeout(()=>{
+   if(outcome===stage)root.ArcaneSfx208?.result?.(won?'win':'lose');
+  },Math.max(0,duration-150)));
   outcomeTimers.push(root.setTimeout(()=>{
    if(outcome===stage)title.classList.add('ad204-visible');
   },duration));
@@ -232,8 +308,15 @@
  }
  function onState(before,after,{seat,catalog}={}){
   if(!after)return;
-  if(!sameRoom(before,after)){clearOutcome();return;}
+  if(!sameRoom(before,after)){
+   clearOutcome();dismissLeaderGuide();
+   if(after.status==='active')root.ArcaneSoundscape?.resetResultFade?.();
+   return;
+  }
   if(!confirmed(before,after))return;
+  if(before.status==='finished'&&after.status==='active')
+   root.ArcaneSoundscape?.resetResultFade?.();
+  maybeExplainLeader(before,after,seat);
   for(const player of after.players||[]){
    const prior=before.players?.[player.seat];if(!prior)continue;
    const old=packState(prior).percentage,newPct=packState(player).percentage;
@@ -249,6 +332,20 @@
      'Rudel +'+percentLabel(newPct)+' %',true);
     else if(existed&&newPct!==old)flash(fieldCell(player.seat,slot),
      'Rudel '+(newPct>old?'+':'')+percentLabel(newPct-old)+' %',newPct>old);
+   });
+  }
+  // Passive Soul decay is server-owned. Describe only public losses that
+  // happened across this monster's completed turn (never speculate about
+  // private hands, and never confuse a deliberate active discharge with decay).
+  for(const player of after.players||[]){
+   const old=before.players?.[player.seat];
+   if(!old||!Number.isFinite(player.ownTurns)||
+      player.ownTurns<=old.ownTurns)continue;
+   (player.field||[]).forEach((card,slot)=>{
+    if(!card||card.role!=='soul')return;
+    const previous=old.field?.find(c=>c?.uid===card.uid);
+    const lost=Math.max(0,number(previous?.soul)-number(card.soul));
+    if(lost)flash(fieldCell(player.seat,slot),'SEELENESSENZ −'+lost,false);
    });
   }
   // Attack fatigue is server-owned. Report confirmed ATK/DEF losses on the
@@ -316,14 +413,16 @@
    event.target?.closest?.('input,textarea,select,[contenteditable]'))return;
   const key=String(event.key||'').toLowerCase();
   if(key==='escape'){if(details){dismissInspector();event.preventDefault();}
+   else if(leaderGuide){dismissLeaderGuide();event.preventDefault();}
    else if(outcome){clearOutcome();event.preventDefault();}return;}
   if(!context||details||outcome)return;
   if(key==='h'){event.preventDefault();toggleHand();}
   else if(key==='d'&&usePositionShortcut())event.preventDefault();
   else if(key==='a'&&useDirectShortcut())event.preventDefault();
  });
- const api=Object.freeze({version:'20.4',packState,effectiveAttack,sameRoom,
-  decorate,onState,onActionStart,onActionError,toggleHand,usePositionShortcut,useDirectShortcut});
+ const api=Object.freeze({version:'20.10',packState,effectiveAttack,sameRoom,
+  decorate,onState,onActionStart,onActionError,toggleHand,setBattleZoom,zoomClamp,
+  usePositionShortcut,useDirectShortcut});
  root.ArcaneDuoUX204=api;
  if(typeof module==='object'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:null);
