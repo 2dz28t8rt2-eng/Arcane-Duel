@@ -32,7 +32,7 @@ const secret=()=>Array.from(crypto.getRandomValues(new Uint8Array(32)),
 const hash=async(value)=>Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",
  new TextEncoder().encode(value))),v=>v.toString(16).padStart(2,"0")).join("");
 const safeName=v=>String(v||"Duellant").replace(/[<>\x00-\x1f]/g,"").trim().slice(0,32)||"Duellant";
-const portraitId=v=>typeof v==="string"&&/^hero-(0[1-9]|1[0-2])$/.test(v)?v:"hero-01";
+const portraitId=v=>typeof v==="string"&&/^hero-(0[1-9]|1[0-6])$/.test(v)?v:"hero-01";
 const enemyDeck=(chapter,seat)=>adversaries.enemyDeck(chapter,seat,snapshot.cards,starter,soloOpponents);
 const enemyFusions=chapter=>adversaries.enemyFusions(chapter,snapshot.cards,soloOpponents);
 const enemyPower=chapter=>adversaries.enemyPower(chapter,soloOpponents);
@@ -135,7 +135,7 @@ Deno.serve(async request=>{
    assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===p.revision,
     "2v2-Profil geändert. Bitte synchronisieren.");
    if(kind==="profileAvatar"){
-    assert(typeof body.avatarId==="string"&&/^hero-(0[1-9]|1[0-2])$/.test(body.avatarId),
+    assert(typeof body.avatarId==="string"&&/^hero-(0[1-9]|1[0-6])$/.test(body.avatarId),
      "Unbekanntes Charakterportrait.");
     const next=await writeProfile(p,{avatar_id:body.avatarId});
     return json(await profileResult(next),200,allow);
