@@ -95,6 +95,6 @@ test('Counter and survival instrumentation is injected exclusively offline',()=>
  assert.ok(!game.includes('__guardianV178StartGame'));
  const runner=fs.readFileSync('tests/ai-v1780-selfplay.cjs','utf8');
  assert.ok(runner.includes('window.__guardianV178StartGame(g,learner)'));
- assert.ok(runner.includes('guardianV177Combat:m.stats.guardianV177Combat'));
- assert.ok(runner.includes('guardianV177Setup:m.stats.guardianV177Setup'));
+ assert.ok(runner.includes('guardianV178Combat:m.stats.guardianV178Combat'));
+ assert.ok(runner.includes('guardianV178Setup:m.stats.guardianV178Setup'));
 });
