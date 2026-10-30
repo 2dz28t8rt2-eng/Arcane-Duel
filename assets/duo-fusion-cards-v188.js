@@ -5,7 +5,7 @@
 'use strict';
 (()=>{
   const saved=new Map();
-  const validKey=key=>/^(hand|field|ghost|charge):\d+$/.test(key||'');
+  const validKey=key=>/^(hand|field|allyField|ghost|charge):\d+$/.test(key||'');
   const selectedKeys=select=>[...(select?.options||[])].filter(o=>o.selected).map(o=>o.value);
   function toggleMaterial(keys,key,max=5){
     if(!validKey(key))return {keys:[...keys],error:'invalid'};
@@ -14,22 +14,23 @@
     return {keys:[...keys,key],error:null};
   }
   const idOf=value=>typeof value==='number'?value:value?.id;
-  function materialIdentity(player,key){
+  function materialIdentity(player,key,ally){
     const [area,indexRaw]=String(key||'').split(':');const index=Number(indexRaw);
     if(!Number.isInteger(index)||index<0)return null;
     if(area==='charge')return 'charge:'+index;
     const item=area==='hand'?player?.hand?.[index]:
-      area==='field'?player?.field?.[index]:area==='ghost'?player?.lv1?.ghostSlots?.[index]:null;
+      area==='field'?player?.field?.[index]:area==='allyField'?ally?.field?.[index]:area==='ghost'?player?.lv1?.ghostSlots?.[index]:null;
     return item==null?null:String(idOf(item));
   }
-  function remember(scope,select,player){
-    saved.set(scope,selectedKeys(select).map(key=>({key,id:materialIdentity(player,key)})));
+  function remember(scope,select,player,ally){
+    saved.set(scope,selectedKeys(select).map(key=>({key,id:materialIdentity(player,key,ally)})));
     if(saved.size>16)saved.delete(saved.keys().next().value);
   }
-  function materialCell(panel,key){
+  function materialCell(panel,key,allyPanel){
     const [area,index]=key.split(':');
     if(area==='hand')return panel?.querySelector('.duo178-hand-card[data-index="'+index+'"]')||null;
     if(area==='field')return panel?.querySelector(':scope > .field > .field-cell[data-slot="'+index+'"]')||null;
+    if(area==='allyField')return allyPanel?.querySelector(':scope > .field > .field-cell[data-slot="'+index+'"]')||null;
     if(area==='ghost')return panel?.querySelector('.duo-ghost-cell[data-slot="'+index+'"]')||null;
     return null;
   }
@@ -44,7 +45,9 @@
     if(!helper)return;
     helper.hidden=true;helper.replaceChildren();
     if(!game||game.status!=='active'||game.activeSeat!==seat||busy||syncError||!dock)return;
-    const player=game.players?.[seat],panel=document.querySelector('#duoSeats .seat[data-seat="'+seat+'"]');
+    const player=game.players?.[seat],allySeat=seat===0?2:0,ally=game.players?.[allySeat],
+      panel=document.querySelector('#duoSeats .seat[data-seat="'+seat+'"]'),
+      allyPanel=document.querySelector('#duoSeats .seat[data-seat="'+allySeat+'"]');
     const select=dock.querySelector('.duo-fusion-list');
     const fusionPanel=dock.querySelector('#ad186-fusion');
     const commit=dock.querySelector('[data-ad188-commit]');
@@ -60,7 +63,7 @@
     if(previous?.length){
       for(const entry of previous){
         const option=optionByKey.get(entry.key);
-        if(option&&entry.id!==null&&entry.id===materialIdentity(player,entry.key)){option.selected=true;select.append(option);}
+        if(option&&entry.id!==null&&entry.id===materialIdentity(player,entry.key,ally)){option.selected=true;select.append(option);}
       }
       // The original on-change callback recalculates every legal template and slot.
       select.dispatchEvent(new Event('change',{bubbles:true}));
@@ -72,7 +75,7 @@
     fold.append(element('summary',undefined,'Materialliste verwenden (optional)'));
     select.parentNode.insertBefore(fold,select);fold.append(select);
     const instruction=element('p','ad188-material-instruction',
-      'Klicke 2–5 eigene Karten auf dem Feld, in der Hand oder in der Geisterzone an. '+
+      'Klicke 2–5 Karten aus deiner Hand, deinem Feld, der Geisterzone oder dem Feld deines Partners an. '+
       'Ein zweiter Klick entfernt die Karte wieder.');
     fold.parentNode.insertBefore(instruction,fold);
     const selectionBox=element('div','ad188-selected-materials');
@@ -114,7 +117,7 @@
     let attackGuideWasVisible=false;
     const cellEntries=new Map();
     for(const [key,option] of optionByKey){
-      const cell=materialCell(panel,key);if(!cell)continue;
+      const cell=materialCell(panel,key,allyPanel);if(!cell)continue;
       const original={role:cell.getAttribute('role'),label:cell.getAttribute('aria-label'),
         tabindex:cell.getAttribute('tabindex')};
       cellEntries.set(key,{cell,option,original});
@@ -178,7 +181,7 @@
       const templateText=template?.selectedOptions?.[0]?.textContent||'–';
       const slotText=resultSlot?.selectedOptions?.[0]?.textContent||'–';
       message.textContent=count<2?'Wähle noch '+(2-count)+' Material'+(2-count===1?'':'ien')+
-        ' aus der Hand oder deinem Spielfeld.':ready?
+        ' aus deiner Hand, deinem Feld oder dem Partnerfeld.':ready?
         (hint?.textContent||'Fusion möglich')+' · '+templateText+' → '+slotText:
         (hint?.textContent||'Diese Kombination ist noch nicht möglich.');
       confirm.disabled=!ready||stageMode==='discard';
@@ -216,7 +219,7 @@
         'Höchstens fünf Materialien. Entferne zuerst eines.':'';
       if(!change.error)setKeys(change.keys);
     }
-    select.addEventListener('change',()=>{remember(scope,select,player);paint();});
+    select.addEventListener('change',()=>{remember(scope,select,player,ally);paint();});
     fusionPanel.addEventListener('toggle',paint);
     fusionMode.addEventListener('click',()=>{stageMode='fusion';paint();});
     discardMode.addEventListener('click',()=>{stageMode='discard';paint();});
@@ -237,7 +240,7 @@
     });
     clear.textContent='✕ Alles abwählen';
     clear.addEventListener('click',()=>{notice.textContent='';keepKey=null;stageMode='fusion';setKeys([]);});
-    if(!previous)remember(scope,select,player);
+    if(!previous)remember(scope,select,player,ally);
     paint();
   }
   window.ArcaneDuoFusion188=Object.freeze({version:'18.8.0',selectedKeys,toggleMaterial,materialIdentity,enhance});
