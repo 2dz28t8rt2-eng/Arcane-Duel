@@ -122,15 +122,18 @@
   const pattern=window.ArcaneFusionMath.pattern(levels,materials.map(c=>dataOf(c).element));
   const quality=window.ArcaneFusionMath.tuned(g,levels,materials.map(c=>dataOf(c).element),materials);
   const budget=fusionBudget(levels,g,materials);
+  // Actual quality uses the highest-level material, independently of a manual core.
+  const qualityPenalty=quality.streetProtection?0:
+   Number.isFinite(quality.materialDistance)?Math.min(.22,quality.materialDistance*.055):q.penalty;
   const options=fusionOptions(g,levels,materials).filter(c=>c.level>=2).sort((a,b)=>b.level-a.level||b.atk-a.atk);
   const best=options[0]||null;
   const forecast=best&&typeof fusionPreview==='function'?fusionPreview(g,best,materials,levels):null;
   const role=window.ArcaneRoleFusion?.inheritance?.(materials)||'resonator';
-  return {q,pattern,quality,budget,best,forecast,role,levels,materials,pending:false};
+  return {q,pattern,quality,qualityPenalty,budget,best,forecast,role,levels,materials,pending:false};
  }
  function explanationText(info){
   if(info.pending)return '<p>Die Handfusion ist schon vorbereitet: <b>Level '+info.level+'</b>. Die Vorlage wurde dabei verbraucht. Die endgültigen Kampfwerte werden erst bei der Enthüllung beziehungsweise Platzierung angezeigt. Für eine neue Materialanalyse kannst du die vorbereitete Fusion gegebenenfalls zurücknehmen.</p>';
-  const {q,pattern,quality,budget,best,forecast,role,levels,materials}=info;
+  const {q,pattern,quality,qualityPenalty,budget,best,forecast,role,levels,materials}=info;
   const core=materials[q.coreIndex];
   const sum=levels.reduce((a,b)=>a+b,0);
   const main='<div class="ad213-status">'+
@@ -151,15 +154,15 @@
    (q.resonatorBonus?' <b>+1 einmaliger Resonator-Kettenbonus.</b>':'')+'</p>'+
    '<p><b>Grenzen:</b> Materialsumme '+sum+'; allgemeine Grenze Lv 10. Damit ist maximal Lv '+budget+' erreichbar.'+
    (best?' Die höchste noch freie Vorlage ist '+esc(best.name)+' auf Lv '+best.level+'.':' Es ist keine passende freie Vorlage vorhanden.')+'</p></div>';
-  const weights=q.others?.length?'<p>Abstand der anderen Materiallevel zum Kern: '+
+  const weights=q.others?.length?'<p>Abstand der anderen Materiallevel zum gewählten Kern: '+
    q.others.map((lv,i)=>'Lv '+lv+' ('+Math.round((q.weights[i]||0)*100)+' % Gewicht)').join(' · ')+
-   '. Die Gewichte betreffen den <b>Qualitätsabzug</b>, nicht direkte ATK-Boni.</p>':'';
+   '. Die Qualitätsberechnung verwendet die höchste Materialstufe als Referenz und kann bei manueller Kernwahl abweichen. Dies sind keine direkten ATK-Boni.</p>':'';
   const combos='<div class="ad213-reason"><h3>2 · Woher kommt die Qualität?</h3>'+
    '<p><b>'+esc(pattern.name)+'</b>: '+(quality.rollBonus||0)+' zusätzliche Poker-Wertewürfe. '+
    'Anzahl der Materialien: '+levels.length+' (ab dem dritten jeweils +4,5 Prozentpunkte vor Abzügen). '+
    'Kombinationsboni einschließlich möglicher Niedriglevel- und Elementeffekte: '+
    pct((quality.qualityBonus||0)*100)+'.</p>'+
-   '<p>Gewichteter Levelabstandsabzug: '+pct(q.penalty*100)+
+   '<p>Gewichteter Levelabstandsabzug: '+pct(qualityPenalty*100)+
    (q.street?' – <b>vollständige Straße: kein Abstandsabzug</b>.':'.')+
    ' Die angezeigte Gesamtqualität enthält gegebenenfalls zusätzlich Spezialistenboni, Resonanz, Upgrades und Vererbung.</p>'+
    weights+
@@ -186,7 +189,7 @@
   const advice='<div class="ad213-next"><strong>Was wäre jetzt sinnvoll?</strong><p>'+
    (!best?'Du brauchst eine noch verfügbare, ausgerüstete Fusionsvorlage für ein erlaubtes Level.':
    best.level<budget?'Dein Materialbudget kann bereits mehr: Eine passende Fusionsvorlage auf einer höheren erlaubten Stufe würde das zusätzliche Level nutzbar machen.':
-   q.penalty>.04?'Versuche Materiallevel näher an das Kernlevel zu bringen oder eine vollständige Straße zu bilden, um den Qualitätsabzug zu senken.':
+   qualityPenalty>.04?'Versuche Materiallevel näher an das höchste Materiallevel zu bringen oder eine vollständige Straße zu bilden, um den Qualitätsabzug zu senken.':
    budget<10?'Mit einem höheren Kern oder weiteren gut passenden Materialien kann das erlaubte Level steigen. Prüfe aber auch die Qualitäts- und Würfelboni.':
    'Du erreichst bereits die Levelobergrenze. Verbessere stattdessen Materialmuster, Qualität, Rolle oder die Würfelanzahl.')+
    '</p></div>';
