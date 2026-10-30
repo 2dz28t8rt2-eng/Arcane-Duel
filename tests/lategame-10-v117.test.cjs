@@ -47,8 +47,7 @@ test('live normal monsters follow level budget, reach loot/decks and render with
   const a=x.cards[i],r=rows[i];
   assert.equal(a.id,r.id);assert.equal(a.name,r.name);assert.equal(a.level,r.level);
   assert.equal(a.role,roleFor(r));
-  const stats=statsFor({...r,atk:Math.round(({predator:.76,guardian:.25,soul:.22,combatant:.50}[r.role])*({7:1270,8:1530,9:1830,10:2150}[r.level])/10)*10,
-   def:({7:1270,8:1530,9:1830,10:2150}[r.level])-Math.round(({predator:.76,guardian:.25,soul:.22,combatant:.50}[r.role])*({7:1270,8:1530,9:1830,10:2150}[r.level])/10)*10});
+  const stats=statsFor(r);
   assert.equal(a.atk,stats.atk);assert.equal(a.def,stats.def);
   assert.equal(a.art,r.art);assert.equal(a.customArt,r.art);assert.equal(a.source,r.source);
   assert.equal(a.ability,null);assert.equal(a.effectText,null===a.effectText?null:'');
