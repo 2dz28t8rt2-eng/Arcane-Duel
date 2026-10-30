@@ -29,6 +29,41 @@
   return Number.isInteger(c)&&c>=1&&c<=15&&[1,3].includes(s)?
    duoIds[c-1][s===1?0:1]:duoIds[0][s===1?0:1];
  }
+ // Visuals only: a seeded shuffle allocates unused player portraits to ordinary NPCs.
+ // Fixed story identities never enter the shuffle. Neither NPC stats nor their IDs change.
+ function permutation(seed,excluded=[]){
+  const taken=new Set((Array.isArray(excluded)?excluded:[]).filter(validHero));
+  const pool=heroIds.filter(id=>!taken.has(id));
+  if(!pool.length)return [];
+  let h=2166136261;
+  for(const ch of String(seed)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}
+  for(let i=pool.length-1;i>0;i--){
+   h^=h<<13;h^=h>>>17;h^=h<<5;
+   const j=(h>>>0)%(i+1);
+   [pool[i],pool[j]]=[pool[j],pool[i]];
+  }
+  return pool;
+ }
+ function normalSolo(id,selected='hero-01',seed='solo'){
+  if(!Number.isInteger(Number(id))||Number(id)<0||Number(id)>10)return null;
+  const list=permutation('solo:'+seed,[sanitizeHero(selected)]);
+  return list[Number(id)]||null;
+ }
+ function normalDuo(chapter,seat,selected=[],seed='duo'){
+  const c=Number(chapter),s=Number(seat);
+  if(!Number.isInteger(c)||c<1||c>9||![1,3].includes(s))return null;
+  const list=permutation('duo:'+seed+':'+c,selected);
+  return list[s===1?0:1]||null;
+ }
+ function visualSolo({id=0,secret=false,stage=0,encounter=false,selected='hero-01',seed='solo'}={}){
+  if(secret||Number(stage)>=1&&Number(stage)<=5)return soloOpponent(id,secret,stage,false);
+  return normalSolo(id,selected,seed)||normalSolo(id,'hero-01',seed);
+ }
+ function visualDuo({chapter=1,seat=1,selected=[],seed='duo'}={}){
+  const c=Number(chapter);
+  if(Number.isInteger(c)&&c>=10&&c<=15)return duoOpponent(c,seat);
+  return normalDuo(c,seat,selected,seed);
+ }
  function path(id){
   if(!allowed.has(id))return null;
   if(id.startsWith('hero-'))return base+'heroes/'+id+'.webp';
@@ -94,5 +129,5 @@
   }
  }
  root.ArcanePortraits215=Object.freeze({version:'21.5',heroIds,soloIds,duoIds,specials,ids,
-  validHero,sanitizeHero,soloOpponent,duoOpponent,path,initials,node,replace,chooser});
+  validHero,sanitizeHero,soloOpponent,duoOpponent,normalSolo,normalDuo,visualSolo,visualDuo,permutation,path,initials,node,replace,chooser});
 })(typeof window!=='undefined'?window:globalThis);
