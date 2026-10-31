@@ -29,7 +29,7 @@ with tarfile.open(sealed,'r:gz') as tar:
   if not(m.name=='release.json' or p.parts[0] in ('assets','models','server') or m.name.startswith('supabase/functions/arcane-duo-v2/') or m.name in ['index.html','duo-campaign-v2.html','duo-campaign.html','duo-online.html','art-gallery.html','collection-v3.html','arcane-host-config.js','desktop/build/icon.png','desktop/build/icon.ico']):raise SystemExit('Unexpected release path')
   names.add(m.name)
  release=json.load(tar.extractfile('release.json'))
- if not re.fullmatch(r'\\d+\\.\\d+\\.\\d+',str(release.get('version',''))) or release.get('dirty') or not re.fullmatch(r'[a-f0-9]{40}',release['revision']):
+ if not re.fullmatch(r'\d+\.\d+\.\d+',str(release.get('version',''))) or release.get('dirty') or not re.fullmatch(r'[a-f0-9]{40}',release['revision']):
   raise SystemExit('Release must have a numbered, committed and reviewed game version')
  if release['id']!='v'+release['version']+'-'+release['revision'][:12]:
   raise SystemExit('Release ID does not match the canonical game version and commit')
@@ -47,7 +47,7 @@ stage.chmod(0o755)
 # No application data, SQLite files, other services, or backup directories are touched.
 def prune_committed_releases(active,previous):
  def is_managed(p):
-  return p.parent==releases and bool(re.fullmatch(r'(?:v229|v\\d+\\.\\d+\\.\\d+)-[a-f0-9]{12}',p.name))
+  return p.parent==releases and bool(re.fullmatch(r'(?:v229|v\d+\.\d+\.\d+)-[a-f0-9]{12}',p.name))
  if not is_managed(active) or (previous is not None and not is_managed(previous)):
   raise RuntimeError('Unsafe release path; retention refused')
  if active.is_symlink() or not active.is_dir():
@@ -58,7 +58,7 @@ def prune_committed_releases(active,previous):
  if previous is not None:keep.add(previous.name)
  removed=[]
  for candidate in sorted(releases.iterdir()):
-  if not re.fullmatch(r'(?:v229|v\\d+\\.\\d+\\.\\d+)-[a-f0-9]{12}',candidate.name) or candidate.name in keep:continue
+  if not re.fullmatch(r'(?:v229|v\d+\.\d+\.\d+)-[a-f0-9]{12}',candidate.name) or candidate.name in keep:continue
   if candidate.is_symlink() or not candidate.is_dir():
    raise RuntimeError('Unsafe retired release path; retention refused')
   shutil.rmtree(candidate)
@@ -66,7 +66,7 @@ def prune_committed_releases(active,previous):
  # A verified release contains both game modes. Remove old upload archives too.
  # Never touch unrelated uploads, symlinks, staging areas or private player data.
  for candidate in upload.iterdir():
-  match=re.fullmatch(r'(v229-[a-f0-9]{12})\.tar\.gz(?:\.sha256)?',candidate.name)
+  match=re.fullmatch(r'((?:v229|v\d+\.\d+\.\d+)-[a-f0-9]{12})\.tar\.gz(?:\.sha256)?',candidate.name)
   if match and match.group(1) not in keep and candidate.is_file() and not candidate.is_symlink():
    candidate.unlink()
  return {'kept':sorted(keep),'removed':removed}
@@ -76,7 +76,7 @@ if target.exists():raise SystemExit('Release already exists')
 os.replace(stage,target)
 current=base/'current';old=current.resolve() if current.is_symlink() else None
 # Never activate over an unrecognized active release. This also protects rollback.
-if old and (old.parent!=releases or not re.fullmatch(r'(?:v229|v\\d+\\.\\d+\\.\\d+)-[a-f0-9]{12}',old.name) or not old.is_dir()):
+if old and (old.parent!=releases or not re.fullmatch(r'(?:v229|v\d+\.\d+\.\d+)-[a-f0-9]{12}',old.name) or not old.is_dir()):
  raise SystemExit('Unexpected existing active release; no activation performed')
 if old:subprocess.run(['systemctl','start','arcane-duel-backup.service'],check=True)
 def activate(p):
