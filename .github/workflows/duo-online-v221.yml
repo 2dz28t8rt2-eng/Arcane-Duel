@@ -2,7 +2,7 @@ name: Duo v221 independent clients
 on:
   push:
     branches: [development, 'feature/duo-sp-shell-v221-*']
-    paths: ['assets/**', 'duo-campaign-v2.html', 'scripts/verify-duo-*-v221.cjs', 'tests/duo-online-v221.test.cjs', 'tests/helpers/duo-online-fixture-v221.cjs', '.github/workflows/duo-online-v221.yml', 'package*.json']
+    paths: ['assets/**', 'duo-campaign-v2.html', 'scripts/verify-duo-*-v221.cjs', 'tests/duo-online-v221.test.cjs', 'tests/duo-independent-party.test.cjs', 'supabase/functions/arcane-duo-v2/**', 'tests/helpers/duo-online-fixture-v221.cjs', '.github/workflows/duo-online-v221.yml', 'package*.json']
   pull_request:
     branches: [development]
 jobs:
@@ -16,7 +16,7 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: node --test tests/duo-online-v221.test.cjs tests/duo-preparty-v218.test.cjs tests/duo-single-parity-v201.test.cjs
+      - run: node --test tests/duo-online-v221.test.cjs tests/duo-preparty-v218.test.cjs tests/duo-single-parity-v201.test.cjs tests/duo-independent-party.test.cjs
       - run: npm run test:duo-dom
       - name: Two isolated Chromium clients, desktop and mobile
         run: |
