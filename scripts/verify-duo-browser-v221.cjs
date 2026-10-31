@@ -214,6 +214,15 @@ async function finishLiveDuel(A,B){
   const saved=(await state(A)).profile;
   assert.deepEqual({xp:saved.xp,essence:saved.essence,shards:saved.shards,wins:saved.wins,credits:saved.chapterCardCredits},personal[0]);
   report.checks.push('reload restores own room/seat; personal rewards unchanged; solo save unchanged');
+  if(!live){
+   const oldRoom=backend.rooms.get(party.roomId);
+   oldRoom.game.status='finished';oldRoom.game.revision++;
+   await refresh(A);
+   await A.evaluate(()=>window.ArcaneDuoParty218.createRoom());
+   await status(A,'waiting');
+   assert.notEqual((await state(A)).roomId,party.roomId);
+   report.checks.push('completed duel can create a new party at revision zero without stale-room rejection');
+  }
   if(live){
    // Use only isolated QA profiles; the first host has earned chapter 1 by
    // playing the prior live duel. A fresh third player has not earned it.
