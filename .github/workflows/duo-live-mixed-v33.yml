@@ -1,0 +1,18 @@
+name: Duo v33 QA seeded mixed-progress live
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'scripts/qa-duo-live-mixed-v33.cjs'
+      - '.github/workflows/duo-live-mixed-v33.yml'
+jobs:
+  live-mixed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Real Edge API with two isolated QA profiles (SQL seed applied externally)
+        run: node scripts/qa-duo-live-mixed-v33.cjs
