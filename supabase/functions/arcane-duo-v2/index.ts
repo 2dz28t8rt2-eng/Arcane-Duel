@@ -345,7 +345,7 @@ Deno.serve(async request=>{
     upgrades:p.upgrades,enhancements:p.enhancements,
     essence:p.essence_binding,lv1:p.lv1_research},{catalog});
    const {data:updated,error:writeError}=await db.from(TABLE).update({
-    state:next,status:next.status,revision:next.revision,
+    state:next,status:next.status==='lobby'?'waiting':next.status,revision:next.revision,
     guest_token_hash:await hash(guest),guest_profile_id:p.id,
     invitation_hash:await hash(secret()),
     updated_at:new Date().toISOString(),
@@ -406,7 +406,7 @@ Deno.serve(async request=>{
   const {data:updated,error:writeError}=await db.from(TABLE).update({
    // Legacy SQL status CHECK allows waiting/active/finished only; invitation state
    // is held authoritatively in the versioned game JSON until the guest responds.
-   state:next,status:next.status==='inviting_next'?'finished':next.status,revision:next.revision,
+   state:next,status:next.status==='inviting_next'?'finished':next.status==='lobby'?'waiting':next.status,revision:next.revision,
    updated_at:new Date().toISOString(),
    expires_at:new Date(Date.now()+90*86400000).toISOString()
   }).eq("id",roomId).eq("revision",room.revision).select("id").maybeSingle();
