@@ -63,8 +63,9 @@
    actions.filter(x=>x.kind==='draw').slice(0,3);
  };
  let timers=[],sequence=0,layer=null,enabled=true,stopCalcLoop=null,orbitAudio=null;
- const reduced=()=>!!(typeof window!=='undefined'&&window.matchMedia&&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+ const reduced=()=>!!(typeof window!=='undefined'&&
+  (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||
+   window.document?.body?.classList.contains('ad-motion-disabled')));
  function make(tag,cls,text,parent){
   const el=document.createElement(tag);
   if(cls)el.className=cls;
@@ -209,7 +210,30 @@
   // a pending Rudelführer showdown after the ordinary fusion ritual.
   sequence++;
   clear();
-  if(event.kind==='fusion')fusionSequence(event,catalog);
+  if(event.kind==='fusion'&&window.ArcaneFusionCinema?.play){
+   const c=current.players?.[event.seat]?.field?.[event.slot];
+   const template=catalog?.[event.result.id];
+   if(c&&template&&c.rollMath&&c.rollTrace){
+    // Only already-public, consumed cards may be shown. Never read another
+    // player's private hand; unknown materials use a neutral card back.
+    const materials=[];
+    for(const seat of [event.seat,event.seat^2]){
+     const old=previous.players?.[seat],now=current.players?.[seat];
+     if(!old||!now)continue;
+     for(const card of (now.graveyard||[]).slice((old.graveyard||[]).length))
+      if(card.from==='fusion'&&catalog[card.id]?.art)materials.push({art:catalog[card.id].art});
+    }
+    const back='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 180"%3E%3Crect width="120" height="180" rx="8" fill="%23121b2e"/%3E%3Cpath d="M60 32L94 90 60 148 26 90Z" fill="none" stroke="%23d7af61" stroke-width="4"/%3E%3C/svg%3E';
+    while(materials.length<(c.materialsUsed||2))materials.push({art:back});
+    const instance={...c,roleOverride:c.role,rollMath:{...c.rollMath,
+     final:c.rollMath.final||{atk:c.atk,def:c.def}}};
+    const target=document.querySelector('#duoSeats .seat[data-seat="'+event.seat+'"] > .field > .field-cell[data-slot="'+event.slot+'"]');
+    Promise.resolve(window.ArcaneFusionCinema.play({instance,materials,battle:current,
+     card:template,level:c.level,target,variant:'full',
+     wait:ms=>new Promise(resolve=>setTimeout(resolve,ms)),
+     playSound:kind=>window.ArcaneSfx208?.play?.(kind)})).catch(()=>fusionSequence(event,catalog));
+   }else fusionSequence(event,catalog);
+  }else if(event.kind==='fusion')fusionSequence(event,catalog);
   else drawSequence(event);
   return events;
  }

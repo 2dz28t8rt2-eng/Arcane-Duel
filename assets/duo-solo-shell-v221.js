@@ -129,9 +129,15 @@
  });
  function face(card,{instance=null,owner=null,small=false,tag='div'}={}){
   const t={...card,...(instance?{atk:owner&&window.ArcaneDuoUX204?.effectiveAttack?window.ArcaneDuoUX204.effectiveAttack(instance,owner,window.ArcaneDuoRules):window.ArcaneDuoRules.attackValue(instance),def:instance.def+(instance.soul||0)+(instance.condensed||0),level:instance.level||card.level}:{})};
-  const family=card.ace?'ace':card.essenceMonster?'essence':instance?.fusion||card.fusionOnly?'fusion':'normal';
-  const tier=Math.min(5,Math.ceil((t.level||1)/2)),lv=String(Math.min(10,t.level||1)).padStart(2,'0');
-  return window.ArcaneCardView221.face(t,{tag,classes:small?'ad221-mini-face':'',frame:'tc-'+family+' ad-template ad-template-family-'+family+' ad-template-tier-'+tier+' ad-template-'+family+'-0'+tier+' ad-level-frame ad-level-'+family+'-'+lv});
+  const fate=instance?.fate===true;
+  const fateIndex=fate?Object.values(api.state().catalog).filter(c=>c.fateTemplate).findIndex(c=>c.id===card.id):-1;
+  if(fate&&fateIndex>=0){
+   t.name='✦ '+(window.ArcaneFateVisuals?.entries?.[fateIndex]?.name||t.name);
+   t.art=window.ArcaneFateVisuals?.artFor?.(fateIndex)||t.art;
+  }
+  return window.ArcaneCardView221.face(t,{tag,classes:small?'ad221-mini-face':'',
+   frame:window.ArcaneCardView221.frame(t,instance||{},fateIndex),fate,
+   element:t.element==='DUNKEL'?'Dunkelheit':t.element});
  }
  async function operation(kind,extra){
   if(pendingOperation)return;pendingOperation=true;renderOffers();renderDeckSelection();
@@ -206,7 +212,7 @@
   if(!c||!t){$('duoLargeCardPreview').innerHTML='<p>Dieses Monster befindet sich nicht mehr an diesem Platz.</p>';inspectSelection=null;inspectStamp='';return;}
   const stamp=JSON.stringify([inspectSelection,c]);if(stamp===inspectStamp)return;inspectStamp=stamp;
   const field=inspectSelection.area!=='hand',role=c.role||t.role,over=field&&c.def+(c.soul||0)+(c.condensed||0)>(c.maxDef??c.def);
-  $('duoLargeCardPreview').innerHTML=face(t,{instance:field?c:null,owner:p})+'<div class="ad221-card-explanation"><strong>'+safe(roleNames[role]||'Monster')+'</strong><p>'+safe(descriptions[role]||'')+'</p>'+(over?'<p class="ad221-overcharge-text">✦ Überladen: DEF über dem normalen Maximalwert</p>':'')+(field&&role==='soul'?'<p>Grund-DEF '+c.def+' · Seelenkraft '+(c.soul||0)+' · Verdichtung '+(c.condensed||0)+'</p>':'')+(t.ability?'<p>'+safe(t.ability)+'</p>':'')+'</div>';
+  $('duoLargeCardPreview').innerHTML=face(t,{instance:field||c.fate?c:null,owner:p})+'<div class="ad221-card-explanation"><p>'+safe(c.fate?'Schicksalsmonster · nicht fusionierbar · nur dieses Duell.':t.desc||'')+'</p><strong>'+safe(roleNames[role]||'Monster')+'</strong><p>'+safe(descriptions[role]||'')+'</p>'+(over?'<p class="ad221-overcharge-text">✦ Überladen: DEF über dem normalen Maximalwert</p>':'')+(field&&role==='soul'?'<p>Grund-DEF '+c.def+' · Seelenkraft '+(c.soul||0)+' · Verdichtung '+(c.condensed||0)+'</p>':'')+(t.ability&&!c.fate?'<p>'+safe(t.ability)+'</p>':'')+'</div>';
  }
  function decorateBattle({game,seat,catalog}){
   $('duoBattleToMenu').hidden=!['finished','inviting_next'].includes(game.status);
@@ -228,7 +234,8 @@
     for(const [i,id] of p.hand.entries()){
      const c=typeof id==='number'?{id}:id,t=catalog[c.id],node=panel.querySelector('.duo178-hand-card[data-index="'+i+'"]');if(!node||!t)continue;
      for(const child of [...node.children])if(!child.matches('.ad204-card-info'))child.hidden=true;
-     const visual=make('div','ad221-hand-face',node);visual.innerHTML=face(t,{small:true});
+     node.insertAdjacentHTML('beforeend',face(t,{instance:typeof id==='number'?null:c,owner:p}));
+     make('span','ad-hand-role ad-role-'+(t.role||'combatant'),node,roleNames[t.role]||'Allrounder');
     }
    }
   }

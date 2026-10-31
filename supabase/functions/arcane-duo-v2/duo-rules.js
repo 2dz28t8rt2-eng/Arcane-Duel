@@ -1625,6 +1625,9 @@
    imprintPredator(g,p,result,cards.length);
    p.field[action.slot]=result;p.summoned=true;
    syncLv1Swarm(p,catalog);
+   // Presentation must retain the confirmed fusion result even if later
+   // actions modify the monster before the other browser receives the state.
+   result.rollMath.final={atk:result.atk,def:result.def};
    g.log.push(p.name+' fusioniert '+cards.length+' eigene Monster zu '+
     definition(catalog,action.templateId).name+' (Lv '+result.level+', Rolle '+
     (roleName[inherited]||inherited)+', '+analysis.pattern+', '+
