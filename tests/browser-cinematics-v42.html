@@ -91,14 +91,51 @@ document.getElementById('app').addEventListener('load',async()=>{
    await w.__effects;await pause(300);check(!d.querySelector('.ad-soul-orb')&&!d.querySelector('.ad-arc-projectile'),'Orb und Sternenschweife verschwinden nach der Effektfolge');
   }
   w.eval(`busy=false;aiRunning=false;profile=freshProfile();profile.guideSeen=true;profile.cleared=[];game=createGame({id:'cinematics-victory',mode:'pve',opponentId:1,context:'tournament',seed:71017,starter:0});uiMode='duel';game.turn=4;window.__ace=OPPONENTS[1].aceCard;window.__aceBefore=profile.inventory[__ace]||0;conclude(game,0,'Prüfung bestanden.');showFinished();`);
-  const reward=d.querySelector('.ad-card-reward-panel');
-  check(!!reward&&inside(reward.getBoundingClientRect(),{left:0,top:0,right:w.innerWidth,bottom:w.innerHeight}),'Turnierkartenfenster steht mittig und bleibt vollständig im Bildschirm');
-  check(reward?.textContent.includes('nicht erhalten')&&w.eval('(profile.inventory[__ace]||0)===__aceBefore'),'ACE-Freischaltung bleibt ausdrücklich eine Shop-Vorschau und vergibt keine Gratis-Karte');
-  if(new URLSearchParams(location.search).get('preview')==='reward'){document.body.dataset.cinematicsTest='preview';return;}
-  d.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
-  check(!d.querySelector('.ad-card-reward-scene')&&w.eval('!!game&&game.finishShown')&&!d.getElementById('overlay').classList.contains('hidden'),'Erstes Esc schließt nur die Kartenpräsentation, das Siegesfenster bleibt');
-  d.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
-  check(w.eval('game===null&&uiMode==="menu"')&&!d.getElementById('menuScreen').hidden&&d.getElementById('duelScreen').hidden,'Zweites Esc führt vom Duellergebnis sicher ins Hauptmenü');
+  // v22.7: no ACE/shop preview during the victory lettering. Actual loot
+  // may have its own scene, but only after returning to the menu.
+  check(!d.querySelector('.ad-card-reward-scene')&&!d.querySelector('#modal .arcane-reward-showcase'),
+   'Während der Siegesanimation blockiert keine ACE-Kartenvorschau die Ergebnisansicht');
+  check(w.eval('(profile.inventory[__ace]||0)===__aceBefore'),
+   'Turnier-ACE wird nur im Shop freigeschaltet und nicht kostenlos vergeben');
+  await pause(3700);
+  const menuButton=d.getElementById('modalMenu');
+  check(!!menuButton&&!d.getElementById('overlay').inert,
+   'Ergebnisbutton ist nach dem Siegesbanner aktiv und nicht von einer Kartenpräsentation blockiert');
+  menuButton?.click();
+  await pause(180);
+  check(w.eval('game===null&&uiMode==="menu"')&&!d.getElementById('menuScreen').hidden&&d.getElementById('duelScreen').hidden,
+   'Zum Menü & Deckbau funktioniert nach genau einem Klick');
+  // Real earned loot and compulsory XP milestones take precedence over the
+  // later shop-only ACE notice.
+  let acePreview=null;
+  for(let i=0;i<50;i++){
+   const milestone=d.getElementById('milestoneDone')||d.querySelector('[id^="milestonePick"]');
+   if(milestone){milestone.click();await pause(100);continue;}
+   const scene=d.querySelector('.ad-card-reward-panel');
+   if(scene){
+    check(inside(scene.getBoundingClientRect(),{left:0,top:0,right:w.innerWidth,bottom:w.innerHeight}),
+     'Echte Kartenbeute ist nach dem Duell zentriert und vollständig sichtbar');
+    scene.querySelector('[data-reward-close]')?.click();
+    await pause(100);continue;
+   }
+   acePreview=d.querySelector('#modal .ad211-ace-preview');
+   if(acePreview)break;
+   await pause(180);
+  }
+  await pause(220);
+  acePreview=d.querySelector('#modal .ad211-ace-preview');
+  check(!!acePreview&&acePreview.textContent.includes('nicht kostenlos erhalten')&&
+   acePreview.textContent.includes('Booster-Shop')&&w.eval('(profile.inventory[__ace]||0)===__aceBefore'),
+   'ACE-Vorschau folgt erst nach dem Duell und ist ausdrücklich ein Shopangebot');
+  check(!!acePreview?.querySelector('.hand-card')&&
+   w.getComputedStyle(acePreview.querySelector('.hand-card')).visibility==='visible',
+   'ACE-Artwork und Kartenwerte sind gemeinsam sichtbar');
+  if(new URLSearchParams(location.search).get('preview')==='reward'){
+   document.body.dataset.cinematicsTest=pass?'preview':'fail';return;
+  }
+  d.getElementById('ad211-earn-close')?.click();
+  check(d.getElementById('overlay').classList.contains('hidden')&&w.eval('game===null&&uiMode==="menu"'),
+   'Weiter zum Menü schließt die Fortschrittsmeldung und lässt das Hauptmenü bedienbar');
  }catch(error){check(false,error.stack||String(error));}
  document.body.dataset.cinematicsTest=pass?'pass':'fail';
 });
