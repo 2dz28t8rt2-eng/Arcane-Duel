@@ -45,10 +45,10 @@ jobs:
           without checking live status: the original independent audit reported
           that 1.1.2 was already running.
           TXT
-          tar -tzf "$source" | grep -Fxq 'Arcane-Duel-Quellcode/index.html'
+          tar -tzf "$source" | grep -Fx 'Arcane-Duel-Quellcode/index.html' > /dev/null
           cd deliver
-          zip -0 -q -r ArcaneDuel-Offline-Source-1.1.2-VERIFIED.zip . -x '*.zip'
-          echo "eb325a1f12e41de265fe7309e83cba41e679c90c76b67b785f557230148fd266  ArcaneDuel-Offline-Source-1.1.2-VERIFIED.zip" > EXPECTED-ORIGINAL-ZIP-SHA256.txt
+          zip -0 -q ArcaneDuel-Offline-Source-1.1.2-VERIFIED.zip "$(basename "$source")" "$(basename "$source.sha256")"
+          sha256sum ArcaneDuel-Offline-Source-1.1.2-VERIFIED.zip > VERIFIED-SOURCE-ZIP-SHA256.txt
       - name: Publish direct permanent source download alongside server release
         shell: bash
         env:
@@ -56,5 +56,5 @@ jobs:
         run: |
           set -euo pipefail
           tag="server-transfer-1.1.2-64e6a3423a82"
-          gh release upload "$tag" deliver/ArcaneDuel-Offline-Source-1.1.2-VERIFIED.zip deliver/README-QUELLCODE-1.1.2.txt deliver/EXPECTED-ORIGINAL-ZIP-SHA256.txt --clobber --repo "$GITHUB_REPOSITORY"
+          gh release upload "$tag" deliver/ArcaneDuel-Offline-Source-1.1.2-VERIFIED.zip deliver/README-QUELLCODE-1.1.2.txt deliver/VERIFIED-SOURCE-ZIP-SHA256.txt --clobber --repo "$GITHUB_REPOSITORY"
           gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json url,assets --jq '{url: .url, sourceFiles: [.assets[].name]}'
