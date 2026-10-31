@@ -15,6 +15,7 @@
 .ad206-activated{position:absolute;left:50%;top:-30px;transform:translateX(-50%);z-index:12;white-space:nowrap;pointer-events:none;padding:5px 9px;border-radius:8px;color:#fff;background:#2e194a;box-shadow:0 0 22px #b48af8;font-weight:850;font-size:12px;animation:ad206-intro 1.65s ease-out both}
 .ad206-preview,.ad206-inspect{display:block;padding:9px 12px;margin:8px 0 0;border:1px solid #ac9ccf;border-radius:8px;background:linear-gradient(110deg,#e3e8ff18,#9b51e21f);color:inherit;font-size:13px;line-height:1.5}
 .ad206-preview p{margin:3px 0}
+.ad206-preview>strong,.ad206-preview>small{display:block}
 @keyframes ad206-pulse{0%,100%{opacity:.45}50%{opacity:.95}}
 @keyframes ad206-wave{0%,100%{transform:translateY(-50%) scaleY(.65);opacity:.65}50%{transform:translateY(-60%) scaleY(1.35);opacity:1}}
 @keyframes ad206-wave-alt{0%,100%{transform:translateY(3px)}50%{transform:translateY(-3px)}}
@@ -33,8 +34,8 @@
 
 /* v22.7: keep the connected DEF-card frames and labels inside their own cells.
    Only the light beam hints at the bond: never let it cover the neighbor. */
-#duelScreen .monster-slot.ad206-linked{overflow:hidden!important;min-width:0;contain:paint}
-#duelScreen .monster-slot.ad206-linked .board-creature{max-width:100%;max-height:100%;min-width:0;box-sizing:border-box;overflow:hidden!important}
-#duelScreen .monster-slot.ad206-linked .ad206-bridge{left:66%;width:30%;max-width:30%;z-index:3;filter:drop-shadow(0 0 3px #bc98ff)}
-#duelScreen .monster-slot.ad206-linked .ad206-mark{left:3px;right:3px;top:3px;max-width:calc(100% - 6px);overflow-wrap:anywhere}
-#duelScreen .monster-slot.ad206-linked .ad206-activated{left:50%;max-width:calc(100% - 8px);font-size:10px;white-space:normal;text-align:center}
+:is(#duelScreen,#duoBattleArena) .monster-slot.ad206-linked{overflow:hidden!important;min-width:0;contain:paint}
+:is(#duelScreen,#duoBattleArena) .monster-slot.ad206-linked .board-creature{max-width:100%;max-height:100%;min-width:0;box-sizing:border-box;overflow:hidden!important}
+:is(#duelScreen,#duoBattleArena) .monster-slot.ad206-linked .ad206-bridge{left:66%;width:30%;max-width:30%;z-index:3;filter:drop-shadow(0 0 3px #bc98ff)}
+:is(#duelScreen,#duoBattleArena) .monster-slot.ad206-linked .ad206-mark{left:3px;right:3px;top:3px;max-width:calc(100% - 6px);overflow-wrap:anywhere}
+:is(#duelScreen,#duoBattleArena) .monster-slot.ad206-linked .ad206-activated{left:50%;max-width:calc(100% - 8px);font-size:10px;white-space:normal;text-align:center}

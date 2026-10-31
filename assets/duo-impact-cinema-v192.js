@@ -143,6 +143,7 @@
     if(!where)return null;
     const panel='#duoSeats .seat[data-seat="'+where.seat+'"]';
     if(where.area==='seat')return document.querySelector(panel);
+    if(window.ArcaneDuoPresentation228)return window.ArcaneDuoPresentation228.cell(where);
     return document.querySelector(where.area==='ghost'?
       panel+' .duo-ghost-reserve .duo-ghost-cell[data-slot="'+where.slot+'"]':
       panel+' > .field > .field-cell[data-slot="'+where.slot+'"]');
@@ -187,6 +188,14 @@
   }
   function play(event,stamp){
     if(generation!==stamp||document.hidden||document.visibilityState==='hidden'||reduced())return;
+    const shared=window.ArcaneBattlePresentation228;
+    if(shared){
+      const node=event.where?nodeFor(event.where):teamNode(event.team);
+      const caption=event.kind==='counter'?'−'+event.amount+' LP · GEGENSCHLAG':event.kind==='lp'?'−'+event.amount+' LP':event.kind==='ward'?'−'+event.amount+' Schild':event.kind==='block'?'ABGEWEHRT':'−'+event.amount+' '+event.label;
+      if(event.kind==='counter'){void shared.counter(nodeFor(event.from),node,event.amount,{valid:()=>stamp===generation});return;}
+      if(event.kind==='lp'&&window.ArcaneSpecialPresentation228)void window.ArcaneSpecialPresentation228.damageAt(node,event.amount,event.team===0);
+      else shared.floatAt(node,caption,event.kind==='counter'?'counter-damage':'damage');shared.flash(node,event.kind==='ward'?'#a9e58d':'#ff214c');return;
+    }
     if(!layer){layer=make('div','ad192-impact-stage',undefined,document.body);
       layer.setAttribute('aria-hidden','true');}
     if(event.kind==='counter'){counterTravel(event,stamp);return;}

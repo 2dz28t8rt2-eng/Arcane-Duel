@@ -23,10 +23,10 @@
   return event;
  }
  function clear(){generation++;timers.forEach(clearTimeout);timers=[];stage?.remove();stage=null;
-  document.getElementById('duoSeats')?.classList.remove('ad202-shake');}
+  document.getElementById('duoSeats')?.classList.remove('ad202-shake','ad-stomp-shake');}
  function point(where){
   if(!where)return null;
-  const node=document.querySelector('#duoSeats .seat[data-seat="'+where.seat+
+  const node=window.ArcaneDuoPresentation228?.cell(where)||document.querySelector('#duoSeats .seat[data-seat="'+where.seat+
    '"] > .field > .field-cell[data-slot="'+where.slot+'"]');
   const rect=node?.getBoundingClientRect?.();
   if(!rect||rect.width<2||rect.height<2||rect.right<0||rect.left>innerWidth||
@@ -84,7 +84,20 @@
    if(before&&after&&after.revision>before.revision)clear();
    return null;
   }
-  clear();if(reduced()||!draw(event))return event;
+  clear();if(reduced())return event;
+  const shared=window.ArcaneSpecialPresentation228;
+  if(shared){
+   const from=point({seat:event.sourceSeat,slot:event.sourceSlot}),to=point(event.primary);
+   stage=shared.stompScene({from,to,targets:event.hits.map(point).filter(Boolean),colors:COLORS[String(event.element||'LICHT').toUpperCase()]||COLORS.LICHT});
+   if(!stage)return event;
+   const stamp=generation,table=document.getElementById('duoSeats');
+   shared.beamSound();stage.classList.add('ad-stomp-firing');
+   timers.push(setTimeout(()=>{if(stamp===generation){stage?.classList.add('ad-stomp-splitting');table?.classList.add('ad-stomp-shake');}},260));
+   timers.push(setTimeout(()=>table?.classList.remove('ad-stomp-shake'),940));
+   timers.push(setTimeout(()=>{if(stamp===generation)clear();},1140));
+   return event;
+  }
+  if(!draw(event))return event;
   const stamp=generation;
   const schedule=(ms,fn)=>timers.push(setTimeout(()=>{
    if(stamp===generation&&stage&&!reduced())fn();

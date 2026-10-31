@@ -191,3 +191,14 @@
 #duoMenuScreen .ad221-invite-panel{width:min(330px,calc(100vw - 24px));padding:12px;margin-top:6px;background:#1b2534;border:1px solid #b59a63;border-radius:8px;box-shadow:0 6px 24px #0009}
 #duoMenuScreen .ad221-invite-panel[hidden],#duoMenuScreen .ad221-invite-panel [hidden]{display:none!important}
 #duoMenuScreen .ad221-invite-panel input{width:100%;margin-bottom:8px}
+
+/* Match the solo square zones; the only layout change is seven shared cells. */
+html body #duoPage #duoSeats .monster-slot{container-type:inline-size;aspect-ratio:1;height:auto!important;min-height:0!important;padding:0!important;overflow:hidden!important;border-radius:10px;background:radial-gradient(circle,#25374b,#111d2d 80%)}
+html body #duoPage #duoSeats .monster-slot>.board-creature{position:relative;flex:none!important;max-width:none!important;margin:0!important;pointer-events:none}
+#duoPage #duoSeats .ad221-role-label{display:none}
+#duoPage .ad221-inspector .ad221-card-explanation{width:100%;overflow-wrap:anywhere}
+.ad228-result-overlay{z-index:24000}
+.ad228-result-overlay[hidden]{display:none!important}
+.ad204-inspect-art>.hand-card{width:100%!important;max-width:245px!important;min-width:0!important;height:auto!important;aspect-ratio:2/3;margin:auto;pointer-events:none}
+.ad204-inspect-art:has(>.hand-card){height:auto;max-height:none;background:none;overflow:visible}
+.ad-motion-disabled :is(.ad206-linked,.ad206-bridge,.ad206-soul-particle,.ad206-guardian-particle,.ad206-activated){animation:none!important}

@@ -4,10 +4,14 @@
  const sleep=n=>new Promise(done=>setTimeout(done,n));
  const center=el=>{const r=el?.getBoundingClientRect();return r&&r.width?{x:r.left+r.width/2,y:r.top+r.height/2}:null;};
  async function play(g,idx,damage){
-  if(typeof document==='undefined'||animationSpeed==='instant'||window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches)return;
+  if(typeof document==='undefined')return;
   const source=document.querySelector('#ownRow [data-mine="'+idx+'"] .board-creature')||
    document.querySelector('#ownRow [data-mine="'+idx+'"]');
   const target=document.getElementById('enemyBanner')||document.getElementById('enemyLP');
+  return playBetween(source,target,damage);
+ }
+ async function playBetween(source,target,damage,{valid=()=>true}={}){
+  if(window.ArcaneBattlePresentation228?.reduced()||!valid())return;
   const a=center(source),b=center(target);
   if(!a||!b)return;
   const stage=document.createElement('div');stage.className='ad207-soul-stage';
@@ -20,21 +24,22 @@
   }
   try{
    await sleep(630);
-   if(!stage.isConnected)return;
+   if(!stage.isConnected||!valid())return;
    orb.classList.add('ad207-charged');
    const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy),angle=Math.atan2(dy,dx);
    const beam=document.createElement('div');beam.className='ad207-soul-beam';
    beam.style.left=a.x+'px';beam.style.top=a.y+'px';beam.style.width=len+'px';
    beam.style.transform='rotate('+angle+'rad)';stage.append(beam);
    await sleep(305);
+   if(!valid())return;
    const hit=document.createElement('div');hit.className='ad207-soul-hit';
    hit.style.left=b.x+'px';hit.style.top=b.y+'px';stage.append(hit);
    window.ArcaneSfx208?.play?.('damage');
    for(let i=0;i<9;i++){const skull=document.createElement('span');skull.textContent=i%3?'☠':'✧';skull.style.setProperty('--angle',i*40+'deg');skull.className='ad207-soul-skull';hit.append(skull);}
-   const popup=document.createElement('strong');popup.className='ad207-soul-damage';popup.textContent='SEELENSTOSS · −'+Math.max(0,damage)+' LP';
+   const popup=document.createElement('strong');popup.className='ad207-soul-damage';popup.textContent=damage>0?'SEELENSTOSS · −'+Math.max(0,damage)+' LP':'SEELENSTOSS · ABGEFANGEN';
    popup.style.left=b.x+'px';popup.style.top=(b.y-48)+'px';stage.append(popup);
    await sleep(650);
   }finally{stage.remove();}
  }
- window.ArcaneSoulBurst207=Object.freeze({version:'20.7',play});
+ window.ArcaneSoulBurst207=Object.freeze({version:'20.7',play,playBetween});
 })();

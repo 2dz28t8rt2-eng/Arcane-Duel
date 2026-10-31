@@ -201,7 +201,7 @@
  $('duoReturnMenu').onclick=()=>select('menu');
  window.ArcaneDuoPartyUI218=Object.freeze({sync,select,returnToMenu:()=>{
   if(!['finished','inviting_next','party_ready','lobby'].includes(api.state().game?.status))return;
-  entered=true;resultMenu=true;lobbySection='menu';sync();
+  window.ArcaneDuoUX204?.clearOutcome?.();entered=true;resultMenu=true;lobbySection='menu';sync();
  }});
  sync();
 })();

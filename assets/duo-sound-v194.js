@@ -144,6 +144,7 @@
   // audio bursts suddenly playing when an old tab regains focus.
   if(!enabled||!visible()||!ctx||ctx.state!=='running')return false;
   // v20.8 sampled sounds own these events; do not overlay synthetic duplicates.
+  if(window.ArcaneBattlePresentation228&&window.ArcaneSfx208)return true;
   if(window.ArcaneSfx208&&['draw','summon','fusion','alphaHowl','win','lose'].includes(kind))return true;
   const t=ctx.currentTime+.018;
   switch(kind){

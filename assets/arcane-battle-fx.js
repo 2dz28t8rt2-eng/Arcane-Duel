@@ -8,6 +8,7 @@
  let key=0;
  const safeRemove=(el,ms)=>{setTimeout(()=>el.remove(),ms);return el;};
  function sparks(cls,x,y,count,heavy=false){
+  if(window.ArcaneBattlePresentation228)return window.ArcaneBattlePresentation228.sparks(cls,x,y,count,heavy);
   if(reduced()||!Number.isFinite(x)||!Number.isFinite(y))return;
   const host=document.createElement('div');host.className='ad-burst '+cls;
   host.setAttribute('aria-hidden','true');host.style.left=x+'px';host.style.top=y+'px';
@@ -25,6 +26,7 @@
   const r=el?.getBoundingClientRect();return r?{x:r.left+r.width/2,y:r.top+r.height/2}:null;
  }
  function landingDust(cell,heavy=false){
+  if(window.ArcaneBattlePresentation228)return window.ArcaneBattlePresentation228.landingDust(cell,heavy);
   if(reduced()||!cell?.isConnected)return;
   const rect=cell.getBoundingClientRect(),table=document.querySelector('.table-surface');
   table?.classList.add('ad-impact-shake');
@@ -35,6 +37,21 @@
   if(reduced()||!game||uiMode!=='duel')
    return window.ArcaneHandDraw1161?.revealOpeningHand?.()||Promise.resolve();
   const g=game,t=++key,fromLP=g.players.map(p=>Math.max(0,p.lp)),full=g.maxLP||8000;
+  const shared=window.ArcaneBattlePresentation228;
+  if(shared){
+   const screen=document.getElementById('duelScreen'),valid=()=>game===g&&t===key&&uiMode==='duel';
+   const draw=f=>{for(const [i,name] of ['my','enemy'].entries()){
+    const label=document.getElementById(name+'LP'),bar=document.getElementById(name+'LPBar');
+    if(label)label.textContent=String(Math.round(fromLP[i]*f));
+    if(bar)bar.style.width=(Math.max(0,fromLP[i]/full)*100*f)+'%';
+   }};
+   busy=true;render();draw(0);if(screen)screen.dataset.lpPhase='intro';
+   return (async()=>{try{
+    await shared.intro({valid,label:g.mode==='pvp'?'ZWEI DUELLANTEN':'DIE SCHLACHT BEGINNT'});
+    await shared.fillLP({draw,valid,screen});
+    if(valid()){render();await window.ArcaneHandDraw1161?.revealOpeningHand?.();}
+   }finally{screen?.removeAttribute('data-lp-phase');if(valid()){busy=false;render();}}})();
+  }
   const pane=document.createElement('div');
   pane.className='ad-battle-intro';pane.setAttribute('role','status');
   pane.innerHTML='<div class="ad-battle-inner"><small>✧ DIE ARENA ERWACHT ✧</small><strong>DUELL STARTET</strong><span>✦ '+(g.mode==='pvp'?'ZWEI DUELLANTEN':'DIE SCHLACHT BEGINNT')+' ✦</span><i></i></div>';

@@ -24,7 +24,7 @@
   return window.ArcaneSoundscape?.getSettings?.()?.enabled!==false;
  };
  const vol=()=>{
-  if(duo())return (window.ArcaneDuoSound194?.getVolume?.()??35)/100;
+  if(duo())return (window.ArcaneDuoSound194?.getVolume?.()??35)/35;
   return Math.min(1,Math.max(0,window.ArcaneSoundscape?.getSettings?.()?.volume??.35))/.35;
  };
  function schedule(fn,delay){const timer=setTimeout(()=>{timers.delete(timer);fn();},delay);timers.add(timer);return timer;}
@@ -168,6 +168,12 @@
   if(events.some(x=>x.type==='fate'))play('powerup');
   if(events.some(x=>x.type==='attack')&&logs.some(x=>/direkter Angriff/i.test(x)))
    schedule(()=>play('damage'),280);
+  if(window.ArcaneBattlePresentation228){
+   const impact=window.ArcaneDuoImpactCinema192?.analyze?.(before,after,catalog)||[];
+   if(impact.some(e=>e.amount>0&&['hit','lp'].includes(e.kind))&&!logs.some(x=>/direkter Angriff/i.test(x)))schedule(()=>play('damage'),280);
+   const abilities=window.ArcaneDuoAbilitiesCinema193?.analyze?.(before,after,catalog)||[];
+   if(abilities.some(e=>['condense','heal','resonance'].includes(e.kind)))play('powerup');
+  }
   // The 2v2 outcome presenter now owns the result cue, timed 150ms before
   // the visible title. Playing it here on arrival would be far too early.
  }

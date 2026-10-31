@@ -149,7 +149,7 @@ test('integration is client-only, loaded before parity and keeps the 2v2 rules u
  const html=read('duo-campaign-v2.html'),parity=read('assets/duo-parity-v160.js');
  const source=read('assets/duo-impact-cinema-v192.js');
  assert.match(html,/duo-impact-cinema-v192\.css\?v=20261026-v192/);
- assert.match(html,/duo-impact-cinema-v192\.js\?v=20261026-v192/);
+ assert.match(html,/duo-impact-cinema-v192\.js\?v=shared-presentation-228/);
  assert.ok(html.indexOf('duo-impact-cinema-v192.js')<html.indexOf('duo-parity-v160.js'));
  assert.match(parity,/ArcaneDuoImpactCinema192\?\.onState\(previous,game,catalog\)/);
  assert.doesNotMatch(source,/\b(fetch|localStorage|sessionStorage|WebSocket)\s*\(/);

@@ -60,7 +60,7 @@ test('Duo first Rudelführer reveals abilities and gives human-readable first-us
  assert.match(ux,/predatorLeader&&!prior\.has\(c\.uid\)/);
  assert.match(ux,/},11650\)/);
  assert.match(cinema,/alpha\?11200:8850/);
- assert.match(ux,/Dein Partner hat einen eigenen Bereich und ein eigenes Rudel/);
+ assert.match(ux,/Eure Monster teilen sich sieben Zonen/);
 });
 
 test('Duo Soul panel remains action-authorized to current human, with plain-language DEF protection',()=>{
@@ -79,7 +79,7 @@ test('Duo uses newest pack bloom and shared sound resources',()=>{
  const html=read('duo-campaign-v2.html');
  assert.match(html,/pack-cinema-v195\.css\?v=20261030-smooth-reveal/);
  assert.match(html,/arcane-sfx-v208\.js\?v=[^"\s]+/);
- assert.match(html,/duo-ux-v204\.js\?v=221/);
+ assert.match(html,/duo-ux-v204\.js\?v=shared-presentation-228/);
  const pack=read('assets/pack-cinema-v195.css');
  assert.match(pack,/ad195-warming/);
  assert.match(pack,/ad195-reveal-light 1\.55s/);

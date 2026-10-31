@@ -136,7 +136,16 @@ async function finishLiveDuel(A,B){
   assert.equal(await A.locator('#duoDeckDetails .deck-preview-desc').textContent(),catalog[selectedDeckCard].desc||'');
   const beforePreview=(await state(A)).profile.revision;
   const candidate=A.locator('#duoDeckOwned [data-candidate]:not([disabled]):not([data-candidate="'+selectedDeckCard+'"])').first();
-  const candidateId=Number(await candidate.getAttribute('data-candidate'));await candidate.click();
+  let candidateId;
+  if(await candidate.count()){
+   candidateId=Number(await candidate.getAttribute('data-candidate'));await candidate.click();
+  }else{
+   // A fresh production profile can have every owned copy equipped already.
+   // Inspect another equipped card without requiring a purchase or altering it.
+   const deck=(await state(A)).profile.deck,index=deck.findIndex(id=>id!==selectedDeckCard);
+   assert.ok(index>=0,'starter deck contains another card to inspect');candidateId=deck[index];
+   await A.locator('[data-deck-slot="'+index+'"]').click();
+  }
   assert.equal(await A.locator('#duoDeckDetails .deck-preview-head h3').textContent(),catalog[candidateId].name);
   assert.equal(await A.locator('#duoDeckDetails .deck-preview-desc').textContent(),catalog[candidateId].desc||'');
   assert.equal((await state(A)).profile.revision,beforePreview);
@@ -148,6 +157,22 @@ async function finishLiveDuel(A,B){
   await A.screenshot({path:path.join(output,prefix+'-deck-mobile.png')});
   await A.setViewportSize({width:1500,height:1080});
   report.checks.push('online deck editor shows the selected card and its description without changing the save, also on mobile');
+  await A.evaluate(()=>window.ArcaneDuoPartyUI218.select('bestiary'));
+  await A.locator('#duoPersonalBestiary .ad119-card').first().waitFor({state:'visible'});
+  const knownCards=await A.locator('#duoPersonalBestiary [data-ad119-card]').evaluateAll(nodes=>nodes.map(n=>Number(n.dataset.ad119Card)));
+  const lexiconProfile=(await state(A)).profile;
+  assert.ok(knownCards.length>0&&knownCards.every(id=>([...lexiconProfile.ownedMain,...lexiconProfile.ownedFusions]).includes(id)));
+  await A.locator('#ad119Search').fill(catalog[selectedDeckCard].name);
+  const entry=A.locator('#duoPersonalBestiary [data-ad119-card="'+selectedDeckCard+'"]');await entry.click();
+  await A.locator('#duoBestiaryDialog').waitFor({state:'visible'});
+  assert.equal(await A.locator('#duoBestiaryDialog .ad119-flavor').textContent(),catalog[selectedDeckCard].desc);
+  await A.keyboard.press('Escape');assert.equal(await A.locator('#duoBestiaryDialog').count(),0);
+  assert.equal((await state(A)).profile.revision,beforePreview);
+  await A.setViewportSize({width:390,height:844});
+  assert.ok(await A.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),'mobile lexicon fits the viewport');
+  await A.screenshot({path:path.join(output,prefix+'-bestiary-mobile.png')});
+  await A.setViewportSize({width:1500,height:1080});await route(A,'deck');
+  report.checks.push('shared searchable bestiary, personal discoveries only, original descriptions and keyboard-accessible modal on desktop/mobile');
   assert.equal(await A.locator('[data-deck-slot]').count(),40);await A.locator('#duoDeckSearch').fill('Asche');
   await A.locator('#duoInvitePlayer').click();await status(A,'waiting');
   assert.equal(await A.locator('#duoInvitePlayerPanel input').isVisible(),true);
@@ -193,6 +218,9 @@ async function finishLiveDuel(A,B){
    guest.clearedChapters=[];await refresh(A);
   }
   report.checks.push('explicit group acceptance and enter; independent deck/shop/search/focus');
+  await A.evaluate(()=>{const select=document.getElementById('duoActiveDeckSlot');select.focus();window.__qaDeckOption=select.options[0];});
+  await refresh(A);
+  assert.ok(await A.evaluate(()=>document.activeElement===document.getElementById('duoActiveDeckSlot')&&window.__qaDeckOption===document.getElementById('duoActiveDeckSlot').options[0]),'polling preserves focused deck selector and its options');
   if(!live){
    await route(A,'decks');
    assert.equal(await A.locator('#duoDeckVariants .menu-grid .menu-panel').count(),3);
@@ -283,6 +311,7 @@ async function finishLiveDuel(A,B){
   await B.locator('#duoSeats [data-seat="0"]>.field>.field-cell[data-slot="6"]').scrollIntoViewIfNeeded();
   report.checks.push('real click summon in zone seven, position change, persistent inspector, mobile zone access');
   if(!live){
+   await require('../tests/helpers/verify-shared-presentation-v228.cjs')(A,B,report);
    // Feed an isolated public state transition to the actual hand renderer.
    // No opponent hand identity is supplied or rendered by this test.
    await A.evaluate(()=>{

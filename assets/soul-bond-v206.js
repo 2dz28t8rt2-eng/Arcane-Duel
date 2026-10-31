@@ -59,6 +59,10 @@
    const field=g.players[owner].field,i=field.findIndex(c=>c?.uid===uid);
    if(i<0||!['guardian','soul'].includes(role(field[i])))continue;
    const bond=pairs(g,owner).find(b=>b.guardian.uid===uid||b.soul.uid===uid);
+   if(window.ArcaneCardView221?.bondInfo){
+    const other=bond?(bond.guardian.uid===uid?bond.soul:bond.guardian):null;
+    preview.insertAdjacentHTML('beforeend',window.ArcaneCardView221.bondInfo(other?dataOf(other).name:null));break;
+   }
    const info=make(preview,'div','ad206-preview');
    make(info,'strong','','🛡 Schutz in DEF: '+(bond?'35 % des Schadens werden abgewehrt · Seelenbund aktiv':'20 % des Schadens werden abgewehrt'));
    if(bond){

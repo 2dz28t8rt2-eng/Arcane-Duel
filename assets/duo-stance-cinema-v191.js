@@ -88,6 +88,12 @@
     if(rect.right<0||rect.left>window.innerWidth||rect.bottom<0||
        rect.top>window.innerHeight)return false;
     clearActive();
+    if(window.ArcaneBattlePresentation228){
+     const board=cell.querySelector('.board-creature');if(!board)return false;
+     if(!event.arrival&&board.animate)board.animate([{transform:event.from==='def'?'rotate(90deg)':'rotate(0deg)'},{transform:event.to==='def'?'rotate(90deg)':'rotate(0deg)'}],{duration:320,easing:'ease'});
+     if(event.soul)window.ArcaneBattlePresentation228.flash(board,'#cf9dff');
+     return true;
+    }
     const illustration=cell.querySelector('.duo-field-art')?.getAttribute('src')||'';
     const symbol=cell.querySelector('.art')?.textContent||'✧';
     const overlay=make('div','ad191-position-stage'+(event.soul?' ad191-soul-focus':''),undefined,document.body);

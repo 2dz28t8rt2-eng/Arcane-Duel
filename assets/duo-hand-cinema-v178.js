@@ -134,6 +134,15 @@
    if(reduced())finish();
    else {
     const fillAfterStart=()=>{
+    if(root.ArcaneBattlePresentation228){
+     const valid=()=>session===s&&s.stamp===stamp&&s.intro&&s.latestGame.status==='active';
+     root.ArcaneBattlePresentation228.fillLP({screen:battle,valid,draw:f=>{
+      s.progress=f;fills.forEach((fill,team)=>{const row=s.latestGame.teams[team];
+       fill.style.width=100*row.lp*f/(row.maxLp||16000)+'%';
+       if(lpLabels[team])lpLabels[team].textContent=Math.round(row.lp*f).toLocaleString('de-AT')+' LP';
+      });
+     }}).then(finish,finish);return;
+    }
     // Hidden tabs can throttle RAF; unlock after the visible LP sequence finishes.
     root.setTimeout(finish,3600);
     root.setTimeout(()=>{

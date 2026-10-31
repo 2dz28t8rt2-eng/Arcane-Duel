@@ -434,7 +434,7 @@
   if(['waiting','lobby','party_ready'].includes(game.status))return;
   window.ArcaneDuoStory216?.onState?.(previous,game,seat,roomId);
   if(game.status!=='inviting_next'&&$('duoInviteDialog').dataset.mode==='next')dismissInvitation();
-  window.ArcaneDuoCinematics167?.onState(previous,game);
+  window.ArcaneDuoCinematics167?.onState(previous,game,catalog);
   window.ArcaneDuoCinema170?.onState(previous,game,catalog,seat);
   window.ArcaneDuoStanceCinema191?.onState(previous,game,catalog);
   window.ArcaneDuoImpactCinema192?.onState(previous,game,catalog);

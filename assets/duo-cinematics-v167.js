@@ -65,7 +65,7 @@
       occupants(current.players[attacker.seat]||attacker).some(y=>
        y.where.slot===x.where.slot&&y.where.area===x.where.area&&
        y.c&&y.c.used&&!x.c.used));
-    events.push({type:"attack",text,from:source?.where,
+    events.push({type:"attack",text,stomp:current.stompEvent?.revision===current.revision,from:source?.where,
      where:harmed.find(x=>x.where.seat!==attacker?.seat)?.where});
    }else if(/direkter Angriff/i.test(text)){
     const attacker=(previous.players||[]).find(p=>text.startsWith(p.name+" · direkter Angriff"));
@@ -84,13 +84,13 @@
   if(events.some(e=>e.type==="attack")){
    const destroyed=harmed.find(x=>x.kind==="destroyed");
    if(destroyed)events.push({type:"destroy",
-    text:"Ein Monster wurde durch den Angriff zerstört.",where:destroyed.where});
+    text:"Ein Monster wurde durch den Angriff zerstört.",where:destroyed.where,cardId:destroyed.card.id});
   }
   if(!events.length&&newly.length)events.push({type:"summon",
    text:"Ein Monster ist auf dem Spielfeld erschienen.",where:newly[0].where});
   if(!events.length&&harmed.some(x=>x.kind==="destroyed"))
    events.push({type:"destroy",text:"Ein Monster wurde zerstört.",
-    where:harmed.find(x=>x.kind==="destroyed").where});
+    where:harmed.find(x=>x.kind==="destroyed").where,cardId:harmed.find(x=>x.kind==="destroyed").card.id});
   return events.slice(-MAX_EVENTS);
  }
  let stage=null,notice=null,pending=[],serial=0;
@@ -116,6 +116,7 @@
   if(!where)return null;
   if(where.team===0||where.team===1)return document.getElementById(
    where.team===0?'duoAlliedLP':'duoEnemyLP');
+  if(window.ArcaneDuoPresentation228)return window.ArcaneDuoPresentation228.cell(where);
   const selector='.seat[data-seat="'+where.seat+'"] '+
    (where.area==="ghost"?'.duo-ghost-cell':'.field>.field-cell')+
    '[data-slot="'+where.slot+'"]';
@@ -159,6 +160,7 @@
   if(reduced()||document.visibilityState==="hidden")return;
   stage.replaceChildren();
   const to=center(endpoint(e.where)),from=center(endpoint(e.from));
+  if(e.type==="attack"&&e.stomp&&window.ArcaneSpecialPresentation228)return;
   if(e.type==="attack"){
    const source=endpoint(e.from),destination=endpoint(e.where);
    const card=source?.querySelector('.board-creature, .hand-card')||source;
@@ -176,6 +178,13 @@
     },240));
    }
   }
+  else if(e.type==='summon'&&window.ArcaneBattlePresentation228){
+   if(!window.ArcaneDuoSummonCinema190?.ownsSummon?.(e.where))
+    void window.ArcaneBattlePresentation228.land(endpoint(e.where)?.querySelector('.board-creature'),{owner:(e.where?.seat||0)%2});
+  }
+  else if(e.type==='destroy'&&window.ArcaneBattlePresentation228){
+   window.ArcaneBattlePresentation228.dissolve(endpoint(e.where),e.art||'');
+  }
   else if(e.type==="arena"){burst(center(document.querySelector("#duoAlliedLP")),"arena");}
   else if(e.type==="fusion"||e.type==="fate"||e.type==="summon"||
     e.type==="destroy"){
@@ -185,8 +194,8 @@
     burst(to,e.type);
   }
  }
- function onState(previous,current){
-  const events=describe(previous,current);
+ function onState(previous,current,catalog={}){
+  const events=describe(previous,current);for(const e of events)if(e.cardId!=null)e.art=catalog[e.cardId]?.art||'';
   serial++;const sequence=serial;
   pending.forEach(clearTimeout);pending=[];
   if(!events.length||!ensureUI())return events;

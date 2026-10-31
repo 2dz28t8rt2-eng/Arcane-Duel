@@ -10,15 +10,15 @@ html body :is(.card-preview-panel,.arcane-enemy-large,#deckSidePreview,.ad-card-
 .ad-defender-ability .ad-charge-note{border-top:1px solid #c7abf05c;padding-top:8px;color:#e8c3ff!important}
 /* Square zones have a cross-shaped inset for upright and horizontal cards. */
 html body #duelScreen .slots{grid-template-columns:repeat(5,minmax(66px,1fr))!important;gap:8px!important;min-width:362px;max-width:780px}
-html body #duelScreen .monster-slot{container-type:inline-size;aspect-ratio:1;height:auto!important;min-height:0!important;padding:0!important;overflow:hidden!important;border-radius:10px;background:radial-gradient(circle,#25374b,#111d2d 80%)}
-html body #duelScreen .monster-slot::before{inset:5%;border:0;border-radius:0;background:#b3c3db20;clip-path:polygon(25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%,0 25%,25% 25%)}
-html body #duelScreen .monster-slot>.board-creature.tc-card{flex:none!important;width:62cqw!important;max-width:none!important;height:90cqw!important;max-height:none!important;margin:0!important;box-sizing:border-box!important;transform:rotate(0deg)!important;transform-origin:center!important;transition:transform .32s ease!important}
-html body #duelScreen .monster-slot>.board-creature.tc-card.defense{transform:rotate(90deg)!important}
-html body #duelScreen .monster-slot .board-name{font-size:clamp(6px,7cqw,10px)!important;line-height:1.1!important;padding:2px 1px!important;white-space:normal!important}
-html body #duelScreen .monster-slot .board-stats{font-size:clamp(6px,5cqw,8px)!important;gap:1px!important;padding:1px!important;--ad-seal-size:14px}
-html body #duelScreen .monster-slot .board-stats b{font-size:inherit!important;min-width:0}
-html body #duelScreen .monster-slot .board-art{min-height:0!important;flex:1 1 0!important;height:auto!important;object-fit:cover}
-html body #duelScreen .monster-slot .board-creature{display:flex!important;flex-direction:column!important}
+html body :is(#duelScreen,#duoBattleArena) .monster-slot{container-type:inline-size;aspect-ratio:1;height:auto!important;min-height:0!important;padding:0!important;overflow:hidden!important;border-radius:10px;background:radial-gradient(circle,#25374b,#111d2d 80%)}
+html body :is(#duelScreen,#duoBattleArena) .monster-slot::before{inset:5%;border:0;border-radius:0;background:#b3c3db20;clip-path:polygon(25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%,0 25%,25% 25%)}
+html body :is(#duelScreen,#duoBattleArena) .monster-slot>.board-creature.tc-card{flex:none!important;width:62cqw!important;max-width:none!important;height:90cqw!important;max-height:none!important;margin:0!important;box-sizing:border-box!important;transform:rotate(0deg)!important;transform-origin:center!important;transition:transform .32s ease!important}
+html body :is(#duelScreen,#duoBattleArena) .monster-slot>.board-creature.tc-card.defense{transform:rotate(90deg)!important}
+html body :is(#duelScreen,#duoBattleArena) .monster-slot .board-name{font-size:clamp(6px,7cqw,10px)!important;line-height:1.1!important;padding:2px 1px!important;white-space:normal!important}
+html body :is(#duelScreen,#duoBattleArena) .monster-slot .board-stats{font-size:clamp(6px,5cqw,8px)!important;gap:1px!important;padding:1px!important;--ad-seal-size:14px}
+html body :is(#duelScreen,#duoBattleArena) .monster-slot .board-stats b{font-size:inherit!important;min-width:0}
+html body :is(#duelScreen,#duoBattleArena) .monster-slot .board-art{min-height:0!important;flex:1 1 0!important;height:auto!important;object-fit:cover}
+html body :is(#duelScreen,#duoBattleArena) .monster-slot .board-creature{display:flex!important;flex-direction:column!important}
 html body #duelScreen .field-area{overflow-x:auto;overflow-y:hidden;padding:12px!important}
 @media(max-width:650px){html body #duelScreen .field-area{padding:8px 5px!important}html body #duelScreen .slots{gap:5px!important;min-width:350px}}
 /* Roles breathe beneath the hand rather than obscuring the illustration. */
@@ -66,7 +66,7 @@ html body .ad-card-reward-panel .hand-card.tc-card{width:208px!important;max-wid
 body.instant :is(.ad-hand-role,.ad-hand-role::before,.ad-overcharged .stat.def,.ad-overcharged .stat.def::after,.ad-overcharged .board-stats b,.ad-overcharged .board-stats b::after,.ad-reward-particles i),
 body.ad-motion-disabled :is(.ad-hand-role,.ad-hand-role::before,.ad-overcharged .stat.def,.ad-overcharged .stat.def::after,.ad-overcharged .board-stats b,.ad-overcharged .board-stats b::after,.ad-reward-particles i){animation:none!important}
 body.instant :is(.ad-reward-particles,.ad-overcharged .stat.def::after,.ad-overcharged .board-stats b::after),body.ad-motion-disabled :is(.ad-reward-particles,.ad-overcharged .stat.def::after,.ad-overcharged .board-stats b::after){display:none!important}
-@media(prefers-reduced-motion:reduce){html body :is(.ad-hand-role,.ad-hand-role::before,.ad-overcharged .stat.def,.ad-overcharged .stat.def::after,.ad-overcharged .board-stats b,.ad-overcharged .board-stats b::after,.ad-reward-particles i){animation:none!important}html body :is(.ad-reward-particles,.ad-overcharged .stat.def::after,.ad-overcharged .board-stats b::after){display:none!important}html body #duelScreen .monster-slot>.board-creature.tc-card{transition:none!important}}
+@media(prefers-reduced-motion:reduce){html body :is(.ad-hand-role,.ad-hand-role::before,.ad-overcharged .stat.def,.ad-overcharged .stat.def::after,.ad-overcharged .board-stats b,.ad-overcharged .board-stats b::after,.ad-reward-particles i){animation:none!important}html body :is(.ad-reward-particles,.ad-overcharged .stat.def::after,.ad-overcharged .board-stats b::after){display:none!important}html body :is(#duelScreen,#duoBattleArena) .monster-slot>.board-creature.tc-card{transition:none!important}}
 
 .ritual-overlay.evo-summon.ad-depth-landing{background:transparent!important}
 .ritual-overlay.ad-depth-landing .ritual-window{visibility:hidden!important}
@@ -77,14 +77,14 @@ html body:is(.instant,.ad-motion-disabled){--ad-role-motion:none;--ad-role-dot-m
 /* Three columns form an actual cross on phones, keeping rotated cards readable. */
 @media(max-width:760px){
  html body #duelScreen .slots{grid-template-columns:repeat(3,minmax(100px,1fr))!important;grid-template-rows:repeat(3,auto);min-width:310px;max-width:460px;gap:6px!important}
- html body #duelScreen .monster-slot:nth-child(1){grid-column:2;grid-row:1}
- html body #duelScreen .monster-slot:nth-child(2){grid-column:1;grid-row:2}
- html body #duelScreen .monster-slot:nth-child(3){grid-column:2;grid-row:2}
- html body #duelScreen .monster-slot:nth-child(4){grid-column:3;grid-row:2}
- html body #duelScreen .monster-slot:nth-child(5){grid-column:2;grid-row:3}
+ html body :is(#duelScreen,#duoBattleArena) .monster-slot:nth-child(1){grid-column:2;grid-row:1}
+ html body :is(#duelScreen,#duoBattleArena) .monster-slot:nth-child(2){grid-column:1;grid-row:2}
+ html body :is(#duelScreen,#duoBattleArena) .monster-slot:nth-child(3){grid-column:2;grid-row:2}
+ html body :is(#duelScreen,#duoBattleArena) .monster-slot:nth-child(4){grid-column:3;grid-row:2}
+ html body :is(#duelScreen,#duoBattleArena) .monster-slot:nth-child(5){grid-column:2;grid-row:3}
 }
 
-html body #duelScreen .monster-slot .board-creature.ad-compact-values .board-stats b{font-size:clamp(6px,4.8cqw,8px)!important}
+html body :is(#duelScreen,#duoBattleArena) .monster-slot .board-creature.ad-compact-values .board-stats b{font-size:clamp(6px,4.8cqw,8px)!important}
 
 /* 2026-10-18: Counterattacks are hostile crimson damage, never green/gold healing.
    Soul orbs are large enough to read above the low-positioned ability controls. */

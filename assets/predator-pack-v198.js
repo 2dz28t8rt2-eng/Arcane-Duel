@@ -228,6 +228,7 @@
     window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches)return;
   const row=document.getElementById(owner===0?'enemyRow':'ownRow');
   const attr=owner===0?'enemy':'mine',el=row?.querySelector('[data-'+attr+'="'+di+'"]');
+  if(window.ArcaneSpecialPresentation228)return window.ArcaneSpecialPresentation228.bloodImpact(el,killed,art,document.getElementById("duelScreen"));
   const r=el?.getBoundingClientRect();if(!r)return;
   const layer=document.getElementById('duelScreen');
   layer?.classList.add('ad198-pack-shake');
@@ -281,6 +282,7 @@
  }
  const esc=s=>String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
  async function cinemaReveal({overlay,instance,wait}){
+  if(window.ArcaneSpecialPresentation228)return window.ArcaneSpecialPresentation228.cinemaReveal({overlay,instance,wait});
   const info=instance?.predatorLeader;
   if(!info||!overlay)return;
   const panel=overlay.querySelector('.evo-popup-panel'),rolls=panel?.querySelector('.evo-rolls');
