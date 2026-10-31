@@ -66,7 +66,7 @@ async function finishLiveDuel(A,B){
 (async()=>{
  await new Promise(resolve=>server.listen(8757,'127.0.0.1',resolve));
  const browser=await chromium.launch({headless:true,...(process.env.CHROME?{executablePath:process.env.CHROME}:{}),args:['--no-sandbox','--disable-dev-shm-usage']});
- let a,b;const report={mode:prefix,checks:[]};
+ let a,b,c;const report={mode:prefix,checks:[]};
  try{
   if(!live){
    const solo=await browser.newContext({viewport:{width:1500,height:1080}});
@@ -206,10 +206,73 @@ async function finishLiveDuel(A,B){
   const saved=(await state(A)).profile;
   assert.deepEqual({xp:saved.xp,essence:saved.essence,shards:saved.shards,wins:saved.wins,credits:saved.chapterCardCredits},personal[0]);
   report.checks.push('reload restores own room/seat; personal rewards unchanged; solo save unchanged');
+  if(live){
+   // Use only isolated QA profiles; the first host has earned chapter 1 by
+   // playing the prior live duel. A fresh third player has not earned it.
+   assert.ok(saved.clearedChapters?.includes(1),'Original QA profile must have earned chapter 1');
+   const savedDeck=structuredClone(saved.deck);
+   await A.evaluate(()=>window.ArcaneDuoParty218.createRoom());await status(A,'waiting');
+   const veteranParty=await state(A);
+   c=await newClient(browser,'http://localhost:8757/duo-campaign-v2.html?join='+
+    veteranParty.roomId+'.'+veteranParty.invite,'QA221 Rookie '+tag);
+   const C=c.page;await C.locator('#duoPartyAccept').click();await status(C,'lobby');await refresh(A);
+   const limits=(await state(A)).partyLimits;
+   assert.equal(limits.maxChapter,1);assert.equal(limits.loanSeatChapter,0);
+   assert.equal((await state(C)).profile.clearedChapters.length,0);
+   await route(A,'menu');
+   assert.equal(await A.locator('#duoDuelChapter option[value="2"]').evaluate(n=>n.disabled),true);
+   await A.locator('#duoMenuStart').click();await status(A,'party_ready');await refresh(C);
+   await C.locator('#duoStartAccept').click();await status(C,'active');await refresh(A);
+   const veteranStart=(await state(A)).game,rookieStart=(await state(C)).game;
+   assert.equal(veteranStart.players[0].loanedDeck,true);
+   assert.equal(veteranStart.players[2].loanedDeck,false);
+   assert.ok(rookieStart.players[0].hand.every(x=>x===null));
+   assert.ok(veteranStart.players[2].hand.every(x=>x===null));
+   await A.evaluate(()=>window.ArcaneDuoParty218.refreshProfile());
+   assert.deepEqual((await state(A)).profile.deck,savedDeck);
+   report.checks.push('LIVE unequal earned progress: novice limits opponent, veteran gets temporary loan, saved deck stays unchanged');
+
+   // Pick two legal materials from genuinely private player views. Send only
+   // normal game actions through the deployed Edge function.
+   const rules=require('../assets/duo-shared-rules-v160.js');
+   let pair;
+   for(let hi=0;hi<veteranStart.players[0].hand.length&&!pair;hi++){
+    const hostId=veteranStart.players[0].hand[hi];
+    const def=catalog[hostId];if(!def||def.ace)continue;
+    const candidate=structuredClone(rookieStart);
+    candidate.players[0].field[6]={id:hostId,level:def.level,role:def.role,
+     fusion:false,uid:888,mode:'atk',atk:def.atk,def:def.def};
+    for(let gi=0;gi<rookieStart.players[2].hand.length;gi++){
+     const mats=[{from:'hand',index:gi},{from:'allyField',index:6}];
+     try{
+      const options=rules.fusionOptions(candidate,2,mats,catalog);
+      if(options.templates.length){pair={hi,gi,templateId:options.templates[0]};break;}
+     }catch{}
+    }
+   }
+   assert.ok(pair,'Starter hands must offer at least one legal allied field fusion');
+   const sharedSlot=A.locator('#duoSeats [data-seat="0"]>.field>.field-cell[data-slot="6"]');
+   await A.locator('.duo178-hand-card[data-index="'+pair.hi+'"]').click();
+   await sharedSlot.click();await A.locator('#ad189-summon-guide .ad189-guide-confirm').click();
+   await A.waitForFunction(()=>!!window.ArcaneDuoParty218.state().game.players[0].field[6]);
+   await A.evaluate(()=>window.ArcaneDuoParty218.send({type:'end'}));await refresh(C);
+   await C.waitForFunction(()=>window.ArcaneDuoParty218.state().game.activeSeat===2);
+   assert.ok((await state(C)).game.players[0].field[6],'Partner material survives until guest turn');
+   await C.evaluate(action=>window.ArcaneDuoParty218.send(action),{
+    type:'fusion',materials:[{from:'hand',index:pair.gi},{from:'allyField',index:6}],
+    slot:6,templateId:pair.templateId
+   });
+   await C.waitForFunction(()=>!!window.ArcaneDuoParty218.state().game.players[2].field[6]);
+   const after=(await state(C)).game;
+   assert.equal(after.players[0].field[6],null);
+   assert.equal(after.players[2].field[6].id,pair.templateId);
+   await refresh(A);assert.equal((await state(A)).game.players[2].field[6].id,pair.templateId);
+   report.checks.push('LIVE guest fusion consumes host field card and occupies one of the seven shared zones');
+  }
   assert.deepEqual(pageErrors,[]);report.pass=true;
   fs.writeFileSync(path.join(output,prefix+'-report.json'),JSON.stringify(report,null,2));console.log('DUO_BROWSER_221_PASS '+JSON.stringify(report));
  }catch(error){
-  for(const [label,client]of [['host',a],['guest',b]])if(client)await client.page.screenshot({path:path.join(output,prefix+'-failure-'+label+'.png'),mask:[client.page.locator('input[readonly]')]}).catch(()=>{});
+  for(const [label,client]of [['host',a],['guest',b],['rookie',c]])if(client)await client.page.screenshot({path:path.join(output,prefix+'-failure-'+label+'.png'),mask:[client.page.locator('input[readonly]')]}).catch(()=>{});
   throw error;
- }finally{await a?.context.close();await b?.context.close();await browser.close();await new Promise(resolve=>server.close(resolve));}
+ }finally{await a?.context.close();await b?.context.close();await c?.context.close();await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(e=>{console.error('DUO_BROWSER_221_FAIL '+e.message+'\n'+e.stack);process.exitCode=1;server.close();});
