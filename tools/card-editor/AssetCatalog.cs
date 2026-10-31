@@ -63,7 +63,7 @@ internal static class AssetCatalog
               "level" => "ArcaneCardEditor.Level.", "icon" => "ArcaneCardEditor.Icon.",
               _ => throw new ArgumentException("Unknown asset family", nameof(type)) };
             using var ms = new MemoryStream(Read(src + id + ".svg"));
-            using var svg = SvgDocument.Open<SvgDocument>(ms);
+            var svg = SvgDocument.Open<SvgDocument>(ms);
             bitmap = svg.Draw(width, height);
             Renders[key] = bitmap;
             return bitmap;
