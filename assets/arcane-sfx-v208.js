@@ -158,10 +158,8 @@
    before.revision>=after.revision)return;
   const events=window.ArcaneDuoCinematics167?.describe?.(before,after)||[];
   const logs=window.ArcaneDuoSound194?.linesSince?.(before,after)||[];
-  const draws=window.ArcaneDuoCinema170?.observed?.(before,after)||[];
-  const drawn=draws.filter(x=>x.kind==='draw'&&x.count>0&&x.seat===seat)
-   .reduce((sum,x)=>sum+x.count,0);
-  for(let i=0;i<drawn;i++)schedule(()=>play('draw'),i*200);
+  // The private hand presenter plays each confirmed draw exactly once,
+  // synchronized with the same stagger used by the solo animation.
   // The actual fusion cinema owns the orbit sound. Event sounds here play
   // only for visible confirmed consequences, never speculative actions.
   if(events.some(x=>x.type==='destroy'))play('destroy');

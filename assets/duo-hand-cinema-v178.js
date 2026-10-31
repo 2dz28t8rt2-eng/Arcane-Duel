@@ -56,7 +56,7 @@
   if(!battle||panels.length!==2||!own||!p)return;
   const key=roomId+'|'+game.chapter+'|'+(game.duelNo||1);
   if(!session||session.key!==key){
-   session={key,seen:false,intro:false,lastHand:null,lastDeck:null,stamp:0,
+   session={key,seen:false,intro:false,lastHand:null,lastDeck:null,lastFate:null,stamp:0,
     latestGame:game,progress:0};
   }
   const s=session;
@@ -119,9 +119,11 @@
      latest.teams[team].lp.toLocaleString('de-AT')+' LP';});
     currentStrip?.removeAttribute('aria-hidden');battle.classList.remove('duo178-intro-active');
     showSeatCounts(battle,latest,false);
-    if(!reduced())for(const [i,node] of (currentCards?.querySelectorAll('.duo178-hand-card')||[]).entries()){
-     node.style.setProperty('--duo178-i',i);
-     node.classList.add('duo178-arriving');
+    const motionReduced=reduced();
+    for(const [i,node] of (currentCards?.querySelectorAll('.duo178-hand-card')||[]).entries()){
+     root.setTimeout(()=>{if(session===s&&s.stamp===stamp)root.ArcaneSfx208?.play?.('draw');},i*(motionReduced?190:440));
+     if(!motionReduced){node.style.setProperty('--duo178-i',i);node.classList.add('duo178-arriving');
+      root.ArcaneHandDraw1161?.animateArrival?.(node,i,160,40);}
     }
     root.setTimeout(()=>{
      if(session!==s||s.stamp!==stamp)return;
@@ -155,21 +157,28 @@
     else fillAfterStart();
    }
   }else if(!s.intro&&s.lastHand&&game.status==='active'){
-   const count=Math.max(0,(s.lastDeck||0)-p.deck.length);
+   const fate=game.fateEvent,ownFate=fate?.ownerSeat===seat&&
+    (s.lastFate?.ownerSeat!==fate.ownerSeat||s.lastFate?.round!==fate.round);
+   // A Fate event replaces the hand and has its own presentation; it is not
+   // a series of ordinary card draws, even if the deck also changed.
+   const count=ownFate?0:Math.max(0,(s.lastDeck||0)-p.deck.length);
    const entering=drawIndices(s.lastHand,p.hand,count);
-   if(!reduced()&&entering.length){
+   if(entering.length){
     const stamp=++s.stamp;
     entering.forEach((index,i)=>{
      const card=list.querySelector('[data-index="'+index+'"]');
-     if(card){card.classList.add('duo178-arriving');card.style.setProperty('--duo178-i',i);}
+     root.setTimeout(()=>{if(session===s&&s.stamp===stamp)root.ArcaneSfx208?.play?.('draw');},i*440);
+     if(card&&!reduced()){card.classList.add('duo178-arriving');card.style.setProperty('--duo178-i',i);
+      root.ArcaneHandDraw1161?.animateArrival?.(card,i);}
     });
-    battle.classList.add('duo178-revealing');
+    if(!reduced())battle.classList.add('duo178-revealing');
     root.setTimeout(()=>{
      if(session===s&&s.stamp===stamp)battle.classList.remove('duo178-revealing');
     },(entering.length-1)*440+920);
    }
   }
-  if(!s.intro){s.lastHand=[...p.hand];s.lastDeck=p.deck.length;}
+  if(!s.intro){s.lastHand=[...p.hand];s.lastDeck=p.deck.length;
+   s.lastFate=game.fateEvent?{ownerSeat:game.fateEvent.ownerSeat,round:game.fateEvent.round}:null;}
  }
  return Object.freeze({version:'17.8',drawIndices,sync});
 });

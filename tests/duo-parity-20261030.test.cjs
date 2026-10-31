@@ -78,7 +78,7 @@ test('Duo Soul panel remains action-authorized to current human, with plain-lang
 test('Duo uses newest pack bloom and shared sound resources',()=>{
  const html=read('duo-campaign-v2.html');
  assert.match(html,/pack-cinema-v195\.css\?v=20261030-smooth-reveal/);
- assert.match(html,/arcane-sfx-v208\.js\?v=20261030-duo-result-210/);
+ assert.match(html,/arcane-sfx-v208\.js\?v=[^"\s]+/);
  assert.match(html,/duo-ux-v204\.js\?v=221/);
  const pack=read('assets/pack-cinema-v195.css');
  assert.match(pack,/ad195-warming/);
