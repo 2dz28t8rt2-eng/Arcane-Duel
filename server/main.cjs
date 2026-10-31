@@ -12,7 +12,7 @@ function createServer({root=path.resolve(__dirname,'..'),database,origin,trustPr
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Frame-Options','DENY');
   try{
    const url=new URL(req.url,origin);
-   if(url.pathname==='/api/health'&&req.method==='GET')return reply(res,200,{ok:true,service:'arcane-duel',storage:'sqlite',version:release.version||((fs.readFileSync(path.join(root,'index.html'),'utf8').match(/<meta\\s+name="arcane-duel-version"\\s+content="([^"]+)"/)||[])[1]||'unknown'),revision:release.revision||'local',release:release.id||'local'});
+   if(url.pathname==='/api/health'&&req.method==='GET')return reply(res,200,{ok:true,service:'arcane-duel',storage:'sqlite',version:release.version||((fs.readFileSync(path.join(root,'index.html'),'utf8').match(/<meta\s+name="arcane-duel-version"\s+content="([^"]+)"/)||[])[1]||'unknown'),revision:release.revision||'local',release:release.id||'local'});
    if(['/duo-campaign.html','/duo-online.html'].includes(url.pathname)){res.writeHead(302,{Location:'/duo-campaign-v2.html'+url.search});return res.end();}
    if(url.pathname==='/arcane-host-config.js'&&req.method==='GET'){
     res.writeHead(200,{'Content-Type':mime['.js'],'Cache-Control':'no-store'});return res.end('window.ArcaneDuoSelfHost229=true;window.ArcaneDuoEndpoint="/api/duo";');
