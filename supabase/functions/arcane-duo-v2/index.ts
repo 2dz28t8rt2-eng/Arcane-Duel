@@ -405,7 +405,7 @@ Deno.serve(async request=>{
   assert(kind==="action","Unbekannte Anfrage.");
   assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===room.revision,
    "Spielstand geändert. Bitte synchronisieren.");
-  assert(body.action&&["summon","replace","requestDuel","attack","switch","fusion","end","nextChapter","acceptNextChapter","declineNextChapter",
+  assert(body.action&&["summon","replace","requestDuel","attack","switch","fusion","end","surrender","nextChapter","acceptNextChapter","declineNextChapter",
    "startParty","acceptPartyStart","declinePartyStart","cancelPartyStart","soulCondense","soulDischarge","soulRaid","soulFocus","essencePredatorMode",
    "lv1Station","lv1Return","lv1GhostSwitch","lv1UseOffer","lv1Floating"].includes(body.action.type),
    "Aktion nicht erlaubt.");

@@ -240,6 +240,8 @@ test('turn ownership, summon limits, position restrictions, draw to five and cor
 });
 test('ordinary fusion uses owned materials, consumes template and does not touch unselected ally field',()=>{
  let state=setup();
+ state.players[0].hand[0]=deck.find(id=>catalog[id].level===1);
+ state.players[0].hand[1]=deck.find(id=>catalog[id].level===1);
  // The inventory includes at least one Lv2/3 early fusion.
  const levelOneHand=state.players[0].hand
   .map((id,i)=>({id,i})).filter(x=>catalog[x.id].level===1);
@@ -932,6 +934,7 @@ test('both human players can fuse allied field monsters without consuming the wr
  for(const seat of [0,2]){
   let state=setup(),allySeat=seat===0?2:0;
   const id=deck.find(id=>catalog[id].level===1);
+  state.players[seat].hand[0]=id;
   const allyCard=live(id,{uid:934+seat,level:1});
   state.players[allySeat].field[1]=allyCard;
   const handIndex=state.players[seat].hand.findIndex(id=>catalog[id].level===1);

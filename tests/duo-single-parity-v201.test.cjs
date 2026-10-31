@@ -107,8 +107,8 @@ test('chapter transitions reset LP to the NEW tier and cannot secretly modify en
   enemyNameB:adversaries.enemyNames(fourth,solo)[1]});
  assert.equal(g.chapter,4);
  assert.deepEqual(g.teams.map(t=>[t.lp,t.maxLp]),[[8000,8000],[8000,8000]]);
- assert.deepEqual(g.players[1].hand.concat(g.players[1].deck),foe);
- assert.deepEqual(g.players[3].hand.concat(g.players[3].deck),ally);
+ assert.deepEqual(g.players[1].hand.concat(g.players[1].deck).sort((a,b)=>a-b),[...foe].sort((a,b)=>a-b));
+ assert.deepEqual(g.players[3].hand.concat(g.players[3].deck).sort((a,b)=>a-b),[...ally].sort((a,b)=>a-b));
 });
 test('older existing rooms keep saved LP during their current fight',()=>{
  const old=create(2);old.teams.forEach(t=>{t.maxLp=16000;t.lp=16000;});

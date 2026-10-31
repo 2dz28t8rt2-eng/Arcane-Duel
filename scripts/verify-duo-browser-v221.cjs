@@ -197,6 +197,15 @@ async function finishLiveDuel(A,B){
   assert.ok(replay.players.every(p=>p.field.every(c=>c===null)));assert.equal(replay.teams[0].lp,4000);
   report.checks.push('accepted rematch starts clean fields, LP and turn with a new duel number');
   if(live){report.replay=await finishLiveDuel(A,B);}
+  else{
+   // The guest can surrender even while it is the host's turn. Both clients
+   // must see the same finished match, with no win recorded for either team member.
+   await B.getByRole('button',{name:'⚑ Duell aufgeben'}).click();
+   await status(B,'finished');await refresh(A);await status(A,'finished');
+   assert.equal((await state(A)).game.winner,1);
+   assert.equal((await state(B)).game.surrenderedBy,2);
+   report.checks.push('guest surrenders out of turn; both clients see the same team loss');
+  }
 
   const personal=[];
   for(const page of [A,B]){

@@ -58,6 +58,7 @@ test('identical seed and matching inputs yield identical rolled abilities',()=>{
 });
 test('new leader permanently retires older leader even after the new one dies',()=>{
  const g=fusion(5),p=g.players[0],old=p.field[0];
+ g.rngSeed=42; // Keep this leadership outcome deterministic after opening shuffles.
  p.hand=[9,9,9];p.summoned=false;p.remainingFusion.push(old.id);
  const materials=[0,1,2].map(index=>({from:'hand',index}));
  const choice=rules.fusionOptions(g,0,materials,catalog).templates[0];

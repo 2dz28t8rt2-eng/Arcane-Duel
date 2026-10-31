@@ -240,6 +240,12 @@
  const teamField=(g,p)=>sharedField(g)?p.field.map((c,i)=>c||teamMate(g,p)?.field[i]||null):p.field;
  const freeTeamSlot=(g,p,i)=>!p.field[i]&&(!sharedField(g)||!teamMate(g,p)?.field[i]);
  function draw(p,n=5){while(p.hand.length<n&&p.deck.length)p.hand.push(p.deck.shift());}
+ // Each seat gets its own Fisher-Yates shuffle from the server-owned RNG.
+ function shuffleDeck(g,p){
+  for(let i=p.deck.length-1;i>0;i--){
+   const j=randomInt(g,i+1);[p.deck[i],p.deck[j]]=[p.deck[j],p.deck[i]];
+  }
+ }
  function fanaticOpening(g){
   if(g.chapter<11||g.chapter>14)return;
   // Same sealed Lumira as in the solo Lv1 saga: a guaranteed fifth hand
@@ -1222,7 +1228,7 @@
   c.lastSoulAction=p.ownTurns;
  }
  function beginDuel(g,chapter,entry,{catalog,enemyDeckA,enemyDeckB,enemyFusionsA,enemyFusionsB,enemyPowerA,enemyPowerB,enemyNameA,enemyNameB,humanBuilds}={}){
-   g.chapter=chapter;g.entry=entry;g.duelNo=(g.duelNo||1)+1;g.status='active';g.winner=null;g.round=1;g.turn=0;g.activeSeat=0;
+   g.chapter=chapter;g.entry=entry;g.duelNo=(g.duelNo||1)+1;g.status='active';g.winner=null;g.surrenderedBy=null;g.round=1;g.turn=0;g.activeSeat=0;
    g.lpParityVersion=2;g.fieldLayout='team7';
    g.questProgress={floating:0,swarm:0,special:0};g.questPassed=null;
    g.fateEvent=null;g.arenaEvent=null;g.predatorPursuit=null;g.predatorImpact=null;g.stompEvent=null;
@@ -1265,7 +1271,7 @@
     pl.fusionDeck=[...pl.baseFusions];pl.remainingFusion=[...pl.baseFusions];
     pl.hand=[];pl.field=Array(7).fill(null);pl.graveyard=[];
     pl.summoned=false;pl.ownTurns=0;pl.fusionsPerformed=0;pl.fateUsed=false;
-    pl.fusionLoreChainUsed=false;draw(pl);
+    pl.fusionLoreChainUsed=false;shuffleDeck(g,pl);draw(pl);
     const saved=lv1State(pl);
     saved.ghostSlots=[];saved.charges=0;saved.choices=[];saved.offers=[];
     saved.floatUsed=0;saved.swarmUsed=0;
@@ -1297,7 +1303,7 @@
    partner.portraitId=/^hero-(0[1-9]|1[0-6])$/.test(action.portraitId||'')?action.portraitId:'hero-01';
    g.players[2]=partner;g.status=action.deferStart===true?'lobby':'active';
    g.teams[0].shield=teamAegis(g);
-   for(const pl of g.players)draw(pl);
+   for(const pl of g.players){shuffleDeck(g,pl);draw(pl);}
    fanaticOpening(g);
    if(g.chapter===15){
     const fanatic=g.players[1];
@@ -1364,7 +1370,7 @@
     const fresh=player(humanSeat,prior.name,
      g.personalDuoRules?[...updated.deck]:chapterDeck(updated.deck,catalog,g.chapter,g.entry),updated.fusions,build);
     fresh.portraitId=/^hero-(0[1-9]|1[0-6])$/.test(updated.portraitId||'')?updated.portraitId:'hero-01';
-    draw(fresh);g.players[humanSeat]=fresh;
+    shuffleDeck(g,fresh);draw(fresh);g.players[humanSeat]=fresh;
    }
    g.teams[0].shield=teamAegis(g);
    }
@@ -1398,6 +1404,12 @@
    g.revision++;return g;
   }
   assert(g.status==='active'&&g.winner===null,'Partie ist nicht aktiv.');
+  if(action.type==='surrender'){
+   assert([0,2].includes(seat),'Nur ein menschlicher Spieler kann aufgeben.');
+   g.surrenderedBy=seat;
+   win(g,1,p.name+' hat für das Team aufgegeben. Es gibt keine Belohnung.');
+   g.revision++;return g;
+  }
   assert(seat===g.activeSeat,'Ein anderer Spieler ist am Zug.');
   if(action.type==='summon'||action.type==='replace'){
    assert(!p.summoned,'Dieser Zug hat bereits eine Beschwörung.');
@@ -2037,6 +2049,7 @@
 
  function view(g,seat){
   const v=copy(g);
+  v.supportsSurrender=true; // Advertised by the deployed server, not the browser.
   delete v.uid;delete v.rngSeed; // Never disclose upcoming server-side dice.
   // A Fate event names the cards newly drawn into its owner's private hand.
   // Other clients may see the event, but must not receive those card IDs.
