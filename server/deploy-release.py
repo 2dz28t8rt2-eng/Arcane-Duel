@@ -63,7 +63,7 @@ def prune_committed_releases(active,previous):
  # A verified release contains both game modes. Remove old upload archives too.
  # Never touch unrelated uploads, symlinks, staging areas or private player data.
  for candidate in upload.iterdir():
-  match=re.fullmatch(r'(v229-[a-f0-9]{12})\\.tar\\.gz(?:\\.sha256)?',candidate.name)
+  match=re.fullmatch(r'(v229-[a-f0-9]{12})\.tar\.gz(?:\.sha256)?',candidate.name)
   if match and match.group(1) not in keep and candidate.is_file() and not candidate.is_symlink():
    candidate.unlink()
  return {'kept':sorted(keep),'removed':removed}
