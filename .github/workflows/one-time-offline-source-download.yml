@@ -1,0 +1,60 @@
+name: Arcane Duel 1.1.2 – permanent full source download
+on:
+  push:
+    branches: [development]
+    paths:
+      - .github/workflows/one-time-offline-source-download.yml
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish-offline-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: Fetch and verify exact complete source artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p download
+          gh run download 41231479154 -R "$GITHUB_REPOSITORY" -n arcane-offline-source -D download
+          source="$(find download -maxdepth 1 -type f -name '*tar.gz' | head -1)"
+          test -n "$source"
+          test -f "$source.sha256"
+          (
+            cd download
+            sha256sum -c "$(basename "$source.sha256")"
+          )
+          mkdir -p deliver
+          cp "$source" "$source.sha256" deliver/
+          cat > deliver/README-QUELLCODE-1.1.2.txt <<'TXT'
+          Arcane Duel 1.1.2 - complete source snapshot (GitHub-independent future work)
+          Original successful export: https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/41231479154
+          Export revision: 64e6a3423a820087780e01c6764205a7ebf4b71d
+          Contains 2535 regular source files in the TAR.GZ, including the game's
+          monsters, images, assets, source code, server code, tests and desktop parts.
+
+          Important: do not use the broken 5,636,096-byte ZIP file!
+          This source snapshot alone does not include private databases, secrets,
+          SSH keys, or existing saved games.
+
+          For local continued development, use Node.js 24, Python 3 and local Git
+          with no required GitHub remote. Do not redeploy the older 1.1.2 package
+          without checking live status: the original independent audit reported
+          that 1.1.2 was already running.
+          TXT
+          tar -tzf "$source" | grep -Fxq 'Arcane-Duel-Quellcode/index.html'
+          cd deliver
+          zip -0 -q -r ArcaneDuel-Offline-Source-1.1.2-VERIFIED.zip . -x '*.zip'
+          echo "eb325a1f12e41de265fe7309e83cba41e679c90c76b67b785f557230148fd266  ArcaneDuel-Offline-Source-1.1.2-VERIFIED.zip" > EXPECTED-ORIGINAL-ZIP-SHA256.txt
+      - name: Publish direct permanent source download alongside server release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="server-transfer-1.1.2-64e6a3423a82"
+          gh release upload "$tag" deliver/ArcaneDuel-Offline-Source-1.1.2-VERIFIED.zip deliver/README-QUELLCODE-1.1.2.txt deliver/EXPECTED-ORIGINAL-ZIP-SHA256.txt --clobber --repo "$GITHUB_REPOSITORY"
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json url,assets --jq '{url: .url, sourceFiles: [.assets[].name]}'
