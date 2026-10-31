@@ -536,6 +536,14 @@ internal sealed partial class Editor : Form
             var zip3=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".zip");
             try
             {
+                bool blockedWithoutConfirmation=false;
+                try { WriteShelfPackage(zip3,new[]{firstDraft,secondDraft}); }
+                catch(InvalidOperationException ex) when(ex.Message.Contains("bestätigt"))
+                {
+                    blockedWithoutConfirmation=true;
+                }
+                if(!blockedWithoutConfirmation)
+                    throw new InvalidOperationException("Nonstandard cards were exported without explicit approval");
                 WriteShelfPackage(zip3,new[]{firstDraft,secondDraft},true);
                 using var batch=ZipFile.OpenRead(zip3);
                 if(batch.GetEntry("manifest.json")==null ||
@@ -547,6 +555,23 @@ internal sealed partial class Editor : Form
                 using var summary=new StreamReader(batch.GetEntry("manifest.json")!.Open());
                 if(JsonNode.Parse(summary.ReadToEnd())!["cardCount"]!.GetValue<int>()!=2)
                     throw new InvalidOperationException("Batch manifest has wrong card count");
+                var artworkEntry=batch.Entries.First(x=>x.FullName.EndsWith("assets/custom-art/editor/card-90042.png"));
+                using(var bytes=new MemoryStream())
+                {
+                    using var src=artworkEntry.Open();
+                    src.CopyTo(bytes);
+                    if(!bytes.ToArray().SequenceEqual(File.ReadAllBytes(image)))
+                        throw new InvalidOperationException("New artwork bytes were altered or compressed incorrectly");
+                }
+                var firstMeta=batch.Entries.First(x=>x.FullName.StartsWith("cards/000000-")
+                     && x.FullName.EndsWith("/integration.json"));
+                using(var reader2=new StreamReader(firstMeta.Open()))
+                {
+                    var meta=JsonNode.Parse(reader2.ReadToEnd())!;
+                    if(meta["nonstandardDesignConfirmedByUser"]?.GetValue<bool>()!=true ||
+                       meta["visualDefinitionAuthoritative"]?.GetValue<bool>()!=true)
+                        throw new InvalidOperationException("Confirmed custom design intent missing");
+                }
             }
             finally {if(File.Exists(zip3))File.Delete(zip3);}
         }
