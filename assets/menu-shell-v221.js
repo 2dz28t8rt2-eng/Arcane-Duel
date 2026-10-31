@@ -16,7 +16,7 @@
   challenges:['Lernpfad & Herausforderungen','Übe Kombinationen mit Leihdecks und erfülle Spezialmissionen.'],
   settings:['Einstellungen und Spielstandoptionen','Speichern, Import, Export und Einstellungen.']
  });
- function navigation({nav,groups,tabs,activeTab,collapsed=new Set(),brand='4.1 · BESTIARIUM'}){
+ function navigation({nav,groups,tabs,activeTab,collapsed=new Set(),brand=root.ArcaneDuelRelease?.version||'1.0.0'}){
   const doc=nav.ownerDocument||root.document;
   const activeGroup=groups.find(g=>g.tabs.includes(activeTab))||groups[0];
   nav.replaceChildren();nav.className='fm-navigation';
