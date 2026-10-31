@@ -71,6 +71,7 @@ internal sealed partial class Editor : Form
          AddButton(bar, "Zur Ablage hinzufügen", (_,_) => AddToShelf());
          AddButton(bar, "Ablage öffnen", (_,_) => OpenShelf());
          AddButton(bar, "Alle exportieren (ZIP)", (_,_) => ExportShelf(), true);
+         AddButton(bar, "Clear – Ablage leeren", (_,_) => ClearShelf());
         var split = new SplitContainer { Dock=DockStyle.Fill, SplitterDistance=610, FixedPanel=FixedPanel.None, BackColor=Color.FromArgb(56,47,62) };
         var scroll = new Panel { Dock=DockStyle.Fill, AutoScroll=true, Padding=new Padding(18), BackColor=Color.FromArgb(28,25,36) };
         var stack = new FlowLayoutPanel { Dock=DockStyle.Top, AutoSize=true, FlowDirection=FlowDirection.TopDown, WrapContents=false, Width=560, BackColor=scroll.BackColor };
@@ -137,6 +138,7 @@ internal sealed partial class Editor : Form
         root.Controls.Add(header,0,0); root.Controls.Add(bar,0,1); root.Controls.Add(split,0,2); root.Controls.Add(status,0,3);
         Controls.Add(root);
         SetupInputAssist(stack);
+        SetupIntegrationControls(stack);
         OrganizeEditorTabs(scroll,stack);
         RestoreShelf();
         NewCard();
@@ -223,7 +225,8 @@ internal sealed partial class Editor : Form
         customFrameBytes=null;customFrameExtension=null;preview.SetCustomFrame(null,null);
         artLabel.Text="Kein Bild ausgewählt";preview.SetImage(null);
         SetChoice(frames,"auto");SetChoice(ornaments,"auto");SetChoice(icons,"auto");
-        backgroundAccent=Color.FromArgb(111,77,122);accentChanged=false;RefreshPreview();
+        backgroundAccent=Color.FromArgb(111,77,122);accentChanged=false;
+        ResetIntegrationForCard();RefreshPreview();
         status.Text="Neue Karte · ID vor dem Export mit dem Projekt abgleichen.";
     }
     void SelectImage()
@@ -349,6 +352,7 @@ internal sealed partial class Editor : Form
             var thumb=AssetCatalog.ArtworkPreview(art);
             if(thumb!=null){preview.SetImage(thumb);artLabel.Text="Original-Artwork: "+art;}
         }
+        ResetIntegrationForCard(obj);
         RefreshPreview();
     }
     void LoadPackage(string path)
@@ -384,6 +388,21 @@ internal sealed partial class Editor : Form
             frames.Items.Add(new Choice("custom","Eigener Rahmen aus ZIP"));
             frames.SelectedIndex=frames.Items.Count-1;
         }
+        var policyEntry=archive.GetEntry("integration.json");
+        if(policyEntry!=null)
+        {
+            using var policyReader=new StreamReader(policyEntry.Open(),Encoding.UTF8);
+            var policy=JsonNode.Parse(policyReader.ReadToEnd()) as JsonObject;
+            if(policy!=null)ApplyPlan(new CardIntegrationPlan
+            {
+                Availability=policy["availability"]?.ToString()??"catalog-only",
+                Booster=policy["booster"]?.GetValue<bool>()??false,
+                StarterDeck=policy["starterDeck"]?.GetValue<bool>()??false,
+                QuestReward=policy["questReward"]?.GetValue<bool>()??false,
+                UnlockDetails=policy["unlockDetails"]?.ToString()??""
+            });
+        }
+        RefreshPreview();
     }
     void OpenCard()
     {
@@ -398,7 +417,9 @@ internal sealed partial class Editor : Form
     void SaveCard()
     {
         try {
-            var card=BuildCard(); using var d=new SaveFileDialog { Filter="JSON (*.json)|*.json", FileName="karte-"+Number("id")+".json" };
+            var draft=Snapshot();
+            if(!ConfirmIntent(new[]{draft}))return;
+            var card=draft.Card; using var d=new SaveFileDialog { Filter="JSON (*.json)|*.json", FileName="karte-"+Number("id")+".json" };
             if(d.ShowDialog()!=DialogResult.OK)return;
             File.WriteAllText(d.FileName,card.ToJsonString(Pretty),new UTF8Encoding(false)); status.Text="JSON gespeichert. Bild separat aufbewahren; für die Übergabe das Kartenpaket verwenden.";
         } catch(Exception ex){Error(ex);}
@@ -456,7 +477,7 @@ internal sealed partial class Editor : Form
             var zip2=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".zip");
             try
             {
-                WritePackage(zip2,edited,null,null); // Original artwork must NOT be replaced by thumbnail
+                WritePackage(zip2,edited,null,null,designApproved:true); // Original artwork must NOT be replaced by thumbnail
                 using var verify=ZipFile.OpenRead(zip2);
                 if(verify.GetEntry(nativeArt)!=null)
                     throw new InvalidOperationException("Unmodified existing artwork incorrectly bundled");
@@ -483,18 +504,33 @@ internal sealed partial class Editor : Form
             editor.imageBytes=File.ReadAllBytes(image);
             editor.imageExtension=".png";
             var secondDraft=editor.Snapshot(); // new card; full image copied
+            if(AnalyzeIntent(firstDraft).Count==0)
+                throw new InvalidOperationException("Mismatch warning was not detected for manual ornaments");
+            if(firstDraft.Integration.Availability!="preserve-existing")
+                throw new InvalidOperationException("Existing cards should retain unlock plan by default");
+            if(secondDraft.Integration.Availability!="catalog-only")
+                throw new InvalidOperationException("New cards must not auto-unlock");
+            secondDraft.Integration=new CardIntegrationPlan
+            {
+                Availability="unlock-configured",Booster=true,
+                UnlockDetails="Booster nach Turnierprüfung V freischalten"
+            };
+            if(IntegrationMetadata(secondDraft,true)["availability"]?.ToString()!="unlock-configured")
+                throw new InvalidOperationException("Explicit unlock plan not exported");
             var serialized=JsonSerializer.Serialize(new[]{firstDraft,secondDraft},Pretty);
             var recovered=JsonSerializer.Deserialize<List<CardDraft>>(serialized);
             if(recovered?.Count!=2 || recovered[1].Image==null ||
+                recovered[1].Integration.UnlockDetails!=secondDraft.Integration.UnlockDetails ||
                recovered[1].Card["name"]?.ToString()!="Testkarte")
                 throw new InvalidOperationException("Persistent draft shelf JSON round-trip failed");
             var zip3=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".zip");
             try
             {
-                WriteShelfPackage(zip3,new[]{firstDraft,secondDraft});
+                WriteShelfPackage(zip3,new[]{firstDraft,secondDraft},true);
                 using var batch=ZipFile.OpenRead(zip3);
                 if(batch.GetEntry("manifest.json")==null ||
                    batch.GetEntry("CHATGPT_IMPORT.md")==null ||
+                    batch.Entries.Count(x=>x.FullName.EndsWith("/integration.json"))!=2 ||
                    batch.Entries.Count(x=>x.FullName.EndsWith("/card.json"))!=2 ||
                    !batch.Entries.Any(x=>x.FullName.EndsWith("assets/custom-art/editor/card-42.png")))
                     throw new InvalidOperationException("Batch ZIP manifest/cards/artwork incomplete");
@@ -506,12 +542,20 @@ internal sealed partial class Editor : Form
         }
         finally { if(File.Exists(image))File.Delete(image);if(File.Exists(zip))File.Delete(zip); }
     }
-    static void WritePackage(string path,JsonObject card,byte[]? image,byte[]? customFrame)
+    static void WritePackage(string path,JsonObject card,byte[]? image,byte[]? customFrame,
+        CardIntegrationPlan? plan=null,bool designApproved=false)
     {
+        var draft=new CardDraft {Card=(JsonObject)card.DeepClone(),Image=image,Frame=customFrame,
+            Integration=plan??new CardIntegrationPlan()};
+        ValidateDraft(draft);
+        if(AnalyzeIntent(draft).Count>0&&!designApproved)
+            throw new InvalidOperationException("Abweichende Karteneigenschaften brauchen eine ausdrückliche Exportbestätigung.");
         using var file=new FileStream(path,FileMode.Create,FileAccess.Write,FileShare.None);
         using var archive=new ZipArchive(file,ZipArchiveMode.Create);
         var json=archive.CreateEntry("card.json");
         using(var writer=new StreamWriter(json.Open(),new UTF8Encoding(false)))writer.Write(card.ToJsonString(Pretty));
+        ZipText(archive,"integration.json",IntegrationMetadata(draft,designApproved).ToJsonString(Pretty));
+        ZipText(archive,"CHATGPT_IMPORT.md",ChatGptImportGuide);
         if(image!=null)
         {
             var picture=archive.CreateEntry(card["art"]!.GetValue<string>());
@@ -529,12 +573,14 @@ internal sealed partial class Editor : Form
     void ExportPackage()
     {
         try {
-            var card=BuildCard(); var art=card["art"]?.ToString();
+            var draft=Snapshot();
+            var card=draft.Card; var art=card["art"]?.ToString();
             if(imageBytes==null&&string.IsNullOrWhiteSpace(art))
                 throw new InvalidOperationException("Bitte Artwork auswählen oder vorhandene Karte öffnen.");
+            if(!ConfirmIntent(new[]{draft}))return;
             using var d=new SaveFileDialog { Filter="ZIP-Paket (*.zip)|*.zip", FileName="Arcane-Karte-"+Number("id")+".zip" };
             if(d.ShowDialog()!=DialogResult.OK)return;
-            WritePackage(d.FileName,card,imageBytes,customFrameBytes);
+            WritePackage(d.FileName,card,draft.Image,draft.Frame,draft.Integration,true);
             status.Text="Karte gespeichert. Das Kartenpaket kann im Chat geteilt werden.";
             using var popup=new SharePathDialog(d.FileName); popup.ShowDialog(this);
         }catch(Exception ex){Error(ex);}
