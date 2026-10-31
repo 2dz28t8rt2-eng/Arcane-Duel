@@ -6,12 +6,13 @@
 (()=>{
  const $=id=>document.getElementById(id),api=window.ArcaneDuoParty218;
  if(!api){console.error('[Duo Party] Controller unavailable');return;}
- let lobbySection='menu',lastMode='',entered=false;
+ let lobbySection='menu',lastMode='',entered=false,resultMenu=false;
  const origin=()=>location.href.split('#')[0].split('?')[0];
  const info=message=>{$('duoPartyStatus').textContent=message;};
  const select=(section)=>{
   const state=api.state();
-  if(!['lobby','party_ready'].includes(state.game?.status))return;
+  if(!['waiting','lobby','party_ready','finished','inviting_next'].includes(state.game?.status))return;
+  if(state.game?.status==='finished')resultMenu=true;
   lobbySection=section;
   if(section==='deck'||section==='fusions'){
    $('duoProfileDeckZone').value=section==='fusions'?'fusion':'main';
@@ -26,7 +27,7 @@
   const s=api.state(),g=s.game,attached=!!g&&[0,2].includes(s.seat);
   const joined=attached&&g.status!=='waiting';
   const party=s.nameConfirmed&&!entered;
-  const inMenu=['waiting','lobby','party_ready'].includes(g?.status);
+  const inMenu=['waiting','lobby','party_ready'].includes(g?.status)||g?.status==='inviting_next'||g?.status==='finished'&&resultMenu;
   const menu=s.nameConfirmed&&attached&&entered&&inMenu&&lobbySection==='menu';
   const library=s.nameConfirmed&&attached&&entered&&inMenu&&lobbySection!=='menu';
   const battle=s.nameConfirmed&&attached&&entered&&!inMenu;
@@ -80,8 +81,8 @@
       'Erstelle eine Party und lade deinen Mitspieler ein. Erst danach geht es ins Hauptmenü.');
    }
   }
-  if(joined){
-   $('duoMenuTeam').textContent=g.players[0].name+'  ✦  '+g.players[2].name;
+  if(attached){
+   $('duoMenuTeam').textContent=g.players[0].name+'  ✦  '+(g.status==='waiting'?'Partner wird erwartet':g.players[2].name);
    $('duoMenuStart').disabled=s.busy||g.status!=='lobby';
    $('duoMenuStart').textContent=g.status==='waiting'?'Partner noch nicht verbunden':'Duell anfragen';
    const ownRequest=g.partyStartInvite?.fromSeat===s.seat;
@@ -97,12 +98,14 @@
   $('duoStartDecline').hidden=!pending||s.seat!==g.partyStartInvite?.toSeat;
   $('duoStartCancel').hidden=!pending||s.seat!==g.partyStartInvite?.fromSeat;
   $('duoStartNoticeTitle').textContent=s.seat===g?.partyStartInvite?.fromSeat?
-   'Warte auf die Zustimmung deines Partners':'Dein Partner lädt dich zum Duell ein';
+   'Warte auf die Zustimmung deines Partners':(g?.players[g.partyStartInvite?.fromSeat]?.name||'Dein Partner')+' lädt dich zum Duell ein';
   $('duoStartNoticeText').textContent=s.seat===g?.partyStartInvite?.fromSeat?
    'Beide können ihre Karten und Fähigkeiten weiter unabhängig verwalten.':
    'Du kannst erst dein Deck fertigstellen und dann zustimmen oder die Anfrage ablehnen.';
   // Do not show the legacy room-creation panel inside the actual game.
   $('duoSetupPanel').hidden=attached;
+  if(g?.status==='active')resultMenu=false;
+  window.ArcaneDuoSolo221?.sync?.({entered,lobbySection,inMenu,menu,library,battle});
  }
  function moveChapterControls(){
   const target=$('duoPartyChapterControls');
@@ -182,7 +185,7 @@
    $('duoMenuStatus').textContent=$('duoStatus').textContent||'Anfrage fehlgeschlagen. Bitte erneut versuchen.';
   sync();
  };
- $('duoStartAccept').onclick=async()=>{await api.send({type:'acceptPartyStart'});sync();};
+ $('duoStartAccept').onclick=async()=>{entered=true;await api.send({type:'acceptPartyStart'});sync();};
  $('duoStartDecline').onclick=async()=>{await api.send({type:'declinePartyStart'});sync();};
  $('duoStartCancel').onclick=async()=>{await api.send({type:'cancelPartyStart'});sync();};
  for(const section of ['profile','shop','deck','fusions','collection','upgrades']){
@@ -192,6 +195,9 @@
  $('duoMenuDeck').onclick=()=>select('deck');
  $('duoMenuProfile').onclick=()=>select('profile');
  $('duoReturnMenu').onclick=()=>select('menu');
- window.ArcaneDuoPartyUI218=Object.freeze({sync,select});
+ window.ArcaneDuoPartyUI218=Object.freeze({sync,select,returnToMenu:()=>{
+  if(!['finished','inviting_next','party_ready','lobby'].includes(api.state().game?.status))return;
+  entered=true;resultMenu=true;lobbySection='menu';sync();
+ }});
  sync();
 })();

@@ -57,7 +57,7 @@
     const template=native?.querySelector('[data-ad188-template]');
     const resultSlot=native?.querySelector('[data-ad188-slot]');
     const optionByKey=new Map([...select.options].map(o=>[o.value,o]));
-    const scope=(roomId||game.roomId||'duo')+':'+seat+':'+(player.ownTurns??game.round);
+    const scope=(roomId||game.roomId||'duo')+':'+(game.duelNo||1)+':'+seat+':'+(player.ownTurns??game.round);
     const previous=saved.get(scope);
     let stageMode='fusion',keepKey=null;
     if(previous?.length){
@@ -103,10 +103,11 @@
     const discardSlot=element('select','ad207-discard-zone');
     discardSlot.setAttribute('aria-label','Monsterzone nach dem Wegwerfen');
     for(const [i,c] of player.field.entries()){
+      if(game.fieldLayout==='team7'&&ally?.field[i])continue;
       const option=element('option','', 'Zone '+(i+1)+(c?' · '+(catalog?.[c.id]?.name||'Monster')+' ersetzen':' · frei'),discardSlot);
       option.value=String(i);
     }
-    const empty=player.field.findIndex(c=>!c);discardSlot.value=String(empty<0?0:empty);
+    const empty=player.field.findIndex((c,i)=>!c&&(game.fieldLayout!=='team7'||!ally?.field[i]));discardSlot.value=String(empty<0?0:empty);
     const discardCommit=element('button','ad207-discard-commit','Nur markierte Karte behalten und beschwören');
     discardCommit.type='button';
     stageModes.append(fusionMode,discardMode);
@@ -192,7 +193,7 @@
       discardHelp.hidden=stageMode!=='discard';
       discardSlot.hidden=stageMode!=='discard';
       discardCommit.hidden=stageMode!=='discard';
-      discardCommit.disabled=!handOnly||!keepKey||!Number.isInteger(Number(discardSlot.value))||
+      discardCommit.disabled=!discardSlot.options.length||!handOnly||!keepKey||!Number.isInteger(Number(discardSlot.value))||
        typeof send!=='function'||busy||!!syncError;
       fusionMode.classList.toggle('selected',stageMode==='fusion');
       discardMode.classList.toggle('selected',stageMode==='discard');

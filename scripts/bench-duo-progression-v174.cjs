@@ -42,7 +42,7 @@ function advancedDeck(chapter){
  return deck;
 }
 function scriptedHuman(g,seat){
- const p=g.players[seat],free=p.field.findIndex(x=>!x);
+ const p=g.players[seat],free=p.field.findIndex((x,i)=>rules.freeTeamSlot(g,p,i));
  if(!p.summoned&&free>=0&&p.hand.length){
   const best=p.hand.map((id,i)=>({id:Number.isInteger(id)?id:id?.id,i}))
    .filter(x=>catalog[x.id]?.playable)

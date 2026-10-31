@@ -13,7 +13,7 @@
  let catalog={},starterMain=[],starterFusions=[],fateIds=[],fateNames=[],profileDeck=[],profileFusions=[],
   profileUpgrades={},profileEnhancements={},profileEssence={},profileLv1={};
  let game=null,seat=-1,roomId='',token='',invite='',busy=false,refreshing=false,
-  syncError='',syncedAt=0,sessionReady=true,syncFailures=0,lastPollAt=0;
+  presence=null,syncError='',syncedAt=0,sessionReady=true,syncFailures=0,lastPollAt=0;
  let duoProfile=null,duoProfileToken='',duoLastRoom=null,profileSaving=false,duoEconomy=null;
   let nameConfirmed=false,joinIntent=null,invitePreview=null,inviteRequested=false;
   const portraits=window.ArcanePortraits215;
@@ -257,6 +257,7 @@
     current+' könntest du sie verdienen.');
  }
  function installProfile(data){
+  if(duoProfile&&data.profile?.id===duoProfile.id&&data.profile.revision<duoProfile.revision)return;
   duoProfile=data.profile;duoLastRoom=data.lastRoom??duoLastRoom;
   window.ArcaneDuoPortraits215?.updateProfile?.(duoProfile);
   if(!nameConfirmed){$('duoNameInput').value=duoProfile.nickname;$('duoNameHint').textContent='Dein bisheriger 2v2-Name. Du kannst ihn hier ändern.';
@@ -380,7 +381,7 @@
      ' Essenz und '+data.recycled.shards+' Splitter.':
     '✓ Deine Änderung wurde gespeichert.');
   }catch(e){set('duoProfileMessage',e.message);await fetchProfile();}
-  finally{profileSaving=false;}
+  finally{profileSaving=false;window.ArcaneDuoSolo221?.profileChanged?.();}
  }
  async function backupProfile(){
   if(!duoProfileToken)return;
@@ -413,8 +414,11 @@
   catch{sessionReady=false;}
  }
  function load(payload){
-  const previous=game;
+  if(payload.presence)presence=payload.presence;
+  if(payload.state?.roomId&&payload.state.roomId!==roomId)return;
+  let previous=game;
   if(previous&&payload.state?.revision<previous.revision)return;
+  if(previous&&(payload.state?.duelNo||1)!==(previous.duelNo||1))previous=null;
   game=payload.state;seat=payload.seat;syncedAt=Date.now();syncError='';syncFailures=0;
   if(game.status!=='waiting')invite='';
   save();render();
@@ -444,6 +448,7 @@
   refreshing=true;lastPollAt=Date.now();
   try{
    const response=await call({type:'state',roomId,token});
+   if(response.presence){presence=response.presence;window.ArcaneDuoSolo221?.updatePresence?.();}
    if(!game||response.state.revision!==game.revision)load(response);
    else{const recovered=!!syncError;syncedAt=Date.now();syncError='';syncFailures=0;
     if(recovered)render();else updateSaveState();}
@@ -453,7 +458,10 @@
  }
  async function send(action){
   if(!game||busy)return;
-  if(!((action.type==='startParty'&&[0,2].includes(seat)&&game.status==='lobby')||
+  if(['acceptPartyStart','declinePartyStart','cancelPartyStart'].includes(action.type)&&game.partyStartInvite?.id!=null)
+   action={...action,inviteId:action.inviteId??game.partyStartInvite.id};
+  if(!((action.type==='requestDuel'&&[0,2].includes(seat)&&(['lobby','finished'].includes(game.status)||game.status==='party_ready'&&game.partyStartInvite?.expiresAt<=Date.now()))||
+       (action.type==='startParty'&&[0,2].includes(seat)&&game.status==='lobby')||
        (action.type==='cancelPartyStart'&&seat===game.partyStartInvite?.fromSeat&&game.status==='party_ready')||
        (['acceptPartyStart','declinePartyStart'].includes(action.type)&&seat===game.partyStartInvite?.toSeat&&game.status==='party_ready'))&&
      !(game.activeSeat===seat&&game.status==='active')&&
@@ -617,6 +625,7 @@
     (game.status==='active'&&game.activeSeat===p.seat?'current':''));
    const panel=el('article',seats,undefined,'seat '+(game.activeSeat===p.seat?'active':''));
    panel.dataset.seat=String(p.seat);
+   panel.dataset.perspective=p.seat===seat?'self':p.team===0?'ally':'enemy';
    const heading=el('div',panel,undefined,'ad215-duo-seat-head');
    const chosen=[game.players[0]?.portraitId,game.players[2]?.portraitId];
    // On a cleared research stage, the researchers advance visually to their
@@ -714,6 +723,7 @@
   window.ArcaneDuoPredator198?.decorate?.({game,seat});
   window.ArcaneDuoUX204?.decorate?.({game,seat,roomId,catalog,send});
   window.ArcaneDuoSoulBond206?.decorate?.({game,seat,roomId,catalog});
+  window.ArcaneDuoSolo221?.decorateBattle?.({game,seat,roomId,catalog});
   if(game.status!=='active'){
    if(game.status==='inviting_next'){
     el('p',dock,seat===game.chapterInvite?.fromSeat?'Dein Partner hat eine Einladung erhalten. Warte auf Bestätigung.':
@@ -747,7 +757,7 @@
    const hand=selector('Handkarte',legal.hand.map(x=>[x.index,
     displayName(x)+' · Lv '+card(x.id).level+
     (x.fate?' · '+x.atk+'/'+x.def+' · unverschmelzbar':'')]),row);
-   const slot=selector('Monsterzone',p.field.map((c,i)=>[i,'Feld '+(i+1)+(c?' · '+displayName(c)+' (ersetzen)':' · frei')]),row);
+   const slot=selector('Monsterzone',p.field.flatMap((c,i)=>game.fieldLayout==='team7'&&game.players.find(x=>x.team===p.team&&x.seat!==seat)?.field[i]?[]:[[i,'Feld '+(i+1)+(c?' · '+displayName(c)+' (ersetzen)':' · frei')]]),row);
    hand.dataset.ad189Hand='true';
    slot.dataset.ad189Slot='true';
    const summonCommit=button('Monster spielen / ersetzen',part,()=>{
@@ -759,6 +769,8 @@
     send({type:occupied?'replace':'summon',handIndex:Number(hand.value),slot:destination});
    });
    summonCommit.dataset.ad189Commit='true';
+   summonCommit.disabled=busy||!!syncError||!slot.options.length;
+   if(!slot.options.length)el('p',part,'Alle sieben Teamzonen gehören gerade deinem Partner. Eine Fusion mit erlaubtem Partner-Material kann Platz schaffen.','duo-turn-note');
   }
   if(!p.summoned&&p.remainingFusion.length>=1){
    const part=section(dock,'✦ Fusion','Wähle zwei bis fünf Monster aus deiner Hand, deinem Feld oder dem Feld deines menschlichen Partners. '+
@@ -835,7 +847,8 @@
       {coreIndex:Number(core.value)});
      if(availability.rule.street)core.value=String(availability.rule.coreIndex);
      core.disabled=availability.rule.street;
-     const slots=p.field.flatMap((c,i)=>!c||materials.some(m=>m.from==='field'&&m.index===i)?[i]:[]);
+     const slots=p.field.flatMap((c,i)=>(!c||materials.some(m=>m.from==='field'&&m.index===i))&&
+      (game.fieldLayout!=='team7'||!ally?.field[i]||materials.some(m=>m.from==='allyField'&&m.index===i))?[i]:[]);
      for(const id of availability.templates){
       const op=el('option',options,name(id)+' · Lv '+card(id).level);op.value=id;
      }
@@ -905,7 +918,7 @@
    update(true);
   }
   if(p.lv1?.perk){
-   const state=p.lv1,free=p.field.flatMap((c,i)=>c?[]:[i]),
+   const state=p.lv1,free=p.field.flatMap((c,i)=>rules.freeTeamSlot(game,p,i)?[i]:[]),
     openGhost=(state.ghostSlots||[]).flatMap((c,i)=>c?[]:[i]),
     stationed=(state.ghostSlots||[]).flatMap((c,i)=>c?[{c,i}]:[]);
    const lv=section(dock,'✧ Verbotene Forschung · Level-1-Schwarm',
@@ -1234,7 +1247,8 @@
   state:()=>({nameConfirmed,joinIntent:!!joinIntent,joinPreview:invitePreview?
    {inviterName:invitePreview.inviterName,chapter:invitePreview.chapter}:null,
    roomId,seat,game,invite,profile:duoProfile,lastRoom:duoLastRoom,
-   busy,catalogReady:Object.keys(catalog).length>0}),
+   busy,profileSaving,presence,catalog,economy:duoEconomy,catalogReady:Object.keys(catalog).length>0}),
+  profileOperation,refreshProfile:fetchProfile,refresh,
   createRoom,continueLastRoom,send,
   acceptPendingInvite:async()=>{
    if(!joinIntent)throw Error('Es gibt keine offene Einladung.');

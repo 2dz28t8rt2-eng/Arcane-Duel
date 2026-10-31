@@ -13,7 +13,7 @@ const attack=c=>rules.attackValue(c);
 const monster=id=>catalog[id];
 
 function pickFusion(g,seat){
- const p=g.players[seat],free=p.field.findIndex(x=>!x);
+ const p=g.players[seat],free=p.field.findIndex((x,i)=>rules.freeTeamSlot(g,p,i));
  if(p.summoned||free<0||p.hand.length<2||!p.remainingFusion.length)return null;
  const hand=p.hand.map((x,index)=>({id:Number.isInteger(x)?x:x?.id,index}))
   .filter(x=>Number.isInteger(x.id)&&monster(x.id)?.playable);
@@ -76,7 +76,7 @@ function tactician(style){
    if(style==='fusion'||style==='hybrid')chosen=pickFusion(g,seat);
    if(chosen){try{g=rules.apply(g,seat,chosen,{catalog});}catch{chosen=null;}}
    if(!chosen){
-    const now=g.players[seat],free=now.field.findIndex(x=>!x);
+    const now=g.players[seat],free=now.field.findIndex((x,i)=>rules.freeTeamSlot(g,now,i));
     const cards=now.hand.map((id,i)=>({id:Number.isInteger(id)?id:id?.id,i}))
      .filter(x=>monster(x.id)?.playable);
     const defensive=style==='defense';

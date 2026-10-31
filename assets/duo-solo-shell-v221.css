@@ -1,0 +1,181 @@
+/* Shared solo styles above; only online data panels and four seven-zone lanes below. */
+#duoMenuScreen[hidden],#duoProfilePanel[hidden],#duoDuelPanel[hidden],#duoDeckBuilder[hidden],#duoVisualOffers[hidden],#duoPersonalSettings[hidden],#duoPersonalRules[hidden],#duoPersonalBestiary[hidden]{display:none!important}
+#duoMenuScreen #duoSoloWorkspace:not([hidden]){display:contents!important}
+#duoPage #duoMenuScreen{width:100%;max-width:1480px;margin:auto}
+#duoPage #duoMenuScreen #duoSoloProfileHud{grid-column:1/-1;grid-row:1;margin:0;justify-content:flex-start}
+#duoPage #duoMenuScreen #duoSoloMenuNav.fm-navigation{grid-column:1;grid-row:2/span 2}
+#duoPage #duoMenuScreen #duoSoloMenuHero{grid-column:2;grid-row:2;margin:0;padding:27px 32px}
+#duoPage #duoMenuScreen #duoProfilePanel,#duoPage #duoMenuScreen #duoDuelPanel{grid-column:2;grid-row:3;width:100%;margin:0;min-width:0;max-width:none}
+#duoPage[data-lobby-view="true"]>:not(#duoMenuScreen),#duoPage[data-lobby-view="true"] #duoBattleArena{display:none!important}
+#duoPage[data-lobby-view="true"] #duoProfilePanel{padding:20px;margin:0;max-width:none}
+#duoMenuScreen .menu-hero:after,#duoProfilePanel:before{display:none!important}
+#duoMenuScreen .fm-hero-content{display:flex;align-items:center}
+#duoMenuScreen .ad221-hero-sigil{font:110px Georgia,serif;color:#d8bc77;opacity:.42;line-height:1;text-shadow:0 0 28px #c7955d66}
+#duoMenuScreen .fm-submenu>.menu-tab{width:100%;text-align:left;border-radius:0;white-space:normal;margin:0}
+#duoMenuScreen .fm-nav-brand small{font-size:9px;letter-spacing:.1em}
+#duoMenuScreen .atlas-showcase-face .hand-stats{display:none!important}
+#duoPage #duoSoloMenuNav .fm-group-button{white-space:normal}
+#duoProfilePanel>h2,#duoProfilePanel>p.micro,#duoProfileActive>.actions{display:none}
+#duoProfilePanel .duo-profile-shop{display:block;margin:0}
+#duoProfilePanel .duo-profile-shop>div[hidden],#duoProfilePanel .duo-collection[hidden],#duoProfilePanel .duo-balance-panel[hidden],#duoProfilePanel [hidden]{display:none!important}
+#duoProfilePanel .duo-profile-shop:has(>div:not([hidden])){margin:16px 0}
+#duoMenuScreen .actions{gap:10px}
+#duoMenuStart{min-height:46px;min-width:170px;background:linear-gradient(#e1b967,#b1843d);color:#191b20;border-color:#e9c879;font-weight:800}
+#duoDuelPanel label{max-width:640px}
+#duoDuelPanel select{width:100%}
+#duoDuelPanel #duoMenuTeam{font:600 14px/1.6 system-ui;color:#e9d29f}
+.ad221-encounter{border:1px solid #b3996766;padding:20px;border-radius:12px;background:linear-gradient(125deg,#303247,#122338);margin:15px 0}
+.ad221-encounter>strong{font:25px Georgia,serif;color:#f0dca5}
+.ad221-encounter p{color:#c0c8d6}
+.ad221-encounter .info-pills{display:flex;flex-wrap:wrap;gap:8px;font-size:12px}
+.ad221-encounter .info-pills>span{border:1px solid #927c5666;border-radius:20px;padding:5px 10px;background:#101c2b}
+.ad221-deck-columns{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.ad221-deck-columns>section{min-width:0}
+.ad221-deck-slots,.ad221-owned-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-content:start}
+.ad221-owned-grid{margin-top:16px;max-height:680px;overflow-y:auto;padding:4px}
+.ad221-deck-slots{max-height:800px;overflow-y:auto;padding:4px}
+#duoPage .ad221-card-choice{position:relative;display:block;width:100%;min-width:0;padding:3px;border:1px solid transparent;background:transparent;color:#e9dfc9;text-align:center;border-radius:8px}
+#duoPage .ad221-card-choice:hover,#duoPage .ad221-card-choice.selected{border-color:#f3d69b;background:#e4be7033;box-shadow:0 0 16px #dfbb5a44}
+.ad221-card-choice>small{display:block;font-size:10px;margin-top:4px}
+.ad221-deck-number{position:absolute;left:-2px;top:-6px;z-index:6;background:#092536;border:1px solid #e1c184;border-radius:50%;width:23px;height:23px;color:#ffe4af;font:700 11px/21px system-ui}
+#duoDeckSearch{width:100%;max-width:100%}
+#duoDeckCommit{width:100%;min-height:42px;margin:5px 0 10px}
+#duoDeckSelection{font-size:12px;min-height:42px;color:#e7c897}
+#duoPage .ad221-mini-face.hand-card{width:100%!important;min-width:0!important;max-width:none;aspect-ratio:2/3;height:auto!important;min-height:0!important;display:flex;flex-direction:column;gap:1px;pointer-events:none;transform:none!important}
+#duoPage .ad221-mini-face .hand-title{font-size:clamp(7px,.7vw,10px)!important;line-height:1.15;min-height:24px;display:flex;align-items:center}
+#duoPage .ad221-mini-face .card-level-badge{display:none!important}
+#duoPage .ad221-mini-face .hand-art{flex:1;min-height:0!important;aspect-ratio:auto;height:auto!important}
+#duoPage .ad221-mini-face .hand-art img{width:100%;height:100%;object-fit:cover;display:block}
+#duoPage .ad221-mini-face .hand-type{font-size:8px;line-height:1.1;min-height:0}
+#duoPage .ad221-mini-face .hand-stats{min-height:22px;--ad-seal-size:19px}
+#duoPage .ad221-mini-face .stat-value{font:700 11px system-ui!important}
+#duoPage .ad221-mini-face .ad-level-medallion{font-size:9px!important;width:19px;height:19px}
+#duoVisualOffers{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px}
+#duoVisualOffers .fm-perk-card{padding:18px;display:flex;flex-direction:column;gap:8px;min-width:0;border:1px solid #967c5666;border-radius:12px;background:linear-gradient(135deg,#222b40,#101b2b)}
+#duoVisualOffers .fm-perk-card h3{margin:0;font:21px Georgia,serif}
+#duoVisualOffers .fm-perk-card p{flex:1;font-size:12px;color:#c5cbd6}
+#duoPersonalSettings label{display:flex;align-items:center;gap:9px}
+#duoPersonalSettings input[type=checkbox]{width:auto}
+#duoPage #duoBattleArena.ad221-duel{padding:12px;overflow:visible;background:none;border:0;box-shadow:none}
+#duoPage:not([data-lobby-view="true"]){max-width:1800px;padding:12px 18px}
+#duoPage:not([data-lobby-view="true"])>.duo-header{padding:5px 0 12px;margin-bottom:8px}
+#duoPage:not([data-lobby-view="true"])>.duo-header h1{font-size:21px}
+#duoPage:not([data-lobby-view="true"])>.notice{display:none}
+.ad221-battle-grid{display:grid;grid-template-columns:230px minmax(0,1fr) 265px;gap:16px;align-items:start}
+.ad221-battle-grid>*{min-width:0}
+.ad221-battle-center{padding:12px;overflow:visible}
+.ad221-inspector,.ad221-battle-sidebar{position:sticky;top:12px;max-height:calc(100dvh - 30px);overflow-y:auto;scrollbar-width:thin;padding:12px;background:linear-gradient(150deg,#1b2538,#111927);border:1px solid #b99a5866;border-radius:13px}
+.ad221-inspector summary{cursor:pointer;font-weight:700;color:#e7c68c;padding:10px 3px}
+.ad221-inspector details+details{border-top:1px solid #a0815e66;margin-top:12px}
+#duoLargeCardPreview>.hand-card{display:flex;flex-direction:column;width:100%!important;min-width:0;aspect-ratio:2/3;height:auto;pointer-events:none}
+#duoLargeCardPreview .hand-art{flex:1;min-height:0;aspect-ratio:auto}
+#duoLargeCardPreview .hand-art img{width:100%;height:100%;object-fit:cover}
+#duoLargeCardPreview .hand-title{font-size:16px;min-height:38px}
+#duoLargeCardPreview .hand-stats{background:#101a2d!important;opacity:1}
+.ad221-card-explanation{font-size:12px;line-height:1.55;color:#cdd4e1;margin:13px 0}
+.ad221-card-explanation>strong{color:#f1dbaf}
+#duoPage #duoSeats.four-seats{display:flex!important;flex-direction:column;gap:8px;min-width:0;width:100%}
+#duoPage #duoSeats .seat{border-radius:9px;padding:8px 12px 6px!important;overflow-x:auto;background:#0c1a2a;border:1px solid #63798988;box-shadow:none}
+#duoPage #duoSeats .seat[data-perspective="enemy"]{background:linear-gradient(120deg,#2c2031,#102132);border-color:#c57c8755}
+#duoPage #duoSeats .seat[data-perspective="self"]{border-color:#9ac8c2;background:linear-gradient(120deg,#1b343d,#102132)}
+#duoPage #duoSeats .seat.active{box-shadow:inset 0 0 0 1px #ffe3a2,0 0 17px #e4bd6533}
+#duoPage #duoSeats .seat>.ad185-seat-badge{position:static;display:inline-block;padding:2px 7px;margin-right:9px;font-size:9px}
+#duoPage #duoSeats .ad215-duo-seat-head{display:inline-flex;vertical-align:middle;gap:8px;margin:0}
+#duoPage #duoSeats .ad215-duo-seat-head .ad215-portrait{width:28px;height:28px;min-width:28px}
+#duoPage #duoSeats .seat h3{font-size:13px;margin:0}
+#duoPage #duoSeats .seat>.duo-seat-kind,#duoPage #duoSeats .seat>.duo-perk-note{display:none}
+#duoPage #duoSeats .seat>.duo-seat-count{display:inline-block;margin-left:9px;font-size:9px}
+#duoPage #duoSeats .seat>.field{grid-template-columns:repeat(7,minmax(75px,1fr))!important;min-width:609px;gap:12px;margin:6px 0 0}
+#duoPage #duoSeats .seat>.field:before{display:none!important}
+#duoPage #duoSeats .field-cell{position:relative;min-height:132px;height:132px;aspect-ratio:auto;overflow:visible;padding:4px 3px 22px;display:flex;align-items:center;justify-content:center;background:#11223877;border:1px dashed #879caa70}
+#duoPage #duoSeats .field-cell.filled{background:#18304466;border-color:#c6a96988}
+.ad221-board-face{position:relative;width:66px;height:98px;flex-shrink:0;transform-origin:center;transition:transform .5s ease;z-index:1}
+#duoPage .ad221-board-face>.hand-card{width:100%!important;height:100%!important;aspect-ratio:auto;overflow:hidden}
+#duoPage #duoSeats .field-cell[data-mode="def"]>.ad221-board-face{transform:rotate(90deg)}
+#duoPage .ad221-board-face .hand-title{font-size:8px!important;min-height:17px}
+#duoPage .ad221-board-face .hand-type{display:none}
+#duoPage .ad221-board-face .hand-stats{min-height:18px}
+#duoPage .ad221-board-face .stat-value{font-size:9px!important}
+#duoPage .ad221-board-face .ad-level-medallion{font-size:8px!important;width:16px;height:16px}
+#duoPage #duoSeats .field-cell>small.duo-soul-status{display:none}
+#duoPage #duoSeats .field-cell>[hidden]{display:none!important}
+.ad221-role-label{position:absolute;bottom:2px;left:0;right:0;font:700 8px/1.8 system-ui;letter-spacing:.06em;color:#d6c6b3;text-shadow:0 0 8px #e8b87566;z-index:3;pointer-events:none}
+.ad221-role-label[data-role="soul"]{color:#d9b4ff;animation:ad221Role 3.4s ease-in-out infinite}
+.ad221-role-label[data-role="guardian"]{color:#a5efe0;animation:ad221Role 3.4s ease-in-out infinite .5s}
+#duoPage #duoSeats .ad183-role-name{display:none}
+#duoPage #duoSeats .ad204-swarm-badge{font-size:8px;right:0;top:2px;z-index:4}
+#duoPage #duoSeats .ad204-card-info{z-index:5;width:22px;height:22px;font-size:12px;bottom:20px;right:0}
+#duoPage .ad221-overcharged .stat.def{color:#9affe0!important;background:#0b3831!important;box-shadow:0 0 9px #7affd5!important}
+#duoPage .ad221-overcharged>.ad221-board-face:after{content:'✦';position:absolute;inset:-5px;color:#b5ffe8;font-size:11px;border:1px solid #a5ffe4;border-radius:5px;box-shadow:0 0 13px #72ffd777;pointer-events:none;animation:ad221Charge 2.6s ease-in-out infinite}
+.ad221-overcharge-text{color:#a8ffe4}
+.ad221-duel-start{position:fixed;inset:0;z-index:25000;display:grid;place-content:center;gap:20px;text-align:center;background:radial-gradient(ellipse,#342f49eb,#060b17f5 70%);color:#f5dc9b;cursor:pointer}
+.ad221-duel-start>strong{font:700 clamp(35px,8vw,90px) Georgia,serif;letter-spacing:.12em;text-shadow:0 0 35px #edc76a88;animation:ad221Start 1.8s ease both}
+.ad221-duel-start>span,.ad221-duel-start>small{font:600 12px/1.5 system-ui;letter-spacing:.2em}
+#duoPage .ad185-lp-gauge{display:none}
+#duoPage .ad221-mini-face[data-element="FEUER"]{--ad221-element:#ff9a48}
+#duoPage .ad221-mini-face[data-element="WASSER"]{--ad221-element:#74cbff}
+#duoPage .ad221-mini-face[data-element="ERDE"]{--ad221-element:#afe2a0}
+#duoPage .ad221-mini-face[data-element="LUFT"]{--ad221-element:#c1f7f3}
+#duoPage .ad221-mini-face[data-element="LICHT"]{--ad221-element:#ffe9ad}
+#duoPage .ad221-mini-face[data-element="FINSTERNIS"]{--ad221-element:#c8a0f3}
+#duoPage .ad221-mini-face .hand-art{position:relative;isolation:isolate}
+#duoPage .ad221-mini-face .hand-art:after{content:'';pointer-events:none;position:absolute;inset:4px;background:radial-gradient(circle at 15% 90%,var(--ad221-element,#dae4ed) 1px,transparent 2px),radial-gradient(circle at 78% 70%,var(--ad221-element,#dae4ed) 1px,transparent 2px),radial-gradient(circle at 52% 95%,var(--ad221-element,#dae4ed) 1px,transparent 2px);box-shadow:inset 0 -8px 15px -11px var(--ad221-element,#dae4ed);opacity:.65;animation:ad221Motes 3.2s ease-in-out infinite;z-index:2}
+.ad221-legacy-return{display:none!important}
+#duoPage .duo178-hand{margin:10px 0 0;background:linear-gradient(#172437,#0c1424);border:1px solid #a38e5e77;border-radius:10px;padding:9px;min-width:609px}
+#duoPage .duo178-hand-cards{display:flex;justify-content:center;gap:9px;padding:8px;overflow:visible}
+#duoPage .duo178-hand-card{flex:0 1 100px;width:100px;max-width:100px;aspect-ratio:2/3;min-width:76px;height:auto;min-height:0;padding:0;border:0;overflow:visible;background:none}
+#duoPage .duo178-hand-card>[hidden]{display:none!important}
+#duoPage .ad221-hand-face{position:relative;width:100%;height:100%;pointer-events:none}
+#duoPage .ad221-battle-sidebar #duoActions{display:block;border:0;margin:0;padding:0}
+#duoPage .ad221-battle-sidebar .duo-action-group{padding:9px;width:100%;margin:9px 0}
+#duoPage .ad221-battle-sidebar .duo-choices{display:block;min-width:0}
+#duoPage .ad221-battle-sidebar .duo-choice{margin:7px 0}
+#duoPage .ad221-battle-sidebar button{max-width:100%;white-space:normal}
+#duoPage .ad221-battle-sidebar select{width:100%;max-width:100%}
+#duoPage .ad221-battle-sidebar .duo-fusion-list{min-width:0;width:100%}
+#duoPage .ad221-battle-center .stats>div{padding:8px}
+#duoPage .ad221-battle-center .stats strong{font-size:23px}
+#duoPage .ad221-battle-center #ad185-turn-banner{padding:8px 12px;margin:8px 0}
+#duoPage .ad221-battle-center .ad185-turn-content h3{font-size:18px}
+#duoPage .ad221-battle-center #duoTurnName{font-size:14px;margin:7px 0}
+#duoPage .ad221-battle-center .turn-track{margin:8px 0;gap:5px}
+#duoPage .ad221-battle-center .turn-seat{min-height:44px;padding:7px 4px;font-size:10px}
+#duoPage .ad221-battle-center .duo-arena-forecast{font-size:10px;padding:5px}
+#duoPage .ad221-inspector #duoCurrentReward{font-size:11px;padding:9px}
+#duoPage .ad221-inspector .duo-chapter-progress{grid-template-columns:1fr 1fr}
+#duoPage .ad221-inspector .ad188-fusion-guide,#duoPage .ad221-inspector .ad189-summon-guide{max-width:100%;width:100%;padding:7px}
+#duoPage .ad221-inspector .ad188-materials{max-width:100%;overflow:auto}
+#duoPage .ad221-inspector .ad188-template-card{max-width:100%;width:150px}
+#duoPage #duoFusionWorkspace .ad187-attack-guide,#duoPage #duoFusionWorkspace .ad188-fusion-guide,#duoPage #duoFusionWorkspace .ad189-summon-guide{position:relative;inset:auto;left:auto;bottom:auto;transform:none;z-index:auto;width:100%;max-width:100%;display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:10px;box-sizing:border-box;animation:none;backdrop-filter:none}
+#duoPage #duoFusionWorkspace .ad187-guide-actions,#duoPage #duoFusionWorkspace .ad188-floating-actions,#duoPage #duoFusionWorkspace .ad189-guide-actions{display:flex;flex-wrap:wrap;gap:6px;grid-column:1;grid-row:auto;justify-content:stretch;width:100%}
+#duoPage #duoFusionWorkspace button{white-space:normal;max-width:100%;flex:1 1 auto}
+.duo-start-notice.ad221-invite-modal{left:50%;right:auto;top:50%;bottom:auto;transform:translate(-50%,-50%);width:min(500px,calc(100vw - 32px));padding:27px;max-height:calc(100dvh - 40px);overflow:auto;box-shadow:0 0 0 100vmax #030711c9,0 22px 80px #000c;border:2px solid #d8bc7d;z-index:2147483100}
+.duo-start-notice.ad221-invite-modal strong{font-size:24px;line-height:1.3;display:block}
+.duo-start-notice.ad221-invite-modal button{min-height:44px}
+.ad221-pending-invite{position:fixed;right:18px;bottom:18px;z-index:2147483000;box-shadow:0 0 22px #e5c26977}
+.ad221-pending-invite[hidden]{display:none!important}
+@keyframes ad221Role{50%{filter:brightness(1.35);text-shadow:0 0 12px currentColor}}
+@keyframes ad221Charge{50%{opacity:.6;box-shadow:0 0 20px #72ffd7aa;transform:scale(1.035)}}
+@keyframes ad221Motes{0%,100%{opacity:.35;transform:translateY(0)}50%{opacity:.85;transform:translateY(-10px)}}
+@keyframes ad221Start{0%{opacity:0;transform:scale(1.25)}20%,80%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.95)}}
+@media(max-width:1250px){.ad221-battle-grid{grid-template-columns:190px minmax(0,1fr) 225px;gap:10px}.ad221-deck-slots,.ad221-owned-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:1050px){.ad221-battle-grid{grid-template-columns:minmax(0,1fr) 255px;grid-template-areas:'board actions' 'inspect actions'}.ad221-battle-center{grid-area:board}.ad221-battle-sidebar{grid-area:actions}.ad221-inspector{grid-area:inspect;position:static;max-height:none}.ad221-inspector #duoLargeCardPreview{max-width:230px;margin:auto}.ad221-deck-columns{grid-template-columns:1fr}.ad221-deck-slots,.ad221-owned-grid{grid-template-columns:repeat(5,minmax(0,1fr));max-height:520px}}
+@media(max-width:800px){#duoPage #duoMenuScreen #duoSoloMenuNav.fm-navigation{grid-column:1;grid-row:2}#duoPage #duoMenuScreen #duoSoloMenuHero{grid-column:1;grid-row:3}#duoPage #duoMenuScreen #duoProfilePanel,#duoPage #duoMenuScreen #duoDuelPanel{grid-column:1;grid-row:4}#duoMenuScreen .ad221-hero-sigil{font-size:70px}.ad221-battle-grid{display:flex;flex-direction:column}.ad221-battle-center{width:100%;order:0}.ad221-battle-sidebar{position:static;max-height:none;width:100%;order:1}.ad221-inspector{width:100%;order:2}#duoPage .ad221-battle-sidebar #duoActions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ad221-battle-sidebar #duoActions>*{min-width:0}#duoPage #duoBattleArena.ad221-duel{padding:0}#duoPage:not([data-lobby-view="true"]){padding:10px}}
+@media(max-width:500px){#duoMenuScreen #duoSoloMenuHero{padding:20px}#duoMenuScreen #duoProfilePanel,#duoMenuScreen #duoDuelPanel{padding:15px}.ad221-deck-slots,.ad221-owned-grid{grid-template-columns:repeat(3,minmax(0,1fr))}#duoPage .ad221-battle-sidebar #duoActions{display:block}#duoMenuScreen .ad221-hero-sigil{display:none}}
+@media(prefers-reduced-motion:reduce){.ad221-role-label,.ad221-overcharged>.ad221-board-face:after,#duoPage .ad221-mini-face .hand-art:after{animation:none!important}.ad221-board-face{transition:none}}
+.ad-motion-disabled .ad221-role-label,.ad-motion-disabled .ad221-overcharged>.ad221-board-face:after,.ad-motion-disabled #duoPage .ad221-mini-face .hand-art:after{animation:none!important}
+
+/* A shared physical row; seat containers retain ownership and cinema targets. */
+#duoPage #duoSeats .ad221-team-field{display:grid;grid-template-columns:repeat(7,minmax(75px,1fr));gap:12px;overflow-x:auto;padding:12px;border:1px solid #a28b62;border-radius:10px;background:#102132}
+#duoPage #duoSeats .ad221-team-field>.seat,#duoPage #duoSeats .ad221-team-field>.seat>.field{display:contents!important}
+#duoPage #duoSeats .ad221-team-field>.seat>:not(.field):not(.duo178-hand):not(.duo-ghost-reserve){display:none!important}
+#duoPage #duoSeats .ad221-team-field .ad221-shared-hidden{display:none!important}
+#duoPage #duoSeats .ad221-team-heading{grid-column:1/-1;grid-row:1;font-size:13px;margin:0;color:#e4d7b4;min-width:609px}
+#duoPage #duoSeats .ad221-team-field .duo178-hand{grid-column:1/-1;grid-row:3}
+#duoPage #duoSeats .ad221-card-owner{position:absolute;bottom:2px;left:2px;right:2px;text-align:center;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#b7dce3}
+
+.ad221-presence{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:23000;max-width:620px;width:calc(100% - 32px);padding:14px;background:#20263a;border:1px solid #d7b873;border-radius:8px;color:#fff1c5;font:13px/1.5 system-ui;box-sizing:border-box;pointer-events:none}.ad221-presence[hidden]{display:none}
+
+#duoPage #duoSeats .ad221-team-field{min-width:0;max-width:100%;box-sizing:border-box}#duoPage #duoSeats .ad221-team-field .ad221-role-label{bottom:13px}
+
+#duoPage #duoSeats .ad221-team-field .duo-ghost-reserve{grid-column:1/-1;min-width:609px}#duoPage #duoSeats .ad221-team-field .duo-ghost-reserve>.field{display:grid;grid-template-columns:repeat(5,minmax(75px,1fr))}

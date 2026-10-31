@@ -36,14 +36,14 @@ test('three materials strike one adjacent target for 70%, with 3% ATK and DEF co
  assert.equal(after.players[0].field[0].stompDecayTotal,72);
  assert.equal(after.stompEvent.revision,after.revision);
 });
-test('four and five materials fan out across both enemy seven-slot boards without duplicates',()=>{
+test('four and five materials fan out across both owners in the shared seven-slot row without duplicates',()=>{
  for(const materials of [4,5]){
-  const g=room();shooter(g,materials);foe(g,1,6);foe(g,1,5);
-  foe(g,3,0);foe(g,3,1);foe(g,3,2);
-  const after=move(g,0,{type:'attack',slot:0,targetSeat:1,targetSlot:6});
+  const g=room();shooter(g,materials);foe(g,1,3);foe(g,1,2);
+  foe(g,3,4);foe(g,3,5);foe(g,3,6);
+  const after=move(g,0,{type:'attack',slot:0,targetSeat:1,targetSlot:3});
   const hits=after.stompEvent.hits;
   assert.deepEqual(hits.map(h=>[h.seat,h.slot,h.pct]),materials===4?
-   [[3,0,50],[1,5,50]]:[[3,0,50],[1,5,50],[3,1,30]]);
+   [[3,4,50],[1,2,50]]:[[3,4,50],[1,2,50],[3,5,30]]);
   assert.equal(new Set(hits.map(h=>h.seat+':'+h.slot)).size,hits.length);
   assert.equal(after.players[0].field[0].atk,1000-30*(hits.length+1));
   assert.equal(after.players[0].field[0].def,1200-36*(hits.length+1));
