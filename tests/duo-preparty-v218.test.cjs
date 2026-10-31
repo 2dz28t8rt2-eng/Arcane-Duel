@@ -200,7 +200,7 @@ test('individual solo menu never shares state: each tab controls only the local 
  const ui=read('assets/duo-preparty-v218.js');
  const css=read('assets/duo-solo-parity-v219.css');
  assert.match(ui,/lobbySection=section;/);
- assert.match(ui,/data-lobby-section/);
+ assert.match(ui,/dataset\.lobbySection=/);
  assert.match(ui,/\$\('duoSoloProfileHud'\)\.textContent=/);
  assert.match(ui,/duoProfileDeckZone/);
  assert.match(css,/#duoPage \.menu-nav/);
