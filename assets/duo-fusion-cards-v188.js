@@ -193,7 +193,7 @@
       discardHelp.hidden=stageMode!=='discard';
       discardSlot.hidden=stageMode!=='discard';
       discardCommit.hidden=stageMode!=='discard';
-      discardCommit.disabled=!handOnly||!keepKey||!Number.isInteger(Number(discardSlot.value))||
+      discardCommit.disabled=!discardSlot.options.length||!handOnly||!keepKey||!Number.isInteger(Number(discardSlot.value))||
        typeof send!=='function'||busy||!!syncError;
       fusionMode.classList.toggle('selected',stageMode==='fusion');
       discardMode.classList.toggle('selected',stageMode==='discard');

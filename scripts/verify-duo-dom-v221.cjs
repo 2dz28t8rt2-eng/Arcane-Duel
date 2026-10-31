@@ -55,7 +55,13 @@ async function ready(dom,name){const w=dom.window,d=w.document;await until(()=>w
   assert.equal(ad.querySelectorAll('.ad221-team-field .duo-ghost-reserve').length,1);
   assert.equal(ad.querySelector('.ad221-team-field .duo-ghost-reserve').style.gridRow,'4');
 
-  const current=backend.rooms.get(room.roomId);current.game.status='finished';current.game.winner=0;current.game.revision++;
+  const current=backend.rooms.get(room.roomId);
+  const template=Object.values(A.ArcaneDuoParty218.state().catalog).find(c=>c.playable&&!c.fusionOnly);
+  current.game.players[2].field=Array.from({length:7},(_,i)=>({...template,uid:8800+i,mode:'atk',maxDef:template.def}));current.game.revision++;
+  await A.ArcaneDuoParty218.refresh();
+  assert.equal(ad.querySelector('[data-ad189-slot]').options.length,0);
+  assert.equal(ad.querySelector('[data-ad189-commit]').disabled,true);
+  current.game.status='finished';current.game.winner=0;current.game.revision++;
   await A.ArcaneDuoParty218.refresh();await B.ArcaneDuoParty218.refresh();await delay(20);
   ad.querySelector('.ad204-result-close').click();assert.equal(ad.getElementById('duoMenuScreen').hidden,false);
   bd.dispatchEvent(new B.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));assert.equal(bd.getElementById('duoMenuScreen').hidden,false);

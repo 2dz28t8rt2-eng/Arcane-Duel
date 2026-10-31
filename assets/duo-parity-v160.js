@@ -769,6 +769,8 @@
     send({type:occupied?'replace':'summon',handIndex:Number(hand.value),slot:destination});
    });
    summonCommit.dataset.ad189Commit='true';
+   summonCommit.disabled=busy||!!syncError||!slot.options.length;
+   if(!slot.options.length)el('p',part,'Alle sieben Teamzonen gehören gerade deinem Partner. Eine Fusion mit erlaubtem Partner-Material kann Platz schaffen.','duo-turn-note');
   }
   if(!p.summoned&&p.remainingFusion.length>=1){
    const part=section(dock,'✦ Fusion','Wähle zwei bis fünf Monster aus deiner Hand, deinem Feld oder dem Feld deines menschlichen Partners. '+
