@@ -6,7 +6,7 @@
 (()=>{
  const $=id=>document.getElementById(id),api=window.ArcaneDuoParty218;
  if(!api){console.error('[Duo Party] Controller unavailable');return;}
- let lobbySection='menu',lastMode='';
+ let lobbySection='menu',lastMode='',entered=false;
  const origin=()=>location.href.split('#')[0].split('?')[0];
  const info=message=>{$('duoPartyStatus').textContent=message;};
  const select=(section)=>{
@@ -23,12 +23,13 @@
   if(target)$(target)?.scrollIntoView?.({behavior:'smooth',block:'center'});
  };
  function sync(){
-  const s=api.state(),g=s.game,joined=!!g&&[0,2].includes(s.seat)&&g.status!=='waiting';
-  const party=s.nameConfirmed&&!joined;
-  const inMenu=['lobby','party_ready'].includes(g?.status);
-  const menu=s.nameConfirmed&&joined&&inMenu&&lobbySection==='menu';
-  const library=s.nameConfirmed&&joined&&inMenu&&lobbySection!=='menu';
-  const battle=s.nameConfirmed&&joined&&!inMenu;
+  const s=api.state(),g=s.game,attached=!!g&&[0,2].includes(s.seat);
+  const joined=attached&&g.status!=='waiting';
+  const party=s.nameConfirmed&&!entered;
+  const inMenu=['waiting','lobby','party_ready'].includes(g?.status);
+  const menu=s.nameConfirmed&&attached&&entered&&inMenu&&lobbySection==='menu';
+  const library=s.nameConfirmed&&attached&&entered&&inMenu&&lobbySection!=='menu';
+  const battle=s.nameConfirmed&&attached&&entered&&!inMenu;
   $('duoPartyGate').hidden=!party;
   $('duoMainMenuGate').hidden=!menu;
   $('duoPage').hidden=!(library||battle);
@@ -50,14 +51,25 @@
   $('duoReturnMenu').hidden=!library;
   const waiting=party&&g?.status==='waiting'&&s.seat===0&&!!s.invite;
   $('duoPartyWaiting').hidden=!waiting;
-  $('duoPartyConfig').hidden=!!s.roomId||s.joinIntent;
+  $('duoPartyConfig').hidden=attached||s.joinIntent;
+  $('duoPartyInviteReady').hidden=!party||!s.joinIntent||!s.joinPreview;
+  if(s.joinPreview)$('duoPartyInviter').textContent=
+   s.joinPreview.inviterName+' lädt dich in seine Gruppe ein · Kapitel '+s.joinPreview.chapter+'.';
+  $('duoPartyAccept').disabled=s.busy||!s.profile||!s.catalogReady;
+  $('duoPartyGroup').hidden=!party||!attached;
+  $('duoPartyEnter').disabled=!attached||s.busy;
+  if(attached){
+   $('duoPartyGroupMembers').textContent=g.status==='waiting'?
+    g.players[0].name+' (Party-Leiter) · Noch kein Partner beigetreten':
+    g.players[0].name+' (Party-Leiter)  ✦  '+g.players[2].name+' (Mitspieler)';
+  }
   $('duoPartyCreate').disabled=s.busy||!s.profile||!s.catalogReady||!!s.roomId;
   $('duoPartyResume').hidden=!!s.roomId||s.joinIntent||!s.lastRoom?.roomId;
   $('duoPartyReset').hidden=!(party&&g?.status==='waiting'&&s.seat===0);
   if(waiting){
-   $('duoPartyLink').value=origin()+'#join='+s.roomId+'.'+s.invite;
+   $('duoPartyLink').value=origin()+'?join='+s.roomId+'.'+s.invite;
    $('duoPartyCode').value=s.roomId+'.'+s.invite;
-   $('duoPartyWaitLabel').textContent='Schicke diesen Link an deinen Freund. Sobald er beitritt, öffnet sich für euch beide das Hauptmenü.';
+   $('duoPartyWaitLabel').textContent='Schicke den Einladungslink oder den Raumcode. Dein Partner bestätigt den Beitritt separat.';
   }
   if(party){
    const mode=s.joinIntent?'invited':g?.status==='waiting'?'waiting':'new';
@@ -70,26 +82,27 @@
   }
   if(joined){
    $('duoMenuTeam').textContent=g.players[0].name+'  ✦  '+g.players[2].name;
-   $('duoMenuStart').disabled=s.seat!==0||s.busy||g.status!=='lobby';
-   $('duoMenuStart').textContent=s.seat===0?'Kampagne starten':'Auf Startanfrage warten';
+   $('duoMenuStart').disabled=s.busy||g.status!=='lobby';
+   $('duoMenuStart').textContent=g.status==='waiting'?'Partner noch nicht verbunden':'Duell anfragen';
+   const ownRequest=g.partyStartInvite?.fromSeat===s.seat;
    $('duoMenuStatus').textContent=g.status==='party_ready'?
-    (s.seat===0?'Startanfrage verschickt. Dein Partner entscheidet, wann er bereit ist.':
-      'Dein Partner hat eine Startanfrage geschickt. Du kannst noch dein Deck bearbeiten.'):
-    (s.seat===0?'Kapitel '+g.chapter+' wählen und Startanfrage verschicken. Dein Partner bestätigt separat.':
-      'Party verbunden. Du kannst deinen Duellanten unabhängig vom Partner verwalten.');
+    (ownRequest?'Startanfrage verschickt. Dein Partner entscheidet, wann er bereit ist.':
+      'Dein Partner hat eine Startanfrage geschickt. Du kannst dein Deck weiter bearbeiten.'):
+    (g.status==='waiting'?'Die Gruppe ist erstellt. Lade deinen Partner über „Gruppe & Einladung“ ein.':
+     'Du kannst Kapitel '+g.chapter+' anfragen oder deinen Duellanten unabhängig vorbereiten.');
   }
   const pending=g?.status==='party_ready'&&joined;
   $('duoStartNotice').hidden=!pending;
-  $('duoStartAccept').hidden=!pending||s.seat!==2;
-  $('duoStartDecline').hidden=!pending||s.seat!==2;
-  $('duoStartCancel').hidden=!pending||s.seat!==0;
-  $('duoStartNoticeTitle').textContent=s.seat===0?
+  $('duoStartAccept').hidden=!pending||s.seat!==g.partyStartInvite?.toSeat;
+  $('duoStartDecline').hidden=!pending||s.seat!==g.partyStartInvite?.toSeat;
+  $('duoStartCancel').hidden=!pending||s.seat!==g.partyStartInvite?.fromSeat;
+  $('duoStartNoticeTitle').textContent=s.seat===g?.partyStartInvite?.fromSeat?
    'Warte auf die Zustimmung deines Partners':'Dein Partner lädt dich zum Duell ein';
-  $('duoStartNoticeText').textContent=s.seat===0?
+  $('duoStartNoticeText').textContent=s.seat===g?.partyStartInvite?.fromSeat?
    'Beide können ihre Karten und Fähigkeiten weiter unabhängig verwalten.':
    'Du kannst erst dein Deck fertigstellen und dann zustimmen oder die Anfrage ablehnen.';
   // Do not show the legacy room-creation panel inside the actual game.
-  $('duoSetupPanel').hidden=joined;
+  $('duoSetupPanel').hidden=attached;
  }
  function moveChapterControls(){
   const target=$('duoPartyChapterControls');
@@ -115,6 +128,21 @@
   if(!api.state().roomId)info($('duoStatus').textContent||'Party konnte nicht erstellt werden.');
   sync();
  };
+ $('duoPartyAccept').onclick=async()=>{
+  $('duoPartyAccept').disabled=true;info('Du trittst der Gruppe bei …');
+  try{
+   const accepted=await api.acceptPendingInvite();
+   if(accepted)info('Erfolgreich beigetreten! Du kannst jetzt „Spiel betreten“ wählen.');
+   else info($('duoStatus').textContent||'Der Beitritt konnte nicht abgeschlossen werden.');
+  }catch(e){info('Beitritt fehlgeschlagen: '+e.message);}
+  finally{sync();}
+ };
+ $('duoPartyDecline').onclick=()=>{api.declinePendingInvite();lastMode='';sync();};
+ $('duoPartyEnter').onclick=()=>{
+  if(!api.state().game)return;
+  entered=true;lobbySection='menu';sync();
+ };
+ $('duoMenuParty').onclick=()=>{entered=false;sync();};
  $('duoPartyCopy').onclick=copyInvite;
  $('duoPartyCopyCode').onclick=async()=>{
   const value=$('duoPartyCode').value;
@@ -127,7 +155,7 @@
   info('Einladung wird geprüft …');
   try{
    await api.pasteInvite($('duoJoinValue').value);
-   info('Einladung gültig. Bestätige deinen Beitritt.');
+   info('Einladung gültig. Klicke auf „Gruppe beitreten“.');
   }catch(e){info('Beitritt nicht möglich: '+e.message);}
   finally{button.disabled=false;sync();}
  };
@@ -141,12 +169,12 @@
   sync();
  };
  $('duoPartyReset').onclick=()=>{
-  api.resetWaitingRoom();lobbySection='menu';lastMode='';
+  api.resetWaitingRoom();entered=false;lobbySection='menu';lastMode='';
   info('Du kannst jetzt eine neue Party erstellen.');
   sync();
  };
  $('duoMenuStart').onclick=async()=>{
-  const s=api.state();if(s.seat!==0||s.game?.status!=='lobby')return;
+  const s=api.state();if(![0,2].includes(s.seat)||s.game?.status!=='lobby')return;
   $('duoMenuStatus').textContent='Startanfrage wird an deinen Partner gesendet …';
   await api.send({type:'startParty'});
   const after=api.state();

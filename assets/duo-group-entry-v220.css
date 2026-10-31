@@ -1,0 +1,16 @@
+/* Duo party gateway 2.20: explicit membership and enter action.
+   Singleplayer menu and duel CSS remain unchanged. */
+#duoPartyInviteReady[hidden],#duoPartyGroup[hidden]{display:none!important}
+.duo-party-ready{display:grid;gap:10px;margin:15px 0;padding:17px;
+ border:1px solid #938166;background:linear-gradient(145deg,#1b2538,#0d1526);
+ border-radius:9px;color:#f4ead5;font:500 13px/1.55 Segoe UI,sans-serif}
+.duo-party-ready strong{font:700 18px/1.4 Georgia,serif;color:#e9d2a1}
+.duo-party-ready p{margin:2px 0}
+.duo-party-ready .duo-party-hint{font-size:12px;color:#b8bbca}
+.duo-party-join-actions{display:flex;gap:8px;flex-wrap:wrap}
+.duo-party-join-actions button{flex:1;min-width:120px}
+#duoPartyEnter{width:100%;font-size:16px}
+#duoPartyInviter,#duoPartyGroupMembers{overflow-wrap:anywhere}
+#duoPartyConfig[hidden],#duoPartyWaiting[hidden]{display:none!important}
+#duoPartyGate .duo-gate-card{max-height:94vh;overflow-y:auto}
+#duoPartyGate #duoPartyStatus{white-space:pre-wrap;overflow-wrap:anywhere}

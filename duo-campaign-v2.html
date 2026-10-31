@@ -37,6 +37,7 @@
 <link rel="stylesheet" href="assets/arcane-soundscape-v196.css?v=20261026-v196">
 <link rel="stylesheet" href="assets/arcane-track-catalog-v014.css?v=20261027-v014">
 <link rel="stylesheet" href="assets/duo-solo-parity-v219.css?v=20261031-solo-parity-219">
+<link rel="stylesheet" href="assets/duo-group-entry-v220.css?v=20261031-group-entry-220">
 <style>
 .duo-onboard[hidden],.duo-invite-dialog[hidden]{display:none!important}
 .duo-onboard,.duo-invite-dialog{position:fixed;inset:0;z-index:12000;background:rgba(5,9,20,.93);
@@ -77,8 +78,22 @@
  <div class="duo-gate-card">
   <img src="desktop/build/icon.png" alt="" class="duo-gate-crest" aria-hidden="true">
   <p class="duo-gate-kicker">ARCANE DUEL · DAS BÜNDNIS DER VIER</p>
-  <h1 class="duo-gate-wordmark" id="duoPartyTitle">Gemeinsame Party</h1>
-  <p>Verbinde dich zuerst mit deinem Mitspieler. Danach gelangt ihr gemeinsam ins Hauptmenü – noch bevor das Duell beginnt.</p>
+  <h1 class="duo-gate-wordmark" id="duoPartyTitle">Deine Gruppe</h1>
+  <p>Erstelle eine Gruppe oder tritt einer Einladung bei. Anschließend kann jeder über „Spiel betreten“ sein eigenes Menü öffnen.</p>
+  <div id="duoPartyInviteReady" class="duo-party-ready" hidden>
+   <strong>✉ Du wurdest in eine Gruppe eingeladen</strong>
+   <p id="duoPartyInviter">Prüfe die Einladung und bestätige den Beitritt.</p>
+   <div class="duo-party-join-actions">
+    <button id="duoPartyAccept" type="button" class="duo-party-primary">Gruppe beitreten</button>
+    <button id="duoPartyDecline" type="button">Ablehnen</button>
+   </div>
+  </div>
+  <div id="duoPartyGroup" class="duo-party-ready" hidden>
+   <strong>✦ Deine Gruppe</strong>
+   <p id="duoPartyGroupMembers">Warte auf die Mitspieler.</p>
+   <button id="duoPartyEnter" type="button" class="duo-party-primary">Spiel betreten</button>
+   <p class="duo-party-hint">Jeder betritt danach sein eigenes Menü. Nur die Duelle werden gemeinsam gestartet.</p>
+  </div>
   <div id="duoPartyConfig">
    <div id="duoPartyChapterControls" class="duo-party-chapter-controls"></div>
    <button type="button" id="duoPartyCreate" class="duo-party-primary">Party erstellen und Partner einladen</button>
@@ -122,6 +137,7 @@
   <p id="duoMenuTeam" class="duo-party-teamline"></p>
   <nav class="ad196-nav" aria-label="2v2-Hauptmenü">
    <button id="duoMenuStart" type="button" class="ad196-selected">Kampagne starten</button>
+   <button id="duoMenuParty" type="button">Gruppe &amp; Einladung</button>
    <button id="duoMenuCollection" type="button">Sammlung und Schmiede</button>
    <button id="duoMenuDeck" type="button">Deck verwalten</button>
    <button id="duoMenuProfile" type="button">Duellantenprofil</button>
@@ -464,12 +480,12 @@
 <script src="assets/pack-cinema-v195.js?v=20261026-v195"></script>
 <script src="assets/duo-fusion-guide-v214.js?v=20261030-duo-fusion-214"></script>
 <script src="assets/duo-story-dialogues-v216.js?v=216"></script>
-<script src="assets/duo-parity-v160.js?v=20261031-independent-menu-219"></script>
+<script src="assets/duo-parity-v160.js?v=20261031-group-entry-220"></script>
 <script src="assets/duelist-portraits-duo-v215.js?v=218"></script>
 <script src="assets/arcane-track-catalog-v014.js?v=20261027-v014"></script>
 <script src="assets/arcane-soundscape-v196.js?v=20261030-result-fade"></script>
 <script src="assets/arcane-sfx-v208.js?v=20261030-duo-result-210"></script>
 <script src="assets/duo-ux-v204.js?v=20261030-duo-parity-210"></script>
 <script src="assets/duo-soul-bond-v206.js?v=20261030-duo-bond-help"></script>
-<script src="assets/duo-preparty-v218.js?v=20261031-independent-menu-219"></script>
+<script src="assets/duo-preparty-v218.js?v=20261031-group-entry-220"></script>
 </body></html>
