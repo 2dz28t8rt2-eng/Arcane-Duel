@@ -158,6 +158,11 @@ internal sealed partial class Editor
         string field(string name)=>c[name]?.ToString()??"";
         bool flag(string name)=>string.Equals(field(name),"true",StringComparison.OrdinalIgnoreCase);
         var issues=new List<string>();
+        var existing=AssetCatalog.Cards.FirstOrDefault(x=>x["id"]?.ToString()==field("id"));
+        if(existing!=null && !string.Equals(existing["name"]?.ToString(),field("name"),
+            StringComparison.OrdinalIgnoreCase))
+            issues.Add("ID "+field("id")+" ist bereits der Karte '"+existing["name"]+
+                       "' zugeordnet. Ein Import aktualisiert diese ID statt eine neue Karte anzulegen.");
         int.TryParse(field("level"),out var level);
         var family=flag("ace")?"ace":flag("essenceMonster")?"essence":
             flag("fusionOnly")?"fusion":"normal";
