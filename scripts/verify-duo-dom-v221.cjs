@@ -50,6 +50,11 @@ async function ready(dom,name){const w=dom.window,d=w.document;await until(()=>w
   await until(()=>A.ArcaneDuoParty218.state().game.status==='active','accept');await B.ArcaneDuoParty218.refresh();
   for(const [w,d]of [[A,ad],[B,bd]]){assert.equal(d.querySelectorAll('#duoSeats .seat').length,4);assert.equal(d.querySelectorAll('#duoSeats .ad221-team-field').length,2);assert.equal(d.querySelectorAll('#duoSeats .seat>.field>.field-cell:not(.ad221-shared-hidden)').length,14);assert.equal(d.getElementById('duoMenuScreen').hidden,true);assert.equal(d.getElementById('duoPage').hidden,false);assert.equal(d.querySelectorAll('.duo178-hand-card').length,5);assert.equal(w.ArcaneDuoParty218.state().game.teams[0].lp,4000);}
   assert.equal(bd.querySelector('#duoSeats [data-perspective="self"]').dataset.seat,'2');
+  const shared=backend.rooms.get(room.roomId);shared.game.players[0].lv1.perk=true;shared.game.players[0].lv1.ghostSlots=[null];shared.game.revision++;
+  await A.ArcaneDuoParty218.refresh();await B.ArcaneDuoParty218.refresh();
+  assert.equal(ad.querySelectorAll('.ad221-team-field .duo-ghost-reserve').length,1);
+  assert.equal(ad.querySelector('.ad221-team-field .duo-ghost-reserve').style.gridRow,'4');
+
   const current=backend.rooms.get(room.roomId);current.game.status='finished';current.game.winner=0;current.game.revision++;
   await A.ArcaneDuoParty218.refresh();await B.ArcaneDuoParty218.refresh();await delay(20);
   ad.querySelector('.ad204-result-close').click();assert.equal(ad.getElementById('duoMenuScreen').hidden,false);

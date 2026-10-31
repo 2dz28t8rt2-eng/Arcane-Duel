@@ -104,6 +104,19 @@ async function finishLiveDuel(A,B){
   }
   assert.equal(await B.locator('#duoSeats [data-perspective="self"]').getAttribute('data-seat'),'2');
   report.checks.push('guest invite, wrong-seat denied, double-click single start, 14 shared team zones, LP, private hands, guest perspective');
+  if(live){
+   const revision=(await state(B)).game.revision;
+   await a.context.setOffline(true);
+   await B.waitForFunction(()=>window.ArcaneDuoParty218.state().presence?.hostOnline===false,null,{timeout:75000});
+   await B.locator('#duoPresenceNotice').waitFor({state:'visible'});
+   assert.match(await B.locator('#duoPresenceNotice').innerText(),/ursprüngliche Host/);
+   assert.equal((await state(B)).game.revision,revision);assert.equal((await state(B)).seat,2);
+   await a.context.setOffline(false);await refresh(A);
+   await B.waitForFunction(()=>window.ArcaneDuoParty218.state().presence?.hostOnline===true,null,{timeout:45000});
+   await B.locator('#duoPresenceNotice').waitFor({state:'hidden'});
+   assert.equal((await state(A)).seat,0);assert.equal((await state(A)).game.revision,revision);
+   report.checks.push('host offline >45s: visible waiting, unchanged combat and seats, original host reconnects');
+  }
   const empty=A.locator('#duoSeats [data-seat="0"]>.field>.field-cell[data-slot="6"]');
   await A.locator('.duo178-hand-card[data-index="0"]').click();await empty.click();await A.locator('#ad189-summon-guide .ad189-guide-confirm').click();
   await A.waitForFunction(()=>!!window.ArcaneDuoParty218.state().game.players[0].field[6]);await refresh(B);
@@ -138,11 +151,22 @@ async function finishLiveDuel(A,B){
   report.checks.push('accepted rematch starts clean fields, LP and turn with a new duel number');
   if(live){report.replay=await finishLiveDuel(A,B);}
 
-  for(const page of [A,B])assert.equal(await page.evaluate(()=>localStorage.getItem('arcane-duel-rpg-profile-v4-reborn')),'solo-sentinel-221');
+  const personal=[];
+  for(const page of [A,B]){
+   await page.evaluate(()=>window.ArcaneDuoParty218.refreshProfile());
+   const profile=(await state(page)).profile;
+   personal.push({xp:profile.xp,essence:profile.essence,shards:profile.shards,wins:profile.wins,credits:profile.chapterCardCredits});
+   assert.equal(await page.evaluate(()=>localStorage.getItem('arcane-duel-rpg-profile-v4-reborn')),'solo-sentinel-221');
+  }
+  if(live)report.personalRewards=personal;
+
   await A.reload();await A.locator('#duoNameConfirm').waitFor({state:'visible'});await A.waitForFunction(()=>!document.getElementById('duoNameConfirm').disabled);await A.locator('#duoNameConfirm').click();
   await A.locator('#duoPartyEnter').waitFor({state:'visible'});await A.locator('#duoPartyEnter').click();
   const recovered=await state(A);assert.equal(recovered.roomId,party.roomId);assert.equal(recovered.seat,0);
-  report.checks.push('reload restores own room/seat; solo save unchanged');
+  await A.evaluate(()=>window.ArcaneDuoParty218.refreshProfile());
+  const saved=(await state(A)).profile;
+  assert.deepEqual({xp:saved.xp,essence:saved.essence,shards:saved.shards,wins:saved.wins,credits:saved.chapterCardCredits},personal[0]);
+  report.checks.push('reload restores own room/seat; personal rewards unchanged; solo save unchanged');
   assert.deepEqual(pageErrors,[]);report.pass=true;
   fs.writeFileSync(path.join(output,prefix+'-report.json'),JSON.stringify(report,null,2));console.log('DUO_BROWSER_221_PASS '+JSON.stringify(report));
  }catch(error){

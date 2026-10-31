@@ -140,7 +140,7 @@
  function renderEncounter(){
   const s=api.state(),chapter=Number($('duoDuelChapter').value),c=window.ArcaneDuoRules.ENCOUNTERS.find(c=>c.id===chapter);
   if(!c)return;
-  $('duoDuelEncounter').innerHTML='<strong>'+safe(c.name)+'</strong><p>'+safe(c.dialogue||'Stellt euch zu zweit den Gegnern dieser Turnierstufe.')+'</p><div class="info-pills"><span>7 Zonen je Duellant</span><span>'+window.ArcaneDuoRules.duoStartingLp(chapter).toLocaleString('de-AT')+' LP je Team</span><span>2 Menschen · 2 Gegner</span></div>';
+  $('duoDuelEncounter').innerHTML='<strong>'+safe(c.name)+'</strong><p>'+safe(c.dialogue||'Stellt euch zu zweit den Gegnern dieser Turnierstufe.')+'</p><div class="info-pills"><span>7 gemeinsame Zonen je Team</span><span>'+window.ArcaneDuoRules.duoStartingLp(chapter).toLocaleString('de-AT')+' LP je Team</span><span>2 Menschen · 2 Gegner</span></div>';
   $('duoMenuStart').disabled=s.busy||$('duoDuelChapter').disabled||!s.game||s.game.status==='waiting'||s.game.status==='active'||s.game.status==='inviting_next'||s.game.status==='party_ready'&&!(s.game.partyStartInvite?.expiresAt<=Date.now());
   $('duoMenuStart').textContent=s.game?.status==='waiting'?'Partner wird erwartet':'Duell anfragen';
   $('duoDuelMembers').textContent=s.game?.status==='waiting'?'Du kannst dein Deck bereits vorbereiten. Der gemeinsame Start wird verfügbar, sobald dein Partner beigetreten ist.':'Eine Anfrage startet erst dann ein Duell, wenn dein Partner ausdrücklich beitritt.';
@@ -208,6 +208,8 @@
    for(const p of members){
     const panel=root.querySelector('.seat[data-seat="'+p.seat+'"]');if(!panel)continue;
     group.append(panel);
+    const reserve=panel.querySelector(':scope > .duo-ghost-reserve');
+    if(reserve){reserve.style.gridRow=String(4+Math.floor(p.seat/2));reserve.querySelector('strong').textContent=p.name+' · Geisterzonen ('+(p.lv1?.ghostSlots?.length||0)+'/5)';}
     for(const cell of panel.querySelectorAll(':scope > .field > .field-cell')){
      const slot=Number(cell.dataset.slot),card=p.field[slot],other=members.find(x=>x.seat!==p.seat);
      cell.classList.toggle('ad221-shared-hidden',!card&&(p.seat!==base||!!other.field[slot]));

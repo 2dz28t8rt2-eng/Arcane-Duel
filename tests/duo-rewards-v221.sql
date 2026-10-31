@@ -27,7 +27,15 @@ BEGIN
  UPDATE public.arcane_duo_v2_rooms SET updated_at=clock_timestamp() WHERE id=room;
  SELECT count(*) INTO n FROM public.arcane_duo_v2_reward_ledger WHERE room_id=room;
  IF n<>4 THEN RAISE EXCEPTION 'Exactly four personal receipts expected for two completed duels'; END IF;
+-- Different personal progression: A has chapter I already, B is a first-clear fixture.
+ UPDATE public.arcane_duo_v2_profiles SET cleared_chapters='{}' WHERE id=b;
+ UPDATE public.arcane_duo_v2_rooms SET status='active',state=state||'{"status":"active","winner":null,"duelNo":3}' WHERE id=room;
+ UPDATE public.arcane_duo_v2_rooms SET status='finished',state=state||'{"status":"finished","winner":0}' WHERE id=room;
+ SELECT count(*) INTO n FROM public.arcane_duo_v2_profiles WHERE id=a AND xp=120 AND essence=189 AND chapter_card_credits=3;
+ IF n<>1 THEN RAISE EXCEPTION 'Previously cleared member must receive personal repeat reward'; END IF;
+ SELECT count(*) INTO n FROM public.arcane_duo_v2_profiles WHERE id=b AND xp=150 AND essence=252 AND chapter_card_credits=6;
+ IF n<>1 THEN RAISE EXCEPTION 'First-clear member must receive personal first reward in same duel'; END IF;
 END
 $test$;
 ROLLBACK;
-SELECT 'DUO_REWARDS_221_PASS: two independent first rewards, idempotent reload/decline, separate repeat receipts; all fixture data rolled back' AS result;
+SELECT 'DUO_REWARDS_221_PASS: two independent first rewards, idempotent reload/decline, separate repeat receipts, mixed personal progression; all fixture data rolled back' AS result;

@@ -168,7 +168,7 @@
 /* A shared physical row; seat containers retain ownership and cinema targets. */
 #duoPage #duoSeats .ad221-team-field{display:grid;grid-template-columns:repeat(7,minmax(75px,1fr));gap:12px;overflow-x:auto;padding:12px;border:1px solid #a28b62;border-radius:10px;background:#102132}
 #duoPage #duoSeats .ad221-team-field>.seat,#duoPage #duoSeats .ad221-team-field>.seat>.field{display:contents!important}
-#duoPage #duoSeats .ad221-team-field>.seat>:not(.field):not(.duo178-hand){display:none!important}
+#duoPage #duoSeats .ad221-team-field>.seat>:not(.field):not(.duo178-hand):not(.duo-ghost-reserve){display:none!important}
 #duoPage #duoSeats .ad221-team-field .ad221-shared-hidden{display:none!important}
 #duoPage #duoSeats .ad221-team-heading{grid-column:1/-1;grid-row:1;font-size:13px;margin:0;color:#e4d7b4;min-width:609px}
 #duoPage #duoSeats .ad221-team-field .duo178-hand{grid-column:1/-1;grid-row:3}
@@ -177,3 +177,5 @@
 .ad221-presence{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:23000;max-width:620px;width:calc(100% - 32px);padding:14px;background:#20263a;border:1px solid #d7b873;border-radius:8px;color:#fff1c5;font:13px/1.5 system-ui;box-sizing:border-box;pointer-events:none}.ad221-presence[hidden]{display:none}
 
 #duoPage #duoSeats .ad221-team-field{min-width:0;max-width:100%;box-sizing:border-box}#duoPage #duoSeats .ad221-team-field .ad221-role-label{bottom:13px}
+
+#duoPage #duoSeats .ad221-team-field .duo-ghost-reserve{grid-column:1/-1;min-width:609px}#duoPage #duoSeats .ad221-team-field .duo-ghost-reserve>.field{display:grid;grid-template-columns:repeat(5,minmax(75px,1fr))}
