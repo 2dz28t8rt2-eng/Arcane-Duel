@@ -15,4 +15,5 @@ jobs:
           node-version: '24'
       - run: node --test tests/selfhost-v229.test.cjs
       - run: python3 -m py_compile server/deploy-release.py scripts/package-selfhost.py
+      - run: python3 -m unittest discover -s tests -p test_release_retention.py -v
       - run: node --check server/main.cjs && node --check server/backup.cjs
