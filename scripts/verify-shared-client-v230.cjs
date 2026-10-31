@@ -12,7 +12,12 @@ const origin='http://127.0.0.1:8758';
  try{
   const contexts=await Promise.all([browser.newContext({viewport:{width:1500,height:1000}}),browser.newContext({viewport:{width:1500,height:1000}})]);
   [a,b]=await Promise.all(contexts.map(c=>c.newPage()));
-  for(const p of [a,b]){p.setDefaultTimeout(25000);p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error'&&!m.text().includes('404'))errors.push(m.text());});}
+  for(const p of [a,b]){
+   p.setDefaultTimeout(25000);p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error'&&!m.text().includes('404'))errors.push(m.text());});
+   // Randomly drawn fusion materials can trigger the original first-leader tutorial.
+   // Acknowledge its real button whenever it appears, including its delayed opening.
+   await p.addLocatorHandler(p.locator('#ad211-leader-ok'),async button=>{await button.click();});
+  }
   await Promise.all([a.goto(origin),b.goto(origin)]);await Promise.all([a,b].map(p=>p.waitForFunction(()=>!!window.ArcaneOnline230)));
   console.log('original pages loaded');
   await Promise.all([a,b].map(p=>p.evaluate(()=>window.ArcaneTitleGate.close())));
