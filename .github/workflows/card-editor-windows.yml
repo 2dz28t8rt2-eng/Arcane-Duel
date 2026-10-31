@@ -16,6 +16,13 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate offline artwork thumbnails for all existing card images
+        run: |
+          python -m pip install Pillow==11.3.0
+          python tools/card-editor/generate_thumbnails.py
       - name: Build standalone EXE
         run: dotnet publish tools/card-editor/ArcaneDuelKartenEditor.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o out
       - name: Card data, preview and package smoke test

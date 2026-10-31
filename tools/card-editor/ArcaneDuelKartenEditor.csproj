@@ -7,4 +7,14 @@
     <Nullable>enable</Nullable>
     <AssemblyName>ArcaneDuelKartenEditor</AssemblyName>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Svg" Version="3.4.8" />
+    <EmbeddedResource Include="../../assets/card-templates/*.svg" LogicalName="ArcaneCardEditor.Frame.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../assets/card-templates/levels/*.svg" LogicalName="ArcaneCardEditor.Level.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../assets/card-v405-icons/*.svg" LogicalName="ArcaneCardEditor.Icon.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../assets/card-templates/manifest.json" LogicalName="ArcaneCardEditor.Data.Templates" />
+    <EmbeddedResource Include="../../assets/duo-card-catalog-v160.json" LogicalName="ArcaneCardEditor.Data.Cards" />
+    <EmbeddedResource Include="Generated/Thumbnails/index.json" LogicalName="ArcaneCardEditor.Data.Thumbnails" />
+    <EmbeddedResource Include="Generated/Thumbnails/*.jpg" LogicalName="ArcaneCardEditor.Thumb.%(Filename)%(Extension)" />
+  </ItemGroup>
 </Project>
