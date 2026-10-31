@@ -1,5 +1,5 @@
 /* Arcane Duel Duo v21.8 — the invitation happens before the game menu. */
-#duoPage[hidden],#duoPartyGate[hidden],#duoMainMenuGate[hidden]{display:none!important}
+#duoPage[hidden],#duoPartyGate[hidden],#duoMainMenuGate[hidden],#duoPartyConfig[hidden],#duoSetupPanel[hidden]{display:none!important}
 .duo-gate,.duo-menu-gate{position:fixed;inset:0;z-index:11000;overflow:auto;
  display:grid;place-items:center;padding:22px;color:#f6eedc;
  background:radial-gradient(ellipse at 50% 32%,#1e2742 0%,#0a1020 48%,#02040b 100%);
