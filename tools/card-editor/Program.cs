@@ -447,7 +447,9 @@ internal sealed partial class Editor : Form
             using(var rendered=new Bitmap(400,620))editor.preview.DrawToBitmap(rendered,new Rectangle(0,0,400,620));
             WritePackage(zip,card,editor.imageBytes,null);
             using var archive=ZipFile.OpenRead(zip);
-            if(archive.GetEntry("card.json")==null||archive.GetEntry(card["art"]!.GetValue<string>())==null||archive.GetEntry("BITTE-LESEN.txt")==null)throw new InvalidOperationException("Package is incomplete");
+            if(archive.GetEntry("card.json")==null||archive.GetEntry("integration.json")==null||
+                archive.GetEntry("manifest.json")==null||archive.GetEntry("VORLAGE_FEHLERBERICHT.md")==null||
+                archive.GetEntry(card["art"]!.GetValue<string>())==null||archive.GetEntry("BITTE-LESEN.txt")==null)throw new InvalidOperationException("Package is incomplete");
             using var reader=new StreamReader(archive.GetEntry("card.json")!.Open());
             if(JsonNode.Parse(reader.ReadToEnd())!["name"]!.GetValue<string>()!="Testkarte")throw new InvalidOperationException("Package card data failed");
             using var reopened=new Editor(); reopened.LoadPackage(zip);
@@ -563,7 +565,7 @@ internal sealed partial class Editor : Form
         var json=archive.CreateEntry("card.json");
         using(var writer=new StreamWriter(json.Open(),new UTF8Encoding(false)))writer.Write(card.ToJsonString(Pretty));
         ZipText(archive,"integration.json",IntegrationMetadata(draft,designApproved).ToJsonString(Pretty));
-        ZipText(archive,"CHATGPT_IMPORT.md",ChatGptImportGuide);
+        WriteIntegrationDocuments(archive);
         ZipText(archive,"manifest.json",new JsonObject
         {
             ["format"]="arcane-duel-card-batch-v2",
