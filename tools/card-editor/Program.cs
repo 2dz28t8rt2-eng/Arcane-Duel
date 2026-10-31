@@ -337,7 +337,12 @@ internal sealed partial class Editor : Form
         if(!string.IsNullOrWhiteSpace(art))
         {
             var candidate=Path.IsPathRooted(art)?art:Path.Combine(baseDir,art.Replace('/',Path.DirectorySeparatorChar));
-            if(File.Exists(candidate))try { var bytes=File.ReadAllBytes(candidate); preview.SetImage(bytes); imageBytes=bytes; imageExtension=Path.GetExtension(candidate).ToLowerInvariant(); artLabel.Text=Path.GetFileName(candidate); } catch {}
+            if(File.Exists(candidate))try { var bytes=File.ReadAllBytes(candidate); preview.SetImage(bytes);
+                // Preserve canonical game artwork paths; loading an existing file
+                // for preview must not silently turn it into a new custom-art asset.
+                if(!art.Replace('\\','/').StartsWith("assets/",StringComparison.OrdinalIgnoreCase))
+                { imageBytes=bytes; imageExtension=Path.GetExtension(candidate).ToLowerInvariant(); }
+                artLabel.Text=Path.GetFileName(candidate); } catch {}
         }
         if(imageBytes==null && !string.IsNullOrWhiteSpace(art))
         {
