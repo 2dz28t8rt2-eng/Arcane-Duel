@@ -28,7 +28,7 @@
  const inviteLink=make('input','',invitePanel);inviteLink.type='text';inviteLink.readOnly=true;
  inviteLink.setAttribute('aria-label','Einladungslink');
  const copyButton=make('button','btn',invitePanel,'Link kopieren');copyButton.type='button';
- let creatingInvite=false;
+ let creatingInvite=false,openInviteFromSolo=new URL(location.href).searchParams.get('invitePlayer')==='1';
  function renderGroupInvite(){
   const s=api.state(),waiting=s.seat===0&&s.game?.status==='waiting'&&s.roomId&&s.invite;
   inviteLink.hidden=!waiting;copyButton.hidden=!waiting;
@@ -284,6 +284,10 @@
   const s=api.state(),show=state.entered&&state.inMenu;
   screen.hidden=!show;
   if(show){
+   if(openInviteFromSolo&&!s.joinIntent&&!s.game){
+    openInviteFromSolo=false;
+    Promise.resolve().then(()=>inviteButton.click());
+   }
    if(!invitePanel.hidden)renderGroupInvite();
    $('duoMainMenuGate').hidden=true;$('duoPage').hidden=false;$('duoPage').inert=false;
    $('duoPage').dataset.lobbyView='true';$('duoSoloWorkspace').hidden=false;

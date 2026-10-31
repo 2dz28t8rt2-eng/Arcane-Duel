@@ -68,6 +68,31 @@ async function finishLiveDuel(A,B){
  const browser=await chromium.launch({headless:true,...(process.env.CHROME?{executablePath:process.env.CHROME}:{}),args:['--no-sandbox','--disable-dev-shm-usage']});
  let a,b;const report={mode:prefix,checks:[]};
  try{
+  if(!live){
+   const solo=await browser.newContext({viewport:{width:1500,height:1080}});
+   try{
+    await solo.route(endpoint,async route=>{
+     if(route.request().method()==='OPTIONS'){await route.fulfill({status:200,headers:{'access-control-allow-origin':'http://localhost:8757','access-control-allow-headers':'Content-Type','access-control-allow-methods':'POST,OPTIONS'},body:'{}'});return;}
+     try{await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(backend.handle(route.request().postDataJSON()))});}
+     catch(e){await route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({error:e.message})});}
+    });
+    const page=await solo.newPage();await page.goto('http://localhost:8757/index.html');
+    await page.locator('[data-ad196-action="solo"]').click();
+    if(await page.locator('#guideClose').isVisible())await page.locator('#guideClose').click();
+    if(await page.locator('#helpDismiss').isVisible())await page.locator('#helpDismiss').click();
+    assert.equal(await page.locator('#duoQuickInvite').isVisible(),true);
+    assert.equal(await page.locator('#duoQuickInvite').getAttribute('href'),'duo-campaign-v2.html?invitePlayer=1');
+    const soloSave=await page.evaluate(()=>localStorage.getItem('arcane-duel-rpg-profile-v4-reborn'));
+    await page.locator('#duoQuickInvite').click();
+    await page.waitForFunction(()=>window.ArcaneDuoParty218?.state().catalogReady&&!document.getElementById('duoNameConfirm').disabled);
+    await page.locator('#duoNameInput').fill('QA221 Direkt');await page.locator('#duoNameConfirm').click();
+    await status(page,'waiting');
+    assert.equal(await page.locator('#duoInvitePlayerPanel input').isVisible(),true);
+    assert.equal(await page.evaluate(()=>localStorage.getItem('arcane-duel-rpg-profile-v4-reborn')),soloSave);
+    report.checks.push('singleplayer main menu exposes a direct invitation entry');
+    report.checks.push('direct entry creates an invitation without changing the solo save');
+   }finally{await solo.close();}
+  }
   const tag=Date.now().toString(36);a=await newClient(browser,'http://localhost:8757/duo-campaign-v2.html','QA221 Host '+tag);
   const A=a.page;await A.locator('#duoMenuScreen').waitFor({state:'visible'});
   if(!live){const host=[...backend.profiles.values()].find(p=>p.nickname==='QA221 Host '+tag);host.clearedChapters=[1,2];await A.evaluate(()=>window.ArcaneDuoParty218.refreshProfile());}

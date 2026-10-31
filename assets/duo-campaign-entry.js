@@ -7,6 +7,16 @@
  renderMenu=function(...args){
   const result=renderEarlier(...args);
   if(uiMode!=='menu')return result;
+  const menu=document.getElementById('menuScreen');
+  if(menu&&!menu.querySelector('#duoQuickInvite')){
+   const invite=document.createElement('a');
+   invite.id='duoQuickInvite';invite.className='btn tiny';
+   invite.href='duo-campaign-v2.html?invitePlayer=1';
+   invite.textContent='✉ Spieler einladen';
+   invite.title='Öffnet dein persönliches 2v2-Profil und erstellt einen Einladungslink.';
+   invite.style.cssText='position:fixed;top:12px;left:12px;z-index:120';
+   menu.append(invite);
+  }
   const hero=document.getElementById('menuHero');
   if(hero&&!hero.querySelector('#duoCampaignLab')){
    const a=document.createElement('a');
