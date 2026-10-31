@@ -759,8 +759,11 @@
     game.winner===0?'Ihr habt diese Kampagne abgeschlossen!':'Das Duell ist zu Ende.');
    return;
   }
-  const giveUp=button('⚑ Duell aufgeben',dock,()=>{
-   if(confirm('Das gemeinsame Duell für euer Team aufgeben? Das zählt für beide als Niederlage und gibt keine Belohnung.'))send({type:'surrender'});
+  const giveUp=button('⚑ Duell aufgeben',dock,async()=>{
+   const accepted=await window.ArcaneModal223.confirm({kicker:'AUFGEBEN',title:'Dieses Duell aufgeben?',icon:'⚑',
+    text:'Das gemeinsame Duell zählt für beide als Niederlage. Aufgeben gibt keine Belohnung. Eure Karten bleiben erhalten.',
+    cancelLabel:'WEITERSPIELEN',confirmLabel:'AUFGEBEN'});
+   if(accepted)send({type:'surrender'});
   });
   giveUp.classList.add('ad182-surrender');
   if(!game.supportsSurrender){

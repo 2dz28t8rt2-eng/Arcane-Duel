@@ -90,7 +90,12 @@
  deckVariants.addEventListener('click',async event=>{
   const button=event.target.closest('[data-slot-action]');if(!button||button.disabled)return;
   const slot=Number(button.dataset.slotIndex);
-  if(button.dataset.slotAction==='copy'&&!confirm('Das aktuelle Deck in Deck '+(slot+1)+' kopieren und dessen bisherige Karten ersetzen?'))return;
+  if(button.dataset.slotAction==='copy'){
+   const accepted=await window.ArcaneModal223.confirm({kicker:'DECKPLATZ',title:'Deck kopieren?',icon:'▤',
+    text:'Das aktuelle Deck ersetzt die bisherige Variante in Deck '+(slot+1)+'.',
+    cancelLabel:'ABBRECHEN',confirmLabel:'DECK KOPIEREN'});
+   if(!accepted)return;
+  }
   await operation(button.dataset.slotAction==='copy'?'deckSlotCopy':'deckSlotSelect',{slot});
  });
  function renderDeckVariants(){

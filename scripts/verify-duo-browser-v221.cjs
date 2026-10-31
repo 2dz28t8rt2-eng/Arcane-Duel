@@ -156,6 +156,13 @@ async function finishLiveDuel(A,B){
    await A.locator('#duoDeckVariants [data-slot-action="select"][data-slot-index="1"]').click();
    await A.waitForFunction(()=>window.ArcaneDuoParty218.state().profile.activeDeckSlot===1);
    assert.equal((await state(B)).profile.activeDeckSlot,0);
+   const revision=(await state(A)).profile.revision;
+   await A.locator('#duoDeckVariants [data-slot-action="copy"][data-slot-index="2"]').click();
+   await A.locator('#duoSharedDialog [data-dialog-cancel]').click();
+   assert.equal((await state(A)).profile.revision,revision);
+   await A.locator('#duoDeckVariants [data-slot-action="copy"][data-slot-index="2"]').click();
+   await A.locator('#duoSharedDialog [data-dialog-confirm]').click();
+   await A.waitForFunction(rev=>window.ArcaneDuoParty218.state().profile.revision>rev,revision);
    assert.equal(await A.evaluate(()=>localStorage.getItem('arcane-duel-rpg-profile-v4-reborn')),'solo-sentinel-221');
    report.checks.push('three online deck variants switch independently without touching the partner or solo save');
    await route(A,'settings');
@@ -247,6 +254,14 @@ async function finishLiveDuel(A,B){
    // The guest can surrender even while it is the host's turn. Both clients
    // must see the same finished match, with no win recorded for either team member.
    await B.getByRole('button',{name:'⚑ Duell aufgeben'}).click();
+   assert.equal(await B.locator('#duoSharedDialog [data-dialog-cancel]').evaluate(n=>n===document.activeElement),true);
+   await B.keyboard.press('Escape');
+   assert.equal(await B.locator('#duoSharedDialog').count(),0);
+   await B.getByRole('button',{name:'⚑ Duell aufgeben'}).click();
+   await B.locator('#duoSharedDialog [data-dialog-cancel]').click();
+   assert.equal((await state(B)).game.status,'active');
+   await B.getByRole('button',{name:'⚑ Duell aufgeben'}).click();
+   await B.locator('#duoSharedDialog [data-dialog-confirm]').click();
    await status(B,'finished');await refresh(A);await status(A,'finished');
    assert.equal((await state(A)).game.winner,1);
    assert.equal((await state(B)).game.surrenderedBy,2);
