@@ -1228,6 +1228,30 @@
   state:()=>({nameConfirmed,joinIntent:!!joinIntent,roomId,seat,game,invite,
    profile:duoProfile,lastRoom:duoLastRoom,busy,catalogReady:Object.keys(catalog).length>0}),
   createRoom,continueLastRoom,send,
+  pasteInvite:async value=>{
+   const raw=String(value||'').trim();
+   let candidate=raw;
+   try{if(raw.includes('://'))candidate=new URL(raw).hash.slice(1);}
+   catch{throw Error('Der Link ist nicht gültig. Bitte den gesamten Einladungslink kopieren.');}
+   if(candidate.startsWith('#'))candidate=candidate.slice(1);
+   if(candidate.startsWith('join='))candidate=candidate.slice(5);
+   const i=candidate.lastIndexOf('.'),id=candidate.slice(0,i),secret=candidate.slice(i+1);
+   if(i<1||! /^[0-9a-f-]{36}$/.test(id)||! /^[a-f0-9]{64}$/.test(secret))
+    throw Error('Bitte einen vollständigen Einladungslink oder den Raumcode inklusive Schlüssel einfügen.');
+   if(!nameConfirmed||!duoProfile)throw Error('Bitte vorher deinen eigenen 2v2-Duellanten erstellen.');
+   joinIntent={id,secret};invitePreview=null;
+   history.replaceState(null,'',ownOrigin()+'#join='+id+'.'+secret);
+   try{
+    invitePreview=await call({type:'invitePreview',roomId:id,invite:secret});
+    showInvitation('join',invitePreview.inviterName,invitePreview.chapter);
+   }catch(e){
+    joinIntent=null;invitePreview=null;
+    history.replaceState(null,'',ownOrigin());
+    render();
+    throw e;
+   }
+   render();
+  },
   resetWaitingRoom:()=>{
    if(game?.status!=='waiting')return;
    roomId='';token='';invite='';seat=-1;game=null;
