@@ -39,6 +39,7 @@
   $('duoPartyReset').hidden=!(party&&g?.status==='waiting'&&s.seat===0);
   if(waiting){
    $('duoPartyLink').value=origin()+'#join='+s.roomId+'.'+s.invite;
+   $('duoPartyCode').value=s.roomId+'.'+s.invite;
    $('duoPartyWaitLabel').textContent='Schicke diesen Link an deinen Freund. Sobald er beitritt, öffnet sich für euch beide das Hauptmenü.';
   }
   if(party){
@@ -98,6 +99,12 @@
   sync();
  };
  $('duoPartyCopy').onclick=copyInvite;
+ $('duoPartyCopyCode').onclick=async()=>{
+  const value=$('duoPartyCode').value;
+  if(!value){info('Raumcode noch nicht verfügbar.');return;}
+  try{await navigator.clipboard.writeText(value);info('Raumcode kopiert. Dein Partner kann ihn im Beitrittsfeld einfügen.');}
+  catch{$('duoPartyCode').select();info('Bitte den Raumcode aus dem Feld manuell kopieren.');}
+ };
  $('duoJoinManual').onclick=async()=>{
   const button=$('duoJoinManual');button.disabled=true;
   info('Einladung wird geprüft …');
