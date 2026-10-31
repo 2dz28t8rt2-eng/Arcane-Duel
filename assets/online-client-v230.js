@@ -7,7 +7,8 @@
  const originalSave=saveProfile;
  let profileToken=localStorage.getItem(tokenKey)||'',meta=JSON.parse(localStorage.getItem(metaKey)||'null'),
   ready=false,connecting=null,saving=null,dirty=false,installing=false,timer=null,room=null,seat=-1,state=null,
-  polling=false,acting=false,invite='',limits=null,lastInvite=null,completed=null,lastRoom=null;
+  polling=false,acting=false,invite='',limits=null,lastInvite=null,completed=null,lastRoom=null,
+  hostWaitingOpen=false,openingGroup=null;
  const persist=()=>localStorage.setItem(metaKey,JSON.stringify(meta));
  const statusNode=document.createElement('span');statusNode.id='onlineSync230';statusNode.setAttribute('role','status');
  document.querySelector('.mast-actions')?.append(statusNode);
@@ -83,23 +84,40 @@
   if(dirty)return flush();
  }
  async function loadOutcome(){return api({type:'load',profileToken},'/api/player-save');}
- function rememberRoom(){localStorage.setItem('arcane-personal-room-v230',JSON.stringify({id:room,profileId:meta.id,seat}));}
- function waiting(){
+ async function enterMenu(){
+  const title=window.ArcaneTitleGate;if(!title?.isOpen())return;
+  // close() starts the original transition; it does not return its completion.
+  // Wait before opening dialogs or locking the guest menu with inert.
+  title.close();
+  await new Promise(resolve=>{const done=()=>title.isOpen()?requestAnimationFrame(done):resolve();done();});
+ }
+ function rememberRoom(){localStorage.setItem('arcane-personal-room-v230',JSON.stringify({id:room,profileId:meta.id,seat,...(seat===0&&invite?{invite}:{})}));}
+ function closeWaiting(){hostWaitingOpen=false;hideModal();}
+ function waiting({open=false}={}){
   if(!state||state.groupReleased!==false)return;
   const host=seat===0,joined=state.status==='lobby';
+  if(host){if(open)hostWaitingOpen=true;if(!hostWaitingOpen)return;}
   if(!host)document.querySelector('.app').inert=true;
   openModal(modalHtml('DEINE GRUPPE',host?'Spieler einladen':'Du bist einer Gruppe beigetreten. Warte auf Host.','✉',
    host?'Sende diesen Link an deinen Mitspieler. Sobald er beigetreten ist, kannst du fortsetzen.':'Dein eigener Fortschritt bleibt erhalten.',
    host&&invite?'<label>Einladungslink<input id="onlineInviteLink230" readonly value="'+escapeHtml(invite)+'"></label>':'',
-   host?'<button class="btn" id="onlineCopy230">LINK KOPIEREN</button><button class="btn '+(joined?'primary':'')+'" id="onlineContinue230" '+(!joined?'disabled':'')+'>FORTSETZEN</button>':''));
-  if(host){id('onlineCopy230').onclick=()=>navigator.clipboard.writeText(invite).then(()=>toast('Einladungslink kopiert.')).catch(()=>{id('onlineInviteLink230')?.select();});id('onlineContinue230').onclick=()=>send({type:'continueGroup'}).catch(report);}
+   host?(invite?'<button class="btn" id="onlineCopy230">LINK KOPIEREN</button>':!joined?'<button class="btn" id="onlineNewLink230">NEUEN LINK ERSTELLEN</button>':'')+'<button class="btn '+(joined?'primary':'')+'" id="onlineContinue230" '+(!joined?'disabled':'')+'>FORTSETZEN</button><button class="btn" id="onlineWaitingClose230">SCHLIESSEN</button>':''));
+  if(host){
+   if(id('onlineCopy230'))id('onlineCopy230').onclick=()=>navigator.clipboard.writeText(invite).then(()=>toast('Einladungslink kopiert.')).catch(()=>{id('onlineInviteLink230')?.select();});
+   if(id('onlineNewLink230'))id('onlineNewLink230').onclick=()=>createGroup().catch(report);
+   id('onlineContinue230').onclick=()=>send({type:'continueGroup'}).catch(report);
+   id('onlineWaitingClose230').onclick=closeWaiting;
+  }
  }
  async function consume(payload){
   if(state&&payload.state&&payload.state.revision<state.revision)return;
   seat=payload.seat??seat;limits=payload.partyLimits||limits;
   const prior=state;state=payload.state||state;if(!state)return;
-  if(state.groupReleased===false){if(!prior||prior.revision!==state.revision)waiting();return;}
-  if(prior?.groupReleased===false){document.querySelector('.app').inert=false;hideModal();returnToMenu();}
+  if(state.groupReleased===false){
+   if(seat===0&&!hostWaitingOpen&&prior?.status==='waiting'&&state.status==='lobby')toast('Dein Mitspieler ist beigetreten. Öffne 2 vs. 2, um fortzusetzen.');
+   if(!prior||prior.revision!==state.revision)waiting();return;
+  }
+  if(prior?.groupReleased===false){hostWaitingOpen=false;document.querySelector('.app').inert=false;hideModal();returnToMenu();}
   if(state.status!=='party_ready'&&id('onlineCancelInvitation230'))hideModal();
   if(state.status==='active'||state.status==='finished'&&game?.online230){
    await window.ArcaneOnlineBattle230.accept(payload,{seat,room});
@@ -132,18 +150,31 @@
   try{const payload=await api({type:'action',roomId:room,token:profileToken,expectedRevision:state.revision,action});await consume(payload);return payload;}
   catch(e){throw e;}finally{acting=false;}
  }
- async function invitePlayer(){
-  await window.ArcaneTitleGate?.close?.();await connect();await flush();
-  if(room&&state?.status==='active'){toast('Beende zuerst das laufende gemeinsame Duell.');return;}
+ async function createGroup(){
   const payload=await api({type:'create',profileToken,personalDuoRules:true,sharedClient:true});
   room=payload.roomId;seat=0;state=null;invite=new URL('index.html',location.href).href+'?party='+encodeURIComponent(room)+'#invite='+payload.invite;
+  hostWaitingOpen=true;
   rememberRoom();await consume(payload);
  }
+ async function invitePlayer(){
+  if(openingGroup)return openingGroup;
+  openingGroup=(async()=>{
+   await enterMenu();await connect();await flush();
+   if(room&&state?.status==='active'){toast('Beende zuerst das laufende gemeinsame Duell.');return;}
+   if(room&&state&&state.status!=='finished'){
+    if(seat!==0){toast('Nur der ursprüngliche Host kann Spieler einladen.');return;}
+    if(state.groupReleased===false){waiting({open:true});return;}
+    return duelMenu();
+   }
+   await createGroup();
+  })();
+  try{return await openingGroup;}finally{openingGroup=null;}
+ }
  async function duelMenu(){
-  await connect();await flush();
+  await enterMenu();await connect();await flush();
   if(!room)return invitePlayer();
   await poll();
-  if(state?.groupReleased===false){waiting();return;}
+  if(state?.groupReleased===false){waiting({open:true});return;}
   if(seat!==0){toast('Der Host wählt den Gegner und lädt dich zum Duell ein.');return;}
   if(game&&uiMode==='duel'){toast('Beende zuerst dein laufendes Duell.');return;}
   const max=limits?.maxChapter||1,opponents=window.ArcaneDuoRules.ENCOUNTERS.filter(o=>o.id<=10?o.id<=max:o.id<=(limits?.maxSagaStage||0));
@@ -156,6 +187,10 @@
  document.addEventListener('click',e=>{
   const button=e.target.closest?.('#duoQuickInvite,#duoCampaignLab,[data-ad196-action="duo"]');if(!button)return;
   e.preventDefault();e.stopImmediatePropagation();(button.id==='duoQuickInvite'?invitePlayer():duelMenu()).catch(report);
+ },true);
+ document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape'||state?.groupReleased!==false)return;
+  if(seat===2||hostWaitingOpen){e.preventDefault();e.stopImmediatePropagation();if(seat===0)closeWaiting();}
  },true);
  const oldMenu=renderMenu;
  renderMenu=function(...args){const r=oldMenu(...args);
@@ -188,14 +223,14 @@
  const recovery=hash.get('profile');
  if(recovery&&/^[a-f0-9]{64}$/.test(recovery)){profileToken=recovery;localStorage.setItem(tokenKey,recovery);history.replaceState(null,'',location.pathname+location.search);}
  async function initialize(){
-  if(joining&&invitation){await window.ArcaneTitleGate?.close?.();await connect();await flush();
+  if(joining&&invitation){await enterMenu();await connect();await flush();
    const payload=await api({type:'join',roomId:joining,invite:invitation,profileToken,deferStart:true});room=joining;seat=2;rememberRoom();history.replaceState(null,'',location.pathname);await consume(payload);
   }else if(profileToken){await connect();const previous=JSON.parse(localStorage.getItem('arcane-personal-room-v230')||'null');
    if(hash.get('room')){room=hash.get('room');await poll();rememberRoom();}
    else if(lastRoom?.status==='active'){room=lastRoom.id;seat=lastRoom.seat;rememberRoom();await poll();}
-   else if(previous?.profileId===meta.id){room=previous.id;seat=previous.seat;await poll();}
+   else if(previous?.profileId===meta.id){room=previous.id;seat=previous.seat;invite=seat===0?previous.invite||'':'';if(seat===2)await enterMenu();await poll();}
   }
-  if(query.has('invitePlayer'))await invitePlayer();
+  if(query.has('invitePlayer')){const url=new URL(location.href);url.searchParams.delete('invitePlayer');history.replaceState(null,'',url);await invitePlayer();}
   if(uiMode==='menu')renderMenu();
  }
  void initialize().catch(report);
