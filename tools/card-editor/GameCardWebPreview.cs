@@ -136,7 +136,7 @@ internal sealed class GameCardWebPreview : UserControl
             + "text-align:left;appearance:none;cursor:default!important;box-sizing:border-box!important;"
             + "width:min(286px,90vw)!important;max-width:286px!important;height:408px!important;min-height:408px!important;"
             + "flex:0 0 auto!important;transform:none!important;transition:none!important;}"
-            + ".hand-card.tc-card:hover{transform:none!important;filter:none!important;}"
+            + "body #deckSidePreview .hand-card.tc-card:hover:not(:disabled){transform:none!important;filter:none!important;}"
             + ".hand-card.tc-card .hand-art{min-height:0!important;flex:1 1 auto!important;}"
             + ".hand-card.tc-card .hand-art img{width:100%;height:100%;object-fit:cover;}"
             + ".hand-card.tc-card .hand-stats{flex:0 0 44px!important;height:44px!important;}"
