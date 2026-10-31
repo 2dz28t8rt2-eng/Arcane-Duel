@@ -136,7 +136,7 @@ internal sealed class CardPicker : Form
     readonly ComboBox typeFilter = FilterCombo(118);
     readonly ComboBox rarityFilter = FilterCombo(105);
     readonly ComboBox sortFilter = FilterCombo(135);
-    readonly Label hitCount = new() { AutoSize = true, ForeColor = Color.FromArgb(215,184,132) };
+    readonly Label hitCount = new() { Dock = DockStyle.Top, Height = 22, TextAlign = ContentAlignment.MiddleLeft, ForeColor = Color.FromArgb(215,184,132) };
     public JsonObject? SelectedCard { get; private set; }
     static ComboBox FilterCombo(int width) => new()
     {
@@ -186,6 +186,7 @@ internal sealed class CardPicker : Form
         left.Controls.Add(cards);
         left.Controls.Add(filters);
         left.Controls.Add(search);
+        left.Controls.Add(hitCount);
         search.PlaceholderText="ID, Name, Rolle oder Element suchen …";
         var right = new Panel { Dock=DockStyle.Fill, Padding=new Padding(12) };
         right.Controls.Add(portrait);right.Controls.Add(description);
@@ -201,7 +202,6 @@ internal sealed class CardPicker : Form
         cards.SelectedIndexChanged+=(_,_)=>ShowSelection();
         cards.DoubleClick+=(_,_)=>{if(cards.SelectedItem!=null)DialogResult=DialogResult.OK;};
         RefreshCards();
-        TextChanged+=(_,_)=>{};
         FormClosing+=(_,e)=>{
             if(DialogResult==DialogResult.OK && cards.SelectedItem is Choice c)
                SelectedCard=(JsonObject)c.Card.DeepClone();
@@ -242,9 +242,7 @@ internal sealed class CardPicker : Form
         if(cards.Items.Count>0)cards.SelectedIndex=selectedIndex>=0?selectedIndex:0;
         else {description.Text="Keine Karte entspricht den Filtern.";var old=portrait.Image;portrait.Image=null;old?.Dispose();}
         hitCount.Text=cards.Items.Count+" Karten";
-        if(!leftHitLabelAdded) {leftHitLabelAdded=true;}
     }
-    bool leftHitLabelAdded;
 
     private void ShowSelection()
     {
