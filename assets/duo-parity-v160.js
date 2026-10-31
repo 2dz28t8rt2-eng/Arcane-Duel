@@ -418,6 +418,9 @@
   if(Object.hasOwn(payload,'partyLimits'))partyLimits=payload.partyLimits;
   if(payload.state?.roomId&&payload.state.roomId!==roomId)return;
   let previous=game;
+  // Revisions only order snapshots within one room. Starting another party
+  // after a finished duel creates a new room at revision 0.
+  if(previous?.roomId!==payload.state?.roomId)previous=null;
   if(previous&&payload.state?.revision<previous.revision)return;
   if(previous&&(payload.state?.duelNo||1)!==(previous.duelNo||1))previous=null;
   game=payload.state;seat=payload.seat;syncedAt=Date.now();syncError='';syncFailures=0;
