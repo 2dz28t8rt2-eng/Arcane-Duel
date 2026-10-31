@@ -154,75 +154,7 @@ internal sealed partial class Editor
         catch(Exception ex){shelf.AddRange(backup);Error(ex);}
     }
 
-    private static void ZipText(ZipArchive zip,string name,string content)
-    {
-        using var writer=new StreamWriter(zip.CreateEntry(name,CompressionLevel.Optimal).Open(),new UTF8Encoding(false));
-        writer.Write(content);
-    }
-    private static void ZipBytes(ZipArchive zip,string name,byte[] bytes)
-    {
-        using var writer=zip.CreateEntry(name,CompressionLevel.Optimal).Open();
-        writer.Write(bytes);
-    }
-    private static string SafeName(string value)
-    {
-        var name=new string(value.Where(c=>char.IsAsciiLetterOrDigit(c)||c is '-' or '_').Take(45).ToArray());
-        return name.Length==0?"karte":name;
-    }
-    private static string RelativeAsset(JsonObject card,string field)
-    {
-        var name=card[field]?.ToString()?.Replace('\\','/')??"";
-        return name.StartsWith("assets/",StringComparison.Ordinal)
-            && !name.Split('/').Any(x=>x is "." or "..")
-            && !Path.IsPathRooted(name) ? name : "";
-    }
-    static void WriteShelfPackage(string path,IReadOnlyList<CardDraft> drafts,bool designApproved=false)
-    {
-        if(drafts.Count==0)throw new InvalidOperationException("Die Ablage ist leer.");
-        var ids=new HashSet<int>();
-        foreach(var d in drafts)
-        {
-            ValidateDraft(d);
-            if(AnalyzeIntent(d).Count>0 && !designApproved)
-                throw new InvalidOperationException("Nichtstandard-Design muss vor dem Export ausdrücklich bestätigt werden.");
-            if(!int.TryParse(d.Card["id"]?.ToString(),out var id)||id<0)
-                throw new InvalidOperationException("Eine Karte benötigt noch eine gültige ID. Bitte bearbeiten.");
-            if(!ids.Add(id))throw new InvalidOperationException("Doppelte ID "+id+" in der Ablage.");
-        }
-        using var file=new FileStream(path,FileMode.Create,FileAccess.Write,FileShare.None);
-        using var archive=new ZipArchive(file,ZipArchiveMode.Create);
-        var entries=new JsonArray();
-        foreach(var d in drafts.OrderBy(x=>int.Parse(x.Card["id"]!.ToString())))
-        {
-            var card=d.Card;var id=int.Parse(card["id"]!.ToString());
-            var folder="cards/"+id.ToString("D6")+"-"+SafeName(card["name"]?.ToString()??"karte")+"/";
-            ZipText(archive,folder+"card.json",card.ToJsonString(Pretty));
-            ZipText(archive,folder+"integration.json",IntegrationMetadata(d,designApproved).ToJsonString(Pretty));
-            var art=RelativeAsset(card,"art");
-            if(d.Image!=null)
-            {
-                if(art.Length==0)throw new InvalidOperationException("Ungültiger Bildpfad auf Karte "+id);
-                ZipBytes(archive,folder+art,d.Image);
-            }
-            var frame=RelativeAsset(card,"customFrame");
-            if(d.Frame!=null)
-            {
-                if(frame.Length==0)throw new InvalidOperationException("Ungültiger Rahmenpfad auf Karte "+id);
-                ZipBytes(archive,folder+frame,d.Frame);
-            }
-            entries.Add(new JsonObject {["id"]=id,["name"]=card["name"]?.ToString()??"",
-                ["folder"]=folder,["cardJson"]=folder+"card.json",["artwork"]=art,
-                ["artworkBundled"]=d.Image!=null,["frameBundled"]=d.Frame!=null,
-                ["integrationJson"]=folder+"integration.json",
-                ["unlockMode"]=d.Integration?.Availability??"catalog-only",
-                ["nonstandardDesignConfirmed"]=designApproved&&AnalyzeIntent(d).Count>0});
-        }
-        ZipText(archive,"manifest.json",new JsonObject {
-            ["format"]="arcane-duel-card-batch-v2",
-            ["exportedAtUtc"]=DateTimeOffset.UtcNow.ToString("O"),
-            ["cardCount"]=drafts.Count,["cards"]=entries
-        }.ToJsonString(Pretty));
-        ZipText(archive,"CHATGPT_IMPORT.md","""
+    private static readonly string ChatGptImportGuide="""
 # Arcane Duel – verbindliche Importanweisung für ChatGPT
 
 Dieses ZIP ist ein vom Benutzer genehmigter Kartensatz.
@@ -299,7 +231,77 @@ Am Ende einen klaren Bericht erzeugen und dem Benutzer bereitstellen:
 Keine Behauptung einer abgeschlossenen Integration ohne Tests.
 
 Dieser Export ist eine Entwicklungsübergabe, kein automatisches Live-Update.
-""");
+""";
+
+    private static void ZipText(ZipArchive zip,string name,string content)
+    {
+        using var writer=new StreamWriter(zip.CreateEntry(name,CompressionLevel.Optimal).Open(),new UTF8Encoding(false));
+        writer.Write(content);
+    }
+    private static void ZipBytes(ZipArchive zip,string name,byte[] bytes)
+    {
+        using var writer=zip.CreateEntry(name,CompressionLevel.Optimal).Open();
+        writer.Write(bytes);
+    }
+    private static string SafeName(string value)
+    {
+        var name=new string(value.Where(c=>char.IsAsciiLetterOrDigit(c)||c is '-' or '_').Take(45).ToArray());
+        return name.Length==0?"karte":name;
+    }
+    private static string RelativeAsset(JsonObject card,string field)
+    {
+        var name=card[field]?.ToString()?.Replace('\\','/')??"";
+        return name.StartsWith("assets/",StringComparison.Ordinal)
+            && !name.Split('/').Any(x=>x is "." or "..")
+            && !Path.IsPathRooted(name) ? name : "";
+    }
+    static void WriteShelfPackage(string path,IReadOnlyList<CardDraft> drafts,bool designApproved=false)
+    {
+        if(drafts.Count==0)throw new InvalidOperationException("Die Ablage ist leer.");
+        var ids=new HashSet<int>();
+        foreach(var d in drafts)
+        {
+            ValidateDraft(d);
+            if(AnalyzeIntent(d).Count>0 && !designApproved)
+                throw new InvalidOperationException("Nichtstandard-Design muss vor dem Export ausdrücklich bestätigt werden.");
+            if(!int.TryParse(d.Card["id"]?.ToString(),out var id)||id<0)
+                throw new InvalidOperationException("Eine Karte benötigt noch eine gültige ID. Bitte bearbeiten.");
+            if(!ids.Add(id))throw new InvalidOperationException("Doppelte ID "+id+" in der Ablage.");
+        }
+        using var file=new FileStream(path,FileMode.Create,FileAccess.Write,FileShare.None);
+        using var archive=new ZipArchive(file,ZipArchiveMode.Create);
+        var entries=new JsonArray();
+        foreach(var d in drafts.OrderBy(x=>int.Parse(x.Card["id"]!.ToString())))
+        {
+            var card=d.Card;var id=int.Parse(card["id"]!.ToString());
+            var folder="cards/"+id.ToString("D6")+"-"+SafeName(card["name"]?.ToString()??"karte")+"/";
+            ZipText(archive,folder+"card.json",card.ToJsonString(Pretty));
+            ZipText(archive,folder+"integration.json",IntegrationMetadata(d,designApproved).ToJsonString(Pretty));
+            var art=RelativeAsset(card,"art");
+            if(d.Image!=null)
+            {
+                if(art.Length==0)throw new InvalidOperationException("Ungültiger Bildpfad auf Karte "+id);
+                ZipBytes(archive,folder+art,d.Image);
+            }
+            var frame=RelativeAsset(card,"customFrame");
+            if(d.Frame!=null)
+            {
+                if(frame.Length==0)throw new InvalidOperationException("Ungültiger Rahmenpfad auf Karte "+id);
+                ZipBytes(archive,folder+frame,d.Frame);
+            }
+            entries.Add(new JsonObject {["id"]=id,["name"]=card["name"]?.ToString()??"",
+                ["folder"]=folder,["cardJson"]=folder+"card.json",["artwork"]=art,
+                ["artworkBundled"]=d.Image!=null,["frameBundled"]=d.Frame!=null,
+                ["integrationJson"]=folder+"integration.json",
+                ["unlockMode"]=d.Integration?.Availability??"catalog-only",
+                ["nonstandardDesignConfirmed"]=designApproved&&AnalyzeIntent(d).Count>0});
+        }
+        ZipText(archive,"manifest.json",new JsonObject {
+            ["format"]="arcane-duel-card-batch-v2",
+            ["exportedAtUtc"]=DateTimeOffset.UtcNow.ToString("O"),
+            ["cardCount"]=drafts.Count,["cards"]=entries
+        }.ToJsonString(Pretty));
+        ZipText(archive,"CHATGPT_IMPORT.md",ChatGptImportGuide);
     }
     void ExportShelf()
     {
