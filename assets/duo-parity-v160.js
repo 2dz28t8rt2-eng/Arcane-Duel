@@ -4,7 +4,7 @@
  */
 'use strict';
 (()=>{
- const api='https://cvmtmvruutdneyblumgf.supabase.co/functions/v1/arcane-duo-v2';
+ const api=window.ArcaneDuoEndpoint||'https://cvmtmvruutdneyblumgf.supabase.co/functions/v1/arcane-duo-v2';
  const $=id=>document.getElementById(id),rules=window.ArcaneDuoRules,
   choices=window.ArcaneDuoBattleUI,recovery=window.ArcaneDuoRecovery168,
    economyRules=window.ArcaneDuoEconomy172;

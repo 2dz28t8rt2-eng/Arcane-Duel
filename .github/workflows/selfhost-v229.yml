@@ -1,0 +1,18 @@
+name: Independent Arcane Duel server
+on:
+  pull_request:
+  push:
+    branches: [development]
+permissions:
+  contents: read
+jobs:
+  selfhost:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/selfhost-v229.test.cjs
+      - run: python3 -m py_compile server/deploy-release.py scripts/package-selfhost.py
+      - run: node --check server/main.cjs && node --check server/backup.cjs

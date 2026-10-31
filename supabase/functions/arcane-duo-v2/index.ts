@@ -27,7 +27,8 @@ const db=createClient(Deno.env.get("SUPABASE_URL")||"",
 const TABLE="arcane_duo_v2_rooms";
 const PROFILE_TABLE="arcane_duo_v2_profiles";
 const origins=new Set(["https://raw.githack.com","https://2dz28t8rt2-eng.github.io",
- "http://localhost:8757","http://127.0.0.1:8757"]);
+ "http://localhost:8757","http://127.0.0.1:8757",
+ ...(Deno.env.get("ARCANE_DUO_ORIGINS")||"").split(",").filter(Boolean)]);
 function assert(v,message){if(!v)throw Error(message);}
 const uuid=()=>crypto.randomUUID();
 const secret=()=>Array.from(crypto.getRandomValues(new Uint8Array(32)),

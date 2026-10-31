@@ -1,0 +1,8 @@
+/artifacts/
+/server-data/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+__pycache__/
+*.pem
+*ed25519*

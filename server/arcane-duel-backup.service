@@ -1,0 +1,17 @@
+[Unit]
+Description=Arcane Duel consistent database backup
+
+[Service]
+Type=oneshot
+User=arcane-duel
+Group=arcane-duel
+EnvironmentFile=/etc/arcane-duel.env
+Environment=ARCANE_BACKUPS=/var/backups/arcane-duel
+ExecStart=/usr/local/bin/node /opt/arcane-duel/current/server/backup.cjs
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/backups/arcane-duel
+InaccessiblePaths=/opt/aetherfall /var/lib/aetherfall /srv/arcane-duel-upload
