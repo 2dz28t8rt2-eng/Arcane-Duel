@@ -253,7 +253,16 @@ internal sealed class Editor : Form
         foreach(var key in numeric.Take(4))obj[key]=Number(key);
         if(string.IsNullOrWhiteSpace(fields["name"].Text))throw new InvalidOperationException("Bitte einen Namen eingeben.");
         if(Number("level")<1)throw new InvalidOperationException("Die Stufe muss mindestens 1 sein.");
-        foreach(var key in new[]{"name","element","role","ability"})obj[key]=fields[key].Text.Trim();
+        foreach(var key in new[]{"name","element","role","ability","desc","rarity","kind","roleStyle"})
+            obj[key]=fields[key].Text.Trim();
+        obj["tags"]=new JsonArray(fields["tags"].Text.Split(',',StringSplitOptions.TrimEntries|StringSplitOptions.RemoveEmptyEntries)
+            .Select(x=>(JsonNode?)JsonValue.Create(x)).ToArray());
+        obj["frameTemplate"]=ChoiceId(frames);
+        obj["frameLevelOverlay"]=ChoiceId(ornaments);
+        obj["frameRoleIcon"]=ChoiceId(icons);
+        obj["frameAccent"]=ColorTranslator.ToHtml(backgroundAccent);
+        if(ChoiceId(frames)=="custom"&&customFrameBytes!=null&&customFrameExtension!=null)
+            obj["customFrame"]="assets/card-templates/editor/card-"+Number("id")+"-frame"+customFrameExtension;
         obj["essenceSchool"]=string.IsNullOrWhiteSpace(fields["essenceSchool"].Text)?null:JsonValue.Create(fields["essenceSchool"].Text.Trim());
         foreach(var pair in flags)obj[pair.Key]=pair.Value.Checked;
         var bonus=obj["pveBaseBonus"] as JsonObject ?? new JsonObject(); bonus["atk"]=Number("pveAtk");bonus["def"]=Number("pveDef");obj["pveBaseBonus"]=bonus.DeepClone();
@@ -266,12 +275,21 @@ internal sealed class Editor : Form
     void ApplyCard(JsonObject obj,string baseDir)
     {
         original=(JsonObject)obj.DeepClone();
-        foreach(var key in new[]{"id","name","level","atk","def","element","role","ability","essenceSchool"})
+        foreach(var key in new[]{"id","name","level","atk","def","element","role","ability","desc","rarity","kind","roleStyle","essenceSchool"})
             fields[key].Text=obj[key]?.ToString()??"";
+        fields["tags"].Text=obj["tags"] is JsonArray tags?
+            string.Join(", ",tags.Select(x=>x?.ToString()??"")):obj["tags"]?.ToString()??"";
         fields["pveAtk"].Text=obj["pveBaseBonus"]?["atk"]?.ToString()??"0";
         fields["pveDef"].Text=obj["pveBaseBonus"]?["def"]?.ToString()??"0";
         foreach(var key in boolKeys) flags[key].Checked=obj[key]?.GetValue<bool>()??(key=="playable");
-        var known=new HashSet<string>(new[]{"id","name","level","atk","def","element","role","ability","essenceSchool","pveBaseBonus","art"}.Concat(boolKeys));
+        SetChoice(frames,obj["frameTemplate"]?.ToString());
+        SetChoice(ornaments,obj["frameLevelOverlay"]?.ToString());
+        SetChoice(icons,obj["frameRoleIcon"]?.ToString());
+        if(obj["frameAccent"]!=null)try{backgroundAccent=ColorTranslator.FromHtml(obj["frameAccent"]!.ToString());}catch{}
+        customFrameBytes=null;customFrameExtension=null;preview.SetCustomFrame(null,null);
+        var known=new HashSet<string>(new[]{"id","name","level","atk","def","element","role","ability","desc",
+          "rarity","kind","roleStyle","tags","frameTemplate","frameLevelOverlay","frameRoleIcon",
+          "frameAccent","customFrame","essenceSchool","pveBaseBonus","art"}.Concat(boolKeys));
         var others=new JsonObject();foreach(var p in obj)if(!known.Contains(p.Key))others[p.Key]=p.Value?.DeepClone();
         extra.Text=others.ToJsonString(Pretty);
         imageBytes=null; imageExtension=null; preview.SetImage(null); artLabel.Text="Bildpfad: "+(obj["art"]?.ToString()??"nicht angegeben");
@@ -280,6 +298,11 @@ internal sealed class Editor : Form
         {
             var candidate=Path.IsPathRooted(art)?art:Path.Combine(baseDir,art.Replace('/',Path.DirectorySeparatorChar));
             if(File.Exists(candidate))try { var bytes=File.ReadAllBytes(candidate); preview.SetImage(bytes); imageBytes=bytes; imageExtension=Path.GetExtension(candidate).ToLowerInvariant(); artLabel.Text=Path.GetFileName(candidate); } catch {}
+        }
+        if(imageBytes==null && !string.IsNullOrWhiteSpace(art))
+        {
+            var thumb=AssetCatalog.ArtworkPreview(art);
+            if(thumb!=null){preview.SetImage(thumb);artLabel.Text="Original-Artwork: "+art;}
         }
         RefreshPreview();
     }
@@ -290,16 +313,32 @@ internal sealed class Editor : Form
         if(entry.Length>2_000_000)throw new InvalidOperationException("Die Kartendaten sind zu groß.");
         using var reader=new StreamReader(entry.Open(),Encoding.UTF8);
         var obj=JsonNode.Parse(reader.ReadToEnd()) as JsonObject ?? throw new InvalidOperationException("Ungültige Kartendaten.");
-        string art=obj["art"]?.GetValue<string>() ?? throw new InvalidOperationException("Im Paket fehlt der Bildpfad.");
-        var image=archive.GetEntry(art) ?? throw new InvalidOperationException("Das Kartenbild fehlt im Paket.");
-        if(image.Length>32_000_000)throw new InvalidOperationException("Das Kartenbild ist zu groß.");
-        var extension=Path.GetExtension(art).ToLowerInvariant();
-        if(!new[]{".png",".jpg",".jpeg",".bmp",".gif"}.Contains(extension))throw new InvalidOperationException("Dieses Bildformat wird nicht unterstützt.");
-        using var buffer=new MemoryStream(); using(var stream=image.Open())stream.CopyTo(buffer);
-        var bytes=buffer.ToArray();
-        using(var check=Image.FromStream(new MemoryStream(bytes))) { }
+        string art=obj["art"]?.ToString()??"";
+        var image=string.IsNullOrEmpty(art)?null:archive.GetEntry(art);
+        if(image!=null&&image.Length>32_000_000)throw new InvalidOperationException("Artwork zu groß.");
         ApplyCard(obj,Path.GetDirectoryName(path)!);
-        preview.SetImage(bytes); imageBytes=bytes; imageExtension=extension; artLabel.Text=Path.GetFileName(art);
+        if(image!=null)
+        {
+            var extension=Path.GetExtension(art).ToLowerInvariant();
+            if(!new[]{".png",".jpg",".jpeg",".bmp",".gif"}.Contains(extension))
+                throw new InvalidOperationException("Nicht unterstütztes Artwork-Format.");
+            using var stream=image.Open();using var buffer=new MemoryStream();
+            stream.CopyTo(buffer);var bytes=buffer.ToArray();
+            preview.SetImage(bytes);imageBytes=bytes;imageExtension=extension;
+            artLabel.Text=Path.GetFileName(art);
+        }
+        var frameArt=obj["customFrame"]?.ToString();
+        var frameEntry=string.IsNullOrEmpty(frameArt)?null:archive.GetEntry(frameArt);
+        if(frameEntry!=null)
+        {
+            if(frameEntry.Length>2_000_000)throw new InvalidOperationException("Eigener Rahmen zu groß.");
+            using var stream=frameEntry.Open();using var buffer=new MemoryStream();stream.CopyTo(buffer);
+            customFrameBytes=buffer.ToArray();
+            customFrameExtension=Path.GetExtension(frameArt).ToLowerInvariant();
+            preview.SetCustomFrame(customFrameBytes,customFrameExtension);
+            frames.Items.Add(new Choice("custom","Eigener Rahmen aus ZIP"));
+            frames.SelectedIndex=frames.Items.Count-1;
+        }
     }
     void OpenCard()
     {
@@ -334,7 +373,7 @@ internal sealed class Editor : Form
             if(card["id"]!.GetValue<int>()!=42||card["atk"]!.GetValue<int>()!=100||card["pveBaseBonus"]!["def"]!.GetValue<int>()!=20||card["future"]!["value"]!.GetValue<int>()!=1)throw new InvalidOperationException("Card round-trip failed");
             editor.preview.Size=new Size(400,620);
             using(var rendered=new Bitmap(400,620))editor.preview.DrawToBitmap(rendered,new Rectangle(0,0,400,620));
-            WritePackage(zip,card,editor.imageBytes);
+            WritePackage(zip,card,editor.imageBytes,null);
             using var archive=ZipFile.OpenRead(zip);
             if(archive.GetEntry("card.json")==null||archive.GetEntry(card["art"]!.GetValue<string>())==null||archive.GetEntry("BITTE-LESEN.txt")==null)throw new InvalidOperationException("Package is incomplete");
             using var reader=new StreamReader(archive.GetEntry("card.json")!.Open());
@@ -346,24 +385,35 @@ internal sealed class Editor : Form
         }
         finally { if(File.Exists(image))File.Delete(image);if(File.Exists(zip))File.Delete(zip); }
     }
-    static void WritePackage(string path,JsonObject card,byte[] image)
+    static void WritePackage(string path,JsonObject card,byte[]? image,byte[]? customFrame)
     {
         using var file=new FileStream(path,FileMode.Create,FileAccess.Write,FileShare.None);
         using var archive=new ZipArchive(file,ZipArchiveMode.Create);
         var json=archive.CreateEntry("card.json");
         using(var writer=new StreamWriter(json.Open(),new UTF8Encoding(false)))writer.Write(card.ToJsonString(Pretty));
-        var picture=archive.CreateEntry(card["art"]!.GetValue<string>()); using(var target=picture.Open())target.Write(image,0,image.Length);
+        if(image!=null)
+        {
+            var picture=archive.CreateEntry(card["art"]!.GetValue<string>());
+            using var target=picture.Open();target.Write(image,0,image.Length);
+        }
+        if(customFrame!=null&&card["customFrame"]!=null)
+        {
+            var frame=archive.CreateEntry(card["customFrame"]!.GetValue<string>());
+            using var target=frame.Open();target.Write(customFrame,0,customFrame.Length);
+        }
         var info=archive.CreateEntry("BITTE-LESEN.txt");
-        using(var w=new StreamWriter(info.Open(),new UTF8Encoding(false)))w.Write("Kartenentwurf für Arcane Duel\n\ncard.json und das Bild enthalten die eingegebenen Daten. Dieses Paket wird NICHT automatisch vom Spiel eingelesen. Ein Entwickler muss ID, Bildpfad, Freischaltung, Fusionen und Fähigkeiten prüfen und die Karte in die maßgeblichen Spieldaten sowie gegebenenfalls das Online-Backend integrieren. Fähigkeitstext allein erzeugt keine Spielmechanik.\n");
+        using(var w=new StreamWriter(info.Open(),new UTF8Encoding(false)))
+            w.Write("Kartenentwurf für Arcane Duel\\n\\nBestehende Bilder behalten ihre Originalpfade und werden nicht durch Thumbnail-Vorschauen ersetzt. Neue Bilder und eigene Rahmen liegen im ZIP. Das Spiel übernimmt Entwürfe nicht automatisch. Karten-IDs, Werte, Rollentags und Fähigkeiten müssen in die maßgeblichen Spielquellen und in den Online-Duo-Katalog übernommen, geprüft und gegebenenfalls veröffentlicht werden. Fähigkeitstext erzeugt keine Spiellogik.\\n");
     }
     void ExportPackage()
     {
         try {
-            if(imageBytes==null)throw new InvalidOperationException("Bitte zuerst ein Kartenbild auswählen.");
-            var card=BuildCard(); var art=card["art"]!.GetValue<string>();
+            var card=BuildCard(); var art=card["art"]?.ToString();
+            if(imageBytes==null&&string.IsNullOrWhiteSpace(art))
+                throw new InvalidOperationException("Bitte Artwork auswählen oder vorhandene Karte öffnen.");
             using var d=new SaveFileDialog { Filter="ZIP-Paket (*.zip)|*.zip", FileName="Arcane-Karte-"+Number("id")+".zip" };
             if(d.ShowDialog()!=DialogResult.OK)return;
-            WritePackage(d.FileName,card,imageBytes);
+            WritePackage(d.FileName,card,imageBytes,customFrameBytes);
             status.Text="Karte gespeichert. Das Kartenpaket kann im Chat geteilt werden.";
             using var popup=new SharePathDialog(d.FileName); popup.ShowDialog(this);
         }catch(Exception ex){Error(ex);}
