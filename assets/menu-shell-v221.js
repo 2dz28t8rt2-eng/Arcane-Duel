@@ -2,6 +2,16 @@
 'use strict';
 ((root)=>{
  const safe=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const headings=Object.freeze({
+  tournament:['Die zehn Prüfungen','Fordere den nächsten Turnierduellanten heraus und erschließe neue Karten.'],
+  fusions:['Deine Fusionen','Verwalte die Vorlagen für mächtige Verschmelzungen.'],
+  decks:['Deckplätze','Organisiere deine drei Deckvarianten.'],
+  lexicon:['Wissen & Monsterlexikon','Lerne die Regeln kennen und entdecke neue Monster.'],
+  shop:['Booster-Shop','Entdecke neue Kreaturen und Sonderangebote.'],
+  upgrades:['Verbesserungen','Mach deine Lieblingsmonster stärker.'],
+  xp:['Levelbelohnungen','Sieh deine nächsten Fortschrittsmeilensteine.'],
+  stats:['Deine Chronik','Erinnere dich an deine Duelle und Siege.']
+ });
  function navigation({nav,groups,tabs,activeTab,collapsed=new Set(),brand='4.1 · BESTIARIUM'}){
   const doc=nav.ownerDocument||root.document;
   const activeGroup=groups.find(g=>g.tabs.includes(activeTab))||groups[0];
@@ -24,5 +34,18 @@
   nav.append(hidden);
   return activeGroup;
  }
- root.ArcaneMenuShell221=Object.freeze({navigation,safe});
+ // Use the same group expansion and navigation behavior for both clients.
+ function activateGroup({button,groups,activeTab,collapsed,select}){
+  const group=groups.find(g=>g.id===button?.dataset.fmGroup);if(!group)return;
+  const submenu=button.closest('.fm-menu-group')?.querySelector('.fm-submenu');
+  if(group.tabs.includes(activeTab)&&submenu){
+   submenu.hidden=!submenu.hidden;
+   if(submenu.hidden)collapsed.add(group.id);else collapsed.delete(group.id);
+   button.setAttribute('aria-expanded',String(!submenu.hidden));
+   const arrow=button.querySelector('.fm-arrow');if(arrow)arrow.textContent=submenu.hidden?'›':'⌄';
+   return;
+  }
+  collapsed.delete(group.id);select(group.tabs[0]);
+ }
+ root.ArcaneMenuShell221=Object.freeze({navigation,activateGroup,headings,safe});
 })(typeof window==='undefined'?globalThis:window);

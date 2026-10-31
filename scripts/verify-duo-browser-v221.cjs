@@ -22,8 +22,12 @@ async function refresh(page){await page.evaluate(()=>window.ArcaneDuoParty218.re
 async function status(page,value){await page.waitForFunction(v=>window.ArcaneDuoParty218?.state().game?.status===v,value);}
 async function route(page,section){
  const group={menu:'play',quests:'missions',deck:'deck',fusions:'deck',decks:'deck',shop:'growth',upgrades:'growth',collection:'growth',progress:'growth',profile:'options',settings:'options',rules:'options'}[section];
- await page.locator('[data-fm-group="'+group+'"]').click();
- const id='duoSoloTab'+section[0].toUpperCase()+section.slice(1);if(section!=='menu'&&section!=='deck'&&section!=='collection'&&section!=='profile')await page.locator('#'+id).click();
+ if(await page.locator('#duoPage').getAttribute('data-lobby-section')===section)return;
+ const groupButton=page.locator('[data-fm-group="'+group+'"]');
+ if(await groupButton.getAttribute('aria-expanded')!=='true')await groupButton.click();
+ if(await page.locator('#duoPage').getAttribute('data-lobby-section')!==section){
+  const id='duoSoloTab'+section[0].toUpperCase()+section.slice(1);await page.locator('#'+id).click();
+ }
 }
 async function newClient(browser,url,name){
  const context=await browser.newContext({viewport:{width:1500,height:1080}});
@@ -90,6 +94,15 @@ async function finishLiveDuel(A,B){
     if(await page.locator('#helpDismiss').isVisible())await page.locator('#helpDismiss').click();
     assert.equal(await page.locator('#duoQuickInvite').isVisible(),true);
     assert.equal(await page.locator('#duoQuickInvite').getAttribute('href'),'duo-campaign-v2.html?invitePlayer=1');
+    const soloGroup=page.locator('#menuNav .fm-group-button[aria-expanded="true"]');
+    await soloGroup.click();
+    assert.equal(await page.locator('#menuNav .fm-menu-group.selected .fm-submenu').isHidden(),true);
+    await page.locator('#menuNav .fm-menu-group.selected .fm-group-button').click();
+    assert.equal(await page.locator('#menuNav .fm-menu-group.selected .fm-submenu').isVisible(),true);
+    await page.locator('#menuNav [data-fm-group="deck"]').click();
+    await page.locator('#menuNav [data-tab="fusions"]').click();
+    assert.equal(await page.locator('#menuHero h1').textContent(),await page.evaluate(()=>window.ArcaneMenuShell221.headings.fusions[0]));
+    assert.equal(await page.locator('#menuHero p').first().textContent(),await page.evaluate(()=>window.ArcaneMenuShell221.headings.fusions[1]));
     const soloSave=await page.evaluate(()=>localStorage.getItem('arcane-duel-rpg-profile-v4-reborn'));
     await page.locator('#duoQuickInvite').click();
     await page.waitForFunction(()=>window.ArcaneDuoParty218?.state().catalogReady&&!document.getElementById('duoNameConfirm').disabled);
@@ -105,6 +118,36 @@ async function finishLiveDuel(A,B){
   const A=a.page;await A.locator('#duoMenuScreen').waitFor({state:'visible'});
   if(!live){const host=[...backend.profiles.values()].find(p=>p.nickname==='QA221 Host '+tag);host.clearedChapters=[1,2];await A.evaluate(()=>window.ArcaneDuoParty218.refreshProfile());}
   assert.equal((await state(A)).game,null);await route(A,'deck');
+  await A.locator('#duoSoloMenuNav [data-fm-group="deck"]').click();
+  assert.equal(await A.locator('#duoSoloMenuNav .fm-menu-group.selected .fm-submenu').isHidden(),true);
+  assert.equal(await A.locator('#duoPage').getAttribute('data-lobby-section'),'deck');
+  await A.evaluate(()=>window.ArcaneDuoParty218.refreshProfile());
+  assert.equal(await A.locator('#duoSoloMenuNav .fm-menu-group.selected .fm-submenu').isHidden(),true);
+  await A.locator('#duoSoloMenuNav [data-fm-group="deck"]').click();
+  assert.equal(await A.locator('#duoSoloMenuNav .fm-menu-group.selected .fm-submenu').isVisible(),true);
+  report.checks.push('solo and online menu groups share expand/collapse behavior without changing the active page');
+  await route(A,'fusions');
+  assert.equal(await A.locator('#duoSoloMenuTitle').textContent(),await A.evaluate(()=>window.ArcaneMenuShell221.headings.fusions[0]));
+  assert.equal(await A.locator('#duoSoloMenuSubtitle').textContent(),await A.evaluate(()=>window.ArcaneMenuShell221.headings.fusions[1]));
+  await route(A,'deck');
+  report.checks.push('solo and online fusion menu use the same heading and description');
+  const selectedDeckCard=(await state(A)).profile.deck[0];
+  assert.equal(await A.locator('#duoDeckDetails .deck-preview-head h3').textContent(),catalog[selectedDeckCard].name);
+  assert.equal(await A.locator('#duoDeckDetails .deck-preview-desc').textContent(),catalog[selectedDeckCard].desc||'');
+  const beforePreview=(await state(A)).profile.revision;
+  const candidate=A.locator('#duoDeckOwned [data-candidate]:not([disabled]):not([data-candidate="'+selectedDeckCard+'"])').first();
+  const candidateId=Number(await candidate.getAttribute('data-candidate'));await candidate.click();
+  assert.equal(await A.locator('#duoDeckDetails .deck-preview-head h3').textContent(),catalog[candidateId].name);
+  assert.equal(await A.locator('#duoDeckDetails .deck-preview-desc').textContent(),catalog[candidateId].desc||'');
+  assert.equal((await state(A)).profile.revision,beforePreview);
+  await A.locator('#duoDeckBuilder').scrollIntoViewIfNeeded();
+  await A.screenshot({path:path.join(output,prefix+'-deck-desktop.png')});
+  await A.setViewportSize({width:390,height:844});
+  assert.ok(await A.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),'mobile deck editor must fit the viewport');
+  await A.locator('#duoDeckDetails').scrollIntoViewIfNeeded();
+  await A.screenshot({path:path.join(output,prefix+'-deck-mobile.png')});
+  await A.setViewportSize({width:1500,height:1080});
+  report.checks.push('online deck editor shows the selected card and its description without changing the save, also on mobile');
   assert.equal(await A.locator('[data-deck-slot]').count(),40);await A.locator('#duoDeckSearch').fill('Asche');
   await A.locator('#duoInvitePlayer').click();await status(A,'waiting');
   assert.equal(await A.locator('#duoInvitePlayerPanel input').isVisible(),true);

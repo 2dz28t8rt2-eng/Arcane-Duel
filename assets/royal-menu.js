@@ -14,20 +14,13 @@ const categories=[
  {id:'options',icon:'⚙',title:'Spielstand & Extras',subtitle:'Chronik und Optionen',tabs:['stats','settings']}
 ];
 const descriptions={
- tournament:['Die zehn Prüfungen','Fordere den nächsten Turnierduellanten heraus und erschließe neue Karten.'],
+ ...window.ArcaneMenuShell221.headings,
  free:['Freie Duelle','Trainiere und sammle Beute gegen bekannte Gegner.'],
  pvp:['Lokales PvP','Spiele mit zwei Personen am selben Gerät.'],
  challenges:['Lernpfad & Herausforderungen','Übe Kombinationen mit Leihdecks und erfülle Spezialmissionen.'],
- lexicon:['Wissen & Monsterlexikon','Lerne die Regeln kennen und entdecke neue Monster.'],
  collection:['Dein Hauptdeck','Wähle und verstärke genau 40 Hauptkarten.'],
- fusions:['Deine Fusionen','Verwalte die Vorlagen für mächtige Verschmelzungen.'],
- decks:['Deckplätze','Organisiere deine drei Deckvarianten.'],
- shop:['Booster-Shop','Entdecke neue Kreaturen und Sonderangebote.'],
  packs:['Charakter-Boosterpacks','Öffne bereits verdiente Charakter-Boosterpacks.'],
- xp:['Levelbelohnungen','Sieh deine nächsten Fortschrittsmeilensteine.'],
  workshop:['Monsterwerkstatt','Verbinde und zerlege freie Monster derselben Familie.'],
- upgrades:['Verbesserungen','Mach deine Lieblingsmonster stärker.'],
- stats:['Deine Chronik','Erinnere dich an deine Duelle und Siege.'],
  settings:['Einstellungen und Spielstandoptionen','Speichern, Import, Export und Einstellungen.']
 };
 function go(tab){
@@ -158,7 +151,8 @@ const delegate=e=>{
  if(categories.some(group=>group.tabs.includes(action))){go(action);return;}
 };
 $('menuScreen')?.addEventListener('click',delegate);
- $('menuNav')?.addEventListener('click',e=>{const btn=e.target.closest('[data-fm-group]');if(!btn)return;const group=categories.find(g=>g.id===btn.dataset.fmGroup);if(!group)return;const submenu=btn.closest('.fm-menu-group')?.querySelector('.fm-submenu');if(group.tabs.includes(menuTab)&&submenu){submenu.hidden=!submenu.hidden;if(submenu.hidden)collapsedGroups.add(group.id);else collapsedGroups.delete(group.id);btn.setAttribute('aria-expanded',String(!submenu.hidden));const arrow=btn.querySelector('.fm-arrow');if(arrow)arrow.textContent=submenu.hidden?'›':'⌄';return;}collapsedGroups.delete(group.id);go(group.tabs[0]);});
+ $('menuNav')?.addEventListener('click',e=>{const button=e.target.closest('[data-fm-group]');if(!button)return;
+  window.ArcaneMenuShell221.activateGroup({button,groups:categories,activeTab:menuTab,collapsed:collapsedGroups,select:go});});
 function makeText(node,cls,label){const p=document.createElement(node);p.className=cls;p.textContent=label;return p;}
 function decorateRules(){
  oldRules();

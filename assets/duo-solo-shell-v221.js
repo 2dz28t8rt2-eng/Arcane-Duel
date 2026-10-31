@@ -14,8 +14,10 @@
   {id:'growth',icon:'✦',title:'Fortschritt',subtitle:'Verbesserungen, Belohnungen & Kartenpakete',tabs:['collection','upgrades','shop','progress']},
   {id:'options',icon:'⚙',title:'Spielstand & Extras',subtitle:'Chronik und Optionen',tabs:['profile','settings','rules']}
  ];
- const titles={menu:['Die zehn Prüfungen','Fordere den nächsten Turnierduellanten heraus und erschließe neue Karten.'],quests:['Aufgaben & Abenteuer','Die fünf Prüfungen des Level-1-Fanatikers. Beide Duellanten müssen die gewählte Prüfung freigeschaltet haben.'],deck:['Dein Hauptdeck','Wähle einen Deckplatz und ein eigenes Monster. Dein Hauptdeck enthält genau 40 Karten, mit höchstens drei Kopien je Monster.'],fusions:['Deine Fusionen','Verwalte die Vorlagen für mächtige Verschmelzungen.'],decks:['Deckplätze','Organisiere deine drei Deckvarianten.'],collection:['Monsterwerkstatt','Sieh dir deinen Vorrat an, verstärke deine Monster und zerlege freie Exemplare.'],upgrades:['Verbesserungen','Mach deine Lieblingsmonster stärker.'],shop:['Booster-Shop','Entdecke neue Kreaturen und Sonderangebote.'],progress:['Levelbelohnungen','Sieh deine nächsten Fortschrittsmeilensteine.'],profile:['Deine Chronik','Erinnere dich an deine Duelle und Siege.'],settings:['Einstellungen und Spielstandoptionen','Sichere deinen persönlichen Zugang und passe Musik und Animationen an.'],rules:['Regelhandbuch','Karten, Rollen und gemeinsame Spielzüge verständlich erklärt.'],bestiary:['Wissen & Monsterlexikon','Lerne die Regeln kennen und entdecke neue Monster.']};
+ const common=window.ArcaneMenuShell221.headings;
+ const titles={menu:common.tournament,quests:['Aufgaben & Abenteuer','Die fünf Prüfungen des Level-1-Fanatikers. Beide Duellanten müssen die gewählte Prüfung freigeschaltet haben.'],deck:['Dein Hauptdeck','Wähle einen Deckplatz und ein eigenes Monster. Dein Hauptdeck enthält genau 40 Karten, mit höchstens drei Kopien je Monster.'],fusions:common.fusions,decks:common.decks,collection:['Monsterwerkstatt','Sieh dir deinen Vorrat an, verstärke deine Monster und zerlege freie Exemplare.'],upgrades:common.upgrades,shop:common.shop,progress:common.xp,profile:common.stats,settings:['Einstellungen und Spielstandoptionen','Sichere deinen persönlichen Zugang und passe Musik und Animationen an.'],rules:['Regelhandbuch','Karten, Rollen und gemeinsame Spielzüge verständlich erklärt.'],bestiary:common.lexicon};
  const tabLabels={menu:'Turnier',quests:'Aufgaben & Abenteuer',deck:'Hauptdeck',fusions:'Fusionsdeck',decks:'Deckplätze',bestiary:'Monsterlexikon',collection:'Monsterwerkstatt',upgrades:'Verbesserungen',shop:'Booster-Shop',progress:'Levelbelohnungen',profile:'Chronik',settings:'Einstellungen & Spielstand',rules:'Regelhandbuch'};
+ const collapsedGroups=new Set();
  const roleNames={predator:'Predator',guardian:'Wächter',soul:'Seelenzehrer',resonator:'Resonator',combatant:'Allrounder',allrounder:'Allrounder'};
  const descriptions={predator:'Predatoren werden mit jedem eigenen Zug stärker und verstärken sich im Rudel. Predator-Fusionen können als Rudelführer besondere Fähigkeiten erhalten.',guardian:'Wächter heilen verbündete Verteidiger. In DEF schützt ihre Rüstung; überlebt das Monster den Treffer, löst es einen Gegenschlag aus.',soul:'Seelenzehrer sammeln Seelenkraft und ergänzen die Heilung der Wächter. In DEF stehen Verdichten, Seelenstoß und weitere freigeschaltete Fähigkeiten bereit.',resonator:'Resonatoren steigern die Kraft ihrer nächsten Fusion. Ihre gespeicherte Resonanz wird bei der Verschmelzung berücksichtigt.',combatant:'Allrounder verbinden Angriff und Verteidigung. Ihre Resonanz unterstützt passende Fusionen.'};
  let route='',profileStamp='',draftSlot=0,draftCandidate=null,search='',inspectSelection=null,inspectStamp='',pendingOperation=false;
@@ -65,7 +67,9 @@
   button.textContent=tabLabels[key];
   button.dataset.tab=key;button.onclick=()=>window.ArcaneDuoPartyUI218.select(key);tabs.set(key,button);
  }
- nav.addEventListener('click',event=>{const group=event.target.closest('[data-fm-group]');if(group)window.ArcaneDuoPartyUI218.select(groups.find(g=>g.id===group.dataset.fmGroup).tabs[0]);});
+ nav.addEventListener('click',event=>{const button=event.target.closest('[data-fm-group]');if(button)
+  window.ArcaneMenuShell221.activateGroup({button,groups,activeTab:route,collapsed:collapsedGroups,
+   select:tab=>window.ArcaneDuoPartyUI218.select(tab)});});
  const duels=make('section','duo-panel menu-panel atlas-etched-panel',screen);duels.id='duoDuelPanel';
  duels.innerHTML='<h2>Wählt eure nächste Prüfung</h2><p id="duoDuelMembers"></p><label>Duellziel<select id="duoDuelChapter"></select></label><div id="duoDuelEncounter" class="ad221-encounter"></div><div id="duoDuelStartActions" class="actions"></div><p id="duoRequestError" role="status" aria-live="polite"></p>';
  $('duoDuelStartActions').append($('duoMenuStart'),$('duoMenuParty'));
@@ -74,7 +78,7 @@
  $('duoMenuStart').onclick=()=>requestDuel();
  $('duoDuelChapter').onchange=()=>renderEncounter();
  const builder=make('section','ad221-deck-builder',profile);builder.id='duoDeckBuilder';
- builder.innerHTML='<div class="ad221-deck-heading"><h2 id="duoDeckTitle"></h2><p>Wähle links den Platz, den du ersetzen möchtest. Rechts siehst du deine verfügbaren Karten.</p></div><div class="ad221-deck-columns"><section><h3>Dein Deck <span id="duoDeckCount"></span></h3><div id="duoDeckSlots" class="ad221-deck-slots"></div></section><section><label for="duoDeckSearch">Sammlung durchsuchen</label><input id="duoDeckSearch" type="search" autocomplete="off" placeholder="Monstername, Rolle oder Level"><p id="duoDeckSelection" role="status"></p><button id="duoDeckCommit" type="button" class="btn primary" disabled>Monster einsetzen</button><div id="duoDeckOwned" class="ad221-owned-grid"></div></section></div>';
+ builder.innerHTML='<div class="ad221-deck-heading"><h2 id="duoDeckTitle"></h2><p>Wähle links den Platz, den du ersetzen möchtest. Rechts siehst du deine verfügbaren Karten.</p></div><div class="ad221-deck-columns"><section><h3>Dein Deck <span id="duoDeckCount"></span></h3><div id="duoDeckSlots" class="ad221-deck-slots"></div></section><section><label for="duoDeckSearch">Sammlung durchsuchen</label><input id="duoDeckSearch" type="search" autocomplete="off" placeholder="Monstername, Rolle oder Level"><p id="duoDeckSelection" role="status"></p><button id="duoDeckCommit" type="button" class="btn primary" disabled>Monster einsetzen</button><div id="duoDeckOwned" class="ad221-owned-grid"></div></section><aside id="duoDeckDetails" class="deck-side-preview ad221-deck-preview" aria-label="Kartenansicht"></aside></div>';
  builder.addEventListener('click',event=>{
   const slot=event.target.closest('[data-deck-slot]'),candidate=event.target.closest('[data-candidate]');
   if(slot){draftSlot=Number(slot.dataset.deckSlot);draftCandidate=null;renderDeck();}
@@ -181,6 +185,12 @@
   const t=s.catalog[draftCandidate];$('duoDeckSelection').textContent='Platz '+(draftSlot+1)+': '+(s.catalog[deck[draftSlot]]?.name||'')+(t?' → '+t.name:' · Wähle eine Karte aus deiner Sammlung.');
   $('duoDeckCommit').disabled=pendingOperation||s.profileSaving||!t||deck[draftSlot]===draftCandidate;
   $('duoDeckCommit').textContent=t?'In Platz '+(draftSlot+1)+' einsetzen':'Monster einsetzen';
+  const selected=t||s.catalog[deck[draftSlot]],owned=route==='fusions'?s.profile.ownedFusions:s.profile.ownedMain;
+  if(selected){
+   const count=owned.filter(id=>id===selected.id).length,used=deck.filter(id=>id===selected.id).length;
+   const rank=s.profile.enhancements?.[selected.id]||0;
+   $('duoDeckDetails').innerHTML='<div class="deck-side-sticky"><div class="deck-preview-card">'+face(selected)+'</div><div class="deck-preview-meta"><div class="deck-preview-head"><h3>'+safe(selected.name)+'</h3></div><p class="deck-preview-desc">'+safe(selected.desc||'')+'</p><div class="deck-preview-pills"><span>Besitz <b>'+count+'</b></span><span>Im Deck <b>'+used+'</b></span><span>Aufstieg <b>'+rank+'/5</b></span></div><small>Die Karte zeigt ihre Grundwerte; Verbesserungen werden im Duell berücksichtigt.</small></div></div>';
+  }else $('duoDeckDetails').innerHTML='<p>Keine Karte ausgewählt.</p>';
  }
  function renderOwned(){
   const s=api.state(),fusion=route==='fusions',p=s.profile;if(!p)return;
@@ -334,7 +344,7 @@
    const details=titles[route]||titles.menu,group=groups.find(g=>g.tabs.includes(route))||groups[0];
    const stamp=(s.profile?.id||'')+':'+s.profile?.revision+':'+route;
    if(changed){
-    const active=window.ArcaneMenuShell221.navigation({nav,groups,tabs,activeTab:route,brand:'4.1 · BESTIARIUM'});
+    const active=window.ArcaneMenuShell221.navigation({nav,groups,tabs,activeTab:route,collapsed:collapsedGroups,brand:'4.1 · BESTIARIUM'});
     nav.classList.add('atlas-nav');screen.dataset.fmSection=active.id;screen.dataset.atlasTheme={play:'amber',deck:'silver',missions:'violet',growth:'jade',options:'steel'}[group.id];
     for(const b of tabs.values())b.classList.toggle('active',b.dataset.tab===route);
     for(const g of nav.querySelectorAll('.fm-menu-group'))g.classList.add('atlas-nav-item');
