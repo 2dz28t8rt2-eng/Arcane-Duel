@@ -29,7 +29,10 @@ jobs:
         shell: pwsh
         run: |
           $p = Start-Process -FilePath out/ArcaneDuelKartenEditor.exe -ArgumentList '--self-test' -Wait -PassThru
-          if ($p.ExitCode -ne 0) { throw "Self-test failed: $($p.ExitCode)" }
+          if ($p.ExitCode -ne 0) {
+            if (Test-Path out/card-editor-selftest-failure.txt) { Get-Content out/card-editor-selftest-failure.txt }
+            throw "Self-test failed: $($p.ExitCode)"
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: Arcane-Duel-Karten-Editor-Windows
