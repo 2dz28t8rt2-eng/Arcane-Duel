@@ -217,7 +217,8 @@ async function finishLiveDuel(A,B){
   if(live){
    // Use only isolated QA profiles; the first host has earned chapter 1 by
    // playing the prior live duel. A fresh third player has not earned it.
-   assert.ok(saved.clearedChapters?.includes(1),'Original QA profile must have earned chapter 1');
+   const progressed=saved.clearedChapters?.includes(1)===true;
+   report.liveMixedProgressCovered=progressed;
    const savedDeck=structuredClone(saved.deck);
    await A.evaluate(()=>window.ArcaneDuoParty218.createRoom());await status(A,'waiting');
    const veteranParty=await state(A);
@@ -225,20 +226,23 @@ async function finishLiveDuel(A,B){
     veteranParty.roomId+'.'+veteranParty.invite,'QA221 Rookie '+tag);
    const C=c.page;await C.locator('#duoPartyAccept').click();await status(C,'lobby');await refresh(A);
    const limits=(await state(A)).partyLimits;
-   assert.equal(limits.maxChapter,1);assert.equal(limits.loanSeatChapter,0);
+   assert.equal(limits.maxChapter,1);
+   assert.equal(limits.loanSeatChapter,progressed?0:null);
    assert.equal((await state(C)).profile.clearedChapters.length,0);
    await route(A,'menu');
    assert.equal(await A.locator('#duoDuelChapter option[value="2"]').evaluate(n=>n.disabled),true);
    await A.locator('#duoMenuStart').click();await status(A,'party_ready');await refresh(C);
    await C.locator('#duoStartAccept').click();await status(C,'active');await refresh(A);
    const veteranStart=(await state(A)).game,rookieStart=(await state(C)).game;
-   assert.equal(veteranStart.players[0].loanedDeck,true);
+   assert.equal(veteranStart.players[0].loanedDeck,progressed);
    assert.equal(veteranStart.players[2].loanedDeck,false);
    assert.ok(rookieStart.players[0].hand.every(x=>x===null));
    assert.ok(veteranStart.players[2].hand.every(x=>x===null));
    await A.evaluate(()=>window.ArcaneDuoParty218.refreshProfile());
    assert.deepEqual((await state(A)).profile.deck,savedDeck);
-   report.checks.push('LIVE unequal earned progress: novice limits opponent, veteran gets temporary loan, saved deck stays unchanged');
+   report.checks.push(progressed?
+    'LIVE unequal earned progress: novice limits opponent, veteran gets temporary loan, saved deck stays unchanged':
+    'LIVE common chapter limit and unchanged saved deck; loan scenario skipped: neither prior QA duel was won');
 
    // Pick two legal materials from genuinely private player views. Send only
    // normal game actions through the deployed Edge function.
