@@ -445,7 +445,7 @@ internal sealed partial class Editor : Form
             if(card["id"]!.GetValue<int>()!=42||card["atk"]!.GetValue<int>()!=100||card["pveBaseBonus"]!["def"]!.GetValue<int>()!=20||card["future"]!["value"]!.GetValue<int>()!=1)throw new InvalidOperationException("Card round-trip failed");
             editor.preview.Size=new Size(400,620);
             using(var rendered=new Bitmap(400,620))editor.preview.DrawToBitmap(rendered,new Rectangle(0,0,400,620));
-            WritePackage(zip,card,editor.imageBytes,null);
+            WritePackage(zip,card,editor.imageBytes,null,designApproved:true);
             using var archive=ZipFile.OpenRead(zip);
             if(archive.GetEntry("card.json")==null||archive.GetEntry("integration.json")==null||
                 archive.GetEntry("manifest.json")==null||archive.GetEntry("VORLAGE_FEHLERBERICHT.md")==null||
