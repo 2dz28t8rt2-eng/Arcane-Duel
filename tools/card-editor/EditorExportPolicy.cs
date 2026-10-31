@@ -19,50 +19,156 @@ internal sealed partial class Editor
         public string UnlockDetails { get; set; } = "";
     }
 
-    readonly ComboBox availabilityPicker=new()
+
+    // Two user-facing decisions replace three technical modes which had
+    // overlapping meaning. The export still distinguishes an existing card
+    // ("preserve-existing") from a newly created one ("catalog-only").
+    readonly RadioButton keepAvailability=new()
     {
-        Width=530, DropDownStyle=ComboBoxStyle.DropDownList,
-        BackColor=Color.FromArgb(50,42,60), ForeColor=Color.FromArgb(238,229,207)
+        Text="Nur die Karte erstellen oder bearbeiten",AutoSize=false,
+        Width=475,Height=28,Font=new Font("Segoe UI",11,FontStyle.Bold),
+        ForeColor=Color.FromArgb(247,233,204),UseVisualStyleBackColor=false
     };
-    readonly CheckBox boosterUnlock=new() {Text="Booster / Kartenpakete",AutoSize=true};
-    readonly CheckBox starterUnlock=new() {Text="Startsammlung / Deck",AutoSize=true};
-    readonly CheckBox questUnlock=new() {Text="Quest-, Turnier- oder Gegnerbelohnung",AutoSize=true};
+    readonly RadioButton changeAvailability=new()
+    {
+        Text="Die Karte zusätzlich für Spieler freischalten",AutoSize=false,
+        Width=475,Height=28,Font=new Font("Segoe UI",11,FontStyle.Bold),
+        ForeColor=Color.FromArgb(247,233,204),UseVisualStyleBackColor=false
+    };
+    readonly Panel keepChoice=new() {Width=530,Height=92};
+    readonly Panel changeChoice=new() {Width=530,Height=103};
+    readonly FlowLayoutPanel unlockSettings=new()
+    {
+        Width=530,AutoSize=true,AutoSizeMode=AutoSizeMode.GrowAndShrink,
+        FlowDirection=FlowDirection.TopDown,WrapContents=false,
+        BackColor=Color.FromArgb(28,25,36),Margin=new Padding(2,6,2,5)
+    };
+    readonly CheckBox boosterUnlock=new()
+    {
+        Text="In Boostern erhältlich",Width=505,Height=28,
+        ForeColor=Color.FromArgb(250,240,222),UseVisualStyleBackColor=false
+    };
+    readonly CheckBox starterUnlock=new()
+    {
+        Text="Ins Startdeck / in die Startsammlung",Width=505,Height=28,
+        ForeColor=Color.FromArgb(250,240,222),UseVisualStyleBackColor=false
+    };
+    readonly CheckBox questUnlock=new()
+    {
+        Text="Als Belohnung zu gewinnen",Width=505,Height=28,
+        ForeColor=Color.FromArgb(250,240,222),UseVisualStyleBackColor=false
+    };
     readonly TextBox unlockDetails=new()
     {
-        Width=530,Height=88,Multiline=true,ScrollBars=ScrollBars.Vertical,
-        BackColor=Color.FromArgb(48,42,54),ForeColor=Color.White,
-        PlaceholderText="Wo, wann und für wen genau freischalten? Keine stillschweigenden Annahmen."
+        Width=512,Height=95,Multiline=true,ScrollBars=ScrollBars.Vertical,
+        BackColor=Color.FromArgb(48,42,54),ForeColor=Color.FromArgb(255,249,235),
+        BorderStyle=BorderStyle.FixedSingle,
+        PlaceholderText="Beschreibe ganz konkret, wann und wo die Karte erhältlich sein soll."
     };
     readonly Label integrationHint=new()
     {
-        AutoSize=true,MaximumSize=new Size(530,0),ForeColor=Color.FromArgb(215,184,132)
+        AutoSize=true,MaximumSize=new Size(520,0),
+        ForeColor=Color.FromArgb(230,202,151)
     };
+    readonly Label choiceSummary=new()
+    {
+        AutoSize=true,MaximumSize=new Size(520,0),
+        ForeColor=Color.FromArgb(225,212,185),
+        Font=new Font("Segoe UI",10,FontStyle.Regular),
+        Margin=new Padding(4,8,4,8)
+    };
+    readonly Label releaseHint=new()
+    {
+        AutoSize=true,MaximumSize=new Size(510,0),
+        ForeColor=Color.FromArgb(222,199,154),
+        Margin=new Padding(5,4,5,8)
+    };
+
+    static Label HelperLabel(string text,int width=510) => new()
+    {
+        Text=text,AutoSize=true,MaximumSize=new Size(width,0),
+        ForeColor=Color.FromArgb(196,186,174),
+        Font=new Font("Segoe UI",9),
+        Margin=new Padding(8,0,4,8)
+    };
+
+    static void BuildOption(Panel panel,RadioButton radio,string explanation)
+    {
+        panel.BackColor=Color.FromArgb(45,39,56);
+        panel.BorderStyle=BorderStyle.FixedSingle;
+        var help=new Label
+        {
+            Text=explanation,Left=17,Top=41,Width=486,Height=48,
+            ForeColor=Color.FromArgb(220,210,195),
+            Font=new Font("Segoe UI",9)
+        };
+        radio.Left=13;radio.Top=9;radio.BackColor=panel.BackColor;
+        panel.Controls.Add(radio);panel.Controls.Add(help);
+        panel.Click+=(_,_)=>radio.Checked=true;
+        help.Click+=(_,_)=>radio.Checked=true;
+    }
 
     void SetupIntegrationControls(FlowLayoutPanel stack)
     {
-        AddTitle(stack,"Freischaltung & Integration");
-        stack.Controls.Add(new Label {AutoSize=true,MaximumSize=new Size(530,0),
-            Text="Karte im Katalog erstellen/ändern ist NICHT automatisch eine Freischaltung. "+
-                 "Die folgende Einstellung gilt nur für den späteren ChatGPT-Import."});
-        availabilityPicker.Items.AddRange(new object[]
+        AddTitle(stack,"Wer darf diese Karte bekommen?");
+        stack.Controls.Add(new Label
         {
-            "Nur Katalog – keine Freischaltungen verändern",
-            "Bestehende Freischaltungen unverändert lassen",
-            "Freischaltung ausdrücklich anfordern"
+            AutoSize=true,MaximumSize=new Size(520,0),Margin=new Padding(5,2,4,12),
+            Text="Hier bestimmst du, ob Spieler die Karte bekommen können. "+
+                 "Du kannst sie auch erst einmal nur im Spiel hinterlegen. "+
+                 "Nichts davon wird sofort online geändert."
         });
-        availabilityPicker.SelectedIndexChanged+=(_,_)=>UpdateUnlockUi();
         stack.Controls.Add(integrationHint);
-        AddFieldLabel(stack,"Gewünschte Integration");
-        stack.Controls.Add(availabilityPicker);
-        foreach(var box in new[]{boosterUnlock,starterUnlock,questUnlock})
+        AddFieldLabel(stack,"Was möchtest du mit der Karte machen?");
+        BuildOption(keepChoice,keepAvailability,
+            "Die Karte wird im Spiel gespeichert. Neue Karten erscheinen noch "+
+            "nicht in Boostern, Startdecks oder Belohnungen. "+
+            "Bei vorhandenen Karten bleiben die bisherigen Freischaltungen erhalten.");
+        BuildOption(changeChoice,changeAvailability,
+            "Die Karte wird gespeichert UND soll für Spieler erhältlich sein. "+
+            "Im nächsten Schritt legst du fest, wo und ab wann.");
+        stack.Controls.Add(keepChoice);
+        stack.Controls.Add(changeChoice);
+
+        AddFieldLabel(unlockSettings,"Wo sollen Spieler die Karte bekommen können?");
+        void addTarget(CheckBox box,string explanation)
         {
-            box.Margin=new Padding(12,5,2,5);stack.Controls.Add(box);
+            var row=new FlowLayoutPanel
+            {
+                Width=522,AutoSize=true,FlowDirection=FlowDirection.TopDown,
+                WrapContents=false,Margin=new Padding(0,3,0,5)
+            };
+            box.Margin=new Padding(6,0,0,0);
+            row.Controls.Add(box);
+            row.Controls.Add(HelperLabel(explanation,490));
+            unlockSettings.Controls.Add(row);
+            box.CheckedChanged+=(_,_)=>UpdateReleaseSummary();
         }
-        AddFieldLabel(stack,"Freischaltbedingungen / präzise Anweisung");
-        stack.Controls.Add(unlockDetails);
+        addTarget(boosterUnlock,
+            "Sie kann aus Kartenpaketen gezogen werden. Im Text unten gibst du an, "+
+            "welche Booster und ab welchem Fortschritt.");
+        addTarget(starterUnlock,
+            "Sie soll beim Spielstart im Deck oder in der Sammlung verfügbar sein. "+
+            "Gib an, für welche Spieler das gelten soll.");
+        addTarget(questUnlock,
+            "Sie ist zum Beispiel ein Gewinn nach einem Gegner, einer Quest "+
+            "oder einer Turnierprüfung.");
+
+        AddFieldLabel(unlockSettings,"Wann genau soll die Karte erhältlich sein?");
+        unlockSettings.Controls.Add(unlockDetails);
+        unlockSettings.Controls.Add(HelperLabel(
+            "Beispiel: „Nach der 3. Turnierprüfung im Feuer-Booster erhältlich.“ "+
+            "Oder: „Nach dem Sieg über Gegner VII einmalig als Belohnung.“",504));
+        unlockSettings.Controls.Add(releaseHint);
+        stack.Controls.Add(unlockSettings);
+        stack.Controls.Add(choiceSummary);
+
+        keepAvailability.CheckedChanged+=(_,_)=>UpdateUnlockUi();
+        changeAvailability.CheckedChanged+=(_,_)=>UpdateUnlockUi();
         fields["id"].TextChanged+=(_,_)=>UpdateIntegrationHint();
-        availabilityPicker.SelectedIndex=0;
+        keepAvailability.Checked=true;
         UpdateIntegrationHint();
+        UpdateUnlockUi();
     }
 
     bool IsKnownCard(JsonObject card)
@@ -71,9 +177,10 @@ internal sealed partial class Editor
         return AssetCatalog.Cards.Any(c=>c["id"]?.ToString()==id);
     }
 
+
     void ResetIntegrationForCard(JsonObject? card=null)
     {
-        availabilityPicker.SelectedIndex=card!=null&&IsKnownCard(card)?1:0;
+        keepAvailability.Checked=true;
         boosterUnlock.Checked=starterUnlock.Checked=questUnlock.Checked=false;
         unlockDetails.Text="";
         UpdateUnlockUi();
@@ -82,38 +189,76 @@ internal sealed partial class Editor
     void UpdateIntegrationHint()
     {
         if(!fields.TryGetValue("id",out var id))return;
-        var known=AssetCatalog.Cards.Any(c=>c["id"]?.ToString()==id.Text.Trim());
-        integrationHint.Text=known
-            ?"ID "+id.Text+": bereits im eingebetteten Spielkatalog – Werteänderung statt neuer Karte."
-            :"ID "+id.Text+": im eingebetteten Katalog nicht gefunden – neue Karte bzw. ID im Live-Projekt prüfen.";
+        var value=id.Text.Trim();
+        if(!int.TryParse(value,out var n)||n<0)
+        {
+            integrationHint.Text="Noch keine gültige Karten-ID angegeben. "+
+                "Gib im Reiter „Monster & Werte“ eine eindeutige Zahl ein.";
+            return;
+        }
+        var known=AssetCatalog.Cards.FirstOrDefault(c=>c["id"]?.ToString()==value);
+        integrationHint.Text=known!=null
+            ?"Karte #"+value+" gehört bereits zu „"+known["name"]+"“. "+
+              "Beim Import werden die Daten dieser Karte aktualisiert, keine zweite Karte mit derselben ID erzeugt."
+            :"Karte #"+value+" ist im mitgelieferten Katalog noch nicht vorhanden. "+
+              "Ob diese ID im aktuellen Spiel tatsächlich frei ist, wird beim Import geprüft.";
+    }
+
+    void UpdateReleaseSummary()
+    {
+        if(!changeAvailability.Checked)
+        {
+            choiceSummary.Text="Ergebnis: Die Karte wird beim späteren Import angelegt "+
+                "oder bearbeitet. Es werden keine neuen Freischaltungen eingerichtet.";
+            return;
+        }
+        var chosen=new List<string>();
+        if(boosterUnlock.Checked)chosen.Add("Booster");
+        if(starterUnlock.Checked)chosen.Add("Startdeck/Startsammlung");
+        if(questUnlock.Checked)chosen.Add("Belohnung");
+        releaseHint.Text=chosen.Count==0
+            ?"Wähle mindestens eine Möglichkeit aus. Erst danach kann diese Karte freigeschaltet werden."
+            :"Ausgewählt: "+string.Join(", ",chosen)+
+              ". Vergiss nicht, den genauen Zeitpunkt und die Bedingungen zu beschreiben.";
+        choiceSummary.Text="Ergebnis: Die Karte wird beim späteren Import angelegt "+
+            "oder bearbeitet. Zusätzlich sollen genau die ausgewählten Freischaltungen "+
+            "eingerichtet werden – keine weiteren.";
     }
 
     void UpdateUnlockUi()
     {
-        var requested=availabilityPicker.SelectedIndex==2;
-        foreach(var checkbox in new[]{boosterUnlock,starterUnlock,questUnlock})
-            checkbox.Enabled=requested;
-        unlockDetails.Enabled=requested;
+        var requested=changeAvailability.Checked;
+        unlockSettings.Visible=requested;
+        foreach(var panel in new[]{keepChoice,changeChoice})
+            panel.BackColor=Color.FromArgb(45,39,56);
+        keepChoice.BackColor=keepAvailability.Checked
+            ?Color.FromArgb(68,56,73):Color.FromArgb(45,39,56);
+        changeChoice.BackColor=changeAvailability.Checked
+            ?Color.FromArgb(68,56,73):Color.FromArgb(45,39,56);
+        keepAvailability.BackColor=keepChoice.BackColor;
+        changeAvailability.BackColor=changeChoice.BackColor;
         UpdateIntegrationHint();
+        UpdateReleaseSummary();
     }
 
     CardIntegrationPlan CapturePlan()=>new()
     {
-        Availability=availabilityPicker.SelectedIndex switch
-        {
-            1=>"preserve-existing",2=>"unlock-configured",_=>"catalog-only"
-        },
-        Booster=boosterUnlock.Checked,StarterDeck=starterUnlock.Checked,
-        QuestReward=questUnlock.Checked,UnlockDetails=unlockDetails.Text.Trim()
+        Availability=changeAvailability.Checked
+            ?"unlock-configured"
+            :(AssetCatalog.Cards.Any(x=>x["id"]?.ToString()==fields["id"].Text.Trim())
+                ?"preserve-existing":"catalog-only"),
+        Booster=changeAvailability.Checked&&boosterUnlock.Checked,
+        StarterDeck=changeAvailability.Checked&&starterUnlock.Checked,
+        QuestReward=changeAvailability.Checked&&questUnlock.Checked,
+        UnlockDetails=changeAvailability.Checked?unlockDetails.Text.Trim():""
     };
 
     void ApplyPlan(CardIntegrationPlan? plan)
     {
         plan??=new CardIntegrationPlan();
-        availabilityPicker.SelectedIndex=plan.Availability switch
-        {
-            "preserve-existing"=>1,"unlock-configured"=>2,_=>0
-        };
+        // Both legacy states mean "don't add any new unlocks".
+        changeAvailability.Checked=plan.Availability=="unlock-configured";
+        keepAvailability.Checked=!changeAvailability.Checked;
         boosterUnlock.Checked=plan.Booster;
         starterUnlock.Checked=plan.StarterDeck;
         questUnlock.Checked=plan.QuestReward;
