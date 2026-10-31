@@ -1,6 +1,6 @@
-# Arcane Duel 3.0 – Monster Reborn (Development)
+# Arcane Duel 1.0.0
 
-Die stabile Version liegt auf Branch `main`; der aktuelle Entwicklungsstand wird auf `development` geprüft. **Das reguläre Turnier I–X ist auf LV 10 begrenzt.** Level 11/12 bleiben für eine spätere Post-Turnier-Erweiterung zurückgehalten und sind in den derzeitigen aktiven Karten- und Werkstattpools nicht zugänglich. Technische ID-Reservierungen bleiben zur Konsistenz bestehen. Vor großen Updates empfiehlt sich ein JSON-Spielstandexport.
+**Offizielle Spiel- und Serverversion: 1.0.0 = bisheriger interner Stand v22.9.** Keine neuen v22.x-Arbeitsversionsnummern, keine `-dev`-Beinamen in der Oberfläche. Die stabile ältere Version liegt auf Branch `main`; der aktuelle Entwicklungsstand wird auf `development` geprüft. Versionskonzept: [docs/SINGLEPLAYER_VERSIONING.md](docs/SINGLEPLAYER_VERSIONING.md). **Das reguläre Turnier I–X ist auf LV 10 begrenzt.** Level 11/12 bleiben für eine spätere Post-Turnier-Erweiterung zurückgehalten und sind in den derzeitigen aktiven Karten- und Werkstattpools nicht zugänglich. Technische ID-Reservierungen bleiben zur Konsistenz bestehen. Vor großen Updates empfiehlt sich ein JSON-Spielstandexport.
 
 **Historischer QA-Stand (15.10.2026):** 227 automatisierte Node-Tests grün, beide GitHub-Workflows erfolgreich und 216 synthetische Level-10-Vergleichsduelle gegen VIII–X. Dieser ältere Prüfstand ist kein aktueller KI-/Progressionsbericht. Die vollständige mobile Touch-Abnahme ist weiterhin separat zu prüfen.
 
