@@ -136,3 +136,28 @@ Beide Exportarten enthalten außerdem die getrennten Vorlagen
 VORLAGE_INTEGRATIONSPROTOKOLL.md und VORLAGE_FEHLERBERICHT.md.
 Beim späteren Import soll ChatGPT zwei tatsächlich ausgefüllte Berichte
 mit geänderten Dateien, Testergebnissen, Risiken und Blockern liefern.
+
+
+## Freischaltung – besonders einfache Bedienung
+
+Im Reiter **Freischaltung** gibt es bewusst nur noch zwei große Auswahlmöglichkeiten:
+
+1. **Nur die Karte erstellen oder bearbeiten:** Die Karte wird beim späteren
+   Import gespeichert, aber es wird keine neue Freischaltung eingerichtet.
+   Für eine bereits bestehende Karte bleiben bisherige Freischaltungen
+   bestehen. Bei einer neuen Karte ist sie zunächst nicht über Booster,
+   Startdeck oder Belohnungen erhältlich.
+2. **Die Karte zusätzlich für Spieler freischalten:** Es erscheinen
+   gut lesbare Auswahlkästchen samt Erklärung für Booster, Startdeck/
+   Startsammlung und Quest-, Turnier- oder Gegnerbelohnungen.
+   Mindestens eine Auswahl und eine präzise Beschreibung, wann und wo
+   die Karte erhältlich wird, sind Pflicht.
+
+Der Editor zeigt verständlich an, ob die eingegebene ID bereits im
+eingebetteten Katalog vorkommt, und fasst das Ergebnis der Auswahl
+in einfacher Sprache direkt im Reiter zusammen. Neue Karten
+erhalten keine unbemerkte ID 0 mehr; die ID ist beim Anlegen
+zunächst leer und muss bewusst vergeben werden.
+
+Die gespeicherten Integrationseinstellungen und die Importanweisung
+bleiben zum bisherigen JSON-/ZIP-Format kompatibel.
