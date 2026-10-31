@@ -231,7 +231,9 @@
       if(card.from==='fusion'&&catalog[card.id]?.art)materials.push({art:catalog[card.id].art});
     }
     const back='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 180"%3E%3Crect width="120" height="180" rx="8" fill="%23121b2e"/%3E%3Cpath d="M60 32L94 90 60 148 26 90Z" fill="none" stroke="%23d7af61" stroke-width="4"/%3E%3C/svg%3E';
-    while(materials.length<(c.materialsUsed||2))materials.push({art:back});
+    const materialCount=Math.max(2,Math.min(5,c.materialsUsed||2));
+    materials.length=Math.min(materials.length,materialCount);
+    while(materials.length<materialCount)materials.push({art:back});
     const instance=ritualInstance(c);
     const target=document.querySelector('#duoSeats .seat[data-seat="'+event.seat+'"] > .field > .field-cell[data-slot="'+event.slot+'"]');
     Promise.resolve(window.ArcaneFusionCinema.play({instance,materials,battle:current,
