@@ -166,7 +166,9 @@
   const g=game;
   if(!g||g.finishShown||g.winner===null)return oldFinished.apply(this,args);
   const previousLevel=playerLevel(profile),priorTraining=profile.trainingWins,
-   priorLoot=profile.lastLoot;
+   previousXp=profile.xp,priorLoot=profile.lastLoot;
+  const aceUnlockId=g.winner===0&&g.mode==='pve'&&g.context==='tournament'&&
+   !profile.cleared.includes(g.opponentId)?OPPONENTS[g.opponentId]?.aceCard:null;
   const result=oldFinished.apply(this,args);
   if(game!==g||!g.finishShown)return result;
   if(g.winner===0&&g.mode==='pve'){
@@ -175,8 +177,14 @@
    if(priorTraining<3&&profile.trainingWins===3&&typeof TRAINING_FUSION!=='undefined')cards.push(TRAINING_FUSION);
    if(Number.isInteger(g.roleChallengeCard))cards.push(g.roleChallengeCard);
    const level=playerLevel(profile);
-   if(level>previousLevel||cards.length){
-    postRewards.set(g,{level:level>previousLevel?level:null,cards:[...new Set(cards)]});
+   if(level>previousLevel||cards.length||Number.isInteger(aceUnlockId)){
+    postRewards.set(g,{
+     level:level>previousLevel?level:null,previousLevel,
+     gainedXp:Math.max(0,profile.xp-previousXp),
+     nextXp:level<100?Math.max(0,levelFloor(level+1)-profile.xp):null,
+     aceUnlockId:Number.isInteger(aceUnlockId)?aceUnlockId:null,
+     cards:[...new Set(cards)]
+    });
     document.body.classList.add('ad211-deferring-rewards');
    }
   }
@@ -193,15 +201,51 @@
     let attempts=0;
     const show=()=>{
      if(uiMode!=='menu'||game)return;
-     if(!byId('overlay')?.classList.contains('hidden')){
-      if(++attempts<8)setTimeout(show,600);return;
+     if(!byId('overlay')?.classList.contains('hidden')||
+        window.ArcaneVictoryRewards?.active||window.ArcaneVictoryRewards?.remaining>0){
+      if(++attempts<120)setTimeout(show,600);return;
      }
-     const content=(post.level?'<p class="ad211-reward-level">✦ Du hast Spielerlevel '+post.level+' erreicht!</p>':'')+
-      post.cards.map(id=>'<div class="ad211-earned-card"><b>✦ Neue Karte erhalten: '+esc(CARDS[id]?.name||'Monster')+'</b>'+fullCardHtml({id})+'</div>').join('');
-     openModal(modalHtml('DEIN FORTSCHRITT','Das hast du freigeschaltet','✦',
-      'Dein letztes Duell hat sich gelohnt. Das ist neu in deiner Sammlung:',content,
-      '<button class="btn primary" id="ad211-earn-close">WEITER ZUM MENÜ</button>'));
-     byId('ad211-earn-close').onclick=hideModal;
+     const levelInfo=post.level?
+      '<p class="ad211-reward-level">✦ Spielerlevel '+post.level+' erreicht!</p>'+
+      '<p>Du bist durch deine gesammelte Erfahrung von Level '+post.previousLevel+
+      ' auf Level '+post.level+' aufgestiegen. In diesem Duell hast du +'+format(post.gainedXp)+
+      ' XP gesammelt.</p><p>Dein Spielerlevel verbessert deine Chancen auf seltene Karten. '+
+      (post.nextXp===null?'Du hast die höchste Spielerstufe erreicht.':
+       'Bis zur nächsten Spielerstufe fehlen dir noch '+format(post.nextXp)+' XP.')+
+      ' Die Stärke verfügbarer Monster und ACE-Angebote richtet sich weiterhin nach deinen bestandenen Turnierprüfungen.</p>':'';
+     const ace=Number.isInteger(post.aceUnlockId)?CARDS[post.aceUnlockId]:null;
+     const aceInfo=ace?'<section class="ad211-earned-card ad211-ace-preview"><b>✦ TURNIER-ACE FREIGESCHALTET · '+esc(ace.name)+
+       '</b><p>Du hast dieses ACE-Monster <strong>nicht kostenlos erhalten</strong>. '+
+       'Es kann jetzt einmalig im Booster-Shop für Essenz gekauft werden.</p>'+
+       fullCardHtml({id:post.aceUnlockId})+'</section>':'';
+     const earned=post.cards.map(id=>
+      '<section class="ad211-earned-card"><b>✦ Tatsächlich erhalten: '+esc(CARDS[id]?.name||'Monster')+'</b>'+
+      fullCardHtml({id})+'</section>').join('');
+     const content=levelInfo+aceInfo+earned;
+     openModal(modalHtml('DEIN FORTSCHRITT',
+      post.level&&ace?'Levelaufstieg und Turnierfreischaltung':
+       post.level?'Du bist aufgestiegen!':ace?'Neues ACE im Shop freigeschaltet':'Neue Karten für deine Sammlung',
+      '✦','Deine Belohnungen wurden gespeichert. Hier erfährst du, was sich durch deinen Sieg verändert hat:',
+      content,'<button class="btn primary" id="ad211-earn-close">VERSTANDEN · ZUM MENÜ</button>'));
+     for(const section of byId('modal').querySelectorAll('.ad211-earned-card')){
+      const images=[...section.querySelectorAll('img')];let remaining=images.length;
+      const ready=()=>{if(--remaining<=0)section.classList.add('ad211-card-ready');};
+      if(!remaining)section.classList.add('ad211-card-ready');
+      for(const img of images){
+       if(img.complete)ready();
+       else{
+        img.addEventListener('load',ready,{once:true});
+        img.addEventListener('error',ready,{once:true});
+       }
+      }
+      // Never leave a broken or unsupported image permanently concealed.
+      setTimeout(()=>section.classList.add('ad211-card-ready'),1800);
+     }
+     byId('ad211-earn-close').onclick=()=>{
+      byId('overlay').classList.add('hidden');
+      if(profile.rewardQueue?.length)showMilestone();
+      else if(profile.openPack&&!profile.openPack.taken.length)showPack();
+     };
     };
     setTimeout(show,reduce()?450:2150);
    }

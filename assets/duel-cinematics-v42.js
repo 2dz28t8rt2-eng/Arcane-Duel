@@ -177,14 +177,36 @@
  const finish=showFinished;
  showFinished=function(...args){if(game&&presented.has(game))return;const r=finish(...args),g=game;if(!g?.finishShown||g.winner===null||presented.has(g))return r;presented.add(g);const modal=$('modal');modal?.classList.add('ad-result-scroll');
   rewardItems=[...modal.querySelectorAll('.arcane-reward-showcase')].map(node=>{const html=node.outerHTML;node.remove();return html;});
-  if(rewardItems.length)nextReward();return r;
+  // Leave result buttons accessible; reward card scenes appear only after menu.
+  return r;
+ };
+ const originalReturn=returnToMenu;
+ returnToMenu=function(...args){
+  if(leaving)return;
+  leaving=true;let result;
+  try{result=originalReturn.apply(this,args);}
+  finally{leaving=false;}
+  if(uiMode==='menu'&&rewardItems.length){
+   let tries=0;
+   const reveal=()=>{
+    if(uiMode!=='menu'||!rewardItems.length||rewardScene)return;
+    // An XP milestone/mandatory reward takes precedence over optional art scenes.
+    if(!$('overlay').classList.contains('hidden')){
+     if(++tries<120)setTimeout(reveal,450);
+     return;
+    }
+    nextReward();
+   };
+   setTimeout(reveal,window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?450:2100);
+  }
+  return result;
  };
  const hide=hideModal;
  hideModal=function(...args){
   if(rewardScene){nextReward();return;}
-  if(!leaving&&game?.finishShown&&game.winner!==null&&!$('overlay').classList.contains('hidden')&&$('modal').querySelector('#modalMenu')){
-   leaving=true;try{return returnToMenu();}finally{leaving=false;}
-  }
+  if(!leaving&&game?.finishShown&&game.winner!==null&&
+     !$('overlay').classList.contains('hidden')&&$('modal').querySelector('#modalMenu'))
+   return returnToMenu();
   return hide(...args);
  };
  window.ArcaneVictoryRewards=Object.freeze({get active(){return !!rewardScene;},dismiss:nextReward,get remaining(){return rewardItems.length;}});
