@@ -12,6 +12,7 @@ internal sealed partial class Editor
         public CardDraft() { } // public constructor for System.Text.Json restore
         public string SlotId { get; set; } = Guid.NewGuid().ToString("N");
         public JsonObject Card { get; set; } = new();
+        public CardIntegrationPlan Integration { get; set; } = new();
         public byte[]? Image { get; set; }
         public string? ImageExtension { get; set; }
         public byte[]? Frame { get; set; }
@@ -44,7 +45,7 @@ internal sealed partial class Editor
     }
     CardDraft Snapshot() => new()
     {
-        Card=(JsonObject)BuildCard().DeepClone(),
+        Card=(JsonObject)BuildCard().DeepClone(), Integration=CapturePlan(),
         Image=imageBytes?.ToArray(), ImageExtension=imageExtension,
         Frame=customFrameBytes?.ToArray(), FrameExtension=customFrameExtension
     };
@@ -70,6 +71,7 @@ internal sealed partial class Editor
     void ApplyDraft(CardDraft draft)
     {
         ApplyCard(draft.Card,AppContext.BaseDirectory);
+        ApplyPlan(draft.Integration);
         imageBytes=draft.Image?.ToArray();imageExtension=draft.ImageExtension;
         if(imageBytes!=null)
         {
@@ -116,7 +118,10 @@ internal sealed partial class Editor
         AddButton(bar,"Duplizieren",(_,_)=>{
             if(items.SelectedItem is not CardDraft d)return;
             var copy=new CardDraft {Card=(JsonObject)d.Card.DeepClone(),Image=d.Image?.ToArray(),
-                ImageExtension=d.ImageExtension,Frame=d.Frame?.ToArray(),FrameExtension=d.FrameExtension};
+                ImageExtension=d.ImageExtension,Frame=d.Frame?.ToArray(),FrameExtension=d.FrameExtension,
+                Integration=new CardIntegrationPlan {Availability=d.Integration?.Availability??"catalog-only",
+                   Booster=d.Integration?.Booster??false, StarterDeck=d.Integration?.StarterDeck??false,
+                   QuestReward=d.Integration?.QuestReward??false, UnlockDetails=d.Integration?.UnlockDetails??""}};
             copy.Card["name"]=(copy.Card["name"]?.ToString()??"Karte")+" (Kopie)";
             copy.Card["id"]=-1; // new unique game ID required before batch export
             shelf.Add(copy);PersistShelf();redraw(copy.SlotId);
@@ -127,11 +132,28 @@ internal sealed partial class Editor
                MessageBoxButtons.YesNo,MessageBoxIcon.Question)!=DialogResult.Yes)return;
             shelf.Remove(d);PersistShelf();redraw();
         });
+        AddButton(bar,"Clear – Ablage leeren",(_,_)=>{ClearShelf(win);redraw();});
         AddButton(bar,"Alle exportieren (ZIP)",(_,_)=>ExportShelf(),true);
         items.DoubleClick+=(_,_)=>load();
         win.Controls.Add(items);win.Controls.Add(hint);win.Controls.Add(bar);
         redraw();win.ShowDialog(this);
     }
+    void ClearShelf(IWin32Window? parent=null)
+    {
+        if(shelf.Count==0){status.Text="Die Kartenablage ist bereits leer.";return;}
+        if(MessageBox.Show(parent??this,"Wirklich ALLE "+shelf.Count+
+            " Karten aus der Zwischenablage unwiderruflich löschen?\\n"+
+            "Die aktuell im Editor geöffnete Karte und bereits exportierte ZIP-Dateien bleiben bestehen.",
+            "Clear – gesamte Kartenablage leeren",MessageBoxButtons.YesNo,
+            MessageBoxIcon.Warning,MessageBoxDefaultButton.Button2)!=DialogResult.Yes)return;
+        // Write the new empty snapshot before changing the in-memory list.
+        // A storage failure must never silently destroy the in-memory drafts.
+        var backup=shelf.ToList();
+        shelf.Clear();
+        try{PersistShelf();status.Text="Clear abgeschlossen: Die Kartenablage wurde geleert.";}
+        catch(Exception ex){shelf.AddRange(backup);Error(ex);}
+    }
+
     private static void ZipText(ZipArchive zip,string name,string content)
     {
         using var writer=new StreamWriter(zip.CreateEntry(name,CompressionLevel.Optimal).Open(),new UTF8Encoding(false));
@@ -154,12 +176,15 @@ internal sealed partial class Editor
             && !name.Split('/').Any(x=>x is "." or "..")
             && !Path.IsPathRooted(name) ? name : "";
     }
-    static void WriteShelfPackage(string path,IReadOnlyList<CardDraft> drafts)
+    static void WriteShelfPackage(string path,IReadOnlyList<CardDraft> drafts,bool designApproved=false)
     {
         if(drafts.Count==0)throw new InvalidOperationException("Die Ablage ist leer.");
         var ids=new HashSet<int>();
         foreach(var d in drafts)
         {
+            ValidateDraft(d);
+            if(AnalyzeIntent(d).Count>0 && !designApproved)
+                throw new InvalidOperationException("Nichtstandard-Design muss vor dem Export ausdrücklich bestätigt werden.");
             if(!int.TryParse(d.Card["id"]?.ToString(),out var id)||id<0)
                 throw new InvalidOperationException("Eine Karte benötigt noch eine gültige ID. Bitte bearbeiten.");
             if(!ids.Add(id))throw new InvalidOperationException("Doppelte ID "+id+" in der Ablage.");
@@ -172,6 +197,7 @@ internal sealed partial class Editor
             var card=d.Card;var id=int.Parse(card["id"]!.ToString());
             var folder="cards/"+id.ToString("D6")+"-"+SafeName(card["name"]?.ToString()??"karte")+"/";
             ZipText(archive,folder+"card.json",card.ToJsonString(Pretty));
+            ZipText(archive,folder+"integration.json",IntegrationMetadata(d,designApproved).ToJsonString(Pretty));
             var art=RelativeAsset(card,"art");
             if(d.Image!=null)
             {
@@ -186,39 +212,93 @@ internal sealed partial class Editor
             }
             entries.Add(new JsonObject {["id"]=id,["name"]=card["name"]?.ToString()??"",
                 ["folder"]=folder,["cardJson"]=folder+"card.json",["artwork"]=art,
-                ["artworkBundled"]=d.Image!=null,["frameBundled"]=d.Frame!=null});
+                ["artworkBundled"]=d.Image!=null,["frameBundled"]=d.Frame!=null,
+                ["integrationJson"]=folder+"integration.json",
+                ["unlockMode"]=d.Integration?.Availability??"catalog-only",
+                ["nonstandardDesignConfirmed"]=designApproved&&AnalyzeIntent(d).Count>0});
         }
         ZipText(archive,"manifest.json",new JsonObject {
-            ["format"]="arcane-duel-card-batch-v1",
+            ["format"]="arcane-duel-card-batch-v2",
             ["exportedAtUtc"]=DateTimeOffset.UtcNow.ToString("O"),
             ["cardCount"]=drafts.Count,["cards"]=entries
         }.ToJsonString(Pretty));
         ZipText(archive,"CHATGPT_IMPORT.md","""
-# Arcane Duel – Importanweisung für ChatGPT
+# Arcane Duel – verbindliche Importanweisung für ChatGPT
 
-Jede Karte ist einzeln im Archiv unter cards/<ID>-<Name>/card.json.
-manifest.json verzeichnet sämtliche IDs, Kartendaten und Dateiordner.
+Dieses ZIP ist ein vom Benutzer genehmigter Kartensatz.
+manifest.json beschreibt die Karten; jede Karte befindet sich in
+cards/<ID>-<Name>/card.json, und ihre Integrationsentscheidung steht
+daneben in integration.json.
 
-1. GitHub-Repository: 2dz28t8rt2-eng/Arcane-Duel.
-   Arbeite auf einem neuen Feature-Branch von development, ändere main nicht.
-2. Lade manifest.json und jede referenzierte card.json.
-3. Prüfe Karten-IDs vor dem Einspielen. Aktualisiere vorhandene Einträge gezielt,
-   füge neue ohne Kollision hinzu und bewahre unbekannte JSON-Felder.
-4. Originale Artwork-Pfade bleiben erhalten; bei neuen Bildern oder eigenen
-   Rahmen kopiere die mitgelieferten Assets aus dem jeweiligen Kartenordner
-   in die in card.json hinterlegten relativen assets/-Pfade.
-5. Prüfe die kanonische Solo-Kartenquelle, die Generierung der Solo-/Duo-Kataloge
-   und die Online-2v2-Kartendaten. Synchronisiere Rollen, Tags, Level, Werte,
-   Fusionen, Decks, Loot und Freischaltungen konsistent.
-6. Fähigkeitstext allein implementiert keine Gameplay-Fähigkeit! Neue Fähigkeiten
-   nur mit ausdrücklich erstellter und getesteter Spielelogik übernehmen.
-7. Vor Abschluss Solo-, Duo-, Karten- und Regressions-Tests ausführen.
-   Keine bestehenden Spielerprofile oder Spielstände überschreiben.
-8. Relevante Backend-/Supabase-Deployments erst nach Prüfung des tatsächlich
-   angebundenen Projekts und einer gesonderten Integrationsfreigabe.
-9. Änderungen zur Prüfung als Pull Request gegen development bereitstellen.
+## Grundregel: Design ist verbindlich
+- Kartenwerte, Namen, Rollen, Typen, Level, gewünschte Farben, manuell gewählte
+  Rahmen und Levelgravuren sowie Rollensymbole exakt wie in card.json
+  vorgegeben übernehmen. Nicht automatisch korrigieren, normalisieren,
+  abrunden oder durch "passende" Vorlagen ersetzen.
+- nonstandardDesignConfirmedByUser=true bedeutet, der Benutzer wurde auf
+  konkrete Unterschiede hingewiesen und hat diese bewusst bestätigt.
+  Auch ohne Warnung ist visualDefinitionAuthoritative=true verbindlich.
+- Wenn die aktuelle Spiel-Renderlogik ein bestimmtes Design noch nicht
+  darstellen kann, die nötige unterstützende Darstellung implementieren
+  und prüfen, statt die Kartenwerte oder Gestaltung still zu ändern.
+- Bei einer technisch unmöglichen Umsetzung ausdrücklich einen Blocker im
+  Bericht nennen, niemals kommentarlos eine andere Karte ausgeben.
 
-Die ZIP-Datei ist ein Übergabeentwurf und aktualisiert nicht das Live-Spiel.
+## Katalogeintrag ist NICHT automatisch eine Freischaltung
+- Pro Karte integration.json lesen: catalogAction beschreibt Anlegen/Ändern
+  (zur Sicherheit auch die Live-ID-Liste prüfen).
+- availability=catalog-only: ausschließlich Kartendaten bereitstellen.
+  Bestehende Decks, Booster, Gegnerloot, Questreihen und Freischaltungen
+  unverändert lassen. Neue Karte nicht automatisch für Spieler freigeben.
+- availability=preserve-existing: vorhandene Freischaltungsregeln unverändert
+  lassen; bei neuer Karten-ID nicht spekulativ freischalten.
+- availability=unlock-configured: die expliziten Zielschalter
+  booster/starterDeck/questReward und unlockDetails befolgen.
+  Nur die angegebenen Stellen anpassen, keine zusätzlichen Freischaltungen
+  erfinden. Bei unklarer Bedingung als Blocker im Bericht aufführen.
+
+## Neue Artwork-Dateien
+- artworkSource=new-bundled-file bedeutet: die Bilddatei liegt unter
+  dem Kartenordner, mit dem relativen Zielpfad aus card.json.
+  Die ORIGINAL-Binärdatei ohne Umkodierung/Kleinrechnen übernehmen;
+  keine Thumbnail-Vorschau als Ersatz verwenden.
+- artworkSource=existing-reference bedeutet: vorhandenen assets/-Pfad im
+  aktuellen development-Repository verifizieren, nicht umbenennen.
+  Fehlt die Datei, als Blocker melden, nicht durch irgendein Bild ersetzen.
+- Eigene Rahmen ebenso unter dem originalen Pfad aus customFrame kopieren.
+
+## Umsetzung und Test
+1. GitHub-Repository: 2dz28t8rt2-eng/Arcane-Duel, Feature-Branch von
+   development. main, Live-Spielstände und Profile nicht anfassen.
+2. manifest.json und für jede Karte card.json + integration.json lesen.
+   Eindeutige IDs bestätigen und mit dem kanonischen Solo-Katalog vergleichen.
+3. Bestehende IDs gezielt aktualisieren, neue ohne Überschneidungen anlegen;
+   unbekannte Felder erhalten. Solo-Quelle, Buildskripte und Duo-Kataloge
+   konsistent aktualisieren.
+4. ATK/DEF/Level, Rollen, Tags, Rahmen-Overrides, Fähigkeiten, Decks,
+   Loot und Freischaltungen nur wie ausdrücklich vorgegeben implementieren.
+   ability/desc-Texte sind keine Spiellogik: fehlende Fähigkeitseffekte
+   gesondert im passenden Gameplay-Code implementieren und testen.
+5. Solo- und 2v2-Render- und Gameplay-Tests, Regressions- und Katalogtests
+   ausführen; alle betroffenen Karten in groß und klein gegen die
+   festgelegte Gestaltung prüfen.
+6. Backend/Supabase nur nach Prüfung der tatsächlich genutzten Konfiguration
+   und gesonderter Freigabe ändern. Pull Request gegen development erstellen.
+
+## Verbindlicher Prüf- und Integrationsbericht
+Am Ende einen klaren Bericht erzeugen und dem Benutzer bereitstellen:
+- Alle Karten-IDs/Namen sowie Status NEU / GEÄNDERT / BLOCKIERT.
+- Für jede Karte: tatsächlich geänderte Solo-/Duo-Dateien und Assets,
+  beibehaltene oder gezielt veränderte Freischaltungen.
+- Eigene hochgeladene Bilddateien und deren genaue Zielpfade.
+- Ungewöhnliche, aber vom Benutzer bestätigte Eigenschaften; unverändert
+  übernommene Werte, Layouts und Effekte.
+- Ausgeführte Tests mit Ergebnis PASS/FAIL und ungeprüfte Punkte.
+- Fehlende Gameplay-Implementierungen, Konflikte und konkrete Blocker.
+- Commit/PR-Link sowie Hinweis, ob oder warum ein Deployment erforderlich ist.
+Keine Behauptung einer abgeschlossenen Integration ohne Tests.
+
+Dieser Export ist eine Entwicklungsübergabe, kein automatisches Live-Update.
 """);
     }
     void ExportShelf()
@@ -226,10 +306,11 @@ Die ZIP-Datei ist ein Übergabeentwurf und aktualisiert nicht das Live-Spiel.
         try
         {
             if(shelf.Count==0)throw new InvalidOperationException("Bitte zuerst eine Karte zur Ablage hinzufügen.");
+            if(!ConfirmIntent(shelf))return;
             using var dialog=new SaveFileDialog {Filter="ZIP-Datei (*.zip)|*.zip",
                 FileName="Arcane-Duel-Karten-"+DateTime.Now.ToString("yyyyMMdd-HHmm")+".zip"};
             if(dialog.ShowDialog(this)!=DialogResult.OK)return;
-            WriteShelfPackage(dialog.FileName,shelf);
+            WriteShelfPackage(dialog.FileName,shelf,true);
             status.Text=shelf.Count+" Karten mit Importanweisung exportiert.";
             using var popup=new SharePathDialog(dialog.FileName);popup.ShowDialog(this);
         }catch(Exception ex){Error(ex);}
