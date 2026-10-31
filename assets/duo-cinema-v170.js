@@ -245,6 +245,7 @@
   else drawSequence(event);
   return events;
  }
- const setEnabled=value=>{enabled=value!==false;if(!enabled){sequence++;clear();}};
+ const setEnabled=value=>{enabled=value!==false;if(!enabled){sequence++;clear();
+  if(typeof window!=='undefined')window.ArcaneFusionCinema?.cancel?.();}};
  return Object.freeze({version:'17.0',observed,onState,ritualInstance,setEnabled,isEnabled:()=>enabled});
 });

@@ -6,7 +6,7 @@
  const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
  const num=v=>Math.max(0,Math.floor(Number(v)||0)).toLocaleString('de-AT');
  const STAMPS={predator:'PREDATOR',guardian:'VERTEIDIGER',soul:'SEELENZEHRER',resonator:'RESONATOR'};
- let running=false,particleLoader=null;
+ let running=false,particleLoader=null,activePhases=null,activeOverlay=null;
  const completedLandings=new WeakMap();
  function addScript(url,check){
   if(check())return Promise.resolve();
@@ -123,6 +123,7 @@
   document.body.append(overlay);
   const clock=wait||((ms)=>new Promise(resolve=>setTimeout(resolve,ms)));
   const phases=window.ArcaneCinemaPhases.create(overlay,clock);
+  activePhases=phases;activeOverlay=overlay;
   wait=phases.wait;
   const particleTask=motes(overlay,role).catch(()=>null);
   let stopCalcLoop=null;
@@ -262,6 +263,7 @@
    stopCalcLoop?.(); // Skipped, cancelled and failed rituals must not leave audio playing.
    phases.close();
    overlay.remove();running=false;
+   if(activeOverlay===overlay){activeOverlay=null;activePhases=null;}
    particleTask.then(container=>container?.destroy?.()).catch(()=>{});
    if(boardCard){
     boardCard.classList.remove('evo-fusion-awaiting');
@@ -275,5 +277,6 @@
    }
   }
  }
- window.ArcaneFusionCinema=Object.freeze({version:'2.2.0',play,landed:(g,uid)=>!!completedLandings.get(g)?.has(uid)});
+ function cancel(){activePhases?.close();activeOverlay?.remove();}
+ window.ArcaneFusionCinema=Object.freeze({version:'2.2.0',play,cancel,landed:(g,uid)=>!!completedLandings.get(g)?.has(uid)});
 })();
