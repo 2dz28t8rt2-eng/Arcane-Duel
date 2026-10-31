@@ -157,10 +157,10 @@ internal sealed partial class Editor
     private static readonly string ChatGptImportGuide="""
 # Arcane Duel – verbindliche Importanweisung für ChatGPT
 
-Dieses ZIP ist ein vom Benutzer genehmigter Kartensatz.
-manifest.json beschreibt die Karten; jede Karte befindet sich in
-cards/<ID>-<Name>/card.json, und ihre Integrationsentscheidung steht
-daneben in integration.json.
+Dieses ZIP enthält bewusst erzeugte Kartendaten. manifest.json enthält
+die maßgeblichen Dateipfade: Bei einem Einzelkartenpaket liegen card.json
+und integration.json direkt im Archivroot, bei einem Sammelpaket
+innerhalb von cards/<ID>-<Name>/. Jede Karte hat ihren eigenen Eintrag.
 
 ## Grundregel: Design ist verbindlich
 - Kartenwerte, Namen, Rollen, Typen, Level, gewünschte Farben, manuell gewählte
@@ -228,10 +228,68 @@ Am Ende einen klaren Bericht erzeugen und dem Benutzer bereitstellen:
 - Ausgeführte Tests mit Ergebnis PASS/FAIL und ungeprüfte Punkte.
 - Fehlende Gameplay-Implementierungen, Konflikte und konkrete Blocker.
 - Commit/PR-Link sowie Hinweis, ob oder warum ein Deployment erforderlich ist.
+Zusätzlich zum Chatbericht die getrennten Dateien INTEGRATIONSPROTOKOLL.md
+und FEHLERBERICHT.md erzeugen. Die Vorlagen liegen im Archiv, sind bei
+der tatsächlichen Integration aber mit konkreten Ergebnissen auszufüllen.
+Auch wenn keine Fehler bestehen, FEHLERBERICHT.md mit "Keine offenen Fehler"
+und eventuell verbliebenen ungeprüften Punkten ausgeben.
 Keine Behauptung einer abgeschlossenen Integration ohne Tests.
 
 Dieser Export ist eine Entwicklungsübergabe, kein automatisches Live-Update.
 """;
+
+    private static void WriteIntegrationDocuments(ZipArchive zip)
+    {
+        ZipText(zip,"CHATGPT_IMPORT.md",ChatGptImportGuide);
+        ZipText(zip,"VORLAGE_INTEGRATIONSPROTOKOLL.md","""
+# Arcane Duel – Integrationsprotokoll (von ChatGPT auszufüllen)
+
+Datum/Commit/Feature-Branch/PR:
+Repository und geprüfter development-Stand:
+
+## Kartenänderungen
+| ID | Kartenname | Neu/Geändert/Blockiert | Quelldateien | Ergebnis |
+|---|---|---|---|---|
+
+## Assetübernahme
+| Karten-ID | Originalbild oder neue Datei | Pfad im Spiel | Geprüft |
+|---|---|---|---|
+
+## Freischaltungen und Gameplay
+- Pro Karten-ID: bestehende Freischaltungen unverändert / gezielt geändert
+- Genauer Auslöser und betroffene Decks, Booster oder Quests
+- Fähigkeiten: Text vorhanden / real implementiert / Blocker
+- Bewusst bestätigte manuelle Designs exakt umgesetzt
+
+## Tests
+| Test | PASS/FAIL/UNGEPRÜFT | Beleg/Erklärung |
+|---|---|---|
+
+## Lieferung
+Commit/PR-Link:
+Backend-Deployment nötig? (mit Begründung):
+Verbleibende offene Punkte:
+""");
+        ZipText(zip,"VORLAGE_FEHLERBERICHT.md","""
+# Arcane Duel – Fehlerbericht (von ChatGPT auszufüllen)
+
+Datum/Commit/PR:
+Wenn keine Fehler bestehen: ausdrücklich "Keine offenen Fehler" dokumentieren.
+
+| ID/Komponente | Fehler/Blocker | Schweregrad | Reproduktion | Maßnahme/Status |
+|---|---|---|---|---|
+
+## Validierungsfehler
+- Fehlende Artwork-Dateien oder falsche Pfade
+- Kollisionen bei Karten-IDs
+- Abweichende Kartendarstellung trotz bestätigter Designvorgaben
+- Fehlende Gameplay- oder Freischaltungsregeln
+- Nicht getestete Solo-/2v2-Funktionen
+
+## Verbleibende Risiken und nächste Schritte
+-
+""");
+    }
 
     private static void ZipText(ZipArchive zip,string name,string content)
     {
@@ -301,7 +359,7 @@ Dieser Export ist eine Entwicklungsübergabe, kein automatisches Live-Update.
             ["exportedAtUtc"]=DateTimeOffset.UtcNow.ToString("O"),
             ["cardCount"]=drafts.Count,["cards"]=entries
         }.ToJsonString(Pretty));
-        ZipText(archive,"CHATGPT_IMPORT.md",ChatGptImportGuide);
+        WriteIntegrationDocuments(archive);
     }
     void ExportShelf()
     {
