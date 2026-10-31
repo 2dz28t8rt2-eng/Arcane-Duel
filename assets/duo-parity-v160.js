@@ -1054,8 +1054,10 @@
   if(!joinIntent||!nameConfirmed)return;
   if(!invitePreview){
    try{invitePreview=await call({type:'invitePreview',roomId:joinIntent.id,invite:joinIntent.secret});}
-   catch(e){set('duoStatus','Einladung kann nicht geöffnet werden: '+e.message);
-    joinIntent=null;history.replaceState(null,'',ownOrigin());return;}
+   catch(e){const message='Einladung kann nicht geöffnet werden: '+e.message;
+    set('duoStatus',message);joinIntent=null;history.replaceState(null,'',ownOrigin());
+    window.ArcaneDuoPartyUI218?.sync?.();$('duoPartyStatus').textContent=message;
+    return;}
   }
   showInvitation('join',invitePreview.inviterName,invitePreview.chapter);
  }
