@@ -25,7 +25,10 @@ test('new party waits for two humans and cannot play until host starts',()=>{
  assert.equal(b.players.length,4);
  assert.ok(b.players.every(p=>p.hand.length>0));
  assert.throws(()=>rules.apply(b,0,{type:'end'},{catalog}),/nicht aktiv/);
- assert.throws(()=>rules.apply(b,2,{type:'startParty'},{catalog}),/Party-Leiter/);
+ const guestRequest=rules.apply(b,2,{type:'startParty'},{catalog});
+ assert.equal(guestRequest.status,'party_ready');
+ assert.deepEqual(guestRequest.partyStartInvite,{fromSeat:2,toSeat:0});
+ assert.throws(()=>rules.apply(guestRequest,2,{type:'acceptPartyStart'},{catalog}),/Zustimmung/);
  const request=rules.apply(b,0,{type:'startParty'},{catalog});
  assert.equal(request.status,'party_ready');assert.equal(request.revision,b.revision+1);
  assert.throws(()=>rules.apply(request,0,{type:'acceptPartyStart'},{catalog}),/Zustimmung/);
@@ -102,7 +105,7 @@ test('real party UI controller follows profile -> invite -> shared menu -> host 
   createRoom:async()=>{model.roomId='room-1';model.seat=0;model.invite='abcdef';
    model.game={status:'waiting',players:[{name:'Host'},null,{name:'Partner (ausstehend)'}]};},
   send:async action=>{
-   if(action.type==='startParty'){started++;model.game={...model.game,status:'party_ready'};}
+   if(action.type==='startParty'){started++;model.game={...model.game,status:'party_ready',partyStartInvite:{fromSeat:model.seat,toSeat:model.seat===0?2:0}};}
    else if(action.type==='acceptPartyStart')model.game={...model.game,status:'active'};
    else if(action.type==='declinePartyStart')model.game={...model.game,status:'lobby'};
    else throw Error('unexpected action '+action.type);
@@ -144,7 +147,8 @@ test('real party UI controller follows profile -> invite -> shared menu -> host 
  node('duoReturnMenu').onclick();
  assert.equal(node('duoMainMenuGate').hidden,false);
  model.seat=2;ui.sync();
- assert.equal(node('duoMenuStart').disabled,true);
+ assert.equal(node('duoMenuStart').disabled,false);
+ model.seat=-1;ui.sync();
  await node('duoMenuStart').onclick();
  assert.equal(started,0);
  model.seat=0;ui.sync();
@@ -235,4 +239,18 @@ test('invitation opens on group screen and never transports guest into the battl
  assert.match(client,/joinPreview:invitePreview/);
  assert.doesNotMatch(client,/showInvitation\('join',invitePreview\.inviterName,invitePreview\.chapter\)/);
  assert.match(read('assets/duo-group-entry-v220.css'),/#duoPartyGroup\[hidden\]/);
+});
+
+test('guest may challenge host and only invited host can consent to shared 7-zone duel',()=>{
+ const b=join(room(),true),request=rules.apply(b,2,{type:'startParty'},{catalog});
+ assert.deepEqual(request.partyStartInvite,{fromSeat:2,toSeat:0});
+ assert.throws(()=>rules.apply(request,2,{type:'declinePartyStart'},{catalog}),/Startanfrage/);
+ const build={deck:snapshot.starterMain,fusions:snapshot.starterFusions,
+  upgrades:{},enhancements:{},essence:{},lv1:{},portraitId:'hero-11'};
+ const consent=rules.apply(request,0,{type:'acceptPartyStart'},
+  {catalog,humanBuilds:{0:build,2:build}});
+ assert.equal(consent.status,'active');
+ assert.equal(consent.players[0].portraitId,'hero-11');
+ assert.equal(consent.players[2].portraitId,'hero-11');
+ assert.deepEqual(consent.players.map(p=>p.field.length),[7,7,7,7]);
 });
