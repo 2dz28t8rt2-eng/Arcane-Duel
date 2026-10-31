@@ -106,3 +106,10 @@
  #duoPage #duoSeats .field-cell .duo-field-meta{font-size:8px}
  .duo-solo-menu .ad196-nav .duo-solo-menu-link{font-size:16px}
 }
+
+.duo-manual-join{border-top:1px solid #776c63;padding-top:15px;display:grid;gap:8px;
+ font:500 13px Segoe UI,sans-serif;color:#ddd2bb}
+.duo-manual-join label{display:grid;gap:7px}
+.duo-manual-join input{width:100%;min-width:0;box-sizing:border-box;padding:12px;
+ border:1px solid #81725f;border-radius:7px;background:#091421;color:#efe5d0;font:13px Segoe UI,sans-serif}
+.duo-manual-join button{width:100%}
