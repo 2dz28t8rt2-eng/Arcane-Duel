@@ -453,7 +453,9 @@
  }
  async function send(action){
   if(!game||busy)return;
-  if(!(action.type==='startParty'&&seat===0&&game.status==='lobby')&&
+  if(!((action.type==='startParty'&&seat===0&&game.status==='lobby')||
+       (action.type==='cancelPartyStart'&&seat===0&&game.status==='party_ready')||
+       (['acceptPartyStart','declinePartyStart'].includes(action.type)&&seat===2&&game.status==='party_ready'))&&
      !(game.activeSeat===seat&&game.status==='active')&&
     !(action.type==='nextChapter'&&[0,2].includes(seat)&&game.status==='finished'&&game.winner===0)&&
     !(['acceptNextChapter','declineNextChapter'].includes(action.type)&&
@@ -495,7 +497,7 @@
    const r=await call(payload);
    roomId=r.roomId;token=r.token;seat=0;invite=r.invite;save();load(r);
    location.hash='room='+roomId;
-   set('duoStatus','Dein Duell ist bereit! Lade jetzt deinen Partner ein.');
+   set('duoStatus','Party erstellt. Lade deinen Partner ein und wartet danach getrennt im Hauptmenü.');
   }catch(e){set('duoStatus',e.message);}
   finally{busy=false;render();}
  }
@@ -507,7 +509,7 @@
     profileToken:duoProfileToken,deferStart:true});
    roomId=id;token=r.token;seat=2;invite='';save();load(r);
    location.hash='room='+roomId;
-   set('duoStatus','Du bist dabei! Jetzt kämpft ihr gemeinsam.');
+   set('duoStatus','Party verbunden! Ihr könnt eure eigenen Menüs unabhängig voneinander benutzen.');
   }catch(e){set('duoStatus',e.message);return false;}
   finally{busy=false;render();}
   return true;
