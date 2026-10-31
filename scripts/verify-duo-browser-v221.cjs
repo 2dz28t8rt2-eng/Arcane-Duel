@@ -60,7 +60,15 @@ async function finishLiveDuel(A,B){
   if((await state(page)).game.revision===revision){await refresh(page);await page.evaluate(()=>window.ArcaneDuoParty218.send({type:'end'}));}
  }
  assert.equal(g.status,'finished','A complete live duel must reach an authoritative result');
- await refresh(A);await refresh(B);assert.deepEqual((await state(A)).game.teams,(await state(B)).game.teams);
+ await refresh(A);await refresh(B);
+ // A live polling request can still be in flight; wait until both independent
+ // contexts see the same authoritative final revision before comparing teams.
+ const finalRevision=(await state(A)).game.revision;
+ await B.waitForFunction(revision=>{
+  const g=window.ArcaneDuoParty218?.state().game;
+  return g?.status==='finished'&&g.revision>=revision;
+ },finalRevision,{timeout:40000});
+ assert.deepEqual((await state(A)).game.teams,(await state(B)).game.teams);
  return {actions,winner:g.winner,rounds:g.round,chapter:g.chapter,duelNo:g.duelNo};
 }
 (async()=>{
