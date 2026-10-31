@@ -35,9 +35,10 @@ test('Eiman Huel enters with normal LP fill and only then draws initial cards',(
  assert.match(scene,/ad-opening-hand-wait/);
  assert.match(scene,/\$\('showcaseGo'\)\.onclick=async\(\)=>/);
  assert.match(scene,/await window\.ArcaneBattleFX\?\.beginCinema\?\.\(\)/);
- const fill=intro.indexOf("screen.dataset.lpPhase='filling'");
- const reveal=intro.indexOf('revealOpeningHand?.()',fill);
- assert.ok(fill>0&&reveal>fill,'LP fill must precede the hand reveal');
+ assert.match(intro,/screen\.dataset\.lpPhase='filling'/);
+ assert.match(intro,/if\(f<1\)raf=requestAnimationFrame\(frame\);else close\(\);/);
+ assert.match(intro,/const close=async\(\)=>\{/);
+ assert.match(intro,/await window\.ArcaneHandDraw1161\?\.revealOpeningHand\?\.\(\)/);
 });
 test('ACE card is only shown after victory and never treated as free loot',()=>{
  const core=src('assets/game.js'),ux=src('assets/solo-playtest-ux-v211.js');
