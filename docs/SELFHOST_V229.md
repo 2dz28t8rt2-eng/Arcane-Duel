@@ -1,4 +1,8 @@
-# Arcane Duel auf dem eigenen Server (v229)
+# Arcane Duel auf dem eigenen Server – Spielversion 1.0.0
+
+**Offizielle Version ab 31.10.2026: 1.0.0 = bisheriger Entwicklungsstand v22.9 (historisches Technik-Kürzel v229).** Die Nummern v22.x/v229 werden nicht als neue Spielversion weitergezählt. Der sichtbare Spielname und alle Menüs verwenden ausschließlich die aktuelle Nummer im Format `1.0.0`, `1.0.1`, `1.1.0`; Singleplayer und Multiplayer teilen sich **eine Versionsnummer**.
+
+**Wichtig:** Die Umstellung ist im GitHub-Branch `development` vorbereitet. Sie bestätigt **nicht**, dass Version 1.0.0 schon auf der produktiven Website aktiviert wurde. Dazu muss der Serveradministrator das geprüfte Deployment-Programm auf dem Host installieren und die Veröffentlichung durchführen.
 
 ## Ziel und Trennung
 
@@ -48,11 +52,11 @@ Schlüssel und Zugangspakete gehören niemals ins Repository oder Spielarchiv. D
 
 ## Verbindliche Zwei-Versionen-Regel (Solo und Multiplayer)
 
-**Maximal zwei geprüfte Spielpakete auf dem neuen Server:** Das aktuell aktive Release und sein unmittelbar vorheriges funktionierendes Release. Jedes Release enthält Singleplayer **und** Multiplayer; beide stammen immer aus derselben freigegebenen Revision. Keine zwei getrennten Webstände pro Spielmodus verwenden.
+**Maximal zwei geprüfte Spielpakete auf dem neuen Server:** Das aktuell aktive Release und sein unmittelbar vorheriges funktionierendes Release. Jedes Release enthält Singleplayer **und** Multiplayer; beide stammen immer aus derselben freigegebenen Revision **und haben die gleiche offizielle Versionsnummer**. Keine zwei getrennten Webstände pro Spielmodus verwenden.
 
 **Beispiel:** Nach v1 nur v1; nach v2 v1 + v2, v2 aktiv; nach erfolgreich aktivierter v3 nur v2 + v3, v3 aktiv. v1 wird erst gelöscht, **nachdem** v3 gestartet wurde und der Gesundheitscheck dieselbe freigegebene GitHub-Revision bestätigt hat.
 
-Das Administrationsskript `server/deploy-release.py` übernimmt die Bereinigung nach erfolgreichem Health-Check: nur Releases nach dem geprüften Schema `v229-<12 hex>` unter `/opt/arcane-duel/releases`, zusätzlich ihre alten passenden Upload-Archive und SHA256-Dateien unter `/srv/arcane-duel-upload/uploads`. Andere Verzeichnisse, Uploads, private SQLite-Daten, WAL/SHM-Dateien, Profil-Links, Wiederherstellungsdaten, andere Websites (Aetherfall), Systemdienste und Backups werden **nie** als alte Versionen gelöscht. Staging-Dateien werden nicht als freigegebenes Release gezählt. Ein erfolgloser Build wird zurückgerollt und nicht als neue aktive Spielversion behalten.
+Das Administrationsskript `server/deploy-release.py` übernimmt die Bereinigung nach erfolgreichem Health-Check: aktuelle Releases im technischen Schema `v1.0.0-<12 hex>` (danach höhere nummerierte Releases) und – für einen sicheren ersten Rollback – bestehende alte `v229-<12 hex>`-Releases unter `/opt/arcane-duel/releases`, zusätzlich ihre jeweils passenden alten Upload-Archive und SHA256-Dateien unter `/srv/arcane-duel-upload/uploads`. Die Benutzeranzeige bleibt ohne `v` und ohne Commit-SHA: **1.0.0**. Andere Verzeichnisse, Uploads, private SQLite-Daten, WAL/SHM-Dateien, Profil-Links, Wiederherstellungsdaten, andere Websites (Aetherfall), Systemdienste und Backups werden **nie** als alte Versionen gelöscht. Staging-Dateien werden nicht als freigegebenes Release gezählt. Ein erfolgloser Build wird zurückgerollt und nicht als neue aktive Spielversion behalten.
 
 **Wichtig:** `server/deploy-release.py` liegt als geprüfte Vorlage im Repository und wird im Releasepaket ausgeliefert, aber der tatsächlich ausgeführte privilegierte Befehl `/usr/local/sbin/arcane-duel-release` ist bewusst **separat** installiert. Eine GitHub-Codeänderung aktiviert die neue Löschregel nicht automatisch. Der Serveradministrator muss die geprüfte Vorlage mit gesichertem Rückweg separat installieren, bevor die Zwei-Versionen-Regel auf dem produktiven Host verbindlich automatisiert ist. Ohne Zugriff auf den Host keine erfolgreiche Installation oder physische Löschung behaupten.
 
