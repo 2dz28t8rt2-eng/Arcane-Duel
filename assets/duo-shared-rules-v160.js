@@ -170,6 +170,23 @@
   }
   return true;
  }
+ // A deterministic, temporary level-matched build; it never changes a profile.
+ function loanBuild(catalog,chapter){
+  const target=encounter(chapter);assert(target,'Ungültiges Duellziel.');
+  const level=target.level,all=Object.values(catalog);
+  const main=all.filter(c=>c.playable&&!c.fusionOnly&&!c.ace&&!c.essenceMonster&&c.level<=level)
+   .sort((a,b)=>b.level-a.level||a.id-b.id);
+  const fusion=all.filter(c=>c.playable&&c.fusionOnly&&!c.ace&&c.level<=Math.max(2,level)&&
+   (!c.lv1Exclusive||isQuest(chapter)))
+   .sort((a,b)=>b.level-a.level||a.id-b.id).slice(0,15).map(c=>c.id);
+  const deck=[];
+  for(let copy=0;copy<3&&deck.length<40;copy++)for(const c of main){
+   if(deck.length===40)break;deck.push(c.id);
+  }
+  assert(validDeck(deck,catalog)&&validDeck(fusion,catalog,true),'Kein gültiges Leihdeck für diese Stufe verfügbar.');
+  return {deck,fusions:fusion,upgrades:{},enhancements:{},essence:{},
+   lv1:isQuest(chapter)?{perk:true,rank:Math.min(5,chapter-10)}:{},loanedDeck:true};
+ }
  function validNpcFusionDeck(ids,catalog){
   if(!Array.isArray(ids)||ids.length<1||ids.length>15)return false;
   const counts=new Map();
@@ -235,7 +252,7 @@
  function create({roomId,hostName,hostDeck,hostFusions,enemyDeckA,enemyDeckB,
     enemyFusionsA,enemyFusionsB,chapter=1,entry='new',catalog,randomSeed,
     hostUpgrades={},hostEnhancements={},hostEssence={},hostLv1={},hostPortrait='hero-01',
-    enemyPowerA=1,enemyPowerB=1,enemyNameA=null,enemyNameB=null}){
+    enemyPowerA=1,enemyPowerB=1,enemyNameA=null,enemyNameB=null,personalDuoRules=false}){
   assert(typeof roomId==='string'&&roomId.length>=6,'Raumkennung fehlt.');
   assert(!!encounter(chapter),'Ungültiges Kapitel.');
   assert(['new','chapter','quest'].includes(entry),'Ungültiger Einstieg.');
@@ -250,14 +267,14 @@
    catalog,hostEssence,hostLv1);
   const lp=duoStartingLp(chapter);
   const g={schema:2,mode:'duo-campaign',ruleset:'duo-v166',roomId,chapter,entry,
-   lpParityVersion:2,duelNo:1,fieldLayout:'team7',
+   lpParityVersion:2,duelNo:1,fieldLayout:'team7',personalDuoRules:personalDuoRules===true,
    status:'waiting',revision:0,activeSeat:0,turn:0,round:1,uid:1,
    rngSeed:Number.isSafeInteger(randomSeed)&&randomSeed>=1&&randomSeed<=0xffffffff?
     randomSeed:roomSeed(roomId), // deterministic Node QA; Edge injects secret crypto seed
    teams:[{lp,maxLp:lp,shield:maxAegis(hostBuild),
     essenceTauntTurn:-1,essenceBastionUsed:false},
     {lp,maxLp:lp,shield:0}],
-   players:[player(0,safeName(hostName),chapterDeck(hostDeck,catalog,chapter,entry),hostFusions,hostBuild),
+   players:[player(0,safeName(hostName),personalDuoRules?[...hostDeck]:chapterDeck(hostDeck,catalog,chapter,entry),hostFusions,hostBuild),
     player(1,safeName(enemyNameA||opponentNames(chapter)[0]),enemyDeckA,enemyFusionsA),
     player(2,'Partner (ausstehend)'),
     player(3,safeName(enemyNameB||opponentNames(chapter)[1]),enemyDeckB,enemyFusionsB)],
@@ -966,7 +983,7 @@
    resonatorAscent:lineage.granted,resonatorLineage:lineage};
  }
  function materialSelection(g,seat,materials,catalog){
-  const p=g.players[seat],ally=g.players[seat===0?2:seat===2?0:-1];
+  const p=g.players[seat],ally=g.players[seat^2];
   assert(Array.isArray(materials)&&materials.length>=2&&materials.length<=5,
    'Fusion benötigt zwei bis fünf eigene oder verbündete Materialien.');
   const keys=new Set(),cards=[];
@@ -977,8 +994,6 @@
    const key=m.from+':'+m.index;assert(!keys.has(key),'Material doppelt ausgewählt.');keys.add(key);
    assert((m.from!=='ghost'&&m.from!=='charge')||lv1State(p).perk,
     'Geistermaterial benötigt die Verbotene Forschung.');
-   assert(m.from!=='allyField'||seat===0||seat===2,
-    'Nur menschliche Verbündete dürfen ihre Feldmonster gemeinsam fusionieren.');
    assert(m.from!=='allyField'||ally?.team===p.team&&ally?.field,
     'Verbündetes Feld nicht verfügbar.');
    const card=m.from==='hand'?p.hand[m.index]:m.from==='field'?p.field[m.index]:
@@ -1226,6 +1241,7 @@
      pl.baseDeck=[...updated.deck];pl.baseFusions=[...updated.fusions];
      pl.upgrades=build.upgrades;pl.enhancements=build.enhancements;
      pl.essence=build.essence;
+     pl.loanedDeck=updated.loanedDeck===true;
      pl.portraitId=/^hero-(0[1-9]|1[0-6])$/.test(updated.portraitId||'')?updated.portraitId:'hero-01';
      pl.lv1.perk=build.lv1.perk;pl.lv1.rank=build.lv1.rank;
     }
@@ -1244,7 +1260,7 @@
     if(pl.seat===1)pl.name=safeName(enemyNameA||opponentNames(g.chapter)[0]);
     if(pl.seat===3)pl.name=safeName(enemyNameB||opponentNames(g.chapter)[1]);
     // Canonical solo NPC card pool must never be altered by human catch-up loaners.
-    pl.deck=pl.team===0?chapterDeck(pl.baseDeck,catalog,g.chapter,'chapter'):
+    pl.deck=pl.team===0?(g.personalDuoRules?[...pl.baseDeck]:chapterDeck(pl.baseDeck,catalog,g.chapter,'chapter')):
      [...pl.baseDeck];
     pl.fusionDeck=[...pl.baseFusions];pl.remainingFusion=[...pl.baseFusions];
     pl.hand=[];pl.field=Array(7).fill(null);pl.graveyard=[];
@@ -1277,7 +1293,7 @@
    const build=normalizedBuild(action.upgrades,action.enhancements,
     action.deck,action.fusions,catalog,action.essence,action.lv1);
    const partner=player(2,safeName(action.name),
-    chapterDeck(action.deck,catalog,g.chapter,g.entry),action.fusions,build);
+    g.personalDuoRules?[...action.deck]:chapterDeck(action.deck,catalog,g.chapter,g.entry),action.fusions,build);
    partner.portraitId=/^hero-(0[1-9]|1[0-6])$/.test(action.portraitId||'')?action.portraitId:'hero-01';
    g.players[2]=partner;g.status=action.deferStart===true?'lobby':'active';
    g.teams[0].shield=teamAegis(g);
@@ -1293,6 +1309,7 @@
    g.revision++;return g;
   }
   if(action.type==='requestDuel'){
+   if(g.personalDuoRules)assert(seat===0,'Nur der Host kann ein Duell anfragen.');
    const expired=g.status==='party_ready'&&g.partyStartInvite?.expiresAt<=now;
    assert([0,2].includes(seat)&&(['lobby','finished'].includes(g.status)||expired)&&
     g.players[2].name!=='Partner (ausstehend)', 'Beide Gruppenmitglieder müssen verbunden und außerhalb eines Duells sein.');
@@ -1307,6 +1324,7 @@
    g.revision++;return g;
   }
   if(action.type==='startParty'){
+   if(g.personalDuoRules)assert(seat===0,'Nur der Host kann ein Duell anfragen.');
    assert(g.status==='lobby'&&[0,2].includes(seat)&&g.players[2].name!=='Partner (ausstehend)',
     'Nur verbundene Party-Mitglieder können ein Duell anfragen.');
    const partnerSeat=seat===0?2:0;
@@ -1344,7 +1362,7 @@
      updated.deck,updated.fusions,catalog,updated.essence,updated.lv1);
     const prior=g.players[humanSeat];
     const fresh=player(humanSeat,prior.name,
-     chapterDeck(updated.deck,catalog,g.chapter,g.entry),updated.fusions,build);
+     g.personalDuoRules?[...updated.deck]:chapterDeck(updated.deck,catalog,g.chapter,g.entry),updated.fusions,build);
     fresh.portraitId=/^hero-(0[1-9]|1[0-6])$/.test(updated.portraitId||'')?updated.portraitId:'hero-01';
     draw(fresh);g.players[humanSeat]=fresh;
    }
@@ -1355,6 +1373,7 @@
    g.revision++;return g;
   }
   if(action.type==='nextChapter'){
+   if(g.personalDuoRules)assert(seat===0,'Nur der Host kann das nächste Duell anfragen.');
    assert([0,2].includes(seat)&&g.status==='finished'&&g.winner===0&&
     (isQuest(g.chapter)?g.chapter<15&&g.questPassed===true:g.chapter<CHAPTERS.length),
     'Nur ein menschlicher Teamspieler kann das nächste freigeschaltete Kapitel anfragen.');
@@ -1495,7 +1514,7 @@
    const template=definition(catalog,action.templateId);
    const analysis=specialFusionAnalysis(baseAnalysis,cards,template);
    const removingField=new Set(action.materials.filter(m=>m.from==='field').map(m=>m.index));
-   const ally=g.players[seat===0?2:seat===2?0:-1];
+   const ally=g.players[seat^2];
    const removingAlly=new Set(action.materials.filter(m=>m.from==='allyField').map(m=>m.index));
    assert((!p.field[action.slot]||removingField.has(action.slot))&&
     (!sharedField(g)||!teamMate(g,p)?.field[action.slot]||removingAlly.has(action.slot)),'Fusions-Zielfeld ist nicht frei.');
@@ -1948,11 +1967,15 @@
   for(const h of ordered.slice(0,3))for(let i=0;i<p.field.length;i++)
    if(p.field[i]&&!p.field[i].fate&&!p.field[i].predatorToken)
     groups.push([{from:'hand',index:h.i},{from:'field',index:i}]);
-  for(const material of groups.slice(0,24)){
+  const ally=g.players[seat^2];
+  for(const h of ordered.slice(0,3))for(let i=0;i<ally.field.length;i++)
+   if(ally.field[i]&&!ally.field[i].fate&&!ally.field[i].predatorToken)
+    groups.push([{from:'hand',index:h.i},{from:'allyField',index:i}]);
+  for(const material of groups){
    let data;
    try{data=fusionOptions(g,seat,material,catalog);}catch(_){continue;}
    if(!data.templates.length)continue;
-   const removing=material.filter(m=>m.from==='field').map(m=>m.index);
+   const removing=material.filter(m=>m.from==='field'||m.from==='allyField').map(m=>m.index);
    const free=p.field.findIndex((c,i)=>freeTeamSlot(g,p,i)||removing.includes(i));
    if(free<0)continue;
    for(const templateId of data.templates.slice(0,8)){
@@ -1960,8 +1983,8 @@
     const avg={atk:(preview.atk[0]+preview.atk[1])/2,def:(preview.def[0]+preview.def[1])/2};
     const spent=material.reduce((v,m)=>{
      const source=m.from==='hand'?definition(catalog,Number.isInteger(p.hand[m.index])?
-      p.hand[m.index]:p.hand[m.index]?.id):p.field[m.index];
-     return v+npcCardPower(source)*(m.from==='field'?.85:.27);
+      p.hand[m.index]:p.hand[m.index]?.id):m.from==='allyField'?ally.field[m.index]:p.field[m.index];
+     return v+npcCardPower(source)*(m.from==='hand'?.27:.85);
     },0);
     // Fusions should beat a routine summon by genuine expected value,
     // never by granting unearned cards/stats.
@@ -2015,6 +2038,9 @@
  function view(g,seat){
   const v=copy(g);
   delete v.uid;delete v.rngSeed; // Never disclose upcoming server-side dice.
+  // A Fate event names the cards newly drawn into its owner's private hand.
+  // Other clients may see the event, but must not receive those card IDs.
+  if(v.fateEvent&&v.fateEvent.ownerSeat!==seat)delete v.fateEvent.cardIds;
   for(const p of v.players){
    delete p.baseDeck;delete p.baseFusions;
    p.deck=Array(p.deck.length).fill(null);
@@ -2024,7 +2050,7 @@
   }
   return v;
  }
- return Object.freeze({version:'20.2-beta',aiPolicy:AI186.version,CHAPTERS,QUESTS,ENCOUNTERS,seats,allowed,validDeck,
+ return Object.freeze({version:'20.2-beta',aiPolicy:AI186.version,CHAPTERS,QUESTS,ENCOUNTERS,seats,allowed,validDeck,loanBuild,
   validNpcFusionDeck,soloStartingLp,duoStartingLp,packIds,
   chapterDeck,create,apply,aiTurn,view,attackValue,fusionLevel,fusionPattern,fusionOptions,
   fusionAnalysis,fusionPreview,fusionRole,arenaDamage,fatePressure,PERK_LIMITS,normalizedBuild,

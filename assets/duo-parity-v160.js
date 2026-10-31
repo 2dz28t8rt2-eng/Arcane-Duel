@@ -13,7 +13,7 @@
  let catalog={},starterMain=[],starterFusions=[],fateIds=[],fateNames=[],profileDeck=[],profileFusions=[],
   profileUpgrades={},profileEnhancements={},profileEssence={},profileLv1={};
  let game=null,seat=-1,roomId='',token='',invite='',busy=false,refreshing=false,
-  presence=null,syncError='',syncedAt=0,sessionReady=true,syncFailures=0,lastPollAt=0;
+  presence=null,partyLimits=null,syncError='',syncedAt=0,sessionReady=true,syncFailures=0,lastPollAt=0;
  let duoProfile=null,duoProfileToken='',duoLastRoom=null,profileSaving=false,duoEconomy=null;
   let nameConfirmed=false,joinIntent=null,invitePreview=null,inviteRequested=false;
   const portraits=window.ArcanePortraits215;
@@ -415,6 +415,7 @@
  }
  function load(payload){
   if(payload.presence)presence=payload.presence;
+  if(Object.hasOwn(payload,'partyLimits'))partyLimits=payload.partyLimits;
   if(payload.state?.roomId&&payload.state.roomId!==roomId)return;
   let previous=game;
   if(previous&&payload.state?.revision<previous.revision)return;
@@ -449,9 +450,12 @@
   try{
    const response=await call({type:'state',roomId,token});
    if(response.presence){presence=response.presence;window.ArcaneDuoSolo221?.updatePresence?.();}
+   const limitsChanged=Object.hasOwn(response,'partyLimits')&&JSON.stringify(partyLimits)!==JSON.stringify(response.partyLimits);
+   if(Object.hasOwn(response,'partyLimits'))partyLimits=response.partyLimits;
    if(!game||response.state.revision!==game.revision)load(response);
    else{const recovered=!!syncError;syncedAt=Date.now();syncError='';syncFailures=0;
-    if(recovered)render();else updateSaveState();}
+    if(recovered||limitsChanged)render();else updateSaveState();}
+   if(limitsChanged)window.ArcaneDuoSolo221?.partyLimitsChanged?.();
   }catch(e){syncFailures=Math.min(syncFailures+1,4);syncError=e.message;
     set('duoStatus',e.message);render();}
   finally{refreshing=false;}
@@ -460,12 +464,12 @@
   if(!game||busy)return;
   if(['acceptPartyStart','declinePartyStart','cancelPartyStart'].includes(action.type)&&game.partyStartInvite?.id!=null)
    action={...action,inviteId:action.inviteId??game.partyStartInvite.id};
-  if(!((action.type==='requestDuel'&&[0,2].includes(seat)&&(['lobby','finished'].includes(game.status)||game.status==='party_ready'&&game.partyStartInvite?.expiresAt<=Date.now()))||
-       (action.type==='startParty'&&[0,2].includes(seat)&&game.status==='lobby')||
+  if(!((action.type==='requestDuel'&&[0,2].includes(seat)&&(!game.personalDuoRules||seat===0)&&(['lobby','finished'].includes(game.status)||game.status==='party_ready'&&game.partyStartInvite?.expiresAt<=Date.now()))||
+       (action.type==='startParty'&&[0,2].includes(seat)&&(!game.personalDuoRules||seat===0)&&game.status==='lobby')||
        (action.type==='cancelPartyStart'&&seat===game.partyStartInvite?.fromSeat&&game.status==='party_ready')||
        (['acceptPartyStart','declinePartyStart'].includes(action.type)&&seat===game.partyStartInvite?.toSeat&&game.status==='party_ready'))&&
      !(game.activeSeat===seat&&game.status==='active')&&
-    !(action.type==='nextChapter'&&[0,2].includes(seat)&&game.status==='finished'&&game.winner===0)&&
+    !(action.type==='nextChapter'&&[0,2].includes(seat)&&(!game.personalDuoRules||seat===0)&&game.status==='finished'&&game.winner===0)&&
     !(['acceptNextChapter','declineNextChapter'].includes(action.type)&&
       seat===game.chapterInvite?.toSeat&&game.status==='inviting_next'))return;
   // Capture the visible, local handcard before render() rebuilds the hand.
@@ -500,10 +504,10 @@
   try{
    const entry=$('duoEntry').value;
    if(!duoProfileToken||!duoProfile)throw Error('Bitte zuerst ein eigenes 2v2-Profil erstellen.');
-   const payload={type:'create',profileToken:duoProfileToken,entry,
+   const payload={type:'create',profileToken:duoProfileToken,entry,personalDuoRules:true,
     ...(entry!=='new'?{chapter:chapter().id}:{})};
    const r=await call(payload);
-   roomId=r.roomId;token=r.token;seat=0;invite=r.invite;save();load(r);
+   roomId=r.roomId;token=r.token;seat=0;invite=r.invite;partyLimits=null;save();load(r);
    location.hash='room='+roomId;
    set('duoStatus','Party erstellt. Lade deinen Partner ein und wartet danach getrennt im Hauptmenü.');
   }catch(e){set('duoStatus',e.message);}
@@ -515,7 +519,7 @@
    if(!duoProfileToken||!duoProfile)throw Error('Bitte zuerst ein eigenes 2v2-Profil erstellen.');
    const r=await call({type:'join',roomId:id,invite:invitation,
     profileToken:duoProfileToken,deferStart:true});
-   roomId=id;token=r.token;seat=2;invite='';save();load(r);
+   roomId=id;token=r.token;seat=2;invite='';partyLimits=null;save();load(r);
    history.replaceState(null,'',ownOrigin()+'#room='+roomId);
    set('duoStatus','Party verbunden! Ihr könnt eure eigenen Menüs unabhängig voneinander benutzen.');
   }catch(e){set('duoStatus',e.message);$('duoPartyStatus').textContent='Beitritt fehlgeschlagen: '+e.message;return false;}
@@ -637,6 +641,7 @@
      portraits?.visualDuo({chapter:storyChapter,seat:p.seat,selected:chosen});
    if(portraits)heading.append(portraits.node(avatar,p.name));
    el('h3',heading,p.name);
+   if(p.loanedDeck)el('small',heading,'Leihdeck für dieses Duell','duo-loan-deck-note');
    el('small',panel,p.kind==='human'?(p.seat===0?'DEIN TEAM · GASTGEBER':'DEIN TEAM · PARTNER'):
     'GEGNER','duo-seat-kind');
    el('small',panel,p.hand.length+' Handkarten · '+p.deck.length+' im Hauptdeck · '+
@@ -1247,7 +1252,7 @@
   state:()=>({nameConfirmed,joinIntent:!!joinIntent,joinPreview:invitePreview?
    {inviterName:invitePreview.inviterName,chapter:invitePreview.chapter}:null,
    roomId,seat,game,invite,profile:duoProfile,lastRoom:duoLastRoom,
-   busy,profileSaving,presence,catalog,economy:duoEconomy,catalogReady:Object.keys(catalog).length>0}),
+   busy,profileSaving,presence,partyLimits,catalog,economy:duoEconomy,catalogReady:Object.keys(catalog).length>0}),
   profileOperation,refreshProfile:fetchProfile,refresh,
   createRoom,continueLastRoom,send,
   acceptPendingInvite:async()=>{
@@ -1291,7 +1296,7 @@
   },
   resetWaitingRoom:()=>{
    if(game?.status!=='waiting')return;
-   roomId='';token='';invite='';seat=-1;game=null;
+   roomId='';token='';invite='';seat=-1;game=null;partyLimits=null;
    history.replaceState(null,'',ownOrigin());render();
   }
  });

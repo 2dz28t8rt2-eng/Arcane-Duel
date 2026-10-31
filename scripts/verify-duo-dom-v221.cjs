@@ -25,17 +25,16 @@ async function ready(dom,name){const w=dom.window,d=w.document;await until(()=>w
  const a=client();let b;
  try{
   await ready(a,'Test Host');const A=a.window,ad=A.document;
-  ad.getElementById('duoPartyCreate').click();await until(()=>A.ArcaneDuoParty218.state().game?.status==='waiting','party');
-  ad.getElementById('duoPartyEnter').click();assert.equal(ad.getElementById('duoMenuScreen').hidden,false);
-  assert.equal(ad.getElementById('duoMenuStart').disabled,true);
+  assert.equal(ad.getElementById('duoMenuScreen').hidden,false);
+  assert.equal(A.ArcaneDuoParty218.state().game,null);
   A.ArcaneDuoPartyUI218.select('deck');assert.equal(ad.getElementById('duoDeckBuilder').hidden,false);
   assert.equal(ad.querySelectorAll('[data-deck-slot]').length,40);
+  ad.getElementById('duoInvitePlayer').click();await until(()=>A.ArcaneDuoParty218.state().game?.status==='waiting','party');
   const room=A.ArcaneDuoParty218.state();b=client('?join='+room.roomId+'.'+room.invite);await ready(b,'Test Gast');
   const B=b.window,bd=B.document;await until(()=>B.ArcaneDuoParty218.state().joinPreview,'invite preview');
-  assert.equal(bd.getElementById('duoPartyEnter').disabled,true);
   bd.getElementById('duoPartyAccept').click();await until(()=>B.ArcaneDuoParty218.state().game?.status==='lobby','join');
-  assert.equal(bd.getElementById('duoPartyGate').hidden,false);assert.equal(bd.getElementById('duoPage').hidden,true);
-  bd.getElementById('duoPartyEnter').click();B.ArcaneDuoPartyUI218.select('shop');await A.ArcaneDuoParty218.refresh();
+  assert.equal(bd.getElementById('duoMenuScreen').hidden,false);
+  B.ArcaneDuoPartyUI218.select('shop');await A.ArcaneDuoParty218.refresh();
   assert.equal(ad.getElementById('duoPage').dataset.lobbySection,'deck');assert.equal(bd.getElementById('duoPage').dataset.lobbySection,'shop');
   const search=ad.getElementById('duoDeckSearch');search.value='Asche';search.dispatchEvent(new A.Event('input'));search.focus();
   await A.ArcaneDuoParty218.refresh();assert.equal(ad.activeElement,search);assert.equal(search.value,'Asche');
@@ -45,9 +44,10 @@ async function ready(dom,name){const w=dom.window,d=w.document;await until(()=>w
   bd.getElementById('duoStartLater').click();assert.equal(bd.getElementById('duoPage').inert,false);assert.equal(bd.getElementById('duoPage').dataset.lobbySection,'shop');
   ad.getElementById('duoStartCancel').click();await until(()=>A.ArcaneDuoParty218.state().game.status==='lobby','cancel');await B.ArcaneDuoParty218.refresh();
   assert.equal(bd.getElementById('duoPage').dataset.lobbySection,'shop');
-  B.ArcaneDuoPartyUI218.select('menu');bd.getElementById('duoMenuStart').click();await until(()=>B.ArcaneDuoParty218.state().game.status==='party_ready','guest request');await A.ArcaneDuoParty218.refresh();
-  assert.match(ad.getElementById('duoStartNoticeTitle').textContent,/Test Gast/);ad.getElementById('duoStartAccept').click();
-  await until(()=>A.ArcaneDuoParty218.state().game.status==='active','accept');await B.ArcaneDuoParty218.refresh();
+  B.ArcaneDuoPartyUI218.select('menu');assert.equal(bd.getElementById('duoMenuStart').disabled,true);
+  ad.getElementById('duoMenuStart').click();await until(()=>A.ArcaneDuoParty218.state().game.status==='party_ready','host request');await B.ArcaneDuoParty218.refresh();
+  assert.match(bd.getElementById('duoStartNoticeTitle').textContent,/Test Host/);bd.getElementById('duoStartAccept').click();
+  await until(()=>B.ArcaneDuoParty218.state().game.status==='active','accept');await A.ArcaneDuoParty218.refresh();
   for(const [w,d]of [[A,ad],[B,bd]]){assert.equal(d.querySelectorAll('#duoSeats .seat').length,4);assert.equal(d.querySelectorAll('#duoSeats .ad221-team-field').length,2);assert.equal(d.querySelectorAll('#duoSeats .seat>.field>.field-cell:not(.ad221-shared-hidden)').length,14);assert.equal(d.getElementById('duoMenuScreen').hidden,true);assert.equal(d.getElementById('duoPage').hidden,false);assert.equal(d.querySelectorAll('.duo178-hand-card').length,5);assert.equal(w.ArcaneDuoParty218.state().game.teams[0].lp,4000);}
   assert.equal(bd.querySelector('#duoSeats [data-perspective="self"]').dataset.seat,'2');
   const shared=backend.rooms.get(room.roomId);shared.game.players[0].lv1.perk=true;shared.game.players[0].lv1.ghostSlots=[null];shared.game.revision++;
@@ -66,6 +66,6 @@ async function ready(dom,name){const w=dom.window,d=w.document;await until(()=>w
   ad.querySelector('.ad204-result-close').click();assert.equal(ad.getElementById('duoMenuScreen').hidden,false);
   bd.dispatchEvent(new B.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));assert.equal(bd.getElementById('duoMenuScreen').hidden,false);
   assert.equal(A.localStorage.getItem('arcane-duel-duo-v171-profile-key')===B.localStorage.getItem('arcane-duel-duo-v171-profile-key'),false);
-  assert.deepEqual(errors,[]);console.log('DUO_DOM_221_PASS: independent waiting/menu/deck/search/invite/cancel/guest-start/14-shared-zones/guest-perspective/result/Escape');
+  assert.deepEqual(errors,[]);console.log('DUO_DOM_221_PASS: independent menu/deck/search/invite/cancel/host-start/14-shared-zones/guest-perspective/result/Escape');
  }finally{a.window.close();b?.window.close();}
 })().catch(e=>{console.error(e.stack);process.exitCode=1;});

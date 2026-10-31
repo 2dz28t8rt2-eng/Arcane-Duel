@@ -120,9 +120,10 @@ test('real party UI controller follows profile -> invite -> shared menu -> host 
  assert.ok(ui);
  assert.equal(node('duoPartyGate').hidden,true);
  model.nameConfirmed=true;ui.sync();
+ assert.equal(node('duoPartyGate').hidden,true);
+ assert.equal(node('duoMainMenuGate').hidden,false);
+ node('duoMenuParty').onclick();
  assert.equal(node('duoPartyGate').hidden,false);
- assert.equal(node('duoMainMenuGate').hidden,true);
- assert.equal(node('duoPage').inert,true);
  await node('duoPartyCreate').onclick();
  assert.equal(node('duoPartyWaiting').hidden,false);
  assert.match(node('duoPartyLink').value,/\?join=room-1\.abcdef$/);

@@ -179,3 +179,7 @@
 #duoPage #duoSeats .ad221-team-field{min-width:0;max-width:100%;box-sizing:border-box}#duoPage #duoSeats .ad221-team-field .ad221-role-label{bottom:13px}
 
 #duoPage #duoSeats .ad221-team-field .duo-ghost-reserve{grid-column:1/-1;min-width:609px}#duoPage #duoSeats .ad221-team-field .duo-ghost-reserve>.field{display:grid;grid-template-columns:repeat(5,minmax(75px,1fr))}
+#duoMenuScreen .ad221-invite-entry{position:fixed;top:12px;left:12px;z-index:120}
+#duoMenuScreen .ad221-invite-panel{width:min(330px,calc(100vw - 24px));padding:12px;margin-top:6px;background:#1b2534;border:1px solid #b59a63;border-radius:8px;box-shadow:0 6px 24px #0009}
+#duoMenuScreen .ad221-invite-panel[hidden],#duoMenuScreen .ad221-invite-panel [hidden]{display:none!important}
+#duoMenuScreen .ad221-invite-panel input{width:100%;margin-bottom:8px}

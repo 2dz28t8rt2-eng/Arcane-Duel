@@ -6,12 +6,12 @@
 (()=>{
  const $=id=>document.getElementById(id),api=window.ArcaneDuoParty218;
  if(!api){console.error('[Duo Party] Controller unavailable');return;}
- let lobbySection='menu',lastMode='',entered=false,resultMenu=false;
+ let lobbySection='menu',lastMode='',entered=false,resultMenu=false,menuBootstrapped=false;
  const origin=()=>location.href.split('#')[0].split('?')[0];
  const info=message=>{$('duoPartyStatus').textContent=message;};
  const select=(section)=>{
   const state=api.state();
-  if(!['waiting','lobby','party_ready','finished','inviting_next'].includes(state.game?.status))return;
+  if(!state.game&&!state.profile||state.game&&!['waiting','lobby','party_ready','finished','inviting_next'].includes(state.game.status))return;
   if(state.game?.status==='finished')resultMenu=true;
   lobbySection=section;
   if(section==='deck'||section==='fusions'){
@@ -25,12 +25,16 @@
  };
  function sync(){
   const s=api.state(),g=s.game,attached=!!g&&[0,2].includes(s.seat);
+  if(s.nameConfirmed&&!menuBootstrapped&&(!s.joinIntent||attached)){
+   menuBootstrapped=true;entered=true;lobbySection='menu';
+  }
   const joined=attached&&g.status!=='waiting';
   const party=s.nameConfirmed&&!entered;
-  const inMenu=['waiting','lobby','party_ready'].includes(g?.status)||g?.status==='inviting_next'||g?.status==='finished'&&resultMenu;
-  const menu=s.nameConfirmed&&attached&&entered&&inMenu&&lobbySection==='menu';
-  const library=s.nameConfirmed&&attached&&entered&&inMenu&&lobbySection!=='menu';
-  const battle=s.nameConfirmed&&attached&&entered&&!inMenu;
+  const personal=s.nameConfirmed&&(attached||!!s.profile&&!s.joinIntent);
+  const inMenu=!g&&!!s.profile||['waiting','lobby','party_ready'].includes(g?.status)||g?.status==='inviting_next'||g?.status==='finished'&&resultMenu;
+  const menu=personal&&entered&&inMenu&&lobbySection==='menu';
+  const library=personal&&entered&&inMenu&&lobbySection!=='menu';
+  const battle=personal&&attached&&entered&&!inMenu;
   $('duoPartyGate').hidden=!party;
   $('duoMainMenuGate').hidden=!menu;
   $('duoPage').hidden=!(library||battle);
