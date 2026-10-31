@@ -141,7 +141,7 @@
   const s=api.state(),chapter=Number($('duoDuelChapter').value),c=window.ArcaneDuoRules.ENCOUNTERS.find(c=>c.id===chapter);
   if(!c)return;
   $('duoDuelEncounter').innerHTML='<strong>'+safe(c.name)+'</strong><p>'+safe(c.dialogue||'Stellt euch zu zweit den Gegnern dieser Turnierstufe.')+'</p><div class="info-pills"><span>7 Zonen je Duellant</span><span>'+window.ArcaneDuoRules.duoStartingLp(chapter).toLocaleString('de-AT')+' LP je Team</span><span>2 Menschen · 2 Gegner</span></div>';
-  $('duoMenuStart').disabled=s.busy||!s.game||s.game.status==='waiting'||s.game.status==='active'||s.game.status==='inviting_next'||s.game.status==='party_ready'&&!(s.game.partyStartInvite?.expiresAt<=Date.now());
+  $('duoMenuStart').disabled=s.busy||$('duoDuelChapter').disabled||!s.game||s.game.status==='waiting'||s.game.status==='active'||s.game.status==='inviting_next'||s.game.status==='party_ready'&&!(s.game.partyStartInvite?.expiresAt<=Date.now());
   $('duoMenuStart').textContent=s.game?.status==='waiting'?'Partner wird erwartet':'Duell anfragen';
   $('duoDuelMembers').textContent=s.game?.status==='waiting'?'Du kannst dein Deck bereits vorbereiten. Der gemeinsame Start wird verfügbar, sobald dein Partner beigetreten ist.':'Eine Anfrage startet erst dann ein Duell, wenn dein Partner ausdrücklich beitritt.';
  }
@@ -225,8 +225,10 @@
     nav.classList.add('atlas-nav');screen.dataset.fmSection=active.id;screen.dataset.atlasTheme={play:'amber',deck:'silver',growth:'jade',options:'steel'}[group.id];
     for(const b of tabs.values())b.classList.toggle('active',b.dataset.tab===route);
     for(const g of nav.querySelectorAll('.fm-menu-group'))g.classList.add('atlas-nav-item');
-    hero.classList.add('atlas-hero');hero.innerHTML='<div class="fm-hero-content"><div><span class="fm-eyebrow">'+safe(group.title)+' · ARCANE DUEL 4.1</span><h1 id="duoSoloMenuTitle">'+safe(details[0])+'</h1><p id="duoSoloMenuSubtitle">'+safe(details[1])+'</p></div><div class="ad221-hero-sigil" aria-hidden="true">✧</div></div>';
+    const showcase=[...new Set([...(s.profile?.deck||[]),...(s.profile?.fusions||[])])].slice(0,3).map(id=>s.catalog[id]).filter(Boolean);
+    hero.classList.add('atlas-hero','atlas-has-art');hero.innerHTML='<div class="fm-hero-content"><div><span class="fm-eyebrow">'+safe(group.title)+' · ARCANE DUEL 4.1</span><h1 id="duoSoloMenuTitle">'+safe(details[0])+'</h1><p id="duoSoloMenuSubtitle">'+safe(details[1])+'</p></div><div class="atlas-showcase" aria-hidden="true"><div class="atlas-showcase-cards">'+showcase.map((c,i)=>'<div class="atlas-preview-card atlas-preview-'+i+'" data-card-id="'+c.id+'" data-card-level="'+c.level+'" inert>'+face(c).replace('hand-card tc-card','hand-card tc-card atlas-showcase-face')+'</div>').join('')+'</div></div></div>';
    }
+   $('duoSoloMenuTitle').textContent=details[0];$('duoSoloMenuSubtitle').textContent=details[1];
    duels.hidden=!['menu','quests'].includes(route);profile.hidden=!duels.hidden;
    builder.hidden=!['deck','fusions'].includes(route);offers.hidden=!['shop','upgrades'].includes(route);
    settings.hidden=route!=='settings';rules.hidden=route!=='rules';bestiary.hidden=route!=='bestiary';

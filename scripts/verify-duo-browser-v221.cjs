@@ -133,5 +133,8 @@ async function finishLiveDuel(A,B){
   report.checks.push('reload restores own room/seat; solo save unchanged');
   assert.deepEqual(pageErrors,[]);report.pass=true;
   fs.writeFileSync(path.join(output,prefix+'-report.json'),JSON.stringify(report,null,2));console.log('DUO_BROWSER_221_PASS '+JSON.stringify(report));
+ }catch(error){
+  for(const [label,client]of [['host',a],['guest',b]])if(client)await client.page.screenshot({path:path.join(output,prefix+'-failure-'+label+'.png'),mask:[client.page.locator('input[readonly]')]}).catch(()=>{});
+  throw error;
  }finally{await a?.context.close();await b?.context.close();await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(e=>{console.error('DUO_BROWSER_221_FAIL '+e.message+'\n'+e.stack);process.exitCode=1;server.close();});

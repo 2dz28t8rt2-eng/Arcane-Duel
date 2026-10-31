@@ -2,16 +2,18 @@
 #duoMenuScreen[hidden],#duoProfilePanel[hidden],#duoDuelPanel[hidden],#duoDeckBuilder[hidden],#duoVisualOffers[hidden],#duoPersonalSettings[hidden],#duoPersonalRules[hidden],#duoPersonalBestiary[hidden]{display:none!important}
 #duoMenuScreen #duoSoloWorkspace:not([hidden]){display:contents!important}
 #duoPage #duoMenuScreen{width:100%;max-width:1480px;margin:auto}
-#duoMenuScreen #duoSoloProfileHud{grid-column:1/-1;grid-row:1;margin:0;justify-content:flex-start}
-#duoMenuScreen #duoSoloMenuNav.fm-navigation{grid-column:1;grid-row:2/span 2}
-#duoMenuScreen #duoSoloMenuHero{grid-column:2;grid-row:2;margin:0;padding:27px 32px}
-#duoMenuScreen #duoProfilePanel,#duoMenuScreen #duoDuelPanel{grid-column:2;grid-row:3;width:100%;margin:0;min-width:0;max-width:none}
+#duoPage #duoMenuScreen #duoSoloProfileHud{grid-column:1/-1;grid-row:1;margin:0;justify-content:flex-start}
+#duoPage #duoMenuScreen #duoSoloMenuNav.fm-navigation{grid-column:1;grid-row:2/span 2}
+#duoPage #duoMenuScreen #duoSoloMenuHero{grid-column:2;grid-row:2;margin:0;padding:27px 32px}
+#duoPage #duoMenuScreen #duoProfilePanel,#duoPage #duoMenuScreen #duoDuelPanel{grid-column:2;grid-row:3;width:100%;margin:0;min-width:0;max-width:none}
+#duoPage[data-lobby-view="true"]>:not(#duoMenuScreen),#duoPage[data-lobby-view="true"] #duoBattleArena{display:none!important}
 #duoPage[data-lobby-view="true"] #duoProfilePanel{padding:20px;margin:0;max-width:none}
 #duoMenuScreen .menu-hero:after,#duoProfilePanel:before{display:none!important}
 #duoMenuScreen .fm-hero-content{display:flex;align-items:center}
 #duoMenuScreen .ad221-hero-sigil{font:110px Georgia,serif;color:#d8bc77;opacity:.42;line-height:1;text-shadow:0 0 28px #c7955d66}
 #duoMenuScreen .fm-submenu>.menu-tab{width:100%;text-align:left;border-radius:0;white-space:normal;margin:0}
 #duoMenuScreen .fm-nav-brand small{font-size:9px;letter-spacing:.1em}
+#duoMenuScreen .atlas-showcase-face .hand-stats{display:none!important}
 #duoPage #duoSoloMenuNav .fm-group-button{white-space:normal}
 #duoProfilePanel>h2,#duoProfilePanel>p.micro,#duoProfileActive>.actions{display:none}
 #duoProfilePanel .duo-profile-shop{display:block;margin:0}
@@ -144,6 +146,9 @@
 #duoPage .ad221-inspector .ad188-fusion-guide,#duoPage .ad221-inspector .ad189-summon-guide{max-width:100%;width:100%;padding:7px}
 #duoPage .ad221-inspector .ad188-materials{max-width:100%;overflow:auto}
 #duoPage .ad221-inspector .ad188-template-card{max-width:100%;width:150px}
+#duoPage #duoFusionWorkspace .ad187-attack-guide,#duoPage #duoFusionWorkspace .ad188-fusion-guide,#duoPage #duoFusionWorkspace .ad189-summon-guide{position:relative;inset:auto;left:auto;bottom:auto;transform:none;z-index:auto;width:100%;max-width:100%;display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:10px;box-sizing:border-box;animation:none;backdrop-filter:none}
+#duoPage #duoFusionWorkspace .ad187-guide-actions,#duoPage #duoFusionWorkspace .ad188-floating-actions,#duoPage #duoFusionWorkspace .ad189-guide-actions{display:flex;flex-wrap:wrap;gap:6px;grid-column:1;grid-row:auto;justify-content:stretch;width:100%}
+#duoPage #duoFusionWorkspace button{white-space:normal;max-width:100%;flex:1 1 auto}
 .duo-start-notice.ad221-invite-modal{left:50%;right:auto;top:50%;bottom:auto;transform:translate(-50%,-50%);width:min(500px,calc(100vw - 32px));padding:27px;max-height:calc(100dvh - 40px);overflow:auto;box-shadow:0 0 0 100vmax #030711c9,0 22px 80px #000c;border:2px solid #d8bc7d;z-index:2147483100}
 .duo-start-notice.ad221-invite-modal strong{font-size:24px;line-height:1.3;display:block}
 .duo-start-notice.ad221-invite-modal button{min-height:44px}
@@ -155,7 +160,7 @@
 @keyframes ad221Start{0%{opacity:0;transform:scale(1.25)}20%,80%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.95)}}
 @media(max-width:1250px){.ad221-battle-grid{grid-template-columns:190px minmax(0,1fr) 225px;gap:10px}.ad221-deck-slots,.ad221-owned-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:1050px){.ad221-battle-grid{grid-template-columns:minmax(0,1fr) 255px;grid-template-areas:'board actions' 'inspect actions'}.ad221-battle-center{grid-area:board}.ad221-battle-sidebar{grid-area:actions}.ad221-inspector{grid-area:inspect;position:static;max-height:none}.ad221-inspector #duoLargeCardPreview{max-width:230px;margin:auto}.ad221-deck-columns{grid-template-columns:1fr}.ad221-deck-slots,.ad221-owned-grid{grid-template-columns:repeat(5,minmax(0,1fr));max-height:520px}}
-@media(max-width:800px){#duoMenuScreen #duoSoloMenuNav.fm-navigation{grid-column:1;grid-row:2}#duoMenuScreen #duoSoloMenuHero{grid-column:1;grid-row:3}#duoMenuScreen #duoProfilePanel,#duoMenuScreen #duoDuelPanel{grid-column:1;grid-row:4}#duoMenuScreen .ad221-hero-sigil{font-size:70px}.ad221-battle-grid{display:flex;flex-direction:column}.ad221-battle-center{width:100%;order:0}.ad221-battle-sidebar{position:static;max-height:none;width:100%;order:1}.ad221-inspector{width:100%;order:2}#duoPage .ad221-battle-sidebar #duoActions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ad221-battle-sidebar #duoActions>*{min-width:0}#duoPage #duoBattleArena.ad221-duel{padding:0}#duoPage:not([data-lobby-view="true"]){padding:10px}}
+@media(max-width:800px){#duoPage #duoMenuScreen #duoSoloMenuNav.fm-navigation{grid-column:1;grid-row:2}#duoPage #duoMenuScreen #duoSoloMenuHero{grid-column:1;grid-row:3}#duoPage #duoMenuScreen #duoProfilePanel,#duoPage #duoMenuScreen #duoDuelPanel{grid-column:1;grid-row:4}#duoMenuScreen .ad221-hero-sigil{font-size:70px}.ad221-battle-grid{display:flex;flex-direction:column}.ad221-battle-center{width:100%;order:0}.ad221-battle-sidebar{position:static;max-height:none;width:100%;order:1}.ad221-inspector{width:100%;order:2}#duoPage .ad221-battle-sidebar #duoActions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ad221-battle-sidebar #duoActions>*{min-width:0}#duoPage #duoBattleArena.ad221-duel{padding:0}#duoPage:not([data-lobby-view="true"]){padding:10px}}
 @media(max-width:500px){#duoMenuScreen #duoSoloMenuHero{padding:20px}#duoMenuScreen #duoProfilePanel,#duoMenuScreen #duoDuelPanel{padding:15px}.ad221-deck-slots,.ad221-owned-grid{grid-template-columns:repeat(3,minmax(0,1fr))}#duoPage .ad221-battle-sidebar #duoActions{display:block}#duoMenuScreen .ad221-hero-sigil{display:none}}
 @media(prefers-reduced-motion:reduce){.ad221-role-label,.ad221-overcharged>.ad221-board-face:after,#duoPage .ad221-mini-face .hand-art:after{animation:none!important}.ad221-board-face{transition:none}}
 .ad-motion-disabled .ad221-role-label,.ad-motion-disabled .ad221-overcharged>.ad221-board-face:after,.ad-motion-disabled #duoPage .ad221-mini-face .hand-art:after{animation:none!important}
