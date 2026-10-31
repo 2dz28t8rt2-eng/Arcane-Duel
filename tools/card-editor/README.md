@@ -98,3 +98,36 @@ das ZIP darf nicht ungeprüft über ein bestehendes Spiel kopiert werden.
 Der Windows-CI-Selbsttest überprüft neben Karten-JSON-Roundtrips auch die
 eingebettete Spiel-CSS, den kanonischen HTML-Baustein und den zweikartenfähigen
 ZIP-Export mit Artwork und Importmanifest.
+
+
+## v2: Freischaltungen, bestätigte Designs und Clear
+
+Der neue Reiter **Freischaltung** trennt Katalogdaten und die Entscheidung,
+ob eine Karte jemals freigeschaltet werden soll. Neue Karten werden
+standardmäßig nur als Katalogeintrag vorbereitet; vorhandene Karten
+behalten ihre bestehenden Freischaltungsregeln. Bei einer ausdrücklichen
+Freischaltungsanforderung müssen Ziel (Booster, Startdeck oder Quest/Turnier)
+und die exakten Bedingungen angegeben werden.
+
+Abweichungen in Kartentyp, manuellem Rahmen, Levelgravur, Rollensymbol
+oder unbekannten Bildreferenzen lösen vor dem Datenexport ein Warnfenster
+mit verpflichtender Bestätigungs-Checkbox aus. Die Änderungen werden nicht
+korrigiert, sondern als bewusstes Design verbindlich festgeschrieben.
+
+Jede Karte hat im Export zusätzlich eine integration.json mit dem
+Freischaltungswunsch, den bestätigten Designabweichungen und dem
+Artwork-Status. Die manifest.json listet diese Datei. Die zentrale Datei
+CHATGPT_IMPORT.md verlangt eine 1:1-Übernahme, Trennung von Katalogeintrag
+und Freischaltung, Import neuer Originalbilder und einen ausführlichen
+Fehler- und Integrationsbericht mit ausgeführten Tests, geänderten
+Dateien, möglichen Blockern und PR-Link.
+
+**Neue lokal ausgewählte Original-Artworks** werden in die Einzelkarten-
+und Sammel-ZIP eingeschlossen. Fehlt bei neuen Editor-Bildpfaden die
+Originaldatei, wird der Export abgelehnt. Bestehende Spielbilder werden
+referenziert und niemals durch kleine JPEG-Vorschaubilder ersetzt.
+
+**Clear – Ablage leeren** steht in der oberen Werkzeugleiste und im
+Ablage-Fenster. Das vollständige Löschen aller zwischengespeicherten
+Karten verlangt eine ausdrückliche Bestätigung; aktuell bearbeitete
+Karten und bereits exportierte ZIP-Dateien bleiben unberührt.
