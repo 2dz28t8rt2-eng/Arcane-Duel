@@ -437,6 +437,20 @@ internal sealed partial class Editor : Form
     internal static void SelfTest()
     {
         using var editor=new Editor();
+        if(editor.fields["id"].Text!="" || !editor.keepAvailability.Checked ||
+           editor.changeAvailability.Checked)
+            throw new InvalidOperationException("New cards must start without an assigned ID or an automatic unlock");
+        editor.changeAvailability.Checked=true;
+        editor.boosterUnlock.Checked=true;
+        editor.unlockDetails.Text="Im Feuer-Booster nach der dritten Turnierprüfung";
+        var uiPlan=editor.CapturePlan();
+        if(uiPlan.Availability!="unlock-configured" || !uiPlan.Booster ||
+           uiPlan.UnlockDetails.Length==0 || editor.keepAvailability.Checked)
+            throw new InvalidOperationException("Simple release UI does not correctly capture explicitly requested unlock");
+        editor.keepAvailability.Checked=true;
+        if(editor.changeAvailability.Checked)
+            throw new InvalidOperationException("Release options must be mutually exclusive");
+        editor.NewCard();
         var sample=JsonNode.Parse("{\"id\":42,\"name\":\"Testkarte\",\"level\":2,\"atk\":100,\"def\":80,\"element\":\"FEUER\",\"role\":\"guardian\",\"ability\":\"Test\",\"pveBaseBonus\":{\"atk\":10,\"def\":20},\"future\":{\"value\":1}}")!.AsObject();
         editor.ApplyCard(sample,Path.GetTempPath());
         var image=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".png");
