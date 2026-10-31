@@ -48,4 +48,26 @@ Die vorhandene private Token-Authentifizierung bleibt bestehen; keine zusätzlic
 - Reales Chromium mit zwei getrennten Browserkontexten und deterministischem Testserver: Desktop/Mobil, sichtbare Klickabläufe, Beschwörung auf Index 6, Positionswechsel, private Hände, unabhängige Menübedienung und erneute Duellzustimmung bestanden bei Prüfcommit fef155fe0fb3f3efc52546985e357f36ec9bba89.
 - SQL-Test gegen das tatsächliche Datenbankschema: beide Erstbelohnungen, idempotentes Reload/Ablehnen, neue Wiederholungsbelohnung je Duellnummer sowie unterschiedliche Erst-/Wiederholungsbelohnung im selben Duell bestanden. Sämtliche Testdaten wurden innerhalb einer Transaktion zurückgerollt. Dies ist ein Datenbanknachweis, kein erspielter Browser-Sieg.
 
-Die abschließenden Live-Browserergebnisse werden nach Abschluss der laufenden Prüfung ergänzt. Automatisierte Prüfungen ersetzen keine subjektive Abnahme von Klang, Animationstempo oder Spielbalance.
+## Live-Browsernachweis
+
+Lauf https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/41159893343 bestand gegen Edge-Version 32 mit zwei unabhängigen Chromium-Kontexten und echten getrennten Testprofilen. Keine Fixture-Antworten im Live-Modus:
+
+| Durchlauf | Menschliche Aktionen | Runden | Ergebnis |
+| --- | ---: | ---: | --- |
+| Erstes gemeinsam angenommenes Duell | 74 | 11 | Menschenteam gewinnt |
+| Erneut angefragte und angenommene Wiederholung | 66 | 10 | Menschenteam gewinnt |
+
+Einladungen in beide Richtungen, Ablehnen/Rücknahme, falscher Bestätiger, Doppelklick, private Hände, tatsächliche Beschwörung auf Index 6, Verteidigungsposition, Ergebnis/Escape, frischer Kampfzustand bei Wiederholung und Reload bestanden. Die automatisierten Kampfentscheidungen stammen aus einem Testbot, der nur die jeweilige serverseitig redigierte Spieleransicht erhält und reguläre Aktionen sendet. Ergebnisse sind kein Beleg für menschliche Siegquoten.
+
+Der ergänzte Live-Lauf https://github.com/2dz28t8rt2-eng/Arcane-Duel/actions/runs/41160191517 bestand ebenfalls vollständig:
+
+- Host im Browserkontext über 45 Sekunden offline: Gast sieht die Warteanzeige, Kampfrevision und Sitzzuordnung ändern sich nicht; ursprünglicher Host verbindet sich wieder, Anzeige verschwindet.
+- Danach zwei komplette gemeinsame Siege: 58 menschliche Aktionen / 9 Runden sowie 67 Aktionen / 10 Runden.
+- Beide persönlichen Testprofile nach Erst- und Wiederholungssieg: 90 XP, 147 Essenz, 3 Splitter, 2 Siege und 3 Kartenbelohnungsansprüche.
+- Reload und erneutes Laden des Profils verändern diese Belohnungen nicht; Singleplayer-Sentinel bleibt unverändert.
+
+Die anschließende kleine UI-Ergänzung für eine vollständig vom Partner belegte Reihe wurde mit dem tatsächlichen DOM geprüft: keine auswählbare illegale Beschwörungszone, deaktivierte Bestätigung und Erklärung. Die Live-Regeln bleiben identisch mit Version 32.
+
+Der ältere Offline-Benchmark I–IV wurde ebenfalls auf gemeinsame Platzbelegung umgestellt: 56 Duelle vollständig abgeschlossen. Sein bewusst einfacher menschlicher Testbot verlor alle 56; das ist keine repräsentative Balancebewertung und kein Anlass, in diesem UI-/Online-Auftrag ungefragt Werte zu ändern.
+
+Automatisierte Prüfungen ersetzen keine subjektive Abnahme von Klang, Animationstempo oder Spielbalance.
