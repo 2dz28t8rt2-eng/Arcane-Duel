@@ -60,6 +60,51 @@ if(Number(process.versions.node.split('.')[0])<24){test('personal save needs Nod
   for(const person of [a,b]){const p=saves.save({type:'load',profileToken:person.profileToken});assert.deepEqual(p.save.cleared,[1]);assert.equal(p.save.wins,1);assert.ok(p.save.xp>0);assert.deepEqual(p.save.activeDeck,runtime.fresh().activeDeck);}
   assert.equal(store.db.prepare('SELECT count(*) n FROM rewards').get().n,2);
  });
+ for(const seat of [0,2])for(const turn of [29,30,59])test(`surrender at recorded turn ${turn+1} by seat ${seat} saves both personal results`,async t=>{
+  const {store,saves,call,a,b}=await fixture(t);
+  const originals=[];
+  for(const [person,coins]of [[a,71],[b,29]]){const p=runtime.fresh();p.coins=coins;originals.push(p);saves.save({type:'adopt',choice:'solo',expectedRevision:0,profileToken:person.profileToken,save:p});}
+  const room=await call({type:'create',profileToken:a.profileToken,personalDuoRules:true});
+  const joined=await call({type:'join',roomId:room.roomId,invite:room.invite,profileToken:b.profileToken,deferStart:true});
+  const request=await call({type:'action',roomId:room.roomId,token:room.token,expectedRevision:joined.state.revision,action:{type:'requestDuel',chapter:1}});
+  const start=await call({type:'action',roomId:room.roomId,token:joined.token,expectedRevision:request.state.revision,action:{type:'acceptPartyStart',inviteId:request.state.partyStartInvite.id}});
+  // A late-game fixture avoids playing 30+ irrelevant turns to reach the save boundary.
+  const row=store.read('rooms',room.roomId);row.state.turn=turn;row.state.round=Math.floor(turn/4)+1;row.state.activeSeat=turn%4;store.save('rooms',row);
+  const finished=await call({type:'action',roomId:room.roomId,token:seat===0?room.token:joined.token,expectedRevision:start.state.revision,action:{type:'surrender'}});
+  assert.equal(finished.state.status,'finished');assert.equal(finished.state.winner,1);assert.equal(finished.state.surrenderedBy,seat);
+  for(const [i,person]of [a,b].entries()){
+   const result=saves.save({type:'load',profileToken:person.profileToken});
+   assert.equal(result.save.losses,1);assert.equal(result.save.history[0].turns,turn+1);assert.equal(result.revision,2);
+   for(const key of ['coins','xp','activeDeck','fusionDeck','inventory','cleared','shards','dropCharges','packProgress'])assert.deepEqual(result.save[key],originals[i][key],key);
+   assert.deepEqual(runtime.normalize(result.save),result.save);
+   await call({type:'state',roomId:room.roomId,token:person.profileToken});
+   assert.equal(saves.save({type:'load',profileToken:person.profileToken}).save.losses,1);
+  }
+  assert.equal(store.db.prepare('SELECT count(*) n FROM rewards').get().n,2);
+ });
+ for(const winner of [0,1])test(`late online ${winner===0?'victory':'defeat'} remains a valid personal save`,async t=>{
+  const {store,saves,call,a,b}=await fixture(t);
+  for(const person of [a,b])saves.save({type:'adopt',choice:'solo',expectedRevision:0,profileToken:person.profileToken,save:runtime.fresh()});
+  const room=await call({type:'create',profileToken:a.profileToken,personalDuoRules:true});
+  const joined=await call({type:'join',roomId:room.roomId,invite:room.invite,profileToken:b.profileToken,deferStart:true});
+  const request=await call({type:'action',roomId:room.roomId,token:room.token,expectedRevision:joined.state.revision,action:{type:'requestDuel',chapter:1}});
+  await call({type:'action',roomId:room.roomId,token:joined.token,expectedRevision:request.state.revision,action:{type:'acceptPartyStart',inviteId:request.state.partyStartInvite.id}});
+  const row=store.read('rooms',room.roomId);row.state.status='finished';row.state.winner=winner;row.state.turn=31;row.status='finished';
+  const update=await store.from('arcane_duo_v2_rooms').update(row).eq('id',row.id);assert.equal(update.error,null);
+  for(const person of [a,b]){
+   const save=saves.save({type:'load',profileToken:person.profileToken}).save;
+   assert.equal(save.history[0].turns,32);assert.equal(save.history[0].win,winner===0);
+   assert.equal(save.bestTurns,winner===0?32:null);assert.deepEqual(runtime.normalize(save),save);
+  }
+ });
+ test('four-seat history preserves up to 60 turns and still rejects invalid turn counts',()=>{
+  const p=runtime.fresh();p.bestTurns=60;p.history=[{opponent:1,win:true,turns:60,coins:0,xp:0,at:Date.now(),context:'tournament'}];
+  const saved=runtime.normalize(p);assert.equal(saved.bestTurns,60);assert.equal(saved.history[0].turns,60);
+  for(const turns of [-1,30.5,61,Number.MAX_SAFE_INTEGER]){
+   const wrong=structuredClone(p);wrong.history[0].turns=turns;assert.throws(()=>runtime.normalize(wrong),/Duelleintrag/);
+   const wrongBest=structuredClone(p);wrongBest.bestTurns=turns;assert.throws(()=>runtime.normalize(wrongBest),/Statistik/);
+  }
+ });
  test('shared client requires host release, filters every animation frame and recovers the active personal room',async t=>{
   const {store,saves,call,a,b,handler}=await fixture(t);
   for(const person of [a,b])saves.save({type:'adopt',choice:'solo',expectedRevision:0,profileToken:person.profileToken,save:runtime.fresh()});

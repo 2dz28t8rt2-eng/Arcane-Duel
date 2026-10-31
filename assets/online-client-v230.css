@@ -1,5 +1,6 @@
 /* Only the multiplayer additions change the original layout. */
 .online-duel-230{--arcane-zone-count:7}
+.online-duel-230 #duelScreen .ad182-quick-actions #surrenderBtn{margin-top:0}
 #onlineSync230{font-size:.75rem;opacity:.8}
 #onlineInviteLink230{display:block;width:100%;margin:12px 0;padding:10px;color:inherit;background:#131522;border:1px solid #a99257}
 #onlineContinue230:not(:disabled){box-shadow:0 0 18px #d5b86588}

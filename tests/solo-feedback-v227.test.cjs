@@ -69,10 +69,11 @@ test('the foe is named Gegner in the turn header, without misleading KI-is-on-tu
 });
 test('HTML carries updated assets for all seven affected subsystems',()=>{
  const html=src('index.html');
+ const version=html.match(/<meta name="arcane-duel-version" content="([^"]+)"/)[1];
  for(const p of ['game.js','expansion.js','duel-cinematics-v42.js',
   'duel-polish-v197.js','solo-playtest-ux-v211.js','solo-playtest-ux-v211.css',
   'soul-bond-v206.css']){
    const shared=['game.js','duel-cinematics-v42.js','duel-polish-v197.js','soul-bond-v206.css'].includes(p);
-   assert.ok(html.includes(p+'?v='+(shared?'shared-presentation-228':'20261031-solo-feedback-v227')),p);
+   assert.ok(html.includes(p+'?v='+(p==='game.js'?version:shared?'shared-presentation-228':'20261031-solo-feedback-v227')),p);
   }
 });

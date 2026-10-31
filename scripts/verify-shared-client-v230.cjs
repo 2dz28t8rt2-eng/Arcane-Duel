@@ -43,6 +43,17 @@ const origin='http://127.0.0.1:8758';
   await Promise.all([a,b].map(p=>p.waitForFunction(()=>typeof game!=='undefined'&&game?.online230&&!window.ArcaneOnlineBattle230.playing())));
   for(const p of [a,b]){assert.equal(await p.locator('#ownRow [data-mine]').count(),7);assert.equal(await p.locator('#enemyRow [data-enemy]').count(),7);}
   mark('original duel uses seven zones per team');
+  const initialRevision=await a.evaluate(()=>window.ArcaneOnline230.snapshot().state.revision);
+  for(const p of [a,b]){
+   assert.equal(await p.locator('.ad182-advanced').getAttribute('open'),null);
+   const giveUp=p.getByRole('button',{name:'Give up',exact:true});
+   assert.equal(await giveUp.count(),1);assert.equal(await giveUp.isVisible(),true);
+   assert.equal(await p.locator('#ad182-quickbar #surrenderBtn').count(),1);
+   await giveUp.click();await p.locator('#surrenderCancel').click();
+   assert.equal(await p.evaluate(()=>window.ArcaneOnline230.snapshot().state.revision),initialRevision);
+   assert.equal(await p.evaluate(()=>game.winner),null);
+  }
+  mark('visible Give up button for both seats; cancel also works outside the current turn');
   const states=await Promise.all([a,b].map(p=>p.evaluate(()=>({seat:window.ArcaneOnline230.snapshot().seat,network:window.ArcaneOnline230.snapshot().state,hand:game.players[0].hand.map(c=>c.id)}))));
   assert.ok(states[0].network.players[2].hand.every(c=>c===null));assert.ok(states[1].network.players[0].hand.every(c=>c===null));
   assert.deepEqual(states[1].hand,states[1].network.players[2].hand.map(c=>typeof c==='number'?c:c.id));checks.push('each original hand displays only its own cards');
@@ -81,15 +92,50 @@ const origin='http://127.0.0.1:8758';
   await b.waitForFunction(()=>window.ArcaneOnline230.snapshot().state.players[2].soloMetrics?.attacks===1&&!window.ArcaneOnlineBattle230.playing(),null,{timeout:45000});
   mark('original field attack completes its animation and confirmed server action');
   await b.setViewportSize({width:410,height:900});
+  if(await b.locator('#ad182-workspace').evaluate(el=>el.open))await b.locator('#ad182-workspace > summary').click();
+  await b.getByRole('button',{name:'Give up',exact:true}).scrollIntoViewIfNeeded();
+  await b.getByRole('button',{name:'Give up',exact:true}).click();await b.locator('#surrenderCancel').click();
+  const giveUpBounds=await b.locator('#surrenderBtn').boundingBox();
+  assert.ok(giveUpBounds.x>=0&&giveUpBounds.x+giveUpBounds.width<=410&&giveUpBounds.height>=44);
+  await b.screenshot({path:path.join(output,'mobile-give-up.png')});
   await b.screenshot({path:path.join(output,'mobile-duel.png'),fullPage:true});
   await b.setViewportSize({width:1500,height:1000});
   await a.screenshot({path:path.join(output,'host-duel.png'),fullPage:true});await b.screenshot({path:path.join(output,'partner-duel.png'),fullPage:true});
-  await b.locator('.ad182-advanced > summary').click();await b.locator('#surrenderBtn').click();await b.locator('#surrenderConfirm').click();
-  await Promise.all([a,b].map(p=>p.waitForFunction(()=>game?.finishShown)));
+  assert.equal(await a.evaluate(()=>window.ArcaneOnline230.snapshot().state.activeSeat),2);
+  await a.getByRole('button',{name:'Give up',exact:true}).click();await a.locator('#surrenderConfirm').click();
+  await Promise.all([a,b].map(p=>p.waitForFunction(()=>game?.finishShown&&!window.ArcaneOnlineBattle230.playing())));
   const profiles=await Promise.all([a,b].map(p=>p.evaluate(()=>({profile:JSON.parse(JSON.stringify(profile)),id:window.ArcaneOnline230.snapshot()}))));
   assert.equal(profiles[0].profile.losses,1);assert.equal(profiles[1].profile.losses,1);assert.notEqual(profiles[0].id.seat,profiles[1].id.seat);checks.push('original surrender result and independent saves');
   assert.equal(profiles[0].profile.coins,111);assert.equal(profiles[1].profile.coins,222);
+  for(const p of [a,b]){
+   assert.equal(await p.evaluate(()=>window.ArcaneOnline230.snapshot().state.surrenderedBy),0);
+   await p.locator('#modalMenu').click();
+   await p.waitForFunction(()=>uiMode==='menu');
+   assert.equal(await p.locator('.ad182-advanced #surrenderBtn').count(),1);
+   assert.equal(await p.locator('#surrenderBtn').textContent(),'⚑ Duell aufgeben');
+  }
+  mark('host can end the team duel during the partner turn; original solo control is restored');
+  await a.evaluate(()=>window.ArcaneOnline230.duelMenu());await a.locator('[data-online-opponent="1"]').click();
+  await b.locator('#onlineAccept230').click();
+  await Promise.all([a,b].map(p=>p.waitForFunction(()=>game?.online230&&game.winner===null&&!window.ArcaneOnlineBattle230.playing())));
+  assert.equal(await b.evaluate(()=>window.ArcaneOnline230.snapshot().state.activeSeat),0);
+  // Reproduce the reported invalid-history failure using only this in-memory server.
+  const lateRoom=store.db.prepare("SELECT document FROM rooms WHERE json_extract(document,'$.state.status')='active'").get();
+  const late=JSON.parse(lateRoom.document);late.state.turn=32;late.state.round=9;
+  late.state.revision++;late.revision=late.state.revision;late.presentation=[];store.save('rooms',late);
+  await Promise.all([a,b].map(p=>p.waitForFunction(()=>game?.turn===33&&!window.ArcaneOnlineBattle230.playing())));
+  await b.setViewportSize({width:410,height:900});
+  await b.getByRole('button',{name:'Give up',exact:true}).click();await b.locator('#surrenderConfirm').click();
+  await Promise.all([a,b].map(p=>p.waitForFunction(()=>game?.finishShown&&!window.ArcaneOnlineBattle230.playing())));
+  for(const [p,previous]of [[a,profiles[0].profile],[b,profiles[1].profile]]){
+   const result=await p.evaluate(()=>({state:window.ArcaneOnline230.snapshot().state,save:JSON.parse(JSON.stringify(profile))}));
+   assert.equal(result.state.surrenderedBy,2);assert.equal(result.state.winner,1);assert.equal(result.save.losses,2);
+   assert.equal(result.save.history[0].turns,33);
+   for(const key of ['coins','xp','activeDeck','fusionDeck','inventory','cleared','shards','dropCharges','packProgress'])assert.deepEqual(result.save[key],previous[key],key+' remains personal and unchanged');
+  }
+  mark('guest Give up on mobile ends a 33-turn duel during the host turn, without invalid history, rewards or changed decks');
   await b.reload();await b.waitForFunction(()=>window.ArcaneOnline230?.snapshot().ready);assert.equal(await b.evaluate(()=>profile.coins),222);
+  assert.equal(await b.evaluate(()=>profile.history[0].turns),33);
   mark('reload restores the same personal progress without copying the teammate');
   assert.deepEqual(errors,[]);
   fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({ok:true,checks,errors},null,2));console.log(JSON.stringify({ok:true,checks}));
