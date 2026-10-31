@@ -66,6 +66,10 @@
        document.visibilityState==='hidden')return false;
     const target=document.querySelector('#duoSeats .seat[data-seat="'+ticket.seat+'"] > .field > '+
         '.field-cell[data-slot="'+ticket.slot+'"]');
+    if(window.ArcaneBattlePresentation228){
+     claim={seat:ticket.seat,slot:ticket.slot,until:Date.now()+2200,consumed:false};
+     void window.ArcaneBattlePresentation228.land(target?.querySelector('.board-creature'),{owner:ticket.seat%2,uid:after.players[ticket.seat].field[ticket.slot]?.uid});return true;
+    }
     const destination=target?.getBoundingClientRect();
     if(!finiteRect(destination))return false;
     // Geometry captured before the request remains document-relative if the

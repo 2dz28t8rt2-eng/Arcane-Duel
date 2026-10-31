@@ -93,7 +93,7 @@
   el('h2','','Deine Predatoren kämpfen jetzt als Rudel!',panel);
   el('p','','Ein Rudelführer entsteht durch eine Predator-Fusion. Solange er auf deinem Feld liegt, verstärkt er deine anderen Predatoren. Das ist ein Angriffsbonus – keine dauerhaft erhöhte ATK auf der Karte.',panel);
   el('p','','Bei einer Fusion mit 3 Materialien erhält er 1 zusätzliche Fähigkeit, bei 4 Materialien 2 und bei 5 Materialien alle 3. Das können Rudelinstinkt (stärkeres Rudel), Blutspur (ein Ziel markieren) und Rudelruf (einen Rudelgeist beschwören) sein.',panel);
-  el('p','','Tipp: Stelle weitere Predatoren auf dein eigenes Feld. Dein Partner hat einen eigenen Bereich und ein eigenes Rudel.',panel);
+  el('p','','Tipp: Eure Monster teilen sich sieben Zonen. Der Rudelbonus zählt die Predatoren unter deiner Kontrolle; dein Partner behält sein eigenes Rudel.',panel);
   const close=el('button','','Verstanden · weiterkämpfen',panel);
   close.type='button';close.addEventListener('click',dismissLeaderGuide);close.focus?.();
  }
@@ -111,6 +111,7 @@
   },11650);
  }
  function flash(target,text,positive=true){
+  if(root.ArcaneBattlePresentation228)return root.ArcaneBattlePresentation228.floatAt(target,text,positive?'soul':'damage');
   const rect=target?.getBoundingClientRect?.();
   if(!rect||rect.width<2||reduced())return;
   const node=el('span','ad204-stat-flash'+(positive?'':' ad204-stat-loss'),text,doc.body);
@@ -131,8 +132,10 @@
   close.type='button';close.addEventListener('click',dismissInspector);
   scrim.addEventListener('click',e=>{if(e.target===scrim)dismissInspector();});
   const visual=el('div','ad204-inspect-art',undefined,panel);
-  if(template.art){const img=el('img','',undefined,visual);img.src=template.art;img.alt='';}
+  if(root.ArcaneDuoSolo221)visual.innerHTML=root.ArcaneDuoSolo221.face(template,{instance:hand&&!card.fate?null:card,owner:player});
+  else if(template.art){const img=el('img','',undefined,visual);img.src=template.art;img.alt='';}
   else el('span','',card.predatorToken?'🐾':'✧',visual);
+  if(template.desc)el('p','ad221-card-description',template.desc,panel);
   if(alpha)el('strong','ad204-inspect-leader','♛ RUDELFÜHRER',panel);
   el('h2','',card.predatorToken?'Rudelgeist':template.name||'Monster',panel);
   el('p','ad204-inspect-level','Lv '+(card.level||template.level||'?')+' · '+
@@ -158,6 +161,7 @@
    card.predatorLeader.materials+' Fusionsmaterialien · '+
    ((card.predatorLeader.powers||[]).map(k=>powers[k]||k).join(' · ')||'Rudelführer-Basisbonus'),panel);
   if(template.ace)el('p','ad204-inspect-hint','✦ ACE-Monster · darf nicht fusioniert werden.',panel);
+  if(root.ArcaneCardView221)panel.insertAdjacentHTML('beforeend',root.ArcaneCardView221.defenderAbility(card.role||template.role));
   if(!hand)root.ArcaneDuoSoulBond206?.inspect?.(card,player,panel,catalog);
   // Shared inspector-first ability workflow: action buttons exist only for
   // DEF-position Soul Eaters owned by the human whose turn is active.
@@ -270,6 +274,17 @@
  function showOutcome(game){
   clearOutcome();dismissInspector();dismissLeaderGuide();
   root.ArcaneSoundscape?.fadeOutForResult?.(5300);
+  if(root.ArcaneBattlePresentation228&&root.ArcaneModal223){
+   const won=game.winner===0,stage=el('div','overlay ad228-result-overlay',undefined,doc.body);
+   outcome=stage;stage.hidden=true;stage.setAttribute('role','dialog');stage.setAttribute('aria-modal','true');stage.setAttribute('aria-label',won?'Sieg!':'Niederlage');
+   const panel=el('section','modal ad-outcome '+(won?'ad-outcome-win':'ad-outcome-loss'),undefined,stage);
+   const safe=root.ArcaneMenuShell221.safe;
+   panel.innerHTML='<div class="ad-outcome-banner" aria-hidden="true"><span>'+(won?'✦ TRIUMPH ✦':'✧ GEFALLEN ✧')+'</span><div class="ad-outcome-sigil">'+(won?'✷':'✥')+'</div></div>'+root.ArcaneModal223.html('DUELL BEENDET',won?'Sieg!':'Niederlage',won?'✦':'⚔',safe(game.winReason||game.log?.at(-1)||'Das Duell ist entschieden.'),'<div class="info-pills"><span>'+Number(game.turn||0)+' Spielerzüge</span></div><p>'+(won?'Die Belohnungen werden in deinem persönlichen Spielstand gespeichert.':'Du kannst im Hauptmenü dein Deck verbessern und es noch einmal versuchen. Bei Aufgabe werden keine Belohnungen vergeben.')+'</p>','<button type="button" class="btn primary ad204-result-close">ZUM MENÜ & DECKBAU</button>');
+   const close=panel.querySelector('.ad204-result-close');close.onclick=()=>{clearOutcome();root.ArcaneDuoPartyUI218?.returnToMenu?.();};
+   stage.addEventListener('keydown',event=>{if(event.key==='Tab'){event.preventDefault();close.focus();}});
+   void root.ArcaneBattlePresentation228.outcome({won,valid:()=>outcome===stage&&context?.game?.status==='finished'&&context.game.roomId===game.roomId,reveal:()=>{stage.hidden=false;stage.classList.add('ad197-result-reveal');close.focus();}});
+   return;
+  }
   const won=game.winner===0,stage=el('div','ad204-result-stage',undefined,doc.body);
   stage.setAttribute('aria-live','polite');stage.setAttribute('role','status');
   outcome=stage;
@@ -421,7 +436,7 @@
   else if(key==='a'&&useDirectShortcut())event.preventDefault();
  });
  const api=Object.freeze({version:'20.10',packState,effectiveAttack,sameRoom,
-  decorate,onState,onActionStart,onActionError,toggleHand,setBattleZoom,zoomClamp,
+  decorate,onState,onActionStart,onActionError,clearOutcome,toggleHand,setBattleZoom,zoomClamp,
   usePositionShortcut,useDirectShortcut});
  root.ArcaneDuoUX204=api;
  if(typeof module==='object'&&module.exports)module.exports=api;

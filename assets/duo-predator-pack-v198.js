@@ -8,7 +8,7 @@
  let layer=null,timer=null,stamp=0;
  const reduced=()=>!!(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches||
   document.body?.classList.contains('ad-motion-disabled'));
- const position=(seat,slot,area='field')=>document.querySelector(
+ const position=(seat,slot,area='field')=>window.ArcaneDuoPresentation228?.cell({seat,slot,area})||document.querySelector(
   '#duoSeats .seat[data-seat="'+seat+'"] '+(area==='ghost'?'.duo-ghost-reserve .duo-ghost-cell':
    '> .field > .field-cell')+'[data-slot="'+slot+'"]');
  function cardPosition(game,seat,uid){
@@ -115,7 +115,12 @@
   layer.setAttribute('aria-hidden','true');
   const now=stamp;
   for(const event of events){
-   if(event.kind==='hunt'){
+   if(event.kind==='hunt'&&window.ArcaneSpecialPresentation228){
+    const target=position(event.targetSeat,event.targetSlot,event.targetArea),player=before.players[event.targetSeat];
+    const card=(event.targetArea==='ghost'?player?.lv1?.ghostSlots:player?.field)?.[event.targetSlot];
+    const art=window.ArcaneDuoParty218?.state().catalog?.[card?.id]?.art||'';
+    window.ArcaneSpecialPresentation228.bloodImpact(target,event.broken,art,document.getElementById('duoBattleArena'));
+   }else if(event.kind==='hunt'){
     const target=center(position(event.targetSeat,event.targetSlot,event.targetArea));
     const origin=center(cardPosition(before,event.ownerSeat,event.attackerUid)||
      cardPosition(after,event.ownerSeat,event.attackerUid));

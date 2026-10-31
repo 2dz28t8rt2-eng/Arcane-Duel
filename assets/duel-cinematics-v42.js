@@ -27,6 +27,7 @@
   const owner=g.players.findIndex(p=>p.field.some(x=>x?.uid===c.uid));if(owner<0)return;
   const index=g.players[owner].field.findIndex(x=>x?.uid===c.uid),cell=slot(g,owner,index)?.querySelector('.board-creature');
   if(!cell||typeof cell.cloneNode!=='function')return;
+  if(window.ArcaneBattlePresentation228)return window.ArcaneBattlePresentation228.land(cell,{owner,uid:c.uid,materials:c.materialsUsed||0,phase,valid:()=>game===g&&uiMode==='duel'});
   const r=cell.getBoundingClientRect(),w=cell.offsetWidth||r.width,h=cell.offsetHeight||r.height;
   const ghost=document.createElement('div');ghost.className='ad-summon-ghost';ghost.dataset.owner=String(owner);ghost.dataset.uid=String(c.uid);ghost.setAttribute('aria-hidden','true');
   ghost.style.cssText='left:'+(r.left+r.width/2-w/2)+'px;top:'+(r.top+r.height/2-h/2)+'px;width:'+w+'px;height:'+h+'px;';
@@ -66,8 +67,8 @@
  }
  function record(g,event){const b=batches.get(g);if(b&&event.type!=='counter')b.steps.push(event);else enqueue(g,event);}
  function endTurn(g){batches.delete(g);}
- function flash(node,color){if(!node||!motion())return;node.style.setProperty('--ad-receive-color',color);node.classList.add('ad-energy-receive');setTimeout(()=>node.classList.remove('ad-energy-receive'),650);}
- function roleStatFloat(node,message,kind){if(!node||!motion()||!message)return;
+ function flash(node,color){if(window.ArcaneBattlePresentation228)return window.ArcaneBattlePresentation228.flash(node,color);if(!node||!motion())return;node.style.setProperty('--ad-receive-color',color);node.classList.add('ad-energy-receive');setTimeout(()=>node.classList.remove('ad-energy-receive'),650);}
+ function roleStatFloat(node,message,kind){if(window.ArcaneBattlePresentation228)return window.ArcaneBattlePresentation228.floatAt(node,message,kind);if(!node||!motion()||!message)return;
   const p=point(node);if(!p)return;
   const el=document.createElement('div');el.className='ad-role-stat-float';el.dataset.kind=kind;
   el.textContent=message;el.style.left=p.x+'px';el.style.top=p.y+'px';
@@ -75,6 +76,7 @@
   setTimeout(()=>el.remove(),1100);
  }
  async function projectile(from,to,color,kind='soul'){
+  if(window.ArcaneBattlePresentation228)return window.ArcaneBattlePresentation228.projectile(from,to,color,kind);
   if(!from||!to||!motion())return;
   const host=document.createElement('div');host.className='ad-arc-projectile ad-projectile-'+kind;host.style.setProperty('--ad-energy',color);host.setAttribute('aria-hidden','true');
   const dx=to.x-from.x,dy=to.y-from.y,len=Math.max(1,Math.hypot(dx,dy)),bend=Math.min(115,Math.max(42,len*.23));
@@ -101,6 +103,7 @@
    flash(banner,'#c881ff');
    window.ArcaneSfx208?.play?.('damage');
   }else if(event.type==='counter'){
+   if(window.ArcaneBattlePresentation228)return window.ArcaneBattlePresentation228.counter(node,document.getElementById(event.owner===0?'enemyBanner':'myBanner'),event.amount,{valid:()=>game===g&&motion()});
    // Explicitly harmful: the red projectile travels from defender TO attacker LP.
    const banner=document.getElementById(event.owner===0?'enemyBanner':'myBanner');
    const goal=point(banner),origin=point(node);
@@ -121,6 +124,7 @@
  }
  async function playBatch(g,batch){
   if(!batch.steps.length)return;
+  if(window.ArcaneBattlePresentation228)return window.ArcaneBattlePresentation228.defenderSequence({targets:batch.targets.map(target=>({key:target.uid,node:creatureNode(g,1-batch.owner,target.uid,target.index)})),steps:batch.steps,play:(event,orbs)=>playEvent(g,event,orbs),valid:()=>game===g&&motion()});
   const orbs=new Map();
   try{
    for(const target of batch.targets){
@@ -142,16 +146,17 @@
  fullCardHtml=function(c,attrs='',classes='',badge=''){return full(c,attrs,classes+(charge(c)?' ad-overcharged':''),badge);};
  cardHtml=function(c,...args){
   let html=board(c,...args);const attack=effectiveAttack(game,c,null),defense=dataOf(c).def;
-  if(Math.max(attack,defense)>=10000){
+  if(Math.max(attack,defense)>=10000&&!html.includes('ad-compact-values')){
    html=html.replace('class="board-creature','class="board-creature ad-compact-values')
     .replace('<b>⚔','<b title="ATK '+attack+'" aria-label="Angriff '+attack+'">')
     .replace('<b>◆','<b title="DEF '+defense+'" aria-label="Verteidigung '+defense+'">');
   }
   const state=charge(c);
-  if(state)html=html.replace('class="board-creature','data-overcharge="'+state.extra+'" title="Überladen: '+state.extra+' temporäre DEF über dem regulären Maximum" class="board-creature ad-overcharged');
+  if(state&&!html.includes('data-overcharge='))html=html.replace('class="board-creature','data-overcharge="'+state.extra+'" title="Überladen: '+state.extra+' temporäre DEF über dem regulären Maximum" class="board-creature ad-overcharged');
   return html;
  };
  function ability(c){
+  if(window.ArcaneCardView221?.defenderAbility)return window.ArcaneCardView221.defenderAbility(role(c),charge(c));
   if(!defender(c))return '';
   const state=charge(c);
   return '<section class="ad-defender-ability"><strong>✦ Gegenschlag</strong><p>Im PvE verursacht dieses Monster in Verteidigungsposition nach einem gültigen Angriff 35 % seiner aktuellen ATK als Schaden an den LP des Angreifers – aber nur, wenn es den Angriff überlebt und danach noch auf dem Feld steht. Ein Schutzschild kann den Schaden abfangen. Während „Letztes Bollwerk“ angriffsimmun macht, wird kein Gegenschlag ausgelöst.</p>'+(state?'<p class="ad-charge-note"><strong>Überladen · +'+state.extra+' DEF</strong><br>Aktuell '+state.current+' / reguläres Maximum '+state.max+'. Die gespeicherte Seelenessenz und verdichtete Essenz bilden temporäre DEF. Das Leuchten endet, sobald kein Überschuss mehr besteht.</p>':'')+'</section>';

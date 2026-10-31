@@ -14,7 +14,7 @@
   }
   function turnInfo(game,viewerSeat){
     if(!game)return {kind:'idle',eyebrow:'BÜNDNIS DER VIER',title:'Bereit für euer Abenteuer?',hint:'Erstellt einen Raum und ladet euren Partner ein.'};
-    if(game.status==='waiting')return {kind:'waiting',eyebrow:'PARTNER GESUCHT',title:'Gleich geht es los.',hint:'Sobald dein Freund beitritt, beginnt euer Duell.'};
+    if(game.status==='waiting')return {kind:'waiting',eyebrow:'PARTNER GESUCHT',title:'Gleich geht es los.',hint:'Sobald dein Freund beitritt, kannst du fortsetzen und ein Duell anfragen.'};
     if(game.status==='finished')return game.winner===0?
       {kind:'victory',eyebrow:'GEMEINSAM GESCHAFFT',title:'Euer Team hat gewonnen!',hint:'Das war euer Sieg – jeder Zug hat dazu beigetragen.'}:
       {kind:'defeat',eyebrow:'GEMEINSAM WEITER',title:'Dieses Duell ist verloren.',hint:'Ihr könnt euer Deck verbessern und es noch einmal versuchen.'};
@@ -120,7 +120,7 @@
       if(seat){
         seat.setAttribute('aria-label',caption+' – '+player.name+(game.activeSeat===player.seat&&game.status==='active'?', am Zug':''));
         const subtitle=seat.querySelector('.duo-seat-kind');
-        if(subtitle)subtitle.textContent=kind==='self'?'DEIN SPIELFELD':
+        if(subtitle)subtitle.textContent=kind==='self'?'DEINE MONSTER IM TEAMFELD':
           kind==='ally'?'VERBÜNDETER':'GEGNERISCHES FELD';
         const tag=document.createElement('span');tag.className='ad185-seat-badge';tag.textContent=caption;seat.prepend(tag);
       }

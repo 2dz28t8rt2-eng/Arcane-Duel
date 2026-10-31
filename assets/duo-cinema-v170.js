@@ -242,7 +242,7 @@
      playSound:kind=>window.ArcaneSfx208?.play?.(kind)})).catch(()=>fusionSequence(event,catalog));
    }else fusionSequence(event,catalog);
   }else if(event.kind==='fusion')fusionSequence(event,catalog);
-  else drawSequence(event);
+  else if(!window.ArcaneBattlePresentation228)drawSequence(event);
   return events;
  }
  const setEnabled=value=>{enabled=value!==false;if(!enabled){sequence++;clear();

@@ -18,9 +18,9 @@ const descriptions={
  free:['Freie Duelle','Trainiere und sammle Beute gegen bekannte Gegner.'],
  pvp:['Lokales PvP','Spiele mit zwei Personen am selben Gerät.'],
  challenges:['Lernpfad & Herausforderungen','Übe Kombinationen mit Leihdecks und erfülle Spezialmissionen.'],
- collection:['Dein Hauptdeck','Wähle und verstärke genau 40 Hauptkarten.'],
+ collection:window.ArcaneMenuShell221.headings.collection,
  packs:['Charakter-Boosterpacks','Öffne bereits verdiente Charakter-Boosterpacks.'],
- workshop:['Monsterwerkstatt','Verbinde und zerlege freie Monster derselben Familie.'],
+ workshop:window.ArcaneMenuShell221.headings.workshop,
  settings:['Einstellungen und Spielstandoptionen','Speichern, Import, Export und Einstellungen.']
 };
 function go(tab){
@@ -70,10 +70,7 @@ function renderRoyalMenu(){
  for(const [,button] of tabs)if(!button.isConnected)hidden.append(button);
  nav.append(hidden);
  const slot=$('activeSlotSelect'),current=descriptions[menuTab]||descriptions.tournament;
- hero.innerHTML='<div class="fm-hero-content"><div><span class="fm-eyebrow">✦ ARCANE DUEL 4.1 · '+safe(activeGroup.title)+'</span>'+
- '<h1>'+safe(current[0])+'</h1><p>'+safe(current[1])+'</p></div>'+
- '<div class="fm-hero-utility"><button type="button" class="fm-hero-rules" data-royal="rules">📖 Regelhandbuch</button>'+
- '<label>Aktives Deck <span id="fmDeckSlot"></span></label></div></div>'+
+ hero.innerHTML=window.ArcaneMenuShell221.hero({group:activeGroup.title,title:current[0],description:current[1],utility:'<button type="button" class="fm-hero-rules" data-royal="rules">📖 Regelhandbuch</button><label>Aktives Deck <span id="fmDeckSlot"></span></label>'})+
  (profile.activeDuel?'<div class="fm-resume-bar"><b>↶ Laufendes Duell</b><button type="button" class="btn primary" data-royal="resume">Duell fortsetzen</button></div>':'')+
  (profile.migrationMessage?'<p class="fm-migration">'+safe(profile.migrationMessage)+'</p>':'');
  if(slot)$('fmDeckSlot').append(slot);
@@ -85,10 +82,7 @@ function renderRoyalMenu(){
   groups.map(([heading,keys])=>'<section class="fm-perk-category"><h3>'+heading+'</h3><div class="fm-perk-grid">'+keys.map(key=>{
    const u=UPGRADES[key];if(!u)return '';
    const rank=profile.upgrades[key]||0,maxed=rank>=u.max,cost=maxed?0:upgradeCost(key);
-   return '<article class="fm-perk-card"><div class="fm-perk-head"><strong>'+safe(u.name)+'</strong><span>'+rank+' / '+u.max+'</span></div>'+
-   '<p>'+safe(u.desc)+'</p><div class="fm-perk-ranks">'+Array.from({length:u.max},(_,i)=>'<i class="'+(i<rank?'filled':'')+'"></i>').join('')+'</div>'+
-   '<button class="btn" type="button" data-action="upgrade" data-key="'+key+'" '+(maxed||profile.coins<cost?'disabled':'')+'>'+
-   (maxed?'✓ Maximal':cost+' Essenz · Verbessern')+'</button></article>';
+   return window.ArcaneMenuShell221.perk({name:u.name,description:u.desc,rank,max:u.max,button:'<button class="btn" type="button" data-action="upgrade" data-key="'+key+'" '+(maxed||profile.coins<cost?'disabled':'')+'>'+(maxed?'✓ Maximal':cost+' Essenz · Verbessern')+'</button>'});
   }).join('')+'</div></section>').join('');
   bindMenu();
  }

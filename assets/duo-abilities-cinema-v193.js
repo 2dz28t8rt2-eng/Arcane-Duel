@@ -94,8 +94,9 @@
      (after.players||[]).find(p=>p.seat===r.where.seat)?.ownTurns>
      (before.players||[]).find(p=>p.seat===r.where.seat)?.ownTurns);
     if(row)events.push({kind:'drain',where:row.where,
-     from:(after.players||[]).filter(p=>p.team!==row.owner.team)
-      .map(p=>({seat:p.seat,area:'seat'})),gain,atk,def});
+     from:rows.filter(target=>target.owner.team!==row.owner.team&&
+      (number(target.before.atk)>number(target.after.atk)||number(target.before.def)>number(target.after.def)))
+      .map(target=>target.where),gain,atk,def});
     continue;
    }
    m=/^(.+?) konzentriert den Seelenentzug auf (ATK|DEF)\.$/.exec(String(line));
@@ -112,7 +113,19 @@
     const row=take(m[1],r=>r.after.mode==='def'&&number(r.before.soul)>=40&&
      number(r.after.soul)===0&&r.after.lastSoulAction!==r.before.lastSoulAction);
     if(row)events.push({kind:'discharge',where:row.where,
-     targetTeam:1-row.owner.team});
+     targetTeam:1-row.owner.team,amount:String(line).includes('abgefangen')?0:Number(m[2])});
+   }
+  }
+  const healLines=logs.filter(l=>/^Wächter stärkt .+ um \d+ DEF\.$/.test(l));
+  if(healLines.length){
+   const healingTeams=new Set((after.players||[]).filter(p=>p.ownTurns>(before.players||[]).find(x=>x.seat===p.seat)?.ownTurns).map(p=>p.team));
+   for(const row of rows){
+    const amount=number(row.after.def)-number(row.before.def);
+    if(amount<=0||row.after.mode!=='def'||!['guardian','soul'].includes(row.after.role)||!healingTeams.has(row.owner.team))continue;
+    const line='Wächter stärkt '+String(catalog[row.after.id]?.name||'')+' um '+amount+' DEF.';
+    if(!healLines.includes(line))continue;
+    const sources=rows.filter(r=>r.owner.team===row.owner.team&&r.after.role==='guardian'&&r.after.mode==='def'&&r.after.uid!==row.after.uid&&r.owner.ownTurns>(before.players||[]).find(p=>p.seat===r.owner.seat)?.ownTurns);
+    events.push({kind:'heal',where:row.where,amount,from:sources.length===1?sources[0].where:null});
    }
   }
   // Resonance grows on the owner's confirmed turn, not with each polling tick.
@@ -144,6 +157,7 @@
   if(!where)return null;
   const panel='#duoSeats .seat[data-seat="'+where.seat+'"]';
   if(where.area==='seat')return document.querySelector(panel);
+  if(window.ArcaneDuoPresentation228)return window.ArcaneDuoPresentation228.cell(where);
   return document.querySelector(where.area==='ghost'?
    panel+' .duo-ghost-reserve .duo-ghost-cell[data-slot="'+where.slot+'"]':
    panel+' > .field > .field-cell[data-slot="'+where.slot+'"]');
@@ -178,9 +192,25 @@
   }
   return center;
  }
+ const locationKey=where=>[where?.seat,where?.area,where?.slot].join(':');
+ async function playShared(event,valid=()=>true,orbs=null){
+  const shared=window.ArcaneBattlePresentation228,node=anchor(event.where),from=event.from;
+  if(!valid()||!node||reduced())return;
+  const label={condense:'VERDICHTEN · +'+event.atk+' ATK · +'+event.shield+' Schutz',raid:'+'+event.gain+' Seele · SEELENRAUB',drain:'+'+event.gain+' Seele · Entzug',focus:'SEELENFOKUS · '+event.stat,discharge:'SEELENENTLADUNG',resonance:'RESONANZ · +'+event.pct+' %',heal:'Wächter +'+event.amount+' DEF'}[event.kind];
+  if(!label)return;
+  if(['raid','drain','heal'].includes(event.kind))await Promise.all((Array.isArray(from)?from:[from]).map(source=>
+   shared.projectile(shared.point(orbs?.get(locationKey(source))||anchor(source)),shared.point(node),event.kind==='heal'?'#a9e58d':event.kind==='raid'?'#e155ff':'#cf9dff',event.kind==='heal'?'heal':'soul')));
+  if(!valid())return;
+  if(event.kind==='discharge'&&window.ArcaneSoulBurst207?.playBetween){
+   await window.ArcaneSoulBurst207.playBetween(node,document.getElementById(event.targetTeam===0?'duoAlliedLP':'duoEnemyLP'),event.amount,{valid});return;
+  }
+  shared.flash(node,event.kind==='heal'?'#a9e58d':'#cf9dff');shared.floatAt(node,label,event.kind==='heal'?'guardian':'soul');
+ }
  function play(event){
   if(!event||reduced()||document.hidden||document.visibilityState==='hidden')return false;
   if(!point(event.where))return false;
+  const shared=window.ArcaneBattlePresentation228;
+  if(shared){const stamp=generation;void playShared(event,()=>generation===stamp);return true;}
   if(!layer){layer=create('div','ad193-ability-stage',document.body);
    layer.setAttribute('aria-hidden','true');}
   if(event.kind==='condense'){
@@ -217,6 +247,11 @@
    return [];
   }
   clear();const stamp=generation;
+  if(window.ArcaneBattlePresentation228&&events.some(e=>e.kind==='drain')){
+   const sources=new Map();for(const event of events.filter(e=>e.kind==='drain'))for(const where of event.from||[])sources.set(locationKey(where),anchor(where));
+   void window.ArcaneBattlePresentation228.defenderSequence({targets:[...sources].map(([key,node])=>({key,node})),steps:events,valid:()=>generation===stamp,play:(event,orbs)=>playShared(event,()=>generation===stamp,orbs)});
+   return events;
+  }
   events.forEach((event,index)=>timers.push(setTimeout(()=>{
    if(generation===stamp)play(event);
   },120+index*STAGGER)));

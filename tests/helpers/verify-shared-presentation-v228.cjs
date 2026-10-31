@@ -1,0 +1,90 @@
+'use strict';
+const assert=require('node:assert/strict');
+module.exports=async function verifyShared(A,B,report){
+ const untouched=await B.evaluate(()=>JSON.stringify(window.ArcaneDuoParty218.state().profile));
+ const before=await A.evaluate(()=>({game:JSON.stringify(window.ArcaneDuoParty218.state().game),solo:localStorage.getItem('arcane-duel-rpg-profile-v4-reborn')}));
+ const zone=A.locator('#duoSeats [data-seat="0"]>.field>.field-cell[data-slot="6"]');
+ assert.equal(await zone.locator(':scope>.board-creature.defense').count(),1);
+ const shape=await zone.evaluate(node=>{const r=node.getBoundingClientRect(),board=node.querySelector('.board-creature');return {width:r.width,height:r.height,mode:getComputedStyle(board).transform,overflow:getComputedStyle(node).overflow};});
+ assert.ok(Math.abs(shape.width-shape.height)<2,'zone has the same square shape as solo');
+ assert.equal(shape.overflow,'hidden');assert.match(shape.mode,/matrix\(0, 1, -1, 0,/,'DEF is horizontal');
+ await A.evaluate(()=>{
+  document.body.classList.remove('ad-motion-disabled');
+  const node=document.querySelector('#duoSeats [data-seat="0"]>.field>[data-slot="6"]>.board-creature');
+  window.__qaLand=window.ArcaneBattlePresentation228.land(node,{owner:0,uid:99});
+ });
+ await A.locator('.ad-summon-ghost .board-creature').waitFor({state:'visible'});
+ assert.equal(await A.locator('.ad-summon-ghost .board-art').count(),1);
+ await A.evaluate(()=>window.__qaLand);
+ assert.equal(await A.locator('.ad-summon-ghost').count(),0);
+ assert.equal(await zone.locator('.ad-summon-hidden').count(),0);
+ await A.evaluate(()=>window.ArcaneDuoAbilitiesCinema193.play({kind:'heal',where:{seat:0,slot:6,area:'field'},from:{seat:0,slot:5,area:'field'},amount:60}));
+ await A.locator('.ad-arc-projectile.ad-projectile-heal').waitFor({state:'visible'});
+ await A.locator('.ad-role-stat-float[data-kind="guardian"]').waitFor({state:'visible'});
+ assert.match(await A.locator('.ad-role-stat-float[data-kind="guardian"]').innerText(),/Wächter \+60 DEF/);
+ assert.equal(await A.locator('.ad-arc-projectile.ad-projectile-heal').count(),0,'healing is shown after arrival');
+ await A.waitForTimeout(1200);
+ assert.equal(await A.locator('.ad-arc-projectile').count(),0);
+ await A.evaluate(()=>{
+  const node=document.querySelector('#duoSeats [data-seat="0"]>.field>[data-slot="6"]');
+  window.__qaSoul=window.ArcaneSoulBurst207.playBetween(node,document.getElementById('duoEnemyLP'),123);
+ });
+ await A.locator('.ad207-soul-orb').waitFor({state:'visible'});
+ await A.locator('.ad207-soul-damage').waitFor({state:'visible'});
+ assert.match(await A.locator('.ad207-soul-damage').textContent(),/123 LP/);
+ await A.evaluate(()=>window.__qaSoul);assert.equal(await A.locator('.ad207-soul-stage').count(),0);
+ await A.evaluate(()=>{
+  const overlay=document.createElement('div');overlay.id='qaLeaderScene';
+  overlay.innerHTML='<div class="evo-popup-panel"><div class="evo-rolls"></div></div>';document.body.append(overlay);
+  window.__qaLeader=window.ArcanePredatorPack.cinemaReveal({overlay,instance:{predatorLeader:{materials:4,predatorMaterials:4,powers:['swarm','token']}},wait:ms=>new Promise(r=>setTimeout(r,Math.min(ms,50)))});
+ });
+ await A.evaluate(()=>window.__qaLeader);
+ assert.equal(await A.locator('#qaLeaderScene .ad198-skill-chosen').count(),2);
+ assert.match(await A.locator('#qaLeaderScene').textContent(),/RUDELFÜHRER ERWACHT/);
+ assert.equal(await A.locator('#qaLeaderScene.ad198-leader-reveal').count(),0);
+ await A.evaluate(()=>document.getElementById('qaLeaderScene').remove());
+ await A.evaluate(()=>{
+  const api=window.ArcaneDuoParty218,current=structuredClone(api.state().game),prior=structuredClone(current);current.revision++;
+  current.stompEvent={revision:current.revision,sourceSeat:0,sourceSlot:6,primary:{seat:1,slot:0},materials:4,element:'FEUER',hits:[{seat:1,slot:1,pct:50},{seat:3,slot:2,pct:50}]};
+  window.ArcaneDuoStompCinema202.onState(prior,current);
+ });
+ await A.locator('.ad-stomp-scene.ad-stomp-firing').waitFor({state:'visible'});
+ assert.equal(await A.locator('.ad-stomp-primary.ad-stomp-core').count(),1);
+ assert.equal(await A.locator('.ad-stomp-secondary.ad-stomp-core').count(),2);
+ await A.locator('.ad-stomp-scene.ad-stomp-splitting').waitFor({state:'visible'});
+ await A.waitForTimeout(1200);assert.equal(await A.locator('.ad-stomp-scene').count(),0);
+ await A.evaluate(()=>{window.__qaDamage=window.ArcaneSpecialPresentation228.damageAt(document.getElementById('duoAlliedLP'),1500,true);});
+ await A.locator('.ad197-damage.ad197-heavy').waitFor({state:'visible'});
+ await A.evaluate(()=>window.__qaDamage);assert.equal(await A.locator('.ad197-damage').count(),0);
+ await A.evaluate(()=>{
+  const fx=window.ArcaneBattlePresentation228,node=window.ArcaneDuoPresentation228.cell({seat:0,slot:6});window.__qaOrbSteps=[];
+  window.__qaOrbs=fx.defenderSequence({targets:[{key:1,node}],steps:[1,2],play:async(step,orbs)=>{window.__qaOrbSteps.push({step,same:orbs.get(1)===document.querySelector('.ad-soul-orb')});await new Promise(r=>setTimeout(r,40));}});
+ });
+ await A.locator('.ad-soul-orb').waitFor({state:'visible'});await A.evaluate(()=>window.__qaOrbs);
+ assert.deepEqual(await A.evaluate(()=>window.__qaOrbSteps),[{step:1,same:true},{step:2,same:true}]);
+ await A.waitForTimeout(300);assert.equal(await A.locator('.ad-soul-orb').count(),0);
+ await A.evaluate(()=>{window.__qaCounter=window.ArcaneBattlePresentation228.counter(window.ArcaneDuoPresentation228.cell({seat:0,slot:6}),document.getElementById('duoEnemyLP'),42);});
+ await A.locator('.ad-projectile-counter').waitFor({state:'visible'});await A.evaluate(()=>window.__qaCounter);
+ assert.equal(await A.locator('.ad-counter-impact').count(),1);
+ await A.waitForTimeout(1200);assert.equal(await A.locator('.ad-counter-impact').count(),0);
+ await A.evaluate(()=>{
+  const fx=window.ArcaneBattlePresentation228;window.__qaLP=[];
+  window.__qaIntro=fx.intro().then(()=>fx.fillLP({draw:value=>window.__qaLP.push(value)}));
+ });
+ await A.locator('.ad-battle-intro').waitFor({state:'visible'});
+ assert.match(await A.locator('.ad-battle-inner').innerText(),/DIE ARENA ERWACHT/);
+ assert.equal(await A.evaluate(()=>window.__qaLP.length),0,'LP only fill after the start title');
+ await A.evaluate(()=>window.__qaIntro);
+ const lp=await A.evaluate(()=>window.__qaLP);
+ assert.ok(lp.length>5);assert.equal(lp.at(-1),1);assert.ok(lp.every((v,i)=>!i||v>=lp[i-1]));
+ await A.evaluate(()=>{document.body.classList.add('ad-motion-disabled');window.__qaReduced=[];return window.ArcaneBattlePresentation228.fillLP({draw:v=>window.__qaReduced.push(v)});});
+ assert.deepEqual(await A.evaluate(()=>window.__qaReduced),[1]);
+ assert.equal(await A.locator('.ad-battle-intro').count(),0);
+ // A cancelled or hidden presentation must not alter either player's saved data.
+ const after=await A.evaluate(()=>({game:JSON.stringify(window.ArcaneDuoParty218.state().game),solo:localStorage.getItem('arcane-duel-rpg-profile-v4-reborn')}));
+ assert.deepEqual(after,before);
+ assert.equal(await B.evaluate(()=>JSON.stringify(window.ArcaneDuoParty218.state().profile)),untouched);
+ assert.ok(await B.evaluate(()=>window.ArcaneDuoParty218.state().game.players[0].hand.every(x=>x===null)));
+ report.checks.push('shared square field cards, DEF rotation, solo summon landing, Guardian healing projectile, intro before LP, reduced motion and unchanged personal saves');
+ report.checks.push('original Seelenstoß, Rudelführer reveal, elemental Stomp branches, LP damage burst, persistent defender orb and complete counterstrike with cleanup and unchanged state');
+};

@@ -166,7 +166,7 @@ test('integration binds the visual observer to server load and never changes gam
  assert.match(parity,/window\.ArcaneDuoStanceCinema191\?\.onState\(previous,game,catalog\)/);
  assert.ok(parity.indexOf('game=payload.state')<parity.indexOf('ArcaneDuoStanceCinema191?.onState'));
  assert.match(html,/duo-stance-cinema-v191\.css\?v=20261030-soul-focus/);
- assert.match(html,/duo-stance-cinema-v191\.js\?v=20261030-soul-focus/);
+ assert.match(html,/duo-stance-cinema-v191\.js\?v=shared-presentation-228/);
  assert.ok(html.indexOf('duo-stance-cinema-v191.js')<html.indexOf('duo-parity-v160.js'));
  const script=read('assets/duo-stance-cinema-v191.js');
  assert.doesNotMatch(script,/\b(fetch|localStorage|sessionStorage|WebSocket)\s*\(/);

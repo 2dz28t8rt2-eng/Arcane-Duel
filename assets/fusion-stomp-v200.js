@@ -184,6 +184,7 @@
   if(!from||!to)return null;
   const targets=indexes.map(index=>boardPoint(1-owner,index)).filter(Boolean);
   const col=ELEMENTS[dataOf(g.players[owner].field[ai]).element]||['#af88ff','#ffffff'];
+  const host=window.ArcaneSpecialPresentation228?.stompScene({from,to,targets,colors:col})||(()=>{
   const host=document.createElement('div');host.className='ad-stomp-scene';host.setAttribute('aria-hidden','true');
   host.style.setProperty('--stomp-color',col[0]);host.style.setProperty('--stomp-light',col[1]);
   const w=window.innerWidth||1280,h=window.innerHeight||800;
@@ -214,6 +215,8 @@
     spark.style.setProperty('--stomp-distance','-'+(52+(i%7)*13)+'px');
     spark.style.setProperty('--stomp-delay',(i%7)*13+'ms');burst.append(spark);}
   }
+   host.append(svg,...bursts);document.body.append(host);return host;
+  })();
   // Predict *only* obvious lethal hits for visual removal. The authoritative
   // attack reducer still calculates every result after the full cinematic.
   const attacker=g.players[owner].field[ai],primary=field[di],
@@ -236,10 +239,10 @@
     (c.mode==='def'||raw<value.atk)&&defense>=shield+(c.card?.def||0);
    return lethal?[{index,order:i}]:[];
   });
-  host.append(svg,...bursts);document.body.append(host);
   return host;
  }
  function beamSound(){
+  if(window.ArcaneSpecialPresentation228)return window.ArcaneSpecialPresentation228.beamSound();
   // Original synthesized burst; no external sound assets or extra downloads.
   try{
    const config=window.ArcaneSoundscape?.getSettings?.();

@@ -25,6 +25,7 @@
   values.map(x=>'<option value="'+esc(x[0])+'"'+(current===String(x[0])?' selected':'')+'>'+esc(x[1])+'</option>').join('');
  const cardRole=c=>labels[roleOf(c)]||'Allrounder';
  const info=c=>{
+  if(window.ArcaneBestiaryView228)return window.ArcaneBestiaryView228.detail(c,{inventory:profile.inventory,deck:profile.activeDeck,fusions:profile.fusionDeck});
   const k=typeOf(c);
   const desc={predator:'Greift besonders gerne an. Gut, um Lücken in der gegnerischen Stellung zu schaffen.',
    guardian:'Hält die Stellung. In DEF schützt er Verbündete und kann nach Angriffen zurückschlagen.',
@@ -59,6 +60,7 @@
  }
  function installLexicon(){
   const root=$('menuContent')?.querySelector('.monster-index');if(!root||menuTab!=='lexicon')return;
+  if(window.ArcaneBestiaryView228)return window.ArcaneBestiaryView228.mount(root,{cards:catalog(),known:catalog().filter(seen).map(c=>c.id),inventory:profile.inventory,deck:profile.activeDeck,fusions:profile.fusionDeck,state,onDetail:detail});
   const all=catalog(),known=all.filter(seen),ownedCount=known.filter(owned).length;
   root.classList.add('ad119-lexicon');
   root.innerHTML='<div class="ad119-lexicon-intro"><div><p class="ad119-eyebrow">DEINE ENTDECKUNGEN</p>'+

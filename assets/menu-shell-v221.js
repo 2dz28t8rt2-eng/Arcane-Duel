@@ -10,7 +10,11 @@
   shop:['Booster-Shop','Entdecke neue Kreaturen und Sonderangebote.'],
   upgrades:['Verbesserungen','Mach deine Lieblingsmonster stärker.'],
   xp:['Levelbelohnungen','Sieh deine nächsten Fortschrittsmeilensteine.'],
-  stats:['Deine Chronik','Erinnere dich an deine Duelle und Siege.']
+  stats:['Deine Chronik','Erinnere dich an deine Duelle und Siege.'],
+  collection:['Dein Hauptdeck','Wähle und verstärke genau 40 Hauptkarten.'],
+  workshop:['Monsterwerkstatt','Verbinde und zerlege freie Monster derselben Familie.'],
+  challenges:['Lernpfad & Herausforderungen','Übe Kombinationen mit Leihdecks und erfülle Spezialmissionen.'],
+  settings:['Einstellungen und Spielstandoptionen','Speichern, Import, Export und Einstellungen.']
  });
  function navigation({nav,groups,tabs,activeTab,collapsed=new Set(),brand='4.1 · BESTIARIUM'}){
   const doc=nav.ownerDocument||root.document;
@@ -47,5 +51,11 @@
   }
   collapsed.delete(group.id);select(group.tabs[0]);
  }
- root.ArcaneMenuShell221=Object.freeze({navigation,activateGroup,headings,safe});
+ function hero({group,title,description,titleId='',descriptionId='',utility='',showcase=''}={}){
+  return '<div class="fm-hero-content"><div><span class="fm-eyebrow">✦ ARCANE DUEL 4.1 · '+safe(group)+'</span><h1'+(titleId?' id="'+safe(titleId)+'"':'')+'>'+safe(title)+'</h1><p'+(descriptionId?' id="'+safe(descriptionId)+'"':'')+'>'+safe(description)+'</p></div>'+(utility?'<div class="fm-hero-utility">'+utility+'</div>':'')+showcase+'</div>';
+ }
+ function perk({name,description,rank,max,button}={}){
+  return '<article class="fm-perk-card"><div class="fm-perk-head"><strong>'+safe(name)+'</strong><span>'+Number(rank)+' / '+Number(max)+'</span></div><p>'+safe(description)+'</p><div class="fm-perk-ranks">'+Array.from({length:Math.max(0,Math.min(20,max))},(_,i)=>'<i class="'+(i<rank?'filled':'')+'"></i>').join('')+'</div>'+button+'</article>';
+ }
+ root.ArcaneMenuShell221=Object.freeze({navigation,activateGroup,headings,hero,perk,safe});
 })(typeof window==='undefined'?globalThis:window);

@@ -128,7 +128,7 @@ test('integration uses original server action and retains partner/opponent chore
  assert.match(parity,/finally\s*\{\s*busy=false;render\(\);[\s\S]*?if\(confirmedSummon\)window\.ArcaneDuoSummonCinema190\?\.play/);
  assert.match(fx,/e\.type!=="summon"\|\|!window\.ArcaneDuoSummonCinema190\?\.ownsSummon/);
  assert.match(html,/duo-summon-cinema-v190\.css\?v=20261026-v190/);
- assert.match(html,/duo-summon-cinema-v190\.js\?v=20261026-v190/);
+ assert.match(html,/duo-summon-cinema-v190\.js\?v=shared-presentation-228/);
  assert.ok(html.indexOf('duo-summon-cinema-v190.js')<html.indexOf('duo-parity-v160.js'));
  const cinema=read('assets/duo-summon-cinema-v190.js');
  assert.doesNotMatch(cinema,/\b(fetch|localStorage|sessionStorage|WebSocket)\s*\(/);

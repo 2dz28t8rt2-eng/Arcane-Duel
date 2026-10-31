@@ -23,6 +23,7 @@
   if(trackLabel.textContent){void trackLabel.offsetWidth;trackLabel.classList.add('ad197-now-playing-active');}
  }
  async function blackout(duration=2100,enteringDuel=false){
+  if(window.ArcaneSpecialPresentation228)return window.ArcaneSpecialPresentation228.blackout(duration,enteringDuel);
   const token=++transition,layer=ensureCurtain(),audio=window.ArcaneSoundscape;
   layer.classList.add('ad197-active');audio?.setTransientMuted?.(true);
   if(trackLabel){trackLabel.textContent='';trackLabel.classList.remove('ad197-now-playing-active');}
@@ -72,6 +73,7 @@
   if(!Number.isFinite(amount)||amount<=0||reduce())return;
   const banner=id(victim===0?'myBanner':'enemyBanner');
   if(!banner||banner.getClientRects().length===0)return;
+  if(window.ArcaneSpecialPresentation228)return window.ArcaneSpecialPresentation228.damageAt(banner,amount,victim===0);
   const rect=(banner.querySelector('.lp-track')||banner).getBoundingClientRect();
   const level=amount>=3000?3:amount>=1200?2:amount>=500?1:0;
   const node=document.createElement('div');node.className='ad197-damage'+(level>=2?' ad197-heavy':level>=1?' ad197-mid':'');
@@ -100,6 +102,13 @@
   const outcome=oldFinished.apply(this,args);
   if(!dropChargesUnlocked())for(const pill of id('modal')?.querySelectorAll('.info-pills span')||[]){
    if(pill.textContent.includes('Dropladung'))pill.textContent='Dropladungen noch gesperrt';
+  }
+  if(window.ArcaneBattlePresentation228){
+   void window.ArcaneBattlePresentation228.outcome({won:victory,valid:()=>game===g&&uiMode==='duel',reveal:()=>{
+    const overlay=id('overlay');overlay?.classList.add('ad197-result-reveal');document.body.classList.remove('ad197-result-hold');
+    setTimeout(()=>overlay?.classList.remove('ad197-result-reveal'),750);
+   }}).finally(()=>document.body.classList.remove('ad197-result-hold'));
+   return outcome;
   }
   void (async()=>{
    await delay(reduce()?200:1500);

@@ -24,7 +24,7 @@ test('one field stance button performs both DEF and ATK changes',()=>{
 test('Soul Bond does not let the 35%-aura boxes overlap their neighbors',()=>{
  const css=src('assets/soul-bond-v206.css');
  assert.doesNotMatch(css,/\.ad206-linked\{[^}]*overflow:visible!important/);
- assert.match(css,/#duelScreen \.monster-slot\.ad206-linked\{overflow:hidden!important/);
+ assert.match(css,/:is\(#duelScreen,#duoBattleArena\) \.monster-slot\.ad206-linked\{overflow:hidden!important/);
  assert.match(css,/\.ad206-bridge\{left:66%;width:30%;max-width:30%/);
  assert.match(css,/\.ad206-mark\{left:3px;right:3px/);
 });
@@ -71,5 +71,8 @@ test('HTML carries updated assets for all seven affected subsystems',()=>{
  const html=src('index.html');
  for(const p of ['game.js','expansion.js','duel-cinematics-v42.js',
   'duel-polish-v197.js','solo-playtest-ux-v211.js','solo-playtest-ux-v211.css',
-  'soul-bond-v206.css'])assert.ok(html.includes(p+'?v=20261031-solo-feedback-v227'),p);
+  'soul-bond-v206.css']){
+   const shared=['game.js','duel-cinematics-v42.js','duel-polish-v197.js','soul-bond-v206.css'].includes(p);
+   assert.ok(html.includes(p+'?v='+(shared?'shared-presentation-228':'20261031-solo-feedback-v227')),p);
+  }
 });

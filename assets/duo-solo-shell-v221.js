@@ -15,12 +15,13 @@
   {id:'options',icon:'⚙',title:'Spielstand & Extras',subtitle:'Chronik und Optionen',tabs:['profile','settings','rules']}
  ];
  const common=window.ArcaneMenuShell221.headings;
- const titles={menu:common.tournament,quests:['Aufgaben & Abenteuer','Die fünf Prüfungen des Level-1-Fanatikers. Beide Duellanten müssen die gewählte Prüfung freigeschaltet haben.'],deck:['Dein Hauptdeck','Wähle einen Deckplatz und ein eigenes Monster. Dein Hauptdeck enthält genau 40 Karten, mit höchstens drei Kopien je Monster.'],fusions:common.fusions,decks:common.decks,collection:['Monsterwerkstatt','Sieh dir deinen Vorrat an, verstärke deine Monster und zerlege freie Exemplare.'],upgrades:common.upgrades,shop:common.shop,progress:common.xp,profile:common.stats,settings:['Einstellungen und Spielstandoptionen','Sichere deinen persönlichen Zugang und passe Musik und Animationen an.'],rules:['Regelhandbuch','Karten, Rollen und gemeinsame Spielzüge verständlich erklärt.'],bestiary:common.lexicon};
+ const titles={menu:common.tournament,quests:['Aufgaben & Abenteuer','Die fünf Prüfungen des Level-1-Fanatikers. Beide Duellanten müssen die gewählte Prüfung freigeschaltet haben.'],deck:common.collection,fusions:common.fusions,decks:common.decks,collection:['Monsterwerkstatt','Sieh dir deinen Vorrat an, verstärke deine Monster und zerlege freie Exemplare.'],upgrades:common.upgrades,shop:common.shop,progress:common.xp,profile:common.stats,settings:['Einstellungen und Spielstandoptionen','Sichere deinen persönlichen Zugang und passe Musik und Animationen an.'],rules:['Regelhandbuch','Karten, Rollen und gemeinsame Spielzüge verständlich erklärt.'],bestiary:common.lexicon};
  const tabLabels={menu:'Turnier',quests:'Aufgaben & Abenteuer',deck:'Hauptdeck',fusions:'Fusionsdeck',decks:'Deckplätze',bestiary:'Monsterlexikon',collection:'Monsterwerkstatt',upgrades:'Verbesserungen',shop:'Booster-Shop',progress:'Levelbelohnungen',profile:'Chronik',settings:'Einstellungen & Spielstand',rules:'Regelhandbuch'};
  const collapsedGroups=new Set();
  const roleNames={predator:'Predator',guardian:'Wächter',soul:'Seelenzehrer',resonator:'Resonator',combatant:'Allrounder',allrounder:'Allrounder'};
  const descriptions={predator:'Predatoren werden mit jedem eigenen Zug stärker und verstärken sich im Rudel. Predator-Fusionen können als Rudelführer besondere Fähigkeiten erhalten.',guardian:'Wächter heilen verbündete Verteidiger. In DEF schützt ihre Rüstung; überlebt das Monster den Treffer, löst es einen Gegenschlag aus.',soul:'Seelenzehrer sammeln Seelenkraft und ergänzen die Heilung der Wächter. In DEF stehen Verdichten, Seelenstoß und weitere freigeschaltete Fähigkeiten bereit.',resonator:'Resonatoren steigern die Kraft ihrer nächsten Fusion. Ihre gespeicherte Resonanz wird bei der Verschmelzung berücksichtigt.',combatant:'Allrounder verbinden Angriff und Verteidigung. Ihre Resonanz unterstützt passende Fusionen.'};
  let route='',profileStamp='',draftSlot=0,draftCandidate=null,search='',inspectSelection=null,inspectStamp='',pendingOperation=false;
+ let inBattle=null;
  let uiState=null,noticeKey='',noticeFocus=null,noticeDismissed='',lastDuelKey='';
  const screen=make('section','fm-screen atlas-screen');screen.id='duoMenuScreen';screen.dataset.atlasTheme='amber';
  const workspace=$('duoSoloWorkspace'),profile=$('duoProfilePanel');workspace.before(screen);screen.append(workspace,profile);
@@ -135,7 +136,23 @@
  const rules=make('section','menu-panel ad221-rules',profile);rules.id='duoPersonalRules';
  const guide=document.querySelector('#duoSetupPanel .duo-guide');if(guide){guide.open=true;rules.append(guide);}
  const bestiary=make('section','menu-panel',profile);bestiary.id='duoPersonalBestiary';
- bestiary.innerHTML='<h2>Das Bestiarium der Duellanten</h2><p>Entdecke die Illustrationen und Monsterfamilien im Lexikon.</p><a class="btn" href="collection-v3.html" target="_blank" rel="noopener">Monsterlexikon öffnen ↗</a>';
+ const bestiaryState={query:'',role:'',type:'',element:'',level:'',status:'known',page:0};
+ function renderBestiary(){
+  const s=api.state(),p=s.profile;if(!p)return;
+  const inventory={};for(const id of [...p.ownedMain,...p.ownedFusions])inventory[id]=(inventory[id]||0)+1;
+  const known=Object.keys(inventory).map(Number),cards=Object.values(s.catalog).filter(c=>c&&(c.playable||c.fusionOnly||c.essenceMonster)&&!c.fateTemplate&&c.level>=1&&c.level<=10&&(!c.lv1Exclusive||inventory[c.id]));
+  window.ArcaneBestiaryView228.mount(bestiary,{cards,known,inventory,deck:p.deck,fusions:p.fusions,state:bestiaryState,onDetail:id=>{
+   if(!inventory[id]||!s.catalog[id])return;
+   const c=s.catalog[id],oldFocus=document.activeElement,overlay=make('div','overlay',document.body),modal=make('div','modal',overlay);
+   overlay.id='duoBestiaryDialog';overlay.style.zIndex='12050';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label',c.name);
+   modal.innerHTML=window.ArcaneModal223.html('MONSTERLEXIKON · KARTE ENTDECKT',safe(c.name),'✦','Hier siehst du die Grundwerte dieser Kartenvariante. Im Duell können Fusionen, Perks, Rollen und Zerfall die Werte verändern.',window.ArcaneBestiaryView228.detail(c,{inventory,deck:p.deck,fusions:p.fusions}),'<button type="button" class="btn primary" data-bestiary-close>Zurück zum Lexikon</button>');
+   const button=modal.querySelector('[data-bestiary-close]');
+   const close=()=>{document.removeEventListener('keydown',key,true);overlay.remove();if(oldFocus?.isConnected)oldFocus.focus();};
+   const key=e=>{if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();close();}else if(e.key==='Tab'){e.preventDefault();button.focus();}};
+   button.onclick=close;document.addEventListener('keydown',key,true);button.focus();
+  }});
+ }
+
  // Native research/workshop controls keep their server validation and handlers.
  const native={perk:$('duoProfilePerk').parentElement,pack:$('duoProfilePack').parentElement,research:document.querySelector('#duoProfilePanel .duo-research'),deck:$('duoProfileDeckZone').closest('.duo-profile-shop > div'),collection:document.querySelector('#duoProfilePanel .duo-collection'),progress:document.querySelector('#duoProfilePanel .duo-balance-panel')};
  native.deck.hidden=true;native.perk.hidden=true;native.pack.hidden=true;
@@ -163,14 +180,16 @@
   else return;
   renderInspector();
  });
- function face(card,{instance=null,owner=null,small=false,tag='div'}={}){
+ function face(card,{instance=null,owner=null,small=false,tag='div',board=false}={}){
   const t={...card,...(instance?{atk:owner&&window.ArcaneDuoUX204?.effectiveAttack?window.ArcaneDuoUX204.effectiveAttack(instance,owner,window.ArcaneDuoRules):window.ArcaneDuoRules.attackValue(instance),def:instance.def+(instance.soul||0)+(instance.condensed||0),level:instance.level||card.level}:{})};
   const fate=instance?.fate===true;
+  if(instance?.predatorToken)t.name='Rudelgeist';
   const fateIndex=fate?Object.values(api.state().catalog).filter(c=>c.fateTemplate).findIndex(c=>c.id===card.id):-1;
   if(fate&&fateIndex>=0){
    t.name='✦ '+(window.ArcaneFateVisuals?.entries?.[fateIndex]?.name||t.name);
    t.art=window.ArcaneFateVisuals?.artFor?.(fateIndex)||t.art;
   }
+  if(board)return window.ArcaneCardView221.board(t,{frame:window.ArcaneCardView221.frame(t,instance||{},fateIndex),fate,mode:instance?.mode,used:instance?.used,attack:t.atk,overcharge:instance?.mode==='def'&&['guardian','soul'].includes(instance.role)&&instance.maxDef>0?Math.max(0,t.def-instance.maxDef):0});
   return window.ArcaneCardView221.face(t,{tag,classes:small?'ad221-mini-face':'',
    frame:window.ArcaneCardView221.frame(t,instance||{},fateIndex),fate,
    element:t.element==='DUNKEL'?'Dunkelheit':t.element});
@@ -215,6 +234,7 @@
   offers.innerHTML=[...source.options].map(o=>{
    const key=o.value,kind=route==='shop'?'pack':'upgrade',max=window.ArcaneDuoRules.PERK_LIMITS[key],rank=p.upgrades[key]||0,cost=100+rank*70;
    const disabled=pendingOperation||s.profileSaving||o.disabled||(kind==='upgrade'&&(rank>=max||p.essence<cost));
+   if(kind==='upgrade')return window.ArcaneMenuShell221.perk({name:o.textContent.split(' '+rank+'/')[0],description:o.textContent,rank,max,button:'<button type="button" class="btn" data-offer="upgrade" data-key="'+safe(key)+'" '+(disabled?'disabled':'')+'>'+(rank>=max?'✓ Maximal':cost+' Essenz · Verbessern')+'</button>'});
    return '<article class="fm-perk-card atlas-etched-panel"><h3>'+safe(kind==='pack'?o.textContent.split(' · ')[0]:o.textContent.split(' '+rank+'/')[0])+'</h3><p>'+safe(o.textContent)+'</p><button type="button" class="btn" data-offer="'+kind+'" data-key="'+safe(key)+'" '+(disabled?'disabled':'')+'>'+(kind==='pack'?'Paket öffnen':rank>=max?'✓ Maximal':'Verbessern · '+cost+' Essenz')+'</button></article>';
   }).join('');
  }
@@ -252,24 +272,27 @@
   const raw=inspectSelection.area==='hand'?p.hand[inspectSelection.index]:(inspectSelection.area==='ghost'?p.lv1?.ghostSlots:p.field)?.[inspectSelection.slot];
   const c=typeof raw==='number'?{id:raw}:raw,t=s.catalog[c?.id];
   if(!c||!t){$('duoLargeCardPreview').innerHTML='<p>Dieses Monster befindet sich nicht mehr an diesem Platz.</p>';inspectSelection=null;inspectStamp='';return;}
-  const stamp=JSON.stringify([inspectSelection,c]);if(stamp===inspectStamp)return;inspectStamp=stamp;
+  const stamp=JSON.stringify([inspectSelection,c,s.game.players.map(x=>x.field)]);if(stamp===inspectStamp)return;inspectStamp=stamp;
   const field=inspectSelection.area!=='hand',role=c.role||t.role,over=field&&c.def+(c.soul||0)+(c.condensed||0)>(c.maxDef??c.def);
-  $('duoLargeCardPreview').innerHTML=face(t,{instance:field||c.fate?c:null,owner:p})+'<div class="ad221-card-explanation"><p>'+safe(c.fate?'Schicksalsmonster · nicht fusionierbar · nur dieses Duell.':t.desc||'')+'</p><strong>'+safe(roleNames[role]||'Monster')+'</strong><p>'+safe(descriptions[role]||'')+'</p>'+(over?'<p class="ad221-overcharge-text">✦ Überladen: DEF über dem normalen Maximalwert</p>':'')+(field&&role==='soul'?'<p>Grund-DEF '+c.def+' · Seelenkraft '+(c.soul||0)+' · Verdichtung '+(c.condensed||0)+'</p>':'')+(t.ability&&!c.fate?'<p>'+safe(t.ability)+'</p>':'')+'</div>';
+  $('duoLargeCardPreview').innerHTML=face(t,{instance:field||c.fate?c:null,owner:p})+'<div class="ad221-card-explanation"><p>'+safe(c.fate?'Schicksalsmonster · nicht fusionierbar · nur dieses Duell.':t.desc||'')+'</p><strong>'+safe(roleNames[role]||'Monster')+'</strong><p>'+safe(descriptions[role]||'')+'</p>'+(over?'<p class="ad221-overcharge-text">✦ Überladen: DEF über dem normalen Maximalwert</p>':'')+(field&&role==='soul'?'<p>Grund-DEF '+c.def+' · Seelenkraft '+(c.soul||0)+' · Verdichtung '+(c.condensed||0)+'</p>':'')+ '</div>';
+  if(!c.fate)$('duoLargeCardPreview').insertAdjacentHTML('beforeend',window.ArcaneCardView221.defenderAbility(role,over?{extra:c.def+(c.soul||0)+(c.condensed||0)-(c.maxDef??c.def),current:c.def+(c.soul||0)+(c.condensed||0),max:c.maxDef??c.def}:null));
+  if(field)window.ArcaneDuoSoulBond206?.inspect?.(c,p,$('duoLargeCardPreview'),s.catalog);
  }
  function decorateBattle({game,seat,catalog}){
+  for(const cell of $('duoSeats').querySelectorAll('.field-cell'))cell.classList.add('monster-slot');
   $('duoBattleToMenu').hidden=!['finished','inviting_next'].includes(game.status);
   $('duoBattleSaveState').textContent=$('duoSaveState')?.textContent||'';
   for(const p of game.players){
    const panel=document.querySelector('#duoSeats .seat[data-seat="'+p.seat+'"]');if(!panel)continue;
    panel.style.order=String(p.seat===seat?4:p.team===0?3:p.seat===1?0:1);
-   for(const [slot,c] of p.field.entries()){
-    const cell=panel.querySelector(':scope > .field > [data-slot="'+slot+'"]');if(!cell||!c)continue;
-    cell.dataset.mode=c.mode;cell.classList.add('ad221-zone');
+   for(const {slot,c,area} of [...p.field.map((c,slot)=>({slot,c,area:'field'})),...(p.lv1?.ghostSlots||[]).map((c,slot)=>({slot,c,area:'ghost'}))]){
+    const cell=panel.querySelector((area==='ghost'?'.duo-ghost-cell':':scope > .field > .field-cell')+'[data-slot="'+slot+'"]');if(!cell||!c)continue;
+    cell.dataset.mode=c.mode;cell.classList.add('ad221-zone','monster-slot');
     cell.classList.toggle('ad221-overcharged',c.def+(c.soul||0)+(c.condensed||0)>(c.maxDef??c.def));
-    const visual=make('div','ad221-board-face');visual.innerHTML=face(catalog[c.id],{instance:c,owner:p,small:true});
+    const visual=make('div','ad221-board-face');visual.innerHTML=face(catalog[c.id],{instance:c,owner:p,board:true});
     // Preserve the zone, ownership and listeners used by all combat/cinema modules.
     for(const child of [...cell.children])if(child.matches('img.duo-field-art,span:not([class]),small.duo-field-meta,small.duo-card-level'))child.hidden=true;
-    cell.prepend(visual);
+    cell.prepend(...visual.childNodes);
     const role=make('span','ad221-role-label',cell,roleNames[c.role]||'Monster');role.dataset.role=c.role||'combatant';
    }
    if(p.seat===seat){
@@ -319,8 +342,10 @@
  function afterStartScreen(){
   return new Promise(resolve=>{
    const wait=()=>{
+    if(!['active'].includes(api.state().game?.status)){resolve();return;}
     if(document.querySelector('.ad216-dialog-overlay')){setTimeout(wait,150);return;}
     if($('duoReduceMotion').checked||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){resolve();return;}
+    if(window.ArcaneBattlePresentation228){const current=api.state().game;window.ArcaneBattlePresentation228.intro({valid:()=>api.state().game?.roomId===current.roomId&&api.state().game?.duelNo===current.duelNo&&api.state().game?.status==='active'}).then(resolve,resolve);return;}
     const overlay=make('div','ad221-duel-start',document.body);overlay.setAttribute('role','status');
     overlay.innerHTML='<span>✧ DAS BÜNDNIS DER VIER ✧</span><strong>DUELL START</strong><small>Gemeinsam in die Arena</small>';
     let done=false;const finish=()=>{if(done)return;done=true;overlay.remove();resolve();};
@@ -331,6 +356,12 @@
  function sync(state=uiState){
   if(!state)return;uiState=state;
   const s=api.state(),show=state.entered&&state.inMenu;
+  const nextBattle=!!state.entered&&!state.inMenu&&['active','finished'].includes(s.game?.status);
+  if(inBattle!==null&&nextBattle!==inBattle){
+   if(nextBattle)window.ArcaneSoundscape?.resetResultFade?.();
+   void window.ArcaneSpecialPresentation228?.blackout(nextBattle?2850:1950,nextBattle);
+  }
+  inBattle=nextBattle;
   screen.hidden=!show;
   if(show){
    if(openInviteFromSolo&&!s.joinIntent&&!s.game){
@@ -349,8 +380,11 @@
     for(const b of tabs.values())b.classList.toggle('active',b.dataset.tab===route);
     for(const g of nav.querySelectorAll('.fm-menu-group'))g.classList.add('atlas-nav-item');
     const showcase=[...new Set([...(s.profile?.deck||[]),...(s.profile?.fusions||[])])].slice(0,3).map(id=>s.catalog[id]).filter(Boolean);
-    hero.classList.add('atlas-hero','atlas-has-art');hero.innerHTML='<div class="fm-hero-content"><div><span class="fm-eyebrow">✦ ARCANE DUEL 4.1 · '+safe(group.title)+'</span><h1 id="duoSoloMenuTitle">'+safe(details[0])+'</h1><p id="duoSoloMenuSubtitle">'+safe(details[1])+'</p></div><div class="atlas-showcase" aria-hidden="true"><div class="atlas-showcase-cards">'+showcase.map((c,i)=>'<div class="atlas-preview-card atlas-preview-'+i+'" data-card-id="'+c.id+'" data-card-level="'+c.level+'" inert>'+face(c).replace('hand-card tc-card','hand-card tc-card atlas-showcase-face')+'</div>').join('')+'</div></div></div>';
+    hero.classList.add('atlas-hero','atlas-has-art');hero.innerHTML=window.ArcaneMenuShell221.hero({group:group.title,title:details[0],description:details[1],titleId:'duoSoloMenuTitle',descriptionId:'duoSoloMenuSubtitle',utility:'<button type="button" class="fm-hero-rules" data-online-rules>📖 Regelhandbuch</button><label>Aktives Deck <select id="duoActiveDeckSlot" aria-label="Aktives Deck"></select></label>',showcase:'<div class="atlas-showcase" aria-hidden="true"><div class="atlas-showcase-cards">'+showcase.map((c,i)=>'<div class="atlas-preview-card atlas-preview-'+i+'" data-card-id="'+c.id+'" data-card-level="'+c.level+'" inert>'+face(c).replace('hand-card tc-card','hand-card tc-card atlas-showcase-face')+'</div>').join('')+'</div></div>'});
    }
+   const activeSlot=$('duoActiveDeckSlot');
+   if(activeSlot){activeSlot.innerHTML=(s.profile?.deckSlots||[]).map((d,i)=>'<option value="'+i+'">Deck '+(i+1)+'</option>').join('');activeSlot.value=String(s.profile?.activeDeckSlot||0);activeSlot.disabled=pendingOperation||s.profileSaving||!s.profile?.deckSlots;activeSlot.onchange=()=>operation('deckSlotSelect',{slot:Number(activeSlot.value)});}
+   hero.querySelector('[data-online-rules]').onclick=()=>window.ArcaneDuoPartyUI218.select('rules');
    $('duoSoloMenuTitle').textContent=details[0];$('duoSoloMenuSubtitle').textContent=details[1];
    duels.hidden=!['menu','quests'].includes(route);profile.hidden=!duels.hidden;
    builder.hidden=!['deck','fusions'].includes(route);deckVariants.hidden=route!=='decks';offers.hidden=!['shop','upgrades'].includes(route);
@@ -359,7 +393,7 @@
    const profileOnly=['duoProfileStats','duoAvatarSummary','duoProfileCleared','duoProfileUnlockInfo'];
    for(const id of profileOnly)$(id).hidden=!['profile','progress'].includes(route);
    $('duoProfilePanel').dataset.route=route;
-   if(stamp!==profileStamp){profileStamp=stamp;if(!builder.hidden){draftCandidate=null;renderDeck();}if(!deckVariants.hidden)renderDeckVariants();if(!offers.hidden)renderOffers();if(!duels.hidden)chapterOptions();}
+   if(stamp!==profileStamp){profileStamp=stamp;if(!bestiary.hidden)renderBestiary();if(!builder.hidden){draftCandidate=null;renderDeck();}if(!deckVariants.hidden)renderDeckVariants();if(!offers.hidden)renderOffers();if(!duels.hidden)chapterOptions();}
    else if(!duels.hidden)renderEncounter();
   }
   if(!show&&s.game?.status==='active')profile.hidden=true;

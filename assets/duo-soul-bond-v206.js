@@ -21,7 +21,7 @@
     for(const [i,k] of [[pair.guardianIndex,'guard'],[pair.soulIndex,'soul']]){
      bonded.add(i);if(!p.field[i])continue;const el=cell(p.seat,i);if(!el)continue;
      el.classList.add('ad206-linked','ad206-'+k);
-     const badge=add(el,'ad206-mark','🛡 35 %');badge.title='Seelenbund aktiv: 35 % des eingehenden DEF-Schadens werden abgefangen';badge.setAttribute('aria-label',badge.title);
+     const badge=add(el,'ad206-mark','✦ SEELENBUND · 35 %');badge.title='Seelenbund aktiv: 35 % des eingehenden DEF-Schadens werden abgefangen';badge.setAttribute('aria-label',badge.title);
      for(let n=0;n<2;n++){const part=add(el,k==='soul'?'ad206-soul-particle':'ad206-guardian-particle',k==='soul'?'☠':'✦');part.style.setProperty('--ad206-i',String(n));part.setAttribute('aria-hidden','true');}
     }
     const leftIndex=Math.min(pair.guardianIndex,pair.soulIndex),left=p.field[leftIndex]?cell(p.seat,leftIndex):null;
@@ -40,6 +40,10 @@
  function inspect(card,player,panel,catalog){
   if(!card||!player||!panel||!kind(card))return;
   const link=pairs(player,currentGame).find(x=>x.guardianUid===card.uid||x.soulUid===card.uid);
+  if(root.ArcaneCardView221?.bondInfo){
+   const partner=link?(currentGame?rules().teamField(currentGame,player):player.field)[link.guardianUid===card.uid?link.soulIndex:link.guardianIndex]:null;
+   panel.insertAdjacentHTML('beforeend',root.ArcaneCardView221.bondInfo(partner?catalog?.[partner.id]?.name||'Partnerkarte':null));return;
+  }
   const el=doc.createElement('p');el.className='ad206-inspect';
   if(link){
    const partner=(currentGame?rules().teamField(currentGame,player):player.field)[link.guardianUid===card.uid?link.soulIndex:link.guardianIndex];
