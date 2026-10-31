@@ -22,6 +22,7 @@
 .duo-party-chapter-controls{display:grid;gap:10px;text-align:left;max-width:490px;margin:16px auto;
  font:500 13px/1.6 system-ui,sans-serif;color:#e8dcc2}
 .duo-party-chapter-controls label{display:grid;gap:5px}
+#duoPartyChapterControls [hidden]{display:none!important}
 .duo-party-chapter-controls select{width:100%;padding:10px;border-radius:7px;border:1px solid #736e7b;
  background:#121b2e;color:#f5eddd;font:inherit}
 .duo-gate-card button,.duo-menu-nav button,.duo-menu-nav a{appearance:none;cursor:pointer;
