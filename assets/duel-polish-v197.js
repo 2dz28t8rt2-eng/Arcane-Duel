@@ -47,26 +47,14 @@
  }
  const root=id('duelScreen');
  if(root){new MutationObserver(syncDuel).observe(root,{attributes:true,attributeFilter:['hidden']});syncDuel();}
- const next=id('ad182-primary'),quickbar=next?.parentElement;
- if(quickbar&&id('switchBtn')){
-  const button=document.createElement('button');button.type='button';button.id='ad197-switch';
-  button.className='btn';button.textContent='↻ In DEF drehen';button.disabled=true;
-  button.title='Gewähltes Feldmonster einmal pro Zug in ATK/DEF wechseln (vor einem Angriff).';
-  button.addEventListener('click',()=>{const original=id('switchBtn');if(original&&!original.disabled)original.click();});
-  quickbar.insertBefore(button,next);
-  const oldRender=render;
-  render=function(...args){
-   const result=oldRender.apply(this,args),source=id('switchBtn');
-   button.disabled=!source||source.disabled||source.hidden;
-   button.textContent=source?.textContent||'↻ Position wechseln';
-   return result;
-  };
-  id('ownRow')?.addEventListener('dblclick',event=>{
-   if(!event.target.closest('[data-mine]'))return;
-   const selected=Number(event.target.closest('[data-mine]').dataset.mine);
-   if(game?.selection?.type==='field'&&game.selection.idx===selected&&!id('switchBtn').disabled)id('switchBtn').click();
-  });
- }
+ // The native #switchBtn is the only button for ATK ↔ DEF.
+ // Preserve double-click convenience without injecting an identical control.
+ id('ownRow')?.addEventListener('dblclick',event=>{
+  if(!event.target.closest('[data-mine]'))return;
+  const selected=Number(event.target.closest('[data-mine]').dataset.mine);
+  if(game?.selection?.type==='field'&&game.selection.idx===selected&&!id('switchBtn')?.disabled)
+   id('switchBtn').click();
+ });
  function slash(level){
   // A short original broadband sword-swipe; no external sample is required.
   try{
