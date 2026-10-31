@@ -105,12 +105,19 @@
   await operation(kind,kind==='pack'?{pack:button.dataset.key}:{key:button.dataset.key});
  });
  const settings=make('section','menu-panel ad221-settings',profile);settings.id='duoPersonalSettings';
- settings.innerHTML='<h2>Dein persönlicher Spielstand</h2><p>Dein Online-Profil wird nach jeder bestätigten Änderung gespeichert. Sichere den privaten Zugangslink, um auf einem anderen Gerät weiterzuspielen.</p><div class="actions" id="duoPersonalSaveActions"></div><label><input type="checkbox" id="duoReduceMotion"> Animationen reduzieren</label>';
+ settings.innerHTML='<h2>Einstellungen und Spielstandoptionen</h2><p>Dein Online-Profil wird nach jeder bestätigten Änderung gespeichert. Sichere den privaten Zugangslink, um auf einem anderen Gerät weiterzuspielen.</p><div class="actions" id="duoPersonalSaveActions"></div><label><input type="checkbox" id="duoReduceMotion"> Animationen reduzieren</label><div class="actions"><button type="button" class="btn" id="duoSettingsSound">Ton umschalten</button><span id="duoSettingsSoundStatus" role="status"></span></div>';
  for(const id of ['duoProfileBackup','duoProfileReload','duoProfileContinue'])$('duoPersonalSaveActions').append($(id));
  settings.append($('duoProfileBackupBox'));
  try{$('duoReduceMotion').checked=localStorage.getItem('arcane-duo-motion-v221')==='reduced';}catch{}
  function applyMotion(){document.body.classList.toggle('ad-motion-disabled',$('duoReduceMotion').checked);try{localStorage.setItem('arcane-duo-motion-v221',$('duoReduceMotion').checked?'reduced':'full');}catch{}}
  $('duoReduceMotion').onchange=applyMotion;applyMotion();
+ function syncSoundSettings(){
+  const sound=window.ArcaneDuoSound194;
+  $('duoSettingsSound').disabled=!sound;
+  $('duoSettingsSoundStatus').textContent=sound?.isEnabled()?'Ton: An':'Ton: Aus';
+ }
+ $('duoSettingsSound').onclick=()=>{const sound=window.ArcaneDuoSound194;
+  if(sound)sound.setEnabled(!sound.isEnabled());syncSoundSettings();};
  const rules=make('section','menu-panel ad221-rules',profile);rules.id='duoPersonalRules';
  const guide=document.querySelector('#duoSetupPanel .duo-guide');if(guide){guide.open=true;rules.append(guide);}
  const bestiary=make('section','menu-panel',profile);bestiary.id='duoPersonalBestiary';
@@ -327,7 +334,7 @@
    $('duoSoloMenuTitle').textContent=details[0];$('duoSoloMenuSubtitle').textContent=details[1];
    duels.hidden=!['menu','quests'].includes(route);profile.hidden=!duels.hidden;
    builder.hidden=!['deck','fusions'].includes(route);deckVariants.hidden=route!=='decks';offers.hidden=!['shop','upgrades'].includes(route);
-   settings.hidden=route!=='settings';rules.hidden=route!=='rules';bestiary.hidden=route!=='bestiary';
+   settings.hidden=route!=='settings';if(!settings.hidden)syncSoundSettings();rules.hidden=route!=='rules';bestiary.hidden=route!=='bestiary';
    native.research.hidden=route!=='upgrades';native.collection.hidden=route!=='collection';native.progress.hidden=route!=='progress';
    const profileOnly=['duoProfileStats','duoAvatarSummary','duoProfileCleared','duoProfileUnlockInfo'];
    for(const id of profileOnly)$(id).hidden=!['profile','progress'].includes(route);

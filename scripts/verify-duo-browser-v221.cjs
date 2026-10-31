@@ -158,6 +158,14 @@ async function finishLiveDuel(A,B){
    assert.equal((await state(B)).profile.activeDeckSlot,0);
    assert.equal(await A.evaluate(()=>localStorage.getItem('arcane-duel-rpg-profile-v4-reborn')),'solo-sentinel-221');
    report.checks.push('three online deck variants switch independently without touching the partner or solo save');
+   await route(A,'settings');
+   await A.locator('#duoSettingsSound').click();
+   assert.equal(await A.evaluate(()=>window.ArcaneDuoSound194.isEnabled()),true);
+   assert.equal(await B.evaluate(()=>window.ArcaneDuoSound194.isEnabled()),false);
+   await A.locator('#duoSettingsSound').click();
+   assert.equal(await A.evaluate(()=>window.ArcaneDuoSound194.isEnabled()),false);
+   assert.equal(await A.evaluate(()=>localStorage.getItem('arcane-duel-rpg-profile-v4-reborn')),'solo-sentinel-221');
+   report.checks.push('settings control local duel sound without changing the other player or the solo save');
   }
   await route(A,'quests');
   assert.equal(await A.locator('#duoSoloMenuTitle').textContent(),'Aufgaben & Abenteuer');
