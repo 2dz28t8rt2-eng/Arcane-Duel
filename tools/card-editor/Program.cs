@@ -212,7 +212,7 @@ internal sealed partial class Editor : Form
     void ChooseColor()
     {
       using var picker=new ColorDialog { Color=backgroundAccent,FullOpen=true };
-      if(picker.ShowDialog(this)==DialogResult.OK){backgroundAccent=picker.Color;RefreshPreview();}
+      if(picker.ShowDialog(this)==DialogResult.OK){backgroundAccent=picker.Color;accentChanged=true;RefreshPreview();}
     }
     void NewCard()
     {
@@ -223,7 +223,7 @@ internal sealed partial class Editor : Form
         customFrameBytes=null;customFrameExtension=null;preview.SetCustomFrame(null,null);
         artLabel.Text="Kein Bild ausgewählt";preview.SetImage(null);
         SetChoice(frames,"auto");SetChoice(ornaments,"auto");SetChoice(icons,"auto");
-        backgroundAccent=Color.FromArgb(111,77,122);RefreshPreview();
+        backgroundAccent=Color.FromArgb(111,77,122);accentChanged=false;RefreshPreview();
         status.Text="Neue Karte · ID vor dem Export mit dem Projekt abgleichen.";
     }
     void SelectImage()
@@ -324,7 +324,8 @@ internal sealed partial class Editor : Form
         SetChoice(frames,obj["frameTemplate"]?.ToString());
         SetChoice(ornaments,obj["frameLevelOverlay"]?.ToString());
         SetChoice(icons,obj["frameRoleIcon"]?.ToString());
-        if(obj["frameAccent"]!=null)try{backgroundAccent=ColorTranslator.FromHtml(obj["frameAccent"]!.ToString());}catch{}
+        accentChanged=false;
+        if(obj["frameAccent"]!=null)try{backgroundAccent=ColorTranslator.FromHtml(obj["frameAccent"]!.ToString());accentChanged=true;}catch{}
         customFrameBytes=null;customFrameExtension=null;preview.SetCustomFrame(null,null);
         var known=new HashSet<string>(new[]{"id","name","level","atk","def","element","role","ability","desc",
           "rarity","kind","roleStyle","tags","frameTemplate","frameLevelOverlay","frameRoleIcon",
