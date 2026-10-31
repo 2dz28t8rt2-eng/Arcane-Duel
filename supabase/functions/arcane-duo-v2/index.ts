@@ -330,6 +330,20 @@ Deno.serve(async request=>{
   if(error)throw error;
   assert(room&&new Date(room.expires_at).getTime()>Date.now(),"Raum fehlt oder ist abgelaufen.");
   assert(room.state?.schema===2,"Raum hat keine gültigen 2v2-Regeln.");
+  if(kind==="renewInvite"){
+   assert(room.status==="waiting"&&room.state?.status==="waiting"&&!room.guest_token_hash,
+    "Diese Party wartet nicht mehr auf einen Partner.");
+   const owner=await profileByToken(body.profileToken);
+   assert(owner.id===room.host_profile_id,"Nur der Party-Leiter kann einen neuen Link erstellen.");
+   const newInvite=secret();
+   const {data:updated,error:renewError}=await db.from(TABLE).update({
+    invitation_hash:await hash(newInvite),updated_at:new Date().toISOString()
+   }).eq("id",roomId).eq("revision",room.revision).is("guest_token_hash",null)
+    .select("id").maybeSingle();
+   if(renewError)throw renewError;
+   assert(updated,"Einladung wurde inzwischen verändert. Bitte Raum neu laden.");
+   return json({roomId,seat:0,invite:newInvite,state:game.view(room.state,0)},200,allow);
+  }
   if(kind==="join"){
    assert(isToken(body.invite),"Einladung ungültig.");
    assert(room.status==="waiting"&&!room.guest_token_hash,"Raum bereits besetzt.");
