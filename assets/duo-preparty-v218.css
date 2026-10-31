@@ -1,0 +1,58 @@
+/* Arcane Duel Duo v21.8 — the invitation happens before the game menu. */
+#duoPage[hidden],#duoPartyGate[hidden],#duoMainMenuGate[hidden],#duoPartyConfig[hidden],#duoSetupPanel[hidden]{display:none!important}
+.duo-gate,.duo-menu-gate{position:fixed;inset:0;z-index:11000;overflow:auto;
+ display:grid;place-items:center;padding:22px;color:#f6eedc;
+ background:radial-gradient(ellipse at 50% 32%,#1e2742 0%,#0a1020 48%,#02040b 100%);
+ font-family:Georgia,"Times New Roman",serif;box-sizing:border-box}
+.duo-gate-card,.duo-menu-panel{position:relative;width:min(100%,630px);text-align:center;
+ box-sizing:border-box;padding:clamp(22px,5vw,42px);border:1px solid #8a7552a6;border-radius:13px;
+ box-shadow:0 30px 85px #000c,inset 0 0 50px #ac8e2711;background:linear-gradient(150deg,#121c30e8,#080c17f5)}
+.duo-gate-crest,.duo-menu-crest{display:block;width:clamp(70px,14vw,115px);
+ height:clamp(70px,14vw,115px);object-fit:contain;margin:0 auto 13px;
+ filter:drop-shadow(0 0 16px #ac94d566)}
+.duo-gate-kicker,.duo-menu-kicker{letter-spacing:.26em;text-transform:uppercase;
+ color:#ccbd93;font-size:clamp(10px,1.5vw,12px);margin:8px 0 12px}
+.duo-gate-wordmark,.duo-menu-wordmark{font:normal clamp(30px,6vw,51px)/1.05 Georgia,serif;
+ margin:4px 0 16px;letter-spacing:.035em;color:#f5e8c9}
+.duo-menu-wordmark span{color:#d9ad67}
+.duo-menu-rule{height:1px;width:80%;margin:12px auto 19px;background:linear-gradient(90deg,transparent,#d7b970,transparent)}
+.duo-menu-subtitle{color:#d6cee1;margin:0 0 12px}
+.duo-menu-team{color:#f4d79b;font:600 13px/1.6 system-ui,sans-serif;min-height:1.5em}
+.duo-gate-card>p,.duo-gate-card label,.duo-menu-panel>p{line-height:1.6}
+.duo-party-chapter-controls{display:grid;gap:10px;text-align:left;max-width:490px;margin:16px auto;
+ font:500 13px/1.6 system-ui,sans-serif;color:#e8dcc2}
+.duo-party-chapter-controls label{display:grid;gap:5px}
+#duoPartyChapterControls [hidden]{display:none!important}
+.duo-party-chapter-controls select{width:100%;padding:10px;border-radius:7px;border:1px solid #736e7b;
+ background:#121b2e;color:#f5eddd;font:inherit}
+.duo-gate-card button,.duo-menu-nav button,.duo-menu-nav a{appearance:none;cursor:pointer;
+ border:1px solid #8e7b60;background:#161d30;color:#f6ecd3;border-radius:5px;
+ font:600 14px/1.4 Georgia,serif;padding:12px 17px;text-decoration:none;
+ transition:background .15s,border-color .15s}
+.duo-gate-card button:hover:not(:disabled),.duo-menu-nav button:hover:not(:disabled),.duo-menu-nav a:hover{background:#2b3348;border-color:#e2c68c}
+.duo-gate-card button:focus-visible,.duo-menu-nav button:focus-visible,.duo-menu-nav a:focus-visible{outline:3px solid #e7bd69;outline-offset:2px}
+.duo-gate-card button:disabled,.duo-menu-nav button:disabled{opacity:.48;cursor:not-allowed}
+#duoPartyCreate,.duo-menu-selected{background:linear-gradient(130deg,#3e3441,#544c43)!important;
+ border-color:#d3b676!important;color:#fff1ce!important}
+#duoPartyConfig{display:grid;gap:10px;margin-bottom:8px}
+.duo-party-waiting{border:1px solid #645f75;padding:15px;border-radius:10px;
+ background:#10192bcf;display:grid;gap:10px;font:500 13px/1.5 system-ui,sans-serif}
+.duo-party-waiting[hidden]{display:none!important}
+.duo-party-waiting label{display:grid;gap:6px;text-align:left}
+#duoPartyLink{width:100%;box-sizing:border-box;background:#0e1524;color:#f5eed8;
+ padding:12px;border:1px solid #756e70;border-radius:6px;font:12px system-ui,sans-serif}
+#duoPartyStatus,#duoMenuStatus{min-height:1.5em;color:#efd3a3;font:500 13px/1.6 system-ui,sans-serif}
+.duo-party-return{display:inline-block;margin-top:8px;color:#cabfba;font:13px system-ui,sans-serif}
+.duo-menu-nav{display:grid;grid-template-columns:1fr;gap:8px;width:min(100%,360px);
+ margin:21px auto 8px}
+#duoMenuStart:disabled{opacity:.7}
+#duoPage[data-lobby-view="true"] .duo-layout{display:none!important}
+#duoPage[data-lobby-view="true"] #duoSetupPanel{display:none!important}
+#duoReturnMenu[hidden]{display:none!important}
+#duoReturnMenu{border:1px solid #bca16e;border-radius:7px;background:#22273a;color:#f4e6c5;
+ cursor:pointer;padding:9px 14px;font:600 13px system-ui,sans-serif}
+@media(max-width:500px){.duo-gate,.duo-menu-gate{padding:10px;align-items:start}
+ .duo-gate-card,.duo-menu-panel{padding:19px 15px;margin:8px auto}
+ .duo-menu-nav{gap:6px}.duo-gate-crest,.duo-menu-crest{width:66px;height:66px}
+}
+@media(prefers-reduced-motion:reduce){.duo-gate-card button,.duo-menu-nav button,.duo-menu-nav a{transition:none}}

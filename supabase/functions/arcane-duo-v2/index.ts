@@ -330,6 +330,20 @@ Deno.serve(async request=>{
   if(error)throw error;
   assert(room&&new Date(room.expires_at).getTime()>Date.now(),"Raum fehlt oder ist abgelaufen.");
   assert(room.state?.schema===2,"Raum hat keine gültigen 2v2-Regeln.");
+  if(kind==="renewInvite"){
+   assert(room.status==="waiting"&&room.state?.status==="waiting"&&!room.guest_token_hash,
+    "Diese Party wartet nicht mehr auf einen Partner.");
+   const owner=await profileByToken(body.profileToken);
+   assert(owner.id===room.host_profile_id,"Nur der Party-Leiter kann einen neuen Link erstellen.");
+   const newInvite=secret();
+   const {data:updated,error:renewError}=await db.from(TABLE).update({
+    invitation_hash:await hash(newInvite),updated_at:new Date().toISOString()
+   }).eq("id",roomId).eq("revision",room.revision).is("guest_token_hash",null)
+    .select("id").maybeSingle();
+   if(renewError)throw renewError;
+   assert(updated,"Einladung wurde inzwischen verändert. Bitte Raum neu laden.");
+   return json({roomId,seat:0,invite:newInvite,state:game.view(room.state,0)},200,allow);
+  }
   if(kind==="join"){
    assert(isToken(body.invite),"Einladung ungültig.");
    assert(room.status==="waiting"&&!room.guest_token_hash,"Raum bereits besetzt.");
@@ -341,11 +355,11 @@ Deno.serve(async request=>{
     "Partner hat dieses Kapitel noch nicht freigeschaltet.");
    const guest=secret(),next=game.apply(room.state,2,{
     type:"join",name:p.nickname,deck:p.deck,fusions:p.fusions,
-    portraitId:portraitId(p.avatar_id),
+    portraitId:portraitId(p.avatar_id),deferStart:body.deferStart===true,
     upgrades:p.upgrades,enhancements:p.enhancements,
     essence:p.essence_binding,lv1:p.lv1_research},{catalog});
    const {data:updated,error:writeError}=await db.from(TABLE).update({
-    state:next,status:next.status,revision:next.revision,
+    state:next,status:next.status==='lobby'?'waiting':next.status,revision:next.revision,
     guest_token_hash:await hash(guest),guest_profile_id:p.id,
     invitation_hash:await hash(secret()),
     updated_at:new Date().toISOString(),
@@ -369,7 +383,7 @@ Deno.serve(async request=>{
   assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===room.revision,
    "Spielstand geändert. Bitte synchronisieren.");
   assert(body.action&&["summon","attack","switch","fusion","end","nextChapter","acceptNextChapter","declineNextChapter",
-   "soulCondense","soulDischarge","soulRaid","soulFocus","essencePredatorMode",
+   "startParty","soulCondense","soulDischarge","soulRaid","soulFocus","essencePredatorMode",
    "lv1Station","lv1Return","lv1GhostSwitch","lv1UseOffer","lv1Floating"].includes(body.action.type),
    "Aktion nicht erlaubt.");
   const legacyStart=body.action.type==="nextChapter"&&body.action.confirmRequired!==true;
@@ -406,7 +420,7 @@ Deno.serve(async request=>{
   const {data:updated,error:writeError}=await db.from(TABLE).update({
    // Legacy SQL status CHECK allows waiting/active/finished only; invitation state
    // is held authoritatively in the versioned game JSON until the guest responds.
-   state:next,status:next.status==='inviting_next'?'finished':next.status,revision:next.revision,
+   state:next,status:next.status==='inviting_next'?'finished':next.status==='lobby'?'waiting':next.status,revision:next.revision,
    updated_at:new Date().toISOString(),
    expires_at:new Date(Date.now()+90*86400000).toISOString()
   }).eq("id",roomId).eq("revision",room.revision).select("id").maybeSingle();
