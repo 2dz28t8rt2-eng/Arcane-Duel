@@ -445,32 +445,155 @@ internal sealed class SharePathDialog : Form
 internal sealed class CardPreview : Control
 {
     public string CardName="",Level="",Attack="",Defense="",Element="",Role="",Ability="";
-    public bool IsFusion;
+    public string Description="",Tags="",FrameId="auto",LevelDecoration="auto",RoleIcon="auto";
+    public bool IsFusion,IsAce,IsEssence;
+    public Color Accent=Color.FromArgb(111,77,122);
     Image? art;
-    public CardPreview(){DoubleBuffered=true; BackColor=Color.FromArgb(28,25,36);}
-    public void SetImage(byte[]? data)
+    Image? customFrame;
+    public CardPreview(){DoubleBuffered=true;BackColor=Color.FromArgb(28,25,36);}
+
+    public void SetImage(byte[]? bytes)
     {
         Image? next=null;
-        if(data!=null){using var input=new MemoryStream(data);using var source=Image.FromStream(input);next=new Bitmap(source);}
-        var old=art;art=next;old?.Dispose();Invalidate();
+        if(bytes!=null)
+        {
+            using var input=new MemoryStream(bytes);
+            using var source=Image.FromStream(input);
+            next=new Bitmap(source);
+        }
+        var previous=art;art=next;previous?.Dispose();Invalidate();
     }
-    protected override void Dispose(bool disposing){if(disposing)art?.Dispose();base.Dispose(disposing);}
+
+    public void SetCustomFrame(byte[]? data,string? ext)
+    {
+        Image? next=null;
+        if(data!=null)
+        {
+            using var input=new MemoryStream(data);
+            if(ext==".svg")
+            {
+                using var svg=SvgDocument.Open<SvgDocument>(input);
+                next=svg.Draw(720,1140);
+            }
+            else
+            {
+                using var source=Image.FromStream(input);
+                next=new Bitmap(source);
+            }
+        }
+        var previous=customFrame;customFrame=next;previous?.Dispose();Invalidate();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if(disposing){art?.Dispose();customFrame?.Dispose();}
+        base.Dispose(disposing);
+    }
+
+    string Family()=>IsAce?"ace":IsEssence?"essence":IsFusion?"fusion":"normal";
+    string Frame()
+    {
+        if(FrameId!="auto" && FrameId!="custom")return FrameId;
+        var level=int.TryParse(Level,out var parsed)?Math.Clamp(parsed,1,10):1;
+        var tier=level<=2?1:level<=4?2:level<=6?3:level<=8?4:5;
+        return Family()+"-"+tier.ToString("00");
+    }
+    string Ornament()
+    {
+        if(LevelDecoration=="none")return "";
+        if(LevelDecoration!="auto")return LevelDecoration;
+        var level=int.TryParse(Level,out var parsed)?Math.Clamp(parsed,1,10):1;
+        return Family()+"-lv"+level.ToString("00");
+    }
+    string Icon()
+    {
+        if(RoleIcon=="none")return "";
+        if(RoleIcon!="auto")return RoleIcon;
+        return Role.ToLowerInvariant() switch {
+            "guardian"=>"guardian-shield",
+            "soul"=>"soul-spiral",
+            "predator"=>"predator-skull",
+            "combatant" or "allrounder"=>"combatant-swords",
+            "weaver"=>"weaver-rune","support"=>"support-star",
+            _=>""
+        };
+    }
+
+    public void DrawPreview(Bitmap target)
+    {
+        using var graphics=Graphics.FromImage(target);
+        PaintCard(graphics,target.Width,target.Height);
+    }
     protected override void OnPaint(PaintEventArgs e)
     {
-        base.OnPaint(e); var g=e.Graphics;g.SmoothingMode=SmoothingMode.AntiAlias;
-        float scale=Math.Min((Width-20)/360f,(Height-20)/570f);if(scale<=0)return;
-        g.TranslateTransform((Width-360*scale)/2,(Height-570*scale)/2);g.ScaleTransform(scale,scale);
-        using var frame=new SolidBrush(IsFusion?Color.FromArgb(105,67,115):Color.FromArgb(127,86,44));
-        using var panel=new SolidBrush(Color.FromArgb(233,218,181));using var ink=new SolidBrush(Color.FromArgb(43,30,24));
-        using var dim=new SolidBrush(Color.FromArgb(65,53,49));using var gold=new Pen(Color.FromArgb(208,172,100),4);
-        g.FillRectangle(frame,0,0,360,570);g.DrawRectangle(gold,5,5,350,560);
-        g.FillRectangle(panel,18,18,324,50);g.FillRectangle(dim,18,76,324,280);g.FillRectangle(panel,18,363,324,187);
-        using var title=new Font("Segoe UI",15,FontStyle.Bold);using var text=new Font("Segoe UI",11);using var small=new Font("Segoe UI",9);
-        g.DrawString(CardName,title,ink,new RectangleF(27,25,305,40));
-        if(art!=null){float ratio=Math.Max(324f/art.Width,280f/art.Height);float w=art.Width*ratio,h=art.Height*ratio;var state=g.Save();g.SetClip(new RectangleF(18,76,324,280));g.DrawImage(art,18+(324-w)/2,76+(280-h)/2,w,h);g.Restore(state);}
-        else g.DrawString("BILDVORSCHAU",text,Brushes.White,new RectangleF(85,195,220,40));
-        g.DrawString("Stufe "+Level+"   ·   "+Element+"   ·   "+Role,text,ink,new RectangleF(28,375,305,48));
-        g.DrawString(Ability,small,ink,new RectangleF(28,416,304,75));
-        g.DrawString("ATK "+Attack+"     DEF "+Defense,title,ink,new RectangleF(28,502,305,38));
+        base.OnPaint(e);
+        PaintCard(e.Graphics,Width,Height);
+    }
+    private void PaintCard(Graphics g,int width,int height)
+    {
+        g.SmoothingMode=SmoothingMode.AntiAlias;
+        g.TextRenderingHint=System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+        g.Clear(Color.FromArgb(28,25,36));
+        float scale=Math.Min((width-16)/360f,(height-16)/570f);
+        if(scale<=0)return;
+        var state=g.Save();
+        g.TranslateTransform((width-360*scale)/2,(height-570*scale)/2);
+        g.ScaleTransform(scale,scale);
+        try
+        {
+            using var frame=new SolidBrush(Accent);
+            using var page=new SolidBrush(Color.FromArgb(234,219,191));
+            using var dark=new SolidBrush(Color.FromArgb(27,30,41));
+            using var ink=new SolidBrush(Color.FromArgb(41,31,31));
+            using var border=new Pen(Color.FromArgb(218,184,112),4);
+            g.FillRectangle(frame,0,0,360,570);
+            g.FillRectangle(page,18,18,324,50);
+            g.FillRectangle(dark,18,72,324,288);
+            g.FillRectangle(page,18,363,324,189);
+            if(art!=null)
+            {
+                float factor=Math.Max(324f/art.Width,288f/art.Height);
+                float aw=art.Width*factor,ah=art.Height*factor;
+                var stateArt=g.Save();
+                g.SetClip(new RectangleF(18,72,324,288));
+                g.DrawImage(art,18+(324-aw)/2,72+(288-ah)/2,aw,ah);
+                g.Restore(stateArt);
+            }
+            else
+            {
+                using var type=new Font("Segoe UI",13,FontStyle.Bold);
+                g.DrawString("ARTWORK",type,Brushes.White,new RectangleF(119,199,180,40));
+            }
+
+            // Original SVG frame overlays rendered by Svg.NET – never substitutes
+            // an approximate GDI rectangle for a selected native game frame.
+            var chosen=FrameId=="custom"?null:AssetCatalog.SvgBitmap("frame",Frame(),720,1140);
+            if(chosen!=null)g.DrawImage(chosen,0,0,360,570);
+            if(FrameId=="custom" && customFrame!=null)g.DrawImage(customFrame,0,0,360,570);
+            var decoration=AssetCatalog.SvgBitmap("level",Ornament(),720,1140);
+            if(decoration!=null)g.DrawImage(decoration,0,0,360,570);
+
+            using var title=new Font("Segoe UI",15,FontStyle.Bold);
+            using var stats=new Font("Segoe UI",16,FontStyle.Bold);
+            using var regular=new Font("Segoe UI",10,FontStyle.Regular);
+            using var tiny=new Font("Segoe UI",8,FontStyle.Regular);
+            g.DrawString(CardName,title,ink,new RectangleF(28,24,310,42));
+            var roleText=string.IsNullOrWhiteSpace(Role)?"OHNE ROLLENTAG":Role.ToUpperInvariant();
+            var line="LV "+Level+"  ·  "+Element+"  ·  "+roleText;
+            g.DrawString(line,regular,ink,new RectangleF(29,373,274,34));
+            if(Tags.Length>0)g.DrawString("TAGS: "+Tags,tiny,ink,new RectangleF(28,410,303,27));
+            var description=string.IsNullOrWhiteSpace(Description)?Ability:
+                Description+(Ability.Length>0?"\n"+Ability:"");
+            g.DrawString(description,tiny,ink,new RectangleF(28,442,300,59));
+            g.DrawString("ATK "+Attack+"   DEF "+Defense,stats,ink,new RectangleF(27,506,306,43));
+            var emblem=AssetCatalog.SvgBitmap("icon",Icon(),72,72);
+            if(emblem!=null)
+            {
+                using var patch=new SolidBrush(Color.FromArgb(202,23,25,39));
+                g.FillEllipse(patch,294,372,36,36);
+                g.DrawImage(emblem,new RectangleF(298,375,28,28));
+            }
+        }
+        finally {g.Restore(state);}
     }
 }
