@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using Svg;
 
 namespace ArcaneCardEditor;
@@ -44,6 +45,45 @@ internal static class AssetCatalog
         using var buffer = new MemoryStream();
         stream.CopyTo(buffer);
         return Resources[resource] = buffer.ToArray();
+    }
+
+
+    private static string? gameCss;
+    private static readonly string[] NativeCardCss =
+    {
+        "card-look-v3.css", "card-preview-polish-v4.css",
+        "card-templates-v1.css", "card-level-frames-v401.css",
+        "card-level-runtime-v402.css", "card-shell-v404.css",
+        "card-v405-polish.css"
+    };
+
+    public static string GameCardScript() =>
+        Encoding.UTF8.GetString(Read("ArcaneCardEditor.Script.CardView221"));
+
+    public static string GameCardStyles()
+    {
+        if (gameCss != null) return gameCss;
+        var css = string.Join(Environment.NewLine,
+            NativeCardCss.Select(file => Encoding.UTF8.GetString(Read("ArcaneCardEditor.Style." + file))));
+        // Same original SVG files as the game. Embed as data: instead of
+        // filesystem paths, because WebView2 NavigateToString has no asset root.
+        gameCss = Regex.Replace(css,
+            @"url\(\s*[""']?card-templates/(levels/)?([a-z0-9-]+)\.svg[""']?\s*\)",
+            match =>
+            {
+                var type = match.Groups[1].Success ? "Level" : "Frame";
+                var id = match.Groups[2].Value;
+                var bytes = Read("ArcaneCardEditor." + type + "." + id + ".svg");
+                return "url(\"data:image/svg+xml;base64," + Convert.ToBase64String(bytes) + "\")";
+            }, RegexOptions.IgnoreCase);
+        return gameCss;
+    }
+
+    public static string IconDataUri(string icon)
+    {
+        if (!Icons.Contains(icon)) return "";
+        return "data:image/svg+xml;base64," +
+            Convert.ToBase64String(Read("ArcaneCardEditor.Icon." + icon + ".svg"));
     }
 
     public static byte[]? ArtworkPreview(string? path)
