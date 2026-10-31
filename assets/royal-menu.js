@@ -42,7 +42,7 @@ function renderRoyalMenu(){
  screen.classList.add('fm-screen');document.body.classList.add('fm-menu-active');
  const tabs=new Map([...nav.querySelectorAll('button[data-tab]')].map(btn=>[btn.dataset.tab,btn]));
  nav.replaceChildren();nav.className='fm-navigation';
- nav.innerHTML='<div class="fm-nav-brand"><span>✧</span><div><strong>ARCANE DUEL</strong><small>4.1 · BESTIARIUM</small></div></div>';
+ nav.innerHTML='<div class="fm-nav-brand"><span>✧</span><div><strong>ARCANE DUEL</strong><small>'+safe(window.ArcaneDuelRelease?.version||'1.0.0')+'</small></div></div>';
  const titles={tournament:'Turnier',free:'Freie Duelle',pvp:'Lokales PvP',collection:'Hauptdeck',fusions:'Fusionsdeck',decks:'Deckplätze',lexicon:'Monsterlexikon',challenges:'Aufgaben & Abenteuer',workshop:'Monsterwerkstatt',upgrades:'Verbesserungen',xp:'Levelbelohnungen',shop:'Booster-Shop',packs:'Charakter-Boosterpacks',stats:'Chronik',settings:'Einstellungen & Spielstand'};
  const activeGroup=categories.find(g=>g.tabs.includes(menuTab))||categories[0];
  if(window.ArcaneMenuShell221){
