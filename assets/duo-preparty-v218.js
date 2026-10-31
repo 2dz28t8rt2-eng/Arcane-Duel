@@ -98,6 +98,18 @@
   sync();
  };
  $('duoPartyCopy').onclick=copyInvite;
+ $('duoJoinManual').onclick=async()=>{
+  const button=$('duoJoinManual');button.disabled=true;
+  info('Einladung wird geprüft …');
+  try{
+   await api.pasteInvite($('duoJoinValue').value);
+   info('Einladung gültig. Bestätige deinen Beitritt.');
+  }catch(e){info('Beitritt nicht möglich: '+e.message);}
+  finally{button.disabled=false;sync();}
+ };
+ $('duoJoinValue').addEventListener('keydown',event=>{
+  if(event.key==='Enter'){event.preventDefault();$('duoJoinManual').click();}
+ });
  $('duoPartyResume').onclick=async()=>{
   info('Letzte Partie wird geladen …');
   await api.continueLastRoom();
