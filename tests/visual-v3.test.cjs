@@ -7,8 +7,9 @@ const game=fs.readFileSync(path.join(root,'assets/game.js'),'utf8');
 test('Visual v3 styling is loaded after existing card rules without changing gameplay code',()=>{
  const base=html.indexOf('assets/styles.css'),old=html.indexOf('assets/evolution.css'),new3=html.indexOf('assets/visual-v3.css');
  assert.ok(base>=0&&old>base&&new3>old);
- assert.match(html,/4\.1 · Das Vergoldete Archiv/);
- assert.match(html,/4\.1 · BESTIARIUM/);
+ const {version}=require('../package.json');
+ assert.ok(html.includes('<title>ARCANE DUEL · '+version+'</title>'));
+ assert.ok(html.includes('<small data-arcane-version>'+version+'</small>'));
  assert.match(css,/presentation only, never saved cards or combat/);
  assert.match(game,/function fullCardHtml\(c,/);
 });
