@@ -1,0 +1,101 @@
+name: Arcane Duel – one-time offline server migration
+run-name: Offline source and server release snapshot
+on:
+  push:
+    branches: [development]
+    paths:
+      - .github/workflows/one-time-server-migration.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify canonical versions
+        run: node scripts/check-solo-version.cjs
+      - name: Verify server backend and retention safeguards
+        run: |
+          node --test tests/selfhost-v229.test.cjs tests/personal-save-v230.test.cjs tests/shared-client-rules-v230.test.cjs
+          python3 -m py_compile scripts/package-selfhost.py server/deploy-release.py
+          python3 -m unittest discover -s tests -p test_release_retention.py -v
+      - name: Run complete application test suite
+        run: |
+          npm ci --ignore-scripts
+          npm test
+      - name: Build selfhost release and all-source offline snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/migration
+          python3 scripts/package-selfhost.py --output artifacts/migration
+          version=$(node -p 'require("./package.json").version')
+          revision=$(git rev-parse HEAD)
+          short=${revision:0:12}
+          source="Arcane-Duel-Quellcode-${version}-${short}.tar.gz"
+          git archive --format=tar.gz --prefix=Arcane-Duel-Quellcode/ --output="artifacts/migration/${source}" HEAD
+          (
+            cd artifacts/migration
+            sha256sum "${source}" > "${source}.sha256"
+          )
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json,tarfile,subprocess
+          folder=Path("artifacts/migration")
+          tarballs=sorted(folder.glob("*.tar.gz"))
+          assert len(tarballs)==2,tarballs
+          reports=[]
+          for p in tarballs:
+           with tarfile.open(p,"r:gz") as f:
+            names=f.getnames()
+            assert len(names)>800,(p,len(names))
+            assert not any("/.git/" in n or n.endswith(".env") or "/arcane_duel_upload_ed25519" in n for n in names)
+            if p.name.startswith("v"):
+             release=json.load(f.extractfile("release.json"))
+             assert release["version"]==json.loads(Path("package.json").read_text())["version"]
+             assert not release["dirty"]
+             assert len(release["files"])>850
+             assert "desktop/build/icon.png" in release["files"]
+             assert "server/main.cjs" in release["files"]
+            else:
+             assert "Arcane-Duel-Quellcode/scripts/package-selfhost.py" in names
+             assert "Arcane-Duel-Quellcode/index.html" in names
+           digest=hashlib.file_digest(p.open("rb"),"sha256").hexdigest()
+           expected=(folder/(p.name+".sha256")).read_text().split()[0]
+           assert digest==expected,p
+           reports.append({"file":p.name,"sha256":digest,"bytes":p.stat().st_size,"files":len(names)})
+          (folder/"MIGRATION_PROOF.json").write_text(json.dumps({
+           "revision":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+           "version":json.loads(Path("package.json").read_text())["version"],
+           "reports":reports,"contains_private_keys":False,
+           "live_server_activated":False,"upload_to_sftp_completed":False
+          },indent=2))
+          print(json.dumps(reports,indent=2))
+          PY
+          mkdir -p artifacts/deploy artifacts/source
+          cp artifacts/migration/v*.tar.gz* artifacts/migration/MIGRATION_PROOF.json artifacts/deploy/
+          cp artifacts/migration/Arcane-Duel-Quellcode*.tar.gz* artifacts/migration/MIGRATION_PROOF.json artifacts/source/
+      - name: Upload administrator-approved server release
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-server-release
+          path: artifacts/deploy/*
+          compression-level: 0
+          retention-days: 7
+          if-no-files-found: error
+      - name: Upload complete editable source for offline development
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-offline-source
+          path: artifacts/source/*
+          compression-level: 0
+          retention-days: 7
+          if-no-files-found: error
