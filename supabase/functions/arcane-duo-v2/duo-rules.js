@@ -1860,7 +1860,7 @@
     const damage=Math.max(0,old.teams[1-actor.team].lp-g.teams[1-actor.team].lp);
     stats.attacks++;stats.damage+=damage;if(card&&!card.fusion)stats.normalDamage+=damage;
    }
-   if(['attack','soulRaid','soulDischarge'].includes(action.type)){
+   if(action.type==='attack'&&(action.sourceSeat??seat)===seat&&old.players[seat].field[action.slot]?.id===actor.essence?.chosen){
     const surviving=new Set(g.players.filter(x=>x.team!==actor.team).flatMap(x=>x.field.filter(Boolean).map(c=>c.uid)));
     stats.kills+=old.players.filter(x=>x.team!==actor.team).flatMap(x=>x.field.filter(Boolean)).filter(c=>!surviving.has(c.uid)).length;
    }

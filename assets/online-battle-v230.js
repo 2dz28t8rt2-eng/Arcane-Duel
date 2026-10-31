@@ -51,7 +51,7 @@
    const p=next.players[team===0?viewer:enemySeat],target=g.players[team];
    Object.assign(target,{id:team,lp:next.teams[team].lp,shield:next.teams[team].shield||0,hand:team===0?hand:[],
     deck:p.deck.map(()=>null),originalDeck:team===0?[...(p.originalDeck||profile.activeDeck)]:[],fusionDeck:team===0?[...p.fusionDeck]:[],
-    remainingFusion:team===0?[...p.remainingFusion]:[],field:rules.teamField(next,p).map(c=>instance(c,c?.ownerSeat??p.seat)),
+    remainingFusion:team===0?[...p.remainingFusion]:[],field:rules.teamField(next,p).map((c,index)=>instance(c,owner(team,index)?.seat??p.seat)),
     graveyard:next.players.filter(x=>x.team===team).flatMap(x=>x.graveyard.map(c=>instance(c,x.seat))),
     enhancements:{},flatBonus:0,power:1});
   }

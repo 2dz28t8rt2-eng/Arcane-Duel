@@ -51,6 +51,10 @@ const origin='http://127.0.0.1:8758';
   await b.locator('#ownRow .empty').first().click();
   await b.waitForFunction(()=>window.ArcaneOnline230.snapshot().state.players[2].fusionsPerformed===1&&!window.ArcaneOnlineBattle230.playing(),null,{timeout:45000});
   mark('original material selection and complete fusion ritual');
+  for(const p of [a,b])assert.equal(await p.evaluate(()=>{
+   const s=window.ArcaneOnline230.snapshot().state;
+   return game.players[0].field.every((c,i)=>!c||s.players[c.onlineSeat].field[i]?.uid===c.uid);
+  }),true,'shared field preserves the actual owner of every card');
   const attackSlot=await b.evaluate(()=>game.players[0].field.findIndex(c=>c?.onlineSeat===2));
   await b.locator('#ownRow [data-mine="'+attackSlot+'"]').click();
   const target=await b.evaluate(()=>game.players[1].field.findIndex(Boolean));

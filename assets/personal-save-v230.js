@@ -60,6 +60,8 @@
   const p=state.players[seat],chapter=state.chapter;
   const g=createGame({mode:'pve',opponentId:Math.min(10,chapter),context:'tournament',deck:profile.activeDeck,fusionDeck:profile.fusionDeck});
   g.id='online-'+room+'-'+state.duelNo;g.winner=state.winner;g.turn=state.turn+1;
+  g.maxLP=state.maxLP||state.teams[0].maxLP||window.ArcaneDuoRules.duoStartingLp(chapter);
+  for(const side of [0,1]){g.players[side].lp=state.teams[side].lp;g.players[side].shield=state.teams[side].shield||0;}
   g.surrendered=state.surrenderedBy!=null;g.log=state.log.slice(-80);g.totalFusions=[p.fusionsPerformed||0,0];
   const metrics=p.soloMetrics;
   if(metrics){g.executedAttacks=[metrics.attacks,0];g.damageDealt=[metrics.damage,0];g.evoStats={normalDamage:metrics.normalDamage,combos:metrics.combos,five:metrics.five,materialsMax:metrics.materialsMax};}
