@@ -66,9 +66,11 @@ const profile=token=>api({type:'profile',profileToken:token});
   assert.ok(advancedView.state.players[advancedSeat===0?2:0].hand.every(c=>c===null));
   assert.ok(noviceView.state.players[advancedSeat].hand.every(c=>c===null));
   const loanPlayer=advancedView.state.players[advancedSeat];
-  const cards=[...loanPlayer.hand,...loanPlayer.deck];
-  assert.equal(cards.length,40);
-  assert.ok(cards.every(id=>Number.isInteger(id)&&catalog[id]?.level<=target.level));
+  assert.equal(loanPlayer.hand.length+loanPlayer.deck.length,40);
+  assert.ok(loanPlayer.deck.every(card=>card===null),
+   'Draw-pile identities must remain hidden, even from their owner');
+  assert.ok(loanPlayer.hand.every(id=>Number.isInteger(id)&&catalog[id]?.level<=target.level),
+   'Current owner hand must respect the selected chapter level');
   report.loanBySeat[advancedSeat]=true;
   report.checks.push('real room and consent, lower progress cap, chapter 2 denied, chapter 1 started; loan seat '+advancedSeat);
  }
