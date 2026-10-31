@@ -21,7 +21,7 @@ async function state(page){return page.evaluate(()=>window.ArcaneDuoParty218.sta
 async function refresh(page){await page.evaluate(()=>window.ArcaneDuoParty218.refresh());}
 async function status(page,value){await page.waitForFunction(v=>window.ArcaneDuoParty218?.state().game?.status===v,value);}
 async function route(page,section){
- const group={menu:'play',quests:'play',deck:'deck',fusions:'deck',shop:'growth',upgrades:'growth',collection:'growth',progress:'growth',profile:'options',settings:'options',rules:'options'}[section];
+ const group={menu:'play',quests:'missions',deck:'deck',fusions:'deck',shop:'growth',upgrades:'growth',collection:'growth',progress:'growth',profile:'options',settings:'options',rules:'options'}[section];
  await page.locator('[data-fm-group="'+group+'"]').click();
  const id='duoSoloTab'+section[0].toUpperCase()+section.slice(1);if(section!=='menu'&&section!=='deck'&&section!=='collection'&&section!=='profile')await page.locator('#'+id).click();
 }
@@ -150,6 +150,10 @@ async function finishLiveDuel(A,B){
    guest.clearedChapters=[];await refresh(A);
   }
   report.checks.push('explicit group acceptance and enter; independent deck/shop/search/focus');
+  await route(A,'quests');
+  assert.equal(await A.locator('#duoSoloMenuTitle').textContent(),'Aufgaben & Abenteuer');
+  assert.equal(await A.locator('[data-fm-group="missions"] strong').textContent(),'Herausforderungen');
+  report.checks.push('quest navigation uses the corresponding singleplayer menu labels');
   await route(A,'menu');await A.locator('#duoMenuStart').click();await status(A,'party_ready');await refresh(B);
   assert.equal(await B.locator('#duoStartNotice').getAttribute('role'),'dialog');assert.match(await B.locator('#duoStartNoticeTitle').innerText(),/QA221 Host/);
   await B.screenshot({path:path.join(output,prefix+'-invitation.png')});await B.locator('#duoStartDecline').click();await status(B,'lobby');await refresh(A);
