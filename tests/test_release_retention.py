@@ -31,8 +31,8 @@ class RetentionTest(unittest.TestCase):
         self.upload.mkdir()
         self.keep = load_retention(self.releases, self.upload)
 
-    def make_release(self, c):
-        name = "v229-" + c * 12
+    def make_release(self, c, version="1.0.0"):
+        name = ("v229" if version == "legacy" else "v" + version) + "-" + c * 12
         p = self.releases / name
         p.mkdir()
         (p / "index.html").write_text("solo and duo " + c)
@@ -41,7 +41,7 @@ class RetentionTest(unittest.TestCase):
         return p
 
     def test_v1_v2_v3_only_keeps_v2_and_v3(self):
-        v1, v2, v3 = [self.make_release(c) for c in "abc"]
+        v1, v2, v3 = [self.make_release(c, v) for c, v in zip("abc", ("1.0.0", "1.0.1", "1.0.2"))]
         uploads_unrelated = self.upload / "other-project.zip"
         uploads_unrelated.write_text("other")
         (self.releases / ".staging-not-committed").mkdir()
@@ -64,13 +64,31 @@ class RetentionTest(unittest.TestCase):
     def test_fourth_release_removes_second_version(self):
         v1, v2, v3 = [self.make_release(c) for c in "abc"]
         self.keep(v3, v2)
-        v4 = self.make_release("d")
+        v4 = self.make_release("d", "1.0.3")
         result = self.keep(v4, v3)
         self.assertEqual(result["kept"], sorted([v3.name, v4.name]))
         self.assertFalse(v1.exists())
         self.assertFalse(v2.exists())
         self.assertTrue(v3.exists())
         self.assertTrue(v4.exists())
+
+    def test_previous_v229_release_survives_first_1_0_0_activation(self):
+        legacy = self.make_release("a", "legacy")
+        current = self.make_release("b", "1.0.0")
+        result = self.keep(current, legacy)
+        self.assertEqual(result["kept"], sorted([legacy.name, current.name]))
+        self.assertTrue(legacy.exists())
+        self.assertTrue(current.exists())
+
+    def test_1_0_1_deletes_legacy_after_successful_version_1_0_0(self):
+        legacy = self.make_release("a", "legacy")
+        first = self.make_release("b", "1.0.0")
+        self.keep(first, legacy)
+        second = self.make_release("c", "1.0.1")
+        result = self.keep(second, first)
+        self.assertEqual(result["kept"], sorted([first.name, second.name]))
+        self.assertFalse(legacy.exists())
+        self.assertFalse((self.upload / (legacy.name + ".tar.gz")).exists())
 
     def test_single_release_keeps_only_first(self):
         v1 = self.make_release("a")
@@ -81,13 +99,13 @@ class RetentionTest(unittest.TestCase):
         v1, v2, v3 = [self.make_release(c) for c in "abc"]
         unsafe = self.root / "external-secret.txt"
         unsafe.write_text("preserve")
-        (self.releases / ("v229-" + "d"*12)).symlink_to(unsafe)
+        (self.releases / ("v1.0.1-" + "d"*12)).symlink_to(unsafe)
         with self.assertRaisesRegex(RuntimeError, "Unsafe retired release"):
             self.keep(v3, v2)
         self.assertEqual(unsafe.read_text(), "preserve")
 
     def test_rejects_unknown_previous_path_without_deleting(self):
-        v1, v2 = [self.make_release(c) for c in "ab"]
+        v1, v2 = [self.make_release(c, v) for c, v in zip("ab", ("1.0.0", "1.0.1"))]
         fake = self.root / "different-app"
         fake.mkdir()
         with self.assertRaisesRegex(RuntimeError, "Unsafe release path"):
