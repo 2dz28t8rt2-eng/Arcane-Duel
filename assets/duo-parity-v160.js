@@ -443,7 +443,8 @@
  }
  async function send(action){
   if(!game||busy)return;
-  if(!(game.activeSeat===seat&&game.status==='active')&&
+  if(!(action.type==='startParty'&&seat===0&&game.status==='lobby')&&
+     !(game.activeSeat===seat&&game.status==='active')&&
     !(action.type==='nextChapter'&&[0,2].includes(seat)&&game.status==='finished'&&game.winner===0)&&
     !(['acceptNextChapter','declineNextChapter'].includes(action.type)&&
       seat===game.chapterInvite?.toSeat&&game.status==='inviting_next'))return;
@@ -493,7 +494,7 @@
   try{
    if(!duoProfileToken||!duoProfile)throw Error('Bitte zuerst ein eigenes 2v2-Profil erstellen.');
    const r=await call({type:'join',roomId:id,invite:invitation,
-    profileToken:duoProfileToken});
+    profileToken:duoProfileToken,deferStart:true});
    roomId=id;token=r.token;seat=2;invite='';save();load(r);
    location.hash='room='+roomId;
    set('duoStatus','Du bist dabei! Jetzt kämpft ihr gemeinsam.');
@@ -522,6 +523,7 @@
    '☁ Dein Duell wird automatisch gespeichert.';
  }
  function render(){
+  window.ArcaneDuoPartyUI218?.sync?.();
   const dock=$('duoActions'),track=$('duoTrack'),seats=$('duoSeats'),log=$('duoLog');
   const directGuide=$('ad187-attack-guide');
   if(directGuide){directGuide.hidden=true;directGuide.replaceChildren();}
@@ -1067,9 +1069,12 @@
    nameConfirmed=true;$('duoNameGate').hidden=true;$('duoNameCancel').hidden=true;$('duoPage').inert=false;
    $('duoHostName').value=duoProfile.nickname;
    $('duoHostName').readOnly=true;
+   window.ArcaneDuoPartyUI218?.sync?.();
    render();
    if(joinIntent)await requestInvite();
-  }finally{inviteRequested=false;$('duoNameConfirm').disabled=false;}
+  }catch(e){$('duoNameHint').textContent='Profil konnte nicht vorbereitet werden: '+e.message;
+   set('duoStatus',e.message);}
+  finally{inviteRequested=false;$('duoNameConfirm').disabled=false;}
  }
  async function init(){
   portraits?.chooser($('duoAvatarPicker'),{selected:chosenAvatar,onChange:chooseAvatar});
@@ -1081,7 +1086,9 @@
    catalog=Object.fromEntries(snapshot.cards.map(c=>[c.id,c]));
    fateIds=[...(snapshot.fateIds||[])];fateNames=[...(snapshot.fateNames||[])];
    readProfile(snapshot);
-  }catch(e){set('duoDeckInfo','Karten konnten nicht geladen werden: '+e.message);return;}
+  }catch(e){set('duoDeckInfo','Karten konnten nicht geladen werden: '+e.message);
+   $('duoNameHint').textContent='Karten konnten nicht geladen werden: '+e.message+' Bitte die Seite neu laden.';
+   return;}
   for(const c of rules.ENCOUNTERS){
    const o=el('option',$('duoChapter'),(c.id>=11?'Fanatiker '+(c.id-10):c.id)+' · '+c.name);
    o.value=c.id;
@@ -1198,13 +1205,21 @@
     }else if(duoProfileToken)await continueLastRoom(id);
     else set('duoStatus','Bitte das persönliche 2v2-Profil wiederherstellen.');
    }catch{set('duoStatus','Raumzugang konnte nicht wiederhergestellt werden.');}
-  }else if(!hash&&duoLastRoom?.roomId&&duoProfileToken){
-   await continueLastRoom(duoLastRoom.roomId);
-  }
+  } // On a clean visit, form a new party; never silently resume an old fight.
   $('duoNameConfirm').disabled=false;
   $('duoNameInput').focus();
   render();
  }
+ window.ArcaneDuoParty218=Object.freeze({
+  state:()=>({nameConfirmed,joinIntent:!!joinIntent,roomId,seat,game,invite,
+   profile:duoProfile,lastRoom:duoLastRoom,busy,catalogReady:Object.keys(catalog).length>0}),
+  createRoom,continueLastRoom,send,
+  resetWaitingRoom:()=>{
+   if(game?.status!=='waiting')return;
+   roomId='';token='';invite='';seat=-1;game=null;
+   history.replaceState(null,'',ownOrigin());render();
+  }
+ });
  init();
  window.addEventListener('online',()=>{if(roomId)refresh();});
  window.addEventListener('offline',()=>{
