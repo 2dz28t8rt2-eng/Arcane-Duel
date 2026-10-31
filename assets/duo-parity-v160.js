@@ -414,14 +414,14 @@
   catch{sessionReady=false;}
  }
  function load(payload){
-  if(payload.presence)presence=payload.presence;
-  if(Object.hasOwn(payload,'partyLimits'))partyLimits=payload.partyLimits;
   if(payload.state?.roomId&&payload.state.roomId!==roomId)return;
   let previous=game;
   // Revisions only order snapshots within one room. Starting another party
   // after a finished duel creates a new room at revision 0.
   if(previous?.roomId!==payload.state?.roomId)previous=null;
   if(previous&&payload.state?.revision<previous.revision)return;
+  if(payload.presence)presence=payload.presence;
+  if(Object.hasOwn(payload,'partyLimits'))partyLimits=payload.partyLimits;
   if(previous&&(payload.state?.duelNo||1)!==(previous.duelNo||1))previous=null;
   game=payload.state;seat=payload.seat;syncedAt=Date.now();syncError='';syncFailures=0;
   if(game.status!=='waiting')invite='';
@@ -448,10 +448,16 @@
    game.winner===0&&duoProfileToken)fetchProfile();
  }
  async function refresh(){
-  if(!roomId||!token||refreshing||busy)return;
-  refreshing=true;lastPollAt=Date.now();
+  if(!roomId||!token||busy)return;
+  // A caller awaiting synchronization needs a fresh response, not merely a
+  // return while an older poll (possibly from before the partner joined) runs.
+  if(refreshing){await refreshing;return refresh();}
+  let releaseRefresh;
+  refreshing=new Promise(resolve=>{releaseRefresh=resolve;});lastPollAt=Date.now();
   try{
    const response=await call({type:'state',roomId,token});
+   // A poll started before a join/action must not overwrite its newer result.
+   if(response.state?.roomId!==roomId||game&&response.state.revision<game.revision)return;
    if(response.presence){presence=response.presence;window.ArcaneDuoSolo221?.updatePresence?.();}
    const limitsChanged=Object.hasOwn(response,'partyLimits')&&JSON.stringify(partyLimits)!==JSON.stringify(response.partyLimits);
    if(Object.hasOwn(response,'partyLimits'))partyLimits=response.partyLimits;
@@ -461,7 +467,7 @@
    if(limitsChanged)window.ArcaneDuoSolo221?.partyLimitsChanged?.();
   }catch(e){syncFailures=Math.min(syncFailures+1,4);syncError=e.message;
     set('duoStatus',e.message);render();}
-  finally{refreshing=false;}
+  finally{refreshing=false;releaseRefresh();}
  }
  async function send(action){
   if(!game||busy)return;
@@ -472,6 +478,7 @@
        (action.type==='cancelPartyStart'&&seat===game.partyStartInvite?.fromSeat&&game.status==='party_ready')||
        (['acceptPartyStart','declinePartyStart'].includes(action.type)&&seat===game.partyStartInvite?.toSeat&&game.status==='party_ready'))&&
      !(game.activeSeat===seat&&game.status==='active')&&
+     !(action.type==='surrender'&&[0,2].includes(seat)&&game.status==='active')&&
     !(action.type==='nextChapter'&&[0,2].includes(seat)&&(!game.personalDuoRules||seat===0)&&game.status==='finished'&&game.winner===0)&&
     !(['acceptNextChapter','declineNextChapter'].includes(action.type)&&
       seat===game.chapterInvite?.toSeat&&game.status==='inviting_next'))return;
@@ -750,6 +757,14 @@
      'Ihr habt gewonnen, aber das Questziel fehlt. Wiederholt diese Prüfung.':
     game.winner===0?'Ihr habt diese Kampagne abgeschlossen!':'Das Duell ist zu Ende.');
    return;
+  }
+  const giveUp=button('⚑ Duell aufgeben',dock,()=>{
+   if(confirm('Das gemeinsame Duell für euer Team aufgeben? Das zählt für beide als Niederlage und gibt keine Belohnung.'))send({type:'surrender'});
+  });
+  giveUp.classList.add('ad182-surrender');
+  if(!game.supportsSurrender){
+   giveUp.disabled=true;
+   giveUp.title='Die Aufgabe ist nach der Aktualisierung des Online-Servers verfügbar.';
   }
   if(game.activeSeat!==seat){
    el('p',dock,game.activeSeat%2===1?'Der Gegner ist am Zug.':

@@ -118,6 +118,8 @@ test('differentiate attack flight, real hit, shield absorption and counterstrike
 
 test('the actual fusion reducer triggers the ritual sound once',()=>{
  const f=audioFixture(),before=match();
+ const levelOne=pack.starterMain.find(id=>catalog[id]?.level===1);
+ before.players[0].hand[0]=levelOne;before.players[0].hand[1]=levelOne;
  const material=before.players[0].hand.map((id,index)=>({id,index}))
   .filter(v=>catalog[v.id]?.level===1).slice(0,2)
   .map(v=>({from:'hand',index:v.index}));

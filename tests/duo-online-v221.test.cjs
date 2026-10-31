@@ -66,6 +66,7 @@ test('zone seven supports summon and position changes while inactive partner com
 });
 test('partner fusion from seventh zone consumes its real owner once, with result in seventh own zone',()=>{
  let g=accept(request(lobby(),0),2);const id=build.deck.find(id=>catalog[id].level===1),t=catalog[id];
+ g.players[0].hand[0]=id; // Controlled fusion material, independent of the shuffle.
  const handIndex=g.players[0].hand.findIndex(x=>catalog[x]?.level===1);assert.ok(handIndex>=0);
  g.players[2].field[6]={...t,uid:9500,mode:'atk',maxDef:t.def,placedRound:0,used:false,fusion:false};
  const materials=[{from:'hand',index:handIndex},{from:'allyField',index:6}];
