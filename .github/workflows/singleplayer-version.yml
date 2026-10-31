@@ -1,0 +1,45 @@
+name: Singleplayer version contract
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'index.html'
+      - 'assets/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/check-solo-version.cjs'
+      - '.github/workflows/singleplayer-version.yml'
+  pull_request:
+    branches: [development]
+    paths:
+      - 'index.html'
+      - 'assets/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/check-solo-version.cjs'
+      - '.github/workflows/singleplayer-version.yml'
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check canonical version and required bump
+        shell: bash
+        env:
+          ARCANE_PREVIOUS_SHA: ${{ github.event.before }}
+          ARCANE_TARGET_BRANCH: ${{ github.base_ref }}
+        run: |
+          if [[ -n "$ARCANE_TARGET_BRANCH" ]]; then
+            git fetch origin "$ARCANE_TARGET_BRANCH"
+            export ARCANE_VERSION_BASE="$(git merge-base HEAD "origin/$ARCANE_TARGET_BRANCH")"
+          elif [[ "$ARCANE_PREVIOUS_SHA" =~ ^[a-f0-9]{40}$ ]] && git cat-file -e "$ARCANE_PREVIOUS_SHA^{commit}" 2>/dev/null; then
+            export ARCANE_VERSION_BASE="$ARCANE_PREVIOUS_SHA"
+          elif git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            export ARCANE_VERSION_BASE="$(git rev-parse HEAD^)"
+          fi
+          node scripts/check-solo-version.cjs
