@@ -491,7 +491,7 @@ showFinished=function(){
  stored.showFinished();
  if(wasNew){
   const o=OPPONENTS[game.opponentId];
-  const html='<section class="first-win-box"><h3>✦ Erste Turnierprüfung bestanden!</h3>'+
+  const html='<section class="first-win-box"><h3>✦ Turnierprüfung '+(game.opponentId===10?'X':game.opponentId)+' bestanden!</h3>'+
    '<p>Die nächste Prüfung ist freigeschaltet. Das ACE-Monster des besiegten Duellanten kann ab jetzt <b>einmalig im Shop gegen Essenz gekauft</b> werden. Es wird nicht kostenlos vergeben.</p>'+
    '<p>Zusätzliche Turnierbelohnungen, einschließlich Erfahrung und Essenz, werden in deiner Ergebnisübersicht angezeigt.</p></section>';
   const modal=$('modal');if(modal)modal.insertAdjacentHTML('afterbegin',html);
