@@ -1,5 +1,6 @@
 /* 11.6.1: earned/drawn cards glide into the actual hand from the right. */
-#duelScreen #hand [data-hand].ad117-hand-incoming{
+#duelScreen #hand [data-hand].ad117-hand-incoming,
+#duoBattleArena .duo178-hand-card.ad117-hand-incoming{
  animation:ad117HandArrive .39s cubic-bezier(.12,.8,.18,1.02) var(--ad117-delay,0ms) both!important;
  will-change:transform,opacity,filter
 }
@@ -9,8 +10,8 @@
  100%{transform:translateX(0) rotate(0deg) scale(1);opacity:1;filter:brightness(1)}
 }
 @media(prefers-reduced-motion:reduce){
- #duelScreen #hand [data-hand].ad117-hand-incoming{animation:none!important;will-change:auto}
+ #duelScreen #hand [data-hand].ad117-hand-incoming,#duoBattleArena .duo178-hand-card.ad117-hand-incoming{animation:none!important;will-change:auto}
 }
-body.ad-motion-disabled #duelScreen #hand [data-hand].ad117-hand-incoming{animation:none!important;will-change:auto}
+body.ad-motion-disabled #duelScreen #hand [data-hand].ad117-hand-incoming,body.ad-motion-disabled #duoBattleArena .duo178-hand-card.ad117-hand-incoming{animation:none!important;will-change:auto}
 /* The initial five real cards exist, but the arena visually starts empty. */
 #duelScreen.ad-opening-hand-wait #hand{visibility:hidden}

@@ -283,6 +283,51 @@ async function finishLiveDuel(A,B){
   await B.locator('#duoSeats [data-seat="0"]>.field>.field-cell[data-slot="6"]').scrollIntoViewIfNeeded();
   report.checks.push('real click summon in zone seven, position change, persistent inspector, mobile zone access');
   if(!live){
+   // Feed an isolated public state transition to the actual hand renderer.
+   // No opponent hand identity is supplied or rendered by this test.
+   await A.evaluate(()=>{
+    const api=window.ArcaneDuoParty218,state=api.state();
+    const before=structuredClone(state.game);before.roomId='fixture-hand-flight';before.round=2;
+    const after=structuredClone(before);after.revision++;
+    after.players[0].deck.pop();after.players[0].hand.push(before.players[0].hand[0]);
+    document.body.classList.remove('ad-motion-disabled');
+    window.__qaOriginalSfx=window.ArcaneSfx208;window.__qaDrawSounds=[];
+    window.ArcaneSfx208={...window.__qaOriginalSfx,play(kind){window.__qaDrawSounds.push(kind);return null;}};
+    window.__qaDrawAfter=after;
+    window.ArcaneDuoHand178.sync({game:before,seat:0,roomId:before.roomId,catalog:state.catalog});
+    window.ArcaneDuoHand178.sync({game:after,seat:0,roomId:after.roomId,catalog:state.catalog});
+   });
+   const incoming=A.locator('#duoSeats [data-seat="0"] .duo178-hand-card.ad117-hand-incoming');
+   assert.equal(await incoming.count(),1);
+   assert.equal(await incoming.evaluate(n=>getComputedStyle(n).animationName),'ad117HandArrive');
+   assert.equal(await incoming.evaluate(n=>getComputedStyle(n).animationDuration),'0.39s');
+   assert.match(await incoming.evaluate(n=>n.style.getPropertyValue('--ad117-from')),/px$/);
+   await A.waitForFunction(()=>window.__qaDrawSounds.filter(x=>x==='draw').length===1);
+   await A.evaluate(()=>{const s=window.ArcaneDuoParty218.state();
+    window.ArcaneDuoHand178.sync({game:window.__qaDrawAfter,seat:0,roomId:window.__qaDrawAfter.roomId,catalog:s.catalog});});
+   await A.waitForTimeout(500);
+   assert.equal((await A.evaluate(()=>window.__qaDrawSounds)).filter(x=>x==='draw').length,1);
+   assert.ok((await state(B)).game.players[0].hand.every(x=>x===null));
+   await A.evaluate(()=>{
+    const s=window.ArcaneDuoParty218.state(),fate=structuredClone(window.__qaDrawAfter);
+    fate.revision++;fate.fateEvent={ownerSeat:0,round:fate.round};fate.players[0].deck.pop();
+    fate.players[0].hand=fate.players[0].hand.map(id=>({id:typeof id==='number'?id:id.id,fate:true}));
+    window.__qaDrawSounds=[];
+    window.ArcaneDuoHand178.sync({game:fate,seat:0,roomId:fate.roomId,catalog:s.catalog});
+   });
+   await A.waitForTimeout(500);
+   assert.equal((await A.evaluate(()=>window.__qaDrawSounds)).filter(x=>x==='draw').length,0);
+   assert.equal(await A.locator('#duoSeats [data-seat="0"] .duo178-hand-card.ad117-hand-incoming').count(),0);
+   await A.evaluate(()=>{
+    const s=window.ArcaneDuoParty218.state(),opening=structuredClone(window.__qaDrawAfter);
+    opening.roomId='fixture-opening-hand';opening.round=1;opening.revision++;
+    document.body.classList.add('ad-motion-disabled');window.__qaDrawSounds=[];
+    window.ArcaneDuoHand178.sync({game:opening,seat:0,roomId:opening.roomId,catalog:s.catalog});
+   });
+   await A.waitForFunction(()=>window.__qaDrawSounds.filter(x=>x==='draw').length===5);
+   assert.equal(await A.locator('#duoSeats [data-seat="0"] .duo178-hand-card.ad117-hand-incoming').count(),0);
+   await A.evaluate(()=>{window.ArcaneSfx208=window.__qaOriginalSfx;});await refresh(A);
+   report.checks.push('private draws use solo flight and one sound per card; reduced-motion opening remains private');
    // Feed a confirmed public attack through the same event observer used by
    // online polling. Its source is an already-visible field card, not a hand.
    await A.evaluate(()=>{

@@ -3,6 +3,15 @@
 (()=>{
  const motionOff=()=>animationSpeed==='instant'||document.body.classList.contains('ad-motion-disabled')||
   !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+ // The same visual can animate an already-authorized online hand node too.
+ // This helper only touches that node and never reads a game or hand state.
+ function animateArrival(node,i,minFlight=140,minMargin=32){
+  const rect=node.getBoundingClientRect();
+  const flight=Math.max(minFlight,window.innerWidth-rect.left+Math.max(minMargin,rect.width*.3));
+  node.style.setProperty('--ad117-from',Math.round(flight)+'px');
+  node.style.setProperty('--ad117-delay',i*440+'ms');
+  node.classList.add('ad117-hand-incoming');
+ }
  let last=null;
  // Opening cards are already in the authoritative hand. Keep them concealed
  // until the LP-fill cinematic finishes, then reveal those actual card nodes.
@@ -18,14 +27,11 @@
   }
   cards.forEach((node,i)=>{
    setTimeout(()=>window.ArcaneSfx208?.play?.('draw'),i*440);
-   const rect=node.getBoundingClientRect();
-   const flight=Math.max(160,window.innerWidth-rect.left+Math.max(40,rect.width*.3));
-   node.style.setProperty('--ad117-from',Math.round(flight)+'px');
-   node.style.setProperty('--ad117-delay',i*440+'ms');
-   node.classList.add('ad117-hand-incoming');
+   animateArrival(node,i,160,40);
   });
   return new Promise(resolve=>setTimeout(resolve,390+Math.max(0,cards.length-1)*440+60));
  }
+ if(typeof render==='function'){
  const priorRender=render;
  render=function(...args){
   const result=priorRender(...args);
@@ -54,13 +60,10 @@
    if(!entering.has(Number(node.dataset.hand)))return;
    // Calculate the actual distance to the right viewport edge. This is a
    // proper screen-entry flight, not just a small nudge within the hand.
-   const rect=node.getBoundingClientRect();
-   const flight=Math.max(140,window.innerWidth-rect.left+Math.max(32,rect.width*.3));
-   node.style.setProperty('--ad117-from',Math.round(flight)+'px');
-   node.classList.add('ad117-hand-incoming');
-   node.style.setProperty('--ad117-delay',i++*440+'ms');
+   animateArrival(node,i++);
   });
   return result;
  };
- window.ArcaneHandDraw1161=Object.freeze({version:'17.8',revealOpeningHand});
+ }
+ window.ArcaneHandDraw1161=Object.freeze({version:'17.8',revealOpeningHand,animateArrival});
 })();
