@@ -1,0 +1,82 @@
+name: Arcane Duel 1.1.2 – direct downloadable server release
+on:
+  push:
+    branches: [development]
+    paths:
+      - .github/workflows/one-time-direct-server-download.yml
+permissions:
+  actions: read
+  contents: write
+jobs:
+  publish-download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download exact successful server build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          gh run download 41231479154 -R "$GITHUB_REPOSITORY" -n arcane-server-release -D release
+          ls -lh release
+      - name: Validate exact pinned binary and create small fallback chunks
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd release
+          test -f v1.1.2-64e6a3423a82.tar.gz
+          test -f v1.1.2-64e6a3423a82.tar.gz.sha256
+          echo "844eeb14574f0f35c47d028eef0ccc33d7d555022113b84d56677479785455ab  v1.1.2-64e6a3423a82.tar.gz" | sha256sum --check --status
+          sha256sum -c v1.1.2-64e6a3423a82.tar.gz.sha256
+          tar -tzf v1.1.2-64e6a3423a82.tar.gz | grep -Fxq release.json
+          mkdir chunks
+          split -b 40m -d --numeric-suffixes=1 -a 3 --additional-suffix=.part v1.1.2-64e6a3423a82.tar.gz chunks/v1.1.2-64e6a3423a82.tar.gz.
+          test "$(find chunks -maxdepth 1 -type f | wc -l)" -eq 7
+          cat chunks/*.part | sha256sum | grep -q '^844eeb14574f0f35c47d028eef0ccc33d7d555022113b84d56677479785455ab'
+          cat > Arcane-Duel-SERVERPAKET-ANLEITUNG.txt <<'TXT'
+          Arcane Duel 1.1.2 – einmalige Servermigration
+          Originaldatei: v1.1.2-64e6a3423a82.tar.gz
+          SHA256: 844eeb14574f0f35c47d028eef0ccc33d7d555022113b84d56677479785455ab
+
+          Option A: Gesamtdatei direkt von GitHub Releases herunterladen.
+
+          Option B: Die 7 Teile (part001 bis part007) herunterladen und
+          im selben Ordner ablegen. In Windows PowerShell zusammensetzen:
+
+          $out = [IO.File]::Create("v1.1.2-64e6a3423a82.tar.gz")
+          try {
+            1..7 | ForEach-Object {
+              $name = "v1.1.2-64e6a3423a82.tar.gz.{0:D3}.part" -f $_
+              $stream = [IO.File]::OpenRead($name)
+              try { $stream.CopyTo($out) } finally { $stream.Dispose() }
+            }
+          } finally { $out.Dispose() }
+
+          Danach SHA256 kontrollieren:
+          (Get-FileHash "v1.1.2-64e6a3423a82.tar.gz" -Algorithm SHA256).Hash
+
+          Wenn die Prüfsumme nicht exakt stimmt, Paket NICHT verwenden.
+          Die Datei ist nur für den SFTP-Upload. Die Aktivierung erfolgt
+          ausschließlich durch den Serveradministrator. Profile, Datenbank,
+          Backups, Aetherfall und andere Dienste nicht anfassen.
+          TXT
+          ls -lh chunks
+      - name: Publish signed-off download archive and smaller alternatives
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="server-transfer-1.1.2-64e6a3423a82"
+          files=(release/v1.1.2-64e6a3423a82.tar.gz release/v1.1.2-64e6a3423a82.tar.gz.sha256 release/Arcane-Duel-SERVERPAKET-ANLEITUNG.txt release/chunks/*.part)
+          if gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$tag" "${files[@]}" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$tag" "${files[@]}" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target 64e6a3423a820087780e01c6764205a7ebf4b71d \
+              --title "Arcane Duel Serverpaket 1.1.2 – Download / Administratorfreigabe" \
+              --notes "Einmalige Migration weg von GitHub. Identischer, unveränderter Build 41231479154. Archiv-SHA256: 844eeb14574f0f35c47d028eef0ccc33d7d555022113b84d56677479785455ab. Einfache Datei oder sieben kleinere Alternativen. Kein Deployment erfolgt; der Administrator muss separat freigeben. Nicht auf den main-Branch übertragen." \
+              --prerelease
+          fi
+          gh release view "$tag" -R "$GITHUB_REPOSITORY" --json url,assets --jq '{url: .url, assetNames: [.assets[].name]}'
