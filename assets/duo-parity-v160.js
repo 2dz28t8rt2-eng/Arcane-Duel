@@ -453,9 +453,9 @@
  }
  async function send(action){
   if(!game||busy)return;
-  if(!((action.type==='startParty'&&seat===0&&game.status==='lobby')||
-       (action.type==='cancelPartyStart'&&seat===0&&game.status==='party_ready')||
-       (['acceptPartyStart','declinePartyStart'].includes(action.type)&&seat===2&&game.status==='party_ready'))&&
+  if(!((action.type==='startParty'&&[0,2].includes(seat)&&game.status==='lobby')||
+       (action.type==='cancelPartyStart'&&seat===game.partyStartInvite?.fromSeat&&game.status==='party_ready')||
+       (['acceptPartyStart','declinePartyStart'].includes(action.type)&&seat===game.partyStartInvite?.toSeat&&game.status==='party_ready'))&&
      !(game.activeSeat===seat&&game.status==='active')&&
     !(action.type==='nextChapter'&&[0,2].includes(seat)&&game.status==='finished'&&game.winner===0)&&
     !(['acceptNextChapter','declineNextChapter'].includes(action.type)&&
