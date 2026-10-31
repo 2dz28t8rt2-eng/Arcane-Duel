@@ -97,18 +97,21 @@ async function finishLiveDuel(A,B){
   await A.locator('#duoStartAccept').dblclick();await status(A,'active');await refresh(B);await status(B,'active');
   const started=(await state(A)).game;assert.ok(started.duelNo>1);
   for(const page of [A,B]){
-   assert.equal(await page.locator('#duoSeats .seat').count(),4);assert.equal(await page.locator('#duoSeats .seat>.field>.field-cell').count(),28);
+   assert.equal(await page.locator('#duoSeats .seat').count(),4);assert.equal(await page.locator('#duoSeats .ad221-team-field').count(),2);assert.equal(await page.locator('#duoSeats .seat>.field>.field-cell:visible').count(),14);
    assert.equal(await page.locator('#duoBattleInspector').isVisible(),true);assert.equal(await page.locator('#duoSeats .duo178-hand-card').count(),5);
    const s=await state(page);assert.ok(s.game.players[s.seat===0?2:0].hand.every(x=>x===null));assert.equal(s.game.rngSeed,undefined);
    assert.equal(s.game.teams[0].maxLp,4000);
   }
   assert.equal(await B.locator('#duoSeats [data-perspective="self"]').getAttribute('data-seat'),'2');
-  report.checks.push('guest invite, wrong-seat denied, double-click single start, 28 zones, LP, private hands, guest perspective');
+  report.checks.push('guest invite, wrong-seat denied, double-click single start, 14 shared team zones, LP, private hands, guest perspective');
   const empty=A.locator('#duoSeats [data-seat="0"]>.field>.field-cell[data-slot="6"]');
   await A.locator('.duo178-hand-card[data-index="0"]').click();await empty.click();await A.locator('#ad189-summon-guide .ad189-guide-confirm').click();
   await A.waitForFunction(()=>!!window.ArcaneDuoParty218.state().game.players[0].field[6]);await refresh(B);
+  const summonedUid=(await state(A)).game.players[0].field[6].uid;
+  await B.waitForFunction(uid=>window.ArcaneDuoParty218.state().game.players[0].field[6]?.uid===uid,summonedUid);
   assert.equal((await state(A)).game.players[0].field[6].uid,(await state(B)).game.players[0].field[6].uid);
   await A.keyboard.press('d');await A.waitForFunction(()=>window.ArcaneDuoParty218.state().game.players[0].field[6].mode==='def');
+  await refresh(B);await B.waitForFunction(()=>window.ArcaneDuoParty218.state().game.players[0].field[6]?.mode==='def');
   await empty.click();await A.locator('#duoLargeCardPreview .hand-card').waitFor({state:'visible'});
   await A.screenshot({path:path.join(output,prefix+'-battle-desktop.png')});
   await B.setViewportSize({width:390,height:844});await B.screenshot({path:path.join(output,prefix+'-battle-mobile.png')});
@@ -126,6 +129,15 @@ async function finishLiveDuel(A,B){
   await A.locator('#duoMenuStart').click();await status(A,'party_ready');await refresh(B);await B.locator('#duoStartDecline').click();await status(B,'finished');await refresh(A);
   assert.equal(await A.locator('#duoMenuScreen').isVisible(),true);assert.equal(await B.locator('#duoMenuScreen').isVisible(),true);
   report.checks.push('complete result, menu close, Escape, rematch consent and decline');
+  const finishedNo=(await state(A)).game.duelNo;
+  await A.locator('#duoMenuStart').click();await status(A,'party_ready');await refresh(B);
+  await B.locator('#duoStartAccept').click();await status(B,'active');await refresh(A);await status(A,'active');
+  const replay=(await state(B)).game;
+  assert.equal(replay.duelNo,finishedNo+1);assert.equal(replay.round,1);assert.equal(replay.activeSeat,0);
+  assert.ok(replay.players.every(p=>p.field.every(c=>c===null)));assert.equal(replay.teams[0].lp,4000);
+  report.checks.push('accepted rematch starts clean fields, LP and turn with a new duel number');
+  if(live){report.replay=await finishLiveDuel(A,B);}
+
   for(const page of [A,B])assert.equal(await page.evaluate(()=>localStorage.getItem('arcane-duel-rpg-profile-v4-reborn')),'solo-sentinel-221');
   await A.reload();await A.locator('#duoNameConfirm').waitFor({state:'visible'});await A.waitForFunction(()=>!document.getElementById('duoNameConfirm').disabled);await A.locator('#duoNameConfirm').click();
   await A.locator('#duoPartyEnter').waitFor({state:'visible'});await A.locator('#duoPartyEnter').click();

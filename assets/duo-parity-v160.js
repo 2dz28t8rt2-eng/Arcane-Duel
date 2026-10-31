@@ -13,7 +13,7 @@
  let catalog={},starterMain=[],starterFusions=[],fateIds=[],fateNames=[],profileDeck=[],profileFusions=[],
   profileUpgrades={},profileEnhancements={},profileEssence={},profileLv1={};
  let game=null,seat=-1,roomId='',token='',invite='',busy=false,refreshing=false,
-  syncError='',syncedAt=0,sessionReady=true,syncFailures=0,lastPollAt=0;
+  presence=null,syncError='',syncedAt=0,sessionReady=true,syncFailures=0,lastPollAt=0;
  let duoProfile=null,duoProfileToken='',duoLastRoom=null,profileSaving=false,duoEconomy=null;
   let nameConfirmed=false,joinIntent=null,invitePreview=null,inviteRequested=false;
   const portraits=window.ArcanePortraits215;
@@ -414,6 +414,7 @@
   catch{sessionReady=false;}
  }
  function load(payload){
+  if(payload.presence)presence=payload.presence;
   if(payload.state?.roomId&&payload.state.roomId!==roomId)return;
   let previous=game;
   if(previous&&payload.state?.revision<previous.revision)return;
@@ -447,6 +448,7 @@
   refreshing=true;lastPollAt=Date.now();
   try{
    const response=await call({type:'state',roomId,token});
+   if(response.presence){presence=response.presence;window.ArcaneDuoSolo221?.updatePresence?.();}
    if(!game||response.state.revision!==game.revision)load(response);
    else{const recovered=!!syncError;syncedAt=Date.now();syncError='';syncFailures=0;
     if(recovered)render();else updateSaveState();}
@@ -755,7 +757,7 @@
    const hand=selector('Handkarte',legal.hand.map(x=>[x.index,
     displayName(x)+' · Lv '+card(x.id).level+
     (x.fate?' · '+x.atk+'/'+x.def+' · unverschmelzbar':'')]),row);
-   const slot=selector('Monsterzone',p.field.map((c,i)=>[i,'Feld '+(i+1)+(c?' · '+displayName(c)+' (ersetzen)':' · frei')]),row);
+   const slot=selector('Monsterzone',p.field.flatMap((c,i)=>game.fieldLayout==='team7'&&game.players.find(x=>x.team===p.team&&x.seat!==seat)?.field[i]?[]:[[i,'Feld '+(i+1)+(c?' · '+displayName(c)+' (ersetzen)':' · frei')]]),row);
    hand.dataset.ad189Hand='true';
    slot.dataset.ad189Slot='true';
    const summonCommit=button('Monster spielen / ersetzen',part,()=>{
@@ -843,7 +845,8 @@
       {coreIndex:Number(core.value)});
      if(availability.rule.street)core.value=String(availability.rule.coreIndex);
      core.disabled=availability.rule.street;
-     const slots=p.field.flatMap((c,i)=>!c||materials.some(m=>m.from==='field'&&m.index===i)?[i]:[]);
+     const slots=p.field.flatMap((c,i)=>(!c||materials.some(m=>m.from==='field'&&m.index===i))&&
+      (game.fieldLayout!=='team7'||!ally?.field[i]||materials.some(m=>m.from==='allyField'&&m.index===i))?[i]:[]);
      for(const id of availability.templates){
       const op=el('option',options,name(id)+' · Lv '+card(id).level);op.value=id;
      }
@@ -913,7 +916,7 @@
    update(true);
   }
   if(p.lv1?.perk){
-   const state=p.lv1,free=p.field.flatMap((c,i)=>c?[]:[i]),
+   const state=p.lv1,free=p.field.flatMap((c,i)=>rules.freeTeamSlot(game,p,i)?[i]:[]),
     openGhost=(state.ghostSlots||[]).flatMap((c,i)=>c?[]:[i]),
     stationed=(state.ghostSlots||[]).flatMap((c,i)=>c?[{c,i}]:[]);
    const lv=section(dock,'✧ Verbotene Forschung · Level-1-Schwarm',
@@ -1242,7 +1245,7 @@
   state:()=>({nameConfirmed,joinIntent:!!joinIntent,joinPreview:invitePreview?
    {inviterName:invitePreview.inviterName,chapter:invitePreview.chapter}:null,
    roomId,seat,game,invite,profile:duoProfile,lastRoom:duoLastRoom,
-   busy,profileSaving,catalog,economy:duoEconomy,catalogReady:Object.keys(catalog).length>0}),
+   busy,profileSaving,presence,catalog,economy:duoEconomy,catalogReady:Object.keys(catalog).length>0}),
   profileOperation,refreshProfile:fetchProfile,refresh,
   createRoom,continueLastRoom,send,
   acceptPendingInvite:async()=>{

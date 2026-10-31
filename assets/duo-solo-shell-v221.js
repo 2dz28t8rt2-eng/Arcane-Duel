@@ -196,7 +196,36 @@
   }
   const duelKey=game.roomId+':'+(game.duelNo||1);
   if(duelKey!==lastDuelKey){lastDuelKey=duelKey;inspectSelection=null;inspectStamp='';$('duoLargeCardPreview').innerHTML='<p>Wähle eine Karte auf dem Feld oder in deiner Hand.</p>';}
+  if(game.fieldLayout==='team7')composeTeamFields(game,seat);
   renderInspector();
+ }
+ function composeTeamFields(game,seat){
+  const root=$('duoSeats');
+  for(const team of [1,0]){
+   const group=make('section','ad221-team-field',root);group.dataset.team=team;
+   const members=game.players.filter(p=>p.team===team),base=team===0?seat:(game.activeSeat%2===1?game.activeSeat:1);
+   const heading=make('h3','ad221-team-heading',group,members.map(p=>p.name).join(' & ')+' · 7 gemeinsame Zonen');
+   for(const p of members){
+    const panel=root.querySelector('.seat[data-seat="'+p.seat+'"]');if(!panel)continue;
+    group.append(panel);
+    for(const cell of panel.querySelectorAll(':scope > .field > .field-cell')){
+     const slot=Number(cell.dataset.slot),card=p.field[slot],other=members.find(x=>x.seat!==p.seat);
+     cell.classList.toggle('ad221-shared-hidden',!card&&(p.seat!==base||!!other.field[slot]));
+     cell.style.gridColumn=String(slot+1);cell.style.gridRow='2';
+     if(card){const owner=make('small','ad221-card-owner',cell,p.seat===seat?'Dein Monster':p.name);owner.title='Kontrolle: '+p.name;}
+    }
+   }
+  }
+ }
+ function updatePresence(){
+  const s=api.state();let node=$('duoPresenceNotice');
+  if(!node){node=make('div','ad221-presence',document.body);node.id='duoPresenceNotice';node.setAttribute('role','status');}
+  const offline=s.presence&&(s.seat===2?!s.presence.hostOnline:!s.presence.guestOnline);
+  node.hidden=!offline||!s.game||s.game.status==='waiting';
+  if(!node.hidden){const who=s.seat===2?'Der ursprüngliche Host':'Dein Partner';
+   node.textContent=who+' ist derzeit nicht erreichbar. Wir warten auf die Wiederverbindung. Spielstand und Sitz bleiben erhalten; es gibt keine automatische Host-Übernahme.';
+   if(s.game.status==='active'&&s.game.activeSeat!==s.seat)node.textContent+=' Der Zug bleibt beim abwesenden Spieler.';
+  }
  }
  function afterStartScreen(){
   return new Promise(resolve=>{
@@ -278,7 +307,7 @@
    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
   }
  },true);
- window.ArcaneDuoSolo221=Object.freeze({sync,decorateBattle,afterStartScreen,profileChanged:()=>{profileStamp='';sync(uiState);},face});
+ window.ArcaneDuoSolo221=Object.freeze({sync,decorateBattle,updatePresence,afterStartScreen,profileChanged:()=>{profileStamp='';sync(uiState);},face});
  window.ArcaneDuoPartyUI218.sync();
  setInterval(()=>{if(noticeKey){syncInvitation();if(uiState?.inMenu)renderEncounter();}},1000);
 })();

@@ -33,12 +33,12 @@
     // the full authoritative board, including occupied replacement zones.
     const actualField=game.players?.[seat]?.field;
     const allSlots=Array.isArray(actualField)&&actualField.length?
-      actualField.map((_,i)=>i):legal.freeSlots;
+      actualField.flatMap((_,i)=>game.fieldLayout==='team7'&&game.players.find(x=>x.team===game.players[seat].team&&x.seat!==seat)?.field[i]?[]:[i]):legal.freeSlots;
     if(!allSlots?.length)return;
     const freeSlots=new Set(allSlots);
     const handNodes=new Map(),slotNodes=new Map();
     const chosen={hand:null,slot:null};
-    const scope=(game.roomId||'duo')+':'+(game.chapter||0)+':'+seat+':'+
+    const scope=(game.roomId||'duo')+':'+(game.chapter||0)+':'+(game.duelNo||1)+':'+seat+':'+
       (game.players?.[seat]?.ownTurns??game.round??0);
     const originalCommitDisabled=commit.disabled;
     const battle=document.querySelector('.duo-battle');

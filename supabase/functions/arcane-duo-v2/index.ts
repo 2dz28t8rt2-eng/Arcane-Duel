@@ -378,7 +378,16 @@ Deno.serve(async request=>{
    seat=p.id===room.host_profile_id?0:p.id===room.guest_profile_id?2:-1;
   }
   assert(seat>=0,"Keine Berechtigung.");
-  if(kind==="state")return json({seat,state:game.view(room.state,seat)},200,allow);
+  const seenColumn=seat===0?"host_seen_at":"guest_seen_at";
+  const seenNow=Date.now(),lastSeen=Date.parse(room[seenColumn]||"")||0;
+  if(seenNow-lastSeen>10000){
+   const {error:seenError}=await db.from(TABLE).update({[seenColumn]:new Date(seenNow).toISOString()}).eq("id",roomId);
+   if(seenError)throw seenError;
+   room[seenColumn]=new Date(seenNow).toISOString();
+  }
+  const presence={hostOnline:seenNow-(Date.parse(room.host_seen_at||"")||0)<45000,
+   guestOnline:seenNow-(Date.parse(room.guest_seen_at||"")||0)<45000};
+  if(kind==="state")return json({seat,state:game.view(room.state,seat),presence},200,allow);
   assert(kind==="action","Unbekannte Anfrage.");
   assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===room.revision,
    "Spielstand geändert. Bitte synchronisieren.");

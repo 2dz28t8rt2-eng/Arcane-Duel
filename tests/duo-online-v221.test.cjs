@@ -75,3 +75,62 @@ test('partner fusion from seventh zone consumes its real owner once, with result
  assert.equal(next.players[0].field[6].id,templates[0]);assert.equal(g.players[2].graveyard.length,0);
  assert.throws(()=>apply(next,0,{type:'fusion',materials,slot:6,templateId:templates[0]}));
 });
+test('canonical NPC fusion templates instantiate for their actual owner, including non-playable solo templates',()=>{
+ const adversaries=require('../assets/duo-adversaries-v200.js'),solo=require('../assets/duo-opponent-catalog-v201.json');
+ let privateFusions=0;
+ for(const seat of [1,3]){
+  let g=rules.create({roomId:'npc-fusion-221-'+seat,hostName:'Host',hostDeck:build.deck,hostFusions:build.fusions,
+   enemyDeckA:adversaries.enemyDeck(1,1,snapshot.cards,build.deck,solo),enemyDeckB:adversaries.enemyDeck(1,3,snapshot.cards,build.deck,solo),
+   enemyFusionsA:adversaries.enemyFusions(1,snapshot.cards,solo),enemyFusionsB:adversaries.enemyFusions(1,snapshot.cards,solo),catalog});
+  g=apply(g,2,{type:'join',name:'Gast',...build});g.activeSeat=seat;
+  const p=g.players[seat];let selected;
+  for(let i=0;i<p.baseDeck.length&&!selected;i++)for(let j=i+1;j<p.baseDeck.length&&!selected;j++){
+   const remaining=p.baseDeck.filter((_,index)=>index!==i&&index!==j);
+   p.hand=[p.baseDeck[i],p.baseDeck[j],...remaining.slice(0,3)];p.deck=remaining.slice(3);
+   const materials=[{from:'hand',index:0},{from:'hand',index:1}];
+   let templates;try{templates=rules.fusionOptions(g,seat,materials,catalog).templates;}catch{continue;}
+   const templateId=templates.find(id=>!catalog[id].playable);
+   if(templateId!=null)selected={materials,templateId};
+  }
+  assert.ok(selected,'The actual solo NPC deck must support its non-player fusion recipe');
+  const next=apply(g,seat,{type:'fusion',...selected,slot:6});
+  assert.equal(next.players[seat].field[6].id,selected.templateId);assert.equal(next.players[seat].field[6].fusion,true);
+  assert.equal(rules.validDeck([selected.templateId],catalog,true),false,'Humans do not gain access to NPC-only templates');privateFusions++;
+ }
+ assert.equal(privateFusions,2);
+});
+
+test('shared team zones reject partner overwrite for either team and preserve owned control',()=>{
+ for(const first of [0,1]){
+  let g=accept(request(lobby(),0),2);g.activeSeat=first;
+  g=apply(g,first,{type:'summon',slot:6,handIndex:0});g.activeSeat=first+2;
+  assert.equal(g.fieldLayout,'team7');
+  assert.throws(()=>apply(g,first+2,{type:'summon',slot:6,handIndex:0}),/Feldplatz/);
+  assert.throws(()=>apply(g,first+2,{type:'replace',slot:6,handIndex:0}),/Feldplatz/);
+  assert.throws(()=>apply(g,first+2,{type:'switch',slot:6}),/Positionswechsel/);
+  const next=apply(g,first+2,{type:'summon',slot:5,handIndex:0});
+  assert.equal(rules.teamField(next,next.players[first]).filter(Boolean).length,2);
+ }
+});
+test('guardian and soul bond across personal ownership in the shared physical row',()=>{
+ const g=accept(request(lobby(),0),2),a=g.players[0],b=g.players[2];
+ a.field[5]={uid:8001,role:'guardian',mode:'def',def:1000};
+ b.field[6]={uid:8002,role:'soul',mode:'def',def:1000};
+ assert.equal(rules.soulBonds(a,g).length,1);assert.equal(rules.soulBonds(b,g).length,1);
+ assert.equal(rules.bondArmor(g,a,a.field[5],{role:'combatant'},1000).dealt,650);
+ assert.equal(rules.bondArmor(g,b,b.field[6],{role:'combatant'},1000).dealt,650);
+});
+test('a full shared row blocks new placement and AI preserves all seven unique physical zones',()=>{
+ let g=accept(request(lobby(),0),2);const t=catalog[build.deck[0]];
+ for(let i=0;i<7;i++)g.players[i%2?1:3].field[i]={...t,uid:9000+i,mode:'def',used:true,switched:true,placedRound:0,maxDef:t.def};
+ g.activeSeat=1;assert.throws(()=>apply(g,1,{type:'summon',slot:0,handIndex:0}),/Feldplatz/);
+ const next=rules.aiTurn(g,{catalog});
+ for(let i=0;i<7;i++)assert.ok(!(next.players[1].field[i]&&next.players[3].field[i]));
+ assert.ok(next.players.filter(p=>p.team===1).flatMap(p=>p.field).filter(Boolean).length<=7);
+});
+test('an already active legacy room is not silently remapped mid-duel',()=>{
+ let g=accept(request(lobby(),0),2);delete g.fieldLayout;
+ g=apply(g,0,{type:'summon',slot:6,handIndex:0});g.activeSeat=2;
+ const next=apply(g,2,{type:'summon',slot:6,handIndex:0});
+ assert.ok(next.players[0].field[6]&&next.players[2].field[6]);
+});

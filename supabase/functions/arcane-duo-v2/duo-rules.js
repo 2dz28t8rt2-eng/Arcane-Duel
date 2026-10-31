@@ -216,6 +216,12 @@
    fusionsPerformed:0,fusionLoreChainUsed:false,fateUsed:false,hand:[],
    field:Array(7).fill(null),graveyard:[],summoned:false,ownTurns:0};
  }
+ // Ownership remains per seat; field indices are physical team-zone indices.
+ // Legacy active rooms retain their old layout until the next accepted duel.
+ const sharedField=g=>g.fieldLayout==='team7';
+ const teamMate=(g,p)=>g.players.find(x=>x.team===p.team&&x.seat!==p.seat);
+ const teamField=(g,p)=>sharedField(g)?p.field.map((c,i)=>c||teamMate(g,p)?.field[i]||null):p.field;
+ const freeTeamSlot=(g,p,i)=>!p.field[i]&&(!sharedField(g)||!teamMate(g,p)?.field[i]);
  function draw(p,n=5){while(p.hand.length<n&&p.deck.length)p.hand.push(p.deck.shift());}
  function fanaticOpening(g){
   if(g.chapter<11||g.chapter>14)return;
@@ -244,7 +250,7 @@
    catalog,hostEssence,hostLv1);
   const lp=duoStartingLp(chapter);
   const g={schema:2,mode:'duo-campaign',ruleset:'duo-v166',roomId,chapter,entry,
-   lpParityVersion:2,duelNo:1,
+   lpParityVersion:2,duelNo:1,fieldLayout:'team7',
    status:'waiting',revision:0,activeSeat:0,turn:0,round:1,uid:1,
    rngSeed:Number.isSafeInteger(randomSeed)&&randomSeed>=1&&randomSeed<=0xffffffff?
     randomSeed:roomSeed(roomId), // deterministic Node QA; Edge injects secret crypto seed
@@ -370,7 +376,7 @@
   if(!predatorPower(alpha,'token')||g.turn===alpha.predatorLeader.createdTurn)return;
   alpha.predatorLeader.ownTurns=Math.min(3,(alpha.predatorLeader.ownTurns||0)+1);
   if(alpha.predatorLeader.ownTurns<3)return;
-  const slot=p.field.findIndex(c=>!c);
+  const slot=p.field.findIndex((c,i)=>freeTeamSlot(g,p,i));
   if(slot<0)return; // A full field keeps the ready summon charged.
   const level=clamp(Math.floor(alpha.level||1),1,10);
   const template=predatorSource(catalog,level);
@@ -437,8 +443,8 @@
  // incoming DEF damage would leave behind permanent/off-by-one attack.
  // Per-seat adjacency: a Guardian can protect one neighboring Soul,
  // and a Soul cannot receive protection from multiple Guardians.
- function soulBonds(p){
-  const f=p?.field||[],seen=new Set(),pairs=[];
+ function soulBonds(p,g){
+  const f=g?teamField(g,p):p?.field||[],seen=new Set(),pairs=[];
   for(let i=0;i<f.length-1;i++){
    const a=f[i],b=f[i+1];
    if(!a||!b||seen.has(i)||seen.has(i+1)||!
@@ -451,7 +457,7 @@
  }
  function bondArmor(g,enemy,target,attacker,raw){
   if(target.mode!=='def'||!defensive(target))return {dealt:raw,mitigation:0,extra:0,link:null};
-  const link=soulBonds(enemy).find(pair=>pair.guardianUid===target.uid||pair.soulUid===target.uid);
+  const link=soulBonds(enemy,g).find(pair=>pair.guardianUid===target.uid||pair.soulUid===target.uid);
   const pierce=attacker.role==='predator'?.10:0;
   const base=Math.max(0,.20-pierce),mitigation=Math.max(0,(link?.35:.20)-pierce);
   const dealt=Math.max(0,Math.floor(raw*(1-mitigation)));
@@ -460,7 +466,7 @@
  }
  function awardBond(g,enemy,armor){
   if(!armor?.link||armor.extra<=0)return 0;
-  const soul=enemy.field[armor.link.soulIndex];
+  const soul=teamField(g,enemy)[armor.link.soulIndex];
   if(!soul||soul.uid!==armor.link.soulUid)return 0;
   combat(soul);
   if(soul.bondChargeRound!==g.round){soul.bondChargeRound=g.round;soul.bondChargeUsed=0;}
@@ -488,9 +494,10 @@
  function stompLine(g,p,enemy,slot,count){
   if(!enemy||!Number.isInteger(slot)||slot<0||slot>6)return [];
   const foes=g.players.filter(x=>x.team!==p.team).sort((a,b)=>a.seat-b.seat);
-  const row=foes.flatMap(foe=>foe.field.map((card,i)=>({seat:foe.seat,
-   slot:i,uid:card?.uid??null})));
-  const middle=foes.findIndex(foe=>foe.seat===enemy.seat)*7+slot;
+  const row=sharedField(g)?Array.from({length:7},(_,i)=>{
+   const owner=foes.find(foe=>foe.field[i]);return {seat:owner?.seat,slot:i,uid:owner?.field[i]?.uid??null};
+  }):foes.flatMap(foe=>foe.field.map((card,i)=>({seat:foe.seat,slot:i,uid:card?.uid??null})));
+  const middle=sharedField(g)?slot:foes.findIndex(foe=>foe.seat===enemy.seat)*7+slot;
   if(middle<0)return [];
   const already=new Set([middle]),towards=p.team===0?1:-1,out=[];
   const choices=count===3?[[towards,-towards]]:count===4?
@@ -1201,7 +1208,7 @@
  }
  function beginDuel(g,chapter,entry,{catalog,enemyDeckA,enemyDeckB,enemyFusionsA,enemyFusionsB,enemyPowerA,enemyPowerB,enemyNameA,enemyNameB,humanBuilds}={}){
    g.chapter=chapter;g.entry=entry;g.duelNo=(g.duelNo||1)+1;g.status='active';g.winner=null;g.round=1;g.turn=0;g.activeSeat=0;
-   g.lpParityVersion=2;
+   g.lpParityVersion=2;g.fieldLayout='team7';
    g.questProgress={floating:0,swarm:0,special:0};g.questPassed=null;
    g.fateEvent=null;g.arenaEvent=null;g.predatorPursuit=null;g.predatorImpact=null;g.stompEvent=null;
    const nextLp=duoStartingLp(g.chapter);
@@ -1377,7 +1384,7 @@
    assert(!p.summoned,'Dieser Zug hat bereits eine Beschwörung.');
    assert(Number.isInteger(action.handIndex)&&p.hand[action.handIndex]!==undefined,'Handkarte fehlt.');
    assert(Number.isInteger(action.slot)&&action.slot>=0&&action.slot<7&&
-    (action.type==='replace'?!!p.field[action.slot]:!p.field[action.slot]),'Feldplatz kann nicht belegt werden.');
+    (action.type==='replace'?!!p.field[action.slot]:freeTeamSlot(g,p,action.slot)),'Feldplatz kann nicht belegt werden.');
    const handCard=p.hand[action.handIndex];
    const id=Number.isInteger(handCard)?handCard:handCard?.id;
    const fate=handCard?.fate===true?handCard:null;
@@ -1420,7 +1427,7 @@
   }else if(action.type==='lv1Return'){
    const s=lv1State(p),i=action.ghostSlot,j=action.slot;
    const c=s.ghostSlots[i];
-   assert(s.perk&&Number.isInteger(j)&&j>=0&&j<7&&!p.field[j]&&
+   assert(s.perk&&Number.isInteger(j)&&j>=0&&j<7&&freeTeamSlot(g,p,j)&&
     c&&!c.used&&!c.switched&&c.lv1MovedTurn!==g.turn,
     'Rückverlegung aus dem Geisterslot ist nicht möglich.');
    s.ghostSlots[i]=null;p.field[j]=c;
@@ -1437,7 +1444,7 @@
     c.mode.toUpperCase()+'.');
   }else if(action.type==='lv1UseOffer'||action.type==='lv1Floating'){
    const s=lv1State(p),j=action.slot,i=action.index;
-   assert(s.perk&&Number.isInteger(j)&&j>=0&&j<7&&!p.field[j]&&
+   assert(s.perk&&Number.isInteger(j)&&j>=0&&j<7&&freeTeamSlot(g,p,j)&&
     Number.isInteger(i)&&i>=0,'Freie Lv1-Beschwörung benötigt einen freien Feldplatz.');
    let id,echo=true;
    if(action.type==='lv1UseOffer'){
@@ -1490,7 +1497,8 @@
    const removingField=new Set(action.materials.filter(m=>m.from==='field').map(m=>m.index));
    const ally=g.players[seat===0?2:seat===2?0:-1];
    const removingAlly=new Set(action.materials.filter(m=>m.from==='allyField').map(m=>m.index));
-   assert(!p.field[action.slot]||removingField.has(action.slot),'Fusions-Zielfeld ist nicht frei.');
+   assert((!p.field[action.slot]||removingField.has(action.slot))&&
+    (!sharedField(g)||!teamMate(g,p)?.field[action.slot]||removingAlly.has(action.slot)),'Fusions-Zielfeld ist nicht frei.');
    // Do not alter state until every constraint is verified.
    const types=cards.map((c,i)=>({...c,from:action.materials[i].from,
     sourceSeat:action.materials[i].from==='allyField'?ally.seat:seat}));
@@ -1526,7 +1534,7 @@
    const bonus={atk:0,def:0};
    for(let i=0;i<analysis.materialBlocks;i++)
     bonus[randomInt(g,2)?'atk':'def']+=10;
-   const result=instance(g,action.templateId,catalog,{fusion:true,roleOverride:inherited});
+   const result=instance(g,action.templateId,catalog,{fusion:true,roleOverride:inherited,ownerSeat:seat});
    result.atk=Math.max(0,best.atk+bonus.atk);
    result.def=Math.max(0,best.def+bonus.def);
    if(template.lv1Exclusive){
@@ -1733,7 +1741,7 @@
     }else if(lv1State(p).perk&&lv1Key(src,catalog)==='attacker'){
      src.lv1Attacks=(src.lv1Attacks||0)+1;
      src.used=src.lv1Attacks>=2;
-     if(src.lv1Attacks<=2&&p.field.includes(src)&&p.field.some(c=>!c)&&
+     if(src.lv1Attacks<=2&&p.field.includes(src)&&p.field.some((c,i)=>freeTeamSlot(g,p,i))&&
       lv1State(p).offers.length<5){
       const id=lv1Troops(p).find(c=>genuineLv1(c,catalog))?.id;
       if(Number.isInteger(id))lv1State(p).offers.push(id);
@@ -1797,7 +1805,7 @@
    ownPower:ownCards.reduce((v,c)=>v+npcCardPower(c),0),
    enemyPower:enemyCards.reduce((v,c)=>v+npcCardPower(c),0),
    soul:ownCards.reduce((v,c)=>v+(c.soul||0)+(c.condensed||0)*.5,0),
-   bond:ours.reduce((v,owner)=>v+soulBonds(owner).length,0),
+   bond:sharedField(g)?soulBonds(ours[0],g).length:ours.reduce((v,owner)=>v+soulBonds(owner).length,0),
    status:g.status,winner:g.winner};
  }
  function npcDelta(a,b,seat){
@@ -1890,12 +1898,12 @@
   if(first.score<-80&&first.action.type==='attack')return null;
   return first.action;
  }
- function npcPlacementSlot(p,role){
-  const free=p.field.flatMap((c,i)=>c?[]:[i]);
+ function npcPlacementSlot(p,role,g){
+  const field=teamField(g,p),free=field.flatMap((c,i)=>c?[]:[i]);
   if(!free.length)return -1;
   const opposite=role==='guardian'?'soul':role==='soul'?'guardian':null;
   const linked=opposite===null?[]:free.filter(i=>
-   [p.field[i-1],p.field[i+1]].some(x=>x?.role===opposite));
+   [field[i-1],field[i+1]].some(x=>x?.role===opposite));
   return (linked.length?linked:free).sort((a,b)=>Math.abs(a-3)-Math.abs(b-3)||a-b)[0];
  }
  function npcSummonChoice(g,seat,catalog){
@@ -1904,7 +1912,7 @@
   // Its identity is fixed by fanaticOpening(), not a strength heuristic.
   if(isQuest(g.chapter)&&g.chapter<=14&&seat===1){
    const sealed=p.hand.findIndex(item=>(Number.isInteger(item)?item:item?.id)===714);
-   const free=p.field.findIndex(c=>!c);
+   const free=p.field.findIndex((c,i)=>freeTeamSlot(g,p,i));
    if(sealed>=0&&free>=0)return {type:'summon',handIndex:sealed,slot:free};
   }
   const hand=p.hand.map((item,i)=>({item,i,id:Number.isInteger(item)?item:item?.id}))
@@ -1913,11 +1921,11 @@
   const options=[];
   for(const h of normal){
    const card=definition(catalog,h.id),role=npcRole(h.item,catalog);
-   const free=npcPlacementSlot(p,role);
+   const free=npcPlacementSlot(p,role,g);
    const weight=npcCardPower(card)*(p.opponentPower||1);
    if(free>=0){
     const mate=role==='guardian'?'soul':role==='soul'?'guardian':null;
-    const adjacent=mate&&[p.field[free-1],p.field[free+1]].some(c=>c?.role===mate);
+    const adjacent=mate&&[teamField(g,p)[free-1],teamField(g,p)[free+1]].some(c=>c?.role===mate);
     options.push({action:{type:'summon',handIndex:h.i,slot:free},
      score:weight+(adjacent?400:0)+(h.item?.fate?250:0)});
    }else{
@@ -1945,7 +1953,7 @@
    try{data=fusionOptions(g,seat,material,catalog);}catch(_){continue;}
    if(!data.templates.length)continue;
    const removing=material.filter(m=>m.from==='field').map(m=>m.index);
-   const free=p.field.findIndex((c,i)=>!c||removing.includes(i));
+   const free=p.field.findIndex((c,i)=>freeTeamSlot(g,p,i)||removing.includes(i));
    if(free<0)continue;
    for(const templateId of data.templates.slice(0,8)){
     let preview;try{preview=fusionPreview(g,seat,material,catalog,{templateId});}catch(_){continue;}
@@ -2020,5 +2028,5 @@
   validNpcFusionDeck,soloStartingLp,duoStartingLp,packIds,
   chapterDeck,create,apply,aiTurn,view,attackValue,fusionLevel,fusionPattern,fusionOptions,
   fusionAnalysis,fusionPreview,fusionRole,arenaDamage,fatePressure,PERK_LIMITS,normalizedBuild,
-  stompCount,stompBonus,stompFatigue,stompLine,soulBonds,bondArmor});
+  sharedField,teamField,freeTeamSlot,stompCount,stompBonus,stompFatigue,stompLine,soulBonds,bondArmor});
 });

@@ -46,7 +46,7 @@
     // Keep the selected category within a turn, then start the next own turn
     // with a helpful default again.
     const ownTurn=game.players?.[seat]?.ownTurns??game.round??0;
-    const scope=(roomId||game.roomId||'duo')+':'+seat+':'+ownTurn;
+    const scope=(roomId||game.roomId||'duo')+':'+(game.duelNo||1)+':'+seat+':'+ownTurn;
     const current=plan(groupNames,remembered.get(scope));
     const byKey=new Map(SECTIONS.map(section=>[section.key,[]]));
     originals.forEach(group=>byKey.get(classify(titleOf(group))).push(group));

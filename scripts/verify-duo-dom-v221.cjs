@@ -48,13 +48,13 @@ async function ready(dom,name){const w=dom.window,d=w.document;await until(()=>w
   B.ArcaneDuoPartyUI218.select('menu');bd.getElementById('duoMenuStart').click();await until(()=>B.ArcaneDuoParty218.state().game.status==='party_ready','guest request');await A.ArcaneDuoParty218.refresh();
   assert.match(ad.getElementById('duoStartNoticeTitle').textContent,/Test Gast/);ad.getElementById('duoStartAccept').click();
   await until(()=>A.ArcaneDuoParty218.state().game.status==='active','accept');await B.ArcaneDuoParty218.refresh();
-  for(const [w,d]of [[A,ad],[B,bd]]){assert.equal(d.querySelectorAll('#duoSeats .seat').length,4);assert.equal(d.querySelectorAll('#duoSeats .seat>.field>.field-cell').length,28);assert.equal(d.getElementById('duoMenuScreen').hidden,true);assert.equal(d.getElementById('duoPage').hidden,false);assert.equal(d.querySelectorAll('.duo178-hand-card').length,5);assert.equal(w.ArcaneDuoParty218.state().game.teams[0].lp,4000);}
+  for(const [w,d]of [[A,ad],[B,bd]]){assert.equal(d.querySelectorAll('#duoSeats .seat').length,4);assert.equal(d.querySelectorAll('#duoSeats .ad221-team-field').length,2);assert.equal(d.querySelectorAll('#duoSeats .seat>.field>.field-cell:not(.ad221-shared-hidden)').length,14);assert.equal(d.getElementById('duoMenuScreen').hidden,true);assert.equal(d.getElementById('duoPage').hidden,false);assert.equal(d.querySelectorAll('.duo178-hand-card').length,5);assert.equal(w.ArcaneDuoParty218.state().game.teams[0].lp,4000);}
   assert.equal(bd.querySelector('#duoSeats [data-perspective="self"]').dataset.seat,'2');
   const current=backend.rooms.get(room.roomId);current.game.status='finished';current.game.winner=0;current.game.revision++;
   await A.ArcaneDuoParty218.refresh();await B.ArcaneDuoParty218.refresh();await delay(20);
   ad.querySelector('.ad204-result-close').click();assert.equal(ad.getElementById('duoMenuScreen').hidden,false);
   bd.dispatchEvent(new B.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));assert.equal(bd.getElementById('duoMenuScreen').hidden,false);
   assert.equal(A.localStorage.getItem('arcane-duel-duo-v171-profile-key')===B.localStorage.getItem('arcane-duel-duo-v171-profile-key'),false);
-  assert.deepEqual(errors,[]);console.log('DUO_DOM_221_PASS: independent waiting/menu/deck/search/invite/cancel/guest-start/28-zones/guest-perspective/result/Escape');
+  assert.deepEqual(errors,[]);console.log('DUO_DOM_221_PASS: independent waiting/menu/deck/search/invite/cancel/guest-start/14-shared-zones/guest-perspective/result/Escape');
  }finally{a.window.close();b?.window.close();}
 })().catch(e=>{console.error(e.stack);process.exitCode=1;});

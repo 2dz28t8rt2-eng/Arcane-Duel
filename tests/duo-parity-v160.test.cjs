@@ -264,7 +264,7 @@ test('partner can attack either opponent, never attack the ally, and defender co
  state=move(state,0,{type:'end'});
  state=move(state,1,{type:'summon',handIndex:0,slot:0});
  state=move(state,1,{type:'end'});
- state=move(state,2,{type:'summon',handIndex:0,slot:0});
+ state=move(state,2,{type:'summon',handIndex:0,slot:1});
  state=move(state,2,{type:'end'});
  state=move(state,3,{type:'end'});
  assert.throws(()=>move(state,0,{type:'attack',slot:0,targetSeat:2,targetSlot:0}),/Gegnerischer Feldplatz/);
