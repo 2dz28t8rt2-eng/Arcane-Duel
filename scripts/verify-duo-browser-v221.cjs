@@ -117,6 +117,31 @@ async function finishLiveDuel(A,B){
   assert.equal(await A.locator('#duoPage').getAttribute('data-lobby-section'),'deck');assert.equal(await B.locator('#duoPage').getAttribute('data-lobby-section'),'shop');
   await A.locator('#duoDeckSearch').focus();await refresh(A);await refresh(B);assert.equal(await A.locator('#duoDeckSearch').inputValue(),'Asche');assert.equal(await A.locator('#duoDeckSearch').evaluate(n=>n===document.activeElement),true);
   if(!live){
+   const overlapping=await A.evaluate(async()=>{
+    const api=window.ArcaneDuoParty218,originalFetch=window.fetch;
+    let release,ready,requests=0;
+    const held=new Promise(resolve=>{release=resolve;}),started=new Promise(resolve=>{ready=resolve;});
+    window.fetch=async(...args)=>{
+     const payload=JSON.parse(args[1]?.body||'{}');
+     const response=await originalFetch(...args);
+     if(payload.type==='state'){
+      requests++;
+      if(requests===1){
+       const stale=await response.json();stale.partyLimits=null;ready();await held;
+       return new Response(JSON.stringify(stale),{status:200,headers:{'Content-Type':'application/json'}});
+      }
+     }
+     return response;
+    };
+    try{
+     const first=api.refresh();await started;
+     const second=api.refresh();release();await Promise.all([first,second]);
+     return {requests,limits:api.state().partyLimits};
+    }finally{window.fetch=originalFetch;}
+   });
+   assert.ok(overlapping.requests>=2,'an overlapping refresh must fetch a fresh snapshot');
+   assert.equal(overlapping.limits.maxChapter,1);
+   report.checks.push('overlapping polls cannot leave party limits stale after joining');
    const guest=[...backend.profiles.values()].find(p=>p.nickname==='QA221 Gast '+tag);
    guest.clearedChapters=[1];await refresh(A);
    assert.equal((await state(A)).partyLimits.maxChapter,2);

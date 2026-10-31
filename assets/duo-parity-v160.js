@@ -448,8 +448,12 @@
    game.winner===0&&duoProfileToken)fetchProfile();
  }
  async function refresh(){
-  if(!roomId||!token||refreshing||busy)return;
-  refreshing=true;lastPollAt=Date.now();
+  if(!roomId||!token||busy)return;
+  // A caller awaiting synchronization needs a fresh response, not merely a
+  // return while an older poll (possibly from before the partner joined) runs.
+  if(refreshing){await refreshing;return refresh();}
+  let releaseRefresh;
+  refreshing=new Promise(resolve=>{releaseRefresh=resolve;});lastPollAt=Date.now();
   try{
    const response=await call({type:'state',roomId,token});
    // A poll started before a join/action must not overwrite its newer result.
@@ -463,7 +467,7 @@
    if(limitsChanged)window.ArcaneDuoSolo221?.partyLimitsChanged?.();
   }catch(e){syncFailures=Math.min(syncFailures+1,4);syncError=e.message;
     set('duoStatus',e.message);render();}
-  finally{refreshing=false;}
+  finally{refreshing=false;releaseRefresh();}
  }
  async function send(action){
   if(!game||busy)return;
