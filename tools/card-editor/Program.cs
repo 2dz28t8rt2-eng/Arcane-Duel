@@ -472,7 +472,7 @@ internal sealed class CardPreview : Control
             using var input=new MemoryStream(data);
             if(ext==".svg")
             {
-                using var svg=SvgDocument.Open<SvgDocument>(input);
+                var svg=SvgDocument.Open<SvgDocument>(input);
                 next=svg.Draw(720,1140);
             }
             else
