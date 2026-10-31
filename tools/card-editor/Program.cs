@@ -325,7 +325,7 @@ internal sealed partial class Editor : Form
         SetChoice(ornaments,obj["frameLevelOverlay"]?.ToString());
         SetChoice(icons,obj["frameRoleIcon"]?.ToString());
         accentChanged=false;
-        if(obj["frameAccent"]!=null)try{backgroundAccent=ColorTranslator.FromHtml(obj["frameAccent"]!.ToString());accentChanged=true;}catch{}
+        if(obj["frameAccent"]!=null)try{backgroundAccent=ColorTranslator.FromHtml(obj["frameAccent"]!.ToString());accentChanged=backgroundAccent.ToArgb()!=Color.FromArgb(111,77,122).ToArgb();}catch{}
         customFrameBytes=null;customFrameExtension=null;preview.SetCustomFrame(null,null);
         var known=new HashSet<string>(new[]{"id","name","level","atk","def","element","role","ability","desc",
           "rarity","kind","roleStyle","tags","frameTemplate","frameLevelOverlay","frameRoleIcon",
