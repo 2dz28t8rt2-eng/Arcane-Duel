@@ -69,16 +69,28 @@ async function finishLiveDuel(A,B){
  let a,b;const report={mode:prefix,checks:[]};
  try{
   const tag=Date.now().toString(36);a=await newClient(browser,'http://localhost:8757/duo-campaign-v2.html','QA221 Host '+tag);
-  const A=a.page;await A.locator('#duoPartyCreate').click();await status(A,'waiting');await A.locator('#duoPartyEnter').click();
-  await A.locator('#duoMenuScreen').waitFor({state:'visible'});assert.equal(await A.locator('#duoMenuStart').isDisabled(),true);
-  await route(A,'deck');assert.equal(await A.locator('[data-deck-slot]').count(),40);await A.locator('#duoDeckSearch').fill('Asche');
-  await A.screenshot({path:path.join(output,prefix+'-waiting-deck.png')});report.checks.push('waiting host: full menu, forty deck slots, start blocked');
+  const A=a.page;await A.locator('#duoMenuScreen').waitFor({state:'visible'});
+  if(!live){const host=[...backend.profiles.values()].find(p=>p.nickname==='QA221 Host '+tag);host.clearedChapters=[1,2];await A.evaluate(()=>window.ArcaneDuoParty218.refreshProfile());}
+  assert.equal((await state(A)).game,null);await route(A,'deck');
+  assert.equal(await A.locator('[data-deck-slot]').count(),40);await A.locator('#duoDeckSearch').fill('Asche');
+  await A.locator('#duoInvitePlayer').click();await status(A,'waiting');
+  assert.equal(await A.locator('#duoInvitePlayerPanel input').isVisible(),true);
   const party=await state(A);b=await newClient(browser,'http://localhost:8757/duo-campaign-v2.html?join='+party.roomId+'.'+party.invite,'QA221 Gast '+tag);
   const B=b.page;await B.locator('#duoPartyAccept').waitFor({state:'visible'});assert.equal((await state(B)).game,null);
-  await B.locator('#duoPartyAccept').click();await status(B,'lobby');assert.equal(await B.locator('#duoPartyGate').isVisible(),true);
-  await B.locator('#duoPartyEnter').click();await route(B,'shop');await refresh(A);
+  await B.locator('#duoPartyAccept').click();await status(B,'lobby');await B.locator('#duoMenuScreen').waitFor({state:'visible'});
+  await route(B,'shop');await refresh(A);
+  if(!live){await route(A,'menu');assert.equal(await A.locator('#duoDuelChapter option[value="2"]').evaluate(n=>n.disabled),true);await route(A,'deck');}
+  report.checks.push('independent personal menu before room, link created in menu, guest joins');
   assert.equal(await A.locator('#duoPage').getAttribute('data-lobby-section'),'deck');assert.equal(await B.locator('#duoPage').getAttribute('data-lobby-section'),'shop');
   await A.locator('#duoDeckSearch').focus();await refresh(A);await refresh(B);assert.equal(await A.locator('#duoDeckSearch').inputValue(),'Asche');assert.equal(await A.locator('#duoDeckSearch').evaluate(n=>n===document.activeElement),true);
+  if(!live){
+   const guest=[...backend.profiles.values()].find(p=>p.nickname==='QA221 Gast '+tag);
+   guest.clearedChapters=[1];await refresh(A);
+   assert.equal((await state(A)).partyLimits.maxChapter,2);
+   assert.equal(await A.locator('#duoDeckSearch').inputValue(),'Asche');
+   assert.equal(await A.locator('#duoDeckSearch').evaluate(n=>n===document.activeElement),true);
+   guest.clearedChapters=[];await refresh(A);
+  }
   report.checks.push('explicit group acceptance and enter; independent deck/shop/search/focus');
   await route(A,'menu');await A.locator('#duoMenuStart').click();await status(A,'party_ready');await refresh(B);
   assert.equal(await B.locator('#duoStartNotice').getAttribute('role'),'dialog');assert.match(await B.locator('#duoStartNoticeTitle').innerText(),/QA221 Host/);
@@ -87,15 +99,17 @@ async function finishLiveDuel(A,B){
   await A.locator('#duoMenuStart').click();await status(A,'party_ready');await refresh(B);await B.locator('#duoStartLater').click();
   assert.equal(await B.locator('#duoPage').evaluate(n=>n.inert),false);await A.locator('#duoStartCancel').click();await status(A,'lobby');await refresh(B);
   report.checks.push('host invite popup, decline, prepare, cancel: no duel or route reset');
-  await route(B,'menu');await B.locator('#duoMenuStart').click();await status(B,'party_ready');await refresh(A);
-  assert.match(await A.locator('#duoStartNoticeTitle').innerText(),/QA221 Gast/);
-  // Verify wrong-seat consent at the real server boundary using the initiator's own credentials.
-  const denied=await B.evaluate(async endpoint=>{
+  await route(B,'menu');assert.equal(await B.locator('#duoMenuStart').isDisabled(),true);
+  await route(A,'menu');await A.locator('#duoMenuStart').click();await status(A,'party_ready');await refresh(B);
+  assert.match(await B.locator('#duoStartNoticeTitle').innerText(),/QA221 Host/);
+  // Verify wrong-seat consent at the server boundary using the initiator's credentials.
+  const denied=await A.evaluate(async endpoint=>{
    const s=window.ArcaneDuoParty218.state(),session=JSON.parse(sessionStorage.getItem('arcane-duo-v2-session-'+s.roomId));
    const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'action',roomId:s.roomId,token:session.token,expectedRevision:s.game.revision,action:{type:'acceptPartyStart',inviteId:s.game.partyStartInvite.id}})});return r.status;
   },endpoint);assert.equal(denied,400);
-  await A.locator('#duoStartAccept').dblclick();await status(A,'active');await refresh(B);await status(B,'active');
+  await B.locator('#duoStartAccept').dblclick();await status(B,'active');await refresh(A);await status(A,'active');
   const started=(await state(A)).game;assert.ok(started.duelNo>1);
+  if(!live){assert.equal(started.players[0].loanedDeck,true);assert.equal(started.players[2].loanedDeck,false);}
   for(const page of [A,B]){
    assert.equal(await page.locator('#duoSeats .seat').count(),4);assert.equal(await page.locator('#duoSeats .ad221-team-field').count(),2);assert.equal(await page.locator('#duoSeats .seat>.field>.field-cell:visible').count(),14);
    assert.equal(await page.locator('#duoBattleInspector').isVisible(),true);assert.equal(await page.locator('#duoSeats .duo178-hand-card').count(),5);
@@ -103,7 +117,7 @@ async function finishLiveDuel(A,B){
    assert.equal(s.game.teams[0].maxLp,4000);
   }
   assert.equal(await B.locator('#duoSeats [data-perspective="self"]').getAttribute('data-seat'),'2');
-  report.checks.push('guest invite, wrong-seat denied, double-click single start, 14 shared team zones, LP, private hands, guest perspective');
+  report.checks.push('host invite, wrong-seat denied, double-click single start, 14 shared team zones, LP, private hands, guest perspective');
   if(live){
    const revision=(await state(B)).game.revision;
    await a.context.setOffline(true);
@@ -161,7 +175,7 @@ async function finishLiveDuel(A,B){
   if(live)report.personalRewards=personal;
 
   await A.reload();await A.locator('#duoNameConfirm').waitFor({state:'visible'});await A.waitForFunction(()=>!document.getElementById('duoNameConfirm').disabled);await A.locator('#duoNameConfirm').click();
-  await A.locator('#duoPartyEnter').waitFor({state:'visible'});await A.locator('#duoPartyEnter').click();
+  await A.waitForFunction(()=>window.ArcaneDuoParty218.state().seat===0);
   const recovered=await state(A);assert.equal(recovered.roomId,party.roomId);assert.equal(recovered.seat,0);
   await A.evaluate(()=>window.ArcaneDuoParty218.refreshProfile());
   const saved=(await state(A)).profile;

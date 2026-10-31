@@ -952,11 +952,14 @@ test('both human players can fuse allied field monsters without consuming the wr
    fusions.filter(id=>id===templateId).length>1);
  }
 });
-test('enemy seats cannot abuse allied human field fusion source and illegitimate materials never spend inventory',()=>{
+test('enemy seats cannot use opposing human fields as allied fusion materials',()=>{
  const state=setup();
+ const id=deck.find(card=>catalog[card].level===1);
+ state.players[0].field[0]=live(id,{uid:955,level:1});
+ state.players[3].field[0]=null;
  const original=JSON.stringify(state);
  assert.throws(()=>rules.fusionOptions(state,1,[{from:'hand',index:0},{from:'allyField',index:0}],catalog),
-  /Nur menschliche Verbündete/);
+  /Fusionsmaterial ist nicht vorhanden/);
  assert.equal(JSON.stringify(state),original);
 });
 test('next chapter invitation may be rejected and reissued without changing decks',()=>{

@@ -87,6 +87,17 @@ async function newestRoom(p){
 }
 const maxChapter=p=>economy.maxChapter(p);
 const capLevel=p=>economy.maxCardLevel(p);
+async function partyLimits(room){
+ if(!room.host_profile_id||!room.guest_profile_id)return null;
+ const {data,error}=await db.from(PROFILE_TABLE).select("id,cleared_chapters")
+  .in("id",[room.host_profile_id,room.guest_profile_id]);
+ if(error)throw error;
+ const host=data?.find(p=>p.id===room.host_profile_id),guest=data?.find(p=>p.id===room.guest_profile_id);
+ assert(host&&guest,"Partnerprofile konnten nicht synchronisiert werden.");
+ const hc=maxChapter(host),gc=maxChapter(guest),hq=economy.maxSagaStage(host),gq=economy.maxSagaStage(guest);
+ return {maxChapter:Math.min(hc,gc),maxSagaStage:Math.min(hq,gq),
+  loanSeatChapter:hc===gc?null:hc>gc?0:2,loanSeatQuest:hq===gq?null:hq>gq?0:2};
+}
 const profileResult=async(p,extra={})=>({profile:profileView(p),
  lastRoom:await newestRoom(p),
  economy:{packs:economy.PACKS,
@@ -316,7 +327,8 @@ Deno.serve(async request=>{
     enemyFusionsA:enemyFusions(chapter),enemyFusionsB:enemyFusions(chapter),
     enemyPowerA:enemyPower(chapter),enemyPowerB:enemyPower(chapter),
     enemyNameA:enemyNames(chapter)[0],enemyNameB:enemyNames(chapter)[1],
-    chapter,entry,catalog,randomSeed:crypto.getRandomValues(new Uint32Array(1))[0]||1});
+    chapter,entry,catalog,personalDuoRules:body.personalDuoRules===true,
+    randomSeed:crypto.getRandomValues(new Uint32Array(1))[0]||1});
    const {error}=await db.from(TABLE).insert({id,status:"waiting",revision:0,state,
     host_token_hash:await hash(host),invitation_hash:await hash(invite),
     host_profile_id:p.id,creator_fingerprint:fp,
@@ -350,9 +362,10 @@ Deno.serve(async request=>{
    assert(await hash(body.invite)===room.invitation_hash,"Einladung ungültig.");
    const p=await profileByToken(body.profileToken);
    assert(p.id!==room.host_profile_id,"Du kannst nicht beide Plätze übernehmen.");
-   assert(room.state.entry==="quest"?
+   if(!room.state.personalDuoRules)assert(room.state.entry==="quest"?
     room.state.chapter<=economy.maxSagaStage(p):room.state.chapter<=maxChapter(p),
     "Partner hat dieses Kapitel noch nicht freigeschaltet.");
+   const limits=await partyLimits({...room,guest_profile_id:p.id});
    const guest=secret(),next=game.apply(room.state,2,{
     type:"join",name:p.nickname,deck:p.deck,fusions:p.fusions,
     portraitId:portraitId(p.avatar_id),deferStart:body.deferStart===true,
@@ -368,7 +381,7 @@ Deno.serve(async request=>{
     .select("id").maybeSingle();
    if(writeError)throw writeError;
    assert(updated,"Ein anderer Spieler ist bereits beigetreten.");
-   return json({roomId,token:guest,seat:2,state:game.view(next,2)},200,allow);
+   return json({roomId,token:guest,seat:2,state:game.view(next,2),partyLimits:limits},200,allow);
   }
   assert(isToken(token),"Sitzung fehlt.");
   const digest=await hash(token);
@@ -387,7 +400,8 @@ Deno.serve(async request=>{
   }
   const presence={hostOnline:seenNow-(Date.parse(room.host_seen_at||"")||0)<45000,
    guestOnline:seenNow-(Date.parse(room.guest_seen_at||"")||0)<45000};
-  if(kind==="state")return json({seat,state:game.view(room.state,seat),presence},200,allow);
+  if(kind==="state")return json({seat,state:game.view(room.state,seat),presence,
+   partyLimits:await partyLimits(room)},200,allow);
   assert(kind==="action","Unbekannte Anfrage.");
   assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===room.revision,
    "Spielstand geändert. Bitte synchronisieren.");
@@ -406,8 +420,10 @@ Deno.serve(async request=>{
    const {data:profiles,error:profileError}=await db.from(PROFILE_TABLE)
     .select("*").in("id",ids);
    if(profileError)throw profileError;
+   const profilesBySeat:Record<number,any>={};
    for(const profile of profiles||[]){
     const seatNumber=profile.id===room.host_profile_id?0:2;
+    profilesBySeat[seatNumber]=profile;
     const target=requested?Number(body.action.chapter):nextChapter;
     assert(Number.isInteger(target)&&target>=1&&target<=15&&
      (target>=11?target<=economy.maxSagaStage(profile):target<=maxChapter(profile)),
@@ -418,6 +434,15 @@ Deno.serve(async request=>{
      portraitId:portraitId(profile.avatar_id)};
    }
    assert(humanBuilds[0]&&humanBuilds[2],"Partnerprofile konnten nicht synchronisiert werden.");
+   if(room.state.personalDuoRules){
+    const target=requested?Number(body.action.chapter):nextChapter;
+    const unlocked=(profile)=>target>=11?economy.maxSagaStage(profile):maxChapter(profile);
+    const host=unlocked(profilesBySeat[0]),guest=unlocked(profilesBySeat[2]);
+    if(host!==guest){
+     const advanced=host>guest?0:2,original=humanBuilds[advanced] as Record<string,unknown>;
+     humanBuilds[advanced]={...game.loanBuild(catalog,target),name:original.name,portraitId:original.portraitId};
+    }
+   }
   }
   const chapterBuild=advancing||starting?{
    enemyDeckA:enemyDeck(nextChapter,1),enemyDeckB:enemyDeck(nextChapter,3),

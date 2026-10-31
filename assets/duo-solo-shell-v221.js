@@ -20,6 +20,39 @@
  let uiState=null,noticeKey='',noticeFocus=null,noticeDismissed='',lastDuelKey='';
  const screen=make('section','fm-screen atlas-screen');screen.id='duoMenuScreen';screen.dataset.atlasTheme='amber';
  const workspace=$('duoSoloWorkspace'),profile=$('duoProfilePanel');workspace.before(screen);screen.append(workspace,profile);
+ const inviteArea=make('div','ad221-invite-entry',screen);
+ const inviteButton=make('button','btn',inviteArea,'✉ Spieler einladen');inviteButton.type='button';inviteButton.id='duoInvitePlayer';
+ inviteButton.setAttribute('aria-expanded','false');
+ const invitePanel=make('div','ad221-invite-panel',inviteArea);invitePanel.id='duoInvitePlayerPanel';invitePanel.hidden=true;
+ const inviteMessage=make('p','',invitePanel,'');inviteMessage.setAttribute('role','status');
+ const inviteLink=make('input','',invitePanel);inviteLink.type='text';inviteLink.readOnly=true;
+ inviteLink.setAttribute('aria-label','Einladungslink');
+ const copyButton=make('button','btn',invitePanel,'Link kopieren');copyButton.type='button';
+ let creatingInvite=false;
+ function renderGroupInvite(){
+  const s=api.state(),waiting=s.seat===0&&s.game?.status==='waiting'&&s.roomId&&s.invite;
+  inviteLink.hidden=!waiting;copyButton.hidden=!waiting;
+  if(waiting){
+   inviteLink.value=location.href.split('#')[0].split('?')[0]+'?join='+s.roomId+'.'+s.invite;
+   inviteMessage.textContent='Teile diesen Link mit deinem Mitspieler.';
+  }else if(s.game){
+   inviteMessage.textContent=s.game.status==='waiting'?'Einladungslink nicht verfügbar.':'Du bist bereits in einer Gruppe.';
+  }else inviteMessage.textContent=$('duoStatus')?.textContent||'Erstelle eine Gruppe, um einen Einladungslink zu erhalten.';
+ }
+ inviteButton.onclick=async()=>{
+  if(creatingInvite)return;
+  if(!invitePanel.hidden){invitePanel.hidden=true;inviteButton.setAttribute('aria-expanded','false');return;}
+  invitePanel.hidden=false;inviteButton.setAttribute('aria-expanded','true');
+  if(!api.state().game){
+   creatingInvite=true;inviteButton.disabled=true;inviteMessage.textContent='Einladungslink wird erstellt …';
+   try{await api.createRoom();}finally{creatingInvite=false;inviteButton.disabled=false;}
+  }
+  renderGroupInvite();
+ };
+ copyButton.onclick=async()=>{
+  try{await navigator.clipboard.writeText(inviteLink.value);inviteMessage.textContent='Einladungslink kopiert.';}
+  catch{inviteLink.focus();inviteLink.select();inviteMessage.textContent='Bitte den Link aus dem Feld kopieren.';}
+ };
  const nav=$('duoSoloMenuNav'),hero=$('duoSoloMenuHero');
  workspace.append($('duoReturnMenu'));
  $('duoReturnMenu').classList.add('ad221-legacy-return');
@@ -140,19 +173,24 @@
  function renderEncounter(){
   const s=api.state(),chapter=Number($('duoDuelChapter').value),c=window.ArcaneDuoRules.ENCOUNTERS.find(c=>c.id===chapter);
   if(!c)return;
-  $('duoDuelEncounter').innerHTML='<strong>'+safe(c.name)+'</strong><p>'+safe(c.dialogue||'Stellt euch zu zweit den Gegnern dieser Turnierstufe.')+'</p><div class="info-pills"><span>7 gemeinsame Zonen je Team</span><span>'+window.ArcaneDuoRules.duoStartingLp(chapter).toLocaleString('de-AT')+' LP je Team</span><span>2 Menschen · 2 Gegner</span></div>';
-  $('duoMenuStart').disabled=s.busy||$('duoDuelChapter').disabled||!s.game||s.game.status==='waiting'||s.game.status==='active'||s.game.status==='inviting_next'||s.game.status==='party_ready'&&!(s.game.partyStartInvite?.expiresAt<=Date.now());
+  const loanSeat=chapter>=11?s.partyLimits?.loanSeatQuest:s.partyLimits?.loanSeatChapter;
+  const loan=s.game?.personalDuoRules&&Number.isInteger(loanSeat)?s.game.players[loanSeat]?.name:null;
+  $('duoDuelEncounter').innerHTML='<strong>'+safe(c.name)+'</strong><p>'+safe(c.dialogue||'Stellt euch zu zweit den Gegnern dieser Turnierstufe.')+'</p><div class="info-pills"><span>7 gemeinsame Zonen je Team</span><span>'+window.ArcaneDuoRules.duoStartingLp(chapter).toLocaleString('de-AT')+' LP je Team</span><span>2 Menschen · 2 Gegner</span></div>'+(loan?'<p>'+safe(loan)+' erhält für dieses Duell ein stufenangepasstes Leihdeck.</p>':'');
+  $('duoMenuStart').disabled=s.busy||$('duoDuelChapter').disabled||!s.game||s.game.personalDuoRules&&s.seat!==0||s.game.status==='waiting'||s.game.status==='active'||s.game.status==='inviting_next'||s.game.status==='party_ready'&&!(s.game.partyStartInvite?.expiresAt<=Date.now());
   $('duoMenuStart').textContent=s.game?.status==='waiting'?'Partner wird erwartet':'Duell anfragen';
   $('duoDuelMembers').textContent=s.game?.status==='waiting'?'Du kannst dein Deck bereits vorbereiten. Der gemeinsame Start wird verfügbar, sobald dein Partner beigetreten ist.':'Eine Anfrage startet erst dann ein Duell, wenn dein Partner ausdrücklich beitritt.';
  }
  function chapterOptions(){
   const s=api.state(),prior=$('duoDuelChapter').value,quest=route==='quests';
-  $('duoDuelChapter').innerHTML=window.ArcaneDuoRules.ENCOUNTERS.filter(c=>(c.id>=11)===quest).map(c=>'<option value="'+c.id+'" '+(c.id>(quest?(s.economy?.maxSagaStage||0):(s.economy?.maxChapter||1))?'disabled':'')+'>'+(quest?'Prüfung '+(c.id-10):'Kapitel '+c.id)+' · '+safe(c.name)+'</option>').join('');
+  const joined=s.game?.personalDuoRules&&s.game.status!=='waiting';
+  const limit=joined?(quest?s.partyLimits?.maxSagaStage:s.partyLimits?.maxChapter)??0:
+   quest?(s.economy?.maxSagaStage||0):(s.economy?.maxChapter||1);
+  $('duoDuelChapter').innerHTML=window.ArcaneDuoRules.ENCOUNTERS.filter(c=>(c.id>=11)===quest).map(c=>'<option value="'+c.id+'" '+(c.id>limit?'disabled':'')+'>'+(quest?'Prüfung '+(c.id-10):'Kapitel '+c.id)+' · '+safe(c.name)+'</option>').join('');
   const options=[...$('duoDuelChapter').options];
   const selected=options.find(o=>o.value===prior&&!o.disabled)||options.find(o=>Number(o.value)===s.game?.chapter&&!o.disabled)||options.find(o=>!o.disabled);
   if(selected)$('duoDuelChapter').value=selected.value;
-  $('duoDuelChapter').disabled=!selected;
-  renderEncounter();if(!selected){$('duoMenuStart').disabled=true;$('duoDuelEncounter').textContent='Schließe zuerst Kapitel II ab, um die Fanatiker-Saga freizuschalten.';}
+  $('duoDuelChapter').disabled=!selected||!!s.game?.personalDuoRules&&s.seat!==0;
+  renderEncounter();if(!selected){$('duoMenuStart').disabled=true;$('duoDuelEncounter').textContent=joined&&!s.partyLimits?'Gemeinsame Freischaltungen werden geladen.':'Für beide Spieler ist hier noch kein Duell freigeschaltet.';}
  }
  async function requestDuel(){
   const s=api.state();if($('duoMenuStart').disabled||s.busy)return;
@@ -246,6 +284,7 @@
   const s=api.state(),show=state.entered&&state.inMenu;
   screen.hidden=!show;
   if(show){
+   if(!invitePanel.hidden)renderGroupInvite();
    $('duoMainMenuGate').hidden=true;$('duoPage').hidden=false;$('duoPage').inert=false;
    $('duoPage').dataset.lobbyView='true';$('duoSoloWorkspace').hidden=false;
    const next=state.lobbySection||'menu',changed=next!==route;route=next;
@@ -287,8 +326,10 @@
   const own=s.seat===invite?.fromSeat,who=s.game?.players[invite?.fromSeat]?.name||'Dein Partner';
   $('duoStartNoticeTitle').textContent=own?'Warte auf die Zustimmung deines Partners':who+' lädt dich zu einem Duell ein.';
   const target=window.ArcaneDuoRules.ENCOUNTERS.find(c=>c.id===(invite?.chapter||s.game?.chapter));
-  $('duoStartNoticeText').textContent=(target?target.name+' · ':'')+'Ihr startet erst nach der Bestätigung. Du kannst vorher dein Deck fertigstellen.';
-  $('duoStartAccept').textContent='Beitreten';$('duoStartDecline').textContent='Ablehnen';
+  const loanSeat=(invite?.chapter||s.game?.chapter)>=11?s.partyLimits?.loanSeatQuest:s.partyLimits?.loanSeatChapter;
+  const loan=s.game?.personalDuoRules&&Number.isInteger(loanSeat)?s.game.players[loanSeat]?.name:null;
+  $('duoStartNoticeText').textContent=(target?target.name+' · ':'')+'Ihr startet erst nach der Bestätigung.'+(loan?' '+loan+' erhält ein stufenangepasstes Leihdeck.':' Du kannst vorher dein Deck fertigstellen.');
+  $('duoStartAccept').textContent='Ja';$('duoStartDecline').textContent='Nein';
   for(const id of ['duoStartAccept','duoStartDecline','duoStartCancel'])$(id).disabled=s.busy||expired;
   let later=$('duoStartLater');if(!later){later=make('button','',node.querySelector('.duo-start-actions'),'Erst vorbereiten');later.id='duoStartLater';later.type='button';later.onclick=()=>{noticeDismissed=noticeKey;syncInvitation();};}
   later.hidden=own;
@@ -309,7 +350,9 @@
    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
   }
  },true);
- window.ArcaneDuoSolo221=Object.freeze({sync,decorateBattle,updatePresence,afterStartScreen,profileChanged:()=>{profileStamp='';sync(uiState);},face});
+ window.ArcaneDuoSolo221=Object.freeze({sync,decorateBattle,updatePresence,afterStartScreen,
+  profileChanged:()=>{profileStamp='';sync(uiState);},
+  partyLimitsChanged:()=>{if(['menu','quests'].includes(route))chapterOptions();},face});
  window.ArcaneDuoPartyUI218.sync();
  setInterval(()=>{if(noticeKey){syncInvitation();if(uiState?.inMenu)renderEncounter();}},1000);
 })();
