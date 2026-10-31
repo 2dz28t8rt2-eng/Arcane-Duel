@@ -341,7 +341,7 @@ Deno.serve(async request=>{
     "Partner hat dieses Kapitel noch nicht freigeschaltet.");
    const guest=secret(),next=game.apply(room.state,2,{
     type:"join",name:p.nickname,deck:p.deck,fusions:p.fusions,
-    portraitId:portraitId(p.avatar_id),
+    portraitId:portraitId(p.avatar_id),deferStart:body.deferStart===true,
     upgrades:p.upgrades,enhancements:p.enhancements,
     essence:p.essence_binding,lv1:p.lv1_research},{catalog});
    const {data:updated,error:writeError}=await db.from(TABLE).update({
@@ -369,7 +369,7 @@ Deno.serve(async request=>{
   assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===room.revision,
    "Spielstand geändert. Bitte synchronisieren.");
   assert(body.action&&["summon","attack","switch","fusion","end","nextChapter","acceptNextChapter","declineNextChapter",
-   "soulCondense","soulDischarge","soulRaid","soulFocus","essencePredatorMode",
+   "startParty","soulCondense","soulDischarge","soulRaid","soulFocus","essencePredatorMode",
    "lv1Station","lv1Return","lv1GhostSwitch","lv1UseOffer","lv1Floating"].includes(body.action.type),
    "Aktion nicht erlaubt.");
   const legacyStart=body.action.type==="nextChapter"&&body.action.confirmRequired!==true;
