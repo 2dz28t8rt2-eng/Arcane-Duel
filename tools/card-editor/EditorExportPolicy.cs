@@ -163,8 +163,18 @@ internal sealed partial class Editor
         stack.Controls.Add(unlockSettings);
         stack.Controls.Add(choiceSummary);
 
-        keepAvailability.CheckedChanged+=(_,_)=>UpdateUnlockUi();
-        changeAvailability.CheckedChanged+=(_,_)=>UpdateUnlockUi();
+        // WinForms radio buttons in separate option panels need explicit
+        // mutual exclusion; otherwise both may be checked at the same time.
+        keepAvailability.CheckedChanged+=(_,_)=>
+        {
+            if(keepAvailability.Checked)changeAvailability.Checked=false;
+            UpdateUnlockUi();
+        };
+        changeAvailability.CheckedChanged+=(_,_)=>
+        {
+            if(changeAvailability.Checked)keepAvailability.Checked=false;
+            UpdateUnlockUi();
+        };
         fields["id"].TextChanged+=(_,_)=>UpdateIntegrationHint();
         keepAvailability.Checked=true;
         UpdateIntegrationHint();
@@ -273,10 +283,10 @@ internal sealed partial class Editor
         {
             if(!plan.Booster&&!plan.StarterDeck&&!plan.QuestReward)
                 throw new InvalidOperationException("Karte "+draft.Card["id"]+
-                    ": Freischaltung angefordert, aber kein Ziel ausgewählt.");
+                    ": Bitte wähle aus, wo Spieler die Karte bekommen können (Booster, Startdeck oder Belohnung).");
             if(string.IsNullOrWhiteSpace(plan.UnlockDetails))
                 throw new InvalidOperationException("Karte "+draft.Card["id"]+
-                    ": Bitte die konkrete Freischaltbedingung angeben.");
+                    ": Bitte beschreibe, wann und wie Spieler diese Karte erhalten sollen.");
         }
         if(draft.Image is { Length: > 32_000_000 })
             throw new InvalidOperationException("Karte "+draft.Card["id"]+": Artwork größer als 32 MB.");
