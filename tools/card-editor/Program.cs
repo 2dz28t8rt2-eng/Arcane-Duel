@@ -382,6 +382,48 @@ internal sealed class Editor : Form
             if(reopened.fields["name"].Text!="Testkarte"||reopened.imageBytes==null||reopened.BuildCard()["future"]!["value"]!.GetValue<int>()!=1)throw new InvalidOperationException("Saved package could not be reopened");
             using var popup=new SharePathDialog(zip);
             if(popup.SavedPath!=zip)throw new InvalidOperationException("Sharing dialog path failed");
+            if(AssetCatalog.Frames.Count!=20 || AssetCatalog.Levels.Count!=40 || AssetCatalog.Icons.Count<7
+                || AssetCatalog.Cards.Count<700)
+                throw new InvalidOperationException("Embedded original asset library is incomplete");
+            using(var frame=AssetCatalog.SvgBitmap("frame","normal-03",256,408)==null?
+                throw new InvalidOperationException("Cannot render original SVG frame"):
+                new Bitmap(AssetCatalog.SvgBitmap("frame","normal-03",256,408)!)){}
+            if(AssetCatalog.SvgBitmap("level","fusion-lv07",256,408)==null)
+                throw new InvalidOperationException("Cannot render level engraving");
+            if(AssetCatalog.SvgBitmap("icon","guardian-shield",32,32)==null)
+                throw new InvalidOperationException("Cannot render role emblem");
+            var originalCard=AssetCatalog.Cards[0];
+            editor.ApplyCard(originalCard,Path.GetTempPath());
+            var nativeArt=originalCard["art"]!.ToString();
+            if(AssetCatalog.ArtworkPreview(nativeArt)==null)
+                throw new InvalidOperationException("Original art thumbnail is not bundled");
+            SetChoice(editor.frames,"normal-03");
+            SetChoice(editor.ornaments,"fusion-lv07");
+            SetChoice(editor.icons,"guardian-shield");
+            editor.fields["tags"].Text="Schild, Erbe";
+            editor.fields["name"].Text="Überarbeiteter Ascheling";
+            var edited=editor.BuildCard();
+            if(edited["art"]!.ToString()!=nativeArt||
+                edited["frameTemplate"]!.ToString()!="normal-03"||
+                edited["frameLevelOverlay"]!.ToString()!="fusion-lv07"||
+                edited["tags"]!.AsArray().Count!=2)
+                throw new InvalidOperationException("Editing an existing card or its layers failed");
+            var zip2=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".zip");
+            try
+            {
+                WritePackage(zip2,edited,null,null); // Original artwork must NOT be replaced by thumbnail
+                using var verify=ZipFile.OpenRead(zip2);
+                if(verify.GetEntry(nativeArt)!=null)
+                    throw new InvalidOperationException("Unmodified existing artwork incorrectly bundled");
+                using var restored=new Editor();
+                restored.LoadPackage(zip2);
+                if(restored.fields["name"].Text!="Überarbeiteter Ascheling"||
+                   ChoiceId(restored.frames)!="normal-03"||
+                   ChoiceId(restored.ornaments)!="fusion-lv07")
+                    throw new InvalidOperationException("Editing existing card round-trip failed");
+            }
+            finally {if(File.Exists(zip2))File.Delete(zip2);}
+
         }
         finally { if(File.Exists(image))File.Delete(image);if(File.Exists(zip))File.Delete(zip); }
     }
