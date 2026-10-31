@@ -36,6 +36,7 @@
 <link rel="stylesheet" href="assets/predator-showdown-v199.css?v=20261027-v199">
 <link rel="stylesheet" href="assets/arcane-soundscape-v196.css?v=20261026-v196">
 <link rel="stylesheet" href="assets/arcane-track-catalog-v014.css?v=20261027-v014">
+<link rel="stylesheet" href="assets/duo-solo-parity-v219.css?v=20261031-solo-parity-219">
 <style>
 .duo-onboard[hidden],.duo-invite-dialog[hidden]{display:none!important}
 .duo-onboard,.duo-invite-dialog{position:fixed;inset:0;z-index:12000;background:rgba(5,9,20,.93);
@@ -81,6 +82,12 @@
   <div id="duoPartyConfig">
    <div id="duoPartyChapterControls" class="duo-party-chapter-controls"></div>
    <button type="button" id="duoPartyCreate" class="duo-party-primary">Party erstellen und Partner einladen</button>
+   <div class="duo-manual-join">
+    <label for="duoJoinValue">Oder einer bestehenden Party beitreten
+     <input type="text" id="duoJoinValue" placeholder="Einladungslink oder Raumcode einfügen" autocomplete="off" spellcheck="false">
+    </label>
+    <button type="button" id="duoJoinManual">Einladung prüfen &amp; beitreten</button>
+   </div>
   </div>
   <div id="duoPartyWaiting" class="duo-party-waiting" hidden>
    <strong>✧ Warte auf deinen Mitspieler</strong>
@@ -89,6 +96,10 @@
     <input id="duoPartyLink" type="text" readonly autocomplete="off" spellcheck="false" aria-label="Einladungslink für deinen Partner">
    </label>
    <button type="button" id="duoPartyCopy">Einladungslink kopieren</button>
+   <label>Alternativer Raumcode
+    <input type="text" id="duoPartyCode" readonly autocomplete="off" spellcheck="false" aria-label="Raumcode für manuellen Beitritt">
+   </label>
+   <button type="button" id="duoPartyCopyCode">Raumcode kopieren</button>
   </div>
   <button type="button" id="duoPartyResume" hidden>Letzte Party / letztes Duell fortsetzen</button>
   <button type="button" id="duoPartyReset" hidden>Neue Party erstellen</button>
@@ -96,32 +107,64 @@
   <a href="index.html" class="duo-party-return">← Zurück zum Arcane-Duel-Titelbildschirm</a>
  </div>
 </section>
-<section id="duoMainMenuGate" class="duo-menu-gate" role="dialog" aria-modal="true" aria-labelledby="duoMainMenuTitle" hidden>
- <div class="duo-menu-panel">
-  <img class="duo-menu-crest" src="desktop/build/icon.png" alt="" aria-hidden="true">
-  <p class="duo-menu-kicker">Das Vermächtnis der Duellanten · Gemeinsam</p>
-  <h1 class="duo-menu-wordmark" id="duoMainMenuTitle">Arcane <span>Duel</span></h1>
-  <div class="duo-menu-rule" aria-hidden="true"></div>
-  <p class="duo-menu-subtitle">Das Bündnis der Vier · Zwei Duellanten, ein Schicksal</p>
-  <p id="duoMenuTeam" class="duo-menu-team"></p>
-  <nav class="duo-menu-nav" aria-label="2v2-Hauptmenü">
-   <button id="duoMenuStart" type="button" class="duo-menu-selected">⚔ Kampagne starten</button>
-   <button id="duoMenuCollection" type="button">✧ Sammlung &amp; Schmiede</button>
-   <button id="duoMenuDeck" type="button">▤ Deck verwalten</button>
-   <button id="duoMenuProfile" type="button">✦ Duellantenprofil</button>
-   <a href="collection-v3.html">Monsterlexikon</a>
-   <a href="index.html">Zurück zum Titelbildschirm</a>
+<section id="duoMainMenuGate" class="ad196-title ad196-reveal ad196-ready duo-solo-menu" role="dialog" aria-modal="true" aria-labelledby="duoMainMenuTitle" hidden>
+ <span class="ad196-star" style="--x:12%;--y:21%;--s:2px;--delay:3.2s"></span>
+ <span class="ad196-star" style="--x:83%;--y:17%;--s:3px;--delay:2.7s"></span>
+ <span class="ad196-star" style="--x:24%;--y:65%;--s:2px;--delay:4s"></span>
+ <span class="ad196-star" style="--x:73%;--y:75%;--s:2px;--delay:3.7s"></span>
+ <span class="ad196-star" style="--x:91%;--y:49%;--s:2px;--delay:3s"></span>
+ <div class="ad196-panel">
+  <img class="ad196-crest" src="desktop/build/icon.png" alt="" aria-hidden="true">
+  <p class="ad196-kicker">Das Vermächtnis der Duellanten</p>
+  <h1 class="ad196-wordmark" id="duoMainMenuTitle">Arcane <span>Duel</span></h1>
+  <div class="ad196-mark" aria-hidden="true"></div>
+  <p class="ad196-subtitle">Ein Reich aus Karten, Schicksal und Magie</p>
+  <p id="duoMenuTeam" class="duo-party-teamline"></p>
+  <nav class="ad196-nav" aria-label="2v2-Hauptmenü">
+   <button id="duoMenuStart" type="button" class="ad196-selected">Kampagne starten</button>
+   <button id="duoMenuCollection" type="button">Sammlung und Schmiede</button>
+   <button id="duoMenuDeck" type="button">Deck verwalten</button>
+   <button id="duoMenuProfile" type="button">Duellantenprofil</button>
+   <a class="duo-solo-menu-link" href="collection-v3.html">Monsterlexikon</a>
+   <a class="duo-solo-menu-link" href="index.html">Zurück zum Titelbildschirm</a>
   </nav>
-  <p id="duoMenuStatus" role="status" aria-live="polite">Der Party-Leiter startet das Duell für beide Spieler.</p>
+  <p id="duoMenuStatus" class="duo-menu-hint" role="status" aria-live="polite"></p>
+  <small class="ad196-bottom">▲ ▼ Auswahl · Enter Bestätigen · Jeder Duellant verwaltet sein eigenes Menü</small>
  </div>
 </section>
+<aside id="duoStartNotice" class="duo-start-notice" role="status" aria-live="polite" hidden>
+ <strong id="duoStartNoticeTitle">Dein Partner möchte das Duell starten</strong>
+ <p id="duoStartNoticeText">Ihr könnt bis zur Bestätigung unabhängig eure Decks verwalten.</p>
+ <div class="duo-start-actions">
+  <button type="button" id="duoStartAccept" hidden>Duell gemeinsam starten</button>
+  <button type="button" id="duoStartDecline" hidden>Später</button>
+  <button type="button" id="duoStartCancel" hidden>Anfrage zurückziehen</button>
+ </div>
+</aside>
 <main id="duoPage" class="duo-wrap" inert>
 <header class="duo-header">
  <div><p class="kicker">✧ ARCANE DUEL · GEMEINSAME KAMPAGNE</p>
  <h1>Das Bündnis der Vier</h1>
  <p>Schließ dich mit einem Freund zusammen und stellt euch zu zweit den Gegnern der Arena.</p></div>
- <nav class="ad185-header-nav" aria-label="Schnellnavigation"><button id="duoReturnMenu" type="button" hidden>← Zum 2v2-Menü</button><a class="ad185-jump-to-battle" href="#duoBattleArena">⚔ Zum Duell</a><a href="index.html">← Zum Hauptspiel</a></nav>
+ <nav class="ad185-header-nav" aria-label="Schnellnavigation"><a class="ad185-jump-to-battle" href="#duoBattleArena">⚔ Zum Duell</a><a href="index.html">← Zum Hauptspiel</a></nav>
 </header>
+<section id="duoSoloWorkspace" class="duo-solo-workspace" hidden>
+ <div id="duoSoloProfileHud" class="profile-hud"></div>
+ <nav class="menu-nav" id="duoSoloMenuNav" aria-label="Dein persönliches 2v2-Menü">
+  <button id="duoSoloTabProfile" class="menu-tab" type="button">Chronik &amp; Hinweise</button>
+  <button id="duoSoloTabShop" class="menu-tab" type="button">Booster-Shop</button>
+  <button id="duoSoloTabDeck" class="menu-tab" type="button">Hauptdeck</button>
+  <button id="duoSoloTabFusions" class="menu-tab" type="button">Fusionsdeck</button>
+  <button id="duoSoloTabCollection" class="menu-tab" type="button">Monsterwerkstatt</button>
+  <button id="duoSoloTabUpgrades" class="menu-tab" type="button">Ausbau</button>
+  <button id="duoReturnMenu" type="button" class="menu-tab">← Zurück zum Hauptmenü</button>
+ </nav>
+ <section id="duoSoloMenuHero" class="menu-hero" aria-live="polite">
+  <span class="side-kicker">ARCANE DUEL · GEMEINSAME KAMPAGNE</span>
+  <h1 id="duoSoloMenuTitle">Dein Duellant</h1>
+  <p id="duoSoloMenuSubtitle">Dein Deck und deine Sammlung gehören dir allein.</p>
+ </section>
+</section>
 <aside class="notice">
  <b>Gemeinsam kämpfen, gemeinsam wachsen.</b>
  Ihr tretet zu zweit gegen zwei Computergegner an. Jeder beginnt mit einem eigenen
@@ -394,7 +437,7 @@
 <div id="ad185-turn-cue" class="ad185-turn-cue" aria-hidden="true" hidden></div>
 <script src="assets/fate-illustrations.js?v=duo-v166"></script>
 <script src="assets/duelist-portraits-v215.js?v=218"></script>
-<script src="assets/duo-shared-rules-v160.js?v=20261031-preparty-218"></script>
+<script src="assets/duo-shared-rules-v160.js?v=20261031-independent-menu-219"></script>
 <script src="assets/duo-battle-ui-v158.js?v=20261029-v207"></script>
 <script src="assets/duo-cinematics-v167.js?v=duo-v167"></script>
 <script src="assets/duo-cinema-v170.js?v=20261030-duo-alpha-210"></script>
@@ -421,12 +464,12 @@
 <script src="assets/pack-cinema-v195.js?v=20261026-v195"></script>
 <script src="assets/duo-fusion-guide-v214.js?v=20261030-duo-fusion-214"></script>
 <script src="assets/duo-story-dialogues-v216.js?v=216"></script>
-<script src="assets/duo-parity-v160.js?v=20261031-preparty-218"></script>
+<script src="assets/duo-parity-v160.js?v=20261031-independent-menu-219"></script>
 <script src="assets/duelist-portraits-duo-v215.js?v=218"></script>
 <script src="assets/arcane-track-catalog-v014.js?v=20261027-v014"></script>
 <script src="assets/arcane-soundscape-v196.js?v=20261030-result-fade"></script>
 <script src="assets/arcane-sfx-v208.js?v=20261030-duo-result-210"></script>
 <script src="assets/duo-ux-v204.js?v=20261030-duo-parity-210"></script>
 <script src="assets/duo-soul-bond-v206.js?v=20261030-duo-bond-help"></script>
-<script src="assets/duo-preparty-v218.js?v=20261031-party-flow-v218"></script>
+<script src="assets/duo-preparty-v218.js?v=20261031-independent-menu-219"></script>
 </body></html>

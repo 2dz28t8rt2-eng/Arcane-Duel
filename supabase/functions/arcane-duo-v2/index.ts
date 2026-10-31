@@ -383,14 +383,15 @@ Deno.serve(async request=>{
   assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===room.revision,
    "Spielstand geändert. Bitte synchronisieren.");
   assert(body.action&&["summon","attack","switch","fusion","end","nextChapter","acceptNextChapter","declineNextChapter",
-   "startParty","soulCondense","soulDischarge","soulRaid","soulFocus","essencePredatorMode",
+   "startParty","acceptPartyStart","declinePartyStart","cancelPartyStart","soulCondense","soulDischarge","soulRaid","soulFocus","essencePredatorMode",
    "lv1Station","lv1Return","lv1GhostSwitch","lv1UseOffer","lv1Floating"].includes(body.action.type),
    "Aktion nicht erlaubt.");
   const legacyStart=body.action.type==="nextChapter"&&body.action.confirmRequired!==true;
-  const advancing=body.action.type==="acceptNextChapter"||legacyStart,
+  const starting=body.action.type==="acceptPartyStart",
+   advancing=body.action.type==="acceptNextChapter"||legacyStart,
    nextChapter=room.state.chapter+1;
   const humanBuilds:Record<number,unknown>={};
-  if(advancing){
+  if(advancing||starting){
    const ids=[room.host_profile_id,room.guest_profile_id].filter(Boolean);
    const {data:profiles,error:profileError}=await db.from(PROFILE_TABLE)
     .select("*").in("id",ids);
@@ -411,7 +412,8 @@ Deno.serve(async request=>{
    enemyNameA:enemyNames(nextChapter)[0],enemyNameB:enemyNames(nextChapter)[1],
    humanBuilds
   }:{};
-  let next=game.apply(room.state,seat,body.action,{catalog,...chapterBuild});
+  let next=game.apply(room.state,seat,body.action,{catalog,...chapterBuild,
+   ...(starting?{humanBuilds}:{})});
   // Existing main-branch 2v2 clients know only the historical one-click
   // chapter action. Preserve it atomically; new dev clients opt into consent.
   if(legacyStart)next=game.apply(next,seat===0?2:0,
@@ -420,7 +422,7 @@ Deno.serve(async request=>{
   const {data:updated,error:writeError}=await db.from(TABLE).update({
    // Legacy SQL status CHECK allows waiting/active/finished only; invitation state
    // is held authoritatively in the versioned game JSON until the guest responds.
-   state:next,status:next.status==='inviting_next'?'finished':next.status==='lobby'?'waiting':next.status,revision:next.revision,
+   state:next,status:next.status==='inviting_next'?'finished':['lobby','party_ready'].includes(next.status)?'waiting':next.status,revision:next.revision,
    updated_at:new Date().toISOString(),
    expires_at:new Date(Date.now()+90*86400000).toISOString()
   }).eq("id",roomId).eq("revision",room.revision).select("id").maybeSingle();

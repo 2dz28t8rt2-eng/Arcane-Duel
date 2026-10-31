@@ -1230,8 +1230,37 @@
   if(action.type==='startParty'){
    assert(g.status==='lobby'&&seat===0&&g.players[2].name!=='Partner (ausstehend)',
     'Nur der Party-Leiter kann mit einem beigetretenen Partner starten.');
-   g.status='active';
-   g.log.push(g.players[0].name+' startet das gemeinsame Duell.');
+   g.status='party_ready';
+   g.partyStartInvite={fromSeat:0,toSeat:2};
+   g.log.push(g.players[0].name+' bittet '+g.players[2].name+' um die Startfreigabe.');
+   g.revision++;return g;
+  }
+  if(action.type==='cancelPartyStart'||action.type==='declinePartyStart'){
+   assert(g.status==='party_ready'&&
+    (action.type==='cancelPartyStart'?seat===0:seat===2),
+    'Es liegt keine entsprechende Startanfrage vor.');
+   g.status='lobby';g.partyStartInvite=null;
+   g.log.push(g.players[seat].name+' hat die Startanfrage zurückgezogen oder abgelehnt.');
+   g.revision++;return g;
+  }
+  if(action.type==='acceptPartyStart'){
+   assert(g.status==='party_ready'&&seat===2&&humanBuilds?.[0]&&humanBuilds?.[2],
+    'Start benötigt die Zustimmung des Partners und beide aktuellen Decks.');
+   for(const humanSeat of [0,2]){
+    const updated=humanBuilds[humanSeat];
+    assert(validDeck(updated.deck,catalog)&&validDeck(updated.fusions,catalog,true),
+     'Ein aktuelles Partnerdeck ist ungültig.');
+    const build=normalizedBuild(updated.upgrades,updated.enhancements,
+     updated.deck,updated.fusions,catalog,updated.essence,updated.lv1);
+    const prior=g.players[humanSeat];
+    const fresh=player(humanSeat,prior.name,
+     chapterDeck(updated.deck,catalog,g.chapter,g.entry),updated.fusions,build);
+    fresh.portraitId=/^hero-(0[1-9]|1[0-6])$/.test(updated.portraitId||'')?updated.portraitId:'hero-01';
+    draw(fresh);g.players[humanSeat]=fresh;
+   }
+   g.teams[0].shield=teamAegis(g);
+   g.partyStartInvite=null;g.status='active';
+   g.log.push(g.players[0].name+' und '+g.players[2].name+' beginnen gemeinsam das Duell.');
    g.revision++;return g;
   }
   if(action.type==='nextChapter'){

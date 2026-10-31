@@ -26,11 +26,23 @@ test('new party waits for two humans and cannot play until host starts',()=>{
  assert.ok(b.players.every(p=>p.hand.length>0));
  assert.throws(()=>rules.apply(b,0,{type:'end'},{catalog}),/nicht aktiv/);
  assert.throws(()=>rules.apply(b,2,{type:'startParty'},{catalog}),/Party-Leiter/);
- const c=rules.apply(b,0,{type:'startParty'},{catalog});
- assert.equal(c.status,'active');assert.equal(c.revision,b.revision+1);
- assert.equal(c.chapter,1);assert.equal(c.players[0].name,'Leiter');
- assert.equal(c.players[2].name,'Verbündeter');
- const d=rules.apply(c,0,{type:'end'},{catalog});
+ const request=rules.apply(b,0,{type:'startParty'},{catalog});
+ assert.equal(request.status,'party_ready');assert.equal(request.revision,b.revision+1);
+ assert.throws(()=>rules.apply(request,0,{type:'acceptPartyStart'},{catalog}),/Zustimmung/);
+ const rejected=rules.apply(request,2,{type:'declinePartyStart'},{catalog});
+ assert.equal(rejected.status,'lobby');
+ const consent=rules.apply(rejected,0,{type:'startParty'},{catalog});
+ const newBuild={deck:snapshot.starterMain,fusions:snapshot.starterFusions,
+  upgrades:{},enhancements:{},essence:{},lv1:{},portraitId:'hero-14'};
+ const started=rules.apply(consent,2,{type:'acceptPartyStart'},
+  {catalog,humanBuilds:{0:newBuild,2:newBuild}});
+ assert.equal(started.status,'active');
+ assert.equal(started.chapter,1);assert.equal(started.players[0].name,'Leiter');
+ assert.equal(started.players[2].name,'Verbündeter');
+ assert.equal(started.players[0].portraitId,'hero-14');
+ assert.equal(started.players[2].portraitId,'hero-14');
+ assert.deepEqual(started.players.map(p=>p.field.length),[7,7,7,7]);
+ const d=rules.apply(started,0,{type:'end'},{catalog});
  assert.equal(d.activeSeat,1);
 });
 test('previous rooms preserve auto-start and remain compatible',()=>{
@@ -51,8 +63,8 @@ test('solo-like duo menu loads only after joining and before battle',()=>{
   'duoMenuCollection','duoMenuDeck','duoMenuProfile','duoReturnMenu'])
   assert.ok(html.includes('id="'+id+'"'),id);
  assert.ok(html.indexOf('assets/duo-parity-v160.js?')<html.indexOf('assets/duo-preparty-v218.js?'));
- assert.match(ui,/g\.status==='lobby'&&lobbySection==='menu'/);
- assert.match(ui,/g\.status==='lobby'&&lobbySection!=='menu'/);
+ assert.match(ui,/\['lobby','party_ready'\]\.includes\(g\?\.status\)/);
+ assert.match(ui,/lobbySection!=='menu'/);
  assert.match(ui,/\$\('duoPage'\)\.inert=/);
  assert.match(ui,/\$\('duoMenuStart'\)\.disabled=/);
  assert.match(ui,/api\.send\(\{type:'startParty'\}\)/);
@@ -61,7 +73,7 @@ test('solo-like duo menu loads only after joining and before battle',()=>{
  assert.match(client,/action\.type==='startParty'/);
  assert.doesNotMatch(client,/else if\(!hash&&duoLastRoom\?\.roomId&&duoProfileToken\)/);
  assert.match(edge,/deferStart:body\.deferStart===true/);
- assert.match(edge,/"startParty","soulCondense"/);
+ assert.match(edge,/"startParty","acceptPartyStart","declinePartyStart","cancelPartyStart","soulCondense"/);
  assert.equal(read('assets/duo-shared-rules-v160.js'),
   read('supabase/functions/arcane-duo-v2/duo-rules.js'));
 });
@@ -69,12 +81,12 @@ test('solo-like duo menu loads only after joining and before battle',()=>{
 test('real party UI controller follows profile -> invite -> shared menu -> host start -> battle',async()=>{
  const nodes=new Map(),node=id=>{
   if(nodes.has(id))return nodes.get(id);
-  const el={id,hidden:false,inert:false,disabled:false,dataset:{},value:'',
+  const el={id,hidden:false,inert:false,disabled:false,dataset:{},classList:{toggle(){}},value:'',
    textContent:'',children:[],parent:null,
    append(child){this.children.push(child);child.parent=this;},
    get childElementCount(){return this.children.length;},
    closest(tag){return tag==='label'?this.parent:null;},
-   focus(){},select(){},scrollIntoView(){}};
+   focus(){},select(){},scrollIntoView(){},addEventListener(){},click(){if(this.onclick)this.onclick();}};
   nodes.set(id,el);return el;
  };
  for(const id of ['duoEntry','duoChapter']){
@@ -89,8 +101,12 @@ test('real party UI controller follows profile -> invite -> shared menu -> host 
   state:()=>model,
   createRoom:async()=>{model.roomId='room-1';model.seat=0;model.invite='abcdef';
    model.game={status:'waiting',players:[{name:'Host'},null,{name:'Partner (ausstehend)'}]};},
-  send:async action=>{assert.equal(action.type,'startParty');started++;
-   model.game={...model.game,status:'active'};},
+  send:async action=>{
+   if(action.type==='startParty'){started++;model.game={...model.game,status:'party_ready'};}
+   else if(action.type==='acceptPartyStart')model.game={...model.game,status:'active'};
+   else if(action.type==='declinePartyStart')model.game={...model.game,status:'lobby'};
+   else throw Error('unexpected action '+action.type);
+  },pasteInvite:async()=>{},
   continueLastRoom:async()=>{},
   resetWaitingRoom:()=>{model={...model,roomId:'',seat:-1,invite:'',game:null};}
  };
@@ -125,6 +141,14 @@ test('real party UI controller follows profile -> invite -> shared menu -> host 
  model.seat=0;ui.sync();
  await node('duoMenuStart').onclick();
  assert.equal(started,1);
+ assert.equal(node('duoMainMenuGate').hidden,false);
+ assert.equal(node('duoStartNotice').hidden,false);
+ assert.equal(node('duoStartCancel').hidden,false);
+ model.seat=2;ui.sync();
+ assert.equal(node('duoStartAccept').hidden,false);
+ node('duoMenuDeck').onclick();
+ assert.equal(node('duoPage').dataset.lobbySection,'deck');
+ await node('duoStartAccept').onclick();
  assert.equal(node('duoMainMenuGate').hidden,true);
  assert.equal(node('duoPage').hidden,false);
  assert.equal(node('duoPage').inert,false);
@@ -133,7 +157,7 @@ test('real party UI controller follows profile -> invite -> shared menu -> host 
 test('lobby persists in JSON while SQL room status remains compatible',()=>{
  const edge=read('supabase/functions/arcane-duo-v2/index.ts');
  assert.match(edge,/state:next,status:next\.status==='lobby'\?'waiting':next\.status/);
- assert.match(edge,/status:next\.status==='inviting_next'\?'finished':next\.status==='lobby'\?'waiting':next\.status/);
+ assert.match(edge,/\['lobby','party_ready'\]\.includes\(next\.status\)\?'waiting'/);
  assert.match(edge,/room\.status==="waiting"&&!room\.guest_token_hash/);
 });
 
@@ -146,4 +170,42 @@ test('a recovered waiting party renews only its host-owned invitation, never a g
  assert.match(edge,/invitation_hash:await hash\(newInvite\)/);
  assert.match(client,/type:'renewInvite',roomId:id,profileToken:duoProfileToken/);
  assert.match(client,/invite=restoredInvite;load\(r\)/);
+});
+
+test('full solo title markup, independent menu selection and seven actual monster slots',()=>{
+ const html=read('duo-campaign-v2.html'),css=read('assets/duo-solo-parity-v219.css');
+ const solo=read('index.html');
+ for(const cls of ['ad196-title','ad196-panel',
+  'ad196-crest','ad196-kicker','ad196-wordmark','ad196-nav','ad196-bottom']){
+  assert.ok(html.includes(cls),cls+' missing from duo');
+  assert.ok(solo.includes(cls),cls+' missing from solo');
+ }
+ for(const id of ['duoStartNotice','duoStartAccept','duoStartDecline','duoStartCancel',
+  'duoJoinValue','duoJoinManual','duoSoloMenuNav','duoSoloProfileHud','duoSoloMenuHero',
+  'duoSoloTabProfile','duoSoloTabShop','duoSoloTabDeck','duoSoloTabFusions',
+  'duoSoloTabCollection','duoSoloTabUpgrades'])
+  assert.ok(html.includes('id="'+id+'"'),id);
+ assert.match(css,/grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/);
+ for(let seat=0;seat<4;seat++)assert.match(css,new RegExp('data-seat="'+seat+'"'));
+ assert.match(css,/data-lobby-section="deck"/);
+ assert.match(css,/data-lobby-section="collection"/);
+ assert.match(css,/data-lobby-section="profile"/);
+ const client=read('assets/duo-parity-v160.js'),ui=read('assets/duo-preparty-v218.js');
+ assert.match(client,/pasteInvite:async value=>/);
+ assert.match(client,/type:'invitePreview',roomId:id,invite:secret/);
+ assert.match(ui,/type:'acceptPartyStart'/);
+});
+
+test('individual solo menu never shares state: each tab controls only the local profile',()=>{
+ const ui=read('assets/duo-preparty-v218.js');
+ const css=read('assets/duo-solo-parity-v219.css');
+ assert.match(ui,/lobbySection=section;/);
+ assert.match(ui,/dataset\.lobbySection=/);
+ assert.match(ui,/\$\('duoSoloProfileHud'\)\.textContent=/);
+ assert.match(ui,/duoProfileDeckZone/);
+ assert.match(css,/#duoPage \.menu-nav/);
+ assert.match(css,/#duoPage \.menu-hero/);
+ assert.match(css,/data-lobby-section="shop"/);
+ assert.match(css,/data-lobby-section="fusions"/);
+ assert.match(css,/data-lobby-section="upgrades"/);
 });
