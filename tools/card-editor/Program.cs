@@ -11,14 +11,12 @@ internal static class Program
     [STAThread]
     static void Main(string[] args)
     {
+        ApplicationConfiguration.Initialize();
         if (args.Contains("--self-test"))
         {
-            var sample = JsonNode.Parse("{\"id\":42,\"name\":\"Test\",\"level\":2,\"atk\":100,\"def\":80,\"future\":{\"value\":1}}")!.AsObject();
-            if (sample["future"]!["value"]!.GetValue<int>() != 1 || JsonNode.Parse(sample.ToJsonString())!["id"]!.GetValue<int>() != 42)
-                throw new InvalidOperationException("JSON round-trip failed");
+            Editor.SelfTest();
             return;
         }
-        ApplicationConfiguration.Initialize();
         Application.Run(new Editor());
     }
 }
@@ -172,6 +170,39 @@ internal sealed class Editor : Form
             File.WriteAllText(d.FileName,card.ToJsonString(Pretty),new UTF8Encoding(false)); status.Text="JSON gespeichert. Bild separat aufbewahren; für die Übergabe das Kartenpaket verwenden.";
         } catch(Exception ex){Error(ex);}
     }
+    internal static void SelfTest()
+    {
+        using var editor=new Editor();
+        var sample=JsonNode.Parse("{\"id\":42,\"name\":\"Testkarte\",\"level\":2,\"atk\":100,\"def\":80,\"element\":\"FEUER\",\"role\":\"guardian\",\"ability\":\"Test\",\"pveBaseBonus\":{\"atk\":10,\"def\":20},\"future\":{\"value\":1}}")!.AsObject();
+        editor.ApplyCard(sample,Path.GetTempPath());
+        var image=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".png");
+        var zip=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".zip");
+        try
+        {
+            using(var bitmap=new Bitmap(40,40)){using var g=Graphics.FromImage(bitmap);g.Clear(Color.CornflowerBlue);bitmap.Save(image,System.Drawing.Imaging.ImageFormat.Png);}
+            editor.imagePath=image;editor.preview.SetImage(image);
+            var card=editor.BuildCard();
+            if(card["id"]!.GetValue<int>()!=42||card["atk"]!.GetValue<int>()!=100||card["pveBaseBonus"]!["def"]!.GetValue<int>()!=20||card["future"]!["value"]!.GetValue<int>()!=1)throw new InvalidOperationException("Card round-trip failed");
+            editor.preview.Size=new Size(400,620);
+            using(var rendered=new Bitmap(400,620))editor.preview.DrawToBitmap(rendered,new Rectangle(0,0,400,620));
+            WritePackage(zip,card,image);
+            using var archive=ZipFile.OpenRead(zip);
+            if(archive.GetEntry("card.json")==null||archive.GetEntry(card["art"]!.GetValue<string>())==null||archive.GetEntry("BITTE-LESEN.txt")==null)throw new InvalidOperationException("Package is incomplete");
+            using var reader=new StreamReader(archive.GetEntry("card.json")!.Open());
+            if(JsonNode.Parse(reader.ReadToEnd())!["name"]!.GetValue<string>()!="Testkarte")throw new InvalidOperationException("Package card data failed");
+        }
+        finally { if(File.Exists(image))File.Delete(image);if(File.Exists(zip))File.Delete(zip); }
+    }
+    static void WritePackage(string path,JsonObject card,string image)
+    {
+        using var file=new FileStream(path,FileMode.Create,FileAccess.Write,FileShare.None);
+        using var archive=new ZipArchive(file,ZipArchiveMode.Create);
+        var json=archive.CreateEntry("card.json");
+        using(var writer=new StreamWriter(json.Open(),new UTF8Encoding(false)))writer.Write(card.ToJsonString(Pretty));
+        archive.CreateEntryFromFile(image,card["art"]!.GetValue<string>());
+        var info=archive.CreateEntry("BITTE-LESEN.txt");
+        using(var w=new StreamWriter(info.Open(),new UTF8Encoding(false)))w.Write("Kartenentwurf für Arcane Duel\n\ncard.json und das Bild enthalten die eingegebenen Daten. Dieses Paket wird NICHT automatisch vom Spiel eingelesen. Ein Entwickler muss ID, Bildpfad, Freischaltung, Fusionen und Fähigkeiten prüfen und die Karte in die maßgeblichen Spieldaten sowie gegebenenfalls das Online-Backend integrieren. Fähigkeitstext allein erzeugt keine Spielmechanik.\n");
+    }
     void ExportPackage()
     {
         try {
@@ -179,14 +210,7 @@ internal sealed class Editor : Form
             var card=BuildCard(); var art=card["art"]!.GetValue<string>();
             using var d=new SaveFileDialog { Filter="ZIP-Paket (*.zip)|*.zip", FileName="Arcane-Karte-"+Number("id")+".zip" };
             if(d.ShowDialog()!=DialogResult.OK)return;
-            using(var archive=ZipFile.Open(d.FileName,ZipArchiveMode.Create))
-            {
-                var json=archive.CreateEntry("card.json");
-                using(var writer=new StreamWriter(json.Open(),new UTF8Encoding(false))) writer.Write(card.ToJsonString(Pretty));
-                archive.CreateEntryFromFile(imagePath,art);
-                var info=archive.CreateEntry("BITTE-LESEN.txt");
-                using(var w=new StreamWriter(info.Open(),new UTF8Encoding(false)))w.Write("Kartenentwurf für Arcane Duel\n\ncard.json und das Bild enthalten die eingegebenen Daten. Dieses Paket wird NICHT automatisch vom Spiel eingelesen. Ein Entwickler muss ID, Bildpfad, Freischaltung, Fusionen und Fähigkeiten prüfen und die Karte in die maßgeblichen Spieldaten sowie gegebenenfalls das Online-Backend integrieren. Fähigkeitstext allein erzeugt keine Spielmechanik.\n");
-            }
+            WritePackage(d.FileName,card,imagePath);
             status.Text="Kartenpaket exportiert. Integration ins Spiel erfolgt durch den Entwickler.";
         }catch(Exception ex){Error(ex);}
     }

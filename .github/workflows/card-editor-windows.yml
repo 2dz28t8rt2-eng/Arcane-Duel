@@ -18,7 +18,7 @@ jobs:
           dotnet-version: '8.0.x'
       - name: Build standalone EXE
         run: dotnet publish tools/card-editor/ArcaneDuelKartenEditor.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o out
-      - name: JSON round-trip smoke test
+      - name: Card data, preview and package smoke test
         shell: pwsh
         run: |
           $p = Start-Process -FilePath out/ArcaneDuelKartenEditor.exe -ArgumentList '--self-test' -Wait -PassThru
