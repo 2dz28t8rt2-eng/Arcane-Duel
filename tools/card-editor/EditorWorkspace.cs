@@ -142,7 +142,7 @@ internal sealed partial class Editor
     {
         if(shelf.Count==0){status.Text="Die Kartenablage ist bereits leer.";return;}
         if(MessageBox.Show(parent??this,"Wirklich ALLE "+shelf.Count+
-            " Karten aus der Zwischenablage unwiderruflich löschen?\\n"+
+            " Karten aus der Zwischenablage unwiderruflich löschen?\n"+
             "Die aktuell im Editor geöffnete Karte und bereits exportierte ZIP-Dateien bleiben bestehen.",
             "Clear – gesamte Kartenablage leeren",MessageBoxButtons.YesNo,
             MessageBoxIcon.Warning,MessageBoxDefaultButton.Button2)!=DialogResult.Yes)return;
@@ -393,7 +393,7 @@ Dieser Export ist eine Entwicklungsübergabe, kein automatisches Live-Update.
     void OrganizeEditorTabs(Panel scroll,FlowLayoutPanel oldStack)
     {
         var tabs=new TabControl {Dock=DockStyle.Fill,Font=new Font("Segoe UI",10)};
-        var names=new[]{"Monster & Werte","Artwork","Kartendesign","Erweitert"};
+        var names=new[]{"Monster & Werte","Artwork","Kartendesign","Erweitert","Freischaltung"};
         var lists=new FlowLayoutPanel[names.Length];
         for(int i=0;i<names.Length;i++)
         {
@@ -411,7 +411,7 @@ Dieser Export ist eine Entwicklungsübergabe, kein automatisches Live-Update.
             if(item is Label heading)
                 current=heading.Text switch {
                     "ARTWORK"=>1,"KARTENBAUKASTEN · SPIEL-ASSETS"=>2,
-                    "ZUSÄTZLICHE SPIELWERTE"=>3,_=>current};
+                    "ZUSÄTZLICHE SPIELWERTE"=>3,"FREISCHALTUNG & INTEGRATION"=>4,_=>current};
             oldStack.Controls.Remove(item);lists[current].Controls.Add(item);
         }
         scroll.Controls.Remove(oldStack);scroll.AutoScroll=false;
