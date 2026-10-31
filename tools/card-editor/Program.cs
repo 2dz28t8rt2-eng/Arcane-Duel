@@ -45,6 +45,7 @@ internal sealed partial class Editor : Form
     readonly string[] numeric = { "id", "level", "atk", "def", "pveAtk", "pveDef" };
     readonly string[] boolKeys = { "fusionOnly", "ace", "fateTemplate", "playable", "essenceMonster", "lv1Exclusive" };
     static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static string ColorHex(Color color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}";
 
     public Editor()
     {
@@ -200,7 +201,7 @@ internal sealed partial class Editor : Form
             fusionOnly=preview.IsFusion, ace=preview.IsAce,
             essenceMonster=preview.IsEssence,frameTemplate=ChoiceId(frames),
             frameLevelOverlay=ChoiceId(ornaments),frameRoleIcon=ChoiceId(icons),
-            frameUrl=frameUri,accent=ColorTranslator.ToHtml(backgroundAccent),customAccent=accentChanged,
+            frameUrl=frameUri,accent=ColorHex(backgroundAccent),customAccent=accentChanged,
             description=fields["desc"].Text, tags=fields["tags"].Text,
             iconUrl=selectedRoleIcon=="none"?"":AssetCatalog.IconDataUri(activeIcon)
         });
@@ -302,7 +303,7 @@ internal sealed partial class Editor : Form
         obj["frameTemplate"]=ChoiceId(frames);
         obj["frameLevelOverlay"]=ChoiceId(ornaments);
         obj["frameRoleIcon"]=ChoiceId(icons);
-        obj["frameAccent"]=ColorTranslator.ToHtml(backgroundAccent);
+        obj["frameAccent"]=ColorHex(backgroundAccent);
         if(ChoiceId(frames)=="custom"&&customFrameBytes!=null&&customFrameExtension!=null)
             obj["customFrame"]="assets/card-templates/editor/card-"+Number("id")+"-frame"+customFrameExtension;
         obj["essenceSchool"]=string.IsNullOrWhiteSpace(fields["essenceSchool"].Text)?null:JsonValue.Create(fields["essenceSchool"].Text.Trim());
@@ -500,7 +501,9 @@ internal sealed partial class Editor : Form
                 throw new InvalidOperationException("Canonical game preview assets not loaded");
 
             var firstDraft=editor.Snapshot(); // catalog card; original art not copied
-            editor.ApplyCard(sample,Path.GetTempPath());
+            editor.NewCard();
+            editor.fields["id"].Text="90042";
+            editor.fields["name"].Text="Testkarte";
             editor.imageBytes=File.ReadAllBytes(image);
             editor.imageExtension=".png";
             var secondDraft=editor.Snapshot(); // new card; full image copied
@@ -532,7 +535,7 @@ internal sealed partial class Editor : Form
                    batch.GetEntry("CHATGPT_IMPORT.md")==null ||
                     batch.Entries.Count(x=>x.FullName.EndsWith("/integration.json"))!=2 ||
                    batch.Entries.Count(x=>x.FullName.EndsWith("/card.json"))!=2 ||
-                   !batch.Entries.Any(x=>x.FullName.EndsWith("assets/custom-art/editor/card-42.png")))
+                   !batch.Entries.Any(x=>x.FullName.EndsWith("assets/custom-art/editor/card-90042.png")))
                     throw new InvalidOperationException("Batch ZIP manifest/cards/artwork incomplete");
                 using var summary=new StreamReader(batch.GetEntry("manifest.json")!.Open());
                 if(JsonNode.Parse(summary.ReadToEnd())!["cardCount"]!.GetValue<int>()!=2)
@@ -556,6 +559,18 @@ internal sealed partial class Editor : Form
         using(var writer=new StreamWriter(json.Open(),new UTF8Encoding(false)))writer.Write(card.ToJsonString(Pretty));
         ZipText(archive,"integration.json",IntegrationMetadata(draft,designApproved).ToJsonString(Pretty));
         ZipText(archive,"CHATGPT_IMPORT.md",ChatGptImportGuide);
+        ZipText(archive,"manifest.json",new JsonObject
+        {
+            ["format"]="arcane-duel-card-batch-v2",
+            ["cardCount"]=1,
+            ["cards"]=new JsonArray(new JsonObject
+            {
+                ["id"]=card["id"]?.DeepClone(), ["name"]=card["name"]?.ToString()??"",
+                ["cardJson"]="card.json",["integrationJson"]="integration.json",
+                ["artwork"]=card["art"]?.ToString()??"",
+                ["artworkBundled"]=image!=null
+            })
+        }.ToJsonString(Pretty));
         if(image!=null)
         {
             var picture=archive.CreateEntry(card["art"]!.GetValue<string>());
