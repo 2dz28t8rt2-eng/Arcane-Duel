@@ -1,6 +1,6 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const fs=require('node:fs');
+const fs=require('node:fs'),vm=require('node:vm');
 const path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
@@ -64,4 +64,75 @@ test('solo-like duo menu loads only after joining and before battle',()=>{
  assert.match(edge,/"startParty","soulCondense"/);
  assert.equal(read('assets/duo-shared-rules-v160.js'),
   read('supabase/functions/arcane-duo-v2/duo-rules.js'));
+});
+
+test('real party UI controller follows profile -> invite -> shared menu -> host start -> battle',async()=>{
+ const nodes=new Map(),node=id=>{
+  if(nodes.has(id))return nodes.get(id);
+  const el={id,hidden:false,inert:false,disabled:false,dataset:{},value:'',
+   textContent:'',children:[],parent:null,
+   append(child){this.children.push(child);child.parent=this;},
+   get childElementCount(){return this.children.length;},
+   closest(tag){return tag==='label'?this.parent:null;},
+   focus(){},select(){},scrollIntoView(){}};
+  nodes.set(id,el);return el;
+ };
+ for(const id of ['duoEntry','duoChapter']){
+  const label={id:id+'-label',children:[]};
+  node(id).parent=label;
+ }
+ const document={getElementById:node};
+ let model={nameConfirmed:false,joinIntent:false,roomId:'',seat:-1,
+  game:null,invite:'',profile:{nickname:'Host'},lastRoom:null,busy:false,catalogReady:true};
+ let started=0;
+ const api={
+  state:()=>model,
+  createRoom:async()=>{model.roomId='room-1';model.seat=0;model.invite='abcdef';
+   model.game={status:'waiting',players:[{name:'Host'},null,{name:'Partner (ausstehend)'}]};},
+  send:async action=>{assert.equal(action.type,'startParty');started++;
+   model.game={...model.game,status:'active'};},
+  continueLastRoom:async()=>{},
+  resetWaitingRoom:()=>{model={...model,roomId:'',seat:-1,invite:'',game:null};}
+ };
+ const window={ArcaneDuoParty218:api},location={href:'https://example.invalid/duo-campaign-v2.html#room=old'};
+ const navigator={clipboard:{writeText:async()=>{}}};
+ vm.runInNewContext(read('assets/duo-preparty-v218.js'),{window,document,location,navigator,console});
+ const ui=window.ArcaneDuoPartyUI218;
+ assert.ok(ui);
+ assert.equal(node('duoPartyGate').hidden,true);
+ model.nameConfirmed=true;ui.sync();
+ assert.equal(node('duoPartyGate').hidden,false);
+ assert.equal(node('duoMainMenuGate').hidden,true);
+ assert.equal(node('duoPage').inert,true);
+ await node('duoPartyCreate').onclick();
+ assert.equal(node('duoPartyWaiting').hidden,false);
+ assert.match(node('duoPartyLink').value,/#join=room-1\.abcdef$/);
+ model.game={status:'lobby',chapter:1,players:[{name:'Host'},null,{name:'Partner'}]};
+ ui.sync();
+ assert.equal(node('duoPartyGate').hidden,true);
+ assert.equal(node('duoMainMenuGate').hidden,false);
+ assert.equal(node('duoMenuStart').disabled,false);
+ node('duoMenuCollection').onclick();
+ assert.equal(node('duoMainMenuGate').hidden,true);
+ assert.equal(node('duoPage').hidden,false);
+ assert.equal(node('duoPage').dataset.lobbyView,'true');
+ node('duoReturnMenu').onclick();
+ assert.equal(node('duoMainMenuGate').hidden,false);
+ model.seat=2;ui.sync();
+ assert.equal(node('duoMenuStart').disabled,true);
+ await node('duoMenuStart').onclick();
+ assert.equal(started,0);
+ model.seat=0;ui.sync();
+ await node('duoMenuStart').onclick();
+ assert.equal(started,1);
+ assert.equal(node('duoMainMenuGate').hidden,true);
+ assert.equal(node('duoPage').hidden,false);
+ assert.equal(node('duoPage').inert,false);
+ assert.equal(node('duoPage').dataset.lobbyView,'false');
+});
+test('lobby persists in JSON while SQL room status remains compatible',()=>{
+ const edge=read('supabase/functions/arcane-duo-v2/index.ts');
+ assert.match(edge,/state:next,status:next\.status==='lobby'\?'waiting':next\.status/);
+ assert.match(edge,/status:next\.status==='inviting_next'\?'finished':next\.status==='lobby'\?'waiting':next\.status/);
+ assert.match(edge,/room\.status==="waiting"&&!room\.guest_token_hash/);
 });
