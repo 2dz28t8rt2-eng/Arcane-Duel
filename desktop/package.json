@@ -1,8 +1,8 @@
 {
   "name": "arcane-duel-desktop",
   "private": true,
-  "version": "0.1.5",
-  "description": "Arcane Duel desktop preview for Windows",
+  "version": "0.1.6",
+  "description": "Arcane Duel selfhosted server client for Windows",
   "main": "main.cjs",
   "scripts": {
     "start": "electron .",
@@ -20,7 +20,6 @@
     "files": [
       "main.cjs",
       "url-policy.cjs",
-      "revision-resolver.cjs",
       "offline.html",
       "build/icon.ico",
       "package.json"
@@ -30,10 +29,12 @@
     },
     "win": {
       "icon": "build/icon.ico",
-      "target": ["portable"]
+      "target": [
+        "portable"
+      ]
     },
     "portable": {
-      "artifactName": "ArcaneDuel-${version}-portable.exe"
+      "artifactName": "ArcaneDuel-Server-${version}-portable.exe"
     }
   }
 }
