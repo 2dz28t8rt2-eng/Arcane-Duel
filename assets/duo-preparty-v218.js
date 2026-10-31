@@ -12,7 +12,12 @@
  const select=(section)=>{
   const state=api.state();
   if(!['lobby','party_ready'].includes(state.game?.status))return;
-  lobbySection=section;sync();
+  lobbySection=section;
+  if(section==='deck'||section==='fusions'){
+   $('duoProfileDeckZone').value=section==='fusions'?'fusion':'main';
+   $('duoProfileDeckZone').onchange?.();
+  }
+  sync();
   const target={collection:'duoCollectionTotals',deck:'duoProfileDeckZone',
    profile:'duoProfileStats'}[section];
   if(target)$(target)?.scrollIntoView?.({behavior:'smooth',block:'center'});
@@ -30,6 +35,18 @@
   $('duoPage').inert=!(library||battle);
   $('duoPage').dataset.lobbyView=library?'true':'false';
   $('duoPage').dataset.lobbySection=library?lobbySection:'';
+  $('duoSoloWorkspace').hidden=!library;
+  const titles={profile:'Chronik & Hinweise',shop:'Booster-Shop',
+   deck:'Hauptdeck',fusions:'Fusionsdeck',collection:'Monsterwerkstatt',upgrades:'Ausbau'};
+  $('duoSoloMenuTitle').textContent=titles[lobbySection]||'Dein Duellant';
+  $('duoSoloMenuSubtitle').textContent='Deine Karten, Verbesserungen und Fortschritte bleiben vollständig unabhängig von deinem Partner.';
+  const p=s.profile;
+  $('duoSoloProfileHud').textContent=p?
+   p.nickname+'  ·  Lv '+p.level+'  ·  '+p.essence+' Essenz  ·  '+p.shards+' Splitter  ·  '+p.xp+' EP':'';
+  for(const id of Object.keys(titles)){
+   const tabId='duoSoloTab'+id[0].toUpperCase()+id.slice(1);
+   $(tabId).classList.toggle('active',library&&lobbySection===id);
+  }
   $('duoReturnMenu').hidden=!library;
   const waiting=party&&g?.status==='waiting'&&s.seat===0&&!!s.invite;
   $('duoPartyWaiting').hidden=!waiting;
@@ -140,6 +157,9 @@
  $('duoStartAccept').onclick=async()=>{await api.send({type:'acceptPartyStart'});sync();};
  $('duoStartDecline').onclick=async()=>{await api.send({type:'declinePartyStart'});sync();};
  $('duoStartCancel').onclick=async()=>{await api.send({type:'cancelPartyStart'});sync();};
+ for(const section of ['profile','shop','deck','fusions','collection','upgrades']){
+  $('duoSoloTab'+section[0].toUpperCase()+section.slice(1)).onclick=()=>select(section);
+ }
  $('duoMenuCollection').onclick=()=>select('collection');
  $('duoMenuDeck').onclick=()=>select('deck');
  $('duoMenuProfile').onclick=()=>select('profile');
