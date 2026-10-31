@@ -427,7 +427,11 @@ internal sealed partial class Editor : Form
             if(!ConfirmIntent(new[]{draft}))return;
             var card=draft.Card; using var d=new SaveFileDialog { Filter="JSON (*.json)|*.json", FileName="karte-"+Number("id")+".json" };
             if(d.ShowDialog()!=DialogResult.OK)return;
-            File.WriteAllText(d.FileName,card.ToJsonString(Pretty),new UTF8Encoding(false)); status.Text="JSON gespeichert. Bild separat aufbewahren; für die Übergabe das Kartenpaket verwenden.";
+            File.WriteAllText(d.FileName,card.ToJsonString(Pretty),new UTF8Encoding(false));
+            var metaPath=Path.Combine(Path.GetDirectoryName(d.FileName)!,
+                Path.GetFileNameWithoutExtension(d.FileName)+".integration.json");
+            File.WriteAllText(metaPath,IntegrationMetadata(draft,true).ToJsonString(Pretty),new UTF8Encoding(false));
+            status.Text="JSON und Integration gespeichert. Bei einer Übergabe beide Dateien teilen – am besten das ZIP verwenden.";
         } catch(Exception ex){Error(ex);}
     }
     internal static void SelfTest()
