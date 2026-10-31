@@ -21,7 +21,7 @@ SVG- und PNG-Rahmen lassen sich ergänzen.
 
 ## Karten bearbeiten
 
-1. **Aus Katalog** öffnen und nach Name, ID, Rolle oder Element suchen.
+1. **Bestehende Karten bearbeiten** öffnen und nach Name, ID, Rolle oder Element suchen.
 2. Bestehende Karte übernehmen. Ihre ursprüngliche ID, ihre Artwork-Referenz
    und alle unbekannten JSON-Felder bleiben erhalten.
 3. Namen, Stufe, ATK/DEF, PvE-Boni, Rolle, Rollenspezialisierung,
@@ -66,3 +66,35 @@ GitHub Actions führt diese Schritte automatisch aus und veröffentlicht
 Für die Selbsttests werden die **20 Rahmen**, die **40 Level-Verzierungen**, die
 **Original-Rollensymbole**, die **Katalogkarten**, ein kompletter
 Bearbeitungs-/ZIP-Wiedereinlesezyklus sowie das Rendering mit SVG überprüft.
+
+
+## Erweiterter Karteneditor: Bedienung und Ablage
+
+- Die Fensteransicht ist in die Reiter Monster & Werte, Artwork, Kartendesign und Erweitert gegliedert.
+- Bestehende Karten bearbeiten: Volltextsuche sowie kombinierbare Filter für Rolle, Element, Stufe, Typ, Seltenheit; Sortierung nach Name, Stufe oder ID.
+- Wichtige Felder bieten anklickbare Vorlagen und Katalog-Autovervollständigung; die Eingaben bleiben frei bearbeitbar.
+- Erweiterte Eigenschaften: JSON-Beispiel, Live-Syntaxindikator und JSON-Strukturprüfung.
+- Live-Vorschau: tatsächlicher gemeinsamer HTML-Kartenrenderer aus card-view-v221.js und die Original-CSS/SVG-Frames des Spiels. Name, Artwork, Typ, Level-Medaillon zwischen ATK und DEF sowie Zahlen passen sich sofort an.
+- Zur Ablage hinzufügen: Karte dauerhaft lokal zwischenspeichern. Bei gleicher ID fragt der Editor vor dem Überschreiben.
+- Ablage öffnen: Karten erneut bearbeiten, duplizieren oder entfernen. Duplikate erhalten zunächst ID -1 und müssen vor einem Export eine echte, eindeutige ID bekommen.
+- Alle exportieren (ZIP): getrennte Kartenordner, card.json pro Karte, ggf. mitgeliefertes Artwork und eigener Rahmen, manifest.json sowie CHATGPT_IMPORT.md mit Implementierungsschritten für Solo und 2v2.
+
+### Technische Voraussetzung und Grenzen
+
+Die präzise HTML-Vorschau verwendet Microsoft Edge WebView2 Runtime (Windows 10/11).
+Fehlt sie, ist die vereinfachte bisherige GDI-Vorschau als Ersatz verfügbar.
+Die im Editor eingebetteten Original-Artworks sind JPEG-Vorschaudateien;
+für den späteren Import behalten die echten Grafiken ihre Originalpfade.
+Ändert sich in Zukunft die spielseitige Karten-CSS, muss auch die Editor-Assetliste
+synchronisiert werden. Unterschiedliche Bildschirmgrößen und kontextspezifische
+Spielregeln können die Darstellung geringfügig verändern.
+
+Die Ablage liegt benutzerspezifisch im LocalAppData-Unterordner
+ArcaneDuel/CardEditor/Kartenablage.json und wird nicht in das laufende Spiel
+geschrieben. Neue Fähigkeitstexte sind reine Beschreibungen und implementieren
+noch keine Spiellogik. Alle Änderungen sind ein Entwicklungsentwurf;
+das ZIP darf nicht ungeprüft über ein bestehendes Spiel kopiert werden.
+
+Der Windows-CI-Selbsttest überprüft neben Karten-JSON-Roundtrips auch die
+eingebettete Spiel-CSS, den kanonischen HTML-Baustein und den zweikartenfähigen
+ZIP-Export mit Artwork und Importmanifest.
