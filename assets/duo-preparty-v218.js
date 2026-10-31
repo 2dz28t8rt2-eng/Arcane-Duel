@@ -82,24 +82,23 @@
   }
   if(joined){
    $('duoMenuTeam').textContent=g.players[0].name+'  ✦  '+g.players[2].name;
-   $('duoMenuStart').disabled=s.seat!==0||s.busy||g.status!=='lobby';
-   $('duoMenuStart').textContent=g.status==='waiting'?'Partner noch nicht verbunden':
-    s.seat===0?'Kampagne starten':'Auf Startanfrage warten';
+   $('duoMenuStart').disabled=s.busy||g.status!=='lobby';
+   $('duoMenuStart').textContent=g.status==='waiting'?'Partner noch nicht verbunden':'Duell anfragen';
+   const ownRequest=g.partyStartInvite?.fromSeat===s.seat;
    $('duoMenuStatus').textContent=g.status==='party_ready'?
-    (s.seat===0?'Startanfrage verschickt. Dein Partner entscheidet, wann er bereit ist.':
-      'Dein Partner hat eine Startanfrage geschickt. Du kannst noch dein Deck bearbeiten.'):
+    (ownRequest?'Startanfrage verschickt. Dein Partner entscheidet, wann er bereit ist.':
+      'Dein Partner hat eine Startanfrage geschickt. Du kannst dein Deck weiter bearbeiten.'):
     (g.status==='waiting'?'Die Gruppe ist erstellt. Lade deinen Partner über „Gruppe & Einladung“ ein.':
-     s.seat===0?'Kapitel '+g.chapter+' wählen und Startanfrage verschicken. Dein Partner bestätigt separat.':
-      'Party verbunden. Du kannst deinen Duellanten unabhängig vom Partner verwalten.');
+     'Du kannst Kapitel '+g.chapter+' anfragen oder deinen Duellanten unabhängig vorbereiten.');
   }
   const pending=g?.status==='party_ready'&&joined;
   $('duoStartNotice').hidden=!pending;
-  $('duoStartAccept').hidden=!pending||s.seat!==2;
-  $('duoStartDecline').hidden=!pending||s.seat!==2;
-  $('duoStartCancel').hidden=!pending||s.seat!==0;
-  $('duoStartNoticeTitle').textContent=s.seat===0?
+  $('duoStartAccept').hidden=!pending||s.seat!==g.partyStartInvite?.toSeat;
+  $('duoStartDecline').hidden=!pending||s.seat!==g.partyStartInvite?.toSeat;
+  $('duoStartCancel').hidden=!pending||s.seat!==g.partyStartInvite?.fromSeat;
+  $('duoStartNoticeTitle').textContent=s.seat===g?.partyStartInvite?.fromSeat?
    'Warte auf die Zustimmung deines Partners':'Dein Partner lädt dich zum Duell ein';
-  $('duoStartNoticeText').textContent=s.seat===0?
+  $('duoStartNoticeText').textContent=s.seat===g?.partyStartInvite?.fromSeat?
    'Beide können ihre Karten und Fähigkeiten weiter unabhängig verwalten.':
    'Du kannst erst dein Deck fertigstellen und dann zustimmen oder die Anfrage ablehnen.';
   // Do not show the legacy room-creation panel inside the actual game.
@@ -175,7 +174,7 @@
   sync();
  };
  $('duoMenuStart').onclick=async()=>{
-  const s=api.state();if(s.seat!==0||s.game?.status!=='lobby')return;
+  const s=api.state();if(![0,2].includes(s.seat)||s.game?.status!=='lobby')return;
   $('duoMenuStatus').textContent='Startanfrage wird an deinen Partner gesendet …';
   await api.send({type:'startParty'});
   const after=api.state();
