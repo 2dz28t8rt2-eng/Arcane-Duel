@@ -37,11 +37,6 @@
 
 /* v22.7: show each award card atomically after artwork has loaded.
    Prevent ATK/DEF appearing before the actual ACE card image. */
-#ad211-unused{display:none}
-#ad211-unused[hidden]{display:none}
-#ad211-unused::before{content:""}
-#ad211-unused::after{content:""}
-#ad211-unused + .ad211-earned-card{min-width:0}
 #modal .ad211-earned-card:not(.ad211-card-ready) .hand-card{visibility:hidden!important}
 #modal .ad211-earned-card.ad211-card-ready .hand-card{visibility:visible!important}
 #modal .ad211-earned-card{margin:14px auto;padding:14px;
