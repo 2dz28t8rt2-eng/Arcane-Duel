@@ -1,21 +1,68 @@
-# Arcane Duel · Karten-Editor
+# Arcane Duel · Kartenbaukasten für Windows
 
-Windows-Editor zum Erstellen einzelner Kartenentwürfe mit Vorschau, Bildauswahl und Kartenpaketen.
+Dieser Editor arbeitet mit **den Original-Assets des Spiels** und dem zum Zeitpunkt des Builds
+gültigen Solo-/Duo-Kartenkatalog. Ein GitHub-Actions-Build erstellt eine **einzelne EXE für Windows 10/11**.
 
-## Bedienung
+## Mitgelieferte Asset-Bibliothek
 
-1. Werte eingeben und ein PNG-, JPEG-, BMP- oder GIF-Bild auswählen.
-2. Eindeutige ID mit dem bestehenden Projekt abgleichen.
-3. Oben auf „Save“ klicken und ein ZIP-Kartenpaket speichern. Es enthält die Kartendaten und das Bild.
-4. Der anschließende Dialog zeigt den Speicherpfad und kopiert ihn auf Wunsch in die Zwischenablage. Er sendet oder teilt nichts automatisch. Ein Pfad funktioniert für die Unterhaltung nur, wenn sie auf demselben Computer läuft und den Ordner lesen darf; andernfalls das ZIP im Chat hochladen.
-5. Über „Karte öffnen“ kann das gespeicherte ZIP später mitsamt Bild wieder geöffnet werden.
+- **20 echte transparente SVG-Kartenrahmen**, aufgeteilt in Standard, Fusion, ACE und Essenz
+  mit fünf Ausbaustufen.
+- **40 SVG-Level-Ornamente**, je zehn für Standard, Fusion, ACE und Essenz.
+- **8 Rollensymbole**, darunter Wächter-Schild und Seelenzehrer-Spirale.
+- **Original-Monsterkatalog** (zurzeit 762 Karteneinträge) mit Namen, Level,
+  ATK/DEF, Rollen, Elementen, Eigenschaften und Bildpfaden.
+- **Kleine Offline-Vorschaubilder aller verfügbaren Monster-Artworks**. Die Vorschaubilder
+  werden beim Windows-Build aus den echten Grafiken erzeugt, aber **nie**
+  als Ersatz für die Originalbilder in die Spieldaten geschrieben.
 
-Weitere Felder wie `source`, `lv1Special` oder `fusionReference` können als JSON eingegeben werden. Beim Öffnen einer einzelnen JSON-Karte bleiben unbekannte Felder erhalten. Die Vorschau ist eine eigenständige Annäherung, nicht die Spielfront.
+Die originalen SVGs werden mit der Bibliothek `Svg.NET` direkt dargestellt.
+Die Palette des Kartenhintergrunds ist frei wählbar; eigene transparente
+SVG- und PNG-Rahmen lassen sich ergänzen.
 
-**Wichtig:** Das Paket integriert Karten nicht automatisch ins Spiel. Das Projekt erzeugt seinen Duo-Katalog aus bestehenden Spieldaten; der Entwickler muss die maßgebliche Datenquelle, ID, Artwork, Verfügbarkeit, Fusionen und gegebenenfalls das Online-Backend anpassen und testen. Fähigkeitstext implementiert keine Spiellogik. Den bestehenden Katalog nicht überschreiben.
+## Karten bearbeiten
+
+1. **Aus Katalog** öffnen und nach Name, ID, Rolle oder Element suchen.
+2. Bestehende Karte übernehmen. Ihre ursprüngliche ID, ihre Artwork-Referenz
+   und alle unbekannten JSON-Felder bleiben erhalten.
+3. Namen, Stufe, ATK/DEF, PvE-Boni, Rolle, Rollenspezialisierung,
+   Seltenheit, Art, Element, Fähigkeitstext, Beschreibung, eigene Tags,
+   Fusion-/ACE-/Essenz-Kennzeichen oder weitere JSON-Eigenschaften ändern.
+4. In **Kartenbaukasten** eine Rahmenvorlage, Levelgravur und ein Rollensymbol wählen.
+   Oder einen eigenen SVG-/PNG-Rahmen öffnen. **Aus Katalog** in der Artwork-Zeile
+   erlaubt, das vorhandene Bild einer anderen Karte zu verwenden.
+5. Über **PNG-Vorschau** ein fertiges Vorschaubild rendern.
+6. Über **Save** ein ZIP-Paket mit `card.json`, neuen Bildern und optionalem
+   eigenem Rahmen speichern. Das ZIP lässt sich über **Karte öffnen** wieder laden.
+
+Für neue Artworks sind PNG/JPG/JPEG/GIF/BMP unterstützt. Die im Spiel
+verwendeten WebP-Monster werden im Editor als eingebettete JPEG-Vorschauen
+angezeigt; ihre ursprünglichen WebP-Pfade bleiben unverändert.
+
+## Datensicherheit und Integration
+
+**Es werden keine Live-Karten automatisch verändert.** Ein Export ist ein
+**bearbeitbarer Entwicklungsentwurf**, kein sofortiger Eingriff in Spielerprofile,
+Kampagnenfortschritt oder Online-2v2-Partien.
+
+Bestehende Karten können durch ihre feste ID in Entwicklungsdateien
+aktualisiert werden, aber das erfordert einen gezielten Integrationsschritt:
+Solo-Kartenquelle, Fusions-/Levelbudget, eventuell notwendige Loot- und
+Deck-Freischaltungen sowie die beiden Duo-Katalogkopien kontrollieren;
+anschließend Tests und bei Online-Funktionen ein Backend-Deployment durchführen.
+Die Export-ZIP absichtlich **nicht ungeprüft** über ein laufendes Spiel kopieren.
+Eigene Freitext-Fähigkeiten sind zunächst Text, keine implementierten Effekte.
 
 ## Build
 
-`dotnet publish tools/card-editor/ArcaneDuelKartenEditor.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true`
+```powershell
+python -m pip install Pillow==11.3.0
+python tools/card-editor/generate_thumbnails.py
+dotnet publish tools/card-editor/ArcaneDuelKartenEditor.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o out
+out/ArcaneDuelKartenEditor.exe --self-test
+```
 
-Der GitHub-Actions-Lauf stellt die Windows-EXE als zeitlich begrenztes Build-Artefakt bereit. Der Download erfordert eine GitHub-Anmeldung und ausreichenden Zugriff auf den Lauf.
+GitHub Actions führt diese Schritte automatisch aus und veröffentlicht
+**Arcane-Duel-Karten-Editor-Windows** als Windows-EXE im Workflow-Artefakt.
+Für die Selbsttests werden die **20 Rahmen**, die **40 Level-Verzierungen**, die
+**Original-Rollensymbole**, die **Katalogkarten**, ein kompletter
+Bearbeitungs-/ZIP-Wiedereinlesezyklus sowie das Rendering mit SVG überprüft.
