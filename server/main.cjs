@@ -44,7 +44,7 @@ function createServer({root=path.resolve(__dirname,'..'),database,origin,trustPr
    if(!['GET','HEAD'].includes(req.method))return reply(res,405,{error:'Methode nicht erlaubt.'});
    const relative=decodeURIComponent(url.pathname).replace(/^\//,'')||'index.html';
    // Serve only public game files. Backend source, data, keys and tests are private.
-   if(!(relative.startsWith('assets/')||relative.startsWith('models/')||/^(?:index|duo-campaign-v2|art-gallery|collection-v3)\.html$/.test(relative))||relative.split('/').some(p=>p==='..'||p.startsWith('.'))||relative.includes('\\')||relative.includes('\0'))return reply(res,404,{error:'Nicht gefunden.'});
+   if(!(relative.startsWith('assets/')||relative.startsWith('models/')||['desktop/build/icon.png','desktop/build/icon.ico'].includes(relative)||/^(?:index|duo-campaign-v2|art-gallery|collection-v3)\.html$/.test(relative))||relative.split('/').some(p=>p==='..'||p.startsWith('.'))||relative.includes('\\')||relative.includes('\0'))return reply(res,404,{error:'Nicht gefunden.'});
    const file=path.resolve(root,relative);
    if(!file.startsWith(root+path.sep))return reply(res,404,{error:'Nicht gefunden.'});
    const stat=await fs.promises.stat(file).catch(()=>null);if(!stat?.isFile())return reply(res,404,{error:'Nicht gefunden.'});
