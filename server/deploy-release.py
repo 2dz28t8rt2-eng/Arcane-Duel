@@ -72,6 +72,9 @@ target=releases/release['id']
 if target.exists():raise SystemExit('Release already exists')
 os.replace(stage,target)
 current=base/'current';old=current.resolve() if current.is_symlink() else None
+# Never activate over an unrecognized active release. This also protects rollback.
+if old and (old.parent!=releases or not re.fullmatch(r'v229-[a-f0-9]{12}',old.name) or not old.is_dir()):
+ raise SystemExit('Unexpected existing active release; no activation performed')
 if old:subprocess.run(['systemctl','start','arcane-duel-backup.service'],check=True)
 def activate(p):
  link=base/'current.next'
@@ -90,6 +93,10 @@ try:
 except Exception:
  if old:activate(old);subprocess.run(['systemctl','restart','arcane-duel.service'],check=True)
  else:subprocess.run(['systemctl','stop','arcane-duel.service'],check=False)
+ # The new build was never accepted as a working version; remove only its
+ # own freshly created directory after the previous symlink is restored.
+ if target.is_dir() and not target.is_symlink() and (not current.is_symlink() or current.resolve()!=target):
+  shutil.rmtree(target)
  raise
 # Prune ONLY after successful restart and matching health revision.
 # On failed health verification the previous release remains available for rollback.
