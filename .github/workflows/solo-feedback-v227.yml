@@ -1,0 +1,37 @@
+name: Solo v22.7 post-duel and field-feedback regression
+on:
+  push:
+    branches:
+      - fix/solo-result-soulbond-boss-ui-20261031
+      - development
+    paths:
+      - 'assets/game.js'
+      - 'assets/expansion.js'
+      - 'assets/duel-cinematics-v42.js'
+      - 'assets/duel-polish-v197.js'
+      - 'assets/solo-playtest-ux-v211.js'
+      - 'assets/solo-playtest-ux-v211.css'
+      - 'assets/soul-bond-v206.css'
+      - 'tests/solo-feedback-v227.test.cjs'
+      - '.github/workflows/solo-feedback-v227.yml'
+  pull_request:
+    branches: [development]
+permissions:
+  contents: read
+jobs:
+  solo-feedback:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check all touched JavaScript modules
+        run: |
+          node --check assets/game.js
+          node --check assets/expansion.js
+          node --check assets/duel-cinematics-v42.js
+          node --check assets/duel-polish-v197.js
+          node --check assets/solo-playtest-ux-v211.js
+      - name: Validate all eight UX regression fixes
+        run: node --test tests/solo-feedback-v227.test.cjs
