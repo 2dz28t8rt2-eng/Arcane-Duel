@@ -413,6 +413,9 @@
   save();render();
   // Visual presentation is derived from public room state, never opponent private hands.
   window.ArcaneDuoPortraits215?.update?.(game);
+  // Story dialogue, boss reveals, combat music and battle effects start only
+  // when the host actually starts the duel, not when a guest accepts a party.
+  if(game.status==='lobby')return;
   window.ArcaneDuoStory216?.onState?.(previous,game,seat,roomId);
   if(game.status!=='inviting_next'&&$('duoInviteDialog').dataset.mode==='next')dismissInvitation();
   window.ArcaneDuoCinematics167?.onState(previous,game);
