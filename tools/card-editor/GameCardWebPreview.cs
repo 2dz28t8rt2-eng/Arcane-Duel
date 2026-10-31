@@ -21,7 +21,7 @@ internal sealed class GameCardWebPreview : UserControl
         Dock = DockStyle.Fill;
         BackColor = Color.FromArgb(24, 21, 33);
         Controls.Add(browser);
-        Visible = false; // show the canonical renderer only after the WebView2 page is ready
+        // The host must remain visible to create its native handle for WebView2.
         HandleCreated += (_, _) => _ = InitializeBrowser();
     }
 
@@ -58,6 +58,7 @@ internal sealed class GameCardWebPreview : UserControl
             // when WebView2 Runtime is unavailable or blocked by policy.
             ready = false;
             browser.Visible = false;
+            Visible = false; // reveal the WinForms fallback only on failure
             System.Diagnostics.Debug.WriteLine("WebView2 card preview unavailable: " + ex);
         }
     }
