@@ -12,7 +12,7 @@ function createServer({root=path.resolve(__dirname,'..'),database,origin,trustPr
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Frame-Options','DENY');
   try{
    const url=new URL(req.url,origin);
-   if(url.pathname==='/api/health'&&req.method==='GET')return reply(res,200,{ok:true,service:'arcane-duel',storage:'sqlite',version:229,revision:release.revision||'local',release:release.id||'local'});
+   if(url.pathname==='/api/health'&&req.method==='GET')return reply(res,200,{ok:true,service:'arcane-duel',storage:'sqlite',version:release.version||((fs.readFileSync(path.join(root,'index.html'),'utf8').match(/<meta\\s+name="arcane-duel-version"\\s+content="([^"]+)"/)||[])[1]||'unknown'),revision:release.revision||'local',release:release.id||'local'});
    if(['/duo-campaign.html','/duo-online.html'].includes(url.pathname)){res.writeHead(302,{Location:'/duo-campaign-v2.html'+url.search});return res.end();}
    if(url.pathname==='/arcane-host-config.js'&&req.method==='GET'){
     res.writeHead(200,{'Content-Type':mime['.js'],'Cache-Control':'no-store'});return res.end('window.ArcaneDuoSelfHost229=true;window.ArcaneDuoEndpoint="/api/duo";');
@@ -62,7 +62,7 @@ if(require.main===module){
  fs.mkdirSync(path.dirname(database),{recursive:true,mode:0o700});
  const {server,store}=createServer({database,origin:process.env.ARCANE_ORIGIN,trustProxy:process.env.ARCANE_TRUST_PROXY==='1',legacyImport:process.env.ARCANE_LEGACY_IMPORT==='1'});
  server.requestTimeout=20000;server.headersTimeout=15000;
- server.listen(Number(process.env.ARCANE_PORT||8777),'127.0.0.1',()=>console.log('Arcane Duel v229 ready'));
+ server.listen(Number(process.env.ARCANE_PORT||8777),'127.0.0.1',()=>console.log('Arcane Duel server ready'));
  const stop=()=>server.close(()=>{store.close();process.exit(0);});process.on('SIGTERM',stop);process.on('SIGINT',stop);
 }
 module.exports={createServer};
