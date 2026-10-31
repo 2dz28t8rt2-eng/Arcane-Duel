@@ -84,8 +84,29 @@ internal sealed class GameCardWebPreview : UserControl
         redrawTimer.Stop();
         await browser.ExecuteScriptAsync("window.renderArcaneEditorCard(" + pendingJson + ")");
         await Task.Delay(110); // allow the browser to complete its render before capture
-        using var output = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
-        await browser.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat.Png, output);
+        var bounds=await browser.ExecuteScriptAsync(
+            "(()=>{const e=document.querySelector('#arcaneEditorMount .hand-card');" +
+            "if(!e)return null;const r=e.getBoundingClientRect();" +
+            "return {x:r.x,y:r.y,w:r.width,h:r.height};})()");
+        using var capture=new MemoryStream();
+        await browser.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat.Png,capture);
+        capture.Position=0;
+        using var screen=Image.FromStream(capture);
+        using var location=JsonDocument.Parse(bounds);
+        if(location.RootElement.ValueKind!=JsonValueKind.Object)
+            throw new InvalidOperationException("Keine sichtbare Karte für PNG-Export gefunden.");
+        var rect=location.RootElement;
+        var xScale=(double)screen.Width/Math.Max(1,browser.ClientSize.Width);
+        var yScale=(double)screen.Height/Math.Max(1,browser.ClientSize.Height);
+        var x=Math.Clamp((int)Math.Round(rect.GetProperty("x").GetDouble()*xScale),0,screen.Width-1);
+        var y=Math.Clamp((int)Math.Round(rect.GetProperty("y").GetDouble()*yScale),0,screen.Height-1);
+        var width=Math.Clamp((int)Math.Round(rect.GetProperty("w").GetDouble()*xScale),1,screen.Width-x);
+        var height=Math.Clamp((int)Math.Round(rect.GetProperty("h").GetDouble()*yScale),1,screen.Height-y);
+        using var card=new Bitmap(width,height);
+        using(var graphics=Graphics.FromImage(card))
+            graphics.DrawImage(screen,new Rectangle(0,0,width,height),
+                new Rectangle(x,y,width,height),GraphicsUnit.Pixel);
+        card.Save(path,System.Drawing.Imaging.ImageFormat.Png);
         return true;
     }
 
