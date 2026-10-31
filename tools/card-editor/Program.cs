@@ -460,6 +460,35 @@ internal sealed partial class Editor : Form
             }
             finally {if(File.Exists(zip2))File.Delete(zip2);}
 
+            // The generated browser page must include the game's canonical
+            // face() implementation and native embedded SVG frames/trims.
+            var gameHtml=GameCardWebPreview.BuildDocument();
+            if(!gameHtml.Contains("ArcaneCardView221") ||
+               !gameHtml.Contains("ad-level-medallion") ||
+               !gameHtml.Contains("data:image/svg+xml;base64,") ||
+               !gameHtml.Contains("ad-template-normal-01"))
+                throw new InvalidOperationException("Canonical game preview assets not loaded");
+
+            var firstDraft=editor.Snapshot(); // catalog card; original art not copied
+            editor.ApplyCard(sample,Path.GetTempPath());
+            editor.imageBytes=File.ReadAllBytes(image);
+            editor.imageExtension=".png";
+            var secondDraft=editor.Snapshot(); // new card; full image copied
+            var zip3=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".zip");
+            try
+            {
+                WriteShelfPackage(zip3,new[]{firstDraft,secondDraft});
+                using var batch=ZipFile.OpenRead(zip3);
+                if(batch.GetEntry("manifest.json")==null ||
+                   batch.GetEntry("CHATGPT_IMPORT.md")==null ||
+                   batch.Entries.Count(x=>x.FullName.EndsWith("/card.json"))!=2 ||
+                   !batch.Entries.Any(x=>x.FullName.EndsWith("assets/custom-art/editor/card-42.png")))
+                    throw new InvalidOperationException("Batch ZIP manifest/cards/artwork incomplete");
+                using var summary=new StreamReader(batch.GetEntry("manifest.json")!.Open());
+                if(JsonNode.Parse(summary.ReadToEnd())!["cardCount"]!.GetValue<int>()!=2)
+                    throw new InvalidOperationException("Batch manifest has wrong card count");
+            }
+            finally {if(File.Exists(zip3))File.Delete(zip3);}
         }
         finally { if(File.Exists(image))File.Delete(image);if(File.Exists(zip))File.Delete(zip); }
     }
