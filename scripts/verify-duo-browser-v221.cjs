@@ -218,6 +218,9 @@ async function finishLiveDuel(A,B){
    guest.clearedChapters=[];await refresh(A);
   }
   report.checks.push('explicit group acceptance and enter; independent deck/shop/search/focus');
+  await A.evaluate(()=>{const select=document.getElementById('duoActiveDeckSlot');select.focus();window.__qaDeckOption=select.options[0];});
+  await refresh(A);
+  assert.ok(await A.evaluate(()=>document.activeElement===document.getElementById('duoActiveDeckSlot')&&window.__qaDeckOption===document.getElementById('duoActiveDeckSlot').options[0]),'polling preserves focused deck selector and its options');
   if(!live){
    await route(A,'decks');
    assert.equal(await A.locator('#duoDeckVariants .menu-grid .menu-panel').count(),3);

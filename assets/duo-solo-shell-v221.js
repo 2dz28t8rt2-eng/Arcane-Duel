@@ -383,7 +383,13 @@
     hero.classList.add('atlas-hero','atlas-has-art');hero.innerHTML=window.ArcaneMenuShell221.hero({group:group.title,title:details[0],description:details[1],titleId:'duoSoloMenuTitle',descriptionId:'duoSoloMenuSubtitle',utility:'<button type="button" class="fm-hero-rules" data-online-rules>📖 Regelhandbuch</button><label>Aktives Deck <select id="duoActiveDeckSlot" aria-label="Aktives Deck"></select></label>',showcase:'<div class="atlas-showcase" aria-hidden="true"><div class="atlas-showcase-cards">'+showcase.map((c,i)=>'<div class="atlas-preview-card atlas-preview-'+i+'" data-card-id="'+c.id+'" data-card-level="'+c.level+'" inert>'+face(c).replace('hand-card tc-card','hand-card tc-card atlas-showcase-face')+'</div>').join('')+'</div></div>'});
    }
    const activeSlot=$('duoActiveDeckSlot');
-   if(activeSlot){activeSlot.innerHTML=(s.profile?.deckSlots||[]).map((d,i)=>'<option value="'+i+'">Deck '+(i+1)+'</option>').join('');activeSlot.value=String(s.profile?.activeDeckSlot||0);activeSlot.disabled=pendingOperation||s.profileSaving||!s.profile?.deckSlots;activeSlot.onchange=()=>operation('deckSlotSelect',{slot:Number(activeSlot.value)});}
+   if(activeSlot){
+    const slots=s.profile?.deckSlots||[];
+    if(activeSlot.options.length!==slots.length)activeSlot.innerHTML=slots.map((d,i)=>'<option value="'+i+'">Deck '+(i+1)+'</option>').join('');
+    const selected=String(s.profile?.activeDeckSlot||0);if(activeSlot.value!==selected)activeSlot.value=selected;
+    activeSlot.disabled=pendingOperation||s.profileSaving||!s.profile?.deckSlots;
+    activeSlot.onchange=()=>operation('deckSlotSelect',{slot:Number(activeSlot.value)});
+   }
    hero.querySelector('[data-online-rules]').onclick=()=>window.ArcaneDuoPartyUI218.select('rules');
    $('duoSoloMenuTitle').textContent=details[0];$('duoSoloMenuSubtitle').textContent=details[1];
    duels.hidden=!['menu','quests'].includes(route);profile.hidden=!duels.hidden;
