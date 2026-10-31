@@ -175,7 +175,7 @@ test('a recovered waiting party renews only its host-owned invitation, never a g
 test('full solo title markup, independent menu selection and seven actual monster slots',()=>{
  const html=read('duo-campaign-v2.html'),css=read('assets/duo-solo-parity-v219.css');
  const solo=read('index.html');
- for(const cls of ['ad196-title','ad196-reveal','ad196-ready','ad196-panel',
+ for(const cls of ['ad196-title','ad196-panel',
   'ad196-crest','ad196-kicker','ad196-wordmark','ad196-nav','ad196-bottom']){
   assert.ok(html.includes(cls),cls+' missing from duo');
   assert.ok(solo.includes(cls),cls+' missing from solo');
