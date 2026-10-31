@@ -35,6 +35,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Tests may generate or edit outputs in this disposable CI checkout.
+          # Export only the exact reviewed HEAD, never the mutated test workspace.
+          echo "Git status after tests (before restoring isolated checkout):"
+          git status --short | head -35 || true
+          git reset --hard HEAD
+          git clean -fd
+          test -z "$(git status --porcelain --untracked-files=all)"
           mkdir -p artifacts/migration
           python3 scripts/package-selfhost.py --output artifacts/migration
           version=$(node -p 'require("./package.json").version')
