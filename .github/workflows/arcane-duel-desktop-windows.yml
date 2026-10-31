@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   windows-portable:
@@ -37,3 +37,24 @@ jobs:
           path: desktop/dist/*.exe
           if-no-files-found: error
           retention-days: 21
+
+      - name: Publish tested server client as direct Windows EXE download
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $exe = Get-ChildItem -Path desktop/dist -Filter "ArcaneDuel-Server-0.1.6-portable.exe" | Select-Object -First 1 -ExpandProperty FullName
+          if (-not $exe) { throw "Expected portable EXE not found." }
+          $tag = "arcane-desktop-server-0.1.6"
+          $sha = (Get-FileHash -Path $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          Set-Content -Path desktop/dist/ArcaneDuel-Server-0.1.6-SHA256.txt -Value "$sha  ArcaneDuel-Server-0.1.6-portable.exe" -Encoding ascii
+          $notes = "Arcane Duel Windows server client 0.1.6. Loads only https://v2202610436378538039.ultrasrv.de:8443/ (current game version is determined by the server; initially 1.1.2). No GitHub/RawGitHack runtime requests. Portable EXE; unsigned, so SmartScreen may warn. No server/data changes. Source under desktop/ on development."
+          $assets = @($exe, (Resolve-Path "desktop/dist/ArcaneDuel-Server-0.1.6-SHA256.txt").Path)
+          gh release view $tag --repo $env:GITHUB_REPOSITORY 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag @assets --clobber --repo $env:GITHUB_REPOSITORY
+          } else {
+            gh release create $tag @assets --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "Arcane Duel Windows Server-EXE 0.1.6" --notes $notes --prerelease
+          }
+          if ($LASTEXITCODE -ne 0) { throw "GitHub Release upload failed." }
