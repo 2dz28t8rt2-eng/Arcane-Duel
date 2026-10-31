@@ -136,3 +136,14 @@ test('lobby persists in JSON while SQL room status remains compatible',()=>{
  assert.match(edge,/status:next\.status==='inviting_next'\?'finished':next\.status==='lobby'\?'waiting':next\.status/);
  assert.match(edge,/room\.status==="waiting"&&!room\.guest_token_hash/);
 });
+
+test('a recovered waiting party renews only its host-owned invitation, never a guest token',()=>{
+ const edge=read('supabase/functions/arcane-duo-v2/index.ts');
+ const client=read('assets/duo-parity-v160.js');
+ assert.match(edge,/if\(kind==="renewInvite"\)/);
+ assert.match(edge,/owner\.id===room\.host_profile_id/);
+ assert.match(edge,/room\.state\?\.status==="waiting"&&!room\.guest_token_hash/);
+ assert.match(edge,/invitation_hash:await hash\(newInvite\)/);
+ assert.match(client,/type:'renewInvite',roomId:id,profileToken:duoProfileToken/);
+ assert.match(client,/invite=restoredInvite;load\(r\)/);
+});
