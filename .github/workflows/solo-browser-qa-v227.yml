@@ -1,0 +1,36 @@
+name: Solo victory browser QA v22.7
+on:
+  push:
+    branches: [fix/solo-browser-qa-postreward-v227-20261031, development]
+    paths:
+      - 'tests/browser-cinematics-v42.html'
+      - '.github/workflows/solo-browser-qa-v227.yml'
+  pull_request:
+    branches: [development]
+permissions:
+  contents: read
+jobs:
+  browser-cinematics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check actual victory-to-menu flow in Chrome
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
+          python3 -m http.server 8757 --bind 127.0.0.1 >/tmp/arcane-v227-server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for i in {1..12}; do
+            if curl -fsS http://127.0.0.1:8757/tests/browser-cinematics-v42.html >/dev/null; then break; fi
+            sleep .4
+          done
+          for size in 1200 410; do
+            "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run               --disable-background-timer-throttling --disable-backgrounding-occluded-windows               --disable-renderer-backgrounding --virtual-time-budget=45000               --window-size="${size},1050" --dump-dom               http://127.0.0.1:8757/tests/browser-cinematics-v42.html >"/tmp/solo-v227-${size}.html" 2>/tmp/solo-v227-chrome.log
+            if ! grep -q 'data-cinematics-test="pass"' "/tmp/solo-v227-${size}.html"; then
+              echo "Solo result/ACE scene failed at ${size}px"
+              sed -n '/<pre id="result"/,/<\/pre>/p' "/tmp/solo-v227-${size}.html" | head -120
+              exit 1
+            fi
+          done
