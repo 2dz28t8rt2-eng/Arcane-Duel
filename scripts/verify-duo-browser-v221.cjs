@@ -267,6 +267,7 @@ async function finishLiveDuel(A,B){
   const recovered=await state(A);assert.equal(recovered.roomId,party.roomId);assert.equal(recovered.seat,0);
   await A.evaluate(()=>window.ArcaneDuoParty218.refreshProfile());
   const saved=(await state(A)).profile;
+  if(!live)assert.equal(saved.activeDeckSlot,1,'active deck slot must survive reloading');
   assert.deepEqual({xp:saved.xp,essence:saved.essence,shards:saved.shards,wins:saved.wins,credits:saved.chapterCardCredits},personal[0]);
   report.checks.push('reload restores own room/seat; personal rewards unchanged; solo save unchanged');
   if(!live){
