@@ -9,6 +9,7 @@ internal sealed partial class Editor
 {
     private sealed class CardDraft
     {
+        public CardDraft() { } // public constructor for System.Text.Json restore
         public string SlotId { get; set; } = Guid.NewGuid().ToString("N");
         public JsonObject Card { get; set; } = new();
         public byte[]? Image { get; set; }
