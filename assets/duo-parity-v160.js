@@ -422,7 +422,7 @@
   window.ArcaneDuoPortraits215?.update?.(game);
   // Story dialogue, boss reveals, combat music and battle effects start only
   // when the host actually starts the duel, not when a guest accepts a party.
-  if(game.status==='lobby')return;
+  if(['waiting','lobby','party_ready'].includes(game.status))return;
   window.ArcaneDuoStory216?.onState?.(previous,game,seat,roomId);
   if(game.status!=='inviting_next'&&$('duoInviteDialog').dataset.mode==='next')dismissInvitation();
   window.ArcaneDuoCinematics167?.onState(previous,game);
@@ -510,7 +510,7 @@
    roomId=id;token=r.token;seat=2;invite='';save();load(r);
    location.hash='room='+roomId;
    set('duoStatus','Party verbunden! Ihr könnt eure eigenen Menüs unabhängig voneinander benutzen.');
-  }catch(e){set('duoStatus',e.message);return false;}
+  }catch(e){set('duoStatus',e.message);$('duoPartyStatus').textContent='Beitritt fehlgeschlagen: '+e.message;return false;}
   finally{busy=false;render();}
   return true;
  }
@@ -1061,7 +1061,8 @@
     window.ArcaneDuoPartyUI218?.sync?.();$('duoPartyStatus').textContent=message;
     return;}
   }
-  showInvitation('join',invitePreview.inviterName,invitePreview.chapter);
+  set('duoStatus','Einladung geprüft: '+invitePreview.inviterName+' · Kapitel '+invitePreview.chapter+'.');
+  window.ArcaneDuoPartyUI218?.sync?.();
  }
  async function confirmDuoName(){
   if(inviteRequested)return;
@@ -1171,8 +1172,12 @@
   $('duoCopy').onclick=()=>navigator.clipboard.writeText($('duoInvite').value)
    .then(()=>set('duoStatus','Einladungslink kopiert.'))
    .catch(()=>set('duoStatus','Bitte den Link im Eingabefeld manuell kopieren.'));
-  let hash='';try{hash=decodeURIComponent(location.hash.slice(1));}
-  catch{set('duoStatus','Ungültiger URL-Code.');}
+  let hash='';try{
+   hash=decodeURIComponent(location.hash.slice(1));
+   const queryInvite=new URL(location.href).searchParams.get('join');
+   // A query link survives messengers that strip #fragments.
+   if(queryInvite)hash='join='+queryInvite;
+  }catch{set('duoStatus','Ungültiger Einladungslink.');}
   if(hash.startsWith('duoprofile=')){
    const recovered=hash.slice('duoprofile='.length);
    if(/^[a-f0-9]{64}$/.test(recovered)){
@@ -1198,7 +1203,8 @@
     joinIntent={id,secret};
     $('duoAccept').onclick=()=>requestInvite();
     set('duoStatus','Einladung erkannt. Namen eingeben und Einladung bestätigen.');
-   }else set('duoStatus','Ungültige Einladung.');
+   }else{$('duoPartyStatus').textContent='Ungültige Einladung. Bitte den vollständigen Link oder Raumcode einfügen.';
+    set('duoStatus','Ungültige Einladung.');}
   }else if(recovery.parse(hash)?.kind==='resume'){
    const ref=recovery.parse(hash);
    try{
@@ -1225,16 +1231,33 @@
   render();
  }
  window.ArcaneDuoParty218=Object.freeze({
-  state:()=>({nameConfirmed,joinIntent:!!joinIntent,roomId,seat,game,invite,
-   profile:duoProfile,lastRoom:duoLastRoom,busy,catalogReady:Object.keys(catalog).length>0}),
+  state:()=>({nameConfirmed,joinIntent:!!joinIntent,joinPreview:invitePreview?
+   {inviterName:invitePreview.inviterName,chapter:invitePreview.chapter}:null,
+   roomId,seat,game,invite,profile:duoProfile,lastRoom:duoLastRoom,
+   busy,catalogReady:Object.keys(catalog).length>0}),
   createRoom,continueLastRoom,send,
+  acceptPendingInvite:async()=>{
+   if(!joinIntent)throw Error('Es gibt keine offene Einladung.');
+   const accepted=await joinRoom(joinIntent.id,joinIntent.secret);
+   if(accepted){joinIntent=null;invitePreview=null;dismissInvitation();}
+   return accepted;
+  },
+  declinePendingInvite:()=>{
+   joinIntent=null;invitePreview=null;dismissInvitation();
+   history.replaceState(null,'',ownOrigin());
+   render();
+  },
   pasteInvite:async value=>{
    const raw=String(value||'').trim();
    let candidate=raw;
-   try{if(raw.includes('://'))candidate=new URL(raw).hash.slice(1);}
+   try{if(raw.includes('://')){
+    const u=new URL(raw);
+    candidate=u.searchParams.get('join')||u.hash.slice(1);
+   }}
    catch{throw Error('Der Link ist nicht gültig. Bitte den gesamten Einladungslink kopieren.');}
    if(candidate.startsWith('#'))candidate=candidate.slice(1);
    if(candidate.startsWith('join='))candidate=candidate.slice(5);
+   if(candidate.startsWith('?join='))candidate=candidate.slice(6);
    const i=candidate.lastIndexOf('.'),id=candidate.slice(0,i),secret=candidate.slice(i+1);
    if(i<1||! /^[0-9a-f-]{36}$/.test(id)||! /^[a-f0-9]{64}$/.test(secret))
     throw Error('Bitte einen vollständigen Einladungslink oder den Raumcode inklusive Schlüssel einfügen.');
@@ -1243,7 +1266,7 @@
    history.replaceState(null,'',ownOrigin()+'#join='+id+'.'+secret);
    try{
     invitePreview=await call({type:'invitePreview',roomId:id,invite:secret});
-    showInvitation('join',invitePreview.inviterName,invitePreview.chapter);
+    window.ArcaneDuoPartyUI218?.sync?.();
    }catch(e){
     joinIntent=null;invitePreview=null;
     history.replaceState(null,'',ownOrigin());
