@@ -131,3 +131,8 @@ referenziert und niemals durch kleine JPEG-Vorschaubilder ersetzt.
 Ablage-Fenster. Das vollständige Löschen aller zwischengespeicherten
 Karten verlangt eine ausdrückliche Bestätigung; aktuell bearbeitete
 Karten und bereits exportierte ZIP-Dateien bleiben unberührt.
+
+Beide Exportarten enthalten außerdem die getrennten Vorlagen
+VORLAGE_INTEGRATIONSPROTOKOLL.md und VORLAGE_FEHLERBERICHT.md.
+Beim späteren Import soll ChatGPT zwei tatsächlich ausgefüllte Berichte
+mit geänderten Dateien, Testergebnissen, Risiken und Blockern liefern.
