@@ -1,6 +1,6 @@
 """Create a reproducible, checksummed Arcane Duel upload from a reviewed checkout."""
 from pathlib import Path
-import argparse, subprocess, json, hashlib, tarfile, io
+import argparse, subprocess, json, hashlib, tarfile, io, re
 
 root=Path(__file__).resolve().parent.parent
 parser=argparse.ArgumentParser()
@@ -11,7 +11,14 @@ revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).
 changed=subprocess.check_output(['git','status','--porcelain','--untracked-files=all'],cwd=root,text=True).splitlines()
 changed=[line for line in changed if not line[3:].startswith('artifacts/')]
 if changed and not args.allow_dirty:raise SystemExit('Commit/review changes before creating a release.')
-release_id='v229-'+revision[:12]+('-qa' if changed else '')
+html=(root/'index.html').read_text(encoding='utf-8')
+match=re.search(r'<meta\\s+name="arcane-duel-version"\\s+content="(\\d+\\.\\d+\\.\\d+)"',html)
+if not match:raise SystemExit('Canonical Arcane Duel version missing or invalid')
+version=match.group(1)
+duo=(root/'duo-campaign-v2.html').read_text(encoding='utf-8')
+if not re.search(r'<meta\\s+name="arcane-duel-version"\\s+content="'+re.escape(version)+'"',duo):
+ raise SystemExit('Solo and multiplayer versions do not agree')
+release_id='v'+version+'-'+revision[:12]+('-qa' if changed else '')
 files=[]
 for directory in ['assets','models','server','supabase/functions/arcane-duo-v2']:
  for p in sorted((root/directory).rglob('*')):
@@ -19,7 +26,7 @@ for directory in ['assets','models','server','supabase/functions/arcane-duo-v2']
   if p.is_file() and '__pycache__' not in p.parts:files.append(p)
 files += [root/n for n in ['index.html','duo-campaign-v2.html','duo-campaign.html','duo-online.html','art-gallery.html','collection-v3.html','arcane-host-config.js','desktop/build/icon.png','desktop/build/icon.ico']]
 manifest={p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
-release={'id':release_id,'revision':revision,'files':manifest,'dirty':bool(changed),'version':229}
+release={'id':release_id,'revision':revision,'files':manifest,'dirty':bool(changed),'version':version}
 dest=Path(args.output).resolve();dest.mkdir(parents=True,exist_ok=True)
 archive=dest/(release_id+'.tar.gz')
 with tarfile.open(archive,'w:gz') as tar:
