@@ -91,10 +91,15 @@
   const button=event.target.closest('[data-slot-action]');if(!button||button.disabled)return;
   const slot=Number(button.dataset.slotIndex);
   if(button.dataset.slotAction==='copy'){
+   const before=api.state().profile;
    const accepted=await window.ArcaneModal223.confirm({kicker:'DECKPLATZ',title:'Deck kopieren?',icon:'▤',
     text:'Das aktuelle Deck ersetzt die bisherige Variante in Deck '+(slot+1)+'.',
     cancelLabel:'ABBRECHEN',confirmLabel:'DECK KOPIEREN'});
    if(!accepted)return;
+   const current=api.state().profile;
+   if(!before||current?.id!==before.id||current?.revision!==before.revision){
+    $('duoProfileMessage').textContent='Dein Spielstand hat sich geändert. Bitte prüfe die Deckplätze erneut.';return;
+   }
   }
   await operation(button.dataset.slotAction==='copy'?'deckSlotCopy':'deckSlotSelect',{slot});
  });

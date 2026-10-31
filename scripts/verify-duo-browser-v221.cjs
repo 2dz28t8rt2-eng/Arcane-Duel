@@ -161,8 +161,15 @@ async function finishLiveDuel(A,B){
    await A.locator('#duoSharedDialog [data-dialog-cancel]').click();
    assert.equal((await state(A)).profile.revision,revision);
    await A.locator('#duoDeckVariants [data-slot-action="copy"][data-slot-index="2"]').click();
+   await A.evaluate(async()=>{const api=window.ArcaneDuoParty218;await api.profileOperation('profileName',{name:api.state().profile.nickname});});
+   const newer=(await state(A)).profile.revision;
+   assert.equal(newer,revision+1);
    await A.locator('#duoSharedDialog [data-dialog-confirm]').click();
-   await A.waitForFunction(rev=>window.ArcaneDuoParty218.state().profile.revision>rev,revision);
+   assert.equal((await state(A)).profile.revision,newer);
+   assert.match(await A.locator('#duoProfileMessage').textContent(),/geändert/);
+   await A.locator('#duoDeckVariants [data-slot-action="copy"][data-slot-index="2"]').click();
+   await A.locator('#duoSharedDialog [data-dialog-confirm]').click();
+   await A.waitForFunction(rev=>window.ArcaneDuoParty218.state().profile.revision>rev,newer);
    assert.equal(await A.evaluate(()=>localStorage.getItem('arcane-duel-rpg-profile-v4-reborn')),'solo-sentinel-221');
    report.checks.push('three online deck variants switch independently without touching the partner or solo save');
    await route(A,'settings');
@@ -231,6 +238,21 @@ async function finishLiveDuel(A,B){
   assert.ok(await B.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),'mobile viewport must contain its layout');
   await B.locator('#duoSeats [data-seat="0"]>.field>.field-cell[data-slot="6"]').scrollIntoViewIfNeeded();
   report.checks.push('real click summon in zone seven, position change, persistent inspector, mobile zone access');
+  if(!live){
+   const room=backend.rooms.get(party.roomId);
+   room.game.players[0].summoned=false;room.game.revision++;
+   await refresh(A);await A.waitForFunction(rev=>window.ArcaneDuoParty218.state().game.revision===rev,room.game.revision);
+   await A.locator('.duo178-hand-card[data-index="0"]').click();
+   await A.locator('[data-ad189-slot]').selectOption('6');
+   await A.locator('#ad189-summon-guide .ad189-guide-confirm').click();
+   await A.locator('#duoSharedDialog').waitFor({state:'visible'});
+   room.game.revision++;
+   await refresh(A);await A.waitForFunction(rev=>window.ArcaneDuoParty218.state().game.revision===rev,room.game.revision);
+   await A.locator('#duoSharedDialog [data-dialog-confirm]').click();
+   assert.equal((await state(A)).game.players[0].field[6].uid,summonedUid);
+   assert.match(await A.locator('#duoStatus').textContent(),/geändert/);
+   report.checks.push('outdated replacement confirmation cannot act on a newer online state');
+  }
   if(live){
    report.duel=await finishLiveDuel(A,B);
   }else{
