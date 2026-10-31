@@ -1228,23 +1228,26 @@
    g.revision++;return g;
   }
   if(action.type==='startParty'){
-   assert(g.status==='lobby'&&seat===0&&g.players[2].name!=='Partner (ausstehend)',
-    'Nur der Party-Leiter kann mit einem beigetretenen Partner starten.');
+   assert(g.status==='lobby'&&[0,2].includes(seat)&&g.players[2].name!=='Partner (ausstehend)',
+    'Nur verbundene Party-Mitglieder können ein Duell anfragen.');
+   const partnerSeat=seat===0?2:0;
    g.status='party_ready';
-   g.partyStartInvite={fromSeat:0,toSeat:2};
-   g.log.push(g.players[0].name+' bittet '+g.players[2].name+' um die Startfreigabe.');
+   g.partyStartInvite={fromSeat:seat,toSeat:partnerSeat};
+   g.log.push(g.players[seat].name+' bittet '+g.players[partnerSeat].name+' um die Startfreigabe.');
    g.revision++;return g;
   }
   if(action.type==='cancelPartyStart'||action.type==='declinePartyStart'){
    assert(g.status==='party_ready'&&
-    (action.type==='cancelPartyStart'?seat===0:seat===2),
+    (action.type==='cancelPartyStart'?seat===g.partyStartInvite?.fromSeat:
+      seat===g.partyStartInvite?.toSeat),
     'Es liegt keine entsprechende Startanfrage vor.');
    g.status='lobby';g.partyStartInvite=null;
    g.log.push(g.players[seat].name+' hat die Startanfrage zurückgezogen oder abgelehnt.');
    g.revision++;return g;
   }
   if(action.type==='acceptPartyStart'){
-   assert(g.status==='party_ready'&&seat===2&&humanBuilds?.[0]&&humanBuilds?.[2],
+   assert(g.status==='party_ready'&&seat===g.partyStartInvite?.toSeat&&
+    humanBuilds?.[0]&&humanBuilds?.[2],
     'Start benötigt die Zustimmung des Partners und beide aktuellen Decks.');
    for(const humanSeat of [0,2]){
     const updated=humanBuilds[humanSeat];
