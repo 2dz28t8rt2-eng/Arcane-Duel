@@ -22,12 +22,13 @@ internal static class Program
     }
 }
 
-internal sealed class Editor : Form
+internal sealed partial class Editor : Form
 {
     readonly Dictionary<string, TextBox> fields = new();
     readonly Dictionary<string, CheckBox> flags = new();
     readonly TextBox extra = new() { Multiline = true, ScrollBars = ScrollBars.Both, Height = 110, Dock = DockStyle.Top, Font = new Font("Consolas", 9) };
     readonly CardPreview preview = new() { Dock = DockStyle.Fill };
+    readonly GameCardWebPreview gamePreview = new() { Dock = DockStyle.Fill };
     readonly Label artLabel = new() { AutoSize = true, MaximumSize = new Size(540, 0), Text = "Kein Bild ausgewählt" };
     readonly Label status = new() { Dock = DockStyle.Bottom, Height = 34, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(8,0,0,0), Text = "Neue Karte · Änderungen werden nicht automatisch gespeichert." };
     private sealed record Choice(string Id,string Label) { public override string ToString()=>Label; }
@@ -53,26 +54,29 @@ internal sealed class Editor : Form
         Font = new Font("Segoe UI", 10);
         var root = new TableLayoutPanel { Dock=DockStyle.Fill, ColumnCount=1, RowCount=4, BackColor=BackColor };
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute,78)); root.RowStyles.Add(new RowStyle(SizeType.Absolute,52));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute,78)); root.RowStyles.Add(new RowStyle(SizeType.Absolute,94));
         root.RowStyles.Add(new RowStyle(SizeType.Percent,100)); root.RowStyles.Add(new RowStyle(SizeType.Absolute,34));
         var header = new Panel { Dock=DockStyle.Fill, BackColor=Color.FromArgb(34,29,43), Padding=new Padding(22,10,10,8) };
         var title = new Label { Text="ARCANE DUEL", AutoSize=true, Font=new Font("Segoe UI",16,FontStyle.Bold), ForeColor=Color.FromArgb(225,186,112), Location=new Point(20,8) };
         var subtitle = new Label { Text="KARTEN-EDITOR  ·  ERSCHAFFE DEINE NÄCHSTE KARTE", AutoSize=true, Font=new Font("Segoe UI",8,FontStyle.Bold), ForeColor=Color.FromArgb(176,164,151), Location=new Point(22,45) };
         header.Controls.Add(title); header.Controls.Add(subtitle);
-        var bar = new FlowLayoutPanel { Dock=DockStyle.Fill, Padding=new Padding(15,5,5,5), WrapContents=false, BackColor=Color.FromArgb(42,36,52) };
-        AddButton(bar, "Save", (_,_) => ExportPackage(), true);
+        var bar = new FlowLayoutPanel { Dock=DockStyle.Fill, Padding=new Padding(15,5,5,5), WrapContents=true, AutoScroll=true, BackColor=Color.FromArgb(42,36,52) };
+        AddButton(bar, "Kartenpaket speichern", (_,_) => ExportPackage(), true);
         AddButton(bar, "Neu", (_,_) => NewCard());
         AddButton(bar, "Karte öffnen", (_,_) => OpenCard());
-        AddButton(bar, "Aus Katalog", (_,_) => OpenExistingCard());
+        AddButton(bar, "Bestehende Karten bearbeiten", (_,_) => OpenExistingCard());
         AddButton(bar, "JSON speichern", (_,_) => SaveCard());
         AddButton(bar, "PNG-Vorschau", (_,_) => ExportPreview());
+         AddButton(bar, "Zur Ablage hinzufügen", (_,_) => AddToShelf());
+         AddButton(bar, "Ablage öffnen", (_,_) => OpenShelf());
+         AddButton(bar, "Alle exportieren (ZIP)", (_,_) => ExportShelf(), true);
         var split = new SplitContainer { Dock=DockStyle.Fill, SplitterDistance=610, FixedPanel=FixedPanel.None, BackColor=Color.FromArgb(56,47,62) };
         var scroll = new Panel { Dock=DockStyle.Fill, AutoScroll=true, Padding=new Padding(18), BackColor=Color.FromArgb(28,25,36) };
         var stack = new FlowLayoutPanel { Dock=DockStyle.Top, AutoSize=true, FlowDirection=FlowDirection.TopDown, WrapContents=false, Width=560, BackColor=scroll.BackColor };
         scroll.Controls.Add(stack); split.Panel1.Controls.Add(scroll);
         split.Panel2.BackColor=Color.FromArgb(24,21,33); split.Panel2.Padding=new Padding(18);
         var previewLabel=new Label { Dock=DockStyle.Top, Height=28, Text="LIVE-VORSCHAU", TextAlign=ContentAlignment.MiddleCenter, ForeColor=Color.FromArgb(193,164,112), Font=new Font("Segoe UI",9,FontStyle.Bold) };
-        split.Panel2.Controls.Add(preview); split.Panel2.Controls.Add(previewLabel);
+        split.Panel2.Controls.Add(preview); split.Panel2.Controls.Add(gamePreview); split.Panel2.Controls.Add(previewLabel);
         AddTitle(stack, "Kartendaten");
         AddField(stack,"id","Karten-ID (eindeutige ganze Zahl)","0");
         AddField(stack,"name","Name","Neue Karte");
@@ -90,7 +94,7 @@ internal sealed class Editor : Form
         AddTitle(stack,"Artwork");
         var artRow = new FlowLayoutPanel { Width=530, Height=40, WrapContents=false };
         AddButton(artRow,"Bild auswählen",(_,_)=>SelectImage());
-        AddButton(artRow,"Aus Katalog",(_,_)=>SelectCatalogImage());
+        AddButton(artRow,"Artwork aus bestehenden Karten",(_,_)=>SelectCatalogImage());
         stack.Controls.Add(artRow);stack.Controls.Add(artLabel);
         AddTitle(stack,"Kartenbaukasten · Spiel-Assets");
         stack.Controls.Add(new Label { Text="20 Originalrahmen, 40 Level-Gravuren und 8 Rollensymbole sind im Editor enthalten.",
@@ -131,6 +135,9 @@ internal sealed class Editor : Form
         status.BackColor=Color.FromArgb(34,29,43); status.ForeColor=Color.FromArgb(195,185,173);
         root.Controls.Add(header,0,0); root.Controls.Add(bar,0,1); root.Controls.Add(split,0,2); root.Controls.Add(status,0,3);
         Controls.Add(root);
+        SetupInputAssist(stack);
+        OrganizeEditorTabs(scroll,stack);
+        RestoreShelf();
         NewCard();
     }
     void AddTitle(FlowLayoutPanel p,string text) => p.Controls.Add(new Label { Text=text.ToUpperInvariant(), AutoSize=true, ForeColor=Color.FromArgb(225,186,112), Font=new Font("Segoe UI",10,FontStyle.Bold), Margin=new Padding(3,18,3,7) });
@@ -163,6 +170,35 @@ internal sealed class Editor : Form
         preview.RoleIcon=ChoiceId(icons);
         preview.Accent=backgroundAccent;
         preview.Invalidate();
+        var selectedRoleIcon=ChoiceId(icons);
+        var activeIcon=selectedRoleIcon=="auto" ? fields["role"].Text.ToLowerInvariant() switch
+        {
+            "guardian" or "defender"=>"guardian-shield",
+            "soul"=>"soul-spiral","predator"=>"predator-skull",
+            "resonator" or "weaver"=>"weaver-rune",
+            "support"=>"support-star","hunter"=>"hunter-arrow",
+            _=>"combatant-swords"
+        } : selectedRoleIcon;
+        var artwork=imageBytes??AssetCatalog.ArtworkPreview(original["art"]?.ToString());
+        var artUri=artwork!=null ?
+            "data:image/" + (imageBytes!=null && imageExtension==".png"?"png":
+                imageBytes!=null && imageExtension==".gif"?"gif":
+                imageBytes!=null && imageExtension==".bmp"?"bmp":"jpeg") +
+            ";base64," + Convert.ToBase64String(artwork) : "";
+        var frameUri=customFrameBytes==null?"": "data:image/" +
+            (customFrameExtension==".svg"?"svg+xml":"png") + ";base64," +
+            Convert.ToBase64String(customFrameBytes);
+        gamePreview.UpdateCard(new
+        {
+            id=fields["id"].Text, name=fields["name"].Text,
+            level=fields["level"].Text,atk=fields["atk"].Text,def=fields["def"].Text,
+            role=fields["role"].Text,element=fields["element"].Text,
+            ability=fields["ability"].Text, art=artUri,
+            fusionOnly=preview.IsFusion, ace=preview.IsAce,
+            essenceMonster=preview.IsEssence,frameTemplate=ChoiceId(frames),
+            frameLevelOverlay=ChoiceId(ornaments),frameRoleIcon=ChoiceId(icons),
+            frameUrl=frameUri,iconUrl=selectedRoleIcon=="none"?"":AssetCatalog.IconDataUri(activeIcon)
+        });
     }
     static string ChoiceId(ComboBox picker)=>picker.SelectedItem is Choice o?o.Id:"auto";
     static void SetChoice(ComboBox picker,string? id)
@@ -228,7 +264,7 @@ internal sealed class Editor : Form
         status.Text="Eigener Rahmen geladen; im ZIP wird dieser mitexportiert.";
       } catch(Exception ex){Error(ex);}
     }
-    void ExportPreview()
+    async void ExportPreview()
     {
       try {
         using var picker=new SaveFileDialog { Filter="PNG (*.png)|*.png",
