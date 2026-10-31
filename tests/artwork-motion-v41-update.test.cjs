@@ -1,15 +1,18 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'..'),r=p=>fs.readFileSync(path.join(root,p),'utf8');
-test('Arcane Duel user-visible version is consistently 4.1, leaving API/asset versions alone',()=>{
- const html=r('index.html'),collection=r('collection-v3.html'),royal=r('assets/royal-menu.js'),archive=r('assets/arcane-archive.js'),evolution=r('assets/evolution.js');
- assert.match(html,/<title>ARCANE DUEL · 4\.1/);
- assert.match(html,/4\.1 · BESTIARIUM/);
- assert.match(collection,/Arcane Duel 4\.1/);
- assert.match(royal,/4\.1 · BESTIARIUM/);
- assert.match(archive,/ARCANE DUEL 4\.1/);
- assert.match(evolution,/ARCANE DUEL 4\.1/);
- assert.doesNotMatch(html,/Monsterlexikon 3\.0/);
+test('Arcane Duel displays one unsuffixed 1.0.0 game/server version, not old 4.1 labels',()=>{
+ const html=r('index.html'),duo=r('duo-campaign-v2.html'),collection=r('collection-v3.html');
+ const royal=r('assets/royal-menu.js'),archive=r('assets/arcane-archive.js'),evolution=r('assets/evolution.js');
+ assert.match(html,/<meta name="arcane-duel-version" content="1\.0\.0">/);
+ assert.match(html,/<title>ARCANE DUEL · 1\.0\.0<\/title>/);
+ assert.match(duo,/<meta name="arcane-duel-version" content="1\.0\.0">/);
+ assert.match(collection,/<span data-arcane-version>1\.0\.0<\/span>/);
+ for(const runtime of [royal,archive,evolution]){
+  assert.match(runtime,/ArcaneDuelRelease\?\.version/);
+  assert.doesNotMatch(runtime,/ARCANE DUEL 4\.1/);
+ }
+ assert.doesNotMatch(html,/4\.1 · BESTIARIUM|Monsterlexikon 3\.0/);
 });
 test('Special combo bonus travels towards participant while growing and fading',()=>{
  const css=r('assets/fusion-bonus-cinema-v4.css'),js=r('assets/fusion-bonus-cinema-v4.js');
