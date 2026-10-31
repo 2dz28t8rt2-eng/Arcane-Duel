@@ -60,8 +60,6 @@ jobs:
           DUO_QA_OUTPUT: artifacts/qa112/shared
         run: node scripts/verify-shared-client-v230.cjs
       - name: Browser test original online 2v2
-        env:
-          CHROME: /home/runner/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome
         run: npm run test:duo-browser
       - name: Upload test reports, including failure reports
         uses: actions/upload-artifact@v4
