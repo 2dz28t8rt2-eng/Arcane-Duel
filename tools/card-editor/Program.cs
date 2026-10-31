@@ -474,6 +474,11 @@ internal sealed partial class Editor : Form
             editor.imageBytes=File.ReadAllBytes(image);
             editor.imageExtension=".png";
             var secondDraft=editor.Snapshot(); // new card; full image copied
+            var serialized=JsonSerializer.Serialize(new[]{firstDraft,secondDraft},Pretty);
+            var recovered=JsonSerializer.Deserialize<List<CardDraft>>(serialized);
+            if(recovered?.Count!=2 || recovered[1].Image==null ||
+               recovered[1].Card["name"]?.ToString()!="Testkarte")
+                throw new InvalidOperationException("Persistent draft shelf JSON round-trip failed");
             var zip3=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".zip");
             try
             {
