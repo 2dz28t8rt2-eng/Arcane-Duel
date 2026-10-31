@@ -20,6 +20,17 @@ test('loan builds are legal and respect the chosen opponent level in every encou
   assert.ok(loan.fusions.every(id=>catalog[id].level<=Math.max(2,encounter.level)));
  }
 });
+test('a Fate draw event does not reveal private hand card identities to another seat',()=>{
+ const g=lobby();
+ g.fateEvent={ownerSeat:0,cardIds:[701,702,703,704,705],round:3,score:90};
+ assert.deepEqual(rules.view(g,0).fateEvent.cardIds,[701,702,703,704,705]);
+ for(const seat of [1,2,3]){
+  const event=rules.view(g,seat).fateEvent;
+  assert.equal(event.ownerSeat,0);
+  assert.equal(Object.hasOwn(event,'cardIds'),false);
+ }
+ assert.deepEqual(g.fateEvent.cardIds,[701,702,703,704,705]);
+});
 function lobby(){
  const g=rules.create({roomId:'personal-duo-test',hostName:'Host',hostDeck,
   hostFusions:snapshot.starterFusions,enemyDeckA:hostDeck,enemyDeckB:hostDeck,

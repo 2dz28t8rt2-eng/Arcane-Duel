@@ -2038,6 +2038,9 @@
  function view(g,seat){
   const v=copy(g);
   delete v.uid;delete v.rngSeed; // Never disclose upcoming server-side dice.
+  // A Fate event names the cards newly drawn into its owner's private hand.
+  // Other clients may see the event, but must not receive those card IDs.
+  if(v.fateEvent&&v.fateEvent.ownerSeat!==seat)delete v.fateEvent.cardIds;
   for(const p of v.players){
    delete p.baseDeck;delete p.baseFusions;
    p.deck=Array(p.deck.length).fill(null);
