@@ -4,7 +4,10 @@ const {chromium}=require('playwright'),{createServer}=require('../server/main.cj
 const output=path.resolve(process.env.DUO_QA_OUTPUT||'../shared-client-v230');fs.mkdirSync(output,{recursive:true});
 const origin='http://127.0.0.1:8758';
 (async()=>{
- const {server,store}=createServer({database:':memory:',origin});await new Promise(r=>server.listen(8758,'127.0.0.1',r));
+ const {server,store}=createServer({database:':memory:',origin});
+ const csp=fs.readFileSync(path.join(__dirname,'../server/Caddyfile.arcane-duel'),'utf8').match(/Content-Security-Policy "([^"]+)"/)[1];
+ server.prependListener('request',(_req,res)=>res.setHeader('Content-Security-Policy',csp));
+ await new Promise(r=>server.listen(8758,'127.0.0.1',r));
  const browser=await chromium.launch({executablePath:process.env.CHROME||(process.platform==='win32'?'C:/Program Files/Google/Chrome/Application/chrome.exe':undefined),headless:true});
  const errors=[],checks=[];let a,b;
  const mark=text=>{checks.push(text);console.log(text);};
@@ -56,6 +59,8 @@ const origin='http://127.0.0.1:8758';
   await b.locator('#ownRow .empty').first().click();
   await b.waitForFunction(()=>window.ArcaneOnline230.snapshot().state.players[2].fusionsPerformed===1&&!window.ArcaneOnlineBattle230.playing(),null,{timeout:45000});
   mark('original material selection and complete fusion ritual');
+  await b.waitForFunction(()=>!!window.tsParticles&&typeof window.loadSlim==='function');
+  mark('original fusion particles load locally under the production security policy');
   for(const p of [a,b])assert.equal(await p.evaluate(()=>{
    const s=window.ArcaneOnline230.snapshot().state;
    return game.players[0].field.every((c,i)=>!c||s.players[c.onlineSeat].field[i]?.uid===c.uid);
