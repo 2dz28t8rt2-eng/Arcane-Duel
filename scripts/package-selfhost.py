@@ -12,11 +12,11 @@ changed=subprocess.check_output(['git','status','--porcelain','--untracked-files
 changed=[line for line in changed if not line[3:].startswith('artifacts/')]
 if changed and not args.allow_dirty:raise SystemExit('Commit/review changes before creating a release.')
 html=(root/'index.html').read_text(encoding='utf-8')
-match=re.search(r'<meta\\s+name="arcane-duel-version"\\s+content="(\\d+\\.\\d+\\.\\d+)"',html)
+match=re.search(r'<meta\s+name="arcane-duel-version"\s+content="(\d+\.\d+\.\d+)"',html)
 if not match:raise SystemExit('Canonical Arcane Duel version missing or invalid')
 version=match.group(1)
 duo=(root/'duo-campaign-v2.html').read_text(encoding='utf-8')
-if not re.search(r'<meta\\s+name="arcane-duel-version"\\s+content="'+re.escape(version)+'"',duo):
+if not re.search(r'<meta\s+name="arcane-duel-version"\s+content="'+re.escape(version)+'"',duo):
  raise SystemExit('Solo and multiplayer versions do not agree')
 release_id='v'+version+'-'+revision[:12]+('-qa' if changed else '')
 files=[]
