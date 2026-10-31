@@ -81,7 +81,7 @@ test('solo-like duo menu loads only after joining and before battle',()=>{
 test('real party UI controller follows profile -> invite -> shared menu -> host start -> battle',async()=>{
  const nodes=new Map(),node=id=>{
   if(nodes.has(id))return nodes.get(id);
-  const el={id,hidden:false,inert:false,disabled:false,dataset:{},value:'',
+  const el={id,hidden:false,inert:false,disabled:false,dataset:{},classList:{toggle(){}},value:'',
    textContent:'',children:[],parent:null,
    append(child){this.children.push(child);child.parent=this;},
    get childElementCount(){return this.children.length;},
@@ -181,7 +181,9 @@ test('full solo title markup, independent menu selection and seven actual monste
   assert.ok(solo.includes(cls),cls+' missing from solo');
  }
  for(const id of ['duoStartNotice','duoStartAccept','duoStartDecline','duoStartCancel',
-  'duoJoinValue','duoJoinManual'])
+  'duoJoinValue','duoJoinManual','duoSoloMenuNav','duoSoloProfileHud','duoSoloMenuHero',
+  'duoSoloTabProfile','duoSoloTabShop','duoSoloTabDeck','duoSoloTabFusions',
+  'duoSoloTabCollection','duoSoloTabUpgrades'])
   assert.ok(html.includes('id="'+id+'"'),id);
  assert.match(css,/grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/);
  for(let seat=0;seat<4;seat++)assert.match(css,new RegExp('data-seat="'+seat+'"'));
@@ -192,4 +194,18 @@ test('full solo title markup, independent menu selection and seven actual monste
  assert.match(client,/pasteInvite:async value=>/);
  assert.match(client,/type:'invitePreview',roomId:id,invite:secret/);
  assert.match(ui,/type:'acceptPartyStart'/);
+});
+
+test('individual solo menu never shares state: each tab controls only the local profile',()=>{
+ const ui=read('assets/duo-preparty-v218.js');
+ const css=read('assets/duo-solo-parity-v219.css');
+ assert.match(ui,/lobbySection=section;/);
+ assert.match(ui,/data-lobby-section/);
+ assert.match(ui,/\$\('duoSoloProfileHud'\)\.textContent=/);
+ assert.match(ui,/duoProfileDeckZone/);
+ assert.match(css,/#duoPage \.menu-nav/);
+ assert.match(css,/#duoPage \.menu-hero/);
+ assert.match(css,/data-lobby-section="shop"/);
+ assert.match(css,/data-lobby-section="fusions"/);
+ assert.match(css,/data-lobby-section="upgrades"/);
 });
