@@ -230,7 +230,7 @@ internal sealed partial class Editor : Form
     {
         using var dialog=new OpenFileDialog { Filter="Bilder (*.png;*.jpg;*.jpeg;*.bmp;*.gif)|*.png;*.jpg;*.jpeg;*.bmp;*.gif", Title="Kartenbild auswählen" };
         if(dialog.ShowDialog()!=DialogResult.OK)return;
-        try { var bytes=File.ReadAllBytes(dialog.FileName); preview.SetImage(bytes); imageBytes=bytes; imageExtension=Path.GetExtension(dialog.FileName).ToLowerInvariant(); artLabel.Text=Path.GetFileName(dialog.FileName); }
+        try { var bytes=File.ReadAllBytes(dialog.FileName); preview.SetImage(bytes); imageBytes=bytes; imageExtension=Path.GetExtension(dialog.FileName).ToLowerInvariant(); artLabel.Text=Path.GetFileName(dialog.FileName); RefreshPreview(); }
         catch(Exception ex) { Error(ex); }
     }
     void OpenExistingCard()
