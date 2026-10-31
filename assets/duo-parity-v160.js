@@ -121,6 +121,7 @@
  const economyProfile=()=>({
   ...duoProfile,owned_main:duoProfile?.ownedMain||[],
   owned_fusions:duoProfile?.ownedFusions||[],
+  deck_slots:duoProfile?.deckSlots||[],active_deck_slot:duoProfile?.activeDeckSlot??0,
   cleared_chapters:duoProfile?.clearedChapters||[]
  });
  function renderCollectionTable(){
@@ -758,8 +759,13 @@
     game.winner===0?'Ihr habt diese Kampagne abgeschlossen!':'Das Duell ist zu Ende.');
    return;
   }
-  const giveUp=button('⚑ Duell aufgeben',dock,()=>{
-   if(confirm('Das gemeinsame Duell für euer Team aufgeben? Das zählt für beide als Niederlage und gibt keine Belohnung.'))send({type:'surrender'});
+  const giveUp=button('⚑ Duell aufgeben',dock,async()=>{
+   const originalRoom=game.roomId,originalDuel=game.duelNo;
+   const accepted=await window.ArcaneModal223.confirm({kicker:'AUFGEBEN',title:'Dieses Duell aufgeben?',icon:'⚑',
+    text:'Das gemeinsame Duell zählt für beide als Niederlage. Aufgeben gibt keine Belohnung. Eure Karten bleiben erhalten.',
+    cancelLabel:'WEITERSPIELEN',confirmLabel:'AUFGEBEN'});
+   if(accepted&&game?.roomId===originalRoom&&game?.duelNo===originalDuel&&game?.status==='active')send({type:'surrender'});
+   else if(accepted)set('duoStatus','Das Duell hat sich inzwischen geändert. Bitte prüfe den Spielstand erneut.');
   });
   giveUp.classList.add('ad182-surrender');
   if(!game.supportsSurrender){
@@ -783,11 +789,18 @@
    const slot=selector('Monsterzone',p.field.flatMap((c,i)=>game.fieldLayout==='team7'&&game.players.find(x=>x.team===p.team&&x.seat!==seat)?.field[i]?[]:[[i,'Feld '+(i+1)+(c?' · '+displayName(c)+' (ersetzen)':' · frei')]]),row);
    hand.dataset.ad189Hand='true';
    slot.dataset.ad189Slot='true';
-   const summonCommit=button('Monster spielen / ersetzen',part,()=>{
+   const summonCommit=button('Monster spielen / ersetzen',part,async()=>{
     const destination=Number(slot.value),occupied=!!p.field[destination];
     if(occupied){
      const previous=displayName(p.field[destination]),next=displayName(legal.hand[Number(hand.selectedIndex)]);
-     if(!confirm('„'+previous+'“ auf den Friedhof legen und durch „'+next+'“ ersetzen?'))return;
+     const originalRoom=game.roomId,originalRevision=game.revision;
+     const accepted=await window.ArcaneModal223.confirm({kicker:'BESETZTE ZONE',title:'Monster ersetzen?',icon:'✦',
+      text:'„'+previous+'“ auf den Friedhof legen und durch „'+next+'“ ersetzen?',
+      cancelLabel:'ABBRECHEN',confirmLabel:'↻ ERSETZEN'});
+     if(!accepted)return;
+     if(game?.roomId!==originalRoom||game?.revision!==originalRevision){
+      set('duoStatus','Der Spielstand hat sich geändert. Bitte wähle die Aktion erneut.');return;
+     }
     }
     send({type:occupied?'replace':'summon',handIndex:Number(hand.value),slot:destination});
    });

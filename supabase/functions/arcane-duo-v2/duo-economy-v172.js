@@ -121,6 +121,19 @@
  }
 
  const ENHANCEMENT_MAX=5;
+ // Deck variants share a collection; reserve the greatest quantity used by
+ // any one variant, not the sum across variants.
+ function reservedCopies(p,id,fusion){
+  const deck=fusion?p.fusions:p.deck;
+  let used=(deck||[]).filter(x=>x===id).length;
+  const variants=Array.isArray(p.deck_slots)?p.deck_slots:[];
+  for(let i=0;i<variants.length;i++){
+   if(i===(p.active_deck_slot??0))continue;
+   const cards=fusion?variants[i]?.fusion:variants[i]?.main;
+   if(Array.isArray(cards))used=Math.max(used,cards.filter(x=>x===id).length);
+  }
+  return used;
+ }
  function enhanceOffer(p,id,catalog){
   const c=catalog?.[id],rank=Number(p.enhancements?.[id]||0);
   if(!Number.isInteger(id)||!c?.playable||!Number.isInteger(rank)||
@@ -141,7 +154,7 @@
   const collection=c.fusionOnly?p.owned_fusions:p.owned_main;
   const deck=c.fusionOnly?p.fusions:p.deck;
   const quantity=collection.filter(x=>x===id).length;
-  const used=deck.filter(x=>x===id).length;
+  const used=reservedCopies(p,id,!!c.fusionOnly);
   const spare=quantity-used;
   if(spare<=0)return null;
   return {id,quantity,used,spare,fusion:!!c.fusionOnly,
@@ -155,7 +168,7 @@
    const owned=fusion?p.owned_fusions:p.owned_main,deck=fusion?p.fusions:p.deck;
    for(const [id,quantity] of copies(owned)){
     const c=catalog?.[id];if(!c)continue;
-    const used=deck.filter(x=>x===id).length,offer=recycleOffer(p,id,catalog);
+    const used=reservedCopies(p,id,fusion),offer=recycleOffer(p,id,catalog);
     result.push({id,name:c.name,level:c.level,role:c.role,
      fusion,quantity,used,spare:Math.max(0,quantity-used),
      enhancement:Number(p.enhancements?.[id]||0),

@@ -1659,7 +1659,7 @@ const self=()=>game.players[game.active],enemy=()=>game.players[1-game.active];
 function animationWait(ms){return new Promise(resolve=>setTimeout(resolve,animationSpeed==='instant'?0:ms));}
 function toast(msg){showToast(msg);}
 function hideModal(){if(profile.showcase?.pending&&!game){showShowcaseIntro();return;}if(profile.rewardQueue?.length){showMilestone();return;}if(profile.openPack&&!profile.openPack.taken.length){showPack();return;}$('overlay').classList.add('hidden');}
-function modalHtml(kicker,title,icon,text,extra,buttons){return `<div class="modal-icon">${icon}</div><div class="modal-kicker">${kicker}</div><h2>${title}</h2><p>${text}</p>${extra||''}<div class="modal-actions">${buttons}</div>`;}
+function modalHtml(kicker,title,icon,text,extra,buttons){if(window.ArcaneModal223)return window.ArcaneModal223.html(kicker,title,icon,text,extra,buttons);return `<div class="modal-icon">${icon}</div><div class="modal-kicker">${kicker}</div><h2>${title}</h2><p>${text}</p>${extra||''}<div class="modal-actions">${buttons}</div>`;}
 function openModal(html){$('modal').classList.remove('pool-modal','arcane-rule-modal','ad-outcome','ad-outcome-win','ad-outcome-loss','ad-result-scroll');$('modal').innerHTML=html;$('overlay').classList.remove('hidden');}
 
 

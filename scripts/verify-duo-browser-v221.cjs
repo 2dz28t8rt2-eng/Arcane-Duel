@@ -21,7 +21,7 @@ async function state(page){return page.evaluate(()=>window.ArcaneDuoParty218.sta
 async function refresh(page){await page.evaluate(()=>window.ArcaneDuoParty218.refresh());}
 async function status(page,value){await page.waitForFunction(v=>window.ArcaneDuoParty218?.state().game?.status===v,value);}
 async function route(page,section){
- const group={menu:'play',quests:'missions',deck:'deck',fusions:'deck',shop:'growth',upgrades:'growth',collection:'growth',progress:'growth',profile:'options',settings:'options',rules:'options'}[section];
+ const group={menu:'play',quests:'missions',deck:'deck',fusions:'deck',decks:'deck',shop:'growth',upgrades:'growth',collection:'growth',progress:'growth',profile:'options',settings:'options',rules:'options'}[section];
  await page.locator('[data-fm-group="'+group+'"]').click();
  const id='duoSoloTab'+section[0].toUpperCase()+section.slice(1);if(section!=='menu'&&section!=='deck'&&section!=='collection'&&section!=='profile')await page.locator('#'+id).click();
 }
@@ -150,6 +150,37 @@ async function finishLiveDuel(A,B){
    guest.clearedChapters=[];await refresh(A);
   }
   report.checks.push('explicit group acceptance and enter; independent deck/shop/search/focus');
+  if(!live){
+   await route(A,'decks');
+   assert.equal(await A.locator('#duoDeckVariants .menu-grid .menu-panel').count(),3);
+   await A.locator('#duoDeckVariants [data-slot-action="select"][data-slot-index="1"]').click();
+   await A.waitForFunction(()=>window.ArcaneDuoParty218.state().profile.activeDeckSlot===1);
+   assert.equal((await state(B)).profile.activeDeckSlot,0);
+   const revision=(await state(A)).profile.revision;
+   await A.locator('#duoDeckVariants [data-slot-action="copy"][data-slot-index="2"]').click();
+   await A.locator('#duoSharedDialog [data-dialog-cancel]').click();
+   assert.equal((await state(A)).profile.revision,revision);
+   await A.locator('#duoDeckVariants [data-slot-action="copy"][data-slot-index="2"]').click();
+   await A.evaluate(async()=>{const api=window.ArcaneDuoParty218;await api.profileOperation('profileName',{name:api.state().profile.nickname});});
+   const newer=(await state(A)).profile.revision;
+   assert.equal(newer,revision+1);
+   await A.locator('#duoSharedDialog [data-dialog-confirm]').click();
+   assert.equal((await state(A)).profile.revision,newer);
+   assert.match(await A.locator('#duoProfileMessage').textContent(),/geändert/);
+   await A.locator('#duoDeckVariants [data-slot-action="copy"][data-slot-index="2"]').click();
+   await A.locator('#duoSharedDialog [data-dialog-confirm]').click();
+   await A.waitForFunction(rev=>window.ArcaneDuoParty218.state().profile.revision>rev,newer);
+   assert.equal(await A.evaluate(()=>localStorage.getItem('arcane-duel-rpg-profile-v4-reborn')),'solo-sentinel-221');
+   report.checks.push('three online deck variants switch independently without touching the partner or solo save');
+   await route(A,'settings');
+   await A.locator('#duoSettingsSound').click();
+   assert.equal(await A.evaluate(()=>window.ArcaneDuoSound194.isEnabled()),true);
+   assert.equal(await B.evaluate(()=>window.ArcaneDuoSound194.isEnabled()),false);
+   await A.locator('#duoSettingsSound').click();
+   assert.equal(await A.evaluate(()=>window.ArcaneDuoSound194.isEnabled()),false);
+   assert.equal(await A.evaluate(()=>localStorage.getItem('arcane-duel-rpg-profile-v4-reborn')),'solo-sentinel-221');
+   report.checks.push('settings control local duel sound without changing the other player or the solo save');
+  }
   await route(A,'quests');
   assert.equal(await A.locator('#duoSoloMenuTitle').textContent(),'Aufgaben & Abenteuer');
   assert.equal(await A.locator('[data-fm-group="missions"] strong').textContent(),'Herausforderungen');
@@ -207,6 +238,21 @@ async function finishLiveDuel(A,B){
   assert.ok(await B.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),'mobile viewport must contain its layout');
   await B.locator('#duoSeats [data-seat="0"]>.field>.field-cell[data-slot="6"]').scrollIntoViewIfNeeded();
   report.checks.push('real click summon in zone seven, position change, persistent inspector, mobile zone access');
+  if(!live){
+   const room=backend.rooms.get(party.roomId);
+   room.game.players[0].summoned=false;room.game.revision++;
+   await refresh(A);await A.waitForFunction(rev=>window.ArcaneDuoParty218.state().game.revision===rev,room.game.revision);
+   await A.locator('.duo178-hand-card[data-index="0"]').click();
+   await A.locator('[data-ad189-slot]').selectOption('6');
+   await A.locator('#ad189-summon-guide .ad189-guide-confirm').click();
+   await A.locator('#duoSharedDialog').waitFor({state:'visible'});
+   room.game.revision++;
+   await refresh(A);await A.waitForFunction(rev=>window.ArcaneDuoParty218.state().game.revision===rev,room.game.revision);
+   await A.locator('#duoSharedDialog [data-dialog-confirm]').click();
+   assert.equal((await state(A)).game.players[0].field[6].uid,summonedUid);
+   assert.match(await A.locator('#duoStatus').textContent(),/geändert/);
+   report.checks.push('outdated replacement confirmation cannot act on a newer online state');
+  }
   if(live){
    report.duel=await finishLiveDuel(A,B);
   }else{
@@ -230,6 +276,14 @@ async function finishLiveDuel(A,B){
    // The guest can surrender even while it is the host's turn. Both clients
    // must see the same finished match, with no win recorded for either team member.
    await B.getByRole('button',{name:'⚑ Duell aufgeben'}).click();
+   assert.equal(await B.locator('#duoSharedDialog [data-dialog-cancel]').evaluate(n=>n===document.activeElement),true);
+   await B.keyboard.press('Escape');
+   assert.equal(await B.locator('#duoSharedDialog').count(),0);
+   await B.getByRole('button',{name:'⚑ Duell aufgeben'}).click();
+   await B.locator('#duoSharedDialog [data-dialog-cancel]').click();
+   assert.equal((await state(B)).game.status,'active');
+   await B.getByRole('button',{name:'⚑ Duell aufgeben'}).click();
+   await B.locator('#duoSharedDialog [data-dialog-confirm]').click();
    await status(B,'finished');await refresh(A);await status(A,'finished');
    assert.equal((await state(A)).game.winner,1);
    assert.equal((await state(B)).game.surrenderedBy,2);
@@ -250,6 +304,7 @@ async function finishLiveDuel(A,B){
   const recovered=await state(A);assert.equal(recovered.roomId,party.roomId);assert.equal(recovered.seat,0);
   await A.evaluate(()=>window.ArcaneDuoParty218.refreshProfile());
   const saved=(await state(A)).profile;
+  if(!live)assert.equal(saved.activeDeckSlot,1,'active deck slot must survive reloading');
   assert.deepEqual({xp:saved.xp,essence:saved.essence,shards:saved.shards,wins:saved.wins,credits:saved.chapterCardCredits},personal[0]);
   report.checks.push('reload restores own room/seat; personal rewards unchanged; solo save unchanged');
   if(!live){

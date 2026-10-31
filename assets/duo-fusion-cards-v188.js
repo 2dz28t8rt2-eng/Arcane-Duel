@@ -224,13 +224,22 @@
     fusionPanel.addEventListener('toggle',paint);
     fusionMode.addEventListener('click',()=>{stageMode='fusion';paint();});
     discardMode.addEventListener('click',()=>{stageMode='discard';paint();});
-    discardCommit.addEventListener('click',()=>{
+    discardCommit.addEventListener('click',async()=>{
       const keys=selectedKeys(select);
       if(stageMode!=='discard'||discardCommit.disabled||!keys.every(k=>k.startsWith('hand:'))||
          !keepKey||!keys.includes(keepKey)||typeof send!=='function')return;
       const slot=Number(discardSlot.value),handIndex=Number(keepKey.split(':')[1]);
       const occupied=!!player.field[slot];
-      if(occupied&&!window.confirm('Monster in Zone '+(slot+1)+' wirklich ersetzen?'))return;
+      if(occupied){
+       const accepted=await window.ArcaneModal223.confirm({kicker:'BESETZTE ZONE',title:'Monster ersetzen?',icon:'✦',
+        text:'Das Monster in Zone '+(slot+1)+' auf den Friedhof legen und ersetzen?',
+        cancelLabel:'ABBRECHEN',confirmLabel:'↻ ERSETZEN'});
+       if(!accepted)return;
+       const current=window.ArcaneDuoParty218?.state();
+       if(!current||current.game?.roomId!==game.roomId||current.game?.revision!==game.revision){
+        notice.textContent='Der Spielstand hat sich geändert. Bitte wähle die Aktion erneut.';return;
+       }
+      }
       send({type:occupied?'replace':'summon',slot,handIndex,
        discardIndices:keys.filter(key=>key!==keepKey).map(key=>Number(key.split(':')[1]))});
     });
