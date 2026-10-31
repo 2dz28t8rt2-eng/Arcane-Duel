@@ -129,7 +129,33 @@ internal sealed class CardPicker : Form
     private readonly ListBox cards = new() { Dock = DockStyle.Fill, IntegralHeight = false, Font = new Font("Segoe UI", 10) };
     private readonly PictureBox portrait = new() { SizeMode = PictureBoxSizeMode.Zoom, Dock = DockStyle.Fill };
     private readonly Label description = new() { Dock = DockStyle.Top, Height = 90 };
+
+    readonly ComboBox roleFilter = FilterCombo(130);
+    readonly ComboBox elementFilter = FilterCombo(112);
+    readonly ComboBox levelFilter = FilterCombo(95);
+    readonly ComboBox typeFilter = FilterCombo(118);
+    readonly ComboBox rarityFilter = FilterCombo(105);
+    readonly ComboBox sortFilter = FilterCombo(135);
+    readonly Label hitCount = new() { AutoSize = true, ForeColor = Color.FromArgb(215,184,132) };
     public JsonObject? SelectedCard { get; private set; }
+    static ComboBox FilterCombo(int width) => new()
+    {
+        DropDownStyle = ComboBoxStyle.DropDownList,
+        Width = width, Height = 26, BackColor = Color.FromArgb(55,47,66),
+        ForeColor = Color.White, FlatStyle = FlatStyle.Flat,
+        Font = new Font("Segoe UI",9)
+    };
+    static string Value(JsonObject card,string key) => card[key]?.ToString() ?? "";
+    static string Type(JsonObject c) => Value(c,"ace").Equals("true",StringComparison.OrdinalIgnoreCase)?"ACE":
+        Value(c,"essenceMonster").Equals("true",StringComparison.OrdinalIgnoreCase)?"Essenz":
+        Value(c,"fusionOnly").Equals("true",StringComparison.OrdinalIgnoreCase)?"Fusion":"Standard";
+    static void Populate(ComboBox combo,string title,IEnumerable<string> values)
+    {
+        combo.Items.Add(title);
+        foreach(var value in values.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase)
+                     .OrderBy(x => x,StringComparer.CurrentCultureIgnoreCase))combo.Items.Add(value);
+        combo.SelectedIndex=0;
+    }
 
     public CardPicker(bool pickArt = false)
     {
@@ -144,7 +170,23 @@ internal sealed class CardPicker : Form
         var left = new Panel { Dock=DockStyle.Fill, Padding=new Padding(12) };
         search.BackColor=Color.FromArgb(55,47,66); search.ForeColor=Color.White;
         cards.BackColor=Color.FromArgb(40,34,51); cards.ForeColor=Color.White;
-        left.Controls.Add(cards);left.Controls.Add(search);
+
+        var filters = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 94, WrapContents = true, AutoScroll = true };
+        Populate(roleFilter,"Alle Rollen",AssetCatalog.Cards.Select(c=>Value(c,"role")));
+        Populate(elementFilter,"Alle Elemente",AssetCatalog.Cards.Select(c=>Value(c,"element")));
+        Populate(levelFilter,"Alle Stufen",AssetCatalog.Cards.Select(c=>Value(c,"level")));
+        Populate(typeFilter,"Alle Typen",new[]{"Standard","Fusion","ACE","Essenz"});
+        Populate(rarityFilter,"Alle Seltenheiten",AssetCatalog.Cards.Select(c=>Value(c,"rarity")));
+        Populate(sortFilter,"Sortierung",new[]{"Name A–Z","Stufe aufsteigend","Stufe absteigend","ID aufsteigend"});
+        foreach(var combo in new[]{roleFilter,elementFilter,levelFilter,typeFilter,rarityFilter,sortFilter})
+        {
+            combo.SelectedIndexChanged+=(_,_)=>RefreshCards();
+            filters.Controls.Add(combo);
+        }
+        left.Controls.Add(cards);
+        left.Controls.Add(filters);
+        left.Controls.Add(search);
+        search.PlaceholderText="ID, Name, Rolle oder Element suchen …";
         var right = new Panel { Dock=DockStyle.Fill, Padding=new Padding(12) };
         right.Controls.Add(portrait);right.Controls.Add(description);
         var buttons = new FlowLayoutPanel { Dock=DockStyle.Fill, FlowDirection=FlowDirection.RightToLeft };
@@ -159,6 +201,7 @@ internal sealed class CardPicker : Form
         cards.SelectedIndexChanged+=(_,_)=>ShowSelection();
         cards.DoubleClick+=(_,_)=>{if(cards.SelectedItem!=null)DialogResult=DialogResult.OK;};
         RefreshCards();
+        TextChanged+=(_,_)=>{};
         FormClosing+=(_,e)=>{
             if(DialogResult==DialogResult.OK && cards.SelectedItem is Choice c)
                SelectedCard=(JsonObject)c.Card.DeepClone();
@@ -169,16 +212,40 @@ internal sealed class CardPicker : Form
     private void RefreshCards()
     {
         var query=search.Text.Trim();
-        var found=AssetCatalog.Cards.Where(c=>
-           string.IsNullOrEmpty(query) || (c["id"]?.ToString()??"").Contains(query,StringComparison.OrdinalIgnoreCase)
-            || (c["name"]?.ToString()??"").Contains(query,StringComparison.OrdinalIgnoreCase)
-            || (c["role"]?.ToString()??"").Contains(query,StringComparison.OrdinalIgnoreCase)
-            || (c["element"]?.ToString()??"").Contains(query,StringComparison.OrdinalIgnoreCase)).ToList();
+        var selectedId=(cards.SelectedItem as Choice)?.Card["id"]?.ToString();
+        string selected(ComboBox combo)=>combo.SelectedIndex>0?combo.SelectedItem?.ToString()??"":"";
+        var role=selected(roleFilter);var element=selected(elementFilter);
+        var level=selected(levelFilter);var type=selected(typeFilter);
+        var rarity=selected(rarityFilter);
+        IEnumerable<JsonObject> found=AssetCatalog.Cards.Where(c=>
+           (string.IsNullOrEmpty(query) || Value(c,"id").Contains(query,StringComparison.OrdinalIgnoreCase)
+            || Value(c,"name").Contains(query,StringComparison.OrdinalIgnoreCase)
+            || Value(c,"role").Contains(query,StringComparison.OrdinalIgnoreCase)
+            || Value(c,"element").Contains(query,StringComparison.OrdinalIgnoreCase))
+           &&(role.Length==0||Value(c,"role").Equals(role,StringComparison.OrdinalIgnoreCase))
+           &&(element.Length==0||Value(c,"element").Equals(element,StringComparison.OrdinalIgnoreCase))
+           &&(level.Length==0||Value(c,"level")==level)
+           &&(type.Length==0||Type(c)==type)
+           &&(rarity.Length==0||Value(c,"rarity").Equals(rarity,StringComparison.OrdinalIgnoreCase)));
+        found=sortFilter.SelectedItem?.ToString() switch
+        {
+            "Name A–Z"=>found.OrderBy(c=>Value(c,"name"),StringComparer.CurrentCultureIgnoreCase),
+            "Stufe aufsteigend"=>found.OrderBy(c=>int.TryParse(Value(c,"level"),out var n)?n:0).ThenBy(c=>Value(c,"name")),
+            "Stufe absteigend"=>found.OrderByDescending(c=>int.TryParse(Value(c,"level"),out var n)?n:0).ThenBy(c=>Value(c,"name")),
+            _=>found.OrderBy(c=>int.TryParse(Value(c,"id"),out var n)?n:0)
+        };
         cards.BeginUpdate();cards.Items.Clear();
         foreach(var card in found)cards.Items.Add(new Choice(card));
         cards.EndUpdate();
-        if(cards.Items.Count>0)cards.SelectedIndex=0;
+        var selectedIndex=Enumerable.Range(0,cards.Items.Count).FirstOrDefault(i=>
+            (cards.Items[i] as Choice)?.Card["id"]?.ToString()==selectedId,-1);
+        if(cards.Items.Count>0)cards.SelectedIndex=selectedIndex>=0?selectedIndex:0;
+        else {description.Text="Keine Karte entspricht den Filtern.";var old=portrait.Image;portrait.Image=null;old?.Dispose();}
+        hitCount.Text=cards.Items.Count+" Karten";
+        if(!leftHitLabelAdded) {leftHitLabelAdded=true;}
     }
+    bool leftHitLabelAdded;
+
     private void ShowSelection()
     {
         if(cards.SelectedItem is not Choice choice)return;
