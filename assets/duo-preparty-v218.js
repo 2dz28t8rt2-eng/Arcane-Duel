@@ -11,7 +11,7 @@
  const info=message=>{$('duoPartyStatus').textContent=message;};
  const select=(section)=>{
   const state=api.state();
-  if(state.game?.status!=='lobby')return;
+  if(!['lobby','party_ready'].includes(state.game?.status))return;
   lobbySection=section;sync();
   const target={collection:'duoCollectionTotals',deck:'duoProfileDeckZone',
    profile:'duoProfileStats'}[section];
@@ -20,14 +20,16 @@
  function sync(){
   const s=api.state(),g=s.game,joined=!!g&&[0,2].includes(s.seat)&&g.status!=='waiting';
   const party=s.nameConfirmed&&!joined;
-  const menu=s.nameConfirmed&&joined&&g.status==='lobby'&&lobbySection==='menu';
-  const library=s.nameConfirmed&&joined&&g.status==='lobby'&&lobbySection!=='menu';
-  const battle=s.nameConfirmed&&joined&&g.status!=='lobby';
+  const inMenu=['lobby','party_ready'].includes(g?.status);
+  const menu=s.nameConfirmed&&joined&&inMenu&&lobbySection==='menu';
+  const library=s.nameConfirmed&&joined&&inMenu&&lobbySection!=='menu';
+  const battle=s.nameConfirmed&&joined&&!inMenu;
   $('duoPartyGate').hidden=!party;
   $('duoMainMenuGate').hidden=!menu;
   $('duoPage').hidden=!(library||battle);
   $('duoPage').inert=!(library||battle);
   $('duoPage').dataset.lobbyView=library?'true':'false';
+  $('duoPage').dataset.lobbySection=library?lobbySection:'';
   $('duoReturnMenu').hidden=!library;
   const waiting=party&&g?.status==='waiting'&&s.seat===0&&!!s.invite;
   $('duoPartyWaiting').hidden=!waiting;
@@ -51,11 +53,23 @@
   if(joined){
    $('duoMenuTeam').textContent=g.players[0].name+'  ✦  '+g.players[2].name;
    $('duoMenuStart').disabled=s.seat!==0||s.busy||g.status!=='lobby';
-   $('duoMenuStart').textContent=s.seat===0?'⚔ Kampagne starten':'⚔ Auf Party-Leiter warten';
-   $('duoMenuStatus').textContent=s.seat===0?
-    'Dein Partner ist da. Starte Kapitel '+g.chapter+', sobald ihr beide bereit seid.':
-    'Party verbunden. Der Leiter startet das Duell für euch beide.';
+   $('duoMenuStart').textContent=s.seat===0?'Kampagne starten':'Auf Startanfrage warten';
+   $('duoMenuStatus').textContent=g.status==='party_ready'?
+    (s.seat===0?'Startanfrage verschickt. Dein Partner entscheidet, wann er bereit ist.':
+      'Dein Partner hat eine Startanfrage geschickt. Du kannst noch dein Deck bearbeiten.'):
+    (s.seat===0?'Kapitel '+g.chapter+' wählen und Startanfrage verschicken. Dein Partner bestätigt separat.':
+      'Party verbunden. Du kannst deinen Duellanten unabhängig vom Partner verwalten.');
   }
+  const pending=g?.status==='party_ready'&&joined;
+  $('duoStartNotice').hidden=!pending;
+  $('duoStartAccept').hidden=!pending||s.seat!==2;
+  $('duoStartDecline').hidden=!pending||s.seat!==2;
+  $('duoStartCancel').hidden=!pending||s.seat!==0;
+  $('duoStartNoticeTitle').textContent=s.seat===0?
+   'Warte auf die Zustimmung deines Partners':'Dein Partner lädt dich zum Duell ein';
+  $('duoStartNoticeText').textContent=s.seat===0?
+   'Beide können ihre Karten und Fähigkeiten weiter unabhängig verwalten.':
+   'Du kannst erst dein Deck fertigstellen und dann zustimmen oder die Anfrage ablehnen.';
   // Do not show the legacy room-creation panel inside the actual game.
   $('duoSetupPanel').hidden=joined;
  }
@@ -97,13 +111,16 @@
  };
  $('duoMenuStart').onclick=async()=>{
   const s=api.state();if(s.seat!==0||s.game?.status!=='lobby')return;
-  $('duoMenuStatus').textContent='Das gemeinsame Duell wird gestartet …';
+  $('duoMenuStatus').textContent='Startanfrage wird an deinen Partner gesendet …';
   await api.send({type:'startParty'});
   const after=api.state();
-  if(after.game?.status!=='active')
-   $('duoMenuStatus').textContent=$('duoStatus').textContent||'Start fehlgeschlagen. Bitte erneut versuchen.';
+  if(after.game?.status!=='party_ready')
+   $('duoMenuStatus').textContent=$('duoStatus').textContent||'Anfrage fehlgeschlagen. Bitte erneut versuchen.';
   sync();
  };
+ $('duoStartAccept').onclick=async()=>{await api.send({type:'acceptPartyStart'});sync();};
+ $('duoStartDecline').onclick=async()=>{await api.send({type:'declinePartyStart'});sync();};
+ $('duoStartCancel').onclick=async()=>{await api.send({type:'cancelPartyStart'});sync();};
  $('duoMenuCollection').onclick=()=>select('collection');
  $('duoMenuDeck').onclick=()=>select('deck');
  $('duoMenuProfile').onclick=()=>select('profile');
