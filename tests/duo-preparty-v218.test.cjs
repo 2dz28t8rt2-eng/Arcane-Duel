@@ -191,5 +191,5 @@ test('full solo title markup, independent menu selection and seven actual monste
  const client=read('assets/duo-parity-v160.js');
  assert.match(client,/pasteInvite:async value=>/);
  assert.match(client,/type:'invitePreview',roomId:id,invite:secret/);
- assert.match(client,/type:'acceptPartyStart'/);
+ assert.match(ui,/type:'acceptPartyStart'/);
 });
