@@ -187,9 +187,17 @@
   try{result=originalReturn.apply(this,args);}
   finally{leaving=false;}
   if(uiMode==='menu'&&rewardItems.length){
-   setTimeout(()=>{
-    if(uiMode==='menu'&&!rewardScene&&rewardItems.length)nextReward();
-   },window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?450:2100);
+   let tries=0;
+   const reveal=()=>{
+    if(uiMode!=='menu'||!rewardItems.length||rewardScene)return;
+    // An XP milestone/mandatory reward takes precedence over optional art scenes.
+    if(!$('overlay').classList.contains('hidden')){
+     if(++tries<120)setTimeout(reveal,450);
+     return;
+    }
+    nextReward();
+   };
+   setTimeout(reveal,window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?450:2100);
   }
   return result;
  };
