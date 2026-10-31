@@ -51,7 +51,7 @@ test('new party waits for two humans and cannot play until host starts',()=>{
 test('previous rooms preserve auto-start and remain compatible',()=>{
  const r=join(room(),false);
  assert.equal(r.status,'active');
- assert.throws(()=>rules.apply(r,0,{type:'startParty'},{catalog}),/Party-Leiter/);
+ assert.throws(()=>rules.apply(r,0,{type:'startParty'},{catalog}),/Party-Mitglieder/);
  assert.equal(rules.view(r,0).players[2].portraitId,'hero-15');
 });
 test('solo-like duo menu loads only after joining and before battle',()=>{
