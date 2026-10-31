@@ -14,6 +14,7 @@ internal sealed class GameCardWebPreview : UserControl
     readonly WebView2 browser = new() { Dock = DockStyle.Fill, Visible = false };
     string pendingJson = "{}";
     bool initialized, ready;
+    readonly System.Windows.Forms.Timer redrawTimer = new() { Interval = 90 };
     public bool IsReady => ready;
 
     public GameCardWebPreview()
@@ -21,6 +22,7 @@ internal sealed class GameCardWebPreview : UserControl
         Dock = DockStyle.Fill;
         BackColor = Color.FromArgb(24, 21, 33);
         Controls.Add(browser);
+        redrawTimer.Tick += (_, _) => { redrawTimer.Stop(); SendLatest(); };
         // The host must remain visible to create its native handle for WebView2.
         HandleCreated += (_, _) => _ = InitializeBrowser();
     }
@@ -66,7 +68,7 @@ internal sealed class GameCardWebPreview : UserControl
     public void UpdateCard(object model)
     {
         pendingJson = JsonSerializer.Serialize(model);
-        if (ready) SendLatest();
+        if (ready) { redrawTimer.Stop(); redrawTimer.Start(); }
     }
 
     async void SendLatest()
@@ -79,9 +81,18 @@ internal sealed class GameCardWebPreview : UserControl
     public async Task<bool> SavePngAsync(string path)
     {
         if (!ready || browser.CoreWebView2 == null) return false;
+        redrawTimer.Stop();
+        await browser.ExecuteScriptAsync("window.renderArcaneEditorCard(" + pendingJson + ")");
+        await Task.Delay(110); // allow the browser to complete its render before capture
         using var output = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
         await browser.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat.Png, output);
         return true;
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if(disposing)redrawTimer.Dispose();
+        base.Dispose(disposing);
     }
 
     internal static string BuildDocument()
