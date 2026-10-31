@@ -1510,7 +1510,7 @@ function rewardMatch(g){if(g.showcase)return showcaseReward(g);const alreadyUnlo
 if(g.context==='tournament'){profile.encounters=[-1,0,1].map(d=>makeEncounter(g.opponentId+d,'tournament',g));}else if(g.context==='free'&&!profile.wanderer&&randomInt(g,100)<5){profile.wanderer=makeEncounter(Math.min(10,highestCleared()+1),'random',g);}showcaseTrackDuel(g);grantMilestones();if(dropChargesUnlocked()){if(!alreadyUnlocked){profile.dropCharges=Math.min(dropChargeCap(),profile.dropCharges+1);profile.dropChargeIntroPending=true;reward.charge=(reward.charge||0)+1;}if(reward.refilled)profile.dropCharges=dropChargeCap();}saveProfile();return reward;}
 function validateProfile(raw){const modern=raw?.progressionVersion===3;const projected={...raw,progressionVersion:raw?.progressionVersion===3?2:raw?.progressionVersion,activeDuel:modern?raw.activeDuel:null};const p=validateProfile16(projected);
  p.duelistName=typeof raw?.duelistName==='string'&&raw.duelistName.trim().length>=2&&raw.duelistName.trim().length<=32?
-  raw.duelistName.replace(/[<>\\x00-\\x1f]/g,'').trim().slice(0,32):'Duellant';
+  raw.duelistName.replace(/[<>\x00-\x1f]/g,'').trim().slice(0,32):'Duellant';
  p.avatarId=typeof raw?.avatarId==='string'&&/^hero-(0[1-9]|1[0-6])$/.test(raw.avatarId)?raw.avatarId:'hero-01';
  p.progressionVersion=3;p.startLv3Granted=raw?.startLv3Granted===true;p.dropChargeIntroPending=raw?.dropChargeIntroPending===true;
  // Retain optional extension data before the initial bootstrap save. The role

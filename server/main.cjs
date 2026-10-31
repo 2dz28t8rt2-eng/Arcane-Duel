@@ -1,9 +1,14 @@
 'use strict';
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
 const {Store}=require('./sqlite-store.cjs'),{createHandler}=require('./duo-handler.cjs'),{importProfile}=require('./import-profile.cjs');
+const {createRuntime}=require('./singleplayer-runtime.cjs'),{PlayerSaves}=require('./player-save.cjs');
 function createServer({root=path.resolve(__dirname,'..'),database,origin,trustProxy=false,legacyImport=false}={}){
  if(!database||!origin||new URL(origin).origin!==origin)throw Error('Database and exact public origin required');
  const store=new Store(database),handler=createHandler(store,{root,origins:[origin]});
+ let personal;
+ const personalSaves=()=>personal||(personal=new PlayerSaves(store,createRuntime(root)));
+ // Existing unified profiles must also receive their canonical rewards after a restart.
+ if(store.db.prepare("SELECT 1 FROM profiles WHERE json_type(document,'$.solo_save')='object' LIMIT 1").get())personalSaves();
  const release=fs.existsSync(path.join(root,'release.json'))?JSON.parse(fs.readFileSync(path.join(root,'release.json'),'utf8')):{};
  const buckets=new Map();
  const reply=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
@@ -13,11 +18,12 @@ function createServer({root=path.resolve(__dirname,'..'),database,origin,trustPr
   try{
    const url=new URL(req.url,origin);
    if(url.pathname==='/api/health'&&req.method==='GET')return reply(res,200,{ok:true,service:'arcane-duel',storage:'sqlite',version:release.version||((fs.readFileSync(path.join(root,'index.html'),'utf8').match(/<meta\s+name="arcane-duel-version"\s+content="([^"]+)"/)||[])[1]||'unknown'),revision:release.revision||'local',release:release.id||'local'});
-   if(['/duo-campaign.html','/duo-online.html'].includes(url.pathname)){res.writeHead(302,{Location:'/duo-campaign-v2.html'+url.search});return res.end();}
+   // Browsers retain the original fragment (invite/recovery secret) across this redirect.
+   if(['/duo-campaign.html','/duo-online.html','/duo-campaign-v2.html'].includes(url.pathname)){res.writeHead(302,{Location:'/index.html'+url.search});return res.end();}
    if(url.pathname==='/arcane-host-config.js'&&req.method==='GET'){
     res.writeHead(200,{'Content-Type':mime['.js'],'Cache-Control':'no-store'});return res.end('window.ArcaneDuoSelfHost229=true;window.ArcaneDuoEndpoint="/api/duo";');
    }
-   if(url.pathname==='/api/duo'){
+   if(['/api/duo','/api/player-save'].includes(url.pathname)){
     if(!['POST','OPTIONS'].includes(req.method))return reply(res,405,{error:'Methode nicht erlaubt.'});
     if(req.headers.origin!==origin)return reply(res,403,{error:'Nicht erlaubte Herkunft.'});
     const ip=trustProxy?String(req.headers['x-forwarded-for']||req.socket.remoteAddress).split(',')[0].trim():req.socket.remoteAddress;
@@ -26,10 +32,14 @@ function createServer({root=path.resolve(__dirname,'..'),database,origin,trustPr
     if(++bucket.n>600)return reply(res,429,{error:'Zu viele Anfragen. Bitte kurz warten.'});
     if(buckets.size>10000)for(const [key,b]of buckets)if(now-b.start>60000)buckets.delete(key);
     let size=0;const chunks=[];
-    for await(const chunk of req){size+=chunk.length;if(size>12000){reply(res,413,{error:'Anfrage zu groß.'});req.resume();return;}chunks.push(chunk);}
+    for await(const chunk of req){size+=chunk.length;if(size>(url.pathname==='/api/player-save'?2000000:12000)){reply(res,413,{error:'Anfrage zu groß.'});req.resume();return;}chunks.push(chunk);}
     const body=Buffer.concat(chunks);
     if(req.method==='POST'){
      let parsed;try{parsed=JSON.parse(body);}catch{return reply(res,400,{error:'Ungültiges Anfrageformat.'});}
+     if(url.pathname==='/api/player-save'){
+      try{return reply(res,200,personalSaves().save(parsed));}
+      catch(e){return reply(res,409,{error:String(e.message).slice(0,240)});}
+     }
      if(parsed?.type==='legacyImport'){
       if(!legacyImport)return reply(res,403,{error:'Profilübernahme ist auf diesem Server deaktiviert.'});
       // Bound expensive legacy lookups independently from normal polling.

@@ -330,7 +330,7 @@
 
    html+='<button class="btn" data-essence-combat="discharge" '+(spent||e.soul<40||e.lastDischarge===g.turn?'disabled':'')+'>✦ Seelenstoß · Entladen (130 %)</button>';
    html+='<small>Seelenraub · ein Ziel, 250 % Entzugsstärke · Abklingzeit '+(e.raidCooldown||0)+'</small>';
-   for(let targetIndex=0;targetIndex<5;targetIndex++){
+   for(let targetIndex=0;targetIndex<g.players[1].field.length;targetIndex++){
     const target=g.players[1].field[targetIndex];if(!target?.card||!(target.card.atk+target.card.def))continue;
     html+='<button class="btn" data-essence-target="'+targetIndex+'" '+(spent||e.raidCooldown?'disabled':'')+'>'+
      '◇ Seelenraub: '+escapeHtml(dataOf(target).name)+(e.raidCooldown?' · ⌛ '+e.raidCooldown+' Züge':'')+'</button>';

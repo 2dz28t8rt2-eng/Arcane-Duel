@@ -113,6 +113,9 @@ const profileResult=async(p,extra={})=>({profile:profileView(p),
   rewards:economy.rewardTable()},
  ...extra});
 
+// Stored animation frames are filtered independently for the authenticated viewer.
+const presentation=(room,seat,after=-1)=>(room.presentation||[])
+ .filter(f=>f.state.revision>after).map(f=>({...f,state:game.view(f.state,seat,catalog)}));
 Deno.serve(async request=>{
  const origin=request.headers.get("origin")||"";
  const allow=origins.has(origin)?origin:"";
@@ -148,6 +151,7 @@ Deno.serve(async request=>{
   if(["profile","profileName","profileAvatar","upgrade","pack","deckReplace","deckSlotSelect","deckSlotCopy","research","bindEssence","enhance","recycle","chapterCard"].includes(kind)){
    const p=await profileByToken(body.profileToken);
    if(kind==="profile")return json(await profileResult(p),200,allow);
+   assert(!p.solo_save||kind==="chapterCard","Bitte das gemeinsame Hauptmenü öffnen, um deinen persönlichen Spielstand zu bearbeiten.");
    assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===p.revision,
     "2v2-Profil geändert. Bitte synchronisieren.");
    if(kind==="deckSlotSelect"||kind==="deckSlotCopy"){
@@ -227,7 +231,7 @@ Deno.serve(async request=>{
     const pool=economy.chapterCardPool(p,catalog);
     assert(pool.length>0,"Alle Karten der freigeschalteten Stufe sind ausgeschöpft.");
     const id=pool[crypto.getRandomValues(new Uint32Array(1))[0]%pool.length].id;
-    const next=await writeProfile(p,{
+    const next=p.solo_save?await db.claimLegacyCard(p,id):await writeProfile(p,{
      chapter_card_credits:p.chapter_card_credits-1,
      owned_main:[...p.owned_main,id]
     });
@@ -344,13 +348,14 @@ Deno.serve(async request=>{
     enemyNameA:enemyNames(chapter)[0],enemyNameB:enemyNames(chapter)[1],
     chapter,entry,catalog,personalDuoRules:body.personalDuoRules===true,
     randomSeed:crypto.getRandomValues(new Uint32Array(1))[0]||1});
+   if(body.sharedClient===true)state.groupReleased=false;
    const {error}=await db.from(TABLE).insert({id,status:"waiting",revision:0,state,
     host_token_hash:await hash(host),invitation_hash:await hash(invite),
     host_profile_id:p.id,creator_fingerprint:fp,
     expires_at:new Date(Date.now()+90*86400000).toISOString()});
    if(error)throw error;
    return json({roomId:id,token:host,invite,seat:0,
-    state:game.view(state,0)},200,allow);
+    state:game.view(state,0,catalog)},200,allow);
   }
   assert(typeof roomId==="string"&&/^[0-9a-f-]{36}$/.test(roomId),"Ungültige Raumkennung.");
   const {data:room,error}=await db.from(TABLE).select("*").eq("id",roomId).maybeSingle();
@@ -369,7 +374,7 @@ Deno.serve(async request=>{
     .select("id").maybeSingle();
    if(renewError)throw renewError;
    assert(updated,"Einladung wurde inzwischen verändert. Bitte Raum neu laden.");
-   return json({roomId,seat:0,invite:newInvite,state:game.view(room.state,0)},200,allow);
+   return json({roomId,seat:0,invite:newInvite,state:game.view(room.state,0,catalog)},200,allow);
   }
   if(kind==="join"){
    assert(isToken(body.invite),"Einladung ungültig.");
@@ -396,7 +401,7 @@ Deno.serve(async request=>{
     .select("id").maybeSingle();
    if(writeError)throw writeError;
    assert(updated,"Ein anderer Spieler ist bereits beigetreten.");
-   return json({roomId,token:guest,seat:2,state:game.view(next,2),partyLimits:limits},200,allow);
+   return json({roomId,token:guest,seat:2,state:game.view(next,2,catalog),partyLimits:limits},200,allow);
   }
   assert(isToken(token),"Sitzung fehlt.");
   const digest=await hash(token);
@@ -415,14 +420,14 @@ Deno.serve(async request=>{
   }
   const presence={hostOnline:seenNow-(Date.parse(room.host_seen_at||"")||0)<45000,
    guestOnline:seenNow-(Date.parse(room.guest_seen_at||"")||0)<45000};
-  if(kind==="state")return json({seat,state:game.view(room.state,seat),presence,
+  if(kind==="state")return json({seat,state:game.view(room.state,seat,catalog),presence,presentation:presentation(room,seat,body.afterRevision),
    partyLimits:await partyLimits(room)},200,allow);
   assert(kind==="action","Unbekannte Anfrage.");
   assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===room.revision,
    "Spielstand geändert. Bitte synchronisieren.");
-  assert(body.action&&["summon","replace","requestDuel","attack","switch","fusion","end","surrender","nextChapter","acceptNextChapter","declineNextChapter",
+  assert(body.action&&["continueGroup","summon","replace","requestDuel","attack","switch","fusion","end","surrender","nextChapter","acceptNextChapter","declineNextChapter",
    "startParty","acceptPartyStart","declinePartyStart","cancelPartyStart","soulCondense","soulDischarge","soulRaid","soulFocus","essencePredatorMode",
-   "lv1Station","lv1Return","lv1GhostSwitch","lv1UseOffer","lv1Floating"].includes(body.action.type),
+   "lv1Choose","lv1ClaimOffer","lv1Lock","lv1Charge","lv1Station","lv1Return","lv1GhostSwitch","lv1UseOffer","lv1Floating"].includes(body.action.type),
    "Aktion nicht erlaubt.");
   const legacyStart=body.action.type==="nextChapter"&&body.action.confirmRequired!==true;
   const starting=body.action.type==="acceptPartyStart",
@@ -472,17 +477,21 @@ Deno.serve(async request=>{
   // chapter action. Preserve it atomically; new dev clients opt into consent.
   if(legacyStart)next=game.apply(next,seat===0?2:0,
    {type:'acceptNextChapter'},{catalog,...chapterBuild});
-  next=game.aiTurn(next,{catalog});
+  const frames=room.presentation||[];
+  const record=(state,actor,action)=>frames.push({state:structuredClone(state),actor,action:structuredClone(action)});
+  if(room.state.groupReleased!=null)record(next,seat,body.action);
+  next=game.aiTurn(next,{catalog,onStep:room.state.groupReleased!=null?record:undefined});
   const {data:updated,error:writeError}=await db.from(TABLE).update({
    // Legacy SQL status CHECK allows waiting/active/finished only; invitation state
    // is held authoritatively in the versioned game JSON until the guest responds.
    state:next,status:next.status==='inviting_next'?'finished':['lobby','party_ready'].includes(next.status)?'waiting':next.status,revision:next.revision,
+   ...(room.state.groupReleased!=null?{presentation:frames.slice(-64)}:{}),
    updated_at:new Date().toISOString(),
    expires_at:new Date(Date.now()+90*86400000).toISOString()
   }).eq("id",roomId).eq("revision",room.revision).select("id").maybeSingle();
   if(writeError)throw writeError;
   assert(updated,"Konkurrierender Zug. Bitte synchronisieren.");
-  return json({seat,state:game.view(next,seat)},200,allow);
+  return json({seat,state:game.view(next,seat,catalog),presentation:presentation({presentation:frames},seat,body.expectedRevision)},200,allow);
  }catch(error){
   const message=String(error instanceof Error?error.message:error);
   const safe=/^[\w\säöüÄÖÜß.,:!\-–()]+$/.test(message)&&message.length<=180?

@@ -80,7 +80,7 @@
     '<span class="'+(pending?'active':'')+'">3 · Zone auf dem Feld</span></div>'+
    '<div class="ad56-columns">'+
     '<section class="ad56-block ad56-selection"><h3>'+esc(label)+'</h3>'+selectedHtml+bonusHtml+
-      '<p class="ad56-hint">'+(pending?'Jetzt auf eine der fünf Zonen deines Feldes klicken.':
+      '<p class="ad56-hint">'+(pending?'Jetzt auf eine der '+me.field.length+' Zonen deines Feldes klicken.':
        chosen?'„Beschwören“ wählen oder eine andere Handkarte anklicken.':
        material.length?'Weitere Materialien markieren oder „Fusionieren“ drücken.':
        'Du darfst pro Zug eine Karte beschwören oder eine Fusion ausführen.')+'</p></section>'+

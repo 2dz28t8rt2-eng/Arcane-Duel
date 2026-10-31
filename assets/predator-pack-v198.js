@@ -323,5 +323,5 @@
   }
  }
  window.ArcanePredatorPack=Object.freeze({version:'19.8.0',POWERS,leader,
-  cinemaReveal,isPredator,eligibleTokenSource});
+  cinemaReveal,impact,isPredator,eligibleTokenSource});
 })();
