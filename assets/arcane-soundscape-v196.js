@@ -204,11 +204,15 @@
    return tier>=7?'shadow':'duel';
   }
   const duo=document.getElementById('duoBattleArena');
-  if(duo){
+  const duoPage=document.getElementById('duoPage');
+  // A room may remain active while its player visits the independent menu.
+  // Only the visible duel gets battle music, just as in the solo client.
+  if(duo&&!duo.hidden&&(!duoPage||(!duoPage.hidden&&duoPage.dataset.lobbyView!=='true'))){
    const room=document.getElementById('duoRoomId')?.textContent?.trim();
    const turn=document.getElementById('duoTurnName')?.textContent?.trim();
    if(room&&room!=='—'&&turn&&turn!=='Noch kein Raum'){
-    const chapter=Number(document.getElementById('duoChapter')?.value)||0;
+    const chapter=Number(window.ArcaneDuoParty218?.state?.()?.game?.chapter||
+     document.getElementById('duoChapter')?.value)||0;
     return chapter>=7?'shadow':'duel';
    }
   }

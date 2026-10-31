@@ -225,6 +225,7 @@ async function finishLiveDuel(A,B){
    report.checks.push('host offline >45s: visible waiting, unchanged combat and seats, original host reconnects');
   }
   const empty=A.locator('#duoSeats [data-seat="0"]>.field>.field-cell[data-slot="6"]');
+  assert.equal(await A.evaluate(()=>{window.ArcaneSoundscape.refresh();return window.ArcaneSoundscape.getSettings().scene;}),'duel');
   await A.locator('.duo178-hand-card[data-index="0"]').click();await empty.click();await A.locator('#ad189-summon-guide .ad189-guide-confirm').click();
   await A.waitForFunction(()=>!!window.ArcaneDuoParty218.state().game.players[0].field[6]);await refresh(B);
   const summonedUid=(await state(A)).game.players[0].field[6].uid;
@@ -239,6 +240,35 @@ async function finishLiveDuel(A,B){
   await B.locator('#duoSeats [data-seat="0"]>.field>.field-cell[data-slot="6"]').scrollIntoViewIfNeeded();
   report.checks.push('real click summon in zone seven, position change, persistent inspector, mobile zone access');
   if(!live){
+   // Feed a confirmed public attack through the same event observer used by
+   // online polling. Its source is an already-visible field card, not a hand.
+   await A.evaluate(()=>{
+    document.body.classList.remove('ad-motion-disabled');
+    const before=structuredClone(window.ArcaneDuoParty218.state().game);
+    before.players[0].field[6].used=false;
+    const after=structuredClone(before);after.revision++;
+    after.players[0].field[6].used=true;
+    after.log.push(after.players[0].name+' · direkter Angriff: 100 Schaden.');
+    window.ArcaneDuoCinematics167.onState(before,after);
+   });
+   await A.locator('.ad113-attack-ghost').waitFor({state:'visible'});
+   await A.locator('.ad113-attack-impact').waitFor({state:'visible'});
+   await A.locator('.ad113-attack-ghost').waitFor({state:'detached'});
+   assert.equal(await A.locator('.ad113-attack-impact').count(),0);
+   await A.evaluate(()=>{
+    document.body.classList.add('ad-motion-disabled');
+    const before=structuredClone(window.ArcaneDuoParty218.state().game);
+    before.players[0].field[6].used=false;
+    const after=structuredClone(before);after.revision++;
+    after.players[0].field[6].used=true;
+    after.log.push(after.players[0].name+' · direkter Angriff: 100 Schaden.');
+    window.ArcaneDuoCinematics167.onState(before,after);
+   });
+   await A.waitForTimeout(200);
+   assert.equal(await A.locator('.ad113-attack-ghost').count(),0);
+   assert.equal(await A.locator('.duo-fx-projectile').count(),0);
+   await A.evaluate(()=>document.body.classList.remove('ad-motion-disabled'));
+   report.checks.push('confirmed online attack uses the solo card lunge and impact, and respects reduced motion');
    const room=backend.rooms.get(party.roomId);
    room.game.players[0].summoned=false;room.game.revision++;
    await refresh(A);await A.waitForFunction(rev=>window.ArcaneDuoParty218.state().game.revision===rev,room.game.revision);
@@ -260,7 +290,10 @@ async function finishLiveDuel(A,B){
    await refresh(A);await refresh(B);
   }
   await A.locator('.ad204-result-close').waitFor({state:'visible'});await A.locator('.ad204-result-close').click();await A.locator('#duoMenuScreen').waitFor({state:'visible'});
+  assert.equal(await A.evaluate(()=>{window.ArcaneSoundscape.refresh();return window.ArcaneSoundscape.getSettings().scene;}),'mystery');
   await B.keyboard.press('Escape');await B.locator('#duoMenuScreen').waitFor({state:'visible'});
+  assert.equal(await B.evaluate(()=>{window.ArcaneSoundscape.refresh();return window.ArcaneSoundscape.getSettings().scene;}),'mystery');
+  report.checks.push('shared music switches from duel to menu for both clients');
   await A.locator('#duoMenuStart').click();await status(A,'party_ready');await refresh(B);await B.locator('#duoStartDecline').click();await status(B,'finished');await refresh(A);
   assert.equal(await A.locator('#duoMenuScreen').isVisible(),true);assert.equal(await B.locator('#duoMenuScreen').isVisible(),true);
   report.checks.push('complete result, menu close, Escape, rematch consent and decline');

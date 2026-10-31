@@ -14,6 +14,13 @@
   const attacker=slot?.querySelector('.board-creature')||slot?.querySelector('.hand-card')||slot;
   const dest=di===null?$(owner===0?'enemyBanner':'myBanner'):
    $(targetRow)?.querySelector('[data-'+(owner===0?'enemy':'mine')+'="'+di+'"]');
+  const creature=g.players[owner]?.field?.[ai];
+  return playBetween(attacker,dest,{owner,di,fresh:creature?.summonedTurn===g.turn});
+ }
+ // Shared presentation for a confirmed online attack. The caller supplies
+ // only public field/scoreboard nodes; this never changes the game state.
+ async function playBetween(attacker,dest,{owner=0,di=0,fresh=false}={}){
+  if(reduced()||document.body?.classList.contains('ad-motion-disabled')||!document?.body)return false;
   if(!attacker?.cloneNode||!attacker?.getBoundingClientRect||
      !dest?.getBoundingClientRect)return false;
   const src=attacker.getBoundingClientRect(),dst=dest.getBoundingClientRect();
@@ -29,8 +36,6 @@
   document.body.appendChild(ghost);
   const dx=dst.left+dst.width/2-(src.left+src.width/2);
   const dy=dst.top+dst.height/2-(src.top+src.height/2);
-  const creature=g.players[owner]?.field?.[ai];
-  const fresh=creature?.summonedTurn===g.turn;
   try{
    // A short wind-up makes newly summoned monsters feel responsive as well.
    await delay(fresh?55:18);
@@ -73,5 +78,5 @@
    return true;
   }finally{ghost.remove();}
  }
- window.ArcaneAttackFX=Object.freeze({version:'19.7.0',play});
+ window.ArcaneAttackFX=Object.freeze({version:'19.7.0',play,playBetween});
 })();
