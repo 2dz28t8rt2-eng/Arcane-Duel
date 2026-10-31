@@ -10,6 +10,20 @@
   onOwnSlot,performAttack,switchMode,endTurn,runAi,askSurrender,rewardMatch,returnToMenu,fusionOptions,canCompleteHandFusion};
  let network=null,viewer=0,roomId='',lastRevision=-1,playing=false,serial=0,fusionContext=null,finishedKey=null;
  const online=()=>!!game?.online230;
+ const surrenderButton=id('surrenderBtn'),surrenderLabel=surrenderButton.textContent;
+ const surrenderPosition=document.createComment('Original solo surrender position');
+ surrenderButton.before(surrenderPosition);
+ function syncSurrenderButton(){
+  // Reuse the original control, but keep it directly accessible in online duels.
+  if(online()){
+   const actions=document.querySelector('#ad182-quickbar .ad182-quick-actions');
+   if(surrenderButton.parentElement!==actions)actions.append(surrenderButton);
+   surrenderButton.textContent='Give up';
+  }else{
+   surrenderPosition.after(surrenderButton);surrenderButton.textContent=surrenderLabel;
+  }
+  surrenderButton.classList.toggle('wide',!online());
+ }
  const client=()=>window.ArcaneOnline230;
  const mine=()=>network?.players[viewer];
  const motion=()=>animationSpeed!=='instant'&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -69,6 +83,7 @@
  effectiveAttack=function(g,c,...rest){return g?.online230&&c?rules.attackValue(c):solo.effectiveAttack(g,c,...rest);};
   canAttack=function(g,c){return g?.online230?!!c&&g.winner===null&&!g.pending&&g.active===0&&c.mode==='atk'&&g.turn>1&&!c.attacked&&!(c.lv1LockedUntil>network.players[c.onlineSeat].ownTurns):solo.canAttack(g,c);};
  render=function(...args){
+  syncSurrenderButton();
   const result=solo.render(...args);if(!online()||!network)return result;
   id('myName').textContent=network.players[0].name+' & '+network.players[2].name;
   id('enemyName').textContent=network.players[1].name+' & '+network.players[3].name;
@@ -80,7 +95,7 @@
   for(const button of document.querySelectorAll('#ownRow [data-mine]')){
    const c=game.players[0].field[Number(button.dataset.mine)];if(c){button.dataset.owner=String(c.onlineSeat);button.title=network.players[c.onlineSeat].name+' · '+dataOf(c).name;}
   }
-  id('surrenderBtn').disabled=playing||game.winner!==null;
+  surrenderButton.disabled=playing||busy||game.winner!==null;
   if(game.active===0&&mine().lv1?.charges>0){
    const box=id('summonStage').querySelector('.lv1-summonbox');
    if(box&&!box.querySelector('[data-online-charge]'))box.insertAdjacentHTML('beforeend','<button class="btn tiny" data-online-charge>✧ Geist als Stufe-2-Fusionsmaterial · '+mine().lv1.charges+' verfügbar</button>');
@@ -147,14 +162,18 @@
   if(inputAllowed()&&c)return command({type:'switch',slot:index,sourceSeat:c.onlineSeat});};
  endTurn=function(...args){return online()?(inputAllowed()&&!game.pending?command({type:'end'}):undefined):solo.endTurn(...args);};
  runAi=function(...args){if(!online())return solo.runAi(...args);};
- askSurrender=function(...args){if(!online())return solo.askSurrender(...args);if(playing||game.winner!==null)return;
+ askSurrender=function(...args){if(!online())return solo.askSurrender(...args);if(playing||busy||game.winner!==null)return;
+  const confirmedDuel=game.id;
   openModal(modalHtml('AUFGEBEN','Dieses Duell aufgeben?','⚑','Das Duell zählt für dein Team als Niederlage. Aufgeben gibt keine Essenz, XP, Splitter, Dropladung oder Pack-Fortschritt. Eure Karten bleiben erhalten.','',
    '<button class="btn" id="surrenderCancel">WEITERSPIELEN</button><button class="btn primary" id="surrenderConfirm">AUFGEBEN</button>'));
-  id('surrenderCancel').onclick=hideModal;id('surrenderConfirm').onclick=()=>{hideModal();command({type:'surrender'});};
+  id('surrenderCancel').onclick=hideModal;id('surrenderConfirm').onclick=()=>{
+   if(!online()||game.id!==confirmedDuel||game.winner!==null)return;
+   hideModal();command({type:'surrender'});
+  };
  };
  rewardMatch=function(g){if(!g?.online230)return solo.rewardMatch(g);const outcome=client().getOutcome();
   if(!outcome||g.rewardClaimed)return null;g.rewardClaimed=true;client().install(outcome,{render:false});return outcome.outcome?.reward||null;};
- returnToMenu=function(...args){if(online()&&game.winner===null)return;const result=solo.returnToMenu(...args);if(uiMode==='menu'){document.body.classList.remove('online-duel-230');finishedKey=roomId+'-'+network?.duelNo;}return result;};
+ returnToMenu=function(...args){if(online()&&game.winner===null)return;const result=solo.returnToMenu(...args);if(uiMode==='menu'){document.body.classList.remove('online-duel-230');finishedKey=roomId+'-'+network?.duelNo;syncSurrenderButton();}return result;};
  id('fusionBtn').onclick=()=>prepareFusion();id('clearBtn').onclick=()=>clearSelection();id('switchBtn').onclick=()=>switchMode();
  id('directBtn').onclick=()=>{if(game?.selection?.type==='field')performAttack(game.selection.idx,null);};
  id('endTurnBtn').onclick=()=>endTurn();id('surrenderBtn').onclick=()=>askSurrender();id('retryAiBtn').onclick=()=>runAi();
