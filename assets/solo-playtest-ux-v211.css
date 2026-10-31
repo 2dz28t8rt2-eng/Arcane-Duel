@@ -34,3 +34,19 @@
 @media(max-width:560px){#ad211-board-tools{padding:6px;justify-content:center}#ad211-board-tools .ad211-lp-meter b{font-size:14px}
  #ad211-board-zoom{width:85px}}
 @media(prefers-reduced-motion:reduce){.ad211-field-pop{animation:none;opacity:1}}
+
+/* v22.7: show each award card atomically after artwork has loaded.
+   Prevent ATK/DEF appearing before the actual ACE card image. */
+#ad211-unused{display:none}
+#ad211-unused[hidden]{display:none}
+#ad211-unused::before{content:""}
+#ad211-unused::after{content:""}
+#ad211-unused + .ad211-earned-card{min-width:0}
+#modal .ad211-earned-card:not(.ad211-card-ready) .hand-card{visibility:hidden!important}
+#modal .ad211-earned-card.ad211-card-ready .hand-card{visibility:visible!important}
+#modal .ad211-earned-card{margin:14px auto;padding:14px;
+ background:linear-gradient(145deg,#171f32,#101727);border:1px solid #c6a1657a;border-radius:12px}
+#modal .ad211-earned-card > .hand-card{display:block;margin:12px auto;max-width:min(260px,100%)}
+#modal .ad211-earned-card > b{display:block;color:#f7dfa8;margin-bottom:5px}
+#modal .ad211-earned-card p{line-height:1.6;margin:8px 0;color:#d4d1c9}
+#modal .ad211-reward-level{font:700 19px/1.4 Georgia,serif;color:#f3d69c}
