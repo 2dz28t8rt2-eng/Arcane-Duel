@@ -13,14 +13,15 @@
   return new Promise((ok,fail)=>{
    const tag=document.createElement('script');tag.src=url;tag.async=true;tag.crossOrigin='anonymous';
    tag.onload=()=>check()?ok():fail(new Error('missing particle engine'));
-   tag.onerror=()=>fail(new Error('particle CDN unavailable'));document.head.append(tag);
+   tag.onerror=()=>fail(new Error('particle library unavailable'));document.head.append(tag);
   });
  }
  async function motes(host,role){
-  // Optional tsParticles Slim from its official browser CDN, backed by CSS sparks.
+  // Pinned local tsParticles keeps the original effect available under our self-only CSP.
+  // CSS sparks remain the fallback when the optional library cannot load.
   if(!particleLoader)particleLoader=(async()=>{
-   await addScript('https://cdn.jsdelivr.net/npm/@tsparticles/engine@4/tsparticles.engine.min.js',()=>!!window.tsParticles);
-   await addScript('https://cdn.jsdelivr.net/npm/@tsparticles/slim@4/tsparticles.slim.bundle.min.js',()=>!!window.loadSlim);
+   await addScript('assets/vendor/tsparticles-4.5.0/engine.min.js',()=>!!window.tsParticles);
+   await addScript('assets/vendor/tsparticles-4.5.0/slim.min.js',()=>!!window.loadSlim);
    await window.loadSlim(window.tsParticles);return window.tsParticles;
   })().catch(()=>null);
   const engine=await particleLoader;if(!engine||!host.isConnected)return null;
