@@ -86,7 +86,7 @@ internal sealed partial class Editor : Form
         var previewLabel=new Label { Dock=DockStyle.Top, Height=28, Text="LIVE-VORSCHAU", TextAlign=ContentAlignment.MiddleCenter, ForeColor=Color.FromArgb(193,164,112), Font=new Font("Segoe UI",9,FontStyle.Bold) };
         split.Panel2.Controls.Add(preview); split.Panel2.Controls.Add(gamePreview); split.Panel2.Controls.Add(previewLabel);
         AddTitle(stack, "Kartendaten");
-        AddField(stack,"id","Karten-ID (eindeutige ganze Zahl)","0");
+        AddField(stack,"id","Karten-ID (eindeutige ganze Zahl)","");
         AddField(stack,"name","Name","Neue Karte");
         AddField(stack,"level","Stufe","1");
         AddField(stack,"atk","ATK","0");
@@ -225,7 +225,7 @@ internal sealed partial class Editor : Form
     void NewCard()
     {
         original=new JsonObject();
-        foreach(var pair in fields) pair.Value.Text=pair.Key switch { "id"=>"0", "name"=>"Neue Karte", "level"=>"1", "role"=>"combatant", "element"=>"FEUER", "rarity"=>"common", "kind"=>"spirit", "atk" or "def" or "pveAtk" or "pveDef"=>"0", _=>"" };
+        foreach(var pair in fields) pair.Value.Text=pair.Key switch { "id"=>"", "name"=>"Neue Karte", "level"=>"1", "role"=>"combatant", "element"=>"FEUER", "rarity"=>"common", "kind"=>"spirit", "atk" or "def" or "pveAtk" or "pveDef"=>"0", _=>"" };
         foreach(var pair in flags) pair.Value.Checked=pair.Key=="playable";
         extra.Text="{}";imageBytes=null;imageExtension=null;
         customFrameBytes=null;customFrameExtension=null;preview.SetCustomFrame(null,null);
