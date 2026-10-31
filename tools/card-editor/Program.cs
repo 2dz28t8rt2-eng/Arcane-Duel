@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Svg;
 
 namespace ArcaneCardEditor;
 
@@ -29,6 +30,13 @@ internal sealed class Editor : Form
     readonly CardPreview preview = new() { Dock = DockStyle.Fill };
     readonly Label artLabel = new() { AutoSize = true, MaximumSize = new Size(540, 0), Text = "Kein Bild ausgewählt" };
     readonly Label status = new() { Dock = DockStyle.Bottom, Height = 34, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(8,0,0,0), Text = "Neue Karte · Änderungen werden nicht automatisch gespeichert." };
+    private sealed record Choice(string Id,string Label) { public override string ToString()=>Label; }
+    readonly ComboBox frames = new() { DropDownStyle=ComboBoxStyle.DropDownList,Width=530 };
+    readonly ComboBox ornaments = new() { DropDownStyle=ComboBoxStyle.DropDownList,Width=530 };
+    readonly ComboBox icons = new() { DropDownStyle=ComboBoxStyle.DropDownList,Width=530 };
+    Color backgroundAccent = Color.FromArgb(111,77,122);
+    byte[]? customFrameBytes;
+    string? customFrameExtension;
     JsonObject original = new();
     byte[]? imageBytes;
     string? imageExtension;
@@ -55,7 +63,9 @@ internal sealed class Editor : Form
         AddButton(bar, "Save", (_,_) => ExportPackage(), true);
         AddButton(bar, "Neu", (_,_) => NewCard());
         AddButton(bar, "Karte öffnen", (_,_) => OpenCard());
+        AddButton(bar, "Aus Katalog", (_,_) => OpenExistingCard());
         AddButton(bar, "JSON speichern", (_,_) => SaveCard());
+        AddButton(bar, "PNG-Vorschau", (_,_) => ExportPreview());
         var split = new SplitContainer { Dock=DockStyle.Fill, SplitterDistance=610, FixedPanel=FixedPanel.None, BackColor=Color.FromArgb(56,47,62) };
         var scroll = new Panel { Dock=DockStyle.Fill, AutoScroll=true, Padding=new Padding(18), BackColor=Color.FromArgb(28,25,36) };
         var stack = new FlowLayoutPanel { Dock=DockStyle.Top, AutoSize=true, FlowDirection=FlowDirection.TopDown, WrapContents=false, Width=560, BackColor=scroll.BackColor };
@@ -72,9 +82,39 @@ internal sealed class Editor : Form
         AddField(stack,"element","Element","FEUER");
         AddField(stack,"role","Rolle (z. B. guardian, combatant, predator, soul)","combatant");
         AddField(stack,"ability","Fähigkeitstext","",true);
+        AddField(stack,"desc","Beschreibung","",true);
+        AddField(stack,"tags","Tags (Komma-getrennt)","");
+        AddField(stack,"rarity","Seltenheit","common");
+        AddField(stack,"kind","Monsterart","spirit");
+        AddField(stack,"roleStyle","Rollenstil / Spezialisierung","");
         AddTitle(stack,"Artwork");
         var artRow = new FlowLayoutPanel { Width=530, Height=40, WrapContents=false };
-        AddButton(artRow,"Bild auswählen",(_,_)=>SelectImage()); artRow.Controls.Add(artLabel); stack.Controls.Add(artRow);
+        AddButton(artRow,"Bild auswählen",(_,_)=>SelectImage());
+        AddButton(artRow,"Aus Katalog",(_,_)=>SelectCatalogImage());
+        stack.Controls.Add(artRow);stack.Controls.Add(artLabel);
+        AddTitle(stack,"Kartenbaukasten · Spiel-Assets");
+        stack.Controls.Add(new Label { Text="20 Originalrahmen, 40 Level-Gravuren und 8 Rollensymbole sind im Editor enthalten.",
+          MaximumSize=new Size(530,0),AutoSize=true });
+        AddFieldLabel(stack,"Kartenrahmen");stack.Controls.Add(frames);
+        AddFieldLabel(stack,"Level-Verzierung");stack.Controls.Add(ornaments);
+        AddFieldLabel(stack,"Rollensymbol");stack.Controls.Add(icons);
+        foreach(var combo in new[]{frames,ornaments,icons}){
+          combo.BackColor=Color.FromArgb(50,42,60);combo.ForeColor=ForeColor;
+          combo.SelectedIndexChanged+=(_,_)=>RefreshPreview();
+        }
+        frames.Items.Add(new Choice("auto","Auto · dem Level und Typ entsprechend"));
+        foreach(var f in AssetCatalog.Frames)frames.Items.Add(new Choice(f.Id,f.Label));
+        ornaments.Items.Add(new Choice("auto","Auto · passend zum Kartenrahmen"));
+        ornaments.Items.Add(new Choice("none","Ohne Level-Ornament"));
+        foreach(var id in AssetCatalog.Levels)ornaments.Items.Add(new Choice(id,id));
+        icons.Items.Add(new Choice("auto","Auto · der Rolle entsprechend"));
+        icons.Items.Add(new Choice("none","Ohne Symbol"));
+        foreach(var id in AssetCatalog.Icons)icons.Items.Add(new Choice(id,id));
+        frames.SelectedIndex=ornaments.SelectedIndex=icons.SelectedIndex=0;
+        var editorRow=new FlowLayoutPanel { Width=530,Height=43,WrapContents=false };
+        AddButton(editorRow,"Eigenen Rahmen (SVG/PNG)",(_,_)=>SelectFrame());
+        AddButton(editorRow,"Farben wählen",(_,_)=>ChooseColor());
+        stack.Controls.Add(editorRow);
         AddTitle(stack,"Zusätzliche Spielwerte");
         AddField(stack,"pveAtk","PvE-Bonus ATK","0");
         AddField(stack,"pveDef","PvE-Bonus DEF","0");
@@ -94,6 +134,7 @@ internal sealed class Editor : Form
         NewCard();
     }
     void AddTitle(FlowLayoutPanel p,string text) => p.Controls.Add(new Label { Text=text.ToUpperInvariant(), AutoSize=true, ForeColor=Color.FromArgb(225,186,112), Font=new Font("Segoe UI",10,FontStyle.Bold), Margin=new Padding(3,18,3,7) });
+    static void AddFieldLabel(FlowLayoutPanel p,string label)=>p.Controls.Add(new Label { Text=label,AutoSize=true,Margin=new Padding(3,7,3,2) });
     void AddField(FlowLayoutPanel p,string key,string label,string value,bool multi=false)
     {
         p.Controls.Add(new Label { Text=label, AutoSize=true, Margin=new Padding(3,7,3,2) });
@@ -112,15 +153,38 @@ internal sealed class Editor : Form
         preview.CardName=fields["name"].Text; preview.Level=fields["level"].Text;
         preview.Attack=fields["atk"].Text; preview.Defense=fields["def"].Text;
         preview.Element=fields["element"].Text; preview.Role=fields["role"].Text;
-        preview.Ability=fields["ability"].Text; preview.IsFusion=flags.TryGetValue("fusionOnly",out var f)&&f.Checked;
+        preview.Ability=fields["ability"].Text; preview.Description=fields["desc"].Text;
+        preview.Tags=fields["tags"].Text;
+        preview.IsFusion=flags.TryGetValue("fusionOnly",out var f)&&f.Checked;
+        preview.IsAce=flags.TryGetValue("ace",out var a)&&a.Checked;
+        preview.IsEssence=flags.TryGetValue("essenceMonster",out var e)&&e.Checked;
+        preview.FrameId=ChoiceId(frames);
+        preview.LevelDecoration=ChoiceId(ornaments);
+        preview.RoleIcon=ChoiceId(icons);
+        preview.Accent=backgroundAccent;
         preview.Invalidate();
+    }
+    static string ChoiceId(ComboBox picker)=>picker.SelectedItem is Choice o?o.Id:"auto";
+    static void SetChoice(ComboBox picker,string? id)
+    {
+      int i=picker.Items.Cast<Choice>().ToList().FindIndex(x=>x.Id==(id??"auto"));
+      picker.SelectedIndex=i<0?0:i;
+    }
+    void ChooseColor()
+    {
+      using var picker=new ColorDialog { Color=backgroundAccent,FullOpen=true };
+      if(picker.ShowDialog(this)==DialogResult.OK){backgroundAccent=picker.Color;RefreshPreview();}
     }
     void NewCard()
     {
         original=new JsonObject();
-        foreach(var pair in fields) pair.Value.Text=pair.Key switch { "id"=>"0", "name"=>"Neue Karte", "level"=>"1", "role"=>"combatant", "element"=>"FEUER", "atk" or "def" or "pveAtk" or "pveDef"=>"0", _=>"" };
+        foreach(var pair in fields) pair.Value.Text=pair.Key switch { "id"=>"0", "name"=>"Neue Karte", "level"=>"1", "role"=>"combatant", "element"=>"FEUER", "rarity"=>"common", "kind"=>"spirit", "atk" or "def" or "pveAtk" or "pveDef"=>"0", _=>"" };
         foreach(var pair in flags) pair.Value.Checked=pair.Key=="playable";
-        extra.Text="{}"; imageBytes=null; imageExtension=null; artLabel.Text="Kein Bild ausgewählt"; preview.SetImage(null); RefreshPreview();
+        extra.Text="{}";imageBytes=null;imageExtension=null;
+        customFrameBytes=null;customFrameExtension=null;preview.SetCustomFrame(null,null);
+        artLabel.Text="Kein Bild ausgewählt";preview.SetImage(null);
+        SetChoice(frames,"auto");SetChoice(ornaments,"auto");SetChoice(icons,"auto");
+        backgroundAccent=Color.FromArgb(111,77,122);RefreshPreview();
         status.Text="Neue Karte · ID vor dem Export mit dem Projekt abgleichen.";
     }
     void SelectImage()
@@ -129,6 +193,52 @@ internal sealed class Editor : Form
         if(dialog.ShowDialog()!=DialogResult.OK)return;
         try { var bytes=File.ReadAllBytes(dialog.FileName); preview.SetImage(bytes); imageBytes=bytes; imageExtension=Path.GetExtension(dialog.FileName).ToLowerInvariant(); artLabel.Text=Path.GetFileName(dialog.FileName); }
         catch(Exception ex) { Error(ex); }
+    }
+    void OpenExistingCard()
+    {
+      using var picker=new CardPicker();
+      if(picker.ShowDialog(this)!=DialogResult.OK||picker.SelectedCard==null)return;
+      ApplyCard(picker.SelectedCard,AppContext.BaseDirectory);
+      status.Text="Bestehende Karte aus dem originalen Katalog geladen · lokal bearbeitbar.";
+    }
+    void SelectCatalogImage()
+    {
+      using var picker=new CardPicker(true);
+      if(picker.ShowDialog(this)!=DialogResult.OK||picker.SelectedCard==null)return;
+      var art=picker.SelectedCard["art"]?.ToString();
+      if(string.IsNullOrWhiteSpace(art))return;
+      original["art"]=art;imageBytes=null;imageExtension=null;
+      preview.SetImage(AssetCatalog.ArtworkPreview(art));
+      artLabel.Text="Original-Asset: "+art;
+      RefreshPreview();
+    }
+    void SelectFrame()
+    {
+      using var picker=new OpenFileDialog { Title="Transparenter Kartenrahmen",
+        Filter="SVG und PNG (*.svg;*.png)|*.svg;*.png" };
+      if(picker.ShowDialog(this)!=DialogResult.OK)return;
+      try {
+        var data=File.ReadAllBytes(picker.FileName);
+        if(data.Length>2_000_000)throw new InvalidOperationException("Rahmen darf höchstens 2 MB groß sein.");
+        var ext=Path.GetExtension(picker.FileName).ToLowerInvariant();
+        preview.SetCustomFrame(data,ext);
+        customFrameBytes=data;customFrameExtension=ext;
+        frames.Items.Add(new Choice("custom","Eigenes Design: "+Path.GetFileName(picker.FileName)));
+        frames.SelectedIndex=frames.Items.Count-1;
+        status.Text="Eigener Rahmen geladen; im ZIP wird dieser mitexportiert.";
+      } catch(Exception ex){Error(ex);}
+    }
+    void ExportPreview()
+    {
+      try {
+        using var picker=new SaveFileDialog { Filter="PNG (*.png)|*.png",
+          FileName="Arcane-Karte-"+Number("id")+"-Vorschau.png" };
+        if(picker.ShowDialog(this)!=DialogResult.OK)return;
+        using var bitmap=new Bitmap(720,1140);
+        preview.DrawPreview(bitmap);
+        bitmap.Save(picker.FileName,System.Drawing.Imaging.ImageFormat.Png);
+        status.Text="PNG-Vorschau exportiert.";
+      }catch(Exception ex){Error(ex);}
     }
     int Number(string key)
     {
