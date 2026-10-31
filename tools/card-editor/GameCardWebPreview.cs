@@ -21,6 +21,7 @@ internal sealed class GameCardWebPreview : UserControl
         Dock = DockStyle.Fill;
         BackColor = Color.FromArgb(24, 21, 33);
         Controls.Add(browser);
+        Visible = false; // show the canonical renderer only after the WebView2 page is ready
         HandleCreated += (_, _) => _ = InitializeBrowser();
     }
 
@@ -46,6 +47,7 @@ internal sealed class GameCardWebPreview : UserControl
                 if (!e.IsSuccess) return;
                 ready = true;
                 browser.Visible = true;
+                Visible = true;
                 SendLatest();
             };
             browser.NavigateToString(BuildDocument());
