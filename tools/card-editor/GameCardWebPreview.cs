@@ -158,15 +158,27 @@ internal sealed class GameCardWebPreview : UserControl
       const el = mount.firstElementChild;
       if (!el) return;
       const chosenFrame = safeKey(m.frameTemplate);
+      let visualFamily = family;
       if (chosenFrame && chosenFrame !== 'auto' && chosenFrame !== 'custom') {
         const parts = chosenFrame.match(/^(normal|fusion|ace|essence)-0([1-5])$/);
         if(parts) {
+          visualFamily = parts[1];
+          el.classList.remove('ad-template-family-' + family,'ad-template-tier-' + tier);
           el.classList.forEach(k => {if(k.startsWith('ad-template-') && /-(0[1-5])$/.test(k)) el.classList.remove(k);});
+          el.classList.add('ad-template-family-' + visualFamily);
+          el.classList.add('ad-template-tier-' + Number(parts[2]));
           el.classList.add('ad-template-' + chosenFrame);
+          if (!m.frameLevelOverlay || m.frameLevelOverlay==='auto') {
+            el.classList.remove('ad-level-'+family+'-'+String(lv).padStart(2,'0'));
+            el.classList.add('ad-level-'+visualFamily+'-'+String(lv).padStart(2,'0'));
+          }
         }
       }
       if (m.frameUrl && m.frameTemplate === 'custom') {
         el.style.setProperty('--ad-tpl-frame', 'url("' + m.frameUrl + '")', 'important');
+      }
+      if(m.customAccent && /^#[0-9a-f]{6}$/i.test(m.accent || '')){
+        el.style.setProperty('--ad-tpl-rim',m.accent,'important');
       }
       const customTrim = safeKey(m.frameLevelOverlay);
       if(customTrim === 'none')el.style.setProperty('--ad-level-trim','none','important');
@@ -185,7 +197,9 @@ internal sealed class GameCardWebPreview : UserControl
       meta.replaceChildren();
       const label=document.createElement('span');
       label.textContent=(labels[card.role]||card.role)+' · '+card.element
-        +(m.ability?' · Fähigkeit: '+m.ability:'');
+        +(m.description?' · '+m.description:'')
+        +(m.ability?' · Fähigkeit: '+m.ability:'')
+        +(m.tags?' · Tags: '+m.tags:'');
       if (m.iconUrl && m.frameRoleIcon !== 'none'){
         const img=document.createElement('img');img.alt='Rollensymbol';img.src=m.iconUrl;meta.appendChild(img);
       }
