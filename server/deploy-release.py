@@ -1,6 +1,6 @@
 """Administrator-only deployment. Never run commands or service definitions from uploads."""
 from pathlib import Path, PurePosixPath
-import os,sys,json,tarfile,hashlib,subprocess,tempfile,fcntl,time,urllib.request,re
+import os,sys,json,tarfile,hashlib,subprocess,tempfile,fcntl,time,urllib.request,re,shutil
 
 if os.geteuid()!=0:raise SystemExit('Only the administrator may activate a release.')
 if len(sys.argv)!=3:raise SystemExit('Usage: arcane-duel-release ARCHIVE SHA256')
@@ -39,6 +39,35 @@ sealed.unlink()
 for p in stage.rglob('*'):
  if p.is_dir():p.chmod(0o755)
 stage.chmod(0o755)
+# Retain at most the current fully healthy release plus its immediate predecessor.
+# Both singleplayer and multiplayer ship together in each verified release folder.
+# No application data, SQLite files, other services, or backup directories are touched.
+def prune_committed_releases(active,previous):
+ def is_managed(p):
+  return p.parent==releases and bool(re.fullmatch(r'v229-[a-f0-9]{12}',p.name))
+ if not is_managed(active) or (previous is not None and not is_managed(previous)):
+  raise RuntimeError('Unsafe release path; retention refused')
+ if active.is_symlink() or not active.is_dir():
+  raise RuntimeError('Active release is not a real directory')
+ if previous is not None and (previous.is_symlink() or not previous.is_dir()):
+  raise RuntimeError('Previous release is missing or not a real directory')
+ keep={active.name}
+ if previous is not None:keep.add(previous.name)
+ removed=[]
+ for candidate in sorted(releases.iterdir()):
+  if not re.fullmatch(r'v229-[a-f0-9]{12}',candidate.name) or candidate.name in keep:continue
+  if candidate.is_symlink() or not candidate.is_dir():
+   raise RuntimeError('Unsafe retired release path; retention refused')
+  shutil.rmtree(candidate)
+  removed.append(candidate.name)
+ # A verified release contains both game modes. Remove old upload archives too.
+ # Never touch unrelated uploads, symlinks, staging areas or private player data.
+ for candidate in upload.iterdir():
+  match=re.fullmatch(r'(v229-[a-f0-9]{12})\\.tar\\.gz(?:\\.sha256)?',candidate.name)
+  if match and match.group(1) not in keep and candidate.is_file() and not candidate.is_symlink():
+   candidate.unlink()
+ return {'kept':sorted(keep),'removed':removed}
+
 target=releases/release['id']
 if target.exists():raise SystemExit('Release already exists')
 os.replace(stage,target)
@@ -62,4 +91,8 @@ except Exception:
  if old:activate(old);subprocess.run(['systemctl','restart','arcane-duel.service'],check=True)
  else:subprocess.run(['systemctl','stop','arcane-duel.service'],check=False)
  raise
-print(json.dumps({'activated':release['id'],'revision':release['revision'],'previous':str(old) if old else None}))
+# Prune ONLY after successful restart and matching health revision.
+# On failed health verification the previous release remains available for rollback.
+retention=prune_committed_releases(target,old)
+print(json.dumps({'activated':release['id'],'revision':release['revision'],
+ 'previous':str(old) if old else None,'retention':retention}))
