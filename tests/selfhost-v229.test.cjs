@@ -113,6 +113,8 @@ test('HTTP boundary serves the game but rejects private files, other origins and
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));t.after(async()=>{await new Promise(resolve=>server.close(resolve));store.close();});
  const base='http://127.0.0.1:'+server.address().port;
  assert.equal((await fetch(base+'/index.html')).status,200);
+ assert.equal((await fetch(base+'/desktop/build/icon.png')).status,200);
+ assert.equal((await fetch(base+'/desktop/main.cjs')).status,404);
  assert.match(await (await fetch(base+'/arcane-host-config.js')).text(),/\/api\/duo/);
  for(const url of ['/server/main.cjs','/supabase/functions/arcane-duo-v2/index.ts','/.git/config','/assets/%2e%2e%2fserver/main.cjs'])assert.equal((await fetch(base+url)).status,404);
  assert.equal((await fetch(base+'/api/duo',{method:'POST',headers:{origin:'https://aetherfall.example'},body:'{}'})).status,403);

@@ -17,7 +17,7 @@ for directory in ['assets','models','server','supabase/functions/arcane-duo-v2']
  for p in sorted((root/directory).rglob('*')):
   if p.is_symlink():raise SystemExit('Symlinks cannot be released')
   if p.is_file() and '__pycache__' not in p.parts:files.append(p)
-files += [root/n for n in ['index.html','duo-campaign-v2.html','duo-campaign.html','duo-online.html','art-gallery.html','collection-v3.html','arcane-host-config.js']]
+files += [root/n for n in ['index.html','duo-campaign-v2.html','duo-campaign.html','duo-online.html','art-gallery.html','collection-v3.html','arcane-host-config.js','desktop/build/icon.png','desktop/build/icon.ico']]
 manifest={p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
 release={'id':release_id,'revision':revision,'files':manifest,'dirty':bool(changed),'version':229}
 dest=Path(args.output).resolve();dest.mkdir(parents=True,exist_ok=True)

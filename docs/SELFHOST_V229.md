@@ -4,7 +4,7 @@
 
 Einzelspieler und Online-2v2 werden von demselben Arcane-Duel-Paket ausgeliefert. Das gemeinsame Online-Duell läuft vollständig mit Node.js 24 und einer privaten SQLite-Datenbank auf dem eigenen Server. Für Spielen, neue Profile, Einladungen, Deckänderungen, Wiederbeitritt und Belohnungen ist Supabase nicht erforderlich.
 
-Geplante bzw. nach Veröffentlichung zu prüfende Adresse: `https://v2202610436378538039.ultrasrv.de:8443/`. Der eigene HTTPS-Port bildet eine andere Browser-Origin als Aetherfall auf Port 443. Die Dateien, Datenbank, Dienstbenutzer und Sicherungen sind getrennt. Beide Anwendungen teilen Serverhardware und Caddy; deshalb darf der Aetherfall-Block der Caddy-Konfiguration nicht überschrieben werden.
+Veröffentlichte Adresse: `https://v2202610436378538039.ultrasrv.de:8443/`. Der eigene HTTPS-Port bildet eine andere Browser-Origin als Aetherfall auf Port 443. Die Dateien, Datenbank, Dienstbenutzer und Sicherungen sind getrennt. Beide Anwendungen teilen Serverhardware und Caddy; deshalb darf der Aetherfall-Block der Caddy-Konfiguration nicht überschrieben werden.
 
 ## Änderungen gegenüber v228
 
@@ -16,8 +16,11 @@ Geplante bzw. nach Veröffentlichung zu prüfende Adresse: `https://v22026104363
 - Geprüfte Veröffentlichungspakete mit SHA256-Manifest, atomarer Umschaltung, Sicherung vor Updates und automatischem Rückwechsel, falls der neue Dienst nicht startet.
 - Optionaler, ausdrücklich ausgelöster Import eines bestehenden Online-Profils anhand seines privaten Profil-Links. Dabei werden ausschließlich vom bisherigen Server bestätigte Daten übernommen. Bereits übernommene Profile werden nie überschrieben.
 - Zusätzliche Serverprüfungen sowie parametrisierbare Browserprüfung gegen einen echten eigenen Server.
+- Die beiden öffentlichen Desktop-Symboldateien sind ausdrücklich im Paket enthalten; das Startmenü verwendet `desktop/build/icon.png`. Andere Desktop-Quelldateien bleiben gesperrt.
 
 Die gemeinsamen Darstellungen, Sounds und Animationen aus v228 bleiben erhalten. Siehe `DUO_SHARED_PRESENTATION_V228.md` für den tatsächlichen Umfang. Diese Veröffentlichung behauptet keine vollständige Angleichung der noch unterschiedlichen Werkstatt- und Fortschrittssysteme. Keine neue Windows-EXE wird durch das Serverpaket gebaut.
+
+Im bisherigen Repository fehlt `assets/sfx-v208/win.ogg`. Die bestehende gemeinsame Audiofunktion spielt bei diesem fehlenden Sample ihre synthetische Ersatzmelodie. Diese Veröffentlichung fügt keine neue Siegaufnahme hinzu und behauptet keine vollständige Sammlung aller ursprünglich vorgesehenen Audiodateien.
 
 ## Unveränderte Spielvorgaben
 
@@ -38,7 +41,7 @@ Die privaten bisherigen Belohnungsbelege stehen der öffentlichen Profil-API nic
 3. `npm test`, `node --test tests/selfhost-v229.test.cjs`, vorhandene Browserprüfungen ausführen. Der neue Server hat keine zusätzlichen npm-Laufzeitabhängigkeiten.
 4. Paket erzeugen: `python scripts/package-selfhost.py --output ../arcane-release`. Nur bestätigte saubere Stände veröffentlichen; `--allow-dirty` ist ausschließlich für lokale QA und wird vom Server nicht aktiviert.
 5. SFTP: Host `v2202610436378538039.ultrasrv.de`, Port `22`, Benutzer `arcane-upload`, privater Schlüssel `arcane_duel_upload_ed25519`. Archiv und `.sha256` nach `/uploads` übertragen. Einen temporären Dateinamen verwenden und erst nach vollständigem Upload umbenennen.
-6. Administrator aktiviert mit `python3 /opt/arcane-duel/current/server/deploy-release.py /srv/arcane-duel-upload/uploads/DATEI.tar.gz SHA256`. Bei Erstinstallation muss das geprüfte Werkzeug separat bereitgestellt werden. Der Uploadbenutzer hat absichtlich keine Shell und keine Aktivierungsrechte.
+6. Administrator aktiviert mit `/usr/local/sbin/arcane-duel-release /srv/arcane-duel-upload/uploads/DATEI.tar.gz SHA256`. Dieses geprüfte Administratorwerkzeug wird getrennt vom hochgeladenen Spielcode verwaltet. Änderungen daran müssen separat geprüft und installiert werden. Der Uploadbenutzer hat absichtlich keine Shell und keine Aktivierungsrechte.
 7. `/api/health`, Einzelspieler und ein echtes Zwei-Spieler-Duell unter der öffentlichen Adresse prüfen. Bei Änderungen der Datenstruktur auch Rückwärtskompatibilität und Sicherung/Rückkehr prüfen.
 
 Schlüssel und Zugangspakete gehören niemals ins Repository oder Spielarchiv. Der vorhandene Aetherfall-Administratorzugang wird nicht an Arcane-Duel-Mitwirkende weitergegeben.
@@ -50,6 +53,7 @@ Schlüssel und Zugangspakete gehören niemals ins Repository oder Spielarchiv. D
 - Datenbank: `/var/lib/arcane-duel/arcane.sqlite`, inklusive WAL/SHM während des Betriebs.
 - Umgebung: `/etc/arcane-duel.env`; keine Supabase-Service-Schlüssel erforderlich.
 - Caddy-Zusatz: `/etc/caddy/arcane-duel.caddy`.
+- Firewall-Zusatz: `/etc/nftables.d/arcane-duel.nft`; erlaubt TCP/UDP 8443 in der vorhandenen zentralen Server-Firewall. Bestehende Regeln/Ports bleiben erhalten.
 - Sicherungen: `/var/backups/arcane-duel/`; `arcane-duel-backup.timer` täglich, 30 Sicherungen aufbewahrt. Es sind Sicherungen auf demselben Server, noch keine externe Katastrophensicherung.
 - Manuelle Sicherung: `systemctl start arcane-duel-backup.service`.
 - Protokolle: `journalctl -u arcane-duel.service`. Keine Profile, Kartenhände oder Zugangstoken protokollieren.

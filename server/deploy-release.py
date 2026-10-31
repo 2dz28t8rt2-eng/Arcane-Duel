@@ -26,7 +26,7 @@ with tarfile.open(sealed,'r:gz') as tar:
  for m in members:
   p=PurePosixPath(m.name)
   if not m.isfile() or m.size>30_000_000 or p.is_absolute() or '..' in p.parts or '\\' in m.name or m.name in names:raise SystemExit('Unsafe archive member')
-  if not(m.name=='release.json' or p.parts[0] in ('assets','models','server') or m.name.startswith('supabase/functions/arcane-duo-v2/') or m.name in ['index.html','duo-campaign-v2.html','duo-campaign.html','duo-online.html','art-gallery.html','collection-v3.html','arcane-host-config.js']):raise SystemExit('Unexpected release path')
+  if not(m.name=='release.json' or p.parts[0] in ('assets','models','server') or m.name.startswith('supabase/functions/arcane-duo-v2/') or m.name in ['index.html','duo-campaign-v2.html','duo-campaign.html','duo-online.html','art-gallery.html','collection-v3.html','arcane-host-config.js','desktop/build/icon.png','desktop/build/icon.ico']):raise SystemExit('Unexpected release path')
   names.add(m.name)
  release=json.load(tar.extractfile('release.json'))
  if not re.fullmatch(r'v229-[a-f0-9]{12}',release['id']) or release.get('dirty') or not re.fullmatch(r'[a-f0-9]{40}',release['revision']):raise SystemExit('Release must be committed and reviewed')
