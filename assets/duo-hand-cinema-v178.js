@@ -74,14 +74,15 @@
    strip=doc.createElement('div');strip.className='duo178-hand';
    strip.setAttribute('aria-label','Deine Handkarten');
    const heading=doc.createElement('div');heading.className='duo178-hand-title';
-   heading.textContent='✦ DEINE HANDKARTEN';strip.append(heading);
+   heading.textContent='✦ DEINE HAND';strip.append(heading);
    const cards=doc.createElement('div');cards.className='duo178-hand-cards';strip.append(cards);
    own.append(strip);
   }
   const list=strip.querySelector('.duo178-hand-cards');list.replaceChildren();
+  strip.querySelector('.duo178-hand-title').textContent='✦ DEINE HAND ('+p.hand.length+' / 5)';
   for(const [index,item] of p.hand.entries()){
    const id=ID(item),template=catalog[id]||{};
-   const node=doc.createElement('div');node.className='duo178-hand-card';
+   const node=doc.createElement('div');node.className='duo178-hand-card ad-hand-entry';
    node.dataset.index=String(index);node.title=template.name||'Handkarte';
    const art=doc.createElement('div');art.className='duo178-hand-art';
    if(typeof template.art==='string'&&template.art){

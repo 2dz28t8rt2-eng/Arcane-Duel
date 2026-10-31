@@ -6,7 +6,7 @@
  const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
  const num=v=>Math.max(0,Math.floor(Number(v)||0)).toLocaleString('de-AT');
  const STAMPS={predator:'PREDATOR',guardian:'VERTEIDIGER',soul:'SEELENZEHRER',resonator:'RESONATOR'};
- let running=false,particleLoader=null;
+ let running=false,particleLoader=null,activePhases=null,activeOverlay=null;
  const completedLandings=new WeakMap();
  function addScript(url,check){
   if(check())return Promise.resolve();
@@ -35,7 +35,7 @@
   }});
  }
 
- async function play({instance:c,materials=[],battle:g,card:t,level,variant='full',wait,playSound}){
+ async function play({instance:c,materials=[],battle:g,card:t,level,variant='full',wait,playSound,target=null}){
   if(running)return;
   if(!c?.fusion||!t||!g)return;
   if(!Array.isArray(c.rollTrace)||!c.rollMath)return;
@@ -46,7 +46,7 @@
   const soul=c.soulInheritance&&c.soulInheritance.energy>0?c.soulInheritance:null;
   const owner=g.players.findIndex(p=>p.field?.some(mon=>mon?.uid===c.uid));
   const index=owner<0?-1:g.players[owner].field.findIndex(mon=>mon?.uid===c.uid);
-  const slot=index<0?null:document.querySelector(owner===0?'#ownRow [data-mine="'+index+'"]':'#enemyRow [data-enemy="'+index+'"]');
+  const slot=target||(index<0?null:document.querySelector(owner===0?'#ownRow [data-mine="'+index+'"]':'#enemyRow [data-enemy="'+index+'"]'));
   const boardCard=slot?.querySelector('.board-creature');
   let landed=false,sharedLanding=false;
   const overlay=document.createElement('div');
@@ -121,7 +121,9 @@
   };
   if(boardCard)boardCard.classList.add('evo-fusion-awaiting');
   document.body.append(overlay);
-  const phases=window.ArcaneCinemaPhases.create(overlay,wait);
+  const clock=wait||((ms)=>new Promise(resolve=>setTimeout(resolve,ms)));
+  const phases=window.ArcaneCinemaPhases.create(overlay,clock);
+  activePhases=phases;activeOverlay=overlay;
   wait=phases.wait;
   const particleTask=motes(overlay,role).catch(()=>null);
   let stopCalcLoop=null;
@@ -144,7 +146,7 @@
    // 3. The stored field energy passes visibly between material and result.
    // The already committed soulInheritance is the sole authority for displayed values.
    if(soul&&window.ArcaneSoulCinema?.play){
-    try{await phases.run('Seelen-Erbe',()=>window.ArcaneSoulCinema.play(overlay,materials,soul,ms=>phases.wait(ms,animationWait)));}
+    try{await phases.run('Seelen-Erbe',()=>window.ArcaneSoulCinema.play(overlay,materials,soul,ms=>phases.wait(ms,clock)));}
     catch(error){console.warn('Seelen-Cinema übersprungen:',error);}
    }
    // 4. A single severe blow permanently assigns its precomputed role.
@@ -155,7 +157,7 @@
    // After the role's card seal, stamp the ACTUAL combination quality across
    // the whole scene. This does not re-roll or modify the persisted numbers.
    if(window.ArcaneFusionBonus?.stamp){
-    try{await phases.run('Spezialbonus',()=>window.ArcaneFusionBonus.stamp(overlay,c,ms=>phases.wait(ms,animationWait),1));}
+    try{await phases.run('Spezialbonus',()=>window.ArcaneFusionBonus.stamp(overlay,c,ms=>phases.wait(ms,clock),1));}
     catch(error){console.warn('Bonus-Cinema übersprungen:',error);}
    }
    await phases.run('Werteberechnung',async()=>{
@@ -227,7 +229,7 @@
    // after all numeric rolls have been absorbed and before landing.
    if(c.predatorLeader&&window.ArcanePredatorPack?.cinemaReveal){
     try{await phases.run('Rudelführer erwacht',()=>
-      window.ArcanePredatorPack.cinemaReveal({overlay,instance:c,wait:ms=>phases.wait(ms,animationWait)}));}
+      window.ArcanePredatorPack.cinemaReveal({overlay,instance:c,wait:ms=>phases.wait(ms,clock)}));}
     catch(error){console.warn('Rudelführer-Enthüllung übersprungen:',error);}
    }
    await phases.run('Fertige Karte',async()=>{overlay.classList.add('evo-card-locked');await wait(soul?900:650);});
@@ -251,7 +253,7 @@
     ],{duration:650,easing:'cubic-bezier(.45,0,.8,.55)',fill:'forwards'});
     await Promise.race([
      new Promise(resolve=>{flight.onfinish=resolve;flight.oncancel=resolve;}),
-     animationWait(850)
+     clock(850)
     ]);
     landed=true;
    }else{overlay.classList.add('evo-card-land');await wait(550);}
@@ -261,6 +263,7 @@
    stopCalcLoop?.(); // Skipped, cancelled and failed rituals must not leave audio playing.
    phases.close();
    overlay.remove();running=false;
+   if(activeOverlay===overlay){activeOverlay=null;activePhases=null;}
    particleTask.then(container=>container?.destroy?.()).catch(()=>{});
    if(boardCard){
     boardCard.classList.remove('evo-fusion-awaiting');
@@ -274,5 +277,6 @@
    }
   }
  }
- window.ArcaneFusionCinema=Object.freeze({version:'2.2.0',play,landed:(g,uid)=>!!completedLandings.get(g)?.has(uid)});
+ function cancel(){activePhases?.close();activeOverlay?.remove();}
+ window.ArcaneFusionCinema=Object.freeze({version:'2.2.0',play,cancel,landed:(g,uid)=>!!completedLandings.get(g)?.has(uid)});
 })();

@@ -1130,7 +1130,7 @@
  async function init(){
   portraits?.chooser($('duoAvatarPicker'),{selected:chosenAvatar,onChange:chooseAvatar});
   try{
-   const response=await fetch('assets/duo-card-catalog-v160.json?v=20261029-v2071-final');
+   const response=await fetch('assets/duo-card-catalog-v160.json?v=20261031-card-visual-parity-1');
    if(!response.ok)throw Error('Kartenkatalog fehlt.');
    const snapshot=await response.json();
    if(snapshot.schema!==1||snapshot.cards.length<400)throw Error('Kartenkatalog unvollständig.');

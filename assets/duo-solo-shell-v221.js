@@ -8,12 +8,14 @@
  const safe=window.ArcaneMenuShell221.safe;
  const make=(tag,cls,parent,text)=>{const n=document.createElement(tag);n.className=cls||'';if(text!=null)n.textContent=text;parent?.append(n);return n;};
  const groups=[
-  {id:'play',icon:'⚔',title:'Duellieren',subtitle:'Gemeinsam in die Arena',tabs:['menu','quests']},
+  {id:'play',icon:'⚔',title:'Duellieren',subtitle:'Arena & Duelle',tabs:['menu']},
   {id:'deck',icon:'▤',title:'Deck & Sammlung',subtitle:'Karten und Deckbau',tabs:['deck','fusions','bestiary']},
+  {id:'missions',icon:'✧',title:'Herausforderungen',subtitle:'Lernpfad und Quests',tabs:['quests']},
   {id:'growth',icon:'✦',title:'Fortschritt',subtitle:'Verbesserungen, Belohnungen & Kartenpakete',tabs:['collection','upgrades','shop','progress']},
   {id:'options',icon:'⚙',title:'Spielstand & Extras',subtitle:'Chronik und Optionen',tabs:['profile','settings','rules']}
  ];
- const titles={menu:['Die zehn Prüfungen','Fordert gemeinsam die Duellanten der Arena heraus. Jeder bereitet sein eigenes Deck vor.'],quests:['Aufgaben & Abenteuer','Die fünf Prüfungen des Level-1-Fanatikers. Beide Duellanten müssen die gewählte Prüfung freigeschaltet haben.'],deck:['Dein Hauptdeck','Wähle einen Deckplatz und ein eigenes Monster. Dein Hauptdeck enthält genau 40 Karten, mit höchstens drei Kopien je Monster.'],fusions:['Deine Fusionen','Wähle deine Vorlagen für mächtige Verschmelzungen. Gemeinsame Feldmaterialien bleiben im Duell möglich.'],collection:['Monsterwerkstatt','Sieh dir deinen Vorrat an, verstärke deine Monster und zerlege freie Exemplare.'],upgrades:['Duellanten-Akademie','Dauerhafte Verbesserungen und Forschung für deinen eigenen Duellanten.'],shop:['Booster-Shop','Entdecke neue Kreaturen und Fusionsvorlagen für deine Sammlung.'],progress:['Levelbelohnungen & Kapitel','Verfolge deine Kapitel und hole verdiente Karten ab.'],profile:['Deine Chronik','Deine Identität, Siege und gesammelten Karten.'],settings:['Einstellungen & Spielstand','Sichere deinen persönlichen Zugang und passe Musik und Animationen an.'],rules:['Regelhandbuch','Karten, Rollen und gemeinsame Spielzüge verständlich erklärt.'],bestiary:['Monsterlexikon','Entdecke die Monsterfamilien und ihre Elemente.']};
+ const titles={menu:['Die zehn Prüfungen','Fordere den nächsten Turnierduellanten heraus und erschließe neue Karten.'],quests:['Aufgaben & Abenteuer','Die fünf Prüfungen des Level-1-Fanatikers. Beide Duellanten müssen die gewählte Prüfung freigeschaltet haben.'],deck:['Dein Hauptdeck','Wähle einen Deckplatz und ein eigenes Monster. Dein Hauptdeck enthält genau 40 Karten, mit höchstens drei Kopien je Monster.'],fusions:['Deine Fusionen','Verwalte die Vorlagen für mächtige Verschmelzungen.'],collection:['Monsterwerkstatt','Sieh dir deinen Vorrat an, verstärke deine Monster und zerlege freie Exemplare.'],upgrades:['Verbesserungen','Mach deine Lieblingsmonster stärker.'],shop:['Booster-Shop','Entdecke neue Kreaturen und Sonderangebote.'],progress:['Levelbelohnungen','Sieh deine nächsten Fortschrittsmeilensteine.'],profile:['Deine Chronik','Erinnere dich an deine Duelle und Siege.'],settings:['Einstellungen und Spielstandoptionen','Sichere deinen persönlichen Zugang und passe Musik und Animationen an.'],rules:['Regelhandbuch','Karten, Rollen und gemeinsame Spielzüge verständlich erklärt.'],bestiary:['Wissen & Monsterlexikon','Lerne die Regeln kennen und entdecke neue Monster.']};
+ const tabLabels={menu:'Turnier',quests:'Aufgaben & Abenteuer',deck:'Hauptdeck',fusions:'Fusionsdeck',bestiary:'Monsterlexikon',collection:'Monsterwerkstatt',upgrades:'Verbesserungen',shop:'Booster-Shop',progress:'Levelbelohnungen',profile:'Chronik',settings:'Einstellungen & Spielstand',rules:'Regelhandbuch'};
  const roleNames={predator:'Predator',guardian:'Wächter',soul:'Seelenzehrer',resonator:'Resonator',combatant:'Allrounder',allrounder:'Allrounder'};
  const descriptions={predator:'Predatoren werden mit jedem eigenen Zug stärker und verstärken sich im Rudel. Predator-Fusionen können als Rudelführer besondere Fähigkeiten erhalten.',guardian:'Wächter heilen verbündete Verteidiger. In DEF schützt ihre Rüstung; überlebt das Monster den Treffer, löst es einen Gegenschlag aus.',soul:'Seelenzehrer sammeln Seelenkraft und ergänzen die Heilung der Wächter. In DEF stehen Verdichten, Seelenstoß und weitere freigeschaltete Fähigkeiten bereit.',resonator:'Resonatoren steigern die Kraft ihrer nächsten Fusion. Ihre gespeicherte Resonanz wird bei der Verschmelzung berücksichtigt.',combatant:'Allrounder verbinden Angriff und Verteidigung. Ihre Resonanz unterstützt passende Fusionen.'};
  let route='',profileStamp='',draftSlot=0,draftCandidate=null,search='',inspectSelection=null,inspectStamp='',pendingOperation=false;
@@ -60,6 +62,7 @@
  for(const key of Object.keys(titles)){
   const id='duoSoloTab'+key[0].toUpperCase()+key.slice(1);
   const button=$(id)||make('button','menu-tab',null,titles[key][0]);button.id=id;button.type='button';
+  button.textContent=tabLabels[key];
   button.dataset.tab=key;button.onclick=()=>window.ArcaneDuoPartyUI218.select(key);tabs.set(key,button);
  }
  nav.addEventListener('click',event=>{const group=event.target.closest('[data-fm-group]');if(group)window.ArcaneDuoPartyUI218.select(groups.find(g=>g.id===group.dataset.fmGroup).tabs[0]);});
@@ -129,9 +132,15 @@
  });
  function face(card,{instance=null,owner=null,small=false,tag='div'}={}){
   const t={...card,...(instance?{atk:owner&&window.ArcaneDuoUX204?.effectiveAttack?window.ArcaneDuoUX204.effectiveAttack(instance,owner,window.ArcaneDuoRules):window.ArcaneDuoRules.attackValue(instance),def:instance.def+(instance.soul||0)+(instance.condensed||0),level:instance.level||card.level}:{})};
-  const family=card.ace?'ace':card.essenceMonster?'essence':instance?.fusion||card.fusionOnly?'fusion':'normal';
-  const tier=Math.min(5,Math.ceil((t.level||1)/2)),lv=String(Math.min(10,t.level||1)).padStart(2,'0');
-  return window.ArcaneCardView221.face(t,{tag,classes:small?'ad221-mini-face':'',frame:'tc-'+family+' ad-template ad-template-family-'+family+' ad-template-tier-'+tier+' ad-template-'+family+'-0'+tier+' ad-level-frame ad-level-'+family+'-'+lv});
+  const fate=instance?.fate===true;
+  const fateIndex=fate?Object.values(api.state().catalog).filter(c=>c.fateTemplate).findIndex(c=>c.id===card.id):-1;
+  if(fate&&fateIndex>=0){
+   t.name='✦ '+(window.ArcaneFateVisuals?.entries?.[fateIndex]?.name||t.name);
+   t.art=window.ArcaneFateVisuals?.artFor?.(fateIndex)||t.art;
+  }
+  return window.ArcaneCardView221.face(t,{tag,classes:small?'ad221-mini-face':'',
+   frame:window.ArcaneCardView221.frame(t,instance||{},fateIndex),fate,
+   element:t.element==='DUNKEL'?'Dunkelheit':t.element});
  }
  async function operation(kind,extra){
   if(pendingOperation)return;pendingOperation=true;renderOffers();renderDeckSelection();
@@ -206,7 +215,7 @@
   if(!c||!t){$('duoLargeCardPreview').innerHTML='<p>Dieses Monster befindet sich nicht mehr an diesem Platz.</p>';inspectSelection=null;inspectStamp='';return;}
   const stamp=JSON.stringify([inspectSelection,c]);if(stamp===inspectStamp)return;inspectStamp=stamp;
   const field=inspectSelection.area!=='hand',role=c.role||t.role,over=field&&c.def+(c.soul||0)+(c.condensed||0)>(c.maxDef??c.def);
-  $('duoLargeCardPreview').innerHTML=face(t,{instance:field?c:null,owner:p})+'<div class="ad221-card-explanation"><strong>'+safe(roleNames[role]||'Monster')+'</strong><p>'+safe(descriptions[role]||'')+'</p>'+(over?'<p class="ad221-overcharge-text">✦ Überladen: DEF über dem normalen Maximalwert</p>':'')+(field&&role==='soul'?'<p>Grund-DEF '+c.def+' · Seelenkraft '+(c.soul||0)+' · Verdichtung '+(c.condensed||0)+'</p>':'')+(t.ability?'<p>'+safe(t.ability)+'</p>':'')+'</div>';
+  $('duoLargeCardPreview').innerHTML=face(t,{instance:field||c.fate?c:null,owner:p})+'<div class="ad221-card-explanation"><p>'+safe(c.fate?'Schicksalsmonster · nicht fusionierbar · nur dieses Duell.':t.desc||'')+'</p><strong>'+safe(roleNames[role]||'Monster')+'</strong><p>'+safe(descriptions[role]||'')+'</p>'+(over?'<p class="ad221-overcharge-text">✦ Überladen: DEF über dem normalen Maximalwert</p>':'')+(field&&role==='soul'?'<p>Grund-DEF '+c.def+' · Seelenkraft '+(c.soul||0)+' · Verdichtung '+(c.condensed||0)+'</p>':'')+(t.ability&&!c.fate?'<p>'+safe(t.ability)+'</p>':'')+'</div>';
  }
  function decorateBattle({game,seat,catalog}){
   $('duoBattleToMenu').hidden=!['finished','inviting_next'].includes(game.status);
@@ -228,7 +237,8 @@
     for(const [i,id] of p.hand.entries()){
      const c=typeof id==='number'?{id}:id,t=catalog[c.id],node=panel.querySelector('.duo178-hand-card[data-index="'+i+'"]');if(!node||!t)continue;
      for(const child of [...node.children])if(!child.matches('.ad204-card-info'))child.hidden=true;
-     const visual=make('div','ad221-hand-face',node);visual.innerHTML=face(t,{small:true});
+     node.insertAdjacentHTML('beforeend',face(t,{instance:typeof id==='number'?null:c,owner:p}));
+     make('span','ad-hand-role ad-role-'+(t.role||'combatant'),node,roleNames[t.role]||'Allrounder');
     }
    }
   }
@@ -295,12 +305,12 @@
    const details=titles[route]||titles.menu,group=groups.find(g=>g.tabs.includes(route))||groups[0];
    const stamp=(s.profile?.id||'')+':'+s.profile?.revision+':'+route;
    if(changed){
-    const active=window.ArcaneMenuShell221.navigation({nav,groups,tabs,activeTab:route,brand:'4.1 · GEMEINSAME KAMPAGNE'});
-    nav.classList.add('atlas-nav');screen.dataset.fmSection=active.id;screen.dataset.atlasTheme={play:'amber',deck:'silver',growth:'jade',options:'steel'}[group.id];
+    const active=window.ArcaneMenuShell221.navigation({nav,groups,tabs,activeTab:route,brand:'4.1 · BESTIARIUM'});
+    nav.classList.add('atlas-nav');screen.dataset.fmSection=active.id;screen.dataset.atlasTheme={play:'amber',deck:'silver',missions:'violet',growth:'jade',options:'steel'}[group.id];
     for(const b of tabs.values())b.classList.toggle('active',b.dataset.tab===route);
     for(const g of nav.querySelectorAll('.fm-menu-group'))g.classList.add('atlas-nav-item');
     const showcase=[...new Set([...(s.profile?.deck||[]),...(s.profile?.fusions||[])])].slice(0,3).map(id=>s.catalog[id]).filter(Boolean);
-    hero.classList.add('atlas-hero','atlas-has-art');hero.innerHTML='<div class="fm-hero-content"><div><span class="fm-eyebrow">'+safe(group.title)+' · ARCANE DUEL 4.1</span><h1 id="duoSoloMenuTitle">'+safe(details[0])+'</h1><p id="duoSoloMenuSubtitle">'+safe(details[1])+'</p></div><div class="atlas-showcase" aria-hidden="true"><div class="atlas-showcase-cards">'+showcase.map((c,i)=>'<div class="atlas-preview-card atlas-preview-'+i+'" data-card-id="'+c.id+'" data-card-level="'+c.level+'" inert>'+face(c).replace('hand-card tc-card','hand-card tc-card atlas-showcase-face')+'</div>').join('')+'</div></div></div>';
+    hero.classList.add('atlas-hero','atlas-has-art');hero.innerHTML='<div class="fm-hero-content"><div><span class="fm-eyebrow">✦ ARCANE DUEL 4.1 · '+safe(group.title)+'</span><h1 id="duoSoloMenuTitle">'+safe(details[0])+'</h1><p id="duoSoloMenuSubtitle">'+safe(details[1])+'</p></div><div class="atlas-showcase" aria-hidden="true"><div class="atlas-showcase-cards">'+showcase.map((c,i)=>'<div class="atlas-preview-card atlas-preview-'+i+'" data-card-id="'+c.id+'" data-card-level="'+c.level+'" inert>'+face(c).replace('hand-card tc-card','hand-card tc-card atlas-showcase-face')+'</div>').join('')+'</div></div></div>';
    }
    $('duoSoloMenuTitle').textContent=details[0];$('duoSoloMenuSubtitle').textContent=details[1];
    duels.hidden=!['menu','quests'].includes(route);profile.hidden=!duels.hidden;

@@ -1692,7 +1692,9 @@ function askMenu(){if(!game||game.winner!==null){returnToMenu();return;}if(busy|
 /* Farbcode für Kartenränder: Startkarten > Fusionen > Level.
    Rein visuell; Karten-ID, Stats, Kartenbild und Spielstand bleiben unverändert. */
 function frameClassForCard(c){
- const t=dataOf(c);if(isFateCard(c))return 'tc-fate fate-identity-'+Math.max(0,FATE_CARD_IDS.indexOf(c.id));
+ const t=dataOf(c);
+ if(window.ArcaneCardView221?.baseFrame)return window.ArcaneCardView221.baseFrame(t,c,FATE_CARD_IDS.indexOf(c.id));
+ if(isFateCard(c))return 'tc-fate fate-identity-'+Math.max(0,FATE_CARD_IDS.indexOf(c.id));
  // Karten 0–19 behalten bewusst den neutralen Startrahmen.
  if(t.id<20)return 'tc-starter';
  // Manifestationen/Gestalten sind visuell verwandt mit Fusionsmonstern.

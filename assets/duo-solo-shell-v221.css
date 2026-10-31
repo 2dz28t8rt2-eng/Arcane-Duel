@@ -125,7 +125,9 @@
 #duoPage .duo178-hand-cards{display:flex;justify-content:center;gap:9px;padding:8px;overflow:visible}
 #duoPage .duo178-hand-card{flex:0 1 100px;width:100px;max-width:100px;aspect-ratio:2/3;min-width:76px;height:auto;min-height:0;padding:0;border:0;overflow:visible;background:none}
 #duoPage .duo178-hand-card>[hidden]{display:none!important}
-#duoPage .ad221-hand-face{position:relative;width:100%;height:100%;pointer-events:none}
+#duoPage .duo178-hand-cards{justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity}
+#duoPage .duo178-hand-card.ad-hand-entry{max-width:none;aspect-ratio:auto}
+#duoPage .duo178-hand-card>.hand-card{pointer-events:none}
 #duoPage .ad221-battle-sidebar #duoActions{display:block;border:0;margin:0;padding:0}
 #duoPage .ad221-battle-sidebar .duo-action-group{padding:9px;width:100%;margin:9px 0}
 #duoPage .ad221-battle-sidebar .duo-choices{display:block;min-width:0}

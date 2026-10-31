@@ -21,7 +21,7 @@ async function state(page){return page.evaluate(()=>window.ArcaneDuoParty218.sta
 async function refresh(page){await page.evaluate(()=>window.ArcaneDuoParty218.refresh());}
 async function status(page,value){await page.waitForFunction(v=>window.ArcaneDuoParty218?.state().game?.status===v,value);}
 async function route(page,section){
- const group={menu:'play',quests:'play',deck:'deck',fusions:'deck',shop:'growth',upgrades:'growth',collection:'growth',progress:'growth',profile:'options',settings:'options',rules:'options'}[section];
+ const group={menu:'play',quests:'missions',deck:'deck',fusions:'deck',shop:'growth',upgrades:'growth',collection:'growth',progress:'growth',profile:'options',settings:'options',rules:'options'}[section];
  await page.locator('[data-fm-group="'+group+'"]').click();
  const id='duoSoloTab'+section[0].toUpperCase()+section.slice(1);if(section!=='menu'&&section!=='deck'&&section!=='collection'&&section!=='profile')await page.locator('#'+id).click();
 }
@@ -150,6 +150,10 @@ async function finishLiveDuel(A,B){
    guest.clearedChapters=[];await refresh(A);
   }
   report.checks.push('explicit group acceptance and enter; independent deck/shop/search/focus');
+  await route(A,'quests');
+  assert.equal(await A.locator('#duoSoloMenuTitle').textContent(),'Aufgaben & Abenteuer');
+  assert.equal(await A.locator('[data-fm-group="missions"] strong').textContent(),'Herausforderungen');
+  report.checks.push('quest navigation uses the corresponding singleplayer menu labels');
   await route(A,'menu');await A.locator('#duoMenuStart').click();await status(A,'party_ready');await refresh(B);
   assert.equal(await B.locator('#duoStartNotice').getAttribute('role'),'dialog');assert.match(await B.locator('#duoStartNoticeTitle').innerText(),/QA221 Host/);
   await B.screenshot({path:path.join(output,prefix+'-invitation.png')});await B.locator('#duoStartDecline').click();await status(B,'lobby');await refresh(A);
@@ -323,6 +327,39 @@ async function finishLiveDuel(A,B){
    assert.equal(after.players[2].field[6].id,pair.templateId);
    await refresh(A);assert.equal((await state(A)).game.players[2].field[6].id,pair.templateId);
    report.checks.push('LIVE guest fusion consumes host field card and occupies one of the seven shared zones');
+  }
+  if(!live){
+   // Feed an actual reducer-produced fusion through the same redacted view the
+   // browser receives. The shared solo ritual must start without exposing hands.
+   const duelRules=require('../assets/duo-shared-rules-v160.js');
+   const original=structuredClone(backend.rooms.get(party.roomId).game);
+   original.status='active';original.winner=null;original.activeSeat=0;
+   original.players[0].summoned=false;original.players[0].field=Array(7).fill(null);
+   original.players[2].field=Array(7).fill(null);original.players[0].hand=[0,0,1,1,2];
+   const materials=[{from:'hand',index:0},{from:'hand',index:1}];
+   const options=duelRules.fusionOptions(original,0,materials,catalog);
+   assert.ok(options.templates.length);
+   const fused=duelRules.apply(original,0,{type:'fusion',materials,slot:0,templateId:options.templates[0]},{catalog});
+   const before=duelRules.view(original,0),after=duelRules.view(fused,0);
+   assert.ok(after.players[2].hand.every(x=>x===null));
+   await A.evaluate(({before,after,catalog})=>{
+    document.body.classList.remove('ad-motion-disabled');
+    const sounds=window.ArcaneSfx208;
+    window.__qaFusionSounds=[];
+    window.ArcaneSfx208={...sounds,play(kind){window.__qaFusionSounds.push(kind);return null;}};
+    const original=window.ArcaneFusionCinema;
+    window.ArcaneFusionCinema={...original,play(args){
+     const result=original.play({...args,wait:()=>new Promise(resolve=>setTimeout(resolve,3))});
+     window.__qaSharedRitual=result;return result;
+    }};
+    window.ArcaneDuoCinema170.onState(before,after,catalog,0);
+   },{before,after,catalog});
+   await A.locator('.ritual-overlay .ritual-window').waitFor({state:'visible'});
+   assert.equal(await A.locator('.ritual-overlay .evo-actual-material').count(),2);
+   await A.evaluate(()=>window.__qaSharedRitual);
+   assert.equal(await A.locator('.ritual-overlay').count(),0);
+   assert.ok((await A.evaluate(()=>window.__qaFusionSounds)).includes('orbit'));
+   report.checks.push('confirmed online fusion uses the singleplayer ritual, sound cue and public material images');
   }
   assert.deepEqual(pageErrors,[]);report.pass=true;
   fs.writeFileSync(path.join(output,prefix+'-report.json'),JSON.stringify(report,null,2));console.log('DUO_BROWSER_221_PASS '+JSON.stringify(report));

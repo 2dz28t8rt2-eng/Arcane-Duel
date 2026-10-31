@@ -23,6 +23,7 @@ const fusionReferences=runtime.run(`Array.from({length:10},(_,i)=>{
 const cards=runtime.run(`CARDS.map(c=>({
  id:c.id,name:c.name,level:c.level,atk:c.atk,def:c.def,
  role:c.role||'combatant',element:c.element||'',
+ desc:typeof c.desc==='string'?c.desc:'',
  ability:typeof c.ability==='string'?c.ability:'',
  pveBaseBonus:!c.fusionOnly&&!c.essenceMonster?{
   atk:normalRoleBonus(c,'atk',1,{}),
@@ -30,9 +31,11 @@ const cards=runtime.run(`CARDS.map(c=>({
  }:{atk:0,def:0},
  art:typeof c.art==='string'&&c.art.startsWith('assets/')?c.art:'',
  fusionOnly:!!c.fusionOnly,ace:!!c.ace,
+ manifestOf:c.manifestOf??null,
  fateTemplate:FATE_CARD_IDS.includes(c.id),
  playable:!!c.rpg&&!c.retired&&!c.enemyOnly&&!c.fateOnly,
  essenceMonster:!!c.essenceMonster,essenceSchool:c.essenceMonster?(c.essenceSchool||c.school||null):null,
+ frameEssenceSchool:c.essenceMonster?(c.essenceSchool||null):null,
  lv1Special:c.lv1Special||null,lv1Exclusive:!!c.lv1Exclusive,
  source:c.source??null
 }))`).map(c=>c.fusionOnly?{...c,fusionReference:fusionReferences[c.level-1]}:c);

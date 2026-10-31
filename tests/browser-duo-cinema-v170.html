@@ -36,10 +36,10 @@ document.getElementById('duo').addEventListener('load',()=>{
    check(!!d.getElementById('duoRecoveryArea'),
     'Existing recovery UI is kept');
    const live=cine.onState(old,next,{25:{name:'Testfusion',art:''}});
-   check(live[0].kind==='fusion'&&!!d.querySelector('.duo-cinema170'),
+   check(live[0].kind==='fusion'&&!!d.querySelector('.ritual-overlay'),
     'Accessible active cinematic DOM appeared');
    cine.setEnabled(false);
-   check(!d.querySelector('.duo-cinema170'),'Visual effects can be cancelled');
+   check(!d.querySelector('.ritual-overlay'),'Visual effects can be cancelled');
    cine.setEnabled(true);
   }catch(error){check(false,error.stack||error.message);}
   document.getElementById('result').textContent=notes.join('\n');
