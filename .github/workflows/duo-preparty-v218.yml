@@ -1,0 +1,33 @@
+name: Duo Party-First Entry v21.8
+on:
+  push:
+    branches: [feature/duo-preparty-menu-start-20261031, development]
+    paths:
+      - 'duo-campaign-v2.html'
+      - 'assets/duo-parity-v160.js'
+      - 'assets/duo-preparty-v218.js'
+      - 'assets/duo-preparty-v218.css'
+      - 'assets/duo-shared-rules-v160.js'
+      - 'supabase/functions/arcane-duo-v2/index.ts'
+      - 'supabase/functions/arcane-duo-v2/duo-rules.js'
+      - 'tests/duo-preparty-v218.test.cjs'
+      - '.github/workflows/duo-preparty-v218.yml'
+  pull_request:
+    branches: [development]
+jobs:
+  party-lobby:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax and Edge dependencies
+        run: |
+          node --check assets/duo-preparty-v218.js
+          node --check assets/duo-parity-v160.js
+          node --check assets/duo-shared-rules-v160.js
+          node --check supabase/functions/arcane-duo-v2/duo-rules.js
+          node scripts/check-duo-edge-ts.cjs
+      - name: Party creation, join, host start and legacy compatibility
+        run: node --test tests/duo-preparty-v218.test.cjs tests/duelist-portraits-v215.test.cjs tests/duo-parity-20261030.test.cjs
