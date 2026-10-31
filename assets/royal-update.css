@@ -78,7 +78,7 @@
 @keyframes royal-foil{to{transform:translateX(70%)}}
 
 /* Main menu: one clear primary action, a strong learning shortcut, preserved legacy functions. */
-#menuHero{position:relative;overflow:hidden}
+:is(#menuHero,#duoSoloMenuHero){position:relative;overflow:hidden}
 .royal-menu-hero{position:relative;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(240px,.7fr);gap:22px;
  background:radial-gradient(ellipse at 85% 20%,#a88bfa28,transparent 50%),linear-gradient(128deg,#211a3f,#101d31 72%);
  border:1px solid #b79ad35c;border-radius:20px;padding:clamp(18px,3vw,34px);box-shadow:inset 0 1px #ffffff24,0 16px 40px #02071760}
@@ -174,12 +174,12 @@
    MENU REBORN — deliberate vertical navigation inspired by
    Forbidden Memories; replaces the legacy overflowing ribbon.
    ═══════════════════════════════════════════════════════════════ */
-#menuScreen.fm-screen[hidden]{display:none!important}
-#menuScreen.fm-screen:not([hidden]){
+:is(#menuScreen,#duoMenuScreen).fm-screen[hidden]{display:none!important}
+:is(#menuScreen,#duoMenuScreen).fm-screen:not([hidden]){
  display:grid!important;grid-template-columns:minmax(252px,295px) minmax(0,1fr);
  column-gap:22px;row-gap:16px;align-items:start;min-width:0
 }
-#menuScreen.fm-screen #menuNav.fm-navigation{
+:is(#menuScreen,#duoMenuScreen).fm-screen :is(#menuNav,#duoSoloMenuNav).fm-navigation{
  grid-column:1;grid-row:1 / span 2;position:sticky;top:12px;z-index:5;
  display:flex!important;flex-direction:column!important;align-items:stretch!important;
  gap:7px!important;overflow:visible!important;margin:0!important;padding:18px!important;
@@ -196,12 +196,12 @@
 .fm-nav-brand small{color:#d3c6a3;font-size:10px;letter-spacing:.13em}
 .fm-menu-group{border:1px solid transparent;border-radius:11px;overflow:hidden}
 .fm-menu-group.selected{border-color:#ddbe796c;background:#2c2b37}
-#menuScreen.fm-screen .fm-group-button{display:flex;align-items:center;gap:12px;width:100%;
+:is(#menuScreen,#duoMenuScreen).fm-screen .fm-group-button{display:flex;align-items:center;gap:12px;width:100%;
  background:#1b2638;border:1px solid #344158;border-radius:10px;padding:13px 11px;
  text-align:left;color:#e9e9ed;cursor:pointer;min-height:70px;box-sizing:border-box}
-#menuScreen.fm-screen .fm-menu-group.selected .fm-group-button{
+:is(#menuScreen,#duoMenuScreen).fm-screen .fm-menu-group.selected .fm-group-button{
  background:linear-gradient(100deg,#66502f,#3a3340 72%);border-color:#dbb879a8;border-radius:10px 10px 0 0}
-#menuScreen.fm-screen .fm-group-button:hover,#menuScreen.fm-screen .fm-group-button:focus-visible{
+:is(#menuScreen,#duoMenuScreen).fm-screen .fm-group-button:hover,:is(#menuScreen,#duoMenuScreen).fm-screen .fm-group-button:focus-visible{
  background:#454052;border-color:#dbbb88;outline:2px solid #f4dbac;outline-offset:2px}
 .fm-group-icon{font:32px/1 Georgia,serif;color:#e6bd79;text-align:center;width:42px;flex-shrink:0}
 .fm-group-copy{display:grid;gap:4px;min-width:0;flex:1}
@@ -209,36 +209,36 @@
 .fm-group-copy small{font:400 11px/1.35 system-ui,sans-serif;color:#bbc4d4}
 .fm-arrow{font:27px/1 Georgia,serif;color:#dfbe87}
 .fm-submenu{display:grid;gap:2px;padding:6px 7px 8px 56px}
-#menuScreen.fm-screen .fm-submenu>.menu-tab{
+:is(#menuScreen,#duoMenuScreen).fm-screen .fm-submenu>.menu-tab{
  display:block;width:100%;border:0;border-left:2px solid transparent;background:transparent;
  border-radius:5px;padding:9px 10px;color:#c3cedc;text-align:left;font:600 12px/1.4 system-ui,sans-serif;
  min-height:38px;white-space:normal;cursor:pointer}
-#menuScreen.fm-screen .fm-submenu>.menu-tab:hover{background:#ffffff0e;color:#fff}
-#menuScreen.fm-screen .fm-submenu>.menu-tab.active{
+:is(#menuScreen,#duoMenuScreen).fm-screen .fm-submenu>.menu-tab:hover{background:#ffffff0e;color:#fff}
+:is(#menuScreen,#duoMenuScreen).fm-screen .fm-submenu>.menu-tab.active{
  color:#ffebbb;border-left-color:#f4cb7f;background:#8a6a3c2c;box-shadow:none}
 .fm-help{display:grid;gap:7px;margin-top:16px;padding-top:17px;border-top:1px solid #bfa77545}
-#menuScreen.fm-screen .fm-rule-link{display:grid;grid-template-columns:auto 1fr;column-gap:10px;
+:is(#menuScreen,#duoMenuScreen).fm-screen .fm-rule-link{display:grid;grid-template-columns:auto 1fr;column-gap:10px;
  align-items:center;width:100%;padding:15px 12px;text-align:left;border:1px solid #e8c17b;
  border-radius:11px;color:#fff6de;background:linear-gradient(110deg,#52422f,#2e3446);cursor:pointer;
  font-size:25px;line-height:1.2}
 .fm-rule-link strong{font-size:15px}
 .fm-rule-link small{grid-column:2;color:#e0d1b6;font-size:11px}
-#menuScreen.fm-screen .fm-start-link{padding:12px;text-align:center;border:1px solid #727d98;
+:is(#menuScreen,#duoMenuScreen).fm-screen .fm-start-link{padding:12px;text-align:center;border:1px solid #727d98;
  border-radius:9px;background:#222c3f;color:#ecddc7;font-weight:700;cursor:pointer}
-#menuScreen.fm-screen .fm-rule-link:hover,#menuScreen.fm-screen .fm-start-link:hover{filter:brightness(1.15)}
-#menuScreen.fm-screen #menuHero{
+:is(#menuScreen,#duoMenuScreen).fm-screen .fm-rule-link:hover,:is(#menuScreen,#duoMenuScreen).fm-screen .fm-start-link:hover{filter:brightness(1.15)}
+:is(#menuScreen,#duoMenuScreen).fm-screen :is(#menuHero,#duoSoloMenuHero){
  grid-column:2;grid-row:1;margin:0;padding:26px 30px;box-sizing:border-box;
  border:1px solid #8d80937a;border-radius:17px;min-width:0;
  background:radial-gradient(circle at 95% 5%,#a279cc30,transparent 48%),
  linear-gradient(125deg,#26354c,#181d34 71%);
  box-shadow:inset 0 1px #fff2,0 10px 26px #05091630}
-#menuScreen.fm-screen #menuHero:after{content:'✧';opacity:.35;font-size:180px;top:-50px;right:24px}
+:is(#menuScreen,#duoMenuScreen).fm-screen :is(#menuHero,#duoSoloMenuHero):after{content:'✧';opacity:.35;font-size:180px;top:-50px;right:24px}
 .fm-hero-content{display:flex;justify-content:space-between;gap:22px;position:relative;z-index:1;align-items:center}
 .fm-eyebrow{color:#e7c992;letter-spacing:.16em;font:800 11px/1.4 system-ui,sans-serif;text-transform:uppercase}
-#menuScreen.fm-screen #menuHero h1{color:#f8e8c5;font:700 clamp(28px,3vw,42px)/1.15 Georgia,serif;margin:8px 0 10px}
-#menuScreen.fm-screen #menuHero p{color:#cbd3e2;font-size:14px;margin:0;max-width:55ch}
+:is(#menuScreen,#duoMenuScreen).fm-screen :is(#menuHero,#duoSoloMenuHero) h1{color:#f8e8c5;font:700 clamp(28px,3vw,42px)/1.15 Georgia,serif;margin:8px 0 10px}
+:is(#menuScreen,#duoMenuScreen).fm-screen :is(#menuHero,#duoSoloMenuHero) p{color:#cbd3e2;font-size:14px;margin:0;max-width:55ch}
 .fm-hero-utility{display:grid;gap:11px;justify-items:stretch;min-width:180px;flex:0 0 200px}
-#menuScreen.fm-screen .fm-hero-rules{padding:12px;border-radius:9px;background:#403954;
+:is(#menuScreen,#duoMenuScreen).fm-screen .fm-hero-rules{padding:12px;border-radius:9px;background:#403954;
  border:1px solid #c6a97d;color:#fff0d5;font-weight:800;cursor:pointer}
 .fm-hero-utility label{display:grid;gap:5px;color:#b9c6db;font-size:12px}
 .fm-hero-utility select{max-width:100%;width:100%;padding:9px;background:#121e31;color:#fff;border:1px solid #697999;border-radius:8px}
@@ -247,8 +247,8 @@
  background:#a98d5740;border:1px solid #e8c17c80}
 .fm-resume-bar b{font-size:13px;color:#ffe4aa}
 .fm-migration{position:relative;z-index:1;margin-top:10px!important;color:#ffdb9e!important}
-#menuScreen.fm-screen #menuContent{grid-column:2;grid-row:2;min-width:0}
-#menuScreen.fm-screen .fm-extra-info{padding:0;margin:0 0 12px;border:1px solid #ffffff30;
+:is(#menuScreen,#duoMenuScreen).fm-screen :is(#menuContent,#duoProfilePanel,#duoDuelPanel){grid-column:2;grid-row:2;min-width:0}
+:is(#menuScreen,#duoMenuScreen).fm-screen .fm-extra-info{padding:0;margin:0 0 12px;border:1px solid #ffffff30;
  border-radius:9px;background:#121c2e}
 .fm-extra-info summary{padding:10px 12px;font-weight:750;font-size:13px;cursor:pointer;color:#efdaa6}
 .fm-extra-info>p{padding:0 12px 10px}
@@ -276,29 +276,29 @@
 .fm-perk-ranks i{display:block;flex:1;height:6px;border-radius:9px;background:#ffffff23}
 .fm-perk-ranks i.filled{background:linear-gradient(90deg,#d6aa64,#ffeeaa)}
 .fm-perk-card .btn{margin-top:auto;white-space:normal;min-height:41px}
-body.fm-menu-active:has(#menuScreen:not([hidden])) .mast-actions{display:none!important}
-body.fm-menu-active:has(#menuScreen:not([hidden])) .profile-hud{flex-wrap:wrap;margin-bottom:19px}
+body.fm-menu-active:has(:is(#menuScreen,#duoMenuScreen):not([hidden])) .mast-actions{display:none!important}
+body.fm-menu-active:has(:is(#menuScreen,#duoMenuScreen):not([hidden])) .profile-hud{flex-wrap:wrap;margin-bottom:19px}
 @media(max-width:980px){
- #menuScreen.fm-screen:not([hidden]){grid-template-columns:1fr;gap:12px}
- #menuScreen.fm-screen #menuNav.fm-navigation{grid-column:1;grid-row:1;position:relative;top:auto;display:grid!important;
+ :is(#menuScreen,#duoMenuScreen).fm-screen:not([hidden]){grid-template-columns:1fr;gap:12px}
+ :is(#menuScreen,#duoMenuScreen).fm-screen :is(#menuNav,#duoSoloMenuNav).fm-navigation{grid-column:1;grid-row:1;position:relative;top:auto;display:grid!important;
  grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important}
  .fm-nav-brand,.fm-help{grid-column:1 / -1}
  .fm-menu-group.selected{grid-column:1 / -1}
  .fm-nav-brand{padding:4px 0 12px;margin-bottom:0}
  .fm-help{display:flex;flex-wrap:wrap;gap:9px;margin-top:0;padding-top:10px}
- #menuScreen.fm-screen .fm-rule-link{flex:1 1 220px}
- #menuScreen.fm-screen .fm-start-link{flex:1 1 180px}
- #menuScreen.fm-screen #menuHero{grid-column:1;grid-row:2}
- #menuScreen.fm-screen #menuContent{grid-column:1;grid-row:3}
+ :is(#menuScreen,#duoMenuScreen).fm-screen .fm-rule-link{flex:1 1 220px}
+ :is(#menuScreen,#duoMenuScreen).fm-screen .fm-start-link{flex:1 1 180px}
+ :is(#menuScreen,#duoMenuScreen).fm-screen :is(#menuHero,#duoSoloMenuHero){grid-column:1;grid-row:2}
+ :is(#menuScreen,#duoMenuScreen).fm-screen :is(#menuContent,#duoProfilePanel,#duoDuelPanel){grid-column:1;grid-row:3}
 }
 @media(max-width:580px){
- #menuScreen.fm-screen #menuNav.fm-navigation{padding:11px!important;gap:5px!important}
- #menuScreen.fm-screen .fm-group-button{min-height:72px;padding:10px 7px;gap:5px}
+ :is(#menuScreen,#duoMenuScreen).fm-screen :is(#menuNav,#duoSoloMenuNav).fm-navigation{padding:11px!important;gap:5px!important}
+ :is(#menuScreen,#duoMenuScreen).fm-screen .fm-group-button{min-height:72px;padding:10px 7px;gap:5px}
  .fm-group-icon{font-size:24px;width:29px}
  .fm-group-copy strong{font-size:12px}.fm-group-copy small{font-size:10px}
  .fm-arrow{font-size:20px}
  .fm-submenu{padding:6px 8px 8px}
- #menuScreen.fm-screen #menuHero{padding:18px 14px}
+ :is(#menuScreen,#duoMenuScreen).fm-screen :is(#menuHero,#duoSoloMenuHero){padding:18px 14px}
  .fm-hero-content{display:grid;gap:17px}
  .fm-hero-utility{min-width:0;display:flex;flex-wrap:wrap;align-items:flex-end}
  .fm-hero-utility label{flex:1;min-width:125px}

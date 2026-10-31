@@ -1,0 +1,34 @@
+name: Duo v221 independent clients
+on:
+  push:
+    branches: [development, 'feature/duo-sp-shell-v221-*']
+    paths: ['assets/**', 'duo-campaign-v2.html', 'scripts/verify-duo-*-v221.cjs', 'tests/duo-online-v221.test.cjs', 'tests/helpers/duo-online-fixture-v221.cjs', '.github/workflows/duo-online-v221.yml', 'package*.json']
+  pull_request:
+    branches: [development]
+jobs:
+  two-clients:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --test tests/duo-online-v221.test.cjs tests/duo-preparty-v218.test.cjs tests/duo-single-parity-v201.test.cjs
+      - run: npm run test:duo-dom
+      - name: Two isolated Chromium clients, desktop and mobile
+        run: |
+          export CHROME="$(command -v google-chrome || command -v chromium)"
+          npm run test:duo-browser
+      - name: Two isolated clients against the deployed Edge function
+        if: github.event_name == 'push' && contains(github.event.head_commit.message, '[duo-live-v221]')
+        run: |
+          export CHROME="$(command -v google-chrome || command -v chromium)"
+          npm run test:duo-browser -- --live
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: duo-v221-browser-results
+          path: /tmp/duo-v221-browser

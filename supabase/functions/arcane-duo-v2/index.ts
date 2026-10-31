@@ -382,30 +382,35 @@ Deno.serve(async request=>{
   assert(kind==="action","Unbekannte Anfrage.");
   assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===room.revision,
    "Spielstand geändert. Bitte synchronisieren.");
-  assert(body.action&&["summon","attack","switch","fusion","end","nextChapter","acceptNextChapter","declineNextChapter",
+  assert(body.action&&["summon","replace","requestDuel","attack","switch","fusion","end","nextChapter","acceptNextChapter","declineNextChapter",
    "startParty","acceptPartyStart","declinePartyStart","cancelPartyStart","soulCondense","soulDischarge","soulRaid","soulFocus","essencePredatorMode",
    "lv1Station","lv1Return","lv1GhostSwitch","lv1UseOffer","lv1Floating"].includes(body.action.type),
    "Aktion nicht erlaubt.");
   const legacyStart=body.action.type==="nextChapter"&&body.action.confirmRequired!==true;
   const starting=body.action.type==="acceptPartyStart",
    advancing=body.action.type==="acceptNextChapter"||legacyStart,
-   nextChapter=room.state.chapter+1;
+   requested=body.action.type==="requestDuel",
+   nextChapter=starting?(room.state.partyStartInvite?.chapter??room.state.chapter):room.state.chapter+1;
   const humanBuilds:Record<number,unknown>={};
-  if(advancing||starting){
+  if(advancing||starting||requested){
    const ids=[room.host_profile_id,room.guest_profile_id].filter(Boolean);
    const {data:profiles,error:profileError}=await db.from(PROFILE_TABLE)
     .select("*").in("id",ids);
    if(profileError)throw profileError;
    for(const profile of profiles||[]){
     const seatNumber=profile.id===room.host_profile_id?0:2;
-    humanBuilds[seatNumber]={deck:profile.deck,fusions:profile.fusions,
+    const target=requested?Number(body.action.chapter):nextChapter;
+    assert(Number.isInteger(target)&&target>=1&&target<=15&&
+     (target>=11?target<=economy.maxSagaStage(profile):target<=maxChapter(profile)),
+     "Beide Spieler müssen dieses Duell freigeschaltet haben.");
+    humanBuilds[seatNumber]={name:profile.nickname,deck:profile.deck,fusions:profile.fusions,
      upgrades:profile.upgrades,enhancements:profile.enhancements,
      essence:profile.essence_binding,lv1:profile.lv1_research,
      portraitId:portraitId(profile.avatar_id)};
    }
    assert(humanBuilds[0]&&humanBuilds[2],"Partnerprofile konnten nicht synchronisiert werden.");
   }
-  const chapterBuild=advancing?{
+  const chapterBuild=advancing||starting?{
    enemyDeckA:enemyDeck(nextChapter,1),enemyDeckB:enemyDeck(nextChapter,3),
    enemyFusionsA:enemyFusions(nextChapter),enemyFusionsB:enemyFusions(nextChapter),
    enemyPowerA:enemyPower(nextChapter),enemyPowerB:enemyPower(nextChapter),
@@ -413,7 +418,7 @@ Deno.serve(async request=>{
    humanBuilds
   }:{};
   let next=game.apply(room.state,seat,body.action,{catalog,...chapterBuild,
-   ...(starting?{humanBuilds}:{})});
+   ...(starting||requested?{humanBuilds}:{}),now:Date.now()});
   // Existing main-branch 2v2 clients know only the historical one-click
   // chapter action. Preserve it atomically; new dev clients opt into consent.
   if(legacyStart)next=game.apply(next,seat===0?2:0,

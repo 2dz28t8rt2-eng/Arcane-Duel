@@ -279,8 +279,8 @@
   el('h2','',won?'Gemeinsam gewonnen!':'Gemeinsam verloren',panel);
   el('p','',won?'Ihr habt das Kapitel gemeinsam gemeistert.':
    'Eure Gegner haben dieses Duell gewonnen. Ihr könnt es erneut versuchen.',panel);
-  const close=el('button','ad204-result-close','Zum Spielfeld',panel);
-  close.type='button';close.addEventListener('click',clearOutcome);
+  const close=el('button','ad204-result-close','Zum Menü & Deckbau',panel);
+  close.type='button';close.addEventListener('click',()=>{clearOutcome();root.ArcaneDuoPartyUI218?.returnToMenu?.();});
   const duration=reduced()?0:1500;
   // Match solo: a strong victory/defeat cue immediately PRECEDES its title,
   // while combat music begins a gentle fade at the confirmed result.
@@ -414,7 +414,7 @@
   const key=String(event.key||'').toLowerCase();
   if(key==='escape'){if(details){dismissInspector();event.preventDefault();}
    else if(leaderGuide){dismissLeaderGuide();event.preventDefault();}
-   else if(outcome){clearOutcome();event.preventDefault();}return;}
+   else if(outcome){clearOutcome();root.ArcaneDuoPartyUI218?.returnToMenu?.();event.preventDefault();}return;}
   if(!context||details||outcome)return;
   if(key==='h'){event.preventDefault();toggleHand();}
   else if(key==='d'&&usePositionShortcut())event.preventDefault();

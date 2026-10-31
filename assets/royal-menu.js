@@ -52,6 +52,10 @@ function renderRoyalMenu(){
  nav.innerHTML='<div class="fm-nav-brand"><span>✧</span><div><strong>ARCANE DUEL</strong><small>4.1 · BESTIARIUM</small></div></div>';
  const titles={tournament:'Turnier',free:'Freie Duelle',pvp:'Lokales PvP',collection:'Hauptdeck',fusions:'Fusionsdeck',decks:'Deckplätze',lexicon:'Monsterlexikon',challenges:'Aufgaben & Abenteuer',workshop:'Monsterwerkstatt',upgrades:'Verbesserungen',xp:'Levelbelohnungen',shop:'Booster-Shop',packs:'Charakter-Boosterpacks',stats:'Chronik',settings:'Einstellungen & Spielstand'};
  const activeGroup=categories.find(g=>g.tabs.includes(menuTab))||categories[0];
+ if(window.ArcaneMenuShell221){
+  for(const [id,button] of tabs)button.textContent=titles[id];
+  window.ArcaneMenuShell221.navigation({nav,groups:categories,tabs,activeTab:menuTab,collapsed:collapsedGroups});
+ }else{
  for(const group of categories){
   const active=group.id===activeGroup.id,section=document.createElement('section');section.className='fm-menu-group'+(active?' selected':'');
   section.innerHTML='<button type="button" class="fm-group-button" data-fm-group="'+group.id+'" aria-expanded="'+(active&&!collapsedGroups.has(group.id))+'">'+
@@ -62,6 +66,7 @@ function renderRoyalMenu(){
    section.append(sub);
   }
   nav.append(section);
+ }
  }
  const help=document.createElement('div');help.className='fm-help';
  help.innerHTML='<button type="button" class="fm-rule-link" data-royal="rules">📖 <strong>Regelhandbuch</strong><small>Alles, was du wissen möchtest</small></button>'+

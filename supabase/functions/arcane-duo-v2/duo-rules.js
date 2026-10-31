@@ -244,7 +244,7 @@
    catalog,hostEssence,hostLv1);
   const lp=duoStartingLp(chapter);
   const g={schema:2,mode:'duo-campaign',ruleset:'duo-v166',roomId,chapter,entry,
-   lpParityVersion:2,
+   lpParityVersion:2,duelNo:1,
    status:'waiting',revision:0,activeSeat:0,turn:0,round:1,uid:1,
    rngSeed:Number.isSafeInteger(randomSeed)&&randomSeed>=1&&randomSeed<=0xffffffff?
     randomSeed:roomSeed(roomId), // deterministic Node QA; Edge injects secret crypto seed
@@ -1199,98 +1199,11 @@
   }else fail('Unbekannte Seelenfähigkeit.');
   c.lastSoulAction=p.ownTurns;
  }
- function apply(old,seat,action,{catalog,enemyDeckA,enemyDeckB,enemyFusionsA,enemyFusionsB,
-  enemyPowerA,enemyPowerB,enemyNameA,enemyNameB,humanBuilds}={}){
-  assert(old?.schema===2&&old.mode==='duo-campaign','Unbekanntes 2v2-Spielstandsformat.');
-  assert(Number.isInteger(seat)&&seat>=0&&seat<=3,'Ungültiger Sitzplatz.');
-  assert(action&&typeof action.type==='string','Aktion fehlt.');
-  const g=copy(old),p=g.players[seat];
-  if(action.type==='join'){
-   assert(g.status==='waiting'&&seat===2,'Raum kann nicht mehr betreten werden.');
-   assert(validDeck(action.deck,catalog),'Das Partnerdeck ist ungültig.');
-   assert(validDeck(action.fusions,catalog,true),'Das Partner-Fusionsdeck ist ungültig.');
-   const build=normalizedBuild(action.upgrades,action.enhancements,
-    action.deck,action.fusions,catalog,action.essence,action.lv1);
-   const partner=player(2,safeName(action.name),
-    chapterDeck(action.deck,catalog,g.chapter,g.entry),action.fusions,build);
-   partner.portraitId=/^hero-(0[1-9]|1[0-6])$/.test(action.portraitId||'')?action.portraitId:'hero-01';
-   g.players[2]=partner;g.status=action.deferStart===true?'lobby':'active';
-   g.teams[0].shield=teamAegis(g);
-   for(const pl of g.players)draw(pl);
-   fanaticOpening(g);
-   if(g.chapter===15){
-    const fanatic=g.players[1];
-    fanatic.graveyard.push({id:714,from:'story'});
-    fanatic.field[0]=instance(g,715,catalog,{fusion:true,ownerSeat:1,storyCorruption:true});
-    g.log.push('✧ Lumira wird im ersten Zug zu „Lumiras Fall“ (920 ATK / 220 DEF) zwangsfusioniert.');
-   }
-   g.log.push(partner.name+(g.status==='lobby'?' ist der Party beigetreten. Wartet auf den gemeinsamen Start.':' ist beigetreten. 2v2 beginnt.'));
-   g.revision++;return g;
-  }
-  if(action.type==='startParty'){
-   assert(g.status==='lobby'&&[0,2].includes(seat)&&g.players[2].name!=='Partner (ausstehend)',
-    'Nur verbundene Party-Mitglieder können ein Duell anfragen.');
-   const partnerSeat=seat===0?2:0;
-   g.status='party_ready';
-   g.partyStartInvite={fromSeat:seat,toSeat:partnerSeat};
-   g.log.push(g.players[seat].name+' bittet '+g.players[partnerSeat].name+' um die Startfreigabe.');
-   g.revision++;return g;
-  }
-  if(action.type==='cancelPartyStart'||action.type==='declinePartyStart'){
-   assert(g.status==='party_ready'&&
-    (action.type==='cancelPartyStart'?seat===g.partyStartInvite?.fromSeat:
-      seat===g.partyStartInvite?.toSeat),
-    'Es liegt keine entsprechende Startanfrage vor.');
-   g.status='lobby';g.partyStartInvite=null;
-   g.log.push(g.players[seat].name+' hat die Startanfrage zurückgezogen oder abgelehnt.');
-   g.revision++;return g;
-  }
-  if(action.type==='acceptPartyStart'){
-   assert(g.status==='party_ready'&&seat===g.partyStartInvite?.toSeat&&
-    humanBuilds?.[0]&&humanBuilds?.[2],
-    'Start benötigt die Zustimmung des Partners und beide aktuellen Decks.');
-   for(const humanSeat of [0,2]){
-    const updated=humanBuilds[humanSeat];
-    assert(validDeck(updated.deck,catalog)&&validDeck(updated.fusions,catalog,true),
-     'Ein aktuelles Partnerdeck ist ungültig.');
-    const build=normalizedBuild(updated.upgrades,updated.enhancements,
-     updated.deck,updated.fusions,catalog,updated.essence,updated.lv1);
-    const prior=g.players[humanSeat];
-    const fresh=player(humanSeat,prior.name,
-     chapterDeck(updated.deck,catalog,g.chapter,g.entry),updated.fusions,build);
-    fresh.portraitId=/^hero-(0[1-9]|1[0-6])$/.test(updated.portraitId||'')?updated.portraitId:'hero-01';
-    draw(fresh);g.players[humanSeat]=fresh;
-   }
-   g.teams[0].shield=teamAegis(g);
-   g.partyStartInvite=null;g.status='active';
-   g.log.push(g.players[0].name+' und '+g.players[2].name+' beginnen gemeinsam das Duell.');
-   g.revision++;return g;
-  }
-  if(action.type==='nextChapter'){
-   assert([0,2].includes(seat)&&g.status==='finished'&&g.winner===0&&
-    (isQuest(g.chapter)?g.chapter<15&&g.questPassed===true:g.chapter<CHAPTERS.length),
-    'Nur ein menschlicher Teamspieler kann das nächste freigeschaltete Kapitel anfragen.');
-   const partnerSeat=seat===0?2:0;
-   g.status='inviting_next';g.chapterInvite={from:g.players[seat].name,fromSeat:seat,toSeat:partnerSeat,chapter:g.chapter+1};
-   g.log.push(g.players[seat].name+' lädt '+g.players[partnerSeat].name+' zu Kapitel '+(g.chapter+1)+' ein.');
-   g.revision++;return g;
-  }
-  if(action.type==='declineNextChapter'){
-   assert([0,2].includes(seat)&&seat===g.chapterInvite?.toSeat&&g.status==='inviting_next'&&g.winner===0,
-    'Es liegt keine offene Einladung vor.');
-   g.status='finished';g.chapterInvite=null;
-   g.log.push(g.players[2].name+' hat die Einladung abgelehnt.');
-   g.revision++;return g;
-  }
-  if(action.type==='acceptNextChapter'){
-   assert([0,2].includes(seat)&&seat===g.chapterInvite?.toSeat&&g.status==='inviting_next'&&g.winner===0&&
-    (isQuest(g.chapter)?g.chapter<15&&g.questPassed===true:g.chapter<CHAPTERS.length),
-    'Einladung kann nicht angenommen werden.');
-   g.chapterInvite=null;
-   g.chapter++;g.status='active';g.winner=null;g.round=1;g.turn=0;g.activeSeat=0;
+ function beginDuel(g,chapter,entry,{catalog,enemyDeckA,enemyDeckB,enemyFusionsA,enemyFusionsB,enemyPowerA,enemyPowerB,enemyNameA,enemyNameB,humanBuilds}={}){
+   g.chapter=chapter;g.entry=entry;g.duelNo=(g.duelNo||1)+1;g.status='active';g.winner=null;g.round=1;g.turn=0;g.activeSeat=0;
    g.lpParityVersion=2;
    g.questProgress={floating:0,swarm:0,special:0};g.questPassed=null;
-   g.fateEvent=null;g.arenaEvent=null;g.predatorPursuit=null;g.predatorImpact=null;
+   g.fateEvent=null;g.arenaEvent=null;g.predatorPursuit=null;g.predatorImpact=null;g.stompEvent=null;
    const nextLp=duoStartingLp(g.chapter);
    g.teams.forEach(t=>{t.maxLp=nextLp;t.lp=nextLp;});
    g.teams[0].shield=teamAegis(g);g.teams[1].shield=0;
@@ -1302,6 +1215,7 @@
       'Aktualisiertes 2v2-Partnerdeck ist ungültig.');
      const build=normalizedBuild(updated.upgrades,updated.enhancements,
       updated.deck,updated.fusions,catalog,updated.essence,updated.lv1);
+     pl.name=safeName(updated.name||pl.name);
      pl.baseDeck=[...updated.deck];pl.baseFusions=[...updated.fusions];
      pl.upgrades=build.upgrades;pl.enhancements=build.enhancements;
      pl.essence=build.essence;
@@ -1342,6 +1256,119 @@
    }
    if(isQuest(g.chapter))g.log.push('Fanatiker-Saga · '+encounter(g.chapter).dialogue);
    g.log.push('Kapitel '+g.chapter+' beginnt mit vollständigen eigenen Decks.');
+ }
+ function apply(old,seat,action,{catalog,enemyDeckA,enemyDeckB,enemyFusionsA,enemyFusionsB,
+  enemyPowerA,enemyPowerB,enemyNameA,enemyNameB,humanBuilds,now=Date.now()}={}){
+  assert(old?.schema===2&&old.mode==='duo-campaign','Unbekanntes 2v2-Spielstandsformat.');
+  assert(Number.isInteger(seat)&&seat>=0&&seat<=3,'Ungültiger Sitzplatz.');
+  assert(action&&typeof action.type==='string','Aktion fehlt.');
+  const g=copy(old),p=g.players[seat];
+  if(action.type==='join'){
+   assert(g.status==='waiting'&&seat===2,'Raum kann nicht mehr betreten werden.');
+   assert(validDeck(action.deck,catalog),'Das Partnerdeck ist ungültig.');
+   assert(validDeck(action.fusions,catalog,true),'Das Partner-Fusionsdeck ist ungültig.');
+   const build=normalizedBuild(action.upgrades,action.enhancements,
+    action.deck,action.fusions,catalog,action.essence,action.lv1);
+   const partner=player(2,safeName(action.name),
+    chapterDeck(action.deck,catalog,g.chapter,g.entry),action.fusions,build);
+   partner.portraitId=/^hero-(0[1-9]|1[0-6])$/.test(action.portraitId||'')?action.portraitId:'hero-01';
+   g.players[2]=partner;g.status=action.deferStart===true?'lobby':'active';
+   g.teams[0].shield=teamAegis(g);
+   for(const pl of g.players)draw(pl);
+   fanaticOpening(g);
+   if(g.chapter===15){
+    const fanatic=g.players[1];
+    fanatic.graveyard.push({id:714,from:'story'});
+    fanatic.field[0]=instance(g,715,catalog,{fusion:true,ownerSeat:1,storyCorruption:true});
+    g.log.push('✧ Lumira wird im ersten Zug zu „Lumiras Fall“ (920 ATK / 220 DEF) zwangsfusioniert.');
+   }
+   g.log.push(partner.name+(g.status==='lobby'?' ist der Party beigetreten. Wartet auf den gemeinsamen Start.':' ist beigetreten. 2v2 beginnt.'));
+   g.revision++;return g;
+  }
+  if(action.type==='requestDuel'){
+   const expired=g.status==='party_ready'&&g.partyStartInvite?.expiresAt<=now;
+   assert([0,2].includes(seat)&&(['lobby','finished'].includes(g.status)||expired)&&
+    g.players[2].name!=='Partner (ausstehend)', 'Beide Gruppenmitglieder müssen verbunden und außerhalb eines Duells sein.');
+   for(const humanSeat of [0,2])if(humanBuilds?.[humanSeat]?.name)g.players[humanSeat].name=safeName(humanBuilds[humanSeat].name);
+   const target=Number(action.chapter),entry=target>=11?'quest':'chapter';
+   assert(Number.isInteger(target)&&!!encounter(target),'Ungültiges Duellziel.');
+   const previousStatus=expired?(g.partyStartInvite.returnStatus||'lobby'):g.status;
+   g.partyStartInvite={fromSeat:seat,toSeat:seat===0?2:0,id:g.revision+1,
+    chapter:target,entry,returnStatus:previousStatus,expiresAt:now+120000};
+   g.status='party_ready';
+   g.log.push(p.name+' lädt den Partner zu '+encounter(target).name+' ein.');
+   g.revision++;return g;
+  }
+  if(action.type==='startParty'){
+   assert(g.status==='lobby'&&[0,2].includes(seat)&&g.players[2].name!=='Partner (ausstehend)',
+    'Nur verbundene Party-Mitglieder können ein Duell anfragen.');
+   const partnerSeat=seat===0?2:0;
+   g.status='party_ready';
+   g.partyStartInvite={fromSeat:seat,toSeat:partnerSeat};
+   g.log.push(g.players[seat].name+' bittet '+g.players[partnerSeat].name+' um die Startfreigabe.');
+   g.revision++;return g;
+  }
+  if(action.type==='cancelPartyStart'||action.type==='declinePartyStart'){
+   assert(g.status==='party_ready'&&
+    (action.type==='cancelPartyStart'?seat===g.partyStartInvite?.fromSeat:
+      seat===g.partyStartInvite?.toSeat),
+    'Es liegt keine entsprechende Startanfrage vor.');
+   assert(g.partyStartInvite?.id==null||action.inviteId===g.partyStartInvite.id,'Diese Einladung wurde inzwischen ersetzt.');
+   g.status=g.partyStartInvite?.returnStatus||'lobby';g.partyStartInvite=null;
+   g.log.push(g.players[seat].name+' hat die Startanfrage zurückgezogen oder abgelehnt.');
+   g.revision++;return g;
+  }
+  if(action.type==='acceptPartyStart'){
+   assert(g.status==='party_ready'&&seat===g.partyStartInvite?.toSeat&&
+    humanBuilds?.[0]&&humanBuilds?.[2],
+    'Start benötigt die Zustimmung des Partners und beide aktuellen Decks.');
+   const invitation=g.partyStartInvite;
+   if(invitation.id!=null){
+    assert(action.inviteId===invitation.id,'Diese Einladung wurde inzwischen ersetzt.');
+    assert(invitation.expiresAt>now,'Diese Einladung ist abgelaufen. Bitte erneut anfragen.');
+    beginDuel(g,invitation.chapter,invitation.entry,{catalog,enemyDeckA,enemyDeckB,
+     enemyFusionsA,enemyFusionsB,enemyPowerA,enemyPowerB,enemyNameA,enemyNameB,humanBuilds});
+   }else{
+   for(const humanSeat of [0,2]){
+    const updated=humanBuilds[humanSeat];
+    assert(validDeck(updated.deck,catalog)&&validDeck(updated.fusions,catalog,true),
+     'Ein aktuelles Partnerdeck ist ungültig.');
+    const build=normalizedBuild(updated.upgrades,updated.enhancements,
+     updated.deck,updated.fusions,catalog,updated.essence,updated.lv1);
+    const prior=g.players[humanSeat];
+    const fresh=player(humanSeat,prior.name,
+     chapterDeck(updated.deck,catalog,g.chapter,g.entry),updated.fusions,build);
+    fresh.portraitId=/^hero-(0[1-9]|1[0-6])$/.test(updated.portraitId||'')?updated.portraitId:'hero-01';
+    draw(fresh);g.players[humanSeat]=fresh;
+   }
+   g.teams[0].shield=teamAegis(g);
+   }
+   g.partyStartInvite=null;g.status='active';
+   g.log.push(g.players[0].name+' und '+g.players[2].name+' beginnen gemeinsam das Duell.');
+   g.revision++;return g;
+  }
+  if(action.type==='nextChapter'){
+   assert([0,2].includes(seat)&&g.status==='finished'&&g.winner===0&&
+    (isQuest(g.chapter)?g.chapter<15&&g.questPassed===true:g.chapter<CHAPTERS.length),
+    'Nur ein menschlicher Teamspieler kann das nächste freigeschaltete Kapitel anfragen.');
+   const partnerSeat=seat===0?2:0;
+   g.status='inviting_next';g.chapterInvite={from:g.players[seat].name,fromSeat:seat,toSeat:partnerSeat,chapter:g.chapter+1};
+   g.log.push(g.players[seat].name+' lädt '+g.players[partnerSeat].name+' zu Kapitel '+(g.chapter+1)+' ein.');
+   g.revision++;return g;
+  }
+  if(action.type==='declineNextChapter'){
+   assert([0,2].includes(seat)&&seat===g.chapterInvite?.toSeat&&g.status==='inviting_next'&&g.winner===0,
+    'Es liegt keine offene Einladung vor.');
+   g.status='finished';g.chapterInvite=null;
+   g.log.push(g.players[2].name+' hat die Einladung abgelehnt.');
+   g.revision++;return g;
+  }
+  if(action.type==='acceptNextChapter'){
+   assert([0,2].includes(seat)&&seat===g.chapterInvite?.toSeat&&g.status==='inviting_next'&&g.winner===0&&
+    (isQuest(g.chapter)?g.chapter<15&&g.questPassed===true:g.chapter<CHAPTERS.length),
+    'Einladung kann nicht angenommen werden.');
+   g.chapterInvite=null;
+   beginDuel(g,g.chapter+1,g.entry,{catalog,enemyDeckA,enemyDeckB,enemyFusionsA,enemyFusionsB,enemyPowerA,enemyPowerB,enemyNameA,enemyNameB,humanBuilds});
    g.revision++;return g;
   }
   assert(g.status==='active'&&g.winner===null,'Partie ist nicht aktiv.');

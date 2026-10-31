@@ -54,7 +54,7 @@
    own=doc.querySelector('.duo-battle .seat[data-seat="'+seat+'"]'),
    p=game.players?.[seat];
   if(!battle||panels.length!==2||!own||!p)return;
-  const key=roomId+'|'+game.chapter;
+  const key=roomId+'|'+game.chapter+'|'+(game.duelNo||1);
   if(!session||session.key!==key){
    session={key,seen:false,intro:false,lastHand:null,lastDeck:null,stamp:0,
     latestGame:game,progress:0};
@@ -76,7 +76,7 @@
    const heading=doc.createElement('div');heading.className='duo178-hand-title';
    heading.textContent='✦ DEINE HANDKARTEN';strip.append(heading);
    const cards=doc.createElement('div');cards.className='duo178-hand-cards';strip.append(cards);
-   own.insertBefore(strip,own.querySelector('.field'));
+   own.append(strip);
   }
   const list=strip.querySelector('.duo178-hand-cards');list.replaceChildren();
   for(const [index,item] of p.hand.entries()){
@@ -130,11 +130,12 @@
    };
    if(reduced())finish();
    else {
-    // Hidden tabs can throttle RAF; do not keep the action dock sealed forever.
+    const fillAfterStart=()=>{
+    // Hidden tabs can throttle RAF; unlock after the visible LP sequence finishes.
     root.setTimeout(finish,3600);
     root.setTimeout(()=>{
      if(session!==s||s.stamp!==stamp)return;
-     const start=root.performance.now(),duration=1800;
+     const start=root.performance.now(),duration=root.ArcaneDuoSolo221?2600:1800;
      const step=now=>{
       if(session!==s||s.stamp!==stamp||!s.intro)return;
       const fraction=Math.min(1,(now-start)/duration),smooth=fraction*fraction*(3-2*fraction);
@@ -147,7 +148,10 @@
       if(fraction<1&&s.intro)root.requestAnimationFrame(step);else finish();
      };
      root.requestAnimationFrame(step);
-    },600);
+    },root.ArcaneDuoSolo221?100:600);
+    };
+    if(root.ArcaneDuoSolo221?.afterStartScreen)root.ArcaneDuoSolo221.afterStartScreen().then(fillAfterStart,fillAfterStart);
+    else fillAfterStart();
    }
   }else if(!s.intro&&s.lastHand&&game.status==='active'){
    const count=Math.max(0,(s.lastDeck||0)-p.deck.length);

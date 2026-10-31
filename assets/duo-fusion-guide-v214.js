@@ -13,9 +13,9 @@
  const sub=(id,title,body)=>'<details class="ad214-sub" id="ad214-'+id+'"><summary>'+title+'</summary><div class="ad214-body">'+body+'</div></details>';
  function bookHtml(){
   return '<div class="ad214-lead"><strong>Fusionen · Gemeinsam lernen, selbst entscheiden</strong>'+
-   '<p>Die folgenden Regeln gelten für das <b>2v2-Kampagnenspiel</b>. Jeder verwendet nur seine <b>eigenen</b> Hand-, Feld- oder freigeschalteten Geistermaterialien und seine eigenen noch freien Fusionsvorlagen. Das Spiel und die KI prüfen die tatsächliche Fusion auf dem Server.</p></div>'+
+   '<p>Die folgenden Regeln gelten für das <b>2v2-Kampagnenspiel</b>. Jeder verwendet seine eigenen Hand- und Geistermaterialien; auf dem Feld dürfen auch die Monster des menschlichen Partners helfen und seine eigenen noch freien Fusionsvorlagen. Das Spiel und die KI prüfen die tatsächliche Fusion auf dem Server.</p></div>'+
    sub('start','1 · Was ist eine Fusion und wie starte ich sie?',
-    '<p>Wähle <b>zwei bis fünf</b> eigene Monster als Materialien. Im Kampfbereich „Fusion“ kannst du Hand- und Feldkarten markieren, eine <b>Kernkarte</b>, eine <b>Fusionsvorlage</b> und eine <b>freie Ergebniszone</b> auswählen. Die Materialien werden verbraucht. Jede Fusion benötigt eine noch freie Vorlage aus deinem eigenen Fusionsdeck.</p>'+
+    '<p>Wähle <b>zwei bis fünf</b> Monster als Materialien – aus deiner Hand, deinem Feld oder dem Feld deines menschlichen Partners. Im Kampfbereich „Fusion“ kannst du Hand- und Feldkarten markieren, eine <b>Kernkarte</b>, eine <b>Fusionsvorlage</b> und eine <b>freie Ergebniszone</b> auswählen. Die Materialien werden verbraucht. Jede Fusion benötigt eine noch freie Vorlage aus deinem eigenen Fusionsdeck.</p>'+
     '<p>Eine Fusion ist ein neues Monster für das laufende Duell. Deine gesammelten Karten verschwinden dabei nicht dauerhaft. Dein Duo-Spielstand und dein Solo-Spielstand sind weiterhin getrennt.</p>'+
     '<p><b>Geschützte Karten:</b> ACE-Monster, Schicksalsmonster und Predator-Tokens dürfen niemals als Fusionsmaterial verwendet werden. Besondere Level-1-Forschung kann eigene Geistermaterialien und Rezepte freischalten.</p>'+
     '<div class="ad214-diagram">'+chain([3,3])+'<span>↓ zwei Materialien + freie Vorlage</span><strong>Ein neues Monster, bis Level 4</strong></div>')+

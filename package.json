@@ -5,9 +5,15 @@
   "description": "Arcane Duel browser card RPG",
   "scripts": {
     "test": "node --check assets/art-engine.js && node --check assets/game.js && node --check assets/expansion.js && node --check assets/evolution.js && node --check assets/duo-shared-rules-v160.js && node --check assets/duo-parity-v160.js && node --check assets/duo-stomp-cinema-v202.js && node --check supabase/functions/arcane-duo-v2/duo-rules.js && node scripts/check-duo-edge-ts.cjs && node scripts/build-duo-catalog-v160.cjs --check && node scripts/build-duo-opponents-v201.cjs --check && node --test tests/*.test.cjs",
-    "duo:catalog": "node scripts/build-duo-catalog-v160.cjs"
+    "duo:catalog": "node scripts/build-duo-catalog-v160.cjs",
+    "test:duo-dom": "node scripts/verify-duo-dom-v221.cjs",
+    "test:duo-browser": "node scripts/verify-duo-browser-v221.cjs"
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0",
+    "playwright": "1.62.1"
   }
 }

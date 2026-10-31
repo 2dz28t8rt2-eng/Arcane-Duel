@@ -3,6 +3,16 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>Arcane Duel · Das Bündnis der Vier</title>
+<link rel="stylesheet" href="assets/styles.css?v=221">
+<link rel="stylesheet" href="assets/visual-v3.css?v=221">
+<link rel="stylesheet" href="assets/card-look-v3.css?v=221">
+<link rel="stylesheet" href="assets/royal-update.css?v=221">
+<link rel="stylesheet" href="assets/arcane-archive.css?v=221">
+<link rel="stylesheet" href="assets/card-templates-v1.css?v=221">
+<link rel="stylesheet" href="assets/card-level-frames-v401.css?v=221">
+<link rel="stylesheet" href="assets/card-level-runtime-v402.css?v=221">
+<link rel="stylesheet" href="assets/card-shell-v404.css?v=221">
+<link rel="stylesheet" href="assets/card-v405-polish.css?v=221">
 <link rel="stylesheet" href="assets/arcane-title-v196.css?v=duo-preparty-218">
 <link rel="stylesheet" href="assets/duo-preparty-v218.css?v=20261031-preparty-218">
 <link rel="stylesheet" href="assets/duo-campaign-demo.css?v=duo-v166">
@@ -38,6 +48,7 @@
 <link rel="stylesheet" href="assets/arcane-track-catalog-v014.css?v=20261027-v014">
 <link rel="stylesheet" href="assets/duo-solo-parity-v219.css?v=20261031-solo-parity-219">
 <link rel="stylesheet" href="assets/duo-group-entry-v220.css?v=20261031-group-entry-220">
+<link rel="stylesheet" href="assets/duo-solo-shell-v221.css?v=221">
 <style>
 .duo-onboard[hidden],.duo-invite-dialog[hidden]{display:none!important}
 .duo-onboard,.duo-invite-dialog{position:fixed;inset:0;z-index:12000;background:rgba(5,9,20,.93);
@@ -152,8 +163,8 @@
  <strong id="duoStartNoticeTitle">Dein Partner möchte das Duell starten</strong>
  <p id="duoStartNoticeText">Ihr könnt bis zur Bestätigung unabhängig eure Decks verwalten.</p>
  <div class="duo-start-actions">
-  <button type="button" id="duoStartAccept" hidden>Duell gemeinsam starten</button>
-  <button type="button" id="duoStartDecline" hidden>Später</button>
+  <button type="button" id="duoStartAccept" hidden>Beitreten</button>
+  <button type="button" id="duoStartDecline" hidden>Ablehnen</button>
   <button type="button" id="duoStartCancel" hidden>Anfrage zurückziehen</button>
  </div>
 </aside>
@@ -306,7 +317,7 @@
  </div>
 </section>
 <div class="duo-layout">
-<section class="duo-panel">
+<section class="duo-panel" id="duoSetupPanel">
  <h2>✦ Gemeinsam starten</h2>
   <p class="micro duo-team-definition"><strong>Du und dein Partner gegen zwei Gegner.</strong> Sobald dein Freund beitritt, kann euer Abenteuer beginnen.</p>
  <ol class="duo-steps">
@@ -370,14 +381,14 @@
     Gegen verteidigende Wächter und Seelenzehrer überwinden Predatoren einen Teil des Schutzes.</li>
    <li><b>Wächter</b> schützen eure Stellung und heilen verbündete Verteidiger.
     <b>Seelenzehrer</b> sammeln Kraft aus den Gegnern. Beide halten in Verteidigung
-    35 % des Treffers ab und schlagen mit der Hälfte ihrer Angriffskraft zurück.</li>
+    35 % des Treffers ab und schlagen mit 35 % ihrer Angriffskraft zurück, sofern sie den Treffer überleben.</li>
    <li><b>Verdichten</b> stärkt beim Seelenzehrer sowohl DEF als auch ATK.
     Die Fähigkeit verbraucht seinen Zug nicht: Er darf danach die Position wechseln und
     angreifen, sofern seine übrigen Aktionen bereit sind. Die Abklingzeit bleibt bestehen.</li>
   </ul>
   <h3>Fusionen und besondere Fähigkeiten</h3>
   <ul>
-   <li>Für eine Fusion wählst du zwei bis fünf <b>eigene</b> Karten aus Hand oder Feld.
+   <li>Für eine Fusion wählst du zwei bis fünf Karten aus deiner Hand, deinem Feld oder dem Feld deines menschlichen Partners. Die verbündeten Materialien werden bei ihrem Besitzer verbraucht.
     Die Stufen, ihre Rollen und Kombinationen wie Straßen oder Full House beeinflussen das Ergebnis.
     Die Vorschau zeigt dir, welche Fusionen möglich sind.</li>
    <li><b>ACE-Monster können niemals als Fusionsmaterial dienen.</b> Das gilt für Karten auf
@@ -453,7 +464,7 @@
 <div id="ad185-turn-cue" class="ad185-turn-cue" aria-hidden="true" hidden></div>
 <script src="assets/fate-illustrations.js?v=duo-v166"></script>
 <script src="assets/duelist-portraits-v215.js?v=218"></script>
-<script src="assets/duo-shared-rules-v160.js?v=20261031-independent-menu-219"></script>
+<script src="assets/duo-shared-rules-v160.js?v=221"></script>
 <script src="assets/duo-battle-ui-v158.js?v=20261029-v207"></script>
 <script src="assets/duo-cinematics-v167.js?v=duo-v167"></script>
 <script src="assets/duo-cinema-v170.js?v=20261030-duo-alpha-210"></script>
@@ -461,7 +472,7 @@
 <script src="assets/duo-economy-v172.js?v=duo-v200-saga"></script>
 <script src="assets/pack-cinema-v178.js?v=duo-v178"></script>
 <script src="assets/pack-cinema-v181.js?v=20261026-v181"></script>
-<script src="assets/duo-hand-cinema-v178.js?v=duo-v178"></script>
+<script src="assets/duo-hand-cinema-v178.js?v=221"></script>
 <script src="assets/combat-identity-v183.js?v=20261026-v183"></script>
 <script src="assets/collection-rewards-v184.js?v=20261026-v184"></script>
 <script src="assets/duo-experience-v185.js?v=20261026-v185"></script>
@@ -480,12 +491,15 @@
 <script src="assets/pack-cinema-v195.js?v=20261026-v195"></script>
 <script src="assets/duo-fusion-guide-v214.js?v=20261030-duo-fusion-214"></script>
 <script src="assets/duo-story-dialogues-v216.js?v=216"></script>
-<script src="assets/duo-parity-v160.js?v=20261031-group-entry-220"></script>
+<script src="assets/duo-parity-v160.js?v=221"></script>
 <script src="assets/duelist-portraits-duo-v215.js?v=218"></script>
 <script src="assets/arcane-track-catalog-v014.js?v=20261027-v014"></script>
 <script src="assets/arcane-soundscape-v196.js?v=20261030-result-fade"></script>
 <script src="assets/arcane-sfx-v208.js?v=20261030-duo-result-210"></script>
-<script src="assets/duo-ux-v204.js?v=20261030-duo-parity-210"></script>
+<script src="assets/duo-ux-v204.js?v=221"></script>
 <script src="assets/duo-soul-bond-v206.js?v=20261030-duo-bond-help"></script>
-<script src="assets/duo-preparty-v218.js?v=20261031-group-entry-220"></script>
+<script src="assets/menu-shell-v221.js?v=221"></script>
+<script src="assets/card-view-v221.js?v=221"></script>
+<script src="assets/duo-preparty-v218.js?v=221"></script>
+<script src="assets/duo-solo-shell-v221.js?v=221"></script>
 </body></html>
