@@ -201,8 +201,9 @@
     let attempts=0;
     const show=()=>{
      if(uiMode!=='menu'||game)return;
-     if(!byId('overlay')?.classList.contains('hidden')){
-      if(++attempts<60)setTimeout(show,600);return;
+     if(!byId('overlay')?.classList.contains('hidden')||
+        window.ArcaneVictoryRewards?.active||window.ArcaneVictoryRewards?.remaining>0){
+      if(++attempts<120)setTimeout(show,600);return;
      }
      const levelInfo=post.level?
       '<p class="ad211-reward-level">✦ Spielerlevel '+post.level+' erreicht!</p>'+
