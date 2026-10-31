@@ -1214,7 +1214,7 @@
    const partner=player(2,safeName(action.name),
     chapterDeck(action.deck,catalog,g.chapter,g.entry),action.fusions,build);
    partner.portraitId=/^hero-(0[1-9]|1[0-6])$/.test(action.portraitId||'')?action.portraitId:'hero-01';
-   g.players[2]=partner;g.status='active';
+   g.players[2]=partner;g.status=action.deferStart===true?'lobby':'active';
    g.teams[0].shield=teamAegis(g);
    for(const pl of g.players)draw(pl);
    fanaticOpening(g);
@@ -1224,7 +1224,14 @@
     fanatic.field[0]=instance(g,715,catalog,{fusion:true,ownerSeat:1,storyCorruption:true});
     g.log.push('✧ Lumira wird im ersten Zug zu „Lumiras Fall“ (920 ATK / 220 DEF) zwangsfusioniert.');
    }
-   g.log.push(partner.name+' ist beigetreten. 2v2 beginnt.');
+   g.log.push(partner.name+(g.status==='lobby'?' ist der Party beigetreten. Wartet auf den gemeinsamen Start.':' ist beigetreten. 2v2 beginnt.'));
+   g.revision++;return g;
+  }
+  if(action.type==='startParty'){
+   assert(g.status==='lobby'&&seat===0&&g.players[2].name!=='Partner (ausstehend)',
+    'Nur der Party-Leiter kann mit einem beigetretenen Partner starten.');
+   g.status='active';
+   g.log.push(g.players[0].name+' startet das gemeinsame Duell.');
    g.revision++;return g;
   }
   if(action.type==='nextChapter'){
