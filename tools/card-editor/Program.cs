@@ -15,7 +15,12 @@ internal static class Program
         ApplicationConfiguration.Initialize();
         if (args.Contains("--self-test"))
         {
-            Editor.SelfTest();
+            try { Editor.SelfTest(); }
+            catch (Exception ex)
+            {
+                File.WriteAllText(Path.Combine(AppContext.BaseDirectory,"card-editor-selftest-failure.txt"),ex.ToString());
+                Environment.ExitCode=1;
+            }
             return;
         }
         Application.Run(new Editor());
