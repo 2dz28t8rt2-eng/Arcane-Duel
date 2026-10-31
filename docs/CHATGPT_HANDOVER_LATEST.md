@@ -1,7 +1,7 @@
 # ARCANE DUEL – AKTUELLE CHATGPT-ÜBERGABE
 
 **Snapshot: 31.10.2026**  
-**Überprüfte Codebasis vor dieser aktualisierten Übergabedatei:** `development` auf `8911e5ccaab740f7835df3b4d0066e4c64e28196`.  
+**Überprüfte Codebasis vor dieser aktualisierten Übergabedatei:** `development` auf `6eb0aee179df86b55d550d2c63e003f019b7e620`.  
 **Stabiler Branch:** `main` auf `b4bee27980af899b53c9eb5582d70463652e98e5` (nicht eigenmächtig ändern).  
 **Repository:** https://github.com/2dz28t8rt2-eng/Arcane-Duel
 
@@ -126,6 +126,16 @@ Produktiv ist die im Code verknüpfte Solo-KI/Bridge `assets/ai-production-bridg
   Das bisherige CI-Ergebnis **41223756931 success** betrifft die
   frühere Implementierung von `4.1.0-dev.1`; nach dem Reset neueste
   CI-Läufe **erneut prüfen**, nicht von diesem alten Lauf ableiten.
+- **Neuer Versionsreset und Teststand:** Die komplette Smoke-Suite meldete für
+  `77c4df32c1bc...` drei Testfehler, da ältere Tests noch sichtbar
+  `4.1` erwarteten. Die Spiellogik war nicht als fehlerhaft nachgewiesen.
+  Die drei alten Titelassertions wurden in
+  `tests/artwork-motion-v41-update.test.cjs`,
+  `tests/visual-polish-v252.test.cjs` und
+  `tests/visual-v3.test.cjs` auf `1.0.0` aktualisiert;
+  auch Regelbuch/Archiv verwenden nun die dynamische Versionsanzeige.
+  Die neuesten vollständigen Smoke-Ergebnisse vor Freigabe erneut abfragen;
+  keine pauschale Erfolgsbehauptung für ausstehende Runs.
 - **Bisher beobachtete Smoke-Fehlermeldung** bei neueren Commits vor dem Guardian-Abgleich: `assets/duo-opponent-catalog-v201.json differs from current solo opponents. Regenerate it.` Dies deutet auf ein veraltetes generiertes Gegnermanifest nach Solo-/Guardian-Änderungen. Jüngster Korrekturcommit `882049929fbf` synchronisiert 22/78-Wächterwerte, aber **CI für den letztgültigen neuen HEAD nochmals kontrollieren**; nicht ungeprüft behaupten, alles sei grün. Generator: `node scripts/build-duo-opponents-v201.cjs` ohne `--check`, anschließend Katalog und Supabase-Gegenstück prüfen, `npm test` neu ausführen und bei erforderlicher Backendänderung bewusst deployen.
 - **Zwei-Versionen-Retention** in `server/deploy-release.py` und Tests `tests/test_release_retention.py`, über `.github/workflows/selfhost-v229.yml` angebunden. Nur tatsächliche erfolgreiche CI-Ausführungen als bestanden nennen.
 - Neuen Server nicht ungeprüft automatisch aktualisieren. **Code-Commit != Deployment != öffentliche Live-Abnahme**.
