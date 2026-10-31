@@ -508,7 +508,7 @@
    const r=await call({type:'join',roomId:id,invite:invitation,
     profileToken:duoProfileToken,deferStart:true});
    roomId=id;token=r.token;seat=2;invite='';save();load(r);
-   location.hash='room='+roomId;
+   history.replaceState(null,'',ownOrigin()+'#room='+roomId);
    set('duoStatus','Party verbunden! Ihr könnt eure eigenen Menüs unabhängig voneinander benutzen.');
   }catch(e){set('duoStatus',e.message);$('duoPartyStatus').textContent='Beitritt fehlgeschlagen: '+e.message;return false;}
   finally{busy=false;render();}
