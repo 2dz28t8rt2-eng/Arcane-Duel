@@ -395,7 +395,14 @@
   if(!duoProfileToken||!id||busy)return;
   try{
    const r=await call({type:'state',roomId:id,token:duoProfileToken});
-   roomId=id;token=duoProfileToken;seat=r.seat;invite='';load(r);
+   let restoredInvite='';
+   if(r.seat===0&&r.state?.status==='waiting'){
+    try{
+     const renewed=await call({type:'renewInvite',roomId:id,profileToken:duoProfileToken});
+     restoredInvite=renewed.invite||'';
+    }catch(e){set('duoProfileMessage','Einladungslink konnte nicht erneuert werden: '+e.message);}
+   }
+   roomId=id;token=duoProfileToken;seat=r.seat;invite=restoredInvite;load(r);
    history.replaceState(null,'',ownOrigin()+'#room='+roomId);
    set('duoStatus','Willkommen zurück! Dein letztes Duell ist wieder geöffnet.');
   }catch(e){set('duoProfileMessage','Dieses Duell lässt sich gerade nicht öffnen: '+e.message);}
