@@ -9,13 +9,13 @@
  const make=(tag,cls,parent,text)=>{const n=document.createElement(tag);n.className=cls||'';if(text!=null)n.textContent=text;parent?.append(n);return n;};
  const groups=[
   {id:'play',icon:'⚔',title:'Duellieren',subtitle:'Arena & Duelle',tabs:['menu']},
-  {id:'deck',icon:'▤',title:'Deck & Sammlung',subtitle:'Karten und Deckbau',tabs:['deck','fusions','bestiary']},
+  {id:'deck',icon:'▤',title:'Deck & Sammlung',subtitle:'Karten und Deckbau',tabs:['deck','fusions','decks','bestiary']},
   {id:'missions',icon:'✧',title:'Herausforderungen',subtitle:'Lernpfad und Quests',tabs:['quests']},
   {id:'growth',icon:'✦',title:'Fortschritt',subtitle:'Verbesserungen, Belohnungen & Kartenpakete',tabs:['collection','upgrades','shop','progress']},
   {id:'options',icon:'⚙',title:'Spielstand & Extras',subtitle:'Chronik und Optionen',tabs:['profile','settings','rules']}
  ];
- const titles={menu:['Die zehn Prüfungen','Fordere den nächsten Turnierduellanten heraus und erschließe neue Karten.'],quests:['Aufgaben & Abenteuer','Die fünf Prüfungen des Level-1-Fanatikers. Beide Duellanten müssen die gewählte Prüfung freigeschaltet haben.'],deck:['Dein Hauptdeck','Wähle einen Deckplatz und ein eigenes Monster. Dein Hauptdeck enthält genau 40 Karten, mit höchstens drei Kopien je Monster.'],fusions:['Deine Fusionen','Verwalte die Vorlagen für mächtige Verschmelzungen.'],collection:['Monsterwerkstatt','Sieh dir deinen Vorrat an, verstärke deine Monster und zerlege freie Exemplare.'],upgrades:['Verbesserungen','Mach deine Lieblingsmonster stärker.'],shop:['Booster-Shop','Entdecke neue Kreaturen und Sonderangebote.'],progress:['Levelbelohnungen','Sieh deine nächsten Fortschrittsmeilensteine.'],profile:['Deine Chronik','Erinnere dich an deine Duelle und Siege.'],settings:['Einstellungen und Spielstandoptionen','Sichere deinen persönlichen Zugang und passe Musik und Animationen an.'],rules:['Regelhandbuch','Karten, Rollen und gemeinsame Spielzüge verständlich erklärt.'],bestiary:['Wissen & Monsterlexikon','Lerne die Regeln kennen und entdecke neue Monster.']};
- const tabLabels={menu:'Turnier',quests:'Aufgaben & Abenteuer',deck:'Hauptdeck',fusions:'Fusionsdeck',bestiary:'Monsterlexikon',collection:'Monsterwerkstatt',upgrades:'Verbesserungen',shop:'Booster-Shop',progress:'Levelbelohnungen',profile:'Chronik',settings:'Einstellungen & Spielstand',rules:'Regelhandbuch'};
+ const titles={menu:['Die zehn Prüfungen','Fordere den nächsten Turnierduellanten heraus und erschließe neue Karten.'],quests:['Aufgaben & Abenteuer','Die fünf Prüfungen des Level-1-Fanatikers. Beide Duellanten müssen die gewählte Prüfung freigeschaltet haben.'],deck:['Dein Hauptdeck','Wähle einen Deckplatz und ein eigenes Monster. Dein Hauptdeck enthält genau 40 Karten, mit höchstens drei Kopien je Monster.'],fusions:['Deine Fusionen','Verwalte die Vorlagen für mächtige Verschmelzungen.'],decks:['Deckplätze','Organisiere deine drei Deckvarianten.'],collection:['Monsterwerkstatt','Sieh dir deinen Vorrat an, verstärke deine Monster und zerlege freie Exemplare.'],upgrades:['Verbesserungen','Mach deine Lieblingsmonster stärker.'],shop:['Booster-Shop','Entdecke neue Kreaturen und Sonderangebote.'],progress:['Levelbelohnungen','Sieh deine nächsten Fortschrittsmeilensteine.'],profile:['Deine Chronik','Erinnere dich an deine Duelle und Siege.'],settings:['Einstellungen und Spielstandoptionen','Sichere deinen persönlichen Zugang und passe Musik und Animationen an.'],rules:['Regelhandbuch','Karten, Rollen und gemeinsame Spielzüge verständlich erklärt.'],bestiary:['Wissen & Monsterlexikon','Lerne die Regeln kennen und entdecke neue Monster.']};
+ const tabLabels={menu:'Turnier',quests:'Aufgaben & Abenteuer',deck:'Hauptdeck',fusions:'Fusionsdeck',decks:'Deckplätze',bestiary:'Monsterlexikon',collection:'Monsterwerkstatt',upgrades:'Verbesserungen',shop:'Booster-Shop',progress:'Levelbelohnungen',profile:'Chronik',settings:'Einstellungen & Spielstand',rules:'Regelhandbuch'};
  const roleNames={predator:'Predator',guardian:'Wächter',soul:'Seelenzehrer',resonator:'Resonator',combatant:'Allrounder',allrounder:'Allrounder'};
  const descriptions={predator:'Predatoren werden mit jedem eigenen Zug stärker und verstärken sich im Rudel. Predator-Fusionen können als Rudelführer besondere Fähigkeiten erhalten.',guardian:'Wächter heilen verbündete Verteidiger. In DEF schützt ihre Rüstung; überlebt das Monster den Treffer, löst es einen Gegenschlag aus.',soul:'Seelenzehrer sammeln Seelenkraft und ergänzen die Heilung der Wächter. In DEF stehen Verdichten, Seelenstoß und weitere freigeschaltete Fähigkeiten bereit.',resonator:'Resonatoren steigern die Kraft ihrer nächsten Fusion. Ihre gespeicherte Resonanz wird bei der Verschmelzung berücksichtigt.',combatant:'Allrounder verbinden Angriff und Verteidigung. Ihre Resonanz unterstützt passende Fusionen.'};
  let route='',profileStamp='',draftSlot=0,draftCandidate=null,search='',inspectSelection=null,inspectStamp='',pendingOperation=false;
@@ -86,6 +86,18 @@
   await operation('deckReplace',{zone:route==='fusions'?'fusion':'main',slot:draftSlot,cardId:draftCandidate});
   draftCandidate=null;renderDeck();
  };
+ const deckVariants=make('section','ad221-deck-variants',profile);deckVariants.id='duoDeckVariants';
+ deckVariants.addEventListener('click',async event=>{
+  const button=event.target.closest('[data-slot-action]');if(!button||button.disabled)return;
+  const slot=Number(button.dataset.slotIndex);
+  if(button.dataset.slotAction==='copy'&&!confirm('Das aktuelle Deck in Deck '+(slot+1)+' kopieren und dessen bisherige Karten ersetzen?'))return;
+  await operation(button.dataset.slotAction==='copy'?'deckSlotCopy':'deckSlotSelect',{slot});
+ });
+ function renderDeckVariants(){
+  const s=api.state(),p=s.profile;
+  if(!p?.deckSlots){deckVariants.innerHTML='<p>Die Deckplätze werden verfügbar, sobald der Online-Server aktualisiert wurde.</p>';return;}
+  deckVariants.innerHTML='<section class="menu-panel"><h2>Drei Deckplätze</h2><p>Jeder Platz speichert Haupt- und Fusionsdeck. Die Plätze teilen sich deine Sammlung. Der aktive Platz wird beim Speichern im Deckbau aktualisiert. Ein laufendes Duell behält sein Startdeck.</p></section><div class="menu-grid">'+p.deckSlots.map((d,i)=>'<section class="menu-panel"><h2>Deck '+(i+1)+'</h2><p>'+d.main.length+' Hauptkarten · '+d.fusion.length+' Fusionen</p><button type="button" class="btn" data-slot-action="select" data-slot-index="'+i+'" '+(pendingOperation||s.profileSaving||i===p.activeDeckSlot?'disabled':'')+'>'+(i===p.activeDeckSlot?'Aktiv':'Aktivieren')+'</button><button type="button" class="btn" data-slot-action="copy" data-slot-index="'+i+'" '+(pendingOperation||s.profileSaving||i===p.activeDeckSlot?'disabled':'')+'>Aktuelles Deck hierhin kopieren</button></section>').join('')+'</div>';
+ }
  const offers=make('section','ad221-offers',profile);offers.id='duoVisualOffers';
  offers.addEventListener('click',async event=>{
   const button=event.target.closest('[data-offer]');if(!button||button.disabled)return;
@@ -314,13 +326,13 @@
    }
    $('duoSoloMenuTitle').textContent=details[0];$('duoSoloMenuSubtitle').textContent=details[1];
    duels.hidden=!['menu','quests'].includes(route);profile.hidden=!duels.hidden;
-   builder.hidden=!['deck','fusions'].includes(route);offers.hidden=!['shop','upgrades'].includes(route);
+   builder.hidden=!['deck','fusions'].includes(route);deckVariants.hidden=route!=='decks';offers.hidden=!['shop','upgrades'].includes(route);
    settings.hidden=route!=='settings';rules.hidden=route!=='rules';bestiary.hidden=route!=='bestiary';
    native.research.hidden=route!=='upgrades';native.collection.hidden=route!=='collection';native.progress.hidden=route!=='progress';
    const profileOnly=['duoProfileStats','duoAvatarSummary','duoProfileCleared','duoProfileUnlockInfo'];
    for(const id of profileOnly)$(id).hidden=!['profile','progress'].includes(route);
    $('duoProfilePanel').dataset.route=route;
-   if(stamp!==profileStamp){profileStamp=stamp;if(!builder.hidden){draftCandidate=null;renderDeck();}if(!offers.hidden)renderOffers();if(!duels.hidden)chapterOptions();}
+   if(stamp!==profileStamp){profileStamp=stamp;if(!builder.hidden){draftCandidate=null;renderDeck();}if(!deckVariants.hidden)renderDeckVariants();if(!offers.hidden)renderOffers();if(!duels.hidden)chapterOptions();}
    else if(!duels.hidden)renderEncounter();
   }
   if(!show&&s.game?.status==='active')profile.hidden=true;

@@ -121,6 +121,7 @@
  const economyProfile=()=>({
   ...duoProfile,owned_main:duoProfile?.ownedMain||[],
   owned_fusions:duoProfile?.ownedFusions||[],
+  deck_slots:duoProfile?.deckSlots||[],active_deck_slot:duoProfile?.activeDeckSlot??0,
   cleared_chapters:duoProfile?.clearedChapters||[]
  });
  function renderCollectionTable(){

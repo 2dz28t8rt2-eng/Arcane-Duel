@@ -9,6 +9,7 @@ import soloOpponents from "./opponents.json" with {type:"json"};
 import "./duo-rules.js";
 import "./duo-economy-v172.js";
 import "./duo-adversaries-v200.js";
+import "./duo-deck-slots-v222.js";
 
 const game=globalThis.ArcaneDuoRules;
 if(!game)throw Error("Missing authoritative 2v2 rules");
@@ -16,6 +17,8 @@ const economy=globalThis.ArcaneDuoEconomy172;
 if(!economy)throw Error("Missing standalone 2v2 economy rules");
 const adversaries=globalThis.ArcaneDuoAdversaries200;
 if(!adversaries)throw Error("Missing independent 2v2 adversary decks");
+const deckSlots=globalThis.ArcaneDuoDeckSlots222;
+if(!deckSlots)throw Error("Missing independent 2v2 deck slots");
 const catalog=Object.fromEntries(snapshot.cards.map(c=>[c.id,c]));
 const starter=snapshot.starterMain;
 const db=createClient(Deno.env.get("SUPABASE_URL")||"",
@@ -57,6 +60,7 @@ const profileView=p=>({
  deck:p.deck,fusions:p.fusions,upgrades:p.upgrades,
  enhancements:p.enhancements,essenceBinding:p.essence_binding,
  lv1Research:p.lv1_research,chapterCardCredits:p.chapter_card_credits||0,
+ ...(Object.hasOwn(p,"deck_slots")?{deckSlots:deckSlots.slots(p),activeDeckSlot:p.active_deck_slot??0}:{}),
  updatedAt:p.updated_at
 });
 async function profileByToken(token){
@@ -140,11 +144,17 @@ Deno.serve(async request=>{
    if(error)throw error;
    return json({profileToken,...await profileResult(p)},200,allow);
   }
-  if(["profile","profileName","profileAvatar","upgrade","pack","deckReplace","research","bindEssence","enhance","recycle","chapterCard"].includes(kind)){
+  if(["profile","profileName","profileAvatar","upgrade","pack","deckReplace","deckSlotSelect","deckSlotCopy","research","bindEssence","enhance","recycle","chapterCard"].includes(kind)){
    const p=await profileByToken(body.profileToken);
    if(kind==="profile")return json(await profileResult(p),200,allow);
    assert(Number.isInteger(body.expectedRevision)&&body.expectedRevision===p.revision,
     "2v2-Profil geändert. Bitte synchronisieren.");
+   if(kind==="deckSlotSelect"||kind==="deckSlotCopy"){
+    assert(Object.hasOwn(p,"deck_slots"),"Deckplätze benötigen eine Aktualisierung des Online-Servers.");
+    const patch=deckSlots.operation(p,kind,body.slot,catalog,game);
+    const next=await writeProfile(p,patch);
+    return json(await profileResult(next),200,allow);
+   }
    if(kind==="profileAvatar"){
     assert(typeof body.avatarId==="string"&&/^hero-(0[1-9]|1[0-6])$/.test(body.avatarId),
      "Unbekanntes Charakterportrait.");
@@ -200,6 +210,8 @@ Deno.serve(async request=>{
       patch.owned_fusions=[...p.owned_fusions,...granted.map(c=>c.id)];
       patch.fusions=[...p.fusions,
        ...granted.map(c=>c.id).slice(0,Math.max(0,15-p.fusions.length))];
+      if(Object.hasOwn(p,"deck_slots")&&p.deck_slots.length===0)
+       patch.deck_slots=deckSlots.slots(p);
      }
     }else{
      patch.essence_binding={...p.essence_binding,researchRank:offer.nextRank,rank:offer.nextRank};
@@ -279,9 +291,7 @@ Deno.serve(async request=>{
     inventoryAllows(deck,fusion?p.owned_fusions:p.owned_main),
     "Karte fehlt in deiner 2v2-Sammlung oder verletzt Deckregeln.");
    const main=fusion?p.deck:deck,side=fusion?deck:p.fusions;
-   const remaining=new Set([...main,...side]),enhancements={};
-   for(const [id,rank] of Object.entries(p.enhancements||{}))
-    if(remaining.has(Number(id)))enhancements[id]=rank;
+   const enhancements=deckSlots.activeEnhancements(p,main,side);
    // Do not let editing a deck silently remove a currently bound creature.
    if(p.essence_binding?.chosen!=null)
     assert(main.includes(p.essence_binding.chosen),
@@ -289,7 +299,11 @@ Deno.serve(async request=>{
    // Ensure the modified deck is still a valid combat build, not merely an inventory list.
    game.normalizedBuild(p.upgrades,enhancements,main,side,catalog,
     p.essence_binding,p.lv1_research);
-   const next=await writeProfile(p,{[fusion?"fusions":"deck"]:deck,enhancements});
+   const patch:any={[fusion?"fusions":"deck"]:deck};
+   // Capture the other initial variants before the first edit.
+   if(Object.hasOwn(p,"deck_slots")&&p.deck_slots.length===0)
+    patch.deck_slots=deckSlots.slots(p);
+   const next=await writeProfile(p,patch);
    return json(await profileResult(next),200,allow);
   }
   if(kind==="invitePreview"){
@@ -321,7 +335,7 @@ Deno.serve(async request=>{
    const state=game.create({roomId:id,hostName:p.nickname,
     hostDeck:p.deck,hostFusions:p.fusions,
     hostPortrait:portraitId(p.avatar_id),
-    hostUpgrades:p.upgrades,hostEnhancements:p.enhancements,
+    hostUpgrades:p.upgrades,hostEnhancements:deckSlots.activeEnhancements(p),
     hostEssence:p.essence_binding,hostLv1:p.lv1_research,
     enemyDeckA:enemyDeck(chapter,1),enemyDeckB:enemyDeck(chapter,3),
     enemyFusionsA:enemyFusions(chapter),enemyFusionsB:enemyFusions(chapter),
@@ -369,7 +383,7 @@ Deno.serve(async request=>{
    const guest=secret(),next=game.apply(room.state,2,{
     type:"join",name:p.nickname,deck:p.deck,fusions:p.fusions,
     portraitId:portraitId(p.avatar_id),deferStart:body.deferStart===true,
-    upgrades:p.upgrades,enhancements:p.enhancements,
+    upgrades:p.upgrades,enhancements:deckSlots.activeEnhancements(p),
     essence:p.essence_binding,lv1:p.lv1_research},{catalog});
    const {data:updated,error:writeError}=await db.from(TABLE).update({
     state:next,status:next.status==='lobby'?'waiting':next.status,revision:next.revision,
@@ -429,7 +443,7 @@ Deno.serve(async request=>{
      (target>=11?target<=economy.maxSagaStage(profile):target<=maxChapter(profile)),
      "Beide Spieler müssen dieses Duell freigeschaltet haben.");
     humanBuilds[seatNumber]={name:profile.nickname,deck:profile.deck,fusions:profile.fusions,
-     upgrades:profile.upgrades,enhancements:profile.enhancements,
+     upgrades:profile.upgrades,enhancements:deckSlots.activeEnhancements(profile),
      essence:profile.essence_binding,lv1:profile.lv1_research,
      portraitId:portraitId(profile.avatar_id)};
    }

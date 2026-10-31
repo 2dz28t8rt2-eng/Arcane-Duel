@@ -4,15 +4,19 @@ const {randomUUID,randomBytes}=require('node:crypto');
 const rules=require('../../assets/duo-shared-rules-v160.js');
 const snapshot=require('../../assets/duo-card-catalog-v160.json');
 const economy=require('../../assets/duo-economy-v172.js');
+const deckSlots=require('../../assets/duo-deck-slots-v222.js');
 const catalog=Object.fromEntries(snapshot.cards.map(c=>[c.id,c]));
 const secret=()=>randomBytes(32).toString('hex');
 const copy=v=>structuredClone(v);
 function fixture(){
  const profiles=new Map(),rooms=new Map();
- const result=p=>({profile:copy(p),economy:{packs:economy.PACKS,lv1:{},essence:{},maxCardLevel:3,
+ const slotProfile=p=>({deck:p.deck,fusions:p.fusions,deck_slots:p.deckSlots,
+  active_deck_slot:p.activeDeckSlot,owned_main:p.ownedMain,owned_fusions:p.ownedFusions,
+  upgrades:p.upgrades,enhancements:p.enhancements,essence_binding:p.essenceBinding,lv1_research:p.lv1Research});
+ const result=p=>({profile:{...copy(p),deckSlots:deckSlots.slots(slotProfile(p))},economy:{packs:economy.PACKS,lv1:{},essence:{},maxCardLevel:3,
   maxChapter:economy.maxChapter({cleared_chapters:p.clearedChapters}),
   maxSagaStage:economy.maxSagaStage({cleared_chapters:p.clearedChapters}),rewards:economy.rewardTable()}});
- const build=p=>({name:p.nickname,deck:p.deck,fusions:p.fusions,upgrades:p.upgrades,enhancements:p.enhancements,essence:p.essenceBinding,lv1:p.lv1Research,portraitId:p.avatarId});
+ const build=p=>({name:p.nickname,deck:p.deck,fusions:p.fusions,upgrades:p.upgrades,enhancements:deckSlots.activeEnhancements(slotProfile(p)),essence:p.essenceBinding,lv1:p.lv1Research,portraitId:p.avatarId});
  const limits=r=>{
   if(!r.guest)return null;
   const progress=p=>({cleared_chapters:p.clearedChapters});
@@ -23,17 +27,26 @@ function fixture(){
  };
  function handle(b){
   if(b.type==='profileCreate'){
-   const token=secret(),p={id:randomUUID(),nickname:b.name,avatarId:b.avatarId||'hero-01',revision:0,xp:0,level:1,essence:400,shards:10,wins:0,clearedChapters:[],ownedMain:[...snapshot.starterMain,0,1],ownedFusions:[...snapshot.starterFusions],deck:[...snapshot.starterMain],fusions:[...snapshot.starterFusions],upgrades:{},enhancements:{},essenceBinding:{},lv1Research:{},chapterCardCredits:0};
+   const token=secret(),p={id:randomUUID(),nickname:b.name,avatarId:b.avatarId||'hero-01',revision:0,xp:0,level:1,essence:400,shards:10,wins:0,clearedChapters:[],ownedMain:[...snapshot.starterMain,0,1],ownedFusions:[...snapshot.starterFusions],deck:[...snapshot.starterMain],fusions:[...snapshot.starterFusions],deckSlots:[],activeDeckSlot:0,upgrades:{},enhancements:{},essenceBinding:{},lv1Research:{},chapterCardCredits:0};
    profiles.set(token,p);return {profileToken:token,...result(p)};
   }
   const p=profiles.get(b.profileToken);
-  if(['profile','profileName','upgrade','deckReplace'].includes(b.type)){
+  if(['profile','profileName','upgrade','deckReplace','deckSlotSelect','deckSlotCopy'].includes(b.type)){
    if(!p)throw Error('Profil fehlt');
    if(b.type!=='profile'){
     if(b.expectedRevision!==p.revision)throw Error('Profil geändert');
     if(b.type==='profileName')p.nickname=b.name;
     if(b.type==='upgrade'){p.upgrades[b.key]=(p.upgrades[b.key]||0)+1;p.essence-=100;}
-    if(b.type==='deckReplace')p[b.zone==='main'?'deck':'fusions'][b.slot]=b.cardId;
+    if(b.type==='deckReplace'){
+     if(p.deckSlots.length===0)p.deckSlots=deckSlots.slots(slotProfile(p));
+     p[b.zone==='main'?'deck':'fusions'][b.slot]=b.cardId;
+    }
+    if(b.type==='deckSlotSelect'||b.type==='deckSlotCopy'){
+     const patch=deckSlots.operation(slotProfile(p),b.type,b.slot,catalog,rules);
+     if(patch.deck_slots)p.deckSlots=patch.deck_slots;
+     if(patch.active_deck_slot!==undefined)p.activeDeckSlot=patch.active_deck_slot;
+     if(patch.deck)p.deck=patch.deck;if(patch.fusions)p.fusions=patch.fusions;
+    }
     p.revision++;
    }
    return result(p);
