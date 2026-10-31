@@ -109,8 +109,9 @@
   }
   return true;
  }
- const reduced=()=>typeof window!=="undefined"&&window.matchMedia&&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+ const reduced=()=>!!(document.body?.classList.contains('ad-motion-disabled')||
+  (typeof window!=="undefined"&&window.matchMedia&&
+   window.matchMedia("(prefers-reduced-motion: reduce)").matches));
  const endpoint=where=>{
   if(!where)return null;
   if(where.team===0||where.team===1)return document.getElementById(
@@ -159,10 +160,21 @@
   stage.replaceChildren();
   const to=center(endpoint(e.where)),from=center(endpoint(e.from));
   if(e.type==="attack"){
-   travel(from,to,endpoint(e.from));
-   pending.push(setTimeout(()=>{
-    if(sequence===serial)burst(to||from,"hit");
-   },240));
+   const source=endpoint(e.from),destination=endpoint(e.where);
+   const card=source?.querySelector('.board-creature, .hand-card')||source;
+   if(source?.classList.contains('filled')&&card&&destination&&window.ArcaneAttackFX?.playBetween){
+    // State is already confirmed; this is purely visual and never delays
+    // network synchronization or reads another player's private hand.
+    Promise.resolve(window.ArcaneAttackFX.playBetween(card,destination,
+     {owner:(e.from?.seat||0)%2})).then(played=>{
+      if(!played&&sequence===serial){travel(from,to,source);burst(to||from,'hit');}
+     }).catch(()=>{});
+   }else{
+    travel(from,to,source);
+    pending.push(setTimeout(()=>{
+     if(sequence===serial)burst(to||from,"hit");
+    },240));
+   }
   }
   else if(e.type==="arena"){burst(center(document.querySelector("#duoAlliedLP")),"arena");}
   else if(e.type==="fusion"||e.type==="fate"||e.type==="summon"||
