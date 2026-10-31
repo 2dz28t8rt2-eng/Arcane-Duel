@@ -11,7 +11,7 @@ namespace ArcaneCardEditor;
 /// </summary>
 internal sealed class GameCardWebPreview : UserControl
 {
-    readonly WebView2 browser = new() { Dock = DockStyle.Fill, Visible = false };
+    readonly WebView2 browser = new() { Dock = DockStyle.Fill, Visible = true };
     string pendingJson = "{}";
     bool initialized, ready;
     readonly System.Windows.Forms.Timer redrawTimer = new() { Interval = 90 };
