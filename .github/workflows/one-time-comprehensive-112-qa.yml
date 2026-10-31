@@ -1,0 +1,73 @@
+name: Arcane Duel 1.1.2 – final transfer QA (pinned, no deploy)
+on:
+  push:
+    branches: [development]
+    paths: [.github/workflows/one-time-comprehensive-112-qa.yml]
+permissions:
+  contents: read
+jobs:
+  node24-full:
+    name: Complete Node24, selfhost, and rollback
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 64e6a3423a820087780e01c6764205a7ebf4b71d
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify pinned clean source
+        run: |
+          test "$(git rev-parse HEAD)" = "64e6a3423a820087780e01c6764205a7ebf4b71d"
+          node -p "process.version"
+          node -p "require('./package.json').version" | grep -Fx '1.1.2'
+      - name: Install test-only dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Full application regression
+        run: npm test
+      - name: Server/database/profile independence
+        run: node --test tests/selfhost-v229.test.cjs tests/personal-save-v230.test.cjs tests/shared-client-rules-v230.test.cjs
+      - name: Python release safety and rollback retention
+        run: |
+          python3 -m py_compile server/deploy-release.py scripts/package-selfhost.py
+          python3 -m unittest discover -s tests -p test_release_retention.py -v
+      - name: Browser-independent DOM multiplayer
+        run: npm run test:duo-dom
+  browser2:
+    name: True dual-browser solo and 2v2 entry/shared duel
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 64e6a3423a820087780e01c6764205a7ebf4b71d
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install browser test dependencies
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Browser test actual solo and online entry click routes
+        env:
+          ENTRY_QA_OUTPUT: artifacts/qa112/entry
+        run: node scripts/verify-online-entry-v112.cjs
+      - name: Browser test independent players and shared zones
+        env:
+          DUO_QA_OUTPUT: artifacts/qa112/shared
+        run: node scripts/verify-shared-client-v230.cjs
+      - name: Browser test original online 2v2
+        env:
+          CHROME: /home/runner/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome
+        run: npm run test:duo-browser
+      - name: Upload test reports, including failure reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcane-112-browser-qa
+          path: artifacts/qa112/
+          retention-days: 7
+          if-no-files-found: ignore
