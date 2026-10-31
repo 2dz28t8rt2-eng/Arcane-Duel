@@ -77,7 +77,8 @@
  }
  const definition=(catalog,id)=>catalog[id]||catalog[String(id)]||null;
  const PERK_LIMITS=Object.freeze({power:10,jagdinstinkt:5,schildwall:5,
-  resilience:2,combatDiscipline:3,fusionLore:1,fusionPrecision:3,openingAegis:3});
+  resilience:2,combatDiscipline:3,fusionLore:1,fusionPrecision:3,openingAegis:3,
+  kolossenkraft:3,schwarminstinkt:3});
  const ESSENCE_SCHOOLS=['predator','fusion','defense'];
  const essencePerkRank=tier=>1+(tier>=5?1:0)+(tier>=7?1:0)+
   (tier>=8?1:0)+(tier>=10?1:0);
@@ -146,7 +147,8 @@
   const level=clamp(c.level,1,10),defensive=['guardian','soul'].includes(c.role);
   const hunt=c.role==='predator'?perk(p,'jagdinstinkt'):0;
   const wall=defensive?perk(p,'schildwall'):0;
-  return base+ench+training+(stat==='atk'?
+  const colossus=!c.ace&&c.playable&&level>=6?perk(p,'kolossenkraft')*8*(level-5):0;
+  return base+ench+training+colossus+(stat==='atk'?
    hunt*(20+10*level)+wall*(6+3*level):
    hunt*(6+3*level)+wall*(28+10*level));
  }
@@ -1011,7 +1013,7 @@
    const id=Number.isInteger(card)?card:card.id;
    assert(!definition(catalog,id)?.ace,'ACE-Monster dürfen nicht als Fusionsmaterial verwendet werden.');
    assert(!card.predatorToken,'Rudelruf-Tokens sind niemals Fusionsmaterial.');
-   cards.push(m.from==='hand'?{id:card,level:0,...{_hand:true}}:card);
+   cards.push(m.from==='hand'?{id,level:0,_hand:true,lv1Ghost:card.lv1Ghost===true}:card);
   }
   return cards;
  }
@@ -1291,7 +1293,14 @@
   assert(old?.schema===2&&old.mode==='duo-campaign','Unbekanntes 2v2-Spielstandsformat.');
   assert(Number.isInteger(seat)&&seat>=0&&seat<=3,'Ungültiger Sitzplatz.');
   assert(action&&typeof action.type==='string','Aktion fehlt.');
-  const g=copy(old),p=g.players[seat];
+  const g=copy(old);
+  const sharedAction=['attack','switch','soulCondense','soulDischarge','soulRaid','soulFocus','essencePredatorMode'].includes(action.type);
+  if(action.sourceSeat!=null)assert(sharedField(g)&&sharedAction&&[seat,seat^2].includes(action.sourceSeat),'Ungültiger Besitzer der Feldkarte.');
+  const p=g.players[sharedAction&&action.sourceSeat!=null?action.sourceSeat:seat];
+  if(action.type==='continueGroup'){
+   assert(seat===0&&g.status==='lobby'&&g.groupReleased===false,'Nur der Host kann eine vollständige Gruppe fortsetzen.');
+   g.groupReleased=true;g.revision++;return g;
+  }
   if(action.type==='join'){
    assert(g.status==='waiting'&&seat===2,'Raum kann nicht mehr betreten werden.');
    assert(validDeck(action.deck,catalog),'Das Partnerdeck ist ungültig.');
@@ -1315,6 +1324,7 @@
    g.revision++;return g;
   }
   if(action.type==='requestDuel'){
+   assert(g.groupReleased!==false,'Der Host muss die Gruppe zuerst fortsetzen.');
    if(g.personalDuoRules)assert(seat===0,'Nur der Host kann ein Duell anfragen.');
    const expired=g.status==='party_ready'&&g.partyStartInvite?.expiresAt<=now;
    assert([0,2].includes(seat)&&(['lobby','finished'].includes(g.status)||expired)&&
@@ -1412,13 +1422,15 @@
   }
   assert(seat===g.activeSeat,'Ein anderer Spieler ist am Zug.');
   if(action.type==='summon'||action.type==='replace'){
-   assert(!p.summoned,'Dieser Zug hat bereits eine Beschwörung.');
    assert(Number.isInteger(action.handIndex)&&p.hand[action.handIndex]!==undefined,'Handkarte fehlt.');
+   const effect=p.hand[action.handIndex]?.lv1FromOffer===true;
+   assert(!p.summoned||effect,'Dieser Zug hat bereits eine Beschwörung.');
    assert(Number.isInteger(action.slot)&&action.slot>=0&&action.slot<7&&
     (action.type==='replace'?!!p.field[action.slot]:freeTeamSlot(g,p,action.slot)),'Feldplatz kann nicht belegt werden.');
    const handCard=p.hand[action.handIndex];
    const id=Number.isInteger(handCard)?handCard:handCard?.id;
    const fate=handCard?.fate===true?handCard:null;
+   assert(!handCard.lv1Ghost,'Geister dienen ausschließlich als Fusionsmaterial.');
    assert(allowed(catalog,id)||fate&&definition(catalog,id)?.fateTemplate,
     'Karte ist nicht regulär beschwörbar.');
    // A discard-stage summon keeps exactly one selected hand card and
@@ -1441,9 +1453,31 @@
     g.log.push(p.name+' ersetzt '+definition(catalog,old.id).name+' in Zone '+(action.slot+1)+'.');
    }
    p.field[action.slot]=instance(g,id,catalog,{ownerSeat:seat,fate});
+   if(effect)Object.assign(p.field[action.slot],{lv1Echo:!!handCard.lv1Echo,lv1Effectless:!!handCard.lv1Effectless});
    lv1Arrival(g,p,p.field[action.slot],catalog);
-   p.summoned=true;g.log.push(p.name+' beschwört '+
+   if(!effect)p.summoned=true;g.log.push(p.name+' beschwört '+
     (fate?'ein Schicksalsmonster':definition(catalog,id).name)+'.');
+  }else if(action.type==='lv1Choose'){
+   const s=lv1State(p),chosen=s.choices[action.index];
+   assert(s.perk&&Number.isInteger(action.index)&&chosen!==undefined&&s.offers.length<5&&['echo','deck'].includes(action.kind),'Keine gültige Floating-Wahl vorhanden.');
+   let id=chosen;
+   if(action.kind==='deck'){
+    const options=p.deck.map((id,index)=>({id,index})).filter(x=>definition(catalog,x.id)?.level===1&&!definition(catalog,x.id)?.fusionOnly);
+    assert(options.length,'Kein echtes Level-1-Monster mehr im Deck.');const selected=options[randomInt(g,options.length)];id=selected.id;p.deck.splice(selected.index,1);
+   }
+   s.choices.splice(action.index,1);s.offers.push({id,echo:action.kind==='echo'});
+  }else if(action.type==='lv1ClaimOffer'){
+   const s=lv1State(p),offer=s.offers[action.index];
+   assert(s.perk&&Number.isInteger(action.index)&&offer!==undefined&&p.hand.length<9,'Kein freies Schwarm-Angebot.');
+   p.hand.push({id:Number.isInteger(offer)?offer:offer.id,lv1FromOffer:true,lv1Echo:Number.isInteger(offer)||offer.echo===true,lv1Effectless:Number.isInteger(offer)||offer.echo===true});s.offers.splice(action.index,1);
+  }else if(action.type==='lv1Lock'){
+   const s=lv1State(p),c=p.field[action.slot];
+   assert(s.perk&&c&&genuineLv1(c,catalog)&&!c.used&&!(c.lv1LockedUntil>p.ownTurns)&&s.offers.length<5,'Dieses Monster kann jetzt nicht gelockt werden.');
+   c.lv1LockedUntil=p.ownTurns+2;c.used=true;c.switched=true;s.offers.push(c.id);
+  }else if(action.type==='lv1Charge'){
+   const s=lv1State(p);assert(s.perk&&s.charges>0&&p.hand.length<9,'Kein Geist verfügbar.');
+   const catalyst=Object.values(catalog).find(c=>c.playable&&!c.fusionOnly&&!c.ace&&c.level===2&&c.role==='combatant');
+   assert(catalyst,'Geistervorlage fehlt.');s.charges--;p.hand.push({id:catalyst.id,lv1Ghost:true,lv1Effectless:true});
   }else if(action.type==='lv1Station'){
    const s=lv1State(p),c=p.field[action.slot],i=action.ghostSlot;
    assert(s.perk&&Number.isInteger(i)&&i>=0&&i<s.ghostSlots.length&&
@@ -1479,7 +1513,9 @@
     Number.isInteger(i)&&i>=0,'Freie Lv1-Beschwörung benötigt einen freien Feldplatz.');
    let id,echo=true;
    if(action.type==='lv1UseOffer'){
-    id=s.offers[i];assert(Number.isInteger(id),'Kein Schwarm-Echo verfügbar.');
+    const offer=s.offers[i];id=Number.isInteger(offer)?offer:offer?.id;
+    echo=Number.isInteger(offer)||offer?.echo===true;
+    assert(Number.isInteger(id),'Kein Schwarm-Echo verfügbar.');
     s.offers.splice(i,1);
    }else{
     id=s.choices[i];assert(Number.isInteger(id),'Keine Floating-Wahl verfügbar.');
@@ -1518,7 +1554,9 @@
    g.log.push(p.name+' wählt für '+definition(catalog,c.id).name+
     (action.mode===2?' zwei Angriffe mit je 70 % Stärke.':' einen Angriff mit 100 % Stärke.'));
   }else if(action.type==='fusion'){
-   assert(!p.summoned,'Dieser Zug hat bereits eine Beschwörung.');
+   const handMaterials=Array.isArray(action.materials)?action.materials.filter(m=>m.from==='hand'):[];
+   const effectFusion=handMaterials.length===1&&p.hand[handMaterials[0].index]?.lv1FromOffer===true;
+   assert(!p.summoned||effectFusion,'Dieser Zug hat bereits eine Beschwörung.');
    assert(Number.isInteger(action.slot)&&action.slot>=0&&action.slot<7,'Ungültiger Zielfeldplatz.');
    const {rule,cards,analysis:baseAnalysis,templates}=fusionOptions(g,seat,action.materials,catalog,
     {coreIndex:action.coreIndex});
@@ -1574,6 +1612,12 @@
     result.level=1;result.atk+=extra.atk;result.def+=extra.def;
     result.lv1Full={atk:result.atk,def:result.def};
    }
+   const swarmRank=perk(p,'schwarminstinkt');
+   if(swarmRank&&cards.length>=2&&cards.length<=5&&cards.every(c=>c.level>=1&&c.level<=5)){
+    const boost=Math.min(.075,swarmRank*(cards.length===5?.025:cards.length>=3?.02:.015));
+    result.atk=round10(result.atk*(1+boost));result.def=round10(result.def*(1+boost));
+    result.swarmInstinctBonus=boost;
+   }
    result.maxDef=result.def;
    result.quality=Math.round(analysis.quality*1000)/1000;
    result.roleOrigin='material';
@@ -1623,7 +1667,7 @@
     g.questProgress.special++;
    if(analysis.loreChainApplied)p.fusionLoreChainUsed=true;
    imprintPredator(g,p,result,cards.length);
-   p.field[action.slot]=result;p.summoned=true;
+   p.field[action.slot]=result;if(!effectFusion)p.summoned=true;
    syncLv1Swarm(p,catalog);
    // Presentation must retain the confirmed fusion result even if later
    // actions modify the monster before the other browser receives the state.
@@ -1638,7 +1682,7 @@
    const sourceZone=sourceArea==='ghost'?ghostZone(p):p.field;
    assert(sourceArea!=='ghost'||lv1State(p).perk,'Geisterangriffe sind nicht freigeschaltet.');
    const src=sourceZone[action.slot];
-   assert(src&&src.mode==='atk'&&!src.used&&src.placedRound<g.round&&
+   assert(src&&src.mode==='atk'&&!src.used&&(g.groupReleased!=null?g.turn>0:src.placedRound<g.round)&&
     !(src.lv1LockedUntil>p.ownTurns),'Angreifer ist nicht bereit.');
    const foes=g.players.filter(x=>x.team!==p.team);
    let enemy=foes.find(x=>x.seat===action.targetSeat);
@@ -1659,6 +1703,7 @@
     def:Math.max(0,src.def)};
    let stompCandidates=[],stompPrimary=null;
    if(action.targetSeat===null){
+    g.lastStrike={sourceSeat:p.seat,sourceSlot:action.slot,sourceArea,targetSeat:null,targetSlot:null};
     assert(foes.every(x=>!hasCards(x)),'Direkter Angriff ist durch Gegnerkarten blockiert.');
     score(g,p.team,raw,p.name+' · direkter Angriff');
    }else{
@@ -1691,6 +1736,7 @@
       taunt=true;g.teams[0].essenceTauntTurn=g.turn;
       g.log.push('✦ Aschenhort lenkt den ersten Gegnerangriff auf sich und halbiert ihn.');}
     }
+    g.lastStrike={sourceSeat:p.seat,sourceSlot:action.slot,sourceArea,targetSeat:enemy.seat,targetSlot,targetArea};
     if(targetArea==='field'&&stompCount(src)>=3){
      stompCandidates=stompLine(g,p,enemy,targetSlot,stompCount(src));
      stompPrimary={seat:enemy.seat,slot:targetSlot,uid:target.uid};
@@ -1750,7 +1796,7 @@
       if(!mark.attackers.includes(src.uid))mark.attackers.push(src.uid);
      }else g.predatorPursuit={turn:g.turn,ownerSeat:seat,targetSeat:enemy.seat,
       targetUid:huntedUid,attackers:[src.uid]};
-     g.predatorImpact={revision:g.revision+1,ownerSeat:seat,attackerUid:src.uid,
+     g.predatorImpact={revision:g.revision+1,ownerSeat:p.seat,attackerUid:src.uid,
       targetSeat:enemy.seat,targetSlot,targetArea,targetUid:huntedUid,
       followups:chase.followups,bonusPct:chase.bonusPct,broken:!survived};
      if(chase.followups)g.log.push('🐾 Blutspur · Folgeangriff '+chase.followups+
@@ -1790,7 +1836,7 @@
    }
    if(stompPrimary){
     const source=definition(catalog,src.id);
-    g.stompEvent={revision:g.revision+1,sourceSeat:seat,sourceSlot:action.slot,
+    g.stompEvent={revision:g.revision+1,sourceSeat:p.seat,sourceSlot:action.slot,
      sourceUid:src.uid,primary:stompPrimary,materials:stompCount(src),
      bonusPP:stompBonus(src),element:source.element||src.element||'LICHT',
      hits:stompHits};
@@ -1806,6 +1852,24 @@
    if(g.status==='active')moveOn(g,catalog);
   }else fail('Unbekannte Aktion.');
   removePredatorTokenGraves(g);
+  if(g.groupReleased!=null){
+   const actor=g.players[seat],stats=actor.soloMetrics||(actor.soloMetrics={attacks:0,damage:0,kills:0,essenceTurns:0,normalDamage:0,combos:0,five:0,materialsMax:0});
+   if(action.type==='attack'){
+    const source=old.players[action.sourceSeat??seat][action.area==='ghost'?'lv1':'field'];
+    const card=action.area==='ghost'?source?.ghostSlots?.[action.slot]:source?.[action.slot];
+    const damage=Math.max(0,old.teams[1-actor.team].lp-g.teams[1-actor.team].lp);
+    stats.attacks++;stats.damage+=damage;if(card&&!card.fusion)stats.normalDamage+=damage;
+   }
+   if(action.type==='attack'&&(action.sourceSeat??seat)===seat&&old.players[seat].field[action.slot]?.id===actor.essence?.chosen){
+    const surviving=new Set(g.players.filter(x=>x.team!==actor.team).flatMap(x=>x.field.filter(Boolean).map(c=>c.uid)));
+    stats.kills+=old.players.filter(x=>x.team!==actor.team).flatMap(x=>x.field.filter(Boolean)).filter(c=>!surviving.has(c.uid)).length;
+   }
+   if(action.type==='end'&&old.players[seat].field.some(c=>c&&c.id===actor.essence?.chosen))stats.essenceTurns++;
+   if(action.type==='fusion'){
+    const card=actor.field[action.slot],count=action.materials.length;stats.materialsMax=Math.max(stats.materialsMax,count);
+    if(count===5)stats.five++;if(card?.pattern&&card.pattern!=='Freie Fusion')stats.combos++;
+   }
+  }
   g.revision++;return g;
  }
  // v18.6 research-inspired, actual-rule-checked SOLO-STYLE AI for BOTH 2v2 NPCs.
@@ -1872,7 +1936,7 @@
   const p=g.players[seat],targets=npcTargetList(g,seat),out=[];
   for(let slot=0;slot<p.field.length;slot++){
    const c=p.field[slot];
-   if(!c||c.mode!=='atk'||c.used||c.placedRound>=g.round||
+   if(!c||c.mode!=='atk'||c.used||(g.groupReleased!=null?g.turn===0:c.placedRound>=g.round)||
       (c.lv1LockedUntil>p.ownTurns))continue;
    if(!targets.length)out.push({type:'attack',slot,targetSeat:null,targetSlot:null});
    else{
@@ -2024,43 +2088,55 @@
   }
   return null;
  }
- function aiTurn(old,{catalog}){
+ function aiTurn(old,{catalog,onStep}){
   let g=old,actors=0;
+  const step=(seat,action)=>{g=apply(g,seat,action,{catalog});onStep?.(g,seat,action);};
   while(g.status==='active'&&[1,3].includes(g.activeSeat)&&actors++<2){
    const seat=g.activeSeat,p=g.players[seat];
    const summon=npcSummonChoice(g,seat,catalog);
-   if(summon)g=apply(g,seat,summon,{catalog});
+   if(summon)step(seat,summon);
    // Live Solo-style positioning first, then tactically chosen attacks and
    // supported Soul skills; every action is run through the same reducer.
    const switches=new Set();
    for(let i=0;i<7;i++){
     const action=npcDefenseSwitch(g,seat);
     if(!action||switches.has(action.slot))break;
-    g=apply(g,seat,action,{catalog});switches.add(action.slot);
+    step(seat,action);switches.add(action.slot);
    }
    let steps=0;
    while(g.status==='active'&&g.activeSeat===seat&&steps++<18){
     const action=npcTacticalChoice(g,seat,catalog);
     if(!action)break;
-    g=apply(g,seat,action,{catalog});
+    step(seat,action);
    }
    if(g.status==='active'&&g.activeSeat===seat)
-    g=apply(g,seat,{type:'end'},{catalog});
+    step(seat,{type:'end'});
   }
   return g;
  }
 
- function view(g,seat){
+ function view(g,seat,catalog){
   const v=copy(g);
+  if(catalog&&g.groupReleased!=null){
+   const scratch=copy(g);
+   v.players[seat].handFaces=g.players[seat].hand.map(card=>{
+    const c=instance(scratch,Number.isInteger(card)?card:card.id,catalog,{ownerSeat:seat,fate:card?.fate?card:null});
+    if(card?.lv1FromOffer)Object.assign(c,{lv1FromOffer:true,lv1Echo:!!card.lv1Echo,lv1Effectless:!!card.lv1Effectless});
+    if(card?.lv1Ghost)Object.assign(c,{lv1Ghost:true,lv1Effectless:true,atk:0,def:1});
+    delete c.uid;return c;
+   });
+  }
   v.supportsSurrender=true; // Advertised by the deployed server, not the browser.
   delete v.uid;delete v.rngSeed; // Never disclose upcoming server-side dice.
   // A Fate event names the cards newly drawn into its owner's private hand.
   // Other clients may see the event, but must not receive those card IDs.
   if(v.fateEvent&&v.fateEvent.ownerSeat!==seat)delete v.fateEvent.cardIds;
   for(const p of v.players){
+   if(catalog&&g.groupReleased!=null&&p.seat===seat)p.originalDeck=[...p.baseDeck];
    delete p.baseDeck;delete p.baseFusions;
    p.deck=Array(p.deck.length).fill(null);
-   if(p.seat!==seat)p.hand=Array(p.hand.length).fill(null);
+   if(p.seat!==seat){p.hand=Array(p.hand.length).fill(null);delete p.handFaces;}
+   if(p.seat!==seat&&p.lv1){p.lv1.choices=Array(p.lv1.choices?.length||0).fill(null);p.lv1.offers=Array(p.lv1.offers?.length||0).fill(null);}
    if(p.seat!==seat){p.fusionDeck=Array(p.fusionDeck.length).fill(null);
     p.remainingFusion=Array(p.remainingFusion.length).fill(null);}
   }

@@ -1,13 +1,14 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'..'),r=p=>fs.readFileSync(path.join(root,p),'utf8');
-test('Arcane Duel displays one unsuffixed 1.0.0 game/server version, not old 4.1 labels',()=>{
+test('Arcane Duel displays the canonical unsuffixed game/server version, not old 4.1 labels',()=>{
  const html=r('index.html'),duo=r('duo-campaign-v2.html'),collection=r('collection-v3.html');
  const royal=r('assets/royal-menu.js'),archive=r('assets/arcane-archive.js'),evolution=r('assets/evolution.js');
- assert.match(html,/<meta name="arcane-duel-version" content="1\.0\.0">/);
- assert.match(html,/<title>ARCANE DUEL · 1\.0\.0<\/title>/);
- assert.match(duo,/<meta name="arcane-duel-version" content="1\.0\.0">/);
- assert.match(collection,/<span data-arcane-version>1\.0\.0<\/span>/);
+ const {version}=require('../package.json');assert.match(version,/^\d+\.\d+\.\d+$/);
+ assert.ok(html.includes('<meta name="arcane-duel-version" content="'+version+'">'));
+ assert.ok(html.includes('<title>ARCANE DUEL · '+version+'</title>'));
+ assert.ok(duo.includes('<meta name="arcane-duel-version" content="'+version+'">'));
+ assert.ok(collection.includes('<span data-arcane-version>'+version+'</span>'));
  for(const runtime of [royal,archive,evolution]){
   assert.match(runtime,/ArcaneDuelRelease\?\.version/);
   assert.doesNotMatch(runtime,/ARCANE DUEL 4\.1/);

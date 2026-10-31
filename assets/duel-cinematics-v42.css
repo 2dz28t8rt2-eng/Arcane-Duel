@@ -9,7 +9,7 @@ html body :is(.card-preview-panel,.arcane-enemy-large,#deckSidePreview,.ad-card-
 .ad-defender-ability>strong{color:#f4deb6}.ad-defender-ability p{margin:7px 0!important;font-size:12px!important;line-height:1.65!important;color:#bed0de!important}
 .ad-defender-ability .ad-charge-note{border-top:1px solid #c7abf05c;padding-top:8px;color:#e8c3ff!important}
 /* Square zones have a cross-shaped inset for upright and horizontal cards. */
-html body #duelScreen .slots{grid-template-columns:repeat(5,minmax(66px,1fr))!important;gap:8px!important;min-width:362px;max-width:780px}
+html body #duelScreen .slots{grid-template-columns:repeat(var(--arcane-zone-count,5),minmax(66px,1fr))!important;gap:8px!important;min-width:362px;max-width:780px}
 html body :is(#duelScreen,#duoBattleArena) .monster-slot{container-type:inline-size;aspect-ratio:1;height:auto!important;min-height:0!important;padding:0!important;overflow:hidden!important;border-radius:10px;background:radial-gradient(circle,#25374b,#111d2d 80%)}
 html body :is(#duelScreen,#duoBattleArena) .monster-slot::before{inset:5%;border:0;border-radius:0;background:#b3c3db20;clip-path:polygon(25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%,0 25%,25% 25%)}
 html body :is(#duelScreen,#duoBattleArena) .monster-slot>.board-creature.tc-card{flex:none!important;width:62cqw!important;max-width:none!important;height:90cqw!important;max-height:none!important;margin:0!important;box-sizing:border-box!important;transform:rotate(0deg)!important;transform-origin:center!important;transition:transform .32s ease!important}

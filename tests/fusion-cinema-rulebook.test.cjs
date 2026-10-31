@@ -6,7 +6,7 @@ function boot(){
  const nodes=new Map(),store=new Map();
  function el(id=''){return {id,innerHTML:'',textContent:'',value:'',hidden:false,disabled:false,style:{},dataset:{},classList:{add(){},remove(){},toggle(){},contains(){return false}},append(){},appendChild(){},remove(){},setAttribute(){},addEventListener(){},insertAdjacentHTML(){},click(){this.onclick?.()},querySelector(){return el()},querySelectorAll(){return []},getBoundingClientRect(){return {left:0,top:0,width:100,height:100}}};}
  const doc={body:el('body'),getElementById(id){if(!nodes.has(id))nodes.set(id,el(id));return nodes.get(id)},querySelector(){return el()},querySelectorAll(){return []},createElement:el,addEventListener(){},elementFromPoint(){return null}};
- const window={localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,String(v))},crypto:{getRandomValues(a){a[0]=12345;return a}},innerWidth:1200,innerHeight:800};
+ const window={ArcaneDuelRelease:{version:require('../package.json').version},localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,String(v))},crypto:{getRandomValues(a){a[0]=12345;return a}},innerWidth:1200,innerHeight:800};
  const ctx=vm.createContext({window,document:doc,console,setTimeout(){},setInterval(){},clearTimeout(){},clearInterval(){},Blob,URL:{createObjectURL(){return 'blob:test'},revokeObjectURL(){}}});
  for(const source of src)vm.runInContext(source,ctx,{timeout:20000});
  return expr=>JSON.parse(vm.runInContext(`JSON.stringify(${expr})`,ctx,{timeout:20000}));
@@ -21,7 +21,7 @@ test('Low-level pairs in a two-pair combination beat the two-card level-three pa
 });
 test('Rulebook includes current game title, complete poker table, start fusion clarification, and quests',()=>{
  const run=boot(),r=run(`(()=>{showRules();return document.getElementById('modal').innerHTML})()`);
- for(const phrase of ['ARCANE DUEL 4.1','Monsterlexikon','Funkenwyrm','Runengreif','Zwei Paare','Große Straße','zusammen höchstens 8','15 abgeschlossene','Fusionsdeck','ATK','DEF','Verteidigung','Burst'])assert.ok(r.includes(phrase),phrase);
+ for(const phrase of ['ARCANE DUEL '+require('../package.json').version,'Monsterlexikon','Funkenwyrm','Runengreif','Zwei Paare','Große Straße','zusammen höchstens 8','15 abgeschlossene','Fusionsdeck','ATK','DEF','Verteidigung','Burst'])assert.ok(r.includes(phrase),phrase);
 });
 test('Fusion cinema uses real material artwork, with reduced-motion and instant guards',()=>{
  const js=fs.readFileSync(path.join(root,'assets/evolution.js'),'utf8');const css=fs.readFileSync(path.join(root,'assets/evolution.css'),'utf8');

@@ -1,0 +1,6 @@
+/* Only the multiplayer additions change the original layout. */
+.online-duel-230{--arcane-zone-count:7}
+#onlineSync230{font-size:.75rem;opacity:.8}
+#onlineInviteLink230{display:block;width:100%;margin:12px 0;padding:10px;color:inherit;background:#131522;border:1px solid #a99257}
+#onlineContinue230:not(:disabled){box-shadow:0 0 18px #d5b86588}
+@media(max-width:700px){.online-duel-230 #ownRow,.online-duel-230 #enemyRow{min-width:510px}.online-duel-230 .table-surface{overflow-x:auto}}

@@ -13,7 +13,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/selfhost-v229.test.cjs
+      - run: node --test tests/selfhost-v229.test.cjs tests/personal-save-v230.test.cjs tests/shared-client-rules-v230.test.cjs
       - run: python3 -m py_compile server/deploy-release.py scripts/package-selfhost.py
       - run: python3 -m unittest discover -s tests -p test_release_retention.py -v
       - run: node --check server/main.cjs && node --check server/backup.cjs
+  shared-client-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/verify-shared-client-v230.cjs
+        env:
+          DUO_QA_OUTPUT: artifacts/shared-client
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shared-client-browser
+          path: artifacts/shared-client

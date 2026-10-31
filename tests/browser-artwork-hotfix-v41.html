@@ -15,8 +15,10 @@ document.getElementById('game').addEventListener('load',async function(){
   check(art.fireName==='Funkenwyrm'&&art.fire.includes('funkenwyrm-new.webp'),'ID 41 benutzt neues Funkenwyrm-Motiv');
   check(art.forestName==='Waldschlund'&&art.forest.includes('waldschlund-new.webp'),'ID 45 benutzt neues Waldschlund-Motiv');
   check(art.pack==='assets/custom-art/generated-4-1/monster-0320.webp','Paket-Artwork Himmelskrone weiterhin aktiv');
-  check(d.title.includes('4.1'),'Aktueller Titel 4.1');
-  const root=d.querySelector('.brandtitle');check(root?.textContent?.includes('4.1'),'4.1 im Spielkopf');
+  const version=d.querySelector('meta[name="arcane-duel-version"]')?.content;
+  check(/^\d+\.\d+\.\d+$/.test(version||''),'Gültige gemeinsame Spielversion vorhanden');
+  check(d.title==='ARCANE DUEL · '+version,'Aktuelle Spielversion im Seitentitel');
+  const root=d.querySelector('.brandtitle');check(root?.textContent?.includes(version),'Aktuelle Spielversion im Spielkopf');
   const realImg=w.eval("fullCardHtml({id:41})");
   check(realImg.includes('funkenwyrm-new.webp'),'Kartenrenderer gibt neues Bild im HTML aus');
   const forestImg=w.eval("fullCardHtml({id:45})");

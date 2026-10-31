@@ -3,7 +3,7 @@
 // This deliberately exposes only the query operations used by that handler.
 const {DatabaseSync}=require('node:sqlite');
 const tables={arcane_duo_v2_profiles:'profiles',arcane_duo_v2_rooms:'rooms'};
-const fields=new Set(('id created_at updated_at expires_at revision token_hash creator_fingerprint nickname avatar_id xp essence shards wins cleared_chapters owned_main owned_fusions deck fusions upgrades enhancements essence_binding lv1_research chapter_card_credits deck_slots active_deck_slot status state host_token_hash invitation_hash guest_token_hash host_profile_id guest_profile_id host_seen_at guest_seen_at').split(' '));
+const fields=new Set(('id created_at updated_at expires_at revision token_hash creator_fingerprint nickname avatar_id xp essence shards wins cleared_chapters owned_main owned_fusions deck fusions upgrades enhancements essence_binding lv1_research chapter_card_credits deck_slots active_deck_slot solo_save solo_result presentation status state host_token_hash invitation_hash guest_token_hash host_profile_id guest_profile_id host_seen_at guest_seen_at').split(' '));
 const copy=x=>JSON.parse(JSON.stringify(x));
 const column=k=>{if(!fields.has(k))throw Error('Unsupported storage column');return `json_extract(document,'$.${k}')`;};
 function defaults(table){
@@ -30,14 +30,29 @@ class Store{
  transaction(fn){this.db.exec('BEGIN IMMEDIATE');try{const r=fn();this.db.exec('COMMIT');return r;}catch(e){this.db.exec('ROLLBACK');throw e;}}
  read(table,id){const row=this.db.prepare(`SELECT document FROM ${table} WHERE id=?`).get(id);return row?JSON.parse(row.document):null;}
  save(table,p){this.db.prepare(`UPDATE ${table} SET document=? WHERE id=?`).run(JSON.stringify(p),p.id);}
+ claimLegacyCard(prior,cardId){return this.transaction(()=>{
+  const p=this.read('profiles',prior.id);if(p.revision!==prior.revision)throw Error('Spielstand inzwischen geändert.');
+  if(this.db.prepare("SELECT 1 FROM rooms WHERE json_extract(document,'$.state.status')='active' AND (json_extract(document,'$.host_profile_id')=? OR json_extract(document,'$.guest_profile_id')=?)").get(p.id,p.id))throw Error('Beende zuerst dein gemeinsames Duell.');
+  p.solo_save=this.personalRuntime.claimLegacyCard(p.solo_save,cardId);
+  Object.assign(p,this.personalRuntime.loadout(p.solo_save));p.revision++;p.updated_at=new Date().toISOString();this.save('profiles',p);return p;
+ });}
  award(old,next){
   const s=next.state;
-  if(next.status!=='finished'||s?.winner!==0||old.state?.status!=='active'||!next.host_profile_id||!next.guest_profile_id)return;
+  if(next.status!=='finished'||old.state?.status!=='active'||!next.host_profile_id||!next.guest_profile_id)return;
   const chapter=s.chapter,duel=Math.max(1,s.duelNo||1);
-  if(!Number.isInteger(chapter)||chapter<1||chapter>15||chapter>=11&&(s.entry!=='quest'||s.questPassed!==true))return;
+  if(!Number.isInteger(chapter)||chapter<1||chapter>15)return;
   const tier=chapter>=11?chapter-8:chapter,now=new Date().toISOString(),day=now.slice(0,10)+'T00:00:00.000Z';
   for(const id of [...new Set([next.host_profile_id,next.guest_profile_id])].sort()){
    const p=this.read('profiles',id);if(!p)throw Error('Reward profile missing');
+   if(p.solo_save){
+    if(!this.personalRuntime)throw Error('Personal save runtime unavailable');
+    if(this.db.prepare('SELECT 1 FROM rewards WHERE profile_id=? AND room_id=? AND chapter=? AND duel_no=?').get(id,next.id,chapter,duel))continue;
+    const outcome=this.personalRuntime.award(p.solo_save,s,id===next.host_profile_id?0:2,next.id);
+    this.db.prepare('INSERT INTO rewards VALUES(?,?,?,?,?,?,?,?)').run(id,next.id,chapter,duel,outcome.reward?.xp||0,outcome.reward?.coins||0,outcome.reward?.loot?.shards||0,now);
+    p.solo_save=outcome.save;p.solo_result={room:next.id,duel,revision:s.revision,reward:outcome.reward};
+    Object.assign(p,this.personalRuntime.loadout(p.solo_save));p.revision++;p.updated_at=now;this.save('profiles',p);continue;
+   }
+   if(s.winner!==0||chapter>=11&&(s.entry!=='quest'||s.questPassed!==true))continue;
    const first=!p.cleared_chapters.includes(chapter),fullXp=40+20*tier;
    if(!first&&this.db.prepare('SELECT count(*) AS n FROM rewards WHERE profile_id=? AND chapter=? AND awarded_at>=? AND xp=?').get(id,chapter,day,fullXp/2).n>=3)continue;
    const xp=first?fullXp:fullXp/2,essence=first?70+35*tier:Math.max(1,Math.floor((70+35*tier)*.4)),shards=first?1+tier:1;
