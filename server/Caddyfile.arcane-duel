@@ -1,0 +1,16 @@
+# Separate origin: browser storage and APIs cannot access Aetherfall on port 443.
+https://v2202610436378538039.ultrasrv.de:8443 {
+    tls {
+        issuer acme
+    }
+    encode gzip
+    header {
+        -Server
+        Strict-Transport-Security "max-age=31536000"
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+    }
+    reverse_proxy 127.0.0.1:8777 {
+        header_up X-Forwarded-For {remote_host}
+        header_up -CF-Connecting-IP
+    }
+}

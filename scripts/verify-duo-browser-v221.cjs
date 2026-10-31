@@ -8,7 +8,8 @@ const {fixture}=require('../tests/helpers/duo-online-fixture-v221.cjs');
 const root=path.resolve(__dirname,'..'),live=process.argv.includes('--live'),backend=fixture();
 const snapshot=require('../assets/duo-card-catalog-v160.json'),catalog=Object.fromEntries(snapshot.cards.map(c=>[c.id,c]));
 const output=process.env.DUO_QA_OUTPUT||'/tmp/duo-v221-browser';fs.mkdirSync(output,{recursive:true});
-const endpoint='https://cvmtmvruutdneyblumgf.supabase.co/functions/v1/arcane-duo-v2';
+const baseUrl=process.env.DUO_QA_BASE_URL||'http://localhost:8757';
+const endpoint=process.env.DUO_QA_ENDPOINT||'https://cvmtmvruutdneyblumgf.supabase.co/functions/v1/arcane-duo-v2';
 const prefix=live?'live':'fixture',pageErrors=[];
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml','.mp3':'audio/mpeg'};
@@ -76,7 +77,7 @@ async function finishLiveDuel(A,B){
  return {actions,winner:g.winner,rounds:g.round,chapter:g.chapter,duelNo:g.duelNo};
 }
 (async()=>{
- await new Promise(resolve=>server.listen(8757,'127.0.0.1',resolve));
+ if(!process.env.DUO_QA_BASE_URL)await new Promise(resolve=>server.listen(8757,'127.0.0.1',resolve));
  const browser=await chromium.launch({headless:true,...(process.env.CHROME?{executablePath:process.env.CHROME}:{}),args:['--no-sandbox','--disable-dev-shm-usage']});
  let a,b,c;const report={mode:prefix,checks:[]};
  try{
@@ -88,7 +89,7 @@ async function finishLiveDuel(A,B){
      try{await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(backend.handle(route.request().postDataJSON()))});}
      catch(e){await route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({error:e.message})});}
     });
-    const page=await solo.newPage();await page.goto('http://localhost:8757/index.html');
+    const page=await solo.newPage();await page.goto(baseUrl+'/index.html');
     await page.locator('[data-ad196-action="solo"]').click();
     if(await page.locator('#guideClose').isVisible())await page.locator('#guideClose').click();
     if(await page.locator('#helpDismiss').isVisible())await page.locator('#helpDismiss').click();
@@ -114,7 +115,7 @@ async function finishLiveDuel(A,B){
     report.checks.push('direct entry creates an invitation without changing the solo save');
    }finally{await solo.close();}
   }
-  const tag=Date.now().toString(36);a=await newClient(browser,'http://localhost:8757/duo-campaign-v2.html','QA221 Host '+tag);
+  const tag=Date.now().toString(36);a=await newClient(browser,baseUrl+'/duo-campaign-v2.html','QA221 Host '+tag);
   const A=a.page;await A.locator('#duoMenuScreen').waitFor({state:'visible'});
   if(!live){const host=[...backend.profiles.values()].find(p=>p.nickname==='QA221 Host '+tag);host.clearedChapters=[1,2];await A.evaluate(()=>window.ArcaneDuoParty218.refreshProfile());}
   assert.equal((await state(A)).game,null);await route(A,'deck');
@@ -176,7 +177,7 @@ async function finishLiveDuel(A,B){
   assert.equal(await A.locator('[data-deck-slot]').count(),40);await A.locator('#duoDeckSearch').fill('Asche');
   await A.locator('#duoInvitePlayer').click();await status(A,'waiting');
   assert.equal(await A.locator('#duoInvitePlayerPanel input').isVisible(),true);
-  const party=await state(A);b=await newClient(browser,'http://localhost:8757/duo-campaign-v2.html?join='+party.roomId+'.'+party.invite,'QA221 Gast '+tag);
+  const party=await state(A);b=await newClient(browser,baseUrl+'/duo-campaign-v2.html?join='+party.roomId+'.'+party.invite,'QA221 Gast '+tag);
   const B=b.page;await B.locator('#duoPartyAccept').waitFor({state:'visible'});assert.equal((await state(B)).game,null);
   await B.locator('#duoPartyAccept').click();await status(B,'lobby');await B.locator('#duoMenuScreen').waitFor({state:'visible'});
   await route(B,'shop');await refresh(A);
@@ -474,7 +475,7 @@ async function finishLiveDuel(A,B){
    const savedDeck=structuredClone(saved.deck);
    await A.evaluate(()=>window.ArcaneDuoParty218.createRoom());await status(A,'waiting');
    const veteranParty=await state(A);
-   c=await newClient(browser,'http://localhost:8757/duo-campaign-v2.html?join='+
+   c=await newClient(browser,baseUrl+'/duo-campaign-v2.html?join='+
     veteranParty.roomId+'.'+veteranParty.invite,'QA221 Rookie '+tag);
    const C=c.page;await C.locator('#duoPartyAccept').click();await status(C,'lobby');await refresh(A);
    const limits=(await state(A)).partyLimits;
