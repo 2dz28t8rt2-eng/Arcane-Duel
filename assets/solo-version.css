@@ -1,0 +1,17 @@
+/* Discreet, always-readable singleplayer version label. */
+.ad-solo-release{
+ color:rgba(205,195,175,.82);font:500 11px/1.5 system-ui,sans-serif;
+ letter-spacing:.08em;white-space:nowrap;
+}
+.ad196-title .ad-solo-release{
+ display:block;margin:6px auto 0;text-align:center;
+}
+.ad196-settings .ad-solo-release{
+ margin-top:12px;text-align:center;white-space:normal;
+}
+.mast .ad-solo-release{
+ display:block;letter-spacing:.025em;font-size:10px;
+}
+@media(max-height:680px){
+ .ad196-title .ad-solo-release{margin-top:2px;font-size:10px}
+}
