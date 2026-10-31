@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Arcane Duel 1.0.0 · Monsterkollektion</title>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="arcane-duel-version" content="1.0.0">
+<title>Arcane Duel · 1.0.0</title>
 <link rel="stylesheet" href="assets/collection-v3.css?v=3.0-concept1">
 <link rel="stylesheet" href="assets/collection-rewards-catalog-v184.css?v=20261026-v184">
 <link rel="stylesheet" href="assets/arcane-soundscape-v196.css?v=20261026-v196">
 <link rel="stylesheet" href="assets/arcane-track-catalog-v014.css?v=20261027-v014">
-<script src="assets/art-engine.js" defer></script><script src="assets/collection-v3-data.js?v=cinematics-20261017-1" defer></script><script src="assets/collection-v3-lategame-v71.js?v=art16-installed-20261019" defer></script><script src="assets/collection-v3-lategame-v117.js?v=20261020-3-live" defer></script><script src="assets/collection-v3-fusion-wave2-v129.js?v=fusion-v129-live" defer></script><script src="assets/collection-v3-fusion-wave3-v130.js?v=fusion-v130-live" defer></script>
+<script src="assets/solo-version.js?v=1.0.0" defer></script><script src="assets/art-engine.js" defer></script><script src="assets/collection-v3-data.js?v=cinematics-20261017-1" defer></script><script src="assets/collection-v3-lategame-v71.js?v=art16-installed-20261019" defer></script><script src="assets/collection-v3-lategame-v117.js?v=20261020-3-live" defer></script><script src="assets/collection-v3-fusion-wave2-v129.js?v=fusion-v129-live" defer></script><script src="assets/collection-v3-fusion-wave3-v130.js?v=fusion-v130-live" defer></script>
 <script src="assets/collection-v3.js?v=artfix-20261017-2" defer></script>
 <script src="assets/arcane-track-catalog-v014.js?v=20261027-v014" defer></script>
 <script src="assets/arcane-soundscape-v196.js?v=20261027-v014" defer></script>
 </head><body>
-<header class="mast"><a href="index.html" class="back">← Zum Spiel</a><div><h1>✧ ARCANE DUEL <span>1.0.0</span></h1><p>DIE MONSTERGALERIE</p></div><div id="counter" class="counter" aria-live="polite">Karten werden geladen …</div></header>
+<header class="mast"><a href="index.html" class="back">← Zum Spiel</a><div><h1>✧ ARCANE DUEL <span data-arcane-version>1.0.0</span></h1><p>DIE MONSTERGALERIE</p></div><div id="counter" class="counter" aria-live="polite">Karten werden geladen …</div></header>
 <main><section class="intro"><span class="ad184-catalog-kicker">✧ VOM ERSTEN MONSTER BIS ZUR LEGENDE</span><h2>Entdecke die Welt von Arcane Duel</h2><p>Blättere durch die Karten und lerne ihre Kreaturen kennen. <strong>Das ist die vollständige Galerie, nicht deine persönliche Sammlung.</strong> Welche Monster du schon besitzt, siehst du im Spiel.</p><div class="ad184-catalog-stats" id="catalogStats" aria-label="Überblick über die Kartengalerie"></div></section>
 <div class="layout"><aside class="tiers" aria-label="Stufenfilter"><h2>Stufen</h2><button type="button" class="tier active" data-level="all">Alle Stufen <b id="totalCount">–</b></button><div id="tierList"></div><p class="sidebar-note">Jede Stufe hat ihre eigenen Kreaturen. Manche begegnen dir erst später im Spiel.</p></aside>
 <section class="collection"><div class="toolbar"><label>Monster suchen <input id="search" type="search" placeholder="Name oder Element …" autocomplete="off"></label><label>Kartentyp <select id="typeFilter"><option value="all">Alle Karten</option><option value="regular">Normale Monster</option><option value="fusion">Fusionen</option></select></label><label>Illustrationen <select id="artFilter"><option value="all">Alle</option><option value="custom">Individuelle Motive</option><option value="generated">Weitere Motive</option></select></label><label>Sortierung <select id="sort"><option value="level">Level aufsteigend</option><option value="level-desc">Level absteigend</option><option value="name">Name A–Z</option></select></label></div>
