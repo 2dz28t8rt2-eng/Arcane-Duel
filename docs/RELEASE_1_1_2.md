@@ -25,6 +25,11 @@ Der bestehende vollständige Duelltest bleibt zusätzlich aktiv. Seine Angriffsw
 wartet nun ausdrücklich auf die ursprüngliche Rudelführer-Einführung und prüft die
 tatsächlich ausgewählte Feldposition.
 
+Der allgemeine Browser-Sammellauf begrenzt einzelne Chrome-Prozesse auf 90 Sekunden
+und wiederholt ausschließlich Zeitüberschreitungen einmal. Echte Testfehler werden
+nicht wiederholt. Unvollständige DOM-Ausgaben werden verworfen; zwei Zeitlimits
+führen zum Fehler. Der gesamte Browser-Schritt ist auf zwölf Minuten begrenzt.
+
 Persönliche Spielstände, Serverregeln und Decks werden durch diese Korrektur nicht
 migriert oder zurückgesetzt. Veröffentlichung und aktive Revision sind zusätzlich
 über `/api/health` zu prüfen; diese Datei allein ist kein Deploymentnachweis.
