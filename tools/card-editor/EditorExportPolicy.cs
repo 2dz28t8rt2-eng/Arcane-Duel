@@ -11,6 +11,7 @@ internal sealed partial class Editor
 {
     private sealed class CardIntegrationPlan
     {
+        public CardIntegrationPlan() { } // Required for durable JSON round-trips.
         public string Availability { get; set; } = "catalog-only";
         public bool Booster { get; set; }
         public bool StarterDeck { get; set; }
@@ -137,6 +138,10 @@ internal sealed partial class Editor
         if(draft.Frame is { Length: > 2_000_000 })
             throw new InvalidOperationException("Karte "+draft.Card["id"]+": Rahmen größer als 2 MB.");
         var art=RelativeAsset(draft.Card,"art");
+        if(draft.Image==null && art.StartsWith("assets/custom-art/editor/",StringComparison.Ordinal)
+            && AssetCatalog.ArtworkPreview(art)==null)
+            throw new InvalidOperationException("Karte "+draft.Card["id"]+
+                ": Neues Editor-Artwork fehlt. Bitte Bild erneut auswählen, damit die Originaldatei im ZIP liegt.");
         if(draft.Image!=null &&
            (art.Length==0||!new[]{".png",".jpg",".jpeg",".bmp",".gif",".webp"}
                .Contains(Path.GetExtension(art),StringComparer.OrdinalIgnoreCase)))
