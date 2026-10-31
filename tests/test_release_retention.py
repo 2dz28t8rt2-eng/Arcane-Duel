@@ -62,8 +62,9 @@ class RetentionTest(unittest.TestCase):
         self.assertEqual(userdata.read_text(), "player data untouched")
 
     def test_fourth_release_removes_second_version(self):
-        v1, v2, v3, v4 = [self.make_release(c) for c in "abcd"]
+        v1, v2, v3 = [self.make_release(c) for c in "abc"]
         self.keep(v3, v2)
+        v4 = self.make_release("d")
         result = self.keep(v4, v3)
         self.assertEqual(result["kept"], sorted([v3.name, v4.name]))
         self.assertFalse(v1.exists())
