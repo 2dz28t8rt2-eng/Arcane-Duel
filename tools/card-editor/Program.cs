@@ -36,6 +36,7 @@ internal sealed partial class Editor : Form
     readonly ComboBox ornaments = new() { DropDownStyle=ComboBoxStyle.DropDownList,Width=530 };
     readonly ComboBox icons = new() { DropDownStyle=ComboBoxStyle.DropDownList,Width=530 };
     Color backgroundAccent = Color.FromArgb(111,77,122);
+    bool accentChanged;
     byte[]? customFrameBytes;
     string? customFrameExtension;
     JsonObject original = new();
@@ -197,7 +198,9 @@ internal sealed partial class Editor : Form
             fusionOnly=preview.IsFusion, ace=preview.IsAce,
             essenceMonster=preview.IsEssence,frameTemplate=ChoiceId(frames),
             frameLevelOverlay=ChoiceId(ornaments),frameRoleIcon=ChoiceId(icons),
-            frameUrl=frameUri,iconUrl=selectedRoleIcon=="none"?"":AssetCatalog.IconDataUri(activeIcon)
+            frameUrl=frameUri,accent=ColorTranslator.ToHtml(backgroundAccent),customAccent=accentChanged,
+            description=fields["desc"].Text, tags=fields["tags"].Text,
+            iconUrl=selectedRoleIcon=="none"?"":AssetCatalog.IconDataUri(activeIcon)
         });
     }
     static string ChoiceId(ComboBox picker)=>picker.SelectedItem is Choice o?o.Id:"auto";
