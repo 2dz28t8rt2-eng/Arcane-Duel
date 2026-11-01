@@ -157,7 +157,7 @@
  function soulDecay(g,c,owner){
    if(!soulReady(g))return;
    const s=statLayer(c);
-   if((owner===0||g.strategicTraining?.symmetricSides)&&c.arcaneDecaySkipTurn===g.turn-1){
+   if((owner===0||g.strategicTraining?.symmetricSides)&&c.arcaneDecaySkipTurn===g.turn-2){
     if(s.cooldown>0)s.cooldown--;
     if(s.raidCooldown>0)s.raidCooldown--;
     return; // Seelenraub pauses decay; cooldowns still progress.
@@ -409,14 +409,20 @@
   }
   for(const c of hand){
    if(!c.essenceCombat||!c.card)continue;
-   if(isSoul(c))soulDecay(g,c,ending);
-   else if(c.essenceCombat.cooldown>0)c.essenceCombat.cooldown--;
+   if(!isSoul(c)&&c.essenceCombat.cooldown>0)c.essenceCombat.cooldown--;
    // Immunity is counted in completed opponent turns, not own turns.
   }
   // Enemy just ended their turn; new current player can now use energy.
   if(g.winner===null){
    if(g.active===1)g.essenceTauntUsed=false;
    const owner=g.active,team=g.players[owner].field.filter(Boolean);
+   // Passive Seelenzerfall resolves at the beginning of THIS owner's turn,
+   // before the new harvest. It must never damage LP on the prior turn's end.
+   for(const creature of team){
+    if(isSoul(creature)&&creature.essenceCombat)soulDecay(g,creature,owner);
+    if(g.winner!==null)break;
+   }
+   if(g.winner!==null)return ok;
    // Guardian healing restores base creature HP only; no bonus-layer duplication.
    const allies=team.filter(c=>isDefender(c)&&c.mode==='def');
    window.ArcaneDefenderFX?.beginTurn(g,owner,allies);

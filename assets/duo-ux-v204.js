@@ -42,9 +42,9 @@
  let context=null,details=null,outcome=null,outcomeTimers=[],soulTimer=null;
  let leaderGuide=null,leaderGuideTimer=null,leaderGuideSeen=false;
  const notices=new Set();
- const ZOOM_KEY='arcane-duo-battle-zoom-v1';
- const zoomClamp=value=>Math.max(70,Math.min(115,Math.round((Number(value)||100)/5)*5));
- function initialZoom(){try{return zoomClamp(root.localStorage?.getItem(ZOOM_KEY)||100);}catch{return 100;}}
+ const ZOOM_KEY='arcane-duo-battle-zoom-v2';
+ const zoomClamp=value=>Math.max(80,Math.min(140,Math.round((Number(value)||110)/5)*5));
+ function initialZoom(){try{return zoomClamp(root.localStorage?.getItem(ZOOM_KEY)||110);}catch{return 100;}}
  let battleZoom=initialZoom();
  function setBattleZoom(value){
   battleZoom=zoomClamp(value);
@@ -66,7 +66,7 @@
    const label=el('label','','Duellfeld vergrößern / verkleinern',controls);
    label.htmlFor='ad204-zoom-slider';
    const slider=el('input','',undefined,controls);
-   slider.type='range';slider.id='ad204-zoom-slider';slider.min='70';slider.max='115';
+   slider.type='range';slider.id='ad204-zoom-slider';slider.min='80';slider.max='140';
    slider.step='5';slider.value=String(battleZoom);
    slider.setAttribute('aria-label','Duellfeld-Zoom');
    slider.addEventListener('input',()=>setBattleZoom(slider.value));
@@ -119,6 +119,53 @@
   root.setTimeout(()=>{node.remove();notices.delete(node);},1900);notices.add(node);
  }
  function dismissInspector(){details?.remove();details=null;}
+ function renderSoulActions(target,card,player,catalog){
+  // Shared, owner-authorized ability workflow: buttons exist in BOTH inspectors for
+  // DEF-position Soul Eaters owned by the human whose turn is active.
+  if(card.role==='soul'&&card.mode==='def'&&
+     context?.seat===player.seat&&context.game?.activeSeat===context.seat&&
+     context.game?.status==='active'&&typeof context.send==='function'){
+    const slot=player.field.findIndex(c=>c?.uid===card.uid);
+    if(slot>=0){
+     const box=el('section','ad207-soul-abilities',undefined,target);
+     el('strong','', '✦ Seelenfähigkeiten · DEF',box);
+     el('small','', 'Eine aktive Seelenaktion pro eigenem Zug · mindestens 40 Seelenpunkte für Verdichten/Entladen',box);
+     const used=card.lastSoulAction===player.ownTurns;
+     const sendAction=(type,extra={})=>{
+      if(!context||context.game?.activeSeat!==context.seat)return;
+      const current=context.game.players[context.seat]?.field?.[slot];
+      if(!current||current.uid!==card.uid||current.mode!=='def')return;
+      const dispatch=context.send;
+      if(target.closest?.('.ad204-inspect-screen'))dismissInspector();
+      void dispatch({type,slot,...extra});
+     };
+     const action=(title,type,disabled,extra={})=>{
+      const b=el('button','ad207-soul-action',title,box);
+      b.type='button';b.disabled=!!disabled;
+      b.addEventListener('click',()=>sendAction(type,extra));return b;
+     };
+     action('◇ Verdichten · Schutz und ATK', 'soulCondense',
+      used||card.soulCooldown>0||card.soul<40);
+     action('✦ Seelenstoß · Entladen (130 % LP)', 'soulDischarge',
+      used||card.soul<40);
+     const opponents=context.game.players.filter(p=>p.team!==player.team);
+     const possible=opponents.flatMap(p=>p.field.flatMap((c,i)=>c?[{seat:p.seat,slot:i,name:catalog[c.id]?.name||'Monster'}]:[]));
+     if(possible.length){
+      const target=el('select','ad207-soul-target',undefined,box);
+      for(const t of possible){const option=el('option','',t.name+' · Gegner '+t.seat+' / Zone '+(t.slot+1),target);option.value=t.seat+':'+t.slot;}
+      const doRaid=el('button','ad207-soul-action','◇ Seelenraub auf Ziel',box);
+      doRaid.type='button';doRaid.disabled=used||card.raidCooldown>0;
+      doRaid.addEventListener('click',()=>{const [targetSeat,targetSlot]=target.value.split(':').map(Number);sendAction('soulRaid',{targetSeat,targetSlot});});
+     }
+     if(card.level>=5&&card.lastDrainSwitch!==player.ownTurns){
+      const focus=el('div','ad207-soul-focus',undefined,box);
+      el('small','', 'Entzugsfokus',focus);
+      action('ATK bevorzugen','soulFocus',false,{stat:'atk'});
+      action('DEF bevorzugen','soulFocus',false,{stat:'def'});
+     }
+    }
+  }
+ }
  function inspectCard(card,player,catalog,{hand=false}={}){
   dismissInspector();if(!card)return;
   const template=catalog?.[card.id]||{};
@@ -163,49 +210,7 @@
   if(template.ace)el('p','ad204-inspect-hint','✦ ACE-Monster · darf nicht fusioniert werden.',panel);
   if(root.ArcaneCardView221)panel.insertAdjacentHTML('beforeend',root.ArcaneCardView221.defenderAbility(card.role||template.role));
   if(!hand)root.ArcaneDuoSoulBond206?.inspect?.(card,player,panel,catalog);
-  // Shared inspector-first ability workflow: action buttons exist only for
-  // DEF-position Soul Eaters owned by the human whose turn is active.
-  if(!hand&&card.role==='soul'&&card.mode==='def'&&
-     context?.seat===player.seat&&context.game?.activeSeat===context.seat&&
-     context.game?.status==='active'&&typeof context.send==='function'){
-    const slot=player.field.findIndex(c=>c?.uid===card.uid);
-    if(slot>=0){
-     const box=el('section','ad207-soul-abilities',undefined,panel);
-     el('strong','', '✦ Seelenfähigkeiten · DEF',box);
-     el('small','', 'Eine aktive Seelenaktion pro eigenem Zug · mindestens 40 Seelenpunkte für Verdichten/Entladen',box);
-     const used=card.lastSoulAction===player.ownTurns;
-     const sendAction=(type,extra={})=>{
-      if(!context||context.game?.activeSeat!==context.seat)return;
-      const current=context.game.players[context.seat]?.field?.[slot];
-      if(!current||current.uid!==card.uid||current.mode!=='def')return;
-      const dispatch=context.send;dismissInspector();void dispatch({type,slot,...extra});
-     };
-     const action=(title,type,disabled,extra={})=>{
-      const b=el('button','ad207-soul-action',title,box);
-      b.type='button';b.disabled=!!disabled;
-      b.addEventListener('click',()=>sendAction(type,extra));return b;
-     };
-     action('◇ Verdichten · Schutz und ATK', 'soulCondense',
-      used||card.soulCooldown>0||card.soul<40);
-     action('✦ Seelenstoß · Entladen (130 % LP)', 'soulDischarge',
-      used||card.soul<40);
-     const opponents=context.game.players.filter(p=>p.team!==player.team);
-     const possible=opponents.flatMap(p=>p.field.flatMap((c,i)=>c?[{seat:p.seat,slot:i,name:catalog[c.id]?.name||'Monster'}]:[]));
-     if(possible.length){
-      const target=el('select','ad207-soul-target',undefined,box);
-      for(const t of possible){const option=el('option','',t.name+' · Gegner '+t.seat+' / Zone '+(t.slot+1),target);option.value=t.seat+':'+t.slot;}
-      const doRaid=el('button','ad207-soul-action','◇ Seelenraub auf Ziel',box);
-      doRaid.type='button';doRaid.disabled=used||card.raidCooldown>0;
-      doRaid.addEventListener('click',()=>{const [targetSeat,targetSlot]=target.value.split(':').map(Number);sendAction('soulRaid',{targetSeat,targetSlot});});
-     }
-     if(card.level>=5&&card.lastDrainSwitch!==player.ownTurns){
-      const focus=el('div','ad207-soul-focus',undefined,box);
-      el('small','', 'Entzugsfokus',focus);
-      action('ATK bevorzugen','soulFocus',false,{stat:'atk'});
-      action('DEF bevorzugen','soulFocus',false,{stat:'def'});
-     }
-    }
-  }
+  if(!hand)renderSoulActions(panel,card,player,catalog);
   close.focus?.();
  }
  function fieldCell(seat,slot){return doc.querySelector('#duoSeats .seat[data-seat="'+seat+
@@ -436,7 +441,7 @@
   else if(key==='a'&&useDirectShortcut())event.preventDefault();
  });
  const api=Object.freeze({version:'20.10',packState,effectiveAttack,sameRoom,
-  decorate,onState,onActionStart,onActionError,clearOutcome,toggleHand,setBattleZoom,zoomClamp,
+  decorate,onState,onActionStart,onActionError,clearOutcome,toggleHand,setBattleZoom,zoomClamp,renderSoulActions,
   usePositionShortcut,useDirectShortcut});
  root.ArcaneDuoUX204=api;
  if(typeof module==='object'&&module.exports)module.exports=api;

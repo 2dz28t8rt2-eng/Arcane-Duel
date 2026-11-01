@@ -49,7 +49,7 @@
     '<tr><td>Fünfling</td><td>3 + 3 + 3 + 3 + 3</td><td>+18 %</td><td>3</td></tr>'+
     '<tr><td>Gigantische Straße</td><td>2 + 3 + 4 + 5 + 6</td><td>+36 %</td><td>4</td></tr>'+
     '</tbody></table></div>'+
-    '<p>Weitere kleine Boni sind möglich: in passenden Kombinationen für Lv-1-/Lv-2-Materialien, <b>+2,5 Prozentpunkte Elementharmonie</b> bei identischem Element und <b>+5 Punkte reine Spezialistenqualität</b> bei vollständig gleichen Predator-, Wächter- oder Seelenzehrer-Materialien. Zusätzliche Upgrades und Resonanz wirken ebenfalls.</p>'+
+    '<p>Weitere kleine Boni sind möglich: in passenden Kombinationen für Lv-1-/Lv-2-Materialien, <b>+2,5 Prozentpunkte Elementharmonie</b> bei identischem Element oder <b>+5 Prozentpunkte Elementvielfalt</b> bei fünf unterschiedlichen Elementen und <b>+5 Punkte reine Spezialistenqualität</b> bei vollständig gleichen Predator-, Wächter- oder Seelenzehrer-Materialien. Zusätzliche Upgrades und Resonanz wirken ebenfalls.</p>'+
     '<div class="ad213-diagram">'+mini([3,4,5])+'<span class="ad213-arrow">↓ 100 % + 4,5 % (3. Material) + 20 % (Straße) − 0 % (Abstand)</span><strong>124,5 % Qualität – vor weiteren Boni</strong></div>')+
    section('stats','5 · Wie entstehen ATK und DEF?',
     '<p><b>1. Referenz:</b> Das Spiel ermittelt aus gewöhnlichen Monstern des Ziellevels getrennte ATK- und DEF-Mittelwerte (Mitte von Minimum und Maximum). Die hohen alten Werte einer Fusionsvorlage werden nicht einfach übernommen.</p>'+

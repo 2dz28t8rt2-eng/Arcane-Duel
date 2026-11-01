@@ -85,6 +85,15 @@
  render=function(...args){
   syncSurrenderButton();
   const result=solo.render(...args);if(!online()||!network)return result;
+  // Read-only field inspection is available during the other three turns.
+  // Keep empty zones and ALL action controls disabled when it is not our turn.
+  if(game.active!==0&&!busy&&!playing){
+   for(const button of document.querySelectorAll('#ownRow [data-mine],#enemyRow [data-enemy]')){
+    const side=button.hasAttribute('data-mine')?0:1;
+    const index=Number(side===0?button.dataset.mine:button.dataset.enemy);
+    if(game.players[side]?.field[index])button.disabled=false;
+   }
+  }
   id('myName').textContent=network.players[0].name+' & '+network.players[2].name;
   id('enemyName').textContent=network.players[1].name+' & '+network.players[3].name;
   id('turnName').textContent=network.players[network.activeSeat].name+' ist am Zug';
@@ -117,6 +126,12 @@
   game.pending=null;game.selection=null;game.materials=[];materialMode=false;delete game.discardKeepUid;render();};
  onHand=function(uid){const c=online()&&game.players[0].hand.find(c=>c.uid===uid);
   if(c?.lv1FromOffer&&inputAllowed()&&game.summoned){game.pending={kind:'normal',card:c,levels:[1],lv1Effect:true};game.selection=null;render();return;}
+  // The original hand handler rejects a full board before selecting anything.
+  // Online team zones support explicit replacement, including a partner card.
+  if(c&&inputAllowed()&&!game.summoned&&!game.pending&&!materialMode&&
+     game.players[0].field.every(Boolean)){
+   enemyPreviewIndex=null;if(prepareNormal(game,uid))render();return;
+  }
   return solo.onHand(uid);
  };
  fusionOptions=function(g,levels,materials,...args){
@@ -138,19 +153,43 @@
   choose(materials,templateId=>{game.pending={kind:'fusion',card:instance(templateId,viewer),levels:materials.map(m=>dataOf(game.players[0].hand[m.index]).level),onlineMaterials:materials,onlineTemplate:templateId};game.selection=null;render();});
  };
  onOwnSlot=function(index,choice){
-  if(!online())return solo.onOwnSlot(index,choice);if(!inputAllowed())return;
+  if(!online())return solo.onOwnSlot(index,choice);
+  if(!inputAllowed()){
+   // Inspect a teammate's monster while the opponent or partner is taking a
+   // turn; do not send any action to the server or expose another hand.
+   if(!busy&&!playing&&game.winner===null&&game.players[0]?.field[index]){
+    game.selection={type:'field',idx:index};game.materials=[];
+    enemyPreviewIndex=null;
+    const inspector=id('ad182-inspector');if(inspector)inspector.open=true;
+    render();
+   }
+   return;
+  }
+  // Handkarte -> beliebige eigene Teamzone: one continuous action, even
+  // when all seven zones are occupied (no extra summon-button necessary).
+  if(!game.pending&&game.selection?.type==='hand'&&!game.summoned)
+   prepareSummon();
   const pending=game.pending,old=game.players[0].field[index];
-  if(!pending){if(old){game.selection={type:'field',idx:index};game.materials=[];render();}return;}
+  if(!pending){if(old){game.selection={type:'field',idx:index};game.materials=[];const inspector=id('ad182-inspector');if(inspector)inspector.open=true;render();}return;}
   const materials=pending.onlineMaterials||[{from:'hand',index:handIndex(pending.card.uid)}];
   if(old&&choice===undefined){
    openModal(modalHtml('BESETZTE ZONE','Ersetzen oder fusionieren?','✦','Beide Aktionen sind möglich. Die Beschwörung ist erst nach deiner Bestätigung endgültig.',
     '<p>Feld: '+escapeHtml(dataOf(old).name)+' · Hand: '+escapeHtml(dataOf(pending.card).name)+'</p>',
     '<button class="btn" id="ad207-back">ABBRECHEN</button><button class="btn primary" id="ad207-replace">↻ ERSETZEN</button><button class="btn" id="ad207-fuse">✧ FUSION</button>'));
-   id('ad207-back').onclick=hideModal;id('ad207-replace').disabled=pending.kind!=='normal'||old.onlineSeat!==viewer;
-   id('ad207-replace').onclick=()=>{hideModal();onOwnSlot(index,'replace');};id('ad207-fuse').onclick=()=>{hideModal();onOwnSlot(index,'fusion');};return;
+   id('ad207-back').onclick=hideModal;
+   // A prepared hand fusion can replace an occupied zone without consuming
+   // the field monster as an extra ingredient. It is buried by its owner.
+   id('ad207-replace').disabled=false;
+   id('ad207-replace').onclick=()=>{hideModal();onOwnSlot(index,'replace');};
+   id('ad207-fuse').disabled=materials.length>=5;
+   id('ad207-fuse').onclick=()=>{hideModal();onOwnSlot(index,'fusion');};return;
   }
-  if(old&&choice==='fusion'){choose([...materials,fieldSource(index)],templateId=>command({type:'fusion',materials:[...materials,fieldSource(index)],slot:index,templateId}));return;}
-  if(pending.kind==='fusion')return command({type:'fusion',materials,slot:index,templateId:pending.onlineTemplate});
+  if(old&&choice==='fusion'){
+   if(materials.length>=5)return toast('Maximal fünf Fusionsmaterialien erlaubt. Ersetze stattdessen die Feldkarte.');
+   choose([...materials,fieldSource(index)],templateId=>command({type:'fusion',materials:[...materials,fieldSource(index)],slot:index,templateId}));return;
+  }
+  if(pending.kind==='fusion')return command({type:'fusion',materials,slot:index,
+   templateId:pending.onlineTemplate,replaceTarget:!!old&&choice==='replace'});
   const discardIndices=(pending.discardUids||[]).map(handIndex).filter(i=>i>=0);
   return command({type:old?'replace':'summon',handIndex:handIndex(pending.card.uid),slot:index,discardIndices});
  };
@@ -235,12 +274,20 @@
    const old=before.players[p.seat],side=p.team;
    for(let index=0;index<p.field.length;index++){
     const c=p.field[index],prior=old.field.find(x=>x&&x.uid===c?.uid);if(!c||!prior)continue;
-    if(c.soul>prior.soul){
+    // Start-of-turn decay and passive absorption share one server frame.
+    // Compare the gain after decay so the original animation is not lost
+    // when the stored total decreases despite successfully draining a foe.
+    const decay=p.ownTurns>old.ownTurns&&prior.role==='soul'&&
+     prior.decaySkipOwnTurn!==old.ownTurns&&prior.soul>0?
+     Math.min(prior.soul,Math.max(10,Math.ceil(prior.soul*.32))):0;
+    const soulGain=c.soul-prior.soul+decay;
+    if(soulGain>0){
      const targets=before.players.filter(x=>x.team!==side).flatMap(o=>o.field.flatMap((target,i)=>{
       if(!target)return [];const after=next.players[o.seat].field.find(x=>x?.uid===target.uid);
       return !after||after.atk<target.atk||after.def<target.def?[{uid:target.uid,index:i}]:[];
      }));
-     window.ArcaneDefenderFX?.record(game,{type:'absorb',owner:side,uid:c.uid,index,targets,gain:c.soul-prior.soul,activeRaid:action.type==='soulRaid',element:CARDS[c.id]?.element});
+     if(targets.length||c.soul>prior.soul)
+      window.ArcaneDefenderFX?.record(game,{type:'absorb',owner:side,uid:c.uid,index,targets,gain:soulGain,activeRaid:action.type==='soulRaid',element:CARDS[c.id]?.element});
     }
     if(action.type==='end'&&c.def>prior.def){
      const guardian=next.players.filter(x=>x.team===side).flatMap(x=>x.field.map((c,i)=>({c,i}))).find(x=>x.c?.role==='guardian'&&x.c.mode==='def'&&x.c.uid!==c.uid);

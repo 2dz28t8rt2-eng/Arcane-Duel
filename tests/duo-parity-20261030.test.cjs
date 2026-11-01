@@ -9,7 +9,7 @@ const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 
 function uiHarness(){
  const listeners=new Map();
- const storage=new Map([['arcane-duo-battle-zoom-v1','85']]);
+ const storage=new Map([['arcane-duo-battle-zoom-v2','85']]);
  const window={
   document:{addEventListener:(type,fn)=>listeners.set(type,fn)},
   localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},
@@ -21,14 +21,14 @@ function uiHarness(){
  return {api:module.exports,storage,listeners};
 }
 
-test('Duo battle zoom matches solo 70–115 percent range, stays local to viewer',()=>{
+test('Duo battle zoom allows enlarged 80–140 percent shared field, stays local to viewer',()=>{
  const {api,storage}=uiHarness();
- assert.equal(api.zoomClamp(65),70);
+ assert.equal(api.zoomClamp(65),80);
  assert.equal(api.zoomClamp(83),85);
  assert.equal(api.zoomClamp(100),100);
- assert.equal(api.zoomClamp(119),115);
+ assert.equal(api.zoomClamp(119),120);
  assert.equal(api.setBattleZoom(110),110);
- assert.equal(storage.get('arcane-duo-battle-zoom-v1'),'110');
+ assert.equal(storage.get('arcane-duo-battle-zoom-v2'),'110');
  assert.equal(typeof api.decorate,'function');
  const source=read('assets/duo-ux-v204.js');
  assert.match(source,/seats\.style\.zoom=battleZoom\+'%'/);

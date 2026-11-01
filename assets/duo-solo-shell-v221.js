@@ -178,8 +178,9 @@
   if(cell){const panel=cell.closest('.seat');inspectSelection={seat:Number(panel.dataset.seat),slot:Number(cell.dataset.slot),area:cell.classList.contains('duo-ghost-cell')?'ghost':'field'};}
   else if(hand)inspectSelection={seat:s.seat,index:Number(hand.dataset.index),area:'hand'};
   else return;
+  inspectStamp='';
   renderInspector();
- });
+ },true); // Capture field-card clicks before combat handlers stop propagation.
  function face(card,{instance=null,owner=null,small=false,tag='div',board=false}={}){
   const t={...card,...(instance?{atk:owner&&window.ArcaneDuoUX204?.effectiveAttack?window.ArcaneDuoUX204.effectiveAttack(instance,owner,window.ArcaneDuoRules):window.ArcaneDuoRules.attackValue(instance),def:instance.def+(instance.soul||0)+(instance.condensed||0),level:instance.level||card.level}:{})};
   const fate=instance?.fate===true;
@@ -276,7 +277,12 @@
   const field=inspectSelection.area!=='hand',role=c.role||t.role,over=field&&c.def+(c.soul||0)+(c.condensed||0)>(c.maxDef??c.def);
   $('duoLargeCardPreview').innerHTML=face(t,{instance:field||c.fate?c:null,owner:p})+'<div class="ad221-card-explanation"><p>'+safe(c.fate?'Schicksalsmonster · nicht fusionierbar · nur dieses Duell.':t.desc||'')+'</p><strong>'+safe(roleNames[role]||'Monster')+'</strong><p>'+safe(descriptions[role]||'')+'</p>'+(over?'<p class="ad221-overcharge-text">✦ Überladen: DEF über dem normalen Maximalwert</p>':'')+(field&&role==='soul'?'<p>Grund-DEF '+c.def+' · Seelenkraft '+(c.soul||0)+' · Verdichtung '+(c.condensed||0)+'</p>':'')+ '</div>';
   if(!c.fate)$('duoLargeCardPreview').insertAdjacentHTML('beforeend',window.ArcaneCardView221.defenderAbility(role,over?{extra:c.def+(c.soul||0)+(c.condensed||0)-(c.maxDef??c.def),current:c.def+(c.soul||0)+(c.condensed||0),max:c.maxDef??c.def}:null));
-  if(field)window.ArcaneDuoSoulBond206?.inspect?.(c,p,$('duoLargeCardPreview'),s.catalog);
+  if(field){
+   window.ArcaneDuoSoulBond206?.inspect?.(c,p,$('duoLargeCardPreview'),s.catalog);
+   window.ArcaneDuoUX204?.renderSoulActions?.($('duoLargeCardPreview'),c,p,s.catalog);
+  }
+  const inspector=$('duoLargeCardPreview').closest('details');
+  if(inspector)inspector.open=true;
  }
  function decorateBattle({game,seat,catalog}){
   for(const cell of $('duoSeats').querySelectorAll('.field-cell'))cell.classList.add('monster-slot');

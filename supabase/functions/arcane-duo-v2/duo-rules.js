@@ -773,11 +773,6 @@
    const oldAtk=c.atk,oldDef=c.def;
    if(c.role==='soul'){
     if(c.decaySkipOwnTurn!==p.ownTurns){
-     if(c.soul>0){
-      const lost=Math.min(c.soul,Math.max(10,Math.ceil(c.soul*.32)));
-      c.soul-=lost;
-      score(g,p.team,Math.floor(lost*.35),definition(catalog,c.id).name+' · Seelenzerfall');
-     }
      if(c.condenseLeft>0){
       c.condensed=Math.max(0,c.condensed-Math.min(c.condensed,c.condenseSlice));
       c.condenseLeft--;
@@ -920,6 +915,23 @@
    if(g.status!=='active')return;
   }
  }
+ // All passive Soul LP effects resolve at the start of their owner's turn,
+ // never as a delayed hit at the end of the previous owner's action.
+ function beginOwnerSoulTurn(g,p,catalog){
+  for(const c of p.field){
+   if(!c||c.role!=='soul')continue;
+   combat(c);
+   // Seelenraub suppresses the next scheduled decay, after this owner's
+   // previous action. The owner has just advanced their ownTurns counter.
+   if(c.decaySkipOwnTurn===p.ownTurns-1)continue;
+   if(c.soul>0){
+    const lost=Math.min(c.soul,Math.max(10,Math.ceil(c.soul*.32)));
+    c.soul-=lost;
+    score(g,p.team,Math.floor(lost*.35),definition(catalog,c.id).name+' · Seelenzerfall zum Zugbeginn');
+    if(g.status!=='active')return;
+   }
+  }
+ }
  function moveOn(g,catalog){
   g.activeSeat=(g.activeSeat+1)%4;g.turn++;
   g.predatorPursuit=null;
@@ -939,6 +951,9 @@
   }
   beginPredatorTurn(g,p,catalog);
   beginLv1Turn(g,p,catalog);
+  if(g.status!=='active')return;
+  // Passive Soul effects are part of the NEW player's turn, before drawing.
+  beginOwnerSoulTurn(g,p,catalog);
   if(g.status!=='active')return;
   restoreAllies(g,p,catalog);
   absorbSouls(g,p,catalog);
@@ -1071,8 +1086,11 @@
   qualityBonus+=lowLevelBonus;
   const elemental=cards.length>=2&&!!cards[0].element&&
    cards.every(c=>c.element===cards[0].element);
+  const elementDiversity=cards.length===5&&cards.every(c=>!!c.element)&&
+   new Set(cards.map(c=>c.element)).size===5;
   if(elemental){qualityBonus+=.025;name+=' · Elementharmonie';}
-  return {name,rollBonus,levelBonus,qualityBonus,lowLevelBonus,elemental,
+  if(elementDiversity){qualityBonus+=.05;name+=' · Elementvielfalt';}
+  return {name,rollBonus,levelBonus,qualityBonus,lowLevelBonus,elemental,elementDiversity,
    hasCombo:name!=='Freie Fusion'};
  }
  function fusionAnalysis(cards,rule,p={}){
@@ -1128,7 +1146,7 @@
   const soulOdds=role==='guardian'&&cards.length>=3?
    Math.min(.75,.20+cards.reduce((sum,c)=>sum+.035+.007*Math.min(12,c.level),0)):0;
   return {pattern:pattern.name,rolls,role,quality:factor,
-   baseQuality:protectedBase,elemental:pattern.elemental,lowLevelBonus:pattern.lowLevelBonus,
+   baseQuality:protectedBase,elemental:pattern.elemental,elementDiversity:pattern.elementDiversity,lowLevelBonus:pattern.lowLevelBonus,
    resonancePct,normalPct,resonatorPct,pureRolePct,heritagePct,
    materialBlocks,soulOdds,comboLevelBonus:pattern.levelBonus,precisionPct,
    loreChainApplied,loreOpeningRoll,essenceRolls};
@@ -1425,8 +1443,12 @@
    assert(Number.isInteger(action.handIndex)&&p.hand[action.handIndex]!==undefined,'Handkarte fehlt.');
    const effect=p.hand[action.handIndex]?.lv1FromOffer===true;
    assert(!p.summoned||effect,'Dieser Zug hat bereits eine Beschwörung.');
+   const teammate=sharedField(g)?teamMate(g,p):null;
+   const ownTarget=Number.isInteger(action.slot)?p.field[action.slot]:null;
+   const alliedTarget=Number.isInteger(action.slot)?teammate?.field[action.slot]:null;
    assert(Number.isInteger(action.slot)&&action.slot>=0&&action.slot<7&&
-    (action.type==='replace'?!!p.field[action.slot]:freeTeamSlot(g,p,action.slot)),'Feldplatz kann nicht belegt werden.');
+    (action.type==='replace'?!!(ownTarget||alliedTarget):freeTeamSlot(g,p,action.slot)),
+    'Feldplatz kann nicht belegt werden.');
    const handCard=p.hand[action.handIndex];
    const id=Number.isInteger(handCard)?handCard:handCard?.id;
    const fate=handCard?.fate===true?handCard:null;
@@ -1448,9 +1470,13 @@
     g.log.push(p.name+' behält ein Monster und wirft '+discarded.length+' Handkarten ab.');
    }
    if(action.type==='replace'){
-    const old=p.field[action.slot];
-    p.graveyard.push(old);lv1Leave(g,p,old,catalog);
-    g.log.push(p.name+' ersetzt '+definition(catalog,old.id).name+' in Zone '+(action.slot+1)+'.');
+    const previousOwner=ownTarget?p:teammate;
+    const old=previousOwner.field[action.slot];
+    previousOwner.field[action.slot]=null;
+    previousOwner.graveyard.push(old);
+    lv1Leave(g,previousOwner,old,catalog);
+    g.log.push(p.name+' ersetzt '+definition(catalog,old.id).name+
+     ' in Teamzone '+(action.slot+1)+' (vorher '+previousOwner.name+').');
    }
    p.field[action.slot]=instance(g,id,catalog,{ownerSeat:seat,fate});
    if(effect)Object.assign(p.field[action.slot],{lv1Echo:!!handCard.lv1Echo,lv1Effectless:!!handCard.lv1Effectless});
@@ -1566,8 +1592,10 @@
    const removingField=new Set(action.materials.filter(m=>m.from==='field').map(m=>m.index));
    const ally=g.players[seat^2];
    const removingAlly=new Set(action.materials.filter(m=>m.from==='allyField').map(m=>m.index));
-   assert((!p.field[action.slot]||removingField.has(action.slot))&&
-    (!sharedField(g)||!teamMate(g,p)?.field[action.slot]||removingAlly.has(action.slot)),'Fusions-Zielfeld ist nicht frei.');
+   const occupiedOwn=p.field[action.slot]&&!removingField.has(action.slot)?p.field[action.slot]:null;
+   const occupiedAlly=sharedField(g)&&ally.field[action.slot]&&!removingAlly.has(action.slot)?ally.field[action.slot]:null;
+   assert(!occupiedOwn&&!occupiedAlly||action.replaceTarget===true,'Fusions-Zielfeld ist nicht frei. Ersetzen bestätigen.');
+   assert(action.replaceTarget===undefined||typeof action.replaceTarget==='boolean','Ungültige Ersetzen-Auswahl.');
    // Do not alter state until every constraint is verified.
    const types=cards.map((c,i)=>({...c,from:action.materials[i].from,
     sourceSeat:action.materials[i].from==='allyField'?ally.seat:seat}));
@@ -1575,6 +1603,17 @@
     p.hand.splice(index,1);
    for(const index of removingField)p.field[index]=null;
    for(const index of removingAlly)ally.field[index]=null;
+   // Confirmed board replacement is not a fusion ingredient: keep its
+   // graveyard and leave-effects with the original owning player.
+   const displaced=occupiedOwn||occupiedAlly;
+   if(displaced){
+    const previousOwner=occupiedOwn?p:ally;
+    previousOwner.field[action.slot]=null;
+    previousOwner.graveyard.push(displaced);
+    lv1Leave(g,previousOwner,displaced,catalog);
+    g.log.push(p.name+' ersetzt '+definition(catalog,displaced.id).name+
+     ' durch eine Fusion in Teamzone '+(action.slot+1)+'.');
+   }
    for(const index of action.materials.filter(m=>m.from==='ghost').map(m=>m.index))
     ghostZone(p)[index]=null;
    const charges=action.materials.filter(m=>m.from==='charge').length;

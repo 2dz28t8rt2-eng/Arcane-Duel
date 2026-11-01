@@ -786,13 +786,18 @@
    const hand=selector('Handkarte',legal.hand.map(x=>[x.index,
     displayName(x)+' · Lv '+card(x.id).level+
     (x.fate?' · '+x.atk+'/'+x.def+' · unverschmelzbar':'')]),row);
-   const slot=selector('Monsterzone',p.field.flatMap((c,i)=>game.fieldLayout==='team7'&&game.players.find(x=>x.team===p.team&&x.seat!==seat)?.field[i]?[]:[[i,'Feld '+(i+1)+(c?' · '+displayName(c)+' (ersetzen)':' · frei')]]),row);
+   const ally=game.players.find(x=>x.team===p.team&&x.seat!==seat);
+   const slot=selector('Monsterzone',p.field.map((c,i)=>{
+    const target=c||game.fieldLayout==='team7'&&ally?.field[i];
+    return [i,'Teamzone '+(i+1)+(target?' · '+displayName(target)+' (ersetzen)':' · frei')];
+   }),row);
    hand.dataset.ad189Hand='true';
    slot.dataset.ad189Slot='true';
    const summonCommit=button('Monster spielen / ersetzen',part,async()=>{
-    const destination=Number(slot.value),occupied=!!p.field[destination];
+    const destination=Number(slot.value),target=p.field[destination]||
+     game.fieldLayout==='team7'&&ally?.field[destination],occupied=!!target;
     if(occupied){
-     const previous=displayName(p.field[destination]),next=displayName(legal.hand[Number(hand.selectedIndex)]);
+     const previous=displayName(target),next=displayName(legal.hand[Number(hand.selectedIndex)]);
      const originalRoom=game.roomId,originalRevision=game.revision;
      const accepted=await window.ArcaneModal223.confirm({kicker:'BESETZTE ZONE',title:'Monster ersetzen?',icon:'✦',
       text:'„'+previous+'“ auf den Friedhof legen und durch „'+next+'“ ersetzen?',
@@ -806,7 +811,7 @@
    });
    summonCommit.dataset.ad189Commit='true';
    summonCommit.disabled=busy||!!syncError||!slot.options.length;
-   if(!slot.options.length)el('p',part,'Alle sieben Teamzonen gehören gerade deinem Partner. Eine Fusion mit erlaubtem Partner-Material kann Platz schaffen.','duo-turn-note');
+   if(!slot.options.length)el('p',part,'Keine Teamzone verfügbar.','duo-turn-note');
   }
   if(!p.summoned&&p.remainingFusion.length>=1){
    const part=section(dock,'✦ Fusion','Wähle zwei bis fünf Monster aus deiner Hand, deinem Feld oder dem Feld deines menschlichen Partners. '+
@@ -847,9 +852,23 @@
    el('summary',details,'Wie kommt dieses Fusionsergebnis zustande?');
    const explanation=el('p',details);
    const maths=el('div',details,undefined,'duo-fusion-math');
-   const commit=button('Jetzt fusionieren',part,()=>send({
-    type:'fusion',materials:selected(),slot:Number(target.value),
-    templateId:Number(options.value),coreIndex:Number(core.value)}));
+   const commit=button('Jetzt fusionieren',part,async()=>{
+    const materials=selected(),slot=Number(target.value);
+    const occupant=p.field[slot]||game.fieldLayout==='team7'&&ally?.field[slot];
+    const consumed=materials.some(m=>m.index===slot&&
+     (m.from==='field'&&!!p.field[slot]||m.from==='allyField'&&!!ally?.field[slot]));
+    const replaceTarget=!!occupant&&!consumed;
+    if(replaceTarget){
+     const accepted=await window.ArcaneModal223.confirm({
+      kicker:'BESETZTE TEAMZONE',title:'Fusionsmonster einsetzen?',icon:'✦',
+      text:'„'+displayName(occupant)+'“ wird auf den Friedhof seines Besitzers gelegt. '+
+       'Die neue Fusion nimmt Teamzone '+(slot+1)+' ein.',
+      confirmText:'FUSION EINSETZEN',cancelText:'ABBRECHEN'});
+     if(!accepted)return;
+    }
+    await send({type:'fusion',materials,slot,replaceTarget,
+     templateId:Number(options.value),coreIndex:Number(core.value)});
+   });
    commit.dataset.ad188Commit='true';
    const selected=()=>[...select.selectedOptions].map(opt=>{
     const [from,index]=opt.value.split(':');return {from,index:Number(index)};
@@ -883,14 +902,21 @@
       {coreIndex:Number(core.value)});
      if(availability.rule.street)core.value=String(availability.rule.coreIndex);
      core.disabled=availability.rule.street;
-     const slots=p.field.flatMap((c,i)=>(!c||materials.some(m=>m.from==='field'&&m.index===i))&&
-      (game.fieldLayout!=='team7'||!ally?.field[i]||materials.some(m=>m.from==='allyField'&&m.index===i))?[i]:[]);
+     // A material on the field frees its zone. Alternatively, a fusion
+     // may replace any occupied team zone after explicit confirmation.
+     const slots=p.field.map((_,i)=>i);
      for(const id of availability.templates){
       const op=el('option',options,name(id)+' · Lv '+card(id).level);op.value=id;
      }
      if(keepTemplate!==null&&availability.templates.includes(Number(keepTemplate)))
       options.value=keepTemplate;
-     for(const id of slots){const op=el('option',target,'Feld '+(id+1));op.value=id;}
+     for(const id of slots){
+      const creature=p.field[id]||game.fieldLayout==='team7'&&ally?.field[id];
+      const consumed=materials.some(m=>m.index===id&&
+       (m.from==='field'&&!!p.field[id]||m.from==='allyField'&&!!ally?.field[id]));
+      const label=creature?(consumed?' · Material wird verbraucht':' · '+displayName(creature)+' ersetzen'):' · frei';
+      const op=el('option',target,'Teamzone '+(id+1)+label);op.value=id;
+     }
      commit.disabled=!availability.templates.length||!slots.length||busy||!!syncError;
      const {rule}=availability;
      const result=availability.templates.length?rules.fusionPreview(game,seat,materials,
@@ -913,6 +939,7 @@
      if(analysis.essenceRolls)lines.push('✦ Runenherz: +'+analysis.essenceRolls+
       ' Fusionswürfe durch das anwesende Essenzwesen');
      if(analysis.elemental)lines.push('✧ Alle Materialien teilen ein Element: Elementharmonie');
+     if(analysis.elementDiversity)lines.push('✧ Fünf verschiedene Elemente: Elementvielfalt (+5 Prozentpunkte)');
      if(materials.length>=3){
       const shares={3:[70],4:[50,50],5:[50,50,30]}[materials.length]||[];
       lines.push('✦ Fusions-Stomp: Hauptziel 100 % · Nebenziele '+shares.join(' / ')+

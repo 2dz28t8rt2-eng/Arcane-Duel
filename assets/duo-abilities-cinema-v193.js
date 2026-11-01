@@ -56,6 +56,19 @@
   const logs=linesSince(before,after),rows=pairs(before,after),events=[],used=new Set();
   if(!logs.length)return [];
   const key=row=>[row.where.seat,row.where.area,row.where.slot,row.after.uid].join(':');
+  // Since 1.1.4 the beginning-of-turn Soul decay happens BEFORE passive
+  // siphoning. A single authoritative revision therefore contains both a
+  // negative Soul delta (decay) and a positive one (passive drain). Match the
+  // announced drain gain against the sum, not against net Soul alone.
+  const beginningSoulDecay=row=>{
+   const previous=before.players.find(p=>p.seat===row.where.seat);
+   if(!previous||row.owner.ownTurns<=previous.ownTurns||
+      row.before.decaySkipOwnTurn===previous.ownTurns)return 0;
+   const label=String(catalog[row.after.id]?.name||'')+' · Seelenzerfall zum Zugbeginn';
+   if(!logs.some(line=>String(line).startsWith(label)))return 0;
+   const stored=number(row.before.soul);
+   return stored>0?Math.min(stored,Math.max(10,Math.ceil(stored*.32))):0;
+  };
   const take=(name,predicate)=>{
    const row=findUnique(rows,name,catalog,r=>!used.has(key(r))&&predicate(r));
    if(row)used.add(key(row));
@@ -90,7 +103,7 @@
    if(m){
     const [atk,def,gain]=[+m[2],+m[3],+m[4]];
     const row=take(m[1],r=>r.after.mode==='def'&&
-     number(r.after.soul)-number(r.before.soul)===gain&&
+     number(r.after.soul)-number(r.before.soul)+beginningSoulDecay(r)===gain&&
      (after.players||[]).find(p=>p.seat===r.where.seat)?.ownTurns>
      (before.players||[]).find(p=>p.seat===r.where.seat)?.ownTurns);
     if(row)events.push({kind:'drain',where:row.where,

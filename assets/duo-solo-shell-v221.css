@@ -202,3 +202,20 @@ html body #duoPage #duoSeats .monster-slot>.board-creature{position:relative;fle
 .ad204-inspect-art>.hand-card{width:100%!important;max-width:245px!important;min-width:0!important;height:auto!important;aspect-ratio:2/3;margin:auto;pointer-events:none}
 .ad204-inspect-art:has(>.hand-card){height:auto;max-height:none;background:none;overflow:visible}
 .ad-motion-disabled :is(.ad206-linked,.ad206-bridge,.ad206-soul-particle,.ad206-guardian-particle,.ad206-activated){animation:none!important}
+
+/* 1.1.3 · Shared 2v2 arena: larger readable cards, keep exactly seven zones/team.
+   On narrow screens the zone row scrolls; never shrink the cards to illegible icons. */
+#duoPage:not([data-lobby-view="true"]){max-width:2280px!important;width:min(100%,2280px)}
+#duoPage .ad221-battle-grid{grid-template-columns:minmax(250px,270px) minmax(0,1fr) minmax(260px,285px);gap:12px}
+#duoPage .ad221-battle-center{padding:6px;min-width:0}
+#duoPage #duoSeats .ad221-team-field{grid-template-columns:repeat(7,minmax(136px,1fr));gap:13px;padding:14px;overflow-x:auto;scrollbar-width:thin;overscroll-behavior-x:contain}
+#duoPage #duoSeats .ad221-team-heading{font-size:16px;letter-spacing:.035em;min-width:0}
+html body #duoPage #duoSeats .monster-slot>.board-creature.tc-card{width:70cqw!important;height:94cqw!important}
+#duoPage #duoSeats .ad221-card-owner{font-size:10px;font-weight:700;bottom:3px}
+#duoPage #duoSeats .ad204-card-info{min-width:29px;width:29px;height:29px;font-size:17px;top:4px;right:4px;left:auto;bottom:auto}
+#duoPage .ad221-inspector{scrollbar-width:thin}
+#duoPage .ad221-inspector #duoLargeCardPreview{max-width:260px;margin:auto}
+#duoPage #duoSeats .field-cell:focus-visible{outline:3px solid #c9f4fd;outline-offset:3px}
+@media(max-width:1400px){#duoPage .ad221-battle-grid{grid-template-columns:230px minmax(0,1fr) 245px;gap:9px}}
+@media(max-width:1050px){#duoPage .ad221-battle-grid{grid-template-columns:minmax(0,1fr) 235px;grid-template-areas:'board actions' 'inspect actions'}#duoPage .ad221-inspector{grid-area:inspect;position:static;max-height:none}#duoPage .ad221-battle-sidebar{grid-area:actions}}
+@media(max-width:800px){#duoPage .ad221-battle-grid{display:flex;flex-direction:column}#duoPage .ad221-battle-center{width:100%;order:0}#duoPage .ad221-battle-sidebar{width:100%;order:1;position:static}#duoPage .ad221-inspector{width:100%;order:2}#duoPage #duoSeats .ad221-team-field{grid-template-columns:repeat(7,minmax(125px,1fr));gap:9px;padding:9px}}

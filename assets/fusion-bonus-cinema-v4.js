@@ -20,15 +20,16 @@
   const original=combo?.name||card?.pattern||'Freie Fusion';
   const type=original.split(' · ')[0];
   const harmonized=original.includes('Elementharmonie');
+  const diversified=original.includes('Elementvielfalt');
   const base=COMBOS[type]||null;
-  if(!base&&!harmonized)return null;
+  if(!base&&!harmonized&&!diversified)return null;
   const count=Number.isInteger(combo?.materialCount)?combo.materialCount:Number(card?.materialsUsed)||2;
   // 5 materials is unconditionally more extravagant than a 3-card combination.
   const tier=Math.max(base?.tier||1,count===5?5:count===4?Math.min(4,(base?.tier||1)+1):1);
   const percent=typeof combo?.qualityPct==='number'?combo.qualityPct:null;
   const weighted=Math.max(1,Math.min(5,tier+(percent===null?0:percent>=20?1:0)));
   return Object.freeze({
-   type, title:base?.title||'ELEMENTHARMONIE',harmonized,materialCount:count,
+   type, title:base?.title||(diversified?'ELEMENTVIELFALT':'ELEMENTHARMONIE'),harmonized,diversified,materialCount:count,
    percent,tier:weighted,rollBonus:combo?.rollBonus||0
   });
  }
@@ -45,7 +46,8 @@
    ('+'+bonus.percent.toLocaleString('de-AT',{maximumFractionDigits:1})+
     ' % QUALITÄT · '+bonus.materialCount+' MATERIALIEN');
   const flourish=document.createElement('small');
-  flourish.textContent=bonus.harmonized&&bonus.type!=='Freie Fusion'?'✧ ELEMENTHARMONIE ✧':
+  flourish.textContent=bonus.diversified?'✦ ELEMENTVIELFALT · FÜNF ELEMENTE ✦':
+   bonus.harmonized&&bonus.type!=='Freie Fusion'?'✧ ELEMENTHARMONIE ✧':
    bonus.rollBonus?'✧ +'+bonus.rollBonus+' BONUSWÜRFE ✧':'✧ PRÄGUNG DER KOMBINATION ✧';
   text.append(title,subtitle,flourish);node.append(text);
   const sparks=document.createElement('div');sparks.className='ad-combo-particles';

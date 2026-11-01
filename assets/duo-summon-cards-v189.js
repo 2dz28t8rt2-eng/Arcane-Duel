@@ -33,7 +33,7 @@
     // the full authoritative board, including occupied replacement zones.
     const actualField=game.players?.[seat]?.field;
     const allSlots=Array.isArray(actualField)&&actualField.length?
-      actualField.flatMap((_,i)=>game.fieldLayout==='team7'&&game.players.find(x=>x.team===game.players[seat].team&&x.seat!==seat)?.field[i]?[]:[i]):legal.freeSlots;
+      actualField.map((_,i)=>i):legal.freeSlots;
     if(!allSlots?.length)return;
     const freeSlots=new Set(allSlots);
     const handNodes=new Map(),slotNodes=new Map();

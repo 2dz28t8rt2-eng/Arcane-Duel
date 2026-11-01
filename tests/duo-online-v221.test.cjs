@@ -101,16 +101,20 @@ test('canonical NPC fusion templates instantiate for their actual owner, includi
  assert.equal(privateFusions,2);
 });
 
-test('shared team zones reject partner overwrite for either team and preserve owned control',()=>{
+test('shared team zones allow confirmed partner replacement but forbid unauthorized partner actions',()=>{
  for(const first of [0,1]){
   let g=accept(request(lobby(),0),2);g.activeSeat=first;
-  g=apply(g,first,{type:'summon',slot:6,handIndex:0});g.activeSeat=first+2;
+  g=apply(g,first,{type:'summon',slot:6,handIndex:0});
+  const old=g.players[first].field[6],other=first+2;
+  g.activeSeat=other;
   assert.equal(g.fieldLayout,'team7');
-  assert.throws(()=>apply(g,first+2,{type:'summon',slot:6,handIndex:0}),/Feldplatz/);
-  assert.throws(()=>apply(g,first+2,{type:'replace',slot:6,handIndex:0}),/Feldplatz/);
-  assert.throws(()=>apply(g,first+2,{type:'switch',slot:6}),/Positionswechsel/);
-  const next=apply(g,first+2,{type:'summon',slot:5,handIndex:0});
-  assert.equal(rules.teamField(next,next.players[first]).filter(Boolean).length,2);
+  assert.throws(()=>apply(g,other,{type:'summon',slot:6,handIndex:0}),/Feldplatz/);
+  assert.throws(()=>apply(g,other,{type:'switch',slot:6}),/Positionswechsel/);
+  const next=apply(g,other,{type:'replace',slot:6,handIndex:0});
+  assert.equal(next.players[first].field[6],null);
+  assert.equal(next.players[first].graveyard.at(-1).uid,old.uid);
+  assert.ok(next.players[other].field[6]);
+  assert.equal(rules.teamField(next,next.players[first]).filter(Boolean).length,1);
  }
 });
 test('guardian and soul bond across personal ownership in the shared physical row',()=>{

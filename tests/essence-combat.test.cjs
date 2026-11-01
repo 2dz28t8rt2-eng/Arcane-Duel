@@ -102,9 +102,13 @@ test('Seelenenergie must not permanently inflate base DEF during end-turn decay'
  const baseBefore=soul.card.def,lpBefore=duel.players[1].lp;
  g.advanceTurn(duel);
  assert.ok(soul.card.def<baseBefore,'Base DEF must decay, never increase from stored bonus DEF');
- assert.equal(energy.condensed,60);
+ assert.equal(energy.condensed,90,'Soul essence is not spent at owner turn END');
+ assert.equal(energy.soul,200,'Stored Soul remains until next own turn begins');
+ assert.equal(lpBefore-duel.players[1].lp,0,'No passive Soul LP damage at turn end');
+ g.advanceTurn(duel);
+ assert.equal(energy.condensed,60,'Condensation ticks at beginning of its own turn');
  assert.equal(energy.soul,136);
- assert.equal(lpBefore-duel.players[1].lp,22,'Unstable energy loses 32%, but only 35% of that causes opponent LP burn');
+ assert.equal(lpBefore-duel.players[1].lp,22,'Only next own turn causes 35% LP burn from 32% Soul decay');
 });
 
 test('All specialization lessons and five-stage retraining paths run on loan decks',()=>{
@@ -223,8 +227,11 @@ test('Verdichten grants temporary ATK, preserves normal switch and attack, and d
  assert.equal(beforeLP-duel.players[1].lp,baseAtk+75);
  assert.equal(layer.condensed,150,'Attacking does not prematurely expire buff');
  g.advanceTurn(duel);
- assert.equal(layer.condensed,100,'Original three-slice shield decay retained');
- assert.equal(layer.cooldown,2,'Original cooldown countdown retained');
+ assert.equal(layer.condensed,150,'No shield decay at owner turn end');
+ assert.equal(layer.cooldown,3,'No Soul cooldown decrement before next own turn');
+ g.advanceTurn(duel);
+ assert.equal(layer.condensed,100,'Original three-slice shield decay retained at own turn BEGINNING');
+ assert.equal(layer.cooldown,2,'Original cooldown countdown retained at own turn beginning');
  assert.equal(vm.runInContext('dataOf(__testCondenseDuel.players[0].field[0]).atk',ctx),c.card.atk+50);
 });
 test('Verdichten boosts surviving Soul counterstrikes using remaining shield, without multiplying base ATK',()=>{

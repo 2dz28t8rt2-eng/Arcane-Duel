@@ -47,7 +47,7 @@
     '<tr><td>Fünfling</td><td>3 + 3 + 3 + 3 + 3</td><td>+18 %</td><td>3</td></tr>'+
     '<tr><td>Gigantische Straße</td><td>2 + 3 + 4 + 5 + 6</td><td>+36 %</td><td>4</td></tr>'+
     '</tbody></table></div>'+
-    '<p>Materialien der Stufen 1 und 2 können zusätzliche kleine Kombinationsboni liefern. <b>Elementharmonie</b> mit gleichen Elementen gibt weitere +2,5 Prozentpunkte. Eine vollständig gleichartige Spezialistenrolle gibt +5 Prozentpunkte Qualität. Upgrades und Resonanz können ergänzen.</p>'+
+    '<p>Materialien der Stufen 1 und 2 können zusätzliche kleine Kombinationsboni liefern. <b>Elementharmonie</b> mit gleichen Elementen gibt +2,5 Prozentpunkte; fünf verschiedene Elemente geben stattdessen <b>+5 Prozentpunkte Elementvielfalt</b>. Eine vollständig gleichartige Spezialistenrolle gibt +5 Prozentpunkte Qualität. Upgrades und Resonanz können ergänzen.</p>'+
     '<div class="ad214-diagram">'+chain([3,4,5])+'<span>↓ 100 % + 4,5 % (dritte Karte) + 20 % (Straße)</span><strong>124,5 % Basisqualität ohne Zusatzboni</strong></div>')+
    sub('stats','5 · ATK und DEF verständlich erklärt',
     '<p><b>Schritt 1:</b> Das Spiel nimmt die ATK- und DEF-Referenz der <em>gewählten Fusionsvorlage</em> auf ihrem Ziellevel. Diese orientiert sich am normalen Monsterpotenzial, nicht einfach an der Summe der Materialwerte.</p>'+
@@ -123,6 +123,7 @@
     ' · reine Spezialisten +'+pct(analysis.pureRolePct||0)+
     ' · geerbte Qualität +'+pct(analysis.heritagePct||0)+
     (analysis.elemental?' · Elementharmonie aktiv':'')+
+    (analysis.elementDiversity?' · Elementvielfalt aktiv (+5 Prozentpunkte)':'')+
     (analysis.loreChainApplied?' · Fusionskunde +3 % Kettenqualität':'')+'.</p></div>'+
     '<div class="ad214-live-part"><strong>3 · Welche Werte sind möglich?</strong>'+
     '<p>Kampfrolle: <b>'+esc(role)+'</b>'+(analysis.soulOdds?' (Seelenzehrer-Erwachen möglich)':'')+
