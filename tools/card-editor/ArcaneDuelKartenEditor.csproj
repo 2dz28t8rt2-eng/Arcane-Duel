@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>ArcaneDuelKartenEditor</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
+    <PackageReference Include="Svg" Version="3.4.8" />
+    <EmbeddedResource Include="../../assets/card-templates/*.svg" LogicalName="ArcaneCardEditor.Frame.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../assets/card-templates/levels/*.svg" LogicalName="ArcaneCardEditor.Level.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../assets/card-v405-icons/*.svg" LogicalName="ArcaneCardEditor.Icon.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../assets/card-templates/manifest.json" LogicalName="ArcaneCardEditor.Data.Templates" />
+    <EmbeddedResource Include="../../assets/duo-card-catalog-v160.json" LogicalName="ArcaneCardEditor.Data.Cards" />
+    <EmbeddedResource Include="Generated/Thumbnails/index.json" LogicalName="ArcaneCardEditor.Data.Thumbnails" />
+    <EmbeddedResource Include="Generated/Thumbnails/*.jpg" LogicalName="ArcaneCardEditor.Thumb.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../assets/card-view-v221.js" LogicalName="ArcaneCardEditor.Script.CardView221" />
+    <EmbeddedResource Include="../../assets/card-look-v3.css" LogicalName="ArcaneCardEditor.Style.card-look-v3.css" />
+    <EmbeddedResource Include="../../assets/card-preview-polish-v4.css" LogicalName="ArcaneCardEditor.Style.card-preview-polish-v4.css" />
+    <EmbeddedResource Include="../../assets/card-templates-v1.css" LogicalName="ArcaneCardEditor.Style.card-templates-v1.css" />
+    <EmbeddedResource Include="../../assets/card-level-frames-v401.css" LogicalName="ArcaneCardEditor.Style.card-level-frames-v401.css" />
+    <EmbeddedResource Include="../../assets/card-level-runtime-v402.css" LogicalName="ArcaneCardEditor.Style.card-level-runtime-v402.css" />
+    <EmbeddedResource Include="../../assets/card-shell-v404.css" LogicalName="ArcaneCardEditor.Style.card-shell-v404.css" />
+    <EmbeddedResource Include="../../assets/card-v405-polish.css" LogicalName="ArcaneCardEditor.Style.card-v405-polish.css" />
+  </ItemGroup>
+</Project>
